@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { ArrowLeft, Check, ChevronRight, ClipboardList, Minus, Plus, ReceiptText, Star, Users } from "lucide-react";
 import { Logo } from "@/components/tipe/Logo";
 import { getMesa, splitGorjeta } from "@/lib/tipe/rules";
-import { getStatusMesa, pagarConta } from "@/lib/tipe/payments.functions";
+import { createPayment } from "@/lib/tipe/payments.functions";
 
 export const Route = createFileRoute("/mesa/$restaurante/$mesa")({
   head: () => ({
@@ -52,12 +52,14 @@ function MesaPage() {
     setPagando(true);
     setErroPagamento(null);
     try {
-      await pagarConta({
+      await createPayment({
         data: {
-          restaurante: dados.restaurante,
-          mesa: dados.mesa,
-          valor: total,
-          metodo: metodo as "pix" | "apple_pay" | "google_pay" | "cartao",
+          method: metodo === "cartao" ? "card" : (metodo as "pix" | "apple_pay" | "google_pay"),
+          amount: subtotal + servico,
+          tip: gorjetaExtra,
+          tableId: String(dados.mesa),
+          restaurantId: dados.restaurante,
+          idempotencyKey: `${dados.restaurante}-${dados.mesa}-${Date.now()}`,
         },
       });
       setEtapa("fim");
