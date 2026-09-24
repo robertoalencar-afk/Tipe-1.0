@@ -253,7 +253,7 @@ function MesaPage() {
             ].map(([id, label]) => (
               <button
                 key={id}
-                onClick={() => setMetodo(id)}
+                onClick={() => setMetodo(id ?? null)}
                 className={`rounded-2xl border py-3 text-sm font-medium ${
                   metodo === id ? "border-primary bg-primary/10 text-primary" : "border-border bg-card"
                 }`}
