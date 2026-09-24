@@ -10,33 +10,43 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as MesaRestauranteMesaRouteImport } from './routes/mesa.$restaurante.$mesa'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MesaRestauranteMesaRoute = MesaRestauranteMesaRouteImport.update({
+  id: '/mesa/$restaurante/$mesa',
+  path: '/mesa/$restaurante/$mesa',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/mesa/$restaurante/$mesa'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/mesa/$restaurante/$mesa'
+  id: '__root__' | '/' | '/mesa/$restaurante/$mesa'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  MesaRestauranteMesaRoute: typeof MesaRestauranteMesaRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +58,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/mesa/$restaurante/$mesa': {
+      id: '/mesa/$restaurante/$mesa'
+      path: '/mesa/$restaurante/$mesa'
+      fullPath: '/mesa/$restaurante/$mesa'
+      preLoaderRoute: typeof MesaRestauranteMesaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  MesaRestauranteMesaRoute: MesaRestauranteMesaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
