@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { QrCode } from "lucide-react";
 import logo from "@/assets/logo.png.asset.json";
-import mascot from "@/assets/mascot-run.png.asset.json";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -19,7 +18,7 @@ function Totem() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-background p-6">
       <div className="w-full max-w-sm rounded-[2rem] p-8 text-center text-secondary-foreground" style={{ background: "var(--gradient-brand)", boxShadow: "var(--shadow-glow)" }}>
-        <img src={logo.url} alt="TIPE" className="mx-auto h-10" />
+        <img src={logo.url} alt="TIPE" className="mx-auto h-14" />
         <h1 className="mt-6 font-display text-3xl font-bold">Aqui tem Tipe.</h1>
         <p className="text-primary">Pague. Sem esperar.</p>
         <p className="mt-4 text-sm opacity-80">Aponte a câmera para o QR Code da sua mesa.</p>
@@ -28,7 +27,6 @@ function Totem() {
           <QrCode className="h-32 w-32" />
         </Link>
         <p className="mt-3 text-xs opacity-60">Mesa 12 · toque no código para simular a leitura</p>
-        <img src={mascot.url} alt="" className="mx-auto mt-4 w-40 rounded-2xl bg-card p-2" />
       </div>
     </main>
   );
