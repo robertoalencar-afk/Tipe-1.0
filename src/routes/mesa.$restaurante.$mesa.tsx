@@ -2,9 +2,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { queryOptions, useSuspenseQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
-import { ArrowLeft, Check, Copy, CreditCard, QrCode, Smartphone, Star, Users } from "lucide-react";
+import { ArrowLeft, Check, Clock, Copy, CreditCard, QrCode, Smartphone, Star } from "lucide-react";
+import logo from "@/assets/logo.png.asset.json";
+import mascot from "@/assets/mascot-run.png.asset.json";
 import { toast } from "sonner";
-import { TipeSymbol } from "@/components/tipe/Logo";
 import { getTableBill } from "@/lib/tipe/pdv.functions";
 import { createPayment, type PaymentResult } from "@/lib/tipe/payments.functions";
 import { brl, splitTip, totals } from "@/lib/tipe/rules";
@@ -42,9 +43,8 @@ function ClientFlow() {
 
   const [step, setStep] = useState<Step>("welcome");
   const [name, setName] = useState("");
-  const [mode, setMode] = useState<"all" | "items" | "split">("all");
-  const [selected, setSelected] = useState<Set<string>>(new Set());
-  const [people, setPeople] = useState(2);
+  const [mode, setMode] = useState<"all" | "items">("all");
+  const [qtys, setQtys] = useState<Record<string, number>>({});
   const [tipPct, setTipPct] = useState(0);
   const [rating, setRating] = useState(5);
   const [method, setMethod] = useState<(typeof methods)[number]["id"]>("pix");
@@ -52,10 +52,10 @@ function ClientFlow() {
   const [result, setResult] = useState<PaymentResult | null>(null);
 
   const base = useMemo(() => {
-    if (mode === "items") return totals(bill.items, selected).total;
-    const t = totals(bill.items).total - bill.paid;
-    return mode === "split" ? +(t / people).toFixed(2) : t;
-  }, [mode, selected, people, bill]);
+    if (mode === "items") return totals(bill.items, qtys).total;
+    return +(totals(bill.items).total - bill.paid).toFixed(2);
+  }, [mode, qtys, bill]);
+  const log = useMemo(() => [...bill.items].sort((a, b) => b.orderedAt.localeCompare(a.orderedAt)), [bill]);
   const all = totals(bill.items);
   const tip = +(base * tipPct).toFixed(2);
 
@@ -78,7 +78,7 @@ function ClientFlow() {
         <header className="flex items-center justify-between px-5 py-4" style={{ background: "var(--gradient-brand)" }}>
           {back[step] ? (
             <button onClick={() => setStep(back[step]!)} aria-label="Voltar" className="text-secondary-foreground"><ArrowLeft /></button>
-          ) : <TipeSymbol className="h-7 w-7" />}
+          ) : <img src={logo.url} alt="TIPE" className="h-7" />}
           <div className="text-right text-secondary-foreground">
             <p className="text-xs opacity-70">{bill.restaurant.name}</p>
             <p className="font-display font-semibold">Mesa {bill.table.number}</p>
@@ -91,49 +91,64 @@ function ClientFlow() {
         <section className="flex-1 px-5 py-6">
           {step === "welcome" && (
             <div className="flex h-full flex-col">
-              <h1 className="font-display text-3xl font-bold">Olá! 👋</h1>
+              <img src={mascot.url} alt="Lebre TIPE" className="mx-auto w-56" />
+              <h1 className="mt-2 font-display text-3xl font-bold">Olá! Eu sou a Lebre Tipe.</h1>
               <p className="mt-2 text-muted-foreground">Confira sua conta e pague direto pelo celular. Você foi atendido por <b className="text-foreground">{bill.waiter.name}</b>.</p>
               <label className="mt-8 text-sm font-semibold">Como podemos te chamar?</label>
               <input value={name} onChange={(e) => setName(e.target.value.slice(0, 40))} placeholder="Seu nome"
                 className="mt-2 rounded-xl border border-input bg-card px-4 py-3 outline-none focus:ring-2 focus:ring-ring" />
-              <div className="mt-auto pt-8"><Primary disabled={!name.trim()} onClick={() => setStep("bill")}>Ver minha conta</Primary></div>
+              <div className="mt-auto pt-8"><Primary disabled={!name.trim()} onClick={() => setStep("bill")}>Começar atendimento</Primary></div>
             </div>
           )}
 
           {step === "bill" && (
             <div>
               <h1 className="font-display text-2xl font-bold">Sua conta</h1>
-              <div className="mt-4 grid grid-cols-3 gap-2 rounded-xl bg-muted p-1 text-sm font-semibold">
-                {([["all", "Tudo"], ["items", "Meus itens"], ["split", "Dividir"]] as const).map(([k, l]) => (
+              <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl bg-muted p-1 text-sm font-semibold">
+                {([["all", "Conta toda"], ["items", "Escolher itens"]] as const).map(([k, l]) => (
                   <button key={k} onClick={() => setMode(k)} className={`rounded-lg py-2 ${mode === k ? "bg-card shadow" : "text-muted-foreground"}`}>{l}</button>
                 ))}
               </div>
               <ul className="mt-4 divide-y divide-border rounded-2xl bg-card">
                 {bill.items.map((i) => {
-                  const on = selected.has(i.id);
+                  const q = qtys[i.id] ?? 0;
                   return (
-                    <li key={i.id} className="flex items-center gap-3 px-4 py-3"
-                      onClick={() => mode === "items" && setSelected((s) => { const n = new Set(s); on ? n.delete(i.id) : n.add(i.id); return n; })}>
+                    <li key={i.id} className="px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <span className="text-muted-foreground">{i.qty}×</span>
+                        <span className="flex-1">{i.name}</span>
+                        <span className="font-semibold">{brl(i.qty * i.unitPrice)}</span>
+                      </div>
                       {mode === "items" && (
-                        <span className={`flex h-5 w-5 items-center justify-center rounded-md border ${on ? "border-primary bg-primary" : "border-input"}`}>{on && <Check className="h-3 w-3" />}</span>
+                        <div className="mt-2">
+                          <p className="text-xs text-muted-foreground">Quantos você vai pagar? (máx. {i.qty} · {brl(i.unitPrice)} cada)</p>
+                          <div className="mt-1 flex snap-x gap-2 overflow-x-auto pb-1">
+                            {Array.from({ length: i.qty + 1 }, (_, n) => (
+                              <button key={n} onClick={() => setQtys((s) => ({ ...s, [i.id]: n }))}
+                                className={`h-10 min-w-10 shrink-0 snap-center rounded-xl border px-3 font-semibold ${q === n ? "border-primary bg-primary text-primary-foreground" : "border-input bg-background"}`}>
+                                {n}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       )}
-                      <span className="text-muted-foreground">{i.qty}×</span>
-                      <span className="flex-1">{i.name}</span>
-                      <span className="font-semibold">{brl(i.qty * i.unitPrice)}</span>
                     </li>
                   );
                 })}
               </ul>
-              {mode === "split" && (
-                <div className="mt-4 flex items-center justify-between rounded-2xl bg-card px-4 py-3">
-                  <span className="flex items-center gap-2"><Users className="h-4 w-4" /> Pessoas</span>
-                  <div className="flex items-center gap-3">
-                    <button className="h-8 w-8 rounded-full bg-muted" onClick={() => setPeople((p) => Math.max(2, p - 1))}>−</button>
-                    <b>{people}</b>
-                    <button className="h-8 w-8 rounded-full bg-muted" onClick={() => setPeople((p) => Math.min(20, p + 1))}>+</button>
-                  </div>
-                </div>
-              )}
+              <details className="mt-4 rounded-2xl bg-card px-4 py-3" open>
+                <summary className="flex cursor-pointer items-center gap-2 font-semibold"><Clock className="h-4 w-4 text-info" /> Registro dos pedidos</summary>
+                <ul className="mt-3 space-y-2 text-sm">
+                  {log.map((i) => (
+                    <li key={i.id} className="flex gap-3 border-l-2 border-primary pl-3">
+                      <div className="flex-1">
+                        <p><b>{i.orderedBy}</b> pediu {i.qty}× {i.name}</p>
+                        <p className="text-xs text-muted-foreground">{fmt(i.orderedAt)}</p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              </details>
               <dl className="mt-4 space-y-1 text-sm">
                 <Row l="Subtotal da mesa" v={brl(all.subtotal)} />
                 <Row l="Taxa de serviço (10%)" v={brl(all.service)} />
@@ -206,10 +221,8 @@ function ClientFlow() {
           )}
 
           {step === "done" && (
-            <div className="flex flex-col items-center pt-10 text-center">
-              <div className="flex h-24 w-24 items-center justify-center rounded-full bg-primary" style={{ boxShadow: "var(--shadow-glow)" }}>
-                <Check className="h-12 w-12 text-primary-foreground" />
-              </div>
+            <div className="flex flex-col items-center pt-6 text-center">
+              <img src={mascot.url} alt="Lebre TIPE" className="w-56" />
               <h1 className="mt-6 font-display text-3xl font-bold">Tipou. Foi!</h1>
               <p className="mt-2 text-muted-foreground">Obrigado, {name}. Pagamento de {brl(base + tip)} confirmado.</p>
               <p className="mt-1 text-xs text-muted-foreground">Comprovante {result?.id}</p>
@@ -228,4 +241,8 @@ function Row({ l, v }: { l: string; v: string }) {
 function Primary(props: React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return <button {...props} style={{ boxShadow: "var(--shadow-glow)" }}
     className="w-full rounded-2xl bg-primary py-4 font-display font-bold text-primary-foreground transition active:scale-[0.98] disabled:opacity-40" />;
+}
+
+function fmt(iso: string) {
+  return new Date(iso).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo", day: "2-digit", month: "2-digit", year: "numeric", hour: "2-digit", minute: "2-digit" });
 }

@@ -3,16 +3,18 @@ import { z } from "zod";
 import type { TableBill } from "./rules";
 
 function mockBill(restaurantId: string, tableId: string): TableBill {
+  const now = Date.now();
+  const at = (minAgo: number) => new Date(now - minAgo * 60000).toISOString();
   return {
     restaurant: { id: restaurantId, name: "Restaurante Maré Alta" },
     table: { id: tableId, number: tableId },
     waiter: { id: "g-01", name: "Carlos Mendes" },
     items: [
-      { id: "1", name: "Moqueca de camarão", qty: 1, unitPrice: 128 },
-      { id: "2", name: "Arroz de coco", qty: 1, unitPrice: 24 },
-      { id: "3", name: "Caipirinha de caju", qty: 2, unitPrice: 26 },
-      { id: "4", name: "Água com gás", qty: 2, unitPrice: 8 },
-      { id: "5", name: "Cocada de forno", qty: 1, unitPrice: 22 },
+      { id: "1", name: "Moqueca de camarão", qty: 1, unitPrice: 128, orderedBy: "Ana", orderedAt: at(95) },
+      { id: "2", name: "Arroz de coco", qty: 2, unitPrice: 24, orderedBy: "Ana", orderedAt: at(95) },
+      { id: "3", name: "Caipirinha de caju", qty: 3, unitPrice: 26, orderedBy: "Bruno", orderedAt: at(110) },
+      { id: "4", name: "Água com gás", qty: 2, unitPrice: 8, orderedBy: "Carla", orderedAt: at(88) },
+      { id: "5", name: "Cocada de forno", qty: 1, unitPrice: 22, orderedBy: "Bruno", orderedAt: at(20) },
     ],
     paid: 0,
     source: "simulado",
@@ -38,6 +40,7 @@ export const getTableBill = createServerFn({ method: "GET" })
         waiter: { id: String(j.waiter_id ?? ""), name: j.waiter_name ?? "Equipe" },
         items: (j.items ?? []).map((i: any, idx: number) => ({
           id: String(i.id ?? idx), name: i.desc_item ?? i.name, qty: Number(i.quantity ?? 1), unitPrice: Number(i.unit_price ?? 0),
+          orderedBy: String(i.customer_name ?? i.waiter_name ?? "Mesa"), orderedAt: String(i.created_at ?? new Date().toISOString()),
         })),
         paid: Number(j.paid_amount ?? 0),
         source: "saipos",
