@@ -25,3 +25,47 @@ export function splitTip(tip: number) {
   const waiter = +(tip * TIP_SPLIT.waiter).toFixed(2);
   return { waiter, tipe: +(tip - waiter).toFixed(2) };
 }
+
+// ---- Dados da mesa (exemplo; virão da Saipos) ----
+export type ItemConta = {
+  id: string;
+  nome: string;
+  qtd: number;
+  preco: number;
+  pedidoPor: string;
+  data: string;
+  hora: string;
+};
+
+export type Mesa = {
+  restaurante: string;
+  mesa: number;
+  garcom: string;
+  itens: ItemConta[];
+};
+
+const MESAS: Record<string, Mesa> = {
+  "mare-alta/12": {
+    restaurante: "Maré Alta",
+    mesa: 12,
+    garcom: "Carlos",
+    itens: [
+      { id: "1", nome: "Moqueca de peixe", qtd: 2, preco: 89, pedidoPor: "Ana", data: "24/09/2026", hora: "19:42" },
+      { id: "2", nome: "Camarão na moranga", qtd: 1, preco: 112, pedidoPor: "Bruno", data: "24/09/2026", hora: "19:45" },
+      { id: "3", nome: "Caipirinha de limão", qtd: 3, preco: 24, pedidoPor: "Carla", data: "24/09/2026", hora: "19:50" },
+      { id: "4", nome: "Água com gás", qtd: 2, preco: 8, pedidoPor: "Ana", data: "24/09/2026", hora: "20:05" },
+      { id: "5", nome: "Pudim de leite", qtd: 1, preco: 18, pedidoPor: "Bruno", data: "24/09/2026", hora: "20:40" },
+    ],
+  },
+};
+
+export function getMesa(restaurante: string, mesa: number): Mesa {
+  return MESAS[`${restaurante}/${mesa}`] ?? MESAS["mare-alta/12"];
+}
+
+// Gorjeta extra: 70% garçom, 30% TIPE (restaurante fica com a taxa de serviço)
+export function splitGorjeta(extra: number) {
+  const garcom = +(extra * TIP_SPLIT.waiter).toFixed(2);
+  const tipe = +(extra * TIP_SPLIT.tipe).toFixed(2);
+  return { garcom, tipe, restaurante: 0 };
+}
