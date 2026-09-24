@@ -286,12 +286,7 @@ function MesaPage() {
 }
 
 function Fim({ dados, total }: { dados: ReturnType<typeof getMesa>; total: number }) {
-  const [status, setStatus] = useState<string>("consultando…");
-  useMemo(() => {
-    getStatusMesa({ data: { restaurante: dados.restaurante, mesa: dados.mesa } })
-      .then((r) => setStatus(r.status))
-      .catch(() => setStatus("indisponível"));
-  }, [dados]);
+  const status = "paga (demonstração)";
 
   return (
     <main className="flex flex-1 flex-col items-center justify-center px-6 pb-16 text-center">
