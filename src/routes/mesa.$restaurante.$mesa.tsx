@@ -1,11 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useMemo, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   ArrowLeft,
   Check,
   ChevronRight,
   ClipboardList,
   CreditCard,
+  HandCoins,
   Heart,
   ReceiptText,
   Sparkles,
@@ -16,8 +17,9 @@ import { TipeLogo } from "@/components/tipe/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { getMesa, splitGorjeta } from "@/lib/tipe/rules";
-import { createPayment } from "@/lib/tipe/payments.functions";
+import { getMesa } from "@/lib/tipe/rules";
+import { createPayment, getSharedTableState, type SharedPayment } from "@/lib/tipe/payments.functions";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/mesa/$restaurante/$mesa")({
   head: () => ({
@@ -43,7 +45,7 @@ type Etapa =
   | "pagamento-gorjeta"
   | "fim";
 type Aba = "conta" | "atividade";
-type Metodo = "pix" | "card" | "apple_pay" | "google_pay";
+type Metodo = "pix" | "card" | "apple_pay" | "google_pay" | "at_establishment";
 
 const money = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const metodos: Array<{ id: Metodo; label: string }> = [
@@ -51,6 +53,7 @@ const metodos: Array<{ id: Metodo; label: string }> = [
   { id: "apple_pay", label: "Apple Pay" },
   { id: "google_pay", label: "Google Pay" },
   { id: "card", label: "Cartão" },
+  { id: "at_establishment", label: "Pagar no estabelecimento" },
 ];
 
 function MesaPage() {
@@ -69,6 +72,28 @@ function MesaPage() {
   const [gorjetaExtra, setGorjetaExtra] = useState(0);
   const [pagando, setPagando] = useState(false);
   const [erroPagamento, setErroPagamento] = useState<string | null>(null);
+  const [disponiveis, setDisponiveis] = useState<Record<string, number>>(() => Object.fromEntries(dados.itens.map((item) => [item.id, item.qtd])));
+  const [pagamentos, setPagamentos] = useState<SharedPayment[]>([]);
+
+  const atualizarMesa = useCallback(async () => {
+    try {
+      const estado = await getSharedTableState({ data: { restaurantId: restaurante, tableId: String(dados.mesa) } });
+      setDisponiveis(Object.fromEntries(estado.items.map((item) => [item.item_code, Math.max(0, item.ordered_quantity - item.reserved_quantity - item.paid_quantity)])));
+      setPagamentos(estado.payments);
+      setQtds((atuais) => Object.fromEntries(dados.itens.map((item) => [item.id, Math.min(atuais[item.id] ?? 0, Math.max(0, estado.items.find((shared) => shared.item_code === item.id)?.ordered_quantity ?? item.qtd) - (estado.items.find((shared) => shared.item_code === item.id)?.reserved_quantity ?? 0) - (estado.items.find((shared) => shared.item_code === item.id)?.paid_quantity ?? 0))])));
+    } catch {
+      setErroPagamento("Não foi possível atualizar a mesa agora.");
+    }
+  }, [dados.itens, dados.mesa, restaurante]);
+
+  useEffect(() => {
+    void atualizarMesa();
+    const channel = supabase.channel(`mesa-${restaurante}-${dados.mesa}`)
+      .on("postgres_changes", { event: "*", schema: "public", table: "table_bill_items", filter: `restaurant_slug=eq.${restaurante}` }, () => void atualizarMesa())
+      .on("postgres_changes", { event: "*", schema: "public", table: "table_payment_requests", filter: `restaurant_slug=eq.${restaurante}` }, () => void atualizarMesa())
+      .subscribe();
+    return () => { void supabase.removeChannel(channel); };
+  }, [atualizarMesa, dados.mesa, restaurante]);
 
   const subtotal = useMemo(
     () => dados.itens.reduce((soma, item) => soma + item.preco * (qtds[item.id] ?? 0), 0),
@@ -76,7 +101,6 @@ function MesaPage() {
   );
   const servico = +(subtotal * 0.1).toFixed(2);
   const totalConta = +(subtotal + servico).toFixed(2);
-  const split = splitGorjeta(gorjetaExtra);
 
   function identificar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -102,9 +126,14 @@ function MesaPage() {
           tableId: String(dados.mesa),
           restaurantId: tipo === "conta" ? restaurante : "tipe",
           idempotencyKey: `${tipo}-${restaurante}-${dados.mesa}-${Date.now()}`,
+          customerName: nome.trim(),
+          itemQuantities: tipo === "conta" ? qtds : {},
+          target: tipo === "conta" ? "restaurant" : "tipe",
         },
       });
-      setEtapa(tipo === "conta" ? "conta-confirmada" : "fim");
+      await atualizarMesa();
+      setEtapa(tipo === "conta" ? (metodo === "at_establishment" ? "conta" : "conta-confirmada") : "fim");
+      if (tipo === "conta" && metodo === "at_establishment") setAba("atividade");
     } catch (error) {
       setErroPagamento(error instanceof Error ? error.message : "Não foi possível concluir o pagamento");
     } finally {
@@ -171,14 +200,15 @@ function MesaPage() {
             <>
               <p className="mb-3 text-sm text-muted-foreground">Escolha quanto de cada item você vai pagar.</p>
               <ul className="flex flex-col gap-3">
-                {dados.itens.map((item) => {
+                {dados.itens.filter((item) => (disponiveis[item.id] ?? item.qtd) > 0).map((item) => {
                   const quantidade = qtds[item.id] ?? 0;
+                  const disponivel = disponiveis[item.id] ?? item.qtd;
                   return (
                     <li key={item.id} className={`rounded-lg border bg-card p-4 transition ${quantidade > 0 ? "border-primary/60" : "border-border"}`}>
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
                           <p className="font-semibold">{item.nome}</p>
-                          <p className="mt-1 text-xs text-muted-foreground">{money(item.preco)} cada · {item.qtd} na mesa</p>
+                           <p className="mt-1 text-xs text-muted-foreground">{money(item.preco)} cada · {disponivel} disponível{disponivel === 1 ? "" : "is"}</p>
                         </div>
                         <span className="shrink-0 text-sm font-bold">{money(item.preco * quantidade)}</span>
                       </div>
@@ -186,11 +216,11 @@ function MesaPage() {
                         <span className="text-xs text-muted-foreground">Quantidade a pagar</span>
                         <select
                           value={quantidade}
-                          onChange={(event) => setQtd(item.id, Number(event.target.value), item.qtd)}
+                          onChange={(event) => setQtd(item.id, Number(event.target.value), disponivel)}
                           className="h-10 min-w-20 rounded-md border border-input bg-background px-3 text-sm font-bold outline-none focus:ring-1 focus:ring-ring"
                           aria-label={`Quantidade de ${item.nome}`}
                         >
-                          {Array.from({ length: item.qtd + 1 }, (_, numero) => (
+                          {Array.from({ length: disponivel + 1 }, (_, numero) => (
                             <option key={numero} value={numero}>{numero}</option>
                           ))}
                         </select>
@@ -199,6 +229,7 @@ function MesaPage() {
                   );
                 })}
               </ul>
+              {dados.itens.every((item) => (disponiveis[item.id] ?? item.qtd) <= 0) && <p className="py-10 text-center text-sm text-muted-foreground">Não há itens disponíveis para pagamento.</p>}
 
               <div className="mt-6 border-y border-border py-4 text-sm">
                 <ResumoLinha label="Subtotal selecionado" valor={subtotal} />
@@ -225,6 +256,17 @@ function MesaPage() {
                   </li>
                 ))}
               </ol>
+               {pagamentos.length > 0 && (
+                 <div className="mt-6 border-t border-border pt-5">
+                   <h3 className="mb-2 text-sm font-semibold">Pagamentos</h3>
+                   {pagamentos.map((pagamento) => (
+                     <div key={pagamento.id} className="flex justify-between gap-3 border-b border-border py-3 text-sm last:border-0">
+                       <div><p className="font-medium">{pagamento.customer_name}</p><p className="text-xs text-muted-foreground">{pagamento.payment_method === "at_establishment" ? "Pagamento no estabelecimento" : "Pagamento digital"}</p></div>
+                       <div className="text-right"><p className="font-semibold">{money(pagamento.amount)}</p><p className={pagamento.status === "pending" ? "text-xs font-semibold text-highlight" : "text-xs text-primary"}>{pagamento.status === "pending" ? "Pendente de confirmação" : "Pago"}</p></div>
+                     </div>
+                   ))}
+                 </div>
+               )}
             </section>
           )}
         </main>
@@ -276,18 +318,12 @@ function MesaPage() {
         <main className="flex flex-1 flex-col px-6 pb-10">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/15"><Heart className="h-7 w-7 text-primary" /></div>
           <h1 className="mt-5 text-center text-2xl font-bold">Quer deixar uma gorjeta extra?</h1>
-          <p className="mt-2 text-center text-sm leading-6 text-muted-foreground">É opcional. A TIPE recebe o valor e administra o repasse: 70% para {dados.garcom} e 30% para a TIPE.</p>
+           <p className="mt-2 text-center text-sm leading-6 text-muted-foreground">Uma forma opcional de agradecer pelo atendimento.</p>
           <div className="mt-7 grid grid-cols-2 gap-3">
             {[5, 10, 15, 20].map((valor) => (
               <Button key={valor} variant={gorjetaExtra === valor ? "default" : "outline"} onClick={() => setGorjetaExtra(valor)} className="h-14 rounded-lg text-base font-bold">{money(valor)}</Button>
             ))}
           </div>
-          {gorjetaExtra > 0 && (
-            <div className="mt-5 rounded-lg bg-muted p-4 text-xs text-muted-foreground">
-              <div className="flex justify-between"><span>Repasse ao garçom</span><strong className="text-foreground">{money(split.garcom)}</strong></div>
-              <div className="mt-2 flex justify-between"><span>TIPE</span><strong className="text-foreground">{money(split.tipe)}</strong></div>
-            </div>
-          )}
           <Button disabled={gorjetaExtra <= 0} onClick={() => setEtapa("pagamento-gorjeta")} className="mt-6 h-12 rounded-lg text-base font-bold">Continuar com gorjeta <ChevronRight /></Button>
           <Button variant="ghost" onClick={() => setEtapa("fim")} className="mt-2 h-11">Agora não, obrigado</Button>
         </main>
@@ -296,7 +332,7 @@ function MesaPage() {
       {etapa === "pagamento-gorjeta" && (
         <Pagamento
           titulo="Pagamento da gorjeta"
-          descricao="Cobrança opcional e separada da conta. O valor será recebido pela TIPE para posterior repasse."
+           descricao="Cobrança opcional e separada da conta."
           rotuloValor="Gorjeta extra"
           valor={gorjetaExtra}
           metodo={metodoGorjeta}
@@ -351,13 +387,13 @@ function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, p
       <div className="mt-3 grid grid-cols-2 gap-2">
         {metodos.map((opcao) => (
           <Button key={opcao.id} variant={metodo === opcao.id ? "default" : "outline"} onClick={() => setMetodo(opcao.id)} className="h-12 rounded-lg">
-            <CreditCard /> {opcao.label}
+            {opcao.id === "at_establishment" ? <HandCoins /> : <CreditCard />} {opcao.label}
           </Button>
         ))}
       </div>
       {erro && <p role="alert" className="mt-4 text-sm text-destructive">{erro}</p>}
       <Button disabled={!metodo || pagando} onClick={pagar} className="mt-6 h-12 rounded-lg text-base font-bold">{pagando ? "Processando…" : `Pagar ${money(valor)}`}</Button>
-      <p className="mt-3 text-center text-xs text-muted-foreground">Pagamento em modo de demonstração.</p>
+       {metodo === "at_establishment" && <p className="mt-3 text-center text-xs text-muted-foreground">Pague na maquininha ou em dinheiro. A confirmação será feita pelo estabelecimento.</p>}
     </main>
   );
 }
