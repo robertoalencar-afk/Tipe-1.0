@@ -8,12 +8,17 @@ import {
   CreditCard,
   HandCoins,
   Heart,
+  QrCode,
   ReceiptText,
+  Smartphone,
   Star,
   Users,
+  WalletCards,
 } from "lucide-react";
 import { TipeLogo } from "@/components/tipe/Logo";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getMesa } from "@/lib/tipe/rules";
@@ -58,6 +63,22 @@ const metodos: Array<{ id: Metodo; label: string }> = [
   { id: "card", label: "Cartão" },
   { id: "at_establishment", label: "Pagar no estabelecimento" },
 ];
+
+const metodoDetalhes: Record<Metodo, { descricao: string; Icone: typeof CreditCard }> = {
+  pix: { descricao: "Confirmação rápida pelo seu banco", Icone: QrCode },
+  apple_pay: { descricao: "Use a carteira do seu dispositivo Apple", Icone: Smartphone },
+  google_pay: { descricao: "Use a carteira do seu dispositivo Android", Icone: WalletCards },
+  card: { descricao: "Crédito ou débito", Icone: CreditCard },
+  at_establishment: { descricao: "Dinheiro ou maquininha", Icone: HandCoins },
+};
+
+const formatPaymentDate = (value: string) => new Intl.DateTimeFormat("pt-BR", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+}).format(new Date(value));
 
 const customerStorageKey = (restaurantId: string, tableId: number) =>
   `tipe:cliente:${restaurantId}:${tableId}`;
@@ -267,7 +288,7 @@ function MesaPage() {
                   <li key={item.id} className="relative border-b border-border py-4 first:pt-1 last:border-0">
                     <span className="absolute -left-[1.18rem] top-5 h-2 w-2 rounded-full bg-primary" />
                     <div className="flex justify-between gap-3">
-                      <div><p className="font-medium">{item.qtd}× {item.nome}</p><p className="mt-1 text-xs text-muted-foreground">Pedido por {item.pedidoPor}</p></div>
+                      <div><p className="font-medium">{item.qtd}× {item.nome}</p></div>
                       <div className="shrink-0 text-right text-xs text-muted-foreground"><p>{item.data}</p><p>{item.hora}</p></div>
                     </div>
                   </li>
@@ -277,9 +298,22 @@ function MesaPage() {
                  <div className="mt-6 border-t border-border pt-5">
                    <h3 className="mb-2 text-sm font-semibold">Pagamentos</h3>
                     {pagamentos.map((pagamento) => (
-                     <div key={pagamento.id} className="flex justify-between gap-3 border-b border-border py-3 text-sm last:border-0">
-                       <div><p className="font-medium">{pagamento.customer_name}</p><p className="text-xs text-muted-foreground">{pagamento.payment_method === "at_establishment" ? "Pagamento no estabelecimento" : "Pagamento digital"}</p></div>
-                        <div className="text-right"><p className="font-semibold">{money(pagamento.amount)}</p><p className={pagamento.status === "pending" ? "text-xs font-semibold text-highlight" : "text-xs text-primary"}>{pagamento.status === "pending" ? "Pendente de confirmação do estabelecimento" : "Pagamento confirmado"}</p></div>
+                      <div key={pagamento.id} className="border-b border-border py-4 text-sm last:border-0">
+                        <div className="flex justify-between gap-3">
+                          <div>
+                            <p className="font-semibold">{pagamento.customer_name}</p>
+                            <p className="mt-0.5 text-xs text-muted-foreground">{formatPaymentDate(pagamento.created_at)}</p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-semibold">{money(pagamento.amount)}</p>
+                            <p className={pagamento.status === "pending" ? "text-xs font-semibold text-highlight" : "text-xs font-semibold text-primary"}>{pagamento.status === "pending" ? "Pendente" : "Confirmado"}</p>
+                          </div>
+                        </div>
+                        <ul className="mt-3 space-y-1 border-l-2 border-primary/30 pl-3 text-xs text-muted-foreground">
+                          {Object.entries(pagamento.item_quantities ?? {}).filter(([, quantidade]) => quantidade > 0).map(([itemId, quantidade]) => (
+                            <li key={itemId}>{quantidade}× {dados.itens.find((item) => item.id === itemId)?.nome ?? "Item da conta"}</li>
+                          ))}
+                        </ul>
                      </div>
                    ))}
                  </div>
@@ -292,7 +326,7 @@ function MesaPage() {
       {etapa === "pagamento-conta" && (
         <Pagamento
           titulo="Pagamento da conta"
-          descricao="Este pagamento será enviado ao restaurante e relacionado à conta registrada no PDV."
+          descricao="Este pagamento corresponde apenas aos itens que você escolheu. Após a confirmação, a conta da mesa será atualizada automaticamente."
           rotuloValor="Total da conta"
           valor={totalConta}
           metodo={metodoConta}
@@ -405,6 +439,7 @@ function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, p
   pagar: () => void;
   permitirEstabelecimento?: boolean;
 }) {
+  const [aceitouTermos, setAceitouTermos] = useState(false);
   const opcoes = permitirEstabelecimento
     ? metodos.filter((opcao) => opcao.id !== "card")
     : metodos.filter((opcao) => opcao.id !== "at_establishment");
@@ -417,24 +452,53 @@ function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, p
         <p className="text-xs text-muted-foreground">{rotuloValor}</p>
         <p className="mt-1 font-display text-3xl font-bold">{money(valor)}</p>
       </div>
-      <h2 className="text-sm font-semibold">Como deseja pagar?</h2>
-       <div className="mt-3 grid grid-cols-2 gap-2">
-        {opcoes.map((opcao) => (
-           <Button
-             key={opcao.id}
-             variant={metodo === opcao.id ? "default" : "outline"}
-             onClick={() => setMetodo(opcao.id)}
-             className={`rounded-lg ${opcao.id === "at_establishment" ? "col-span-2 h-16 flex-col gap-0.5" : "h-12"}`}
-           >
-             <span className="flex items-center justify-center gap-2">
-               {opcao.id === "at_establishment" ? <HandCoins /> : <CreditCard />} {opcao.label}
-             </span>
-             {opcao.id === "at_establishment" && <span className="text-xs font-normal opacity-75">Dinheiro ou maquininha</span>}
-          </Button>
-        ))}
+       <h2 className="text-sm font-semibold">Como deseja pagar?</h2>
+       <div className="mt-3 flex flex-col gap-2">
+         {opcoes.map((opcao) => {
+           const { descricao: descricaoMetodo, Icone } = metodoDetalhes[opcao.id];
+           const selecionado = metodo === opcao.id;
+           return (
+             <Button
+               key={opcao.id}
+               variant="outline"
+               onClick={() => setMetodo(opcao.id)}
+               className={`h-auto min-h-16 justify-start rounded-lg px-4 py-3 text-left shadow-none ${selecionado ? "border-primary bg-primary/10 ring-1 ring-primary" : "bg-card"}`}
+             >
+               <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${selecionado ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}><Icone className="h-4 w-4" /></span>
+               <span className="min-w-0 flex-1">
+                 <span className="block font-semibold">{opcao.label}</span>
+                 <span className="block text-xs font-normal text-muted-foreground">{descricaoMetodo}</span>
+               </span>
+               <span className={`h-4 w-4 shrink-0 rounded-full border-2 ${selecionado ? "border-primary bg-primary ring-2 ring-background" : "border-input"}`} aria-hidden="true" />
+             </Button>
+           );
+         })}
       </div>
+       {permitirEstabelecimento && (
+         <div className="mt-5 flex items-start gap-3 rounded-lg border border-border bg-card p-4">
+           <Checkbox id="aceite-termos" checked={aceitouTermos} onCheckedChange={(checked) => setAceitouTermos(checked === true)} className="mt-0.5 h-5 w-5" />
+           <label htmlFor="aceite-termos" className="text-xs leading-5 text-muted-foreground">
+             Confirmo que revisei e me responsabilizo pelos itens selecionados. Aceito os{" "}
+             <Dialog>
+               <DialogTrigger asChild><Button type="button" variant="link" className="h-auto p-0 text-xs font-semibold align-baseline">Termos de Uso</Button></DialogTrigger>
+               <DialogContent className="max-h-[85svh] max-w-[calc(100%-2rem)] overflow-y-auto rounded-lg">
+                 <DialogHeader>
+                   <DialogTitle>Termos de Uso do pagamento</DialogTitle>
+                   <DialogDescription>Leia antes de confirmar sua parte da conta.</DialogDescription>
+                 </DialogHeader>
+                 <div className="space-y-4 text-sm leading-6 text-muted-foreground">
+                   <p>Ao continuar, você declara que conferiu os itens e as quantidades escolhidas e reconhece que este pagamento cobre somente essa seleção.</p>
+                   <p>Após a confirmação, os itens pagos serão retirados do saldo disponível da mesa. Valores ainda não pagos permanecerão na conta.</p>
+                   <p>Pagamentos digitais são confirmados automaticamente. Pagamentos em dinheiro ou maquininha permanecem pendentes até a confirmação manual do restaurante.</p>
+                   <p>Em caso de divergência, procure o restaurante antes de concluir o pagamento.</p>
+                 </div>
+               </DialogContent>
+             </Dialog>.
+           </label>
+         </div>
+       )}
       {erro && <p role="alert" className="mt-4 text-sm text-destructive">{erro}</p>}
-      <Button disabled={!metodo || pagando} onClick={pagar} className="mt-6 h-12 rounded-lg text-base font-bold">{pagando ? "Processando…" : `Pagar ${money(valor)}`}</Button>
+       <Button disabled={!metodo || pagando || (permitirEstabelecimento && !aceitouTermos)} onClick={pagar} className="mt-6 h-12 rounded-lg text-base font-bold">{pagando ? "Processando…" : `Pagar ${money(valor)}`}</Button>
         {metodo === "at_establishment" && <p className="mt-3 text-center text-xs text-muted-foreground">A confirmação será feita pelo estabelecimento.</p>}
     </main>
   );

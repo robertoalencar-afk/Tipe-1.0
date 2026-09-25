@@ -10,6 +10,7 @@
 - [x] Cliente: retorno à mesa sem nova identificação e atividade restrita aos pagamentos da conta
 - [x] Cliente: totem simplificado, nome completo e mascotes oficiais nas telas de espera e agradecimento
 - [x] Cliente: pagamento da conta sem cartão, opção presencial destacada e mascote na avaliação
+- [x] Cliente: manter fluxo itens → meio → pagamento, remover autor dos pedidos e detalhar pagamentos na atividade
 - [ ] Painel do restaurante
 - [ ] Painel do garçom
 - [ ] Painel do fundador

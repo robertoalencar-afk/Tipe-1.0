@@ -32,7 +32,6 @@ export type ItemConta = {
   nome: string;
   qtd: number;
   preco: number;
-  pedidoPor: string;
   data: string;
   hora: string;
 };
@@ -50,11 +49,11 @@ const MESAS: Record<string, Mesa> = {
     mesa: 12,
     garcom: "Carlos",
     itens: [
-      { id: "1", nome: "Moqueca de peixe", qtd: 2, preco: 89, pedidoPor: "Ana", data: "24/09/2026", hora: "19:42" },
-      { id: "2", nome: "Camarão na moranga", qtd: 1, preco: 112, pedidoPor: "Bruno", data: "24/09/2026", hora: "19:45" },
-      { id: "3", nome: "Caipirinha de limão", qtd: 3, preco: 24, pedidoPor: "Carla", data: "24/09/2026", hora: "19:50" },
-      { id: "4", nome: "Água com gás", qtd: 2, preco: 8, pedidoPor: "Ana", data: "24/09/2026", hora: "20:05" },
-      { id: "5", nome: "Pudim de leite", qtd: 1, preco: 18, pedidoPor: "Bruno", data: "24/09/2026", hora: "20:40" },
+      { id: "1", nome: "Moqueca de peixe", qtd: 2, preco: 89, data: "24/09/2026", hora: "19:42" },
+      { id: "2", nome: "Camarão na moranga", qtd: 1, preco: 112, data: "24/09/2026", hora: "19:45" },
+      { id: "3", nome: "Caipirinha de limão", qtd: 3, preco: 24, data: "24/09/2026", hora: "19:50" },
+      { id: "4", nome: "Água com gás", qtd: 2, preco: 8, data: "24/09/2026", hora: "20:05" },
+      { id: "5", nome: "Pudim de leite", qtd: 1, preco: 18, data: "24/09/2026", hora: "20:40" },
     ],
   },
 };
