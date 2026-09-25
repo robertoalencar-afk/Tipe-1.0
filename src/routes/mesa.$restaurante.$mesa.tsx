@@ -27,6 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import mascotThanks from "@/assets/mascot-thanks.png";
 import mascotRating from "@/assets/mascot-rating.png";
 import mascotWaiting from "@/assets/mascot-waiting.png";
+import mascotTableClosed from "@/assets/mascot-table-closed.png";
 
 export const Route = createFileRoute("/mesa/$restaurante/$mesa")({
   head: () => ({
@@ -43,6 +44,7 @@ export const Route = createFileRoute("/mesa/$restaurante/$mesa")({
 });
 
 type Etapa =
+  | "carregando"
   | "identificacao"
   | "conta"
   | "pagamento-conta"
@@ -51,6 +53,7 @@ type Etapa =
   | "avaliacao"
   | "gorjeta"
   | "pagamento-gorjeta"
+  | "mesa-encerrada"
   | "fim";
 type Aba = "conta" | "atividade";
 type Metodo = "pix" | "card" | "apple_pay" | "google_pay" | "at_establishment";
@@ -87,7 +90,7 @@ const hasFirstAndLastName = (value: string) => value.trim().split(/\s+/).length 
 function MesaPage() {
   const { restaurante, mesa } = Route.useParams();
   const dados = getMesa(restaurante, Number(mesa));
-  const [etapa, setEtapa] = useState<Etapa>("identificacao");
+  const [etapa, setEtapa] = useState<Etapa>("carregando");
   const [nome, setNome] = useState("");
   const [aba, setAba] = useState<Aba>("conta");
   const [qtds, setQtds] = useState<Record<string, number>>(() =>
@@ -102,12 +105,20 @@ function MesaPage() {
   const [erroPagamento, setErroPagamento] = useState<string | null>(null);
   const [disponiveis, setDisponiveis] = useState<Record<string, number>>(() => Object.fromEntries(dados.itens.map((item) => [item.id, item.qtd])));
   const [pagamentos, setPagamentos] = useState<SharedPayment[]>([]);
+  const [mesaSincronizada, setMesaSincronizada] = useState(false);
 
   useEffect(() => {
-    const nomeSalvo = window.localStorage.getItem(customerStorageKey(restaurante, dados.mesa))?.trim();
-    if (!nomeSalvo) return;
-    setNome(nomeSalvo);
-    setEtapa("conta");
+    try {
+      const nomeSalvo = window.localStorage.getItem(customerStorageKey(restaurante, dados.mesa))?.trim() ?? "";
+      if (hasFirstAndLastName(nomeSalvo)) {
+        setNome(nomeSalvo);
+        setEtapa("conta");
+        return;
+      }
+    } catch {
+      // Se o armazenamento do navegador estiver indisponível, a identificação segue normalmente.
+    }
+    setEtapa("identificacao");
   }, [dados.mesa, restaurante]);
 
   const atualizarMesa = useCallback(async () => {
@@ -116,6 +127,7 @@ function MesaPage() {
       setDisponiveis(Object.fromEntries(estado.items.map((item) => [item.item_code, Math.max(0, item.ordered_quantity - item.reserved_quantity - item.paid_quantity)])));
       setPagamentos(estado.payments);
       setQtds((atuais) => Object.fromEntries(dados.itens.map((item) => [item.id, Math.min(atuais[item.id] ?? 0, Math.max(0, estado.items.find((shared) => shared.item_code === item.id)?.ordered_quantity ?? item.qtd) - (estado.items.find((shared) => shared.item_code === item.id)?.reserved_quantity ?? 0) - (estado.items.find((shared) => shared.item_code === item.id)?.paid_quantity ?? 0))])));
+      setMesaSincronizada(true);
     } catch {
       setErroPagamento("Não foi possível atualizar a mesa agora.");
     }
@@ -136,6 +148,12 @@ function MesaPage() {
   );
   const servico = +(subtotal * 0.1).toFixed(2);
   const totalConta = +(subtotal + servico).toFixed(2);
+  const mesaEncerrada = mesaSincronizada
+    && dados.itens.every((item) => (disponiveis[item.id] ?? item.qtd) <= 0)
+    && pagamentos.every((pagamento) => pagamento.status !== "pending");
+  const etapaVisivel: Etapa = mesaEncerrada && ["carregando", "identificacao", "conta", "pagamento-conta", "conta-pendente"].includes(etapa)
+    ? "mesa-encerrada"
+    : etapa;
 
   function identificar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -183,14 +201,20 @@ function MesaPage() {
     <div className="mx-auto flex min-h-svh max-w-md flex-col bg-background">
       <header className="mb-5 flex flex-col items-center bg-secondary px-6 pb-5 pt-7 text-secondary-foreground">
         <TipeLogo className="h-14" />
-        {etapa !== "identificacao" && (
+        {etapaVisivel !== "identificacao" && etapaVisivel !== "carregando" && (
           <p className="mt-3 text-sm text-secondary-foreground/70">
             {dados.restaurante} · Mesa {dados.mesa}
           </p>
         )}
       </header>
 
-      {etapa === "identificacao" && (
+      {etapaVisivel === "carregando" && (
+        <main className="flex flex-1 items-center justify-center px-6 pb-24" aria-label="Carregando mesa">
+          <span className="h-8 w-8 animate-spin rounded-full border-2 border-muted border-t-primary motion-reduce:animate-none" />
+        </main>
+      )}
+
+      {etapaVisivel === "identificacao" && (
         <main className="flex flex-1 flex-col justify-center px-6 pb-24">
           <p className="text-sm font-semibold text-primary">Mesa {dados.mesa}</p>
           <h1 className="mt-2 font-display text-3xl font-bold">Olá! Qual é o seu nome?</h1>
@@ -216,7 +240,7 @@ function MesaPage() {
         </main>
       )}
 
-      {etapa === "conta" && (
+      {etapaVisivel === "conta" && (
         <main className="flex flex-1 flex-col px-5 pb-8">
           <div className="mb-4 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3">
             <p className="text-sm">Olá, <strong>{nome.trim()}</strong>.</p>
@@ -323,7 +347,7 @@ function MesaPage() {
         </main>
       )}
 
-      {etapa === "pagamento-conta" && (
+      {etapaVisivel === "pagamento-conta" && (
         <Pagamento
           titulo="Pagamento da conta"
           descricao="Este pagamento corresponde apenas aos itens que você escolheu. Após a confirmação, a conta da mesa será atualizada automaticamente."
@@ -339,7 +363,7 @@ function MesaPage() {
         />
       )}
 
-      {etapa === "conta-pendente" && (
+      {etapaVisivel === "conta-pendente" && (
         <TelaCentral>
           <img src={mascotWaiting} alt="Mascote TIPE aguardando" className="mx-auto mb-3 h-44 w-44 object-contain" />
           <p className="text-sm font-semibold text-highlight">Aguardando confirmação</p>
@@ -350,7 +374,7 @@ function MesaPage() {
         </TelaCentral>
       )}
 
-      {etapa === "conta-confirmada" && (
+      {etapaVisivel === "conta-confirmada" && (
         <TelaCentral>
           <IconeSucesso />
           <p className="text-sm font-semibold text-primary">Conta paga</p>
@@ -360,7 +384,7 @@ function MesaPage() {
         </TelaCentral>
       )}
 
-      {etapa === "avaliacao" && (
+      {etapaVisivel === "avaliacao" && (
         <main className="flex flex-1 flex-col px-6 pb-10">
           <img src={mascotRating} alt="Mascote TIPE com uma estrela" className="mx-auto mb-3 h-28 w-28 object-contain" />
           <h1 className="text-center text-2xl font-bold">Como foi seu atendimento?</h1>
@@ -378,7 +402,7 @@ function MesaPage() {
         </main>
       )}
 
-      {etapa === "gorjeta" && (
+      {etapaVisivel === "gorjeta" && (
         <main className="flex flex-1 flex-col px-6 pb-10">
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/15"><Heart className="h-7 w-7 text-primary" /></div>
           <h1 className="mt-5 text-center text-2xl font-bold">Quer deixar uma gorjeta extra?</h1>
@@ -393,7 +417,7 @@ function MesaPage() {
         </main>
       )}
 
-      {etapa === "pagamento-gorjeta" && (
+      {etapaVisivel === "pagamento-gorjeta" && (
         <Pagamento
           titulo="Pagamento da gorjeta"
            descricao="Cobrança opcional e separada da conta."
@@ -408,7 +432,24 @@ function MesaPage() {
         />
       )}
 
-      {etapa === "fim" && (
+      {etapaVisivel === "mesa-encerrada" && (
+        <TelaCentral>
+          <img
+            src={mascotTableClosed}
+            alt="Mascote TIPE ao lado da conta encerrada"
+            loading="lazy"
+            width={1024}
+            height={1024}
+            className="mx-auto h-52 w-52 object-contain"
+          />
+          <p className="mt-4 text-sm font-semibold text-primary">Tudo confirmado</p>
+          <h1 className="mt-2 text-2xl font-bold">Mesa encerrada</h1>
+          <p className="mt-3 text-center text-sm leading-6 text-muted-foreground">Todos os itens desta mesa foram pagos e não há pagamentos pendentes.</p>
+          <Link to="/" className="mt-8 text-sm font-semibold text-primary">Voltar ao início</Link>
+        </TelaCentral>
+      )}
+
+      {etapaVisivel === "fim" && (
         <TelaCentral>
           <img src={mascotThanks} alt="Mascote TIPE agradecendo" className="mx-auto h-48 w-48 object-contain" />
           <p className="mt-5 text-sm font-semibold text-primary">Tudo certo, {nome.trim()}!</p>
