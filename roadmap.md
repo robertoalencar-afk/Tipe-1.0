@@ -8,6 +8,7 @@
 - [x] Cliente: identificação por nome, garçom responsável e pagamentos separados (conta / gorjeta)
 - [x] Cliente: reserva de itens e pagamento pendente no estabelecimento
 - [x] Cliente: retorno à mesa sem nova identificação e atividade restrita aos pagamentos da conta
+- [x] Cliente: totem simplificado, nome completo e mascotes oficiais nas telas de espera e agradecimento
 - [ ] Painel do restaurante
 - [ ] Painel do garçom
 - [ ] Painel do fundador

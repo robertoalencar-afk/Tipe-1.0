@@ -9,7 +9,6 @@ import {
   HandCoins,
   Heart,
   ReceiptText,
-  Sparkles,
   Star,
   Users,
 } from "lucide-react";
@@ -20,6 +19,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { getMesa } from "@/lib/tipe/rules";
 import { createPayment, getSharedTableState, type SharedPayment } from "@/lib/tipe/payments.functions";
 import { supabase } from "@/integrations/supabase/client";
+import mascotThanks from "@/assets/mascot-thanks.png";
+import mascotWaiting from "@/assets/mascot-waiting.png";
 
 export const Route = createFileRoute("/mesa/$restaurante/$mesa")({
   head: () => ({
@@ -59,6 +60,7 @@ const metodos: Array<{ id: Metodo; label: string }> = [
 
 const customerStorageKey = (restaurantId: string, tableId: number) =>
   `tipe:cliente:${restaurantId}:${tableId}`;
+const hasFirstAndLastName = (value: string) => value.trim().split(/\s+/).length >= 2;
 
 function MesaPage() {
   const { restaurante, mesa } = Route.useParams();
@@ -116,7 +118,7 @@ function MesaPage() {
   function identificar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const nomeIdentificado = nome.trim();
-    if (!nomeIdentificado) return;
+    if (!hasFirstAndLastName(nomeIdentificado)) return;
     window.localStorage.setItem(customerStorageKey(restaurante, dados.mesa), nomeIdentificado);
     setNome(nomeIdentificado);
     setEtapa("conta");
@@ -169,12 +171,12 @@ function MesaPage() {
       {etapa === "identificacao" && (
         <main className="flex flex-1 flex-col justify-center px-6 pb-24">
           <p className="text-sm font-semibold text-primary">Mesa {dados.mesa}</p>
-          <h1 className="mt-2 font-display text-3xl font-bold">Olá! Como podemos chamar você?</h1>
+          <h1 className="mt-2 font-display text-3xl font-bold">Olá! Qual é o seu nome?</h1>
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
             Seu nome identifica os itens que você escolher pagar nesta mesa.
           </p>
           <form onSubmit={identificar} className="mt-8">
-            <label htmlFor="nome" className="text-sm font-semibold">Seu nome</label>
+            <label htmlFor="nome" className="text-sm font-semibold">Nome e sobrenome</label>
             <Input
               id="nome"
               autoFocus
@@ -182,10 +184,10 @@ function MesaPage() {
               maxLength={40}
               value={nome}
               onChange={(event) => setNome(event.target.value)}
-              placeholder="Digite seu primeiro nome"
+              placeholder="Digite seu nome e sobrenome"
               className="mt-2 h-12 rounded-lg bg-card px-4"
             />
-            <Button type="submit" disabled={!nome.trim()} className="mt-5 h-12 w-full rounded-lg text-base font-bold">
+            <Button type="submit" disabled={!hasFirstAndLastName(nome)} className="mt-5 h-12 w-full rounded-lg text-base font-bold">
               Ver minha mesa <ChevronRight />
             </Button>
           </form>
@@ -304,10 +306,10 @@ function MesaPage() {
 
       {etapa === "conta-pendente" && (
         <TelaCentral>
-          <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-highlight/15"><HandCoins className="h-10 w-10 text-highlight" /></div>
+          <img src={mascotWaiting} alt="Mascote TIPE aguardando" className="mx-auto mb-3 h-44 w-44 object-contain" />
           <p className="text-sm font-semibold text-highlight">Aguardando confirmação</p>
           <h1 className="mt-2 text-2xl font-bold">Pagamento no estabelecimento</h1>
-          <p className="mt-3 text-center text-sm leading-6 text-muted-foreground">Os itens foram reservados. Pague na maquininha ou em dinheiro; o restaurante confirmará o recebimento no sistema.</p>
+          <p className="mt-3 text-center text-sm leading-6 text-muted-foreground">Os itens foram reservados. Pague na maquininha ou em dinheiro. O garçom virá em breve e o restaurante confirmará o recebimento manualmente no sistema.</p>
           <Button onClick={() => setEtapa("avaliacao")} className="mt-8 h-12 w-full rounded-lg text-base font-bold">Avaliar atendimento <ChevronRight /></Button>
           <Button variant="ghost" onClick={() => { setEtapa("conta"); setAba("atividade"); }} className="mt-2 h-11">Ver atividade da mesa</Button>
         </TelaCentral>
@@ -372,7 +374,7 @@ function MesaPage() {
 
       {etapa === "fim" && (
         <TelaCentral>
-          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-primary/15"><Sparkles className="h-10 w-10 text-primary" /></div>
+          <img src={mascotThanks} alt="Mascote TIPE agradecendo" className="mx-auto h-48 w-48 object-contain" />
           <p className="mt-5 text-sm font-semibold text-primary">Tudo certo, {nome.trim()}!</p>
           <h1 className="mt-2 text-2xl font-bold">Obrigado pela sua visita.</h1>
           <p className="mt-3 text-center text-sm leading-6 text-muted-foreground">Sua conta foi paga e sua avaliação foi registrada.</p>
