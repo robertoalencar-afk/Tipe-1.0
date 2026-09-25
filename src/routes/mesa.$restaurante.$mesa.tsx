@@ -374,7 +374,7 @@ function ResumoLinha({ label, valor, className = "" }: { label: string; valor: n
   return <div className={`flex justify-between gap-4 ${className}`}><span className="text-muted-foreground">{label}</span><span>{money(valor)}</span></div>;
 }
 
-function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, pagando, erro, voltar, pagar }: {
+function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, pagando, erro, voltar, pagar, permitirEstabelecimento = false }: {
   titulo: string;
   descricao: string;
   rotuloValor: string;
@@ -387,7 +387,7 @@ function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, p
   pagar: () => void;
   permitirEstabelecimento?: boolean;
 }) {
-  const opcoes = arguments[0].permitirEstabelecimento ? metodos : metodos.filter((opcao) => opcao.id !== "at_establishment");
+  const opcoes = permitirEstabelecimento ? metodos : metodos.filter((opcao) => opcao.id !== "at_establishment");
   return (
     <main className="flex flex-1 flex-col px-5 pb-8">
       <Button variant="ghost" onClick={voltar} className="mb-4 w-fit px-2 text-muted-foreground"><ArrowLeft /> Voltar</Button>
