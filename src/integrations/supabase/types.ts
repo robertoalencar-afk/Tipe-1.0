@@ -14,7 +14,96 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      table_bill_items: {
+        Row: {
+          created_at: string
+          id: string
+          item_code: string
+          item_name: string
+          ordered_at: string
+          ordered_by: string
+          ordered_quantity: number
+          paid_quantity: number
+          reserved_quantity: number
+          restaurant_slug: string
+          table_number: string
+          unit_price: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_code: string
+          item_name: string
+          ordered_at: string
+          ordered_by: string
+          ordered_quantity: number
+          paid_quantity?: number
+          reserved_quantity?: number
+          restaurant_slug: string
+          table_number: string
+          unit_price: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_code?: string
+          item_name?: string
+          ordered_at?: string
+          ordered_by?: string
+          ordered_quantity?: number
+          paid_quantity?: number
+          reserved_quantity?: number
+          restaurant_slug?: string
+          table_number?: string
+          unit_price?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      table_payment_requests: {
+        Row: {
+          amount: number
+          created_at: string
+          customer_name: string
+          id: string
+          item_quantities: Json
+          payment_method: string
+          payment_target: string
+          restaurant_slug: string
+          status: string
+          table_number: string
+          updated_at: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          customer_name: string
+          id?: string
+          item_quantities?: Json
+          payment_method: string
+          payment_target: string
+          restaurant_slug: string
+          status?: string
+          table_number: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          customer_name?: string
+          id?: string
+          item_quantities?: Json
+          payment_method?: string
+          payment_target?: string
+          restaurant_slug?: string
+          status?: string
+          table_number?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
