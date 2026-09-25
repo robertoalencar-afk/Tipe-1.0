@@ -22,7 +22,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getMesa } from "@/lib/tipe/rules";
-import { createPayment, getSharedTableState, type SharedPayment } from "@/lib/tipe/payments.functions";
+import { createPayment, getSharedTableState, reopenClosedTable, type SharedPayment } from "@/lib/tipe/payments.functions";
 import { supabase } from "@/integrations/supabase/client";
 import mascotThanks from "@/assets/mascot-thanks.png";
 import mascotRating from "@/assets/mascot-rating.png";
@@ -154,6 +154,32 @@ function MesaPage() {
   const etapaVisivel: Etapa = mesaEncerrada && ["carregando", "identificacao", "conta", "pagamento-conta", "conta-pendente"].includes(etapa)
     ? "mesa-encerrada"
     : etapa;
+
+  useEffect(() => {
+    if (!mesaEncerrada) return;
+    let ativo = true;
+    const verificar = async () => {
+      try {
+        const r = await reopenClosedTable({ data: { restaurantId: restaurante, tableId: String(dados.mesa) } });
+        if (!ativo || !r.reopened) return;
+      } catch { return; }
+    };
+    void verificar();
+    const timer = window.setInterval(() => void verificar(), 15000);
+    return () => { ativo = false; window.clearInterval(timer); };
+  }, [mesaEncerrada, restaurante, dados.mesa]);
+
+  const [estavaEncerrada, setEstavaEncerrada] = useState(false);
+  useEffect(() => {
+    if (mesaEncerrada) { setEstavaEncerrada(true); return; }
+    if (estavaEncerrada && mesaSincronizada) {
+      // Nova conta aberta: limpa a identificação e recomeça.
+      setEstavaEncerrada(false);
+      try { window.localStorage.removeItem(customerStorageKey(restaurante, dados.mesa)); } catch { /* ignora */ }
+      setNome(""); setEstrelas(0); setComentario(""); setGorjetaExtra(0); setAba("conta");
+      setEtapa("identificacao");
+    }
+  }, [mesaEncerrada, estavaEncerrada, mesaSincronizada, restaurante, dados.mesa]);
 
   function identificar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
