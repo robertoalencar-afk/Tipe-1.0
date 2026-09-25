@@ -109,7 +109,19 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      register_table_payment: {
+        Args: {
+          p_amount: number
+          p_customer_name: string
+          p_item_quantities: Json
+          p_payment_method: string
+          p_payment_target: string
+          p_restaurant_slug: string
+          p_status: string
+          p_table_number: string
+        }
+        Returns: string
+      }
     }
     Enums: {
       [_ in never]: never
