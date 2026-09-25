@@ -40,6 +40,7 @@ type Etapa =
   | "conta"
   | "pagamento-conta"
   | "conta-confirmada"
+  | "conta-pendente"
   | "avaliacao"
   | "gorjeta"
   | "pagamento-gorjeta"
@@ -124,7 +125,7 @@ function MesaPage() {
           amount: valor,
           tip: 0,
           tableId: String(dados.mesa),
-          restaurantId: tipo === "conta" ? restaurante : "tipe",
+          restaurantId: restaurante,
           idempotencyKey: `${tipo}-${restaurante}-${dados.mesa}-${Date.now()}`,
           customerName: nome.trim(),
           itemQuantities: tipo === "conta" ? qtds : {},
@@ -132,8 +133,7 @@ function MesaPage() {
         },
       });
       await atualizarMesa();
-      setEtapa(tipo === "conta" ? (metodo === "at_establishment" ? "conta" : "conta-confirmada") : "fim");
-      if (tipo === "conta" && metodo === "at_establishment") setAba("atividade");
+      setEtapa(tipo === "conta" ? (metodo === "at_establishment" ? "conta-pendente" : "conta-confirmada") : "fim");
     } catch (error) {
       setErroPagamento(error instanceof Error ? error.message : "Não foi possível concluir o pagamento");
     } finally {
@@ -284,7 +284,19 @@ function MesaPage() {
           erro={erroPagamento}
           voltar={() => setEtapa("conta")}
           pagar={() => processarPagamento("conta")}
+           permitirEstabelecimento
         />
+      )}
+
+      {etapa === "conta-pendente" && (
+        <TelaCentral>
+          <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-highlight/15"><HandCoins className="h-10 w-10 text-highlight" /></div>
+          <p className="text-sm font-semibold text-highlight">Aguardando confirmação</p>
+          <h1 className="mt-2 text-2xl font-bold">Pagamento no estabelecimento</h1>
+          <p className="mt-3 text-center text-sm leading-6 text-muted-foreground">Os itens foram reservados. Pague na maquininha ou em dinheiro; o restaurante confirmará o recebimento no sistema.</p>
+          <Button onClick={() => setEtapa("avaliacao")} className="mt-8 h-12 w-full rounded-lg text-base font-bold">Avaliar atendimento <ChevronRight /></Button>
+          <Button variant="ghost" onClick={() => { setEtapa("conta"); setAba("atividade"); }} className="mt-2 h-11">Ver atividade da mesa</Button>
+        </TelaCentral>
       )}
 
       {etapa === "conta-confirmada" && (
@@ -373,7 +385,9 @@ function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, p
   erro: string | null;
   voltar: () => void;
   pagar: () => void;
+  permitirEstabelecimento?: boolean;
 }) {
+  const opcoes = arguments[0].permitirEstabelecimento ? metodos : metodos.filter((opcao) => opcao.id !== "at_establishment");
   return (
     <main className="flex flex-1 flex-col px-5 pb-8">
       <Button variant="ghost" onClick={voltar} className="mb-4 w-fit px-2 text-muted-foreground"><ArrowLeft /> Voltar</Button>
@@ -385,7 +399,7 @@ function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, p
       </div>
       <h2 className="text-sm font-semibold">Como deseja pagar?</h2>
       <div className="mt-3 grid grid-cols-2 gap-2">
-        {metodos.map((opcao) => (
+        {opcoes.map((opcao) => (
           <Button key={opcao.id} variant={metodo === opcao.id ? "default" : "outline"} onClick={() => setMetodo(opcao.id)} className="h-12 rounded-lg">
             {opcao.id === "at_establishment" ? <HandCoins /> : <CreditCard />} {opcao.label}
           </Button>
