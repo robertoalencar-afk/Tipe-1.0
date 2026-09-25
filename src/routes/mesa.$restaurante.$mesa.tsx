@@ -459,6 +459,7 @@ function MesaPage() {
           <p className="mt-4 text-sm font-semibold text-primary">Tudo confirmado</p>
           <h1 className="mt-2 text-2xl font-bold">Mesa encerrada</h1>
           <p className="mt-3 text-center text-sm leading-6 text-muted-foreground">Todos os itens desta mesa foram pagos e não há pagamentos pendentes.</p>
+          <p className="mt-2 text-center text-xs text-muted-foreground">Uma nova conta será aberta nesta mesa automaticamente em até 2 minutos.</p>
           <Link to="/" className="mt-8 text-sm font-semibold text-primary">Voltar ao início</Link>
         </TelaCentral>
       )}
