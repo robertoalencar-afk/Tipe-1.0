@@ -9,6 +9,8 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "Leia o QR Code do totem da mesa para conferir e pagar sua conta com TIPE." },
       { property: "og:title", content: "TIPE — Pague. Sem esperar." },
       { property: "og:description", content: "Leia o QR Code do totem da mesa e pague pelo celular." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
   component: Totem,

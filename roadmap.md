@@ -5,6 +5,7 @@
 - [ ] Chaves reais: Saipos, Pagar.me (Pix), Stripe (cartão/Apple/Google Pay)
 - [x] Logos e lebre TIPE nas etapas do cliente
 - [x] Cliente: sem divisão igual, log do pedido, seletor de quantidade
+- [x] Cliente: identificação por nome, garçom responsável e pagamentos separados (conta / gorjeta)
 - [ ] Painel do restaurante
 - [ ] Painel do garçom
 - [ ] Painel do fundador
