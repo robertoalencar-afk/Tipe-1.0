@@ -3,7 +3,7 @@
 - [x] Área do cliente via QR (/mesa/:restaurante/:mesa) — PDV Saipos e pagamento simulados
 - [x] Ativar Lovable Cloud e sincronizar conta da mesa em tempo real
 - [ ] Chaves reais: Saipos, Pagar.me (Pix), Stripe (cartão/Apple/Google Pay)
-- [x] Logos e lebre TIPE nas etapas do cliente
+- [x] Logomarca oficial TIPE como destaque nas etapas do cliente
 - [x] Cliente: sem divisão igual, log do pedido, seletor de quantidade
 - [x] Cliente: identificação por nome, garçom responsável e pagamentos separados (conta / gorjeta)
 - [x] Cliente: reserva de itens e pagamento pendente no estabelecimento
