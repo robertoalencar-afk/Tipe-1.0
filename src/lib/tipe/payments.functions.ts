@@ -125,3 +125,30 @@ export const getSharedTableState = createServerFn({ method: "GET" })
       payments: (paymentsResult.data ?? []).map((payment) => ({ ...payment, amount: Number(payment.amount) })) as SharedPayment[],
     };
   });
+
+const REOPEN_DELAY_MS = 2 * 60 * 1000;
+
+// Reabre a mesa (nova conta) 2 minutos após o encerramento: tudo pago e nada pendente.
+export const reopenClosedTable = createServerFn({ method: "POST" })
+  .inputValidator((d) => TableInput.parse(d))
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const [itemsResult, paymentsResult] = await Promise.all([
+      supabaseAdmin.from("table_bill_items").select("ordered_quantity, reserved_quantity, paid_quantity, updated_at")
+        .eq("restaurant_slug", data.restaurantId).eq("table_number", data.tableId),
+      supabaseAdmin.from("table_payment_requests").select("status, updated_at")
+        .eq("restaurant_slug", data.restaurantId).eq("table_number", data.tableId).eq("payment_target", "restaurant"),
+    ]);
+    if (itemsResult.error || paymentsResult.error) throw new Error("Não foi possível verificar a mesa");
+    const items = itemsResult.data ?? [];
+    const payments = paymentsResult.data ?? [];
+    const closed = items.length > 0
+      && items.every((i) => Number(i.ordered_quantity) - Number(i.reserved_quantity) - Number(i.paid_quantity) <= 0)
+      && payments.every((p) => p.status !== "pending");
+    if (!closed) return { reopened: false };
+    const last = Math.max(...items.map((i) => Date.parse(i.updated_at)), ...payments.map((p) => Date.parse(p.updated_at)));
+    if (Date.now() - last < REOPEN_DELAY_MS) return { reopened: false, waitMs: REOPEN_DELAY_MS - (Date.now() - last) };
+    await supabaseAdmin.from("table_payment_requests").delete().eq("restaurant_slug", data.restaurantId).eq("table_number", data.tableId);
+    await supabaseAdmin.from("table_bill_items").update({ reserved_quantity: 0, paid_quantity: 0 }).eq("restaurant_slug", data.restaurantId).eq("table_number", data.tableId);
+    return { reopened: true };
+  });
