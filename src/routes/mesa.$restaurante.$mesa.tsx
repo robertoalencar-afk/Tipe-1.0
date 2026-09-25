@@ -114,10 +114,10 @@ function MesaPage() {
 
   return (
     <div className="mx-auto flex min-h-svh max-w-md flex-col bg-background">
-      <header className="flex flex-col items-center px-6 pb-4 pt-7">
+      <header className="mb-5 flex flex-col items-center bg-secondary px-6 pb-5 pt-7 text-secondary-foreground">
         <TipeLogo className="h-14" />
         {etapa !== "identificacao" && (
-          <p className="mt-3 text-sm text-muted-foreground">
+          <p className="mt-3 text-sm text-secondary-foreground/70">
             {dados.restaurante} · Mesa {dados.mesa}
           </p>
         )}
