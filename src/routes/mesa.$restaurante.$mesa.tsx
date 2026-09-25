@@ -260,7 +260,19 @@ function MesaPage() {
 
           {aba === "conta" && (
             <>
-              <p className="mb-3 text-sm text-muted-foreground">Escolha quanto de cada item você vai pagar.</p>
+              {(() => {
+                const tudoSelecionado = dados.itens.every((item) => (qtds[item.id] ?? 0) === (disponiveis[item.id] ?? item.qtd));
+                return (
+                  <Button
+                    variant={tudoSelecionado ? "default" : "outline"}
+                    onClick={() => setQtds(Object.fromEntries(dados.itens.map((item) => [item.id, tudoSelecionado ? 0 : Math.max(0, disponiveis[item.id] ?? item.qtd)])))}
+                    className="mb-3 h-12 w-full rounded-lg text-base font-bold"
+                  >
+                    <ReceiptText /> {tudoSelecionado ? "Limpar seleção" : "Pagar a conta inteira"}
+                  </Button>
+                );
+              })()}
+              <p className="mb-3 text-sm text-muted-foreground">Ou escolha quanto de cada item você vai pagar.</p>
               <ul className="flex flex-col gap-3">
                 {dados.itens.filter((item) => (disponiveis[item.id] ?? item.qtd) > 0).map((item) => {
                   const quantidade = qtds[item.id] ?? 0;
@@ -380,7 +392,9 @@ function MesaPage() {
           <p className="text-sm font-semibold text-primary">Conta paga</p>
           <h1 className="mt-2 text-2xl font-bold">Pagamento confirmado!</h1>
           <p className="mt-3 text-center text-sm leading-6 text-muted-foreground">{money(totalConta)} enviados ao {dados.restaurante}.</p>
+          {mesaEncerrada && <p className="mt-2 text-center text-sm font-semibold text-primary">Este foi o último pagamento: a mesa está encerrada.</p>}
           <Button onClick={() => setEtapa("avaliacao")} className="mt-8 h-12 w-full rounded-lg text-base font-bold">Avaliar atendimento <ChevronRight /></Button>
+          {mesaEncerrada && <Button variant="outline" onClick={() => setEtapa("mesa-encerrada")} className="mt-3 h-12 w-full rounded-lg text-base font-bold">Ver mesa encerrada</Button>}
         </TelaCentral>
       )}
 
@@ -456,7 +470,10 @@ function MesaPage() {
           <h1 className="mt-2 text-2xl font-bold">Obrigado pela sua visita.</h1>
           <p className="mt-3 text-center text-sm leading-6 text-muted-foreground">Sua conta foi paga e sua avaliação foi registrada.</p>
           {gorjetaExtra > 0 && <p className="mt-2 text-center text-sm font-semibold">Gorjeta de {money(gorjetaExtra)} enviada pela TIPE.</p>}
-          <Link to="/" className="mt-8 text-sm font-semibold text-primary">Voltar ao início</Link>
+          {mesaEncerrada && (
+            <Button onClick={() => setEtapa("mesa-encerrada")} className="mt-8 h-12 w-full rounded-lg text-base font-bold">Ver mesa encerrada <ChevronRight /></Button>
+          )}
+          <Link to="/" className="mt-6 text-sm font-semibold text-primary">Voltar ao início</Link>
         </TelaCentral>
       )}
     </div>

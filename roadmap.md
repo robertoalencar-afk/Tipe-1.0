@@ -15,3 +15,4 @@
 - [ ] Painel do restaurante
 - [ ] Painel do garçom
 - [ ] Painel do fundador
+- [ ] Painel do restaurante (espelho do PDV): confirmar pagamentos na maquininha/dinheiro, acompanhar mesas, abertura/fechamento automático (nova mesa ~2 min após encerramento) — aguardando plano
