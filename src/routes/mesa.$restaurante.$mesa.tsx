@@ -57,6 +57,9 @@ const metodos: Array<{ id: Metodo; label: string }> = [
   { id: "at_establishment", label: "Pagar no estabelecimento" },
 ];
 
+const customerStorageKey = (restaurantId: string, tableId: number) =>
+  `tipe:cliente:${restaurantId}:${tableId}`;
+
 function MesaPage() {
   const { restaurante, mesa } = Route.useParams();
   const dados = getMesa(restaurante, Number(mesa));
@@ -75,6 +78,13 @@ function MesaPage() {
   const [erroPagamento, setErroPagamento] = useState<string | null>(null);
   const [disponiveis, setDisponiveis] = useState<Record<string, number>>(() => Object.fromEntries(dados.itens.map((item) => [item.id, item.qtd])));
   const [pagamentos, setPagamentos] = useState<SharedPayment[]>([]);
+
+  useEffect(() => {
+    const nomeSalvo = window.localStorage.getItem(customerStorageKey(restaurante, dados.mesa))?.trim();
+    if (!nomeSalvo) return;
+    setNome(nomeSalvo);
+    setEtapa("conta");
+  }, [dados.mesa, restaurante]);
 
   const atualizarMesa = useCallback(async () => {
     try {
@@ -105,7 +115,11 @@ function MesaPage() {
 
   function identificar(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (nome.trim()) setEtapa("conta");
+    const nomeIdentificado = nome.trim();
+    if (!nomeIdentificado) return;
+    window.localStorage.setItem(customerStorageKey(restaurante, dados.mesa), nomeIdentificado);
+    setNome(nomeIdentificado);
+    setEtapa("conta");
   }
 
   function setQtd(id: string, valor: number, maximo: number) {
@@ -259,10 +273,10 @@ function MesaPage() {
                {pagamentos.length > 0 && (
                  <div className="mt-6 border-t border-border pt-5">
                    <h3 className="mb-2 text-sm font-semibold">Pagamentos</h3>
-                   {pagamentos.map((pagamento) => (
+                    {pagamentos.map((pagamento) => (
                      <div key={pagamento.id} className="flex justify-between gap-3 border-b border-border py-3 text-sm last:border-0">
                        <div><p className="font-medium">{pagamento.customer_name}</p><p className="text-xs text-muted-foreground">{pagamento.payment_method === "at_establishment" ? "Pagamento no estabelecimento" : "Pagamento digital"}</p></div>
-                       <div className="text-right"><p className="font-semibold">{money(pagamento.amount)}</p><p className={pagamento.status === "pending" ? "text-xs font-semibold text-highlight" : "text-xs text-primary"}>{pagamento.status === "pending" ? "Pendente de confirmação" : "Pago"}</p></div>
+                        <div className="text-right"><p className="font-semibold">{money(pagamento.amount)}</p><p className={pagamento.status === "pending" ? "text-xs font-semibold text-highlight" : "text-xs text-primary"}>{pagamento.status === "pending" ? "Pendente de confirmação do estabelecimento" : "Pagamento confirmado"}</p></div>
                      </div>
                    ))}
                  </div>
