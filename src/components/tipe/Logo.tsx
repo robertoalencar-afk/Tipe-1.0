@@ -1,3 +1,5 @@
+import logo from "@/assets/logo.png.asset.json";
+
 export function TipeSymbol({ className = "h-8 w-8" }: { className?: string }) {
   // "Y" minimalista com pontas sugerindo orelhas de lebre
   return (
@@ -9,9 +11,6 @@ export function TipeSymbol({ className = "h-8 w-8" }: { className?: string }) {
 
 export function TipeLogo({ className = "" }: { className?: string }) {
   return (
-    <div className={`flex items-center gap-2 ${className}`}>
-      <TipeSymbol />
-      <span className="font-display text-2xl font-extrabold tracking-[0.2em]">TIPE</span>
-    </div>
+    <img src={logo.url} alt="TIPE" className={`h-12 w-auto object-contain ${className}`} />
   );
 }
