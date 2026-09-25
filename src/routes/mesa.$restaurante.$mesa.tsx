@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { ArrowLeft, Check, ChevronRight, ClipboardList, Minus, Plus, ReceiptText, Star, Users } from "lucide-react";
-import { Logo } from "@/components/tipe/Logo";
+import { TipeLogo } from "@/components/tipe/Logo";
 import { getMesa, splitGorjeta } from "@/lib/tipe/rules";
 import { createPayment } from "@/lib/tipe/payments.functions";
 
@@ -45,7 +45,7 @@ function MesaPage() {
   const nadaSelecionado = subtotal <= 0;
 
   const setQtd = (id: string, v: number, max: number) =>
-    setQtd((q) => ({ ...q, [id]: Math.max(0, Math.min(max, v)) }));
+    setQtds((q) => ({ ...q, [id]: Math.max(0, Math.min(max, v)) }));
 
   async function pagar() {
     if (!metodo) return;
@@ -74,7 +74,7 @@ function MesaPage() {
     <div className="mx-auto flex min-h-svh max-w-md flex-col bg-background">
       {/* topo — logo sempre protagonista */}
       <header className="flex flex-col items-center gap-1 px-6 pb-4 pt-8">
-        <Logo className="h-11 w-auto" />
+        <TipeLogo />
         <p className="mt-2 text-sm text-muted-foreground">
           {dados.restaurante} · Mesa {dados.mesa}
         </p>
