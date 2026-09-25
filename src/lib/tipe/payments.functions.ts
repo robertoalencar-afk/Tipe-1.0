@@ -66,11 +66,11 @@ export const createPayment = createServerFn({ method: "POST" })
         });
         const j: any = await res.json();
         if (!res.ok) { console.error("Pagar.me", j); throw new Error("Não foi possível gerar o Pix"); }
-        await register("pending");
-        return { id: j.id, status: "pending", provider: "pagarme", pixCode: j.charges?.[0]?.last_transaction?.qr_code };
+        await register("approved");
+        return { id: j.id, status: "approved", provider: "pagarme", pixCode: j.charges?.[0]?.last_transaction?.qr_code };
       }
-      await register("pending");
-      return { id, status: "pending", provider: "simulado", pixCode: `00020126TIPE${cents}BR.GOV.BCB.PIX5204000053039865802BR` };
+      await register("approved");
+      return { id, status: "approved", provider: "simulado", pixCode: `00020126TIPE${cents}BR.GOV.BCB.PIX5204000053039865802BR` };
     }
 
     const sk = process.env["STRIPE_SECRET_KEY"];
@@ -83,8 +83,8 @@ export const createPayment = createServerFn({ method: "POST" })
       });
       const j: any = await res.json();
       if (!res.ok) { console.error("Stripe", j); throw new Error("Pagamento recusado"); }
-      await register("pending");
-      return { id: j.id, status: "pending", provider: "stripe" };
+      await register("approved");
+      return { id: j.id, status: "approved", provider: "stripe" };
     }
     await register("approved");
     return { id, status: "approved", provider: "simulado" };
@@ -116,7 +116,7 @@ export const getSharedTableState = createServerFn({ method: "GET" })
       supabaseAdmin.from("table_bill_items").select("item_code, ordered_quantity, reserved_quantity, paid_quantity")
         .eq("restaurant_slug", data.restaurantId).eq("table_number", data.tableId),
       supabaseAdmin.from("table_payment_requests").select("id, customer_name, payment_method, status, amount, created_at")
-        .eq("restaurant_slug", data.restaurantId).eq("table_number", data.tableId).order("created_at", { ascending: false }),
+        .eq("restaurant_slug", data.restaurantId).eq("table_number", data.tableId).eq("payment_target", "restaurant").order("created_at", { ascending: false }),
     ]);
     if (itemsResult.error || paymentsResult.error) throw new Error("Não foi possível atualizar a mesa");
     return {
