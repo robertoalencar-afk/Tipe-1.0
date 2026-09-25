@@ -60,7 +60,7 @@ const MESAS: Record<string, Mesa> = {
 };
 
 export function getMesa(restaurante: string, mesa: number): Mesa {
-  return MESAS[`${restaurante}/${mesa}`] ?? MESAS["mare-alta/12"];
+  return MESAS[`${restaurante}/${mesa}`] ?? MESAS["mare-alta/12"]!;
 }
 
 // Gorjeta extra: 70% garçom, 30% TIPE (restaurante fica com a taxa de serviço)
