@@ -105,6 +105,7 @@ export type SharedPayment = {
   payment_method: string;
   status: "pending" | "approved" | "cancelled" | "failed";
   amount: number;
+  item_quantities: Record<string, number>;
   created_at: string;
 };
 
@@ -115,7 +116,7 @@ export const getSharedTableState = createServerFn({ method: "GET" })
     const [itemsResult, paymentsResult] = await Promise.all([
       supabaseAdmin.from("table_bill_items").select("item_code, ordered_quantity, reserved_quantity, paid_quantity")
         .eq("restaurant_slug", data.restaurantId).eq("table_number", data.tableId),
-      supabaseAdmin.from("table_payment_requests").select("id, customer_name, payment_method, status, amount, created_at")
+      supabaseAdmin.from("table_payment_requests").select("id, customer_name, payment_method, status, amount, item_quantities, created_at")
         .eq("restaurant_slug", data.restaurantId).eq("table_number", data.tableId).eq("payment_target", "restaurant").order("created_at", { ascending: false }),
     ]);
     if (itemsResult.error || paymentsResult.error) throw new Error("Não foi possível atualizar a mesa");
