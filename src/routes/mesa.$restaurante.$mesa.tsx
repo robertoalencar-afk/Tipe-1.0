@@ -20,6 +20,7 @@ import { getMesa } from "@/lib/tipe/rules";
 import { createPayment, getSharedTableState, type SharedPayment } from "@/lib/tipe/payments.functions";
 import { supabase } from "@/integrations/supabase/client";
 import mascotThanks from "@/assets/mascot-thanks.png";
+import mascotRating from "@/assets/mascot-rating.png";
 import mascotWaiting from "@/assets/mascot-waiting.png";
 
 export const Route = createFileRoute("/mesa/$restaurante/$mesa")({
@@ -327,6 +328,7 @@ function MesaPage() {
 
       {etapa === "avaliacao" && (
         <main className="flex flex-1 flex-col px-6 pb-10">
+          <img src={mascotRating} alt="Mascote TIPE com uma estrela" className="mx-auto mb-3 h-28 w-28 object-contain" />
           <h1 className="text-center text-2xl font-bold">Como foi seu atendimento?</h1>
           <p className="mt-2 text-center text-sm text-muted-foreground">Sua avaliação ajuda o {dados.garcom} e o restaurante.</p>
           <div className="mt-8 flex justify-center gap-2">
@@ -403,7 +405,9 @@ function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, p
   pagar: () => void;
   permitirEstabelecimento?: boolean;
 }) {
-  const opcoes = permitirEstabelecimento ? metodos : metodos.filter((opcao) => opcao.id !== "at_establishment");
+  const opcoes = permitirEstabelecimento
+    ? metodos.filter((opcao) => opcao.id !== "card")
+    : metodos.filter((opcao) => opcao.id !== "at_establishment");
   return (
     <main className="flex flex-1 flex-col px-5 pb-8">
       <Button variant="ghost" onClick={voltar} className="mb-4 w-fit px-2 text-muted-foreground"><ArrowLeft /> Voltar</Button>
@@ -414,16 +418,24 @@ function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, p
         <p className="mt-1 font-display text-3xl font-bold">{money(valor)}</p>
       </div>
       <h2 className="text-sm font-semibold">Como deseja pagar?</h2>
-      <div className="mt-3 grid grid-cols-2 gap-2">
+       <div className="mt-3 grid grid-cols-2 gap-2">
         {opcoes.map((opcao) => (
-          <Button key={opcao.id} variant={metodo === opcao.id ? "default" : "outline"} onClick={() => setMetodo(opcao.id)} className="h-12 rounded-lg">
-            {opcao.id === "at_establishment" ? <HandCoins /> : <CreditCard />} {opcao.label}
+           <Button
+             key={opcao.id}
+             variant={metodo === opcao.id ? "default" : "outline"}
+             onClick={() => setMetodo(opcao.id)}
+             className={`rounded-lg ${opcao.id === "at_establishment" ? "col-span-2 h-16 flex-col gap-0.5" : "h-12"}`}
+           >
+             <span className="flex items-center justify-center gap-2">
+               {opcao.id === "at_establishment" ? <HandCoins /> : <CreditCard />} {opcao.label}
+             </span>
+             {opcao.id === "at_establishment" && <span className="text-xs font-normal opacity-75">Dinheiro ou maquininha</span>}
           </Button>
         ))}
       </div>
       {erro && <p role="alert" className="mt-4 text-sm text-destructive">{erro}</p>}
       <Button disabled={!metodo || pagando} onClick={pagar} className="mt-6 h-12 rounded-lg text-base font-bold">{pagando ? "Processando…" : `Pagar ${money(valor)}`}</Button>
-       {metodo === "at_establishment" && <p className="mt-3 text-center text-xs text-muted-foreground">Pague na maquininha ou em dinheiro. A confirmação será feita pelo estabelecimento.</p>}
+        {metodo === "at_establishment" && <p className="mt-3 text-center text-xs text-muted-foreground">A confirmação será feita pelo estabelecimento.</p>}
     </main>
   );
 }
