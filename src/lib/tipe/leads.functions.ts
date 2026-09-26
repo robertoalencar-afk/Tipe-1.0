@@ -15,8 +15,8 @@ export const submitLead = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     // Cliente público somente leitura/gravação via RLS: apenas insere o contato.
     const db = createClient(
-      process.env.VITE_SUPABASE_URL!,
-      process.env.VITE_SUPABASE_PUBLISHABLE_KEY!,
+      process.env['VITE_SUPABASE_URL']!,
+      process.env['VITE_SUPABASE_PUBLISHABLE_KEY']!,
       { auth: { persistSession: false } },
     );
 

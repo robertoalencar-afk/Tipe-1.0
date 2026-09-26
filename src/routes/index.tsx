@@ -224,11 +224,13 @@ function ContactSection() {
     setError(null);
     try {
       await submitLead({
-        restaurantName: form.restaurantName.trim(),
-        contactName: form.contactName.trim(),
-        email: form.email.trim(),
-        phone: form.phone.trim() || undefined,
-        message: form.message.trim() || undefined,
+        data: {
+          restaurantName: form.restaurantName.trim(),
+          contactName: form.contactName.trim(),
+          email: form.email.trim(),
+          phone: form.phone.trim() || undefined,
+          message: form.message.trim() || undefined,
+        },
       });
     } catch {
       setSending(false);
