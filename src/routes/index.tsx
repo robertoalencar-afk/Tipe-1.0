@@ -99,7 +99,7 @@ function Hero() {
             </a>
           </div>
           <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm opacity-80">
-            {["Sem aplicativo para baixar", "Integra com seu PDV", "Gorjeta 100% digital"].map((t) => (
+            {["Sem aplicativo para baixar", "Integra com seu PDV", "Gorjeta extra: quem atende bem, ganha mais"].map((t) => (
               <span key={t} className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-primary" />{t}</span>
             ))}
           </div>
@@ -150,8 +150,8 @@ function Stats() {
   const stats = [
     { icon: Clock, v: "-15 min", l: "de espera pela conta por mesa" },
     { icon: TrendingUp, v: "+20%", l: "de giro de mesas no horário de pico" },
-    { icon: Wallet, v: "100%", l: "das gorjetas pagas no digital" },
-    { icon: Users, v: "0", l: "aplicativos para o cliente baixar" },
+    { icon: Wallet, v: "70%", l: "da gorjeta extra vai direto para o garçom" },
+    { icon: Users, v: "0", l: "filas no caixa: o cliente paga na própria mesa" },
   ];
   return (
     <section className="relative z-10 mx-auto -mt-10 max-w-6xl px-4 sm:px-6">
@@ -349,28 +349,54 @@ function Pricing() {
 }
 
 function Faq() {
-  const faqs = [
-    ["O cliente precisa baixar algum aplicativo?", "Não. Basta ler o QR Code do totem da mesa com a câmera do celular."],
-    ["Funciona com o meu PDV?", "Sim. Integramos com os principais sistemas, como Saipos e TOTVS. Se preferir, você pode contratar o PDV TIPE."],
-    ["Como funcionam os pagamentos em dinheiro ou maquininha?", "Os itens ficam reservados e o caixa confirma o recebimento no painel. Pagamentos digitais são aprovados na hora."],
-    ["E a gorjeta?", "A taxa de serviço vai na conta e o cliente ainda pode deixar uma gorjeta extra, sempre no digital."],
-    ["Como é cobrada a assinatura?", "Mensalmente, de acordo com o número de mesas do seu restaurante. Planos a partir de R$ 199/mês."],
+  const groups: { label: string; faqs: [string, string][] }[] = [
+    {
+      label: "No salão, na mesa",
+      faqs: [
+        ["O cliente precisa baixar algum aplicativo?", "Não. Ele lê o QR Code do totem da mesa com a câmera do celular e já entra na conta. Nada para instalar, nada para cadastrar — só o nome, para identificar o pagamento dele."],
+        ["Como a conta chega no celular do cliente?", "Direto do sistema do restaurante. Quando o garçom lança um pedido, o item aparece na mesa em tempo real, com data e horário — exatamente como no caixa."],
+        ["O cliente pode pagar só uma parte da conta?", "Pode. Cada pessoa escolhe o que vai pagar, item por item, e esses itens saem da conta na hora. Quem terminar antes não precisa esperar os outros, e ninguém paga pelo que não consumiu."],
+        ["Quais formas de pagamento o cliente pode usar?", "Pix, Apple Pay e Google Pay, na hora, pelo próprio celular. Ele também pode pagar no caixa, em dinheiro ou na maquininha — nesses casos o pagamento fica pendente até o restaurante confirmar o recebimento."],
+        ["E se o cliente quiser conferir a conta antes de pagar?", "A conta completa fica sempre visível, com todos os itens lançados. Se ele identificar algo errado, o recomendado é falar com o garçom ou o caixa antes de concluir o pagamento."],
+        ["Como funciona a gorjeta extra?", "A taxa de serviço entra na conta normalmente, como sempre foi. A diferença é a gorjeta extra, opcional: o cliente escolhe o valor ao pagar, e é ela que recompensa quem faz o atendimento valer a pena — a maior parte vai direto para o garçom que atendeu a mesa."],
+      ],
+    },
+    {
+      label: "Painel, implantação e planos",
+      faqs: [
+        ["O que o restaurante confirma no painel?", "Os pagamentos recebidos no caixa — dinheiro e maquininha — são confirmados com um toque. Os pagamentos digitais são aprovados automaticamente, sem trabalho para a equipe."],
+        ["E se um pagamento sair errado?", "O restaurante cancela pelo painel e os itens pagos voltam a ficar disponíveis na conta. Tudo fica registrado com data, horário e nome de quem pagou — sem apagar o histórico."],
+        ["Preciso trocar o meu sistema?", "Não. A TIPE se conecta ao PDV que você já usa, como Saipos e TOTVS. Se preferir, você contrata o PDV TIPE, que já vem integrado ao pagamento na mesa."],
+        ["Quanto tempo leva para começar?", "A implantação é assistida: cadastramos as mesas, geramos os totens com QR Code e treinamos a equipe. Você pode começar por um salão e ir ampliando conforme o resultado."],
+        ["Como é cobrada a assinatura?", "Mensalmente, de acordo com o número de mesas do seu restaurante, a partir de R$ 199/mês. Sem fidelidade: você cancela quando quiser."],
+      ],
+    },
   ];
   return (
     <section id="duvidas" className="mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 sm:py-28 lg:grid-cols-[1fr_1.4fr]">
       <div>
         <p className="font-display text-xs font-bold uppercase tracking-[0.2em] text-primary">Dúvidas</p>
         <h2 className="mt-3 font-display text-3xl font-extrabold sm:text-4xl">Perguntas frequentes</h2>
+        <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+          Tudo que um restaurante precisa saber antes de colocar a TIPE na mesa — do atendimento ao caixa.
+        </p>
         <img src={mascotRating} alt="Mascote da TIPE" className="mt-8 hidden w-44 lg:block" />
       </div>
-      <div className="space-y-3">
-        {faqs.map(([q, a]) => (
-          <details key={q} className="group rounded-2xl border bg-card p-5 open:shadow-md">
-            <summary className="flex cursor-pointer list-none items-center justify-between font-display font-semibold">
-              {q}<ChevronRight className="h-5 w-5 shrink-0 text-primary transition-transform group-open:rotate-90" />
-            </summary>
-            <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{a}</p>
-          </details>
+      <div className="space-y-6">
+        {groups.map((group) => (
+          <div key={group.label}>
+            <p className="mb-3 font-display text-xs font-bold uppercase tracking-wider text-primary">{group.label}</p>
+            <div className="space-y-3">
+              {group.faqs.map(([q, a]) => (
+                <details key={q} className="group rounded-2xl border bg-card p-5 open:shadow-md">
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-3 font-display font-semibold">
+                    {q}<ChevronRight className="h-5 w-5 shrink-0 text-primary transition-transform group-open:rotate-90" />
+                  </summary>
+                  <p className="mt-3 text-sm leading-relaxed text-muted-foreground">{a}</p>
+                </details>
+              ))}
+            </div>
+          </div>
         ))}
       </div>
     </section>
