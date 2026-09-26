@@ -222,18 +222,20 @@ function ContactSection() {
     e.preventDefault();
     setSending(true);
     setError(null);
-    const result = await submitLead({
-      restaurantName: form.restaurantName.trim(),
-      contactName: form.contactName.trim(),
-      email: form.email.trim(),
-      phone: form.phone.trim() || undefined,
-      message: form.message.trim() || undefined,
-    });
-    setSending(false);
-    if (insertError) {
+    try {
+      await submitLead({
+        restaurantName: form.restaurantName.trim(),
+        contactName: form.contactName.trim(),
+        email: form.email.trim(),
+        phone: form.phone.trim() || undefined,
+        message: form.message.trim() || undefined,
+      });
+    } catch {
+      setSending(false);
       setError("Não foi possível enviar agora. Tente de novo em instantes.");
       return;
     }
+    setSending(false);
     setSent(true);
     toast.success("Recebemos o seu contato!", { description: "A equipe TIPE responde em até 1 dia útil." });
   }
