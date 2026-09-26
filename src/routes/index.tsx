@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { toast } from "sonner";
 import { QrCode, Receipt, Smartphone, CheckCircle2, ChevronRight, UtensilsCrossed, MonitorSmartphone, History, Landmark } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { submitLead } from "@/lib/tipe/leads.functions";
 import logo from "@/assets/logo.png.asset.json";
 import mascotThanks from "@/assets/mascot-thanks.png";
 
