@@ -12,7 +12,6 @@
 - [x] Cliente: pagamento da conta sem cartão, opção presencial destacada e mascote na avaliação
 - [x] Cliente: manter fluxo itens → meio → pagamento, remover autor dos pedidos e detalhar pagamentos na atividade
 - [x] Cliente: retorno direto à conta e tela automática de mesa encerrada após todas as confirmações
-- [ ] Painel do restaurante
+- [x] Painel do restaurante (login, cargos, mesas em tempo real, confirmação presencial, equipe, auditoria)
 - [ ] Painel do garçom
 - [ ] Painel do fundador
-- [ ] Painel do restaurante (espelho do PDV): confirmar pagamentos na maquininha/dinheiro, acompanhar mesas, abertura/fechamento automático (nova mesa ~2 min após encerramento) — aguardando plano
