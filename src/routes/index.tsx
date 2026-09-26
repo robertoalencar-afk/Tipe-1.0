@@ -23,7 +23,7 @@ export const Route = createFileRoute("/")({
       { property: "og:title", content: "TIPE — Pague. Sem esperar." },
       {
         property: "og:description",
-        content: "Pagamento na mesa por QR Code, gorjeta digital, painel em tempo real e PDV próprio. Planos por assinatura a partir de R$ 199/mês.",
+        content: "Pagamento na mesa por QR Code, gorjeta extra para o garçom, painel em tempo real e PDV próprio. Planos por assinatura a partir de R$ 199/mês.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://tipe.digital/" },
