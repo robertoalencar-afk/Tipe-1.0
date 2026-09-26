@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import {
   QrCode, Receipt, Smartphone, CheckCircle2, ChevronRight, MonitorSmartphone, History, Landmark,
   Plug, Store, Zap, ShieldCheck, TrendingUp, Clock, Users, Check, Star, BarChart3, Wallet,
+  Hand, ClipboardList, Calculator, ArrowLeftRight, CreditCard, Sparkles,
 } from "lucide-react";
 import { submitLead } from "@/lib/tipe/leads.functions";
 import logo from "@/assets/logo-dark.png.asset.json";
@@ -41,6 +42,7 @@ function LandingPage() {
       <main>
         <Hero />
         <Stats />
+        <Dinamica />
         <HowItWorks />
         <Dashboard />
         <PdvOptions />
@@ -59,7 +61,7 @@ function Header() {
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
         <Link to="/"><img src={logo.url} alt="TIPE" className="h-9 w-auto object-contain" /></Link>
         <nav className="flex items-center gap-1 text-sm lg:gap-2">
-          {[["#como-funciona", "Como funciona"], ["#painel", "Painel"], ["#pdv", "PDV"], ["#planos", "Planos"], ["#duvidas", "Dúvidas"]].map(([h, l]) => (
+          {[["#dinamica", "O novo jeito"], ["#como-funciona", "Como funciona"], ["#painel", "Painel"], ["#pdv", "PDV"], ["#planos", "Planos"], ["#duvidas", "Dúvidas"]].map(([h, l]) => (
             <a key={h} href={h} className="hidden rounded-lg px-3 py-2 text-muted-foreground transition-colors hover:text-foreground lg:block">{l}</a>
           ))}
           <Link to="/entrar" className="hidden rounded-full px-4 py-2 font-semibold text-foreground hover:bg-muted sm:block">Entrar</Link>
@@ -173,6 +175,138 @@ function SectionTitle({ eyebrow, title, text }: { eyebrow: string; title: string
       <h2 className="mt-3 font-display text-3xl font-extrabold sm:text-4xl">{title}</h2>
       <p className="mt-4 text-muted-foreground">{text}</p>
     </div>
+  );
+}
+function Dinamica() {
+  const oldSteps = [
+    { icon: Hand, t: "Chamar o garçom e pedir a conta" },
+    { icon: ClipboardList, t: "Conferir item por item no papel" },
+    { icon: Calculator, t: "Dividir a conta na calculadora" },
+    { icon: ArrowLeftRight, t: "Pedir a parcial e esperar outra conta" },
+    { icon: CreditCard, t: "Esperar a maquininha passar de cliente em cliente" },
+  ];
+  const newSteps = [
+    { icon: QrCode, t: "Lê o QR Code da mesa" },
+    { icon: Smartphone, t: "Vê a conta em tempo real e escolhe o que vai pagar" },
+    { icon: Zap, t: "Paga na hora e volta para a conversa" },
+  ];
+  const chips = [
+    { icon: Plug, t: "Tempo real com o seu PDV" },
+    { icon: Wallet, t: "Pix, Apple Pay e Google Pay" },
+    { icon: Check, t: "Cada um paga só o que consumiu" },
+    { icon: Users, t: "Zero fila no caixa" },
+  ];
+  const liveItems = [
+    ["Moqueca de peixe", "R$ 89,90"],
+    ["Caipirinha ×2", "R$ 44,00"],
+    ["Água com gás", "R$ 7,50"],
+  ] as const;
+  return (
+    <section id="dinamica" className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28">
+      <div className="mx-auto max-w-2xl text-center">
+        <span className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-1.5 font-display text-xs font-bold uppercase tracking-wider text-primary-foreground shadow-md">
+          <Sparkles className="h-3.5 w-3.5" /> A nova era do pagamento em mesa
+        </span>
+        <h2 className="mt-4 font-display text-3xl font-extrabold sm:text-4xl">A conta virou tecnologia</h2>
+        <p className="mt-4 text-muted-foreground">
+          Chega de pedir a conta, conferir no papel, dividir na calculadora e esperar a maquininha rodar
+          de mão em mão. Agora tudo acontece no celular do cliente, na mesa, em tempo real.
+        </p>
+      </div>
+
+      <div className="mt-14 grid gap-6 lg:grid-cols-2">
+        <div className="rounded-3xl border bg-card p-7 shadow-sm">
+          <div className="flex items-center justify-between">
+            <h3 className="font-display text-lg font-bold text-muted-foreground">Sem TIPE — o jeito antigo</h3>
+            <Clock className="h-5 w-5 text-muted-foreground" />
+          </div>
+          <ul className="mt-5 space-y-3">
+            {oldSteps.map((s) => (
+              <li key={s.t} className="flex items-center gap-3 rounded-xl bg-muted/60 px-4 py-3 text-sm text-muted-foreground">
+                <s.icon className="h-4 w-4 shrink-0" />
+                {s.t}
+              </li>
+            ))}
+          </ul>
+          <div className="mt-6 overflow-hidden rounded-2xl bg-muted/60 p-4">
+            <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              <span>Mesa</span>
+              <span>Caixa</span>
+            </div>
+            <div className="relative mt-3 h-10">
+              <div aria-hidden className="absolute inset-x-6 top-1/2 border-t-2 border-dashed border-muted-foreground/40" />
+              <div className="tipe-pingpong absolute top-0 flex h-9 w-9 items-center justify-center rounded-xl bg-background shadow-md">
+                <Receipt className="h-4 w-4 text-muted-foreground" />
+              </div>
+            </div>
+            <p className="mt-2 text-center text-xs text-muted-foreground">A conta vai e volta… e a maquininha também</p>
+          </div>
+          <p className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
+            <Clock className="h-4 w-4 shrink-0" />Minutos de ida e volta entre mesa e caixa, cliente por cliente
+          </p>
+        </div>
+
+        <div className="relative overflow-hidden rounded-3xl p-7 text-secondary-foreground shadow-2xl" style={{ background: "var(--gradient-brand)" }}>
+          <div aria-hidden className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-primary/25 blur-3xl" />
+          <div className="relative flex items-center justify-between gap-3">
+            <h3 className="font-display text-lg font-bold">Com a TIPE</h3>
+            <span className="shrink-0 rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground">Tecnologia na mesa</span>
+          </div>
+          <ul className="relative mt-5 space-y-3">
+            {newSteps.map((s) => (
+              <li key={s.t} className="flex items-center gap-3 rounded-xl bg-white/10 px-4 py-3 text-sm">
+                <s.icon className="h-4 w-4 shrink-0 text-primary" />
+                {s.t}
+              </li>
+            ))}
+          </ul>
+          <div className="relative mt-6 rounded-2xl bg-background p-4 text-foreground shadow-lg">
+            <div className="flex items-center justify-between text-xs">
+              <span className="font-display font-bold">Mesa 12</span>
+              <span className="flex items-center gap-1.5 rounded-full bg-primary/15 px-2 py-0.5 text-[10px] font-semibold text-primary">
+                <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-primary" />Ao vivo
+              </span>
+            </div>
+            <ul className="mt-2 space-y-1.5">
+              {liveItems.map(([n, v], i) => (
+                <li key={n} className="flex items-center justify-between rounded-lg border px-2.5 py-1.5 text-xs">
+                  <span className="flex items-center gap-2">
+                    <span className="grid h-4 w-4 place-items-center rounded-full bg-primary text-primary-foreground">
+                      <Check className="tipe-check h-3 w-3" style={{ animationDelay: `${i * 0.7}s` }} />
+                    </span>
+                    {n}
+                  </span>
+                  <span className="font-semibold">{v}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <p className="relative mt-4 flex items-center gap-2 text-xs opacity-85">
+            <Zap className="h-4 w-4 shrink-0 text-primary" />O pedido sai do PDV e já chega no celular do cliente
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-10 flex flex-wrap justify-center gap-3">
+        {chips.map((c) => (
+          <span key={c.t} className="flex items-center gap-2 rounded-full border bg-card px-4 py-2 text-sm font-semibold shadow-sm">
+            <c.icon className="h-4 w-4 text-primary" />
+            {c.t}
+          </span>
+        ))}
+      </div>
+
+      <div className="mx-auto mt-12 max-w-3xl rounded-3xl border-2 border-primary/30 bg-secondary p-8 text-center text-secondary-foreground sm:p-10">
+        <p className="font-display text-2xl font-extrabold leading-tight sm:text-3xl">O jeito de pagar a conta no restaurante mudou — e mudou para a mesa.</p>
+        <p className="mt-4 opacity-80">
+          A conta chega no celular antes de o cliente pedir. O garçom não vive de ida e volta com a maquininha.
+          Quem coloca a nova tecnologia primeiro nas mesas gira mais salão.
+        </p>
+        <a href="#fale-conosco" className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-display font-semibold text-primary-foreground shadow-lg transition-transform hover:-translate-y-0.5">
+          Colocar a TIPE nas minhas mesas <ChevronRight className="h-4 w-4" />
+        </a>
+      </div>
+    </section>
   );
 }
 
