@@ -222,12 +222,12 @@ function ContactSection() {
     e.preventDefault();
     setSending(true);
     setError(null);
-    const { error: insertError } = await supabase.from("restaurant_leads").insert({
-      restaurant_name: form.restaurantName.trim(),
-      contact_name: form.contactName.trim(),
+    const result = await submitLead({
+      restaurantName: form.restaurantName.trim(),
+      contactName: form.contactName.trim(),
       email: form.email.trim(),
-      phone: form.phone.trim() || null,
-      message: form.message.trim() || null,
+      phone: form.phone.trim() || undefined,
+      message: form.message.trim() || undefined,
     });
     setSending(false);
     if (insertError) {
