@@ -144,10 +144,10 @@ function PhoneMockup() {
 }
 
 function Stats() {
-  const stats = [
+  const stats: { icon: any; v: string; l: string; small?: boolean }[] = [
     { icon: Clock, v: "-15 min", l: "de espera pela conta por mesa" },
     { icon: TrendingUp, v: "+20%", l: "de giro de mesas no horário de pico" },
-    { icon: Wallet, v: "+ Produtividade", l: "do time, com o incentivo da gorjeta extra" },
+    { icon: Wallet, v: "+ Produtividade", l: "do time, com o incentivo da gorjeta extra", small: true },
     { icon: Users, v: "0", l: "filas no caixa: o cliente paga na própria mesa" },
   ];
   return (
@@ -156,7 +156,7 @@ function Stats() {
         {stats.map((s) => (
           <div key={s.l} className="bg-card p-6">
             <s.icon className="h-5 w-5 text-primary" />
-            <p className="mt-3 font-display text-3xl font-extrabold">{s.v}</p>
+            <p className={`mt-3 font-display font-extrabold ${s.small ? "text-2xl" : "text-3xl"}`}>{s.v}</p>
             <p className="mt-1 text-sm text-muted-foreground">{s.l}</p>
           </div>
         ))}
