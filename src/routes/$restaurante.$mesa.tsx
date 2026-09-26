@@ -249,7 +249,14 @@ function MesaPage() {
         )}
       </header>
 
-      {etapaVisivel === "carregando" && (
+      {erroMesa && (
+        <main className="flex flex-1 flex-col items-center justify-center px-6 pb-24 text-center">
+          <h1 className="font-display text-2xl font-bold">Não foi possível abrir a mesa</h1>
+          <p className="mt-3 text-sm leading-6 text-muted-foreground">{erroMesa}</p>
+        </main>
+      )}
+
+      {!erroMesa && etapaVisivel === "carregando" && (
         <main className="flex flex-1 items-center justify-center px-6 pb-24" aria-label="Carregando mesa">
           <span className="h-8 w-8 animate-spin rounded-full border-2 border-muted border-t-primary motion-reduce:animate-none" />
         </main>
@@ -286,7 +293,7 @@ function MesaPage() {
           <div className="mb-4 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3">
             <p className="text-sm">Olá, <strong>{nome.trim()}</strong>.</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Você está sendo atendido por <strong className="text-foreground">{dados.garcom}</strong>.
+              {dados.garcom ? <>Você está sendo atendido por <strong className="text-foreground">{dados.garcom}</strong>.</> : "Bem-vindo! Seus pedidos aparecem aqui assim que forem lançados."}
             </p>
           </div>
 
@@ -344,7 +351,7 @@ function MesaPage() {
                   );
                 })}
               </ul>
-              {dados.itens.every((item) => (disponiveis[item.id] ?? item.qtd) <= 0) && <p className="py-10 text-center text-sm text-muted-foreground">Não há itens disponíveis para pagamento.</p>}
+              {dados.itens.every((item) => (disponiveis[item.id] ?? item.qtd) <= 0) && <p className="py-10 text-center text-sm text-muted-foreground">{dados.itens.length === 0 ? "Nenhum pedido ainda. Chame o garçom para fazer seu pedido." : "Não há itens disponíveis para pagamento."}</p>}
 
               <div className="mt-6 border-y border-border py-4 text-sm">
                 <ResumoLinha label="Subtotal selecionado" valor={subtotal} />
@@ -443,7 +450,7 @@ function MesaPage() {
         <main className="flex flex-1 flex-col px-6 pb-10">
           <img src={mascotRating} alt="Mascote TIPE com uma estrela" className="mx-auto mb-3 h-28 w-28 object-contain" />
           <h1 className="text-center text-2xl font-bold">Como foi seu atendimento?</h1>
-          <p className="mt-2 text-center text-sm text-muted-foreground">Sua avaliação ajuda o {dados.garcom} e o restaurante.</p>
+          <p className="mt-2 text-center text-sm text-muted-foreground">Sua avaliação ajuda {dados.garcom ? `o ${dados.garcom}` : "a equipe"} e o restaurante.</p>
           <div className="mt-8 flex justify-center gap-2">
             {[1, 2, 3, 4, 5].map((numero) => (
               <Button key={numero} variant="ghost" size="icon" onClick={() => setEstrelas(numero)} aria-label={`${numero} estrelas`} className="h-11 w-11">
