@@ -310,6 +310,7 @@ function Dinamica() {
   );
 }
 
+function HowItWorks() {
   const steps = [
     { icon: QrCode, t: "Lê o QR Code", d: "Cada mesa tem um totem com QR Code exclusivo. O cliente aponta a câmera e entra na conta." },
     { icon: Receipt, t: "Escolhe os itens", d: "A conta chega do PDV em tempo real. Ele paga tudo ou só o que consumiu, item por item." },
