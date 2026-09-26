@@ -300,6 +300,36 @@ export type Database = {
           },
         ]
       }
+      restaurant_leads: {
+        Row: {
+          contact_name: string
+          created_at: string
+          email: string
+          id: string
+          message: string | null
+          phone: string | null
+          restaurant_name: string
+        }
+        Insert: {
+          contact_name: string
+          created_at?: string
+          email: string
+          id?: string
+          message?: string | null
+          phone?: string | null
+          restaurant_name: string
+        }
+        Update: {
+          contact_name?: string
+          created_at?: string
+          email?: string
+          id?: string
+          message?: string | null
+          phone?: string | null
+          restaurant_name?: string
+        }
+        Relationships: []
+      }
       restaurant_tables: {
         Row: {
           access_token: string
