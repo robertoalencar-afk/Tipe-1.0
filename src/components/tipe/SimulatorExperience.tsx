@@ -126,8 +126,9 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
       if (status === "approved") nextPaid[id] = (nextPaid[id] ?? 0) + qty;
       else nextReserved[id] = (nextReserved[id] ?? 0) + qty;
     }
+    const closed = status === "approved" && ITEMS.every((item) => (nextPaid[item.id] ?? 0) >= item.qty);
     const payment: DemoPayment = { id: crypto.randomUUID(), name: name.trim(), amount: total, quantities: selected, status, createdAt: new Date().toISOString() };
-    saveDemo({ ...demo, paid: nextPaid, reserved: nextReserved, payments: [payment, ...demo.payments] });
+    saveDemo({ ...demo, paid: nextPaid, reserved: nextReserved, payments: [payment, ...demo.payments], closedAt: closed ? Date.now() : demo.closedAt });
     setQuantities({});
     setStage(status === "approved" ? "approved" : "pending");
   };
@@ -145,17 +146,10 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
     });
     const closed = ITEMS.every((item) => (nextPaid[item.id] ?? 0) >= item.qty);
     saveDemo({ paid: nextPaid, reserved: nextReserved, payments, closedAt: closed ? Date.now() : null });
-    setStage(closed ? "closed" : "rating");
+    setStage("rating");
   };
 
   const continueAfterApproved = () => {
-    const closed = ITEMS.every((item) => (demo.paid[item.id] ?? 0) >= item.qty);
-    if (closed) {
-      const next = { ...demo, closedAt: demo.closedAt ?? Date.now() };
-      saveDemo(next);
-      setStage("closed");
-      return;
-    }
     setStage("rating");
   };
 
@@ -263,12 +257,12 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
       {stage === "payment" && <PaymentScreen title="Pagamento da conta" description="Este pagamento corresponde apenas aos itens escolhidos. Após a confirmação, a conta da mesa será atualizada automaticamente." value={total} method={method} setMethod={setMethod} terms={terms} setTerms={setTerms} back={() => setStage("bill")} pay={payBill} allowEstablishment />}
 
       {stage === "pending" && <Centered><img src={mascotWaiting} alt="Mascote TIPE aguardando" className="mx-auto mb-3 h-44 w-44 object-contain" /><p className="text-sm font-semibold text-highlight">Aguardando confirmação</p><h1 className="mt-2 text-2xl font-bold">Pagamento no estabelecimento</h1><p className="mt-3 text-sm leading-6 text-muted-foreground">Os itens foram reservados. Pague na maquininha ou em dinheiro. Nesta demonstração, use o botão abaixo para simular a confirmação do restaurante.</p><Button onClick={confirmEstablishment} className="mt-8 h-12 w-full rounded-lg text-base font-bold">Simular confirmação <Check /></Button></Centered>}
-      {stage === "approved" && <Centered><SuccessIcon /><p className="text-sm font-semibold text-primary">Conta paga</p><h1 className="mt-2 text-2xl font-bold">Pagamento confirmado!</h1><p className="mt-3 text-sm leading-6 text-muted-foreground">{money(total)} enviados ao Maré Alta.</p><Button onClick={continueAfterApproved} className="mt-8 h-12 w-full rounded-lg text-base font-bold">Continuar <ChevronRight /></Button></Centered>}
+      {stage === "approved" && <Centered><img src={mascotThanks} alt="Mascote TIPE comemorando o pagamento aprovado" className="mx-auto mb-3 h-44 w-44 object-contain" /><p className="text-sm font-semibold text-primary">Conta paga</p><h1 className="mt-2 text-2xl font-bold">Pagamento confirmado!</h1><p className="mt-3 text-sm leading-6 text-muted-foreground">{money(total)} enviados ao Maré Alta.</p><Button onClick={continueAfterApproved} className="mt-8 h-12 w-full rounded-lg text-base font-bold">Avaliar atendimento <ChevronRight /></Button></Centered>}
       {stage === "rating" && <main className="flex flex-1 flex-col px-6 pb-10"><img src={mascotRating} alt="Mascote TIPE com uma estrela" className="mx-auto mb-3 h-28 w-28 object-contain" /><h1 className="text-center text-2xl font-bold">Como foi seu atendimento?</h1><p className="mt-2 text-center text-sm text-muted-foreground">Sua avaliação ajuda o Carlos e o restaurante.</p><div className="mt-8 flex justify-center gap-2">{[1,2,3,4,5].map((number) => <Button key={number} variant="ghost" size="icon" onClick={() => setStars(number)} aria-label={`${number} estrelas`} className="h-11 w-11"><Star className={`h-8 w-8 ${number <= stars ? "fill-highlight text-highlight" : "text-border"}`} /></Button>)}</div><label htmlFor="demo-comment" className="mt-8 text-sm font-semibold">Comentário <span className="font-normal text-muted-foreground">(opcional)</span></label><Textarea id="demo-comment" value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Conte como foi sua experiência" maxLength={400} className="mt-2 min-h-28 rounded-lg bg-card" /><Button onClick={() => setStage("tip")} className="mt-6 h-12 rounded-lg text-base font-bold">Continuar <ChevronRight /></Button></main>}
       {stage === "tip" && <main className="flex flex-1 flex-col px-6 pb-10"><div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/15"><Heart className="h-7 w-7 text-primary" /></div><h1 className="mt-5 text-center text-2xl font-bold">Quer deixar uma gorjeta extra?</h1><p className="mt-2 text-center text-sm leading-6 text-muted-foreground">Uma forma opcional de agradecer pelo atendimento.</p><div className="mt-7 grid grid-cols-2 gap-3">{[5,10,15,20].map((value) => <Button key={value} variant={tip === value ? "default" : "outline"} onClick={() => setTip(value)} className="h-14 rounded-lg text-base font-bold">{money(value)}</Button>)}</div><Button disabled={tip <= 0} onClick={() => setStage("tip-payment")} className="mt-6 h-12 rounded-lg text-base font-bold">Continuar com gorjeta <ChevronRight /></Button><Button variant="ghost" onClick={() => setStage("done")} className="mt-2 h-11">Agora não, obrigado</Button></main>}
       {stage === "tip-payment" && <PaymentScreen title="Pagamento da gorjeta" description="Cobrança opcional e separada da conta." value={tip} method={tipMethod} setMethod={setTipMethod} terms={true} setTerms={() => undefined} back={() => setStage("tip")} pay={() => setStage("done")} />}
       {stage === "closed" && <Centered><img src={mascotTableClosed} alt="Mascote TIPE ao lado da conta encerrada" className="mx-auto h-52 w-52 object-contain" /><p className="mt-4 text-sm font-semibold text-primary">Tudo confirmado</p><h1 className="mt-2 text-2xl font-bold">Mesa encerrada</h1><p className="mt-3 text-sm leading-6 text-muted-foreground">Todos os itens desta mesa foram pagos e não há pagamentos pendentes.</p><p className="mt-2 text-xs text-muted-foreground">A demonstração será restaurada automaticamente em 2 minutos.</p><Link to="/" className="mt-8 text-sm font-semibold text-primary">Voltar ao site</Link></Centered>}
-      {stage === "done" && <Centered><img src={mascotThanks} alt="Mascote TIPE agradecendo" className="mx-auto h-48 w-48 object-contain" /><p className="mt-5 text-sm font-semibold text-primary">Tudo certo, {name.trim()}!</p><h1 className="mt-2 text-2xl font-bold">Obrigado pela sua visita.</h1><p className="mt-3 text-sm leading-6 text-muted-foreground">Sua conta foi paga e sua avaliação foi registrada nesta simulação.</p>{tip > 0 && <p className="mt-2 text-sm font-semibold">Gorjeta extra de {money(tip)} simulada.</p>}<Button onClick={() => setStage("bill")} className="mt-8 h-12 w-full rounded-lg text-base font-bold">Voltar à mesa</Button></Centered>}
+      {stage === "done" && <Centered><img src={mascotThanks} alt="Mascote TIPE agradecendo" className="mx-auto h-48 w-48 object-contain" /><p className="mt-5 text-sm font-semibold text-primary">Tudo certo, {name.trim()}!</p><h1 className="mt-2 text-2xl font-bold">Obrigado pela sua visita.</h1><p className="mt-3 text-sm leading-6 text-muted-foreground">Sua conta foi paga e sua avaliação foi registrada nesta simulação.</p>{tip > 0 && <p className="mt-2 text-sm font-semibold">Gorjeta extra de {money(tip)} simulada.</p>}{demo.closedAt ? <Button onClick={() => setStage("closed")} className="mt-8 h-12 w-full rounded-lg text-base font-bold">Ver mesa encerrada <ChevronRight /></Button> : <Button onClick={() => setStage("bill")} className="mt-8 h-12 w-full rounded-lg text-base font-bold">Voltar à mesa</Button>}</Centered>}
     </div>
   );
 }
@@ -280,10 +274,6 @@ function Summary({ label, value, className = "" }: { label: string; value: numbe
 function PaymentScreen<M extends Method | Exclude<Method, "at_establishment">>({ title, description, value, method, setMethod, terms, setTerms, back, pay, allowEstablishment = false }: { title: string; description: string; value: number; method: M | null; setMethod: (method: M) => void; terms: boolean; setTerms: (value: boolean) => void; back: () => void; pay: () => void; allowEstablishment?: boolean }) {
   const methods = (Object.keys(METHOD_DETAILS) as Method[]).filter((item) => allowEstablishment || item !== "at_establishment") as M[];
   return <main className="flex flex-1 flex-col px-5 pb-8"><Button variant="ghost" onClick={back} className="mb-4 w-fit px-2 text-muted-foreground"><ArrowLeft /> Voltar</Button><h1 className="text-2xl font-bold">{title}</h1><p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p><div className="my-6 border-y border-border py-5 text-center"><p className="text-xs text-muted-foreground">Total</p><p className="mt-1 font-display text-3xl font-bold">{money(value)}</p></div><h2 className="text-sm font-semibold">Como deseja pagar?</h2><div className="mt-3 flex flex-col gap-2">{methods.map((item) => { const detail = METHOD_DETAILS[item]; const selected = method === item; return <Button key={item} variant="outline" onClick={() => setMethod(item)} className={`h-auto min-h-16 justify-start rounded-lg px-4 py-3 text-left shadow-none ${selected ? "border-primary bg-primary/10 ring-1 ring-primary" : "bg-card"}`}><span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${selected ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}><detail.Icon className="h-4 w-4" /></span><span className="min-w-0 flex-1"><span className="block font-semibold">{detail.label}</span><span className="block text-xs font-normal text-muted-foreground">{detail.description}</span></span></Button>; })}</div>{allowEstablishment && <div className="mt-5 flex items-start gap-3 rounded-lg border border-border bg-card p-4"><Checkbox id="demo-terms" checked={terms} onCheckedChange={(checked) => setTerms(checked === true)} className="mt-0.5 h-5 w-5" /><label htmlFor="demo-terms" className="text-xs leading-5 text-muted-foreground">Confirmo que revisei os itens selecionados e entendo que este é um pagamento simulado.</label></div>}<Button disabled={!method || !terms} onClick={pay} className="mt-6 h-12 rounded-lg text-base font-bold">Simular pagamento de {money(value)}</Button></main>;
-}
-
-function SuccessIcon() {
-  return <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-primary/15"><Check className="h-10 w-10 text-primary" /></div>;
 }
 
 function Centered({ children }: { children: React.ReactNode }) {
