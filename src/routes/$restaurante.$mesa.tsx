@@ -308,7 +308,7 @@ function MesaPage() {
 
           {aba === "conta" && (
             <>
-              {(() => {
+              {dados.itens.some((item) => (disponiveis[item.id] ?? item.qtd) > 0) && (() => {
                 const tudoSelecionado = dados.itens.every((item) => (qtds[item.id] ?? 0) === (disponiveis[item.id] ?? item.qtd));
                 return (
                   <Button
@@ -320,7 +320,7 @@ function MesaPage() {
                   </Button>
                 );
               })()}
-              <p className="mb-3 text-sm text-muted-foreground">Ou escolha quanto de cada item você vai pagar.</p>
+              {dados.itens.some((item) => (disponiveis[item.id] ?? item.qtd) > 0) && <p className="mb-3 text-sm text-muted-foreground">Ou escolha quanto de cada item você vai pagar.</p>}
               <ul className="flex flex-col gap-3">
                 {dados.itens.filter((item) => (disponiveis[item.id] ?? item.qtd) > 0).map((item) => {
                   const quantidade = qtds[item.id] ?? 0;
