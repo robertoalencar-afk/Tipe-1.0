@@ -212,11 +212,10 @@ function MesaPage() {
     setPagando(true);
     setErroPagamento(null);
     try {
-      await createPayment({
+      const resultado = await createPayment({
         data: {
           method: metodo,
-          amount: valor,
-          tip: 0,
+          tip: tipo === "gorjeta" ? gorjetaExtra : 0,
           tableId: String(dados.mesa),
           restaurantId: restaurante,
           idempotencyKey: `${tipo}-${restaurante}-${dados.mesa}-${Date.now()}`,
@@ -226,7 +225,7 @@ function MesaPage() {
         },
       });
       await atualizarMesa();
-      setEtapa(tipo === "conta" ? (metodo === "at_establishment" ? "conta-pendente" : "conta-confirmada") : "fim");
+      setEtapa(tipo === "conta" ? (resultado.status === "approved" ? "conta-confirmada" : "conta-pendente") : "fim");
     } catch (error) {
       setErroPagamento(error instanceof Error ? error.message : "Não foi possível concluir o pagamento");
     } finally {
