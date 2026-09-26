@@ -3,7 +3,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import {
   QrCode, Receipt, Smartphone, CheckCircle2, ChevronRight, MonitorSmartphone, History, Landmark,
-  Plug, Store, Zap, ShieldCheck, TrendingUp, Clock, Users, Sparkles, Check, Star, BarChart3, Wallet,
+  Plug, Store, Zap, ShieldCheck, TrendingUp, Clock, Users, Check, Star, BarChart3, Wallet,
 } from "lucide-react";
 import { submitLead } from "@/lib/tipe/leads.functions";
 import logo from "@/assets/logo-dark.png.asset.json";
