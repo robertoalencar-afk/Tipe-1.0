@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as SimuladorRouteImport } from './routes/simulador'
 import { Route as TermosRouteImport } from './routes/termos'
 import { Route as RestauranteIndexRouteImport } from './routes/$restaurante.index'
 import { Route as RestauranteMesaRouteImport } from './routes/$restaurante.$mesa'
@@ -36,6 +37,11 @@ const EntrarRoute = EntrarRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SimuladorRoute = SimuladorRouteImport.update({
+  id: '/simulador',
+  path: '/simulador',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermosRoute = TermosRouteImport.update({
@@ -68,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/entrar': typeof EntrarRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/simulador': typeof SimuladorRoute
   '/termos': typeof TermosRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
   '/painel': typeof AuthenticatedPainelRoute
@@ -78,6 +85,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/entrar': typeof EntrarRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/simulador': typeof SimuladorRoute
   '/termos': typeof TermosRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
   '/painel': typeof AuthenticatedPainelRoute
@@ -90,6 +98,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/entrar': typeof EntrarRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/simulador': typeof SimuladorRoute
   '/termos': typeof TermosRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
@@ -102,6 +111,7 @@ export interface FileRouteTypes {
     | '/'
     | '/entrar'
     | '/reset-password'
+    | '/simulador'
     | '/termos'
     | '/$restaurante/$mesa'
     | '/painel'
@@ -112,6 +122,7 @@ export interface FileRouteTypes {
     | '/'
     | '/entrar'
     | '/reset-password'
+    | '/simulador'
     | '/termos'
     | '/$restaurante/$mesa'
     | '/painel'
@@ -123,6 +134,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/entrar'
     | '/reset-password'
+    | '/simulador'
     | '/termos'
     | '/$restaurante/$mesa'
     | '/_authenticated/painel'
@@ -135,6 +147,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   EntrarRoute: typeof EntrarRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  SimuladorRoute: typeof SimuladorRoute
   TermosRoute: typeof TermosRoute
   RestauranteMesaRoute: typeof RestauranteMesaRoute
   RestauranteIndexRoute: typeof RestauranteIndexRoute
@@ -169,6 +182,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/simulador': {
+      id: '/simulador'
+      path: '/simulador'
+      fullPath: '/simulador'
+      preLoaderRoute: typeof SimuladorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/termos': {
@@ -225,6 +245,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   EntrarRoute: EntrarRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  SimuladorRoute: SimuladorRoute,
   TermosRoute: TermosRoute,
   RestauranteMesaRoute: RestauranteMesaRoute,
   RestauranteIndexRoute: RestauranteIndexRoute,
