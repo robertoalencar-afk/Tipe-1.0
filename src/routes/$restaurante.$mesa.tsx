@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { z } from "zod";
 import { useCallback, useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   ArrowLeft,
@@ -21,15 +22,16 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { getMesa } from "@/lib/tipe/rules";
-import { createPayment, getSharedTableState, reopenClosedTable, type SharedPayment } from "@/lib/tipe/payments.functions";
+import { getPublicTable } from "@/lib/tipe/pdv.functions";
+import { createPayment, reopenClosedTable, type SharedPayment } from "@/lib/tipe/payments.functions";
 import { supabase } from "@/integrations/supabase/client";
 import mascotThanks from "@/assets/mascot-thanks.png";
 import mascotRating from "@/assets/mascot-rating.png";
 import mascotWaiting from "@/assets/mascot-waiting.png";
 import mascotTableClosed from "@/assets/mascot-table-closed.png";
 
-export const Route = createFileRoute("/mesa/$restaurante/$mesa")({
+export const Route = createFileRoute("/$restaurante/$mesa")({
+  validateSearch: z.object({ t: z.string().max(64).optional() }),
   head: () => ({
     meta: [
       { title: "Sua mesa — TIPE" },
@@ -83,13 +85,16 @@ const formatPaymentDate = (value: string) => new Intl.DateTimeFormat("pt-BR", {
   minute: "2-digit",
 }).format(new Date(value));
 
-const customerStorageKey = (restaurantId: string, tableId: number) =>
+const customerStorageKey = (restaurantId: string, tableId: string) =>
   `tipe:cliente:${restaurantId}:${tableId}`;
 const hasFirstAndLastName = (value: string) => value.trim().split(/\s+/).length >= 2;
 
 function MesaPage() {
-  const { restaurante, mesa } = Route.useParams();
-  const dados = getMesa(restaurante, Number(mesa));
+  const { restaurante, mesa: codigoMesa } = Route.useParams();
+  const { t: tokenMesa } = Route.useSearch();
+  type ItemMesa = { id: string; nome: string; qtd: number; preco: number; data: string; hora: string };
+  const [dados, setDados] = useState<{ restaurante: string; mesa: string; garcom: string; itens: ItemMesa[] }>({ restaurante: "", mesa: "", garcom: "", itens: [] });
+  const [erroMesa, setErroMesa] = useState<string | null>(null);
   const [etapa, setEtapa] = useState<Etapa>("carregando");
   const [nome, setNome] = useState("");
   const [aba, setAba] = useState<Aba>("conta");
@@ -109,7 +114,7 @@ function MesaPage() {
 
   useEffect(() => {
     try {
-      const nomeSalvo = window.localStorage.getItem(customerStorageKey(restaurante, dados.mesa))?.trim() ?? "";
+      const nomeSalvo = window.localStorage.getItem(customerStorageKey(restaurante, codigoMesa))?.trim() ?? "";
       if (hasFirstAndLastName(nomeSalvo)) {
         setNome(nomeSalvo);
         setEtapa("conta");
@@ -119,28 +124,37 @@ function MesaPage() {
       // Se o armazenamento do navegador estiver indisponível, a identificação segue normalmente.
     }
     setEtapa("identificacao");
-  }, [dados.mesa, restaurante]);
+  }, [codigoMesa, restaurante]);
 
   const atualizarMesa = useCallback(async () => {
     try {
-      const estado = await getSharedTableState({ data: { restaurantId: restaurante, tableId: String(dados.mesa) } });
+      const estado = await getPublicTable({ data: { slug: restaurante, code: codigoMesa, token: tokenMesa } });
+      if ("error" in estado) {
+        setErroMesa(estado.error === "invalid_token" ? "Este QR Code foi atualizado pelo restaurante. Leia o código que está na mesa agora." : estado.error === "inactive" ? "Esta mesa está desativada no momento. Chame o garçom." : "Mesa não encontrada. Confira o QR Code da mesa.");
+        return;
+      }
+      const itensMesa: ItemMesa[] = estado.items.map((i) => {
+        const d = new Date(i.ordered_at);
+        return { id: i.item_code, nome: i.item_name, qtd: i.ordered_quantity, preco: i.unit_price, data: d.toLocaleDateString("pt-BR"), hora: d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) };
+      });
+      setDados({ restaurante: estado.restaurantName, mesa: estado.tableNumber, garcom: estado.waiterName, itens: itensMesa });
       setDisponiveis(Object.fromEntries(estado.items.map((item) => [item.item_code, Math.max(0, item.ordered_quantity - item.reserved_quantity - item.paid_quantity)])));
       setPagamentos(estado.payments);
-      setQtds((atuais) => Object.fromEntries(dados.itens.map((item) => [item.id, Math.min(atuais[item.id] ?? 0, Math.max(0, estado.items.find((shared) => shared.item_code === item.id)?.ordered_quantity ?? item.qtd) - (estado.items.find((shared) => shared.item_code === item.id)?.reserved_quantity ?? 0) - (estado.items.find((shared) => shared.item_code === item.id)?.paid_quantity ?? 0))])));
+      setQtds((atuais) => Object.fromEntries(itensMesa.map((item) => [item.id, Math.min(atuais[item.id] ?? 0, Math.max(0, estado.items.find((shared) => shared.item_code === item.id)?.ordered_quantity ?? item.qtd) - (estado.items.find((shared) => shared.item_code === item.id)?.reserved_quantity ?? 0) - (estado.items.find((shared) => shared.item_code === item.id)?.paid_quantity ?? 0))])));
       setMesaSincronizada(true);
     } catch {
       setErroPagamento("Não foi possível atualizar a mesa agora.");
     }
-  }, [dados.itens, dados.mesa, restaurante]);
+  }, [codigoMesa, tokenMesa, restaurante]);
 
   useEffect(() => {
     void atualizarMesa();
-    const channel = supabase.channel(`mesa-${restaurante}-${dados.mesa}`)
+    const channel = supabase.channel(`mesa-${restaurante}-${codigoMesa}`)
       .on("postgres_changes", { event: "*", schema: "public", table: "table_bill_items", filter: `restaurant_slug=eq.${restaurante}` }, () => void atualizarMesa())
       .on("postgres_changes", { event: "*", schema: "public", table: "table_payment_requests", filter: `restaurant_slug=eq.${restaurante}` }, () => void atualizarMesa())
       .subscribe();
     return () => { void supabase.removeChannel(channel); };
-  }, [atualizarMesa, dados.mesa, restaurante]);
+  }, [atualizarMesa, codigoMesa, restaurante]);
 
   const subtotal = useMemo(
     () => dados.itens.reduce((soma, item) => soma + item.preco * (qtds[item.id] ?? 0), 0),
@@ -149,6 +163,7 @@ function MesaPage() {
   const servico = +(subtotal * 0.1).toFixed(2);
   const totalConta = +(subtotal + servico).toFixed(2);
   const mesaEncerrada = mesaSincronizada
+    && dados.itens.length > 0
     && dados.itens.every((item) => (disponiveis[item.id] ?? item.qtd) <= 0)
     && pagamentos.every((pagamento) => pagamento.status !== "pending");
   const etapaVisivel: Etapa = mesaEncerrada && ["carregando", "identificacao", "conta", "pagamento-conta", "conta-pendente"].includes(etapa)
@@ -175,7 +190,7 @@ function MesaPage() {
     if (estavaEncerrada && mesaSincronizada) {
       // Nova conta aberta: limpa a identificação e recomeça.
       setEstavaEncerrada(false);
-      try { window.localStorage.removeItem(customerStorageKey(restaurante, dados.mesa)); } catch { /* ignora */ }
+      try { window.localStorage.removeItem(customerStorageKey(restaurante, codigoMesa)); } catch { /* ignora */ }
       setNome(""); setEstrelas(0); setComentario(""); setGorjetaExtra(0); setAba("conta");
       setEtapa("identificacao");
     }
@@ -185,7 +200,7 @@ function MesaPage() {
     event.preventDefault();
     const nomeIdentificado = nome.trim();
     if (!hasFirstAndLastName(nomeIdentificado)) return;
-    window.localStorage.setItem(customerStorageKey(restaurante, dados.mesa), nomeIdentificado);
+    window.localStorage.setItem(customerStorageKey(restaurante, codigoMesa), nomeIdentificado);
     setNome(nomeIdentificado);
     setEtapa("conta");
   }
