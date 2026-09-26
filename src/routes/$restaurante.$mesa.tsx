@@ -24,7 +24,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getPublicTable } from "@/lib/tipe/pdv.functions";
 import { createPayment, reopenClosedTable, type SharedPayment } from "@/lib/tipe/payments.functions";
-import { supabase } from "@/integrations/supabase/client";
 import mascotThanks from "@/assets/mascot-thanks.png";
 import mascotRating from "@/assets/mascot-rating.png";
 import mascotWaiting from "@/assets/mascot-waiting.png";
