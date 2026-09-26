@@ -180,7 +180,7 @@ type PanelData = Awaited<ReturnType<typeof getPanelData>>;
 
 function MesaDetalhe({ slug, mesa, payments, podeConfirmar, onLancar, onDone }: {
   slug: string; podeConfirmar: boolean; onLancar: () => void; onDone: () => void;
-  mesa: { number: string; status: Status; garcom?: string; total: number; itens: PanelData["items"] };
+  mesa: { number: string; status: Status; garcom?: string | undefined; total: number; itens: PanelData["items"] };
   payments: PanelData["payments"];
 }) {
   const estornar = useServerFn(voidItem);

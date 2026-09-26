@@ -45,7 +45,7 @@ function Painel() {
 
   const slug = r ?? access.data?.restaurants[0]?.slug;
   useEffect(() => {
-    if (access.data && !access.data.isFounder && access.data.restaurants.length === 1) navigate({ to: "/$restaurante", params: { restaurante: access.data.restaurants[0].slug }, replace: true });
+    if (access.data && !access.data.isFounder && access.data.restaurants.length === 1) navigate({ to: "/$restaurante", params: { restaurante: access.data.restaurants[0]!.slug }, replace: true });
   }, [access.data, navigate]);
 
   return (

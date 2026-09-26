@@ -66,8 +66,8 @@ function Entrar() {
   }
 
   async function google() {
-    const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/entrar${r ? `?r=${encodeURIComponent(r)}` : ""}` });
-    if (r.error) toast.error("Não foi possível entrar com Google");
+    const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/entrar${r ? `?r=${encodeURIComponent(r)}` : ""}` });
+    if (res.error) toast.error("Não foi possível entrar com Google");
   }
 
   const titulo = modo === "entrar" ? "Área do restaurante" : modo === "criar" ? "Criar conta da equipe" : "Recuperar senha";
