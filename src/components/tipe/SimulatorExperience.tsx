@@ -167,7 +167,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
           <p className="mt-4 font-display text-xl font-bold text-primary">Pague. Sem esperar.</p>
           <div className="mt-7 rounded-lg bg-card p-5 text-card-foreground">
             <p className="text-sm font-semibold">Mesa 12 · Maré Alta</p>
-            <Button variant="ghost" onClick={() => setStage("identification")} className="mx-auto mt-4 h-auto bg-card p-3 hover:bg-muted" aria-label="Abrir simulação da Mesa 12">
+            <Button variant="ghost" onClick={() => setStage("identification")} className="mx-auto mt-4 h-auto bg-card p-3 hover:bg-muted [&_svg]:h-[180px] [&_svg]:w-[180px]" aria-label="Abrir simulação da Mesa 12">
               <QRCodeSVG value="https://tipe.digital/simulador?mesa=12" size={180} bgColor="transparent" fgColor="currentColor" />
             </Button>
             <p className="mt-4 text-sm font-semibold">Aponte a câmera para o QR Code</p>
