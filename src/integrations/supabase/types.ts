@@ -14,6 +14,181 @@ export type Database = {
   }
   public: {
     Tables: {
+      archived_payments: {
+        Row: {
+          amount: number
+          archived_at: string
+          created_at: string
+          customer_name: string
+          id: string
+          item_quantities: Json
+          payment_method: string
+          payment_target: string
+          restaurant_slug: string
+          status: string
+          table_number: string
+        }
+        Insert: {
+          amount: number
+          archived_at?: string
+          created_at: string
+          customer_name: string
+          id: string
+          item_quantities?: Json
+          payment_method: string
+          payment_target: string
+          restaurant_slug: string
+          status: string
+          table_number: string
+        }
+        Update: {
+          amount?: number
+          archived_at?: string
+          created_at?: string
+          customer_name?: string
+          id?: string
+          item_quantities?: Json
+          payment_method?: string
+          payment_target?: string
+          restaurant_slug?: string
+          status?: string
+          table_number?: string
+        }
+        Relationships: []
+      }
+      payment_audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          amount: number
+          created_at: string
+          id: string
+          payment_id: string
+          restaurant_slug: string
+          table_number: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          amount?: number
+          created_at?: string
+          id?: string
+          payment_id: string
+          restaurant_slug: string
+          table_number: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          amount?: number
+          created_at?: string
+          id?: string
+          payment_id?: string
+          restaurant_slug?: string
+          table_number?: string
+        }
+        Relationships: []
+      }
+      restaurant_tables: {
+        Row: {
+          active: boolean
+          created_at: string
+          id: string
+          number: string
+          restaurant_id: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          number: string
+          restaurant_id: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          created_at?: string
+          id?: string
+          number?: string
+          restaurant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_tables_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      restaurants: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          pos_provider: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          pos_provider?: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          pos_provider?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      staff_members: {
+        Row: {
+          created_at: string
+          display_name: string
+          email: string
+          id: string
+          restaurant_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          display_name: string
+          email: string
+          id?: string
+          restaurant_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          display_name?: string
+          email?: string
+          id?: string
+          restaurant_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_members_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       table_bill_items: {
         Row: {
           created_at: string
@@ -104,11 +279,71 @@ export type Database = {
         }
         Relationships: []
       }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          restaurant_id: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          restaurant_id?: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          restaurant_id?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      archive_and_reopen_table: {
+        Args: { p_slug: string; p_table: string }
+        Returns: undefined
+      }
+      claim_founder: { Args: never; Returns: boolean }
+      has_restaurant_role: {
+        Args: {
+          _restaurant_id: string
+          _roles: Database["public"]["Enums"]["app_role"][]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
+      is_member_of_slug: {
+        Args: { _slug: string; _user_id: string }
+        Returns: boolean
+      }
+      is_restaurant_member: {
+        Args: { _restaurant_id: string; _user_id: string }
+        Returns: boolean
+      }
       register_table_payment: {
         Args: {
           p_amount: number
@@ -122,9 +357,13 @@ export type Database = {
         }
         Returns: string
       }
+      resolve_table_payment: {
+        Args: { p_action: string; p_payment_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "founder" | "owner" | "cashier" | "waiter"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -251,6 +490,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["founder", "owner", "cashier", "waiter"],
+    },
   },
 } as const

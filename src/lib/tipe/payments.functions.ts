@@ -148,7 +148,8 @@ export const reopenClosedTable = createServerFn({ method: "POST" })
     if (!closed) return { reopened: false };
     const last = Math.max(...items.map((i) => Date.parse(i.updated_at)), ...payments.map((p) => Date.parse(p.updated_at)));
     if (Date.now() - last < REOPEN_DELAY_MS) return { reopened: false, waitMs: REOPEN_DELAY_MS - (Date.now() - last) };
-    await supabaseAdmin.from("table_payment_requests").delete().eq("restaurant_slug", data.restaurantId).eq("table_number", data.tableId);
-    await supabaseAdmin.from("table_bill_items").update({ reserved_quantity: 0, paid_quantity: 0 }).eq("restaurant_slug", data.restaurantId).eq("table_number", data.tableId);
+    // Arquiva os pagamentos (nunca apaga o histórico) e libera a mesa.
+    const { error } = await supabaseAdmin.rpc("archive_and_reopen_table", { p_slug: data.restaurantId, p_table: data.tableId });
+    if (error) throw new Error("Não foi possível reabrir a mesa");
     return { reopened: true };
   });

@@ -27,6 +27,7 @@ function Totem() {
           <QrCode className="h-32 w-32" />
         </Link>
         <p className="mt-3 text-xs opacity-60">Mesa 12 · toque no código para simular a leitura</p>
+        <Link to="/entrar" className="mt-6 inline-block text-xs underline opacity-70">Área do restaurante</Link>
       </div>
     </main>
   );
