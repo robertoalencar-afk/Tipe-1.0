@@ -13,5 +13,6 @@
 - [x] Cliente: manter fluxo itens → meio → pagamento, remover autor dos pedidos e detalhar pagamentos na atividade
 - [x] Cliente: retorno direto à conta e tela automática de mesa encerrada após todas as confirmações
 - [x] Painel do restaurante (login, cargos, mesas em tempo real, confirmação presencial, equipe, auditoria)
+- [x] Endereço próprio do restaurante (tipe.digital/marealta), PDV simulado, QR por mesa (tipe.digital/marealta/mesa12)
 - [ ] Painel do garçom
 - [ ] Painel do fundador

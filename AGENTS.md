@@ -19,3 +19,5 @@
 
 - Staff access: roles in public.user_roles (founder/owner/cashier/waiter, per restaurant); payment confirmation only via resolve_table_payment RPC — prevents privilege escalation.
 - Table reopen archives payments to archived_payments instead of deleting — keeps full history.
+- Restaurant area lives at /$restaurante (client-only, login required); customer table at /$restaurante/$mesa (code like mesa12, optional ?t= QR token). Why: each restaurant has its own address and table tokens.
+- Bill items come only from the simulated PDV (pdv_* tables, pdv_launch_order RPC upserting table_bill_items); no hardcoded mock bills. Why: manual simulation now, real Saipos/TOTVS sync later.
