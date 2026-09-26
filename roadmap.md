@@ -14,5 +14,6 @@
 - [x] Cliente: retorno direto à conta e tela automática de mesa encerrada após todas as confirmações
 - [x] Painel do restaurante (login, cargos, mesas em tempo real, confirmação presencial, equipe, auditoria)
 - [x] Endereço próprio do restaurante (tipe.digital/marealta), PDV simulado, QR por mesa (tipe.digital/marealta/mesa12)
+- [x] Simulador público independente em /simulador, com totem/QR, itens fixos da Mesa 12 e reinício em 2 minutos
 - [ ] Painel do garçom
 - [ ] Painel do fundador

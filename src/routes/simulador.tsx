@@ -1,17 +1,23 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
+import { z } from "zod";
+import { SimulatorExperience } from "@/components/tipe/SimulatorExperience";
 
-// Simulador público: mesa 12 do Maré Alta (demo).
-// A mesa encerra quando tudo é pago e reabre zerada após 2 minutos.
 export const Route = createFileRoute("/simulador")({
+  validateSearch: z.object({ mesa: z.literal("12").optional() }),
   head: () => ({
     meta: [
-      { title: "Simulador TIPE — Pague a conta pelo celular" },
-      { name: "description", content: "Experimente a TIPE: escaneie, escolha seus itens e pague a conta da mesa pelo celular, sem esperar o garçom." },
-      { property: "og:title", content: "Simulador TIPE — Pague a conta pelo celular" },
-      { property: "og:description", content: "Experimente a TIPE: escaneie, escolha seus itens e pague a conta da mesa pelo celular, sem esperar o garçom." },
+      { title: "Simulador Mesa 12 — TIPE" },
+      { name: "description", content: "Simule a leitura do QR Code, confira os itens da Mesa 12 e experimente o pagamento pelo celular com a TIPE." },
+      { property: "og:title", content: "Simulador Mesa 12 — TIPE" },
+      { property: "og:description", content: "Conheça a experiência TIPE completa, do QR Code ao pagamento da conta." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
     ],
   }),
-  beforeLoad: () => {
-    throw redirect({ to: "/$restaurante/$mesa", params: { restaurante: "marealta", mesa: "mesa12" } });
-  },
+  component: SimulatorPage,
 });
+
+function SimulatorPage() {
+  const { mesa } = Route.useSearch();
+  return <SimulatorExperience enterDirectly={mesa === "12"} />;
+}
