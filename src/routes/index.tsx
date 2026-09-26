@@ -64,6 +64,7 @@ function Header() {
           {[["#dinamica", "O novo jeito"], ["#como-funciona", "Como funciona"], ["#painel", "Painel"], ["#pdv", "PDV"], ["#planos", "Planos"], ["#duvidas", "Dúvidas"]].map(([h, l]) => (
             <a key={h} href={h} className="hidden rounded-lg px-3 py-2 text-muted-foreground transition-colors hover:text-foreground lg:block">{l}</a>
           ))}
+          <Link to="/simulador" className="hidden rounded-full px-4 py-2 font-semibold text-muted-foreground transition-colors hover:text-foreground lg:block">Simular</Link>
           <Link to="/entrar" className="hidden rounded-full px-4 py-2 font-semibold text-foreground hover:bg-muted sm:block">Entrar</Link>
           <a href="#fale-conosco" className="rounded-full bg-primary px-4 py-2 font-display text-sm font-semibold text-primary-foreground shadow-md transition-transform hover:-translate-y-0.5">
             Quero a TIPE
