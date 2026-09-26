@@ -1,6 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
+import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable";
 import { TipeLogo } from "@/components/tipe/Logo";
@@ -8,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 export const Route = createFileRoute("/entrar")({
+  validateSearch: z.object({ r: z.string().regex(/^\/[a-z0-9-]+$/).optional().catch(undefined) }),
   head: () => ({
     meta: [
       { title: "Entrar — Área do restaurante TIPE" },
@@ -25,16 +27,18 @@ type Modo = "entrar" | "criar" | "esqueci";
 
 function Entrar() {
   const navigate = useNavigate();
+  const { r } = Route.useSearch();
+  const destino = () => (r ? navigate({ to: "/$restaurante", params: { restaurante: r.slice(1) } }) : navigate({ to: "/painel" }));
   const [modo, setModo] = useState<Modo>("entrar");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [carregando, setCarregando] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => { if (data.session) navigate({ to: "/painel" }); });
-    const { data } = supabase.auth.onAuthStateChange((e, s) => { if (e === "SIGNED_IN" && s) navigate({ to: "/painel" }); });
+    supabase.auth.getSession().then(({ data }) => { if (data.session) destino(); });
+    const { data } = supabase.auth.onAuthStateChange((e, s) => { if (e === "SIGNED_IN" && s) destino(); });
     return () => data.subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, r]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
@@ -44,7 +48,7 @@ function Entrar() {
         const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
         if (error) throw new Error("E-mail ou senha incorretos");
       } else if (modo === "criar") {
-        const { error } = await supabase.auth.signUp({ email, password: senha, options: { emailRedirectTo: `${window.location.origin}/painel` } });
+        const { error } = await supabase.auth.signUp({ email, password: senha, options: { emailRedirectTo: `${window.location.origin}${r ?? "/painel"}` } });
         if (error) throw new Error(error.message.includes("pwned") || error.message.toLowerCase().includes("weak") ? "Essa senha é fraca ou já vazou. Escolha outra." : "Não foi possível criar a conta");
         toast.success("Conta criada! Confirme pelo link enviado ao seu e-mail.");
         setModo("entrar");
@@ -62,8 +66,8 @@ function Entrar() {
   }
 
   async function google() {
-    const r = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/entrar` });
-    if (r.error) toast.error("Não foi possível entrar com Google");
+    const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/entrar${r ? `?r=${encodeURIComponent(r)}` : ""}` });
+    if (res.error) toast.error("Não foi possível entrar com Google");
   }
 
   const titulo = modo === "entrar" ? "Área do restaurante" : modo === "criar" ? "Criar conta da equipe" : "Recuperar senha";

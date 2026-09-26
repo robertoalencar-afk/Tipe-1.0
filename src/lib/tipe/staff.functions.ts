@@ -123,7 +123,7 @@ export const createRestaurant = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: r, error } = await context.supabase.from("restaurants").insert({ name: data.name, slug: data.slug, pos_provider: data.pos }).select("id").single();
     if (error || !r) throw new Error(error?.code === "23505" ? "Esse endereço já está em uso" : "Somente o fundador pode cadastrar restaurantes");
-    const rows = Array.from({ length: data.tables }, (_, i) => ({ restaurant_id: r.id, number: String(i + 1) }));
+    const rows = Array.from({ length: data.tables }, (_, i) => ({ restaurant_id: r.id, number: String(i + 1), code: `mesa${i + 1}` }));
     const { error: tErr } = await context.supabase.from("restaurant_tables").insert(rows);
     if (tErr) throw new Error("Restaurante criado, mas as mesas não foram cadastradas");
     return { slug: data.slug };

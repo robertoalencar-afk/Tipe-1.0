@@ -43,27 +43,6 @@ export type Mesa = {
   itens: ItemConta[];
 };
 
-const MESAS: Record<string, Mesa> = {
-  "mare-alta/12": {
-    restaurante: "Maré Alta",
-    mesa: 12,
-    garcom: "Carlos",
-    itens: [
-      { id: "1", nome: "Moqueca de peixe", qtd: 2, preco: 89, data: "24/09/2026", hora: "19:42" },
-      { id: "2", nome: "Camarão na moranga", qtd: 1, preco: 112, data: "24/09/2026", hora: "19:45" },
-      { id: "3", nome: "Caipirinha de limão", qtd: 3, preco: 24, data: "24/09/2026", hora: "19:50" },
-      { id: "4", nome: "Água com gás", qtd: 2, preco: 8, data: "24/09/2026", hora: "20:05" },
-      { id: "5", nome: "Pudim de leite", qtd: 1, preco: 18, data: "24/09/2026", hora: "20:40" },
-    ],
-  },
-};
-
-export function getMesa(restaurante: string, mesa: number): Mesa {
-  const encontrada = MESAS[`${restaurante}/${mesa}`] ?? MESAS["mare-alta/12"];
-  if (!encontrada) throw new Error("Mesa de demonstração não encontrada");
-  return encontrada;
-}
-
 // Gorjeta extra: 70% garçom, 30% TIPE (restaurante fica com a taxa de serviço)
 export function splitGorjeta(extra: number) {
   const garcom = +(extra * TIP_SPLIT.waiter).toFixed(2);

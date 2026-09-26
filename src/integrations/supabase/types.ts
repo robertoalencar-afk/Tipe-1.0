@@ -89,30 +89,250 @@ export type Database = {
         }
         Relationships: []
       }
-      restaurant_tables: {
+      pdv_menu_categories: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          position: number
+          restaurant_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          position?: number
+          restaurant_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          position?: number
+          restaurant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pdv_menu_categories_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pdv_menu_items: {
+        Row: {
+          available: boolean
+          category_id: string | null
+          code: string
+          created_at: string
+          id: string
+          name: string
+          position: number
+          price: number
+          restaurant_id: string
+          updated_at: string
+        }
+        Insert: {
+          available?: boolean
+          category_id?: string | null
+          code: string
+          created_at?: string
+          id?: string
+          name: string
+          position?: number
+          price: number
+          restaurant_id: string
+          updated_at?: string
+        }
+        Update: {
+          available?: boolean
+          category_id?: string | null
+          code?: string
+          created_at?: string
+          id?: string
+          name?: string
+          position?: number
+          price?: number
+          restaurant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pdv_menu_items_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "pdv_menu_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pdv_menu_items_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pdv_order_items: {
+        Row: {
+          created_at: string
+          id: string
+          item_code: string
+          item_name: string
+          order_id: string
+          quantity: number
+          restaurant_id: string
+          unit_price: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          item_code: string
+          item_name: string
+          order_id: string
+          quantity: number
+          restaurant_id: string
+          unit_price: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          item_code?: string
+          item_name?: string
+          order_id?: string
+          quantity?: number
+          restaurant_id?: string
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pdv_order_items_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "pdv_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pdv_order_items_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pdv_orders: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          id: string
+          restaurant_id: string
+          table_number: string
+          waiter_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          restaurant_id: string
+          table_number: string
+          waiter_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          restaurant_id?: string
+          table_number?: string
+          waiter_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pdv_orders_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pdv_orders_waiter_id_fkey"
+            columns: ["waiter_id"]
+            isOneToOne: false
+            referencedRelation: "pdv_waiters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pdv_waiters: {
         Row: {
           active: boolean
+          code: string
+          created_at: string
+          id: string
+          name: string
+          restaurant_id: string
+        }
+        Insert: {
+          active?: boolean
+          code: string
+          created_at?: string
+          id?: string
+          name: string
+          restaurant_id: string
+        }
+        Update: {
+          active?: boolean
+          code?: string
+          created_at?: string
+          id?: string
+          name?: string
+          restaurant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pdv_waiters_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      restaurant_tables: {
+        Row: {
+          access_token: string
+          active: boolean
+          code: string
           created_at: string
           id: string
           number: string
           restaurant_id: string
           updated_at: string
+          waiter_id: string | null
         }
         Insert: {
+          access_token?: string
           active?: boolean
+          code: string
           created_at?: string
           id?: string
           number: string
           restaurant_id: string
           updated_at?: string
+          waiter_id?: string | null
         }
         Update: {
+          access_token?: string
           active?: boolean
+          code?: string
           created_at?: string
           id?: string
           number?: string
           restaurant_id?: string
           updated_at?: string
+          waiter_id?: string | null
         }
         Relationships: [
           {
@@ -120,6 +340,13 @@ export type Database = {
             columns: ["restaurant_id"]
             isOneToOne: false
             referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "restaurant_tables_waiter_fk"
+            columns: ["waiter_id"]
+            isOneToOne: false
+            referencedRelation: "pdv_waiters"
             referencedColumns: ["id"]
           },
         ]
@@ -343,6 +570,23 @@ export type Database = {
       is_restaurant_member: {
         Args: { _restaurant_id: string; _user_id: string }
         Returns: boolean
+      }
+      pdv_close_table: {
+        Args: { p_slug: string; p_table: string }
+        Returns: undefined
+      }
+      pdv_launch_order: {
+        Args: {
+          p_items: Json
+          p_slug: string
+          p_table: string
+          p_waiter: string
+        }
+        Returns: string
+      }
+      pdv_void_item: {
+        Args: { p_code: string; p_qty: number; p_slug: string; p_table: string }
+        Returns: undefined
       }
       register_table_payment: {
         Args: {
