@@ -177,8 +177,6 @@ function SectionTitle({ eyebrow, title, text }: { eyebrow: string; title: string
     </div>
   );
 }
-const emptyLeadPlaceholder: never[] = [];
-
 function Dinamica() {
   const oldSteps = [
     { icon: Hand, t: "Chamar o garçom e pedir a conta" },
