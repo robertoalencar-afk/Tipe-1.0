@@ -25,7 +25,7 @@ export const getPublicTable = createServerFn({ method: "GET" })
     const { data: t } = await supabaseAdmin.from("restaurant_tables").select("number, active, access_token, waiter_id").eq("restaurant_id", r.id).eq("code", data.code.toLowerCase()).maybeSingle();
     if (!t) return { error: "not_found" };
     if (!t.active) return { error: "inactive" };
-    if (data.token && data.token !== t.access_token) return { error: "invalid_token" };
+    if (!data.token || data.token !== t.access_token) return { error: "invalid_token" };
     const [items, payments, waiter] = await Promise.all([
       supabaseAdmin.from("table_bill_items").select("item_code, item_name, unit_price, ordered_quantity, reserved_quantity, paid_quantity, ordered_at")
         .eq("restaurant_slug", data.slug).eq("table_number", t.number).order("ordered_at"),
