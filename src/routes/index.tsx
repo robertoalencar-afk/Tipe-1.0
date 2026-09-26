@@ -486,7 +486,7 @@ function Footer() {
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-4">
         <div className="md:col-span-2">
           <img src={logo.url} alt="TIPE" className="h-9 w-auto" />
-          <p className="mt-3 max-w-sm text-sm text-muted-foreground">Pague. Sem esperar. Pagamento na mesa, gorjeta digital e PDV para restaurantes.</p>
+          <p className="mt-3 max-w-sm text-sm text-muted-foreground">Pague. Sem esperar. Pagamento na mesa, gorjeta extra e PDV para restaurantes.</p>
         </div>
         <div className="space-y-2 text-sm">
           <p className="font-display font-bold">Produto</p>
