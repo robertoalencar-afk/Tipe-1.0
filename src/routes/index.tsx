@@ -156,7 +156,7 @@ function Stats() {
         {stats.map((s) => (
           <div key={s.l} className="bg-card p-6">
             <s.icon className="h-5 w-5 text-primary" />
-            <p className={`mt-3 font-display font-extrabold ${s.small ? "text-2xl" : "text-3xl"}`}>{s.v}</p>
+            <p className={`mt-3 font-display font-extrabold ${s.small ? "text-xl leading-tight" : "text-3xl"}`}>{s.v}</p>
             <p className="mt-1 text-sm text-muted-foreground">{s.l}</p>
           </div>
         ))}
