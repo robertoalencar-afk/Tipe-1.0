@@ -3,7 +3,7 @@ import { z } from "zod";
 import { SimulatorExperience } from "@/components/tipe/SimulatorExperience";
 
 export const Route = createFileRoute("/simulador")({
-  validateSearch: z.object({ mesa: z.literal("12").optional() }),
+  validateSearch: z.object({ mesa: z.coerce.string().optional() }),
   head: () => ({
     meta: [
       { title: "Simulador Mesa 12 — TIPE" },
