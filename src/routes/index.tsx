@@ -80,10 +80,7 @@ function Hero() {
       <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.07]" style={{ backgroundImage: "radial-gradient(currentColor 1px, transparent 1px)", backgroundSize: "22px 22px" }} />
       <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[1.1fr_1fr] lg:py-24">
         <div>
-          <span className="inline-flex items-center gap-2 rounded-full border border-primary/40 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-            <Sparkles className="h-3.5 w-3.5" /> Tipe 1.0 · pagamento na mesa + PDV
-          </span>
-          <h1 className="mt-6 font-display text-4xl font-extrabold leading-[1.05] sm:text-6xl">
+          <h1 className="font-display text-4xl font-extrabold leading-[1.05] sm:text-6xl">
             Pague. <span className="text-primary">Sem esperar.</span>
           </h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed opacity-85 sm:text-lg">
@@ -150,7 +147,7 @@ function Stats() {
   const stats = [
     { icon: Clock, v: "-15 min", l: "de espera pela conta por mesa" },
     { icon: TrendingUp, v: "+20%", l: "de giro de mesas no horário de pico" },
-    { icon: Wallet, v: "70%", l: "da gorjeta extra vai direto para o garçom" },
+    { icon: Wallet, v: "+ Produtividade", l: "do time, com o incentivo da gorjeta extra" },
     { icon: Users, v: "0", l: "filas no caixa: o cliente paga na própria mesa" },
   ];
   return (
