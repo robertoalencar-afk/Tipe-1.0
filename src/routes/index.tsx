@@ -6,7 +6,7 @@ import {
   Plug, Store, Zap, ShieldCheck, TrendingUp, Clock, Users, Sparkles, Check, Star, BarChart3, Wallet,
 } from "lucide-react";
 import { submitLead } from "@/lib/tipe/leads.functions";
-import logo from "@/assets/logo.png.asset.json";
+import logo from "@/assets/logo-dark.png.asset.json";
 import mascotThanks from "@/assets/mascot-thanks.png";
 import mascotWaiting from "@/assets/mascot-waiting.png";
 import mascotRating from "@/assets/mascot-rating.png";

@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import logo from "@/assets/logo.png.asset.json";
+import logo from "@/assets/logo-dark.png.asset.json";
 
 export const Route = createFileRoute("/termos")({
   head: () => ({
