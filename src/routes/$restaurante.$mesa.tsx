@@ -149,12 +149,9 @@ function MesaPage() {
 
   useEffect(() => {
     void atualizarMesa();
-    const channel = supabase.channel(`mesa-${restaurante}-${codigoMesa}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "table_bill_items", filter: `restaurant_slug=eq.${restaurante}` }, () => void atualizarMesa())
-      .on("postgres_changes", { event: "*", schema: "public", table: "table_payment_requests", filter: `restaurant_slug=eq.${restaurante}` }, () => void atualizarMesa())
-      .subscribe();
-    return () => { void supabase.removeChannel(channel); };
-  }, [atualizarMesa, codigoMesa, restaurante]);
+    const intervalo = window.setInterval(() => void atualizarMesa(), 5000);
+    return () => window.clearInterval(intervalo);
+  }, [atualizarMesa]);
 
   const subtotal = useMemo(
     () => dados.itens.reduce((soma, item) => soma + item.preco * (qtds[item.id] ?? 0), 0),
