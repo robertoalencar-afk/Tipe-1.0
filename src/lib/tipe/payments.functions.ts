@@ -1,9 +1,9 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { SERVICE_FEE } from "./rules";
 
 const Input = z.object({
   method: z.enum(["pix", "card", "apple_pay", "google_pay", "at_establishment"]),
-  amount: z.number().positive().max(100000),
   tip: z.number().min(0).max(10000),
   tableId: z.string().max(16),
   restaurantId: z.string().max(64),
@@ -21,13 +21,44 @@ export type PaymentResult = {
 };
 
 // Pix -> Pagar.me ; Cartão / Apple Pay / Google Pay -> Stripe.
-// Sem chaves configuradas, retorna pagamento simulado.
+// O valor é sempre calculado no servidor a partir da conta da mesa;
+// o cliente nunca define quanto será cobrado. Um pagamento só fica
+// "approved" quando o provedor confirma a cobrança; sem provedor
+// configurado (simulação), fica "pending" para o restaurante confirmar.
 export const createPayment = createServerFn({ method: "POST" })
   .inputValidator((d) => Input.parse(d))
   .handler(async ({ data }): Promise<PaymentResult> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const cents = Math.round((data.amount + data.tip) * 100);
     const id = `tp_${data.idempotencyKey.slice(0, 12)}`;
+
+    // Valor derivado no servidor: itens escolhidos (limitados ao disponível)
+    // + taxa de serviço; para gorjeta, apenas o valor da gorjeta.
+    let amount = 0;
+    let itemQuantities: Record<string, number> = {};
+    if (data.target === "restaurant") {
+      const { data: billItems, error } = await supabaseAdmin
+        .from("table_bill_items")
+        .select("item_code, unit_price, ordered_quantity, reserved_quantity, paid_quantity")
+        .eq("restaurant_slug", data.restaurantId)
+        .eq("table_number", data.tableId);
+      if (error) throw new Error("Não foi possível ler a conta da mesa");
+      let subtotal = 0;
+      for (const item of billItems ?? []) {
+        const requested = Math.floor(data.itemQuantities[item.item_code] ?? 0);
+        if (requested <= 0) continue;
+        const available = Number(item.ordered_quantity) - Number(item.reserved_quantity) - Number(item.paid_quantity);
+        const qty = Math.min(requested, Math.max(0, available));
+        if (qty <= 0) continue;
+        subtotal += Number(item.unit_price) * qty;
+        itemQuantities[item.item_code] = qty;
+      }
+      if (subtotal <= 0) throw new Error("Nenhum item disponível para pagamento");
+      amount = +(subtotal * (1 + SERVICE_FEE)).toFixed(2);
+    } else {
+      if (data.tip <= 0) throw new Error("Informe o valor da gorjeta");
+      amount = +data.tip.toFixed(2);
+    }
+    const cents = Math.round(amount * 100);
 
     const register = async (status: "approved" | "pending") => {
       const { error } = await supabaseAdmin.rpc("register_table_payment", {
@@ -37,8 +68,8 @@ export const createPayment = createServerFn({ method: "POST" })
         p_payment_target: data.target,
         p_payment_method: data.method,
         p_status: status,
-        p_amount: data.amount + data.tip,
-        p_item_quantities: data.itemQuantities,
+        p_amount: amount,
+        p_item_quantities: itemQuantities,
       });
       if (error) throw new Error(error.message.includes("não está mais disponível") ? error.message : "Não foi possível atualizar a conta");
     };
@@ -66,11 +97,12 @@ export const createPayment = createServerFn({ method: "POST" })
         });
         const j: any = await res.json();
         if (!res.ok) { console.error("Pagar.me", j); throw new Error("Não foi possível gerar o Pix"); }
-        await register("approved");
-        return { id: j.id, status: "approved", provider: "pagarme", pixCode: j.charges?.[0]?.last_transaction?.qr_code };
+        const paid = j.charges?.[0]?.status === "paid";
+        await register(paid ? "approved" : "pending");
+        return { id: j.id, status: paid ? "approved" : "pending", provider: "pagarme", pixCode: j.charges?.[0]?.last_transaction?.qr_code };
       }
-      await register("approved");
-      return { id, status: "approved", provider: "simulado", pixCode: `00020126TIPE${cents}BR.GOV.BCB.PIX5204000053039865802BR` };
+      await register("pending");
+      return { id, status: "pending", provider: "simulado", pixCode: `00020126TIPE${cents}BR.GOV.BCB.PIX5204000053039865802BR` };
     }
 
     const sk = process.env["STRIPE_SECRET_KEY"];
@@ -83,11 +115,12 @@ export const createPayment = createServerFn({ method: "POST" })
       });
       const j: any = await res.json();
       if (!res.ok) { console.error("Stripe", j); throw new Error("Pagamento recusado"); }
-      await register("approved");
-      return { id: j.id, status: "approved", provider: "stripe" };
+      const paid = j.status === "succeeded";
+      await register(paid ? "approved" : "pending");
+      return { id: j.id, status: paid ? "approved" : "pending", provider: "stripe" };
     }
-    await register("approved");
-    return { id, status: "approved", provider: "simulado" };
+    await register("pending");
+    return { id, status: "pending", provider: "simulado" };
   });
 
 const TableInput = z.object({ restaurantId: z.string().max(64), tableId: z.string().max(16) });
