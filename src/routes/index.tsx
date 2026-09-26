@@ -22,7 +22,7 @@ function Totem() {
       <div className="w-full max-w-sm rounded-[2rem] p-8 text-center text-secondary-foreground" style={{ background: "var(--gradient-brand)", boxShadow: "var(--shadow-glow)" }}>
         <img src={logo.url} alt="TIPE" className="mx-auto h-16" />
         <h1 className="mt-4 font-display text-xl font-bold text-primary">Pague. Sem esperar.</h1>
-        <Link to="/mesa/$restaurante/$mesa" params={{ restaurante: "mare-alta", mesa: "12" }}
+        <Link to="/$restaurante/$mesa" params={{ restaurante: "marealta", mesa: "mesa12" }}
           className="mx-auto mt-8 flex h-44 w-44 items-center justify-center rounded-2xl bg-card text-card-foreground">
           <QrCode className="h-32 w-32" />
         </Link>
