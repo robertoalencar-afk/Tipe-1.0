@@ -93,6 +93,9 @@ function Hero() {
             <a href="#fale-conosco" className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-display font-semibold text-primary-foreground shadow-lg transition-transform hover:-translate-y-0.5">
               Agendar demonstração <ChevronRight className="h-4 w-4" />
             </a>
+            <Link to="/simulador" className="inline-flex items-center gap-2 rounded-full border border-current/25 px-6 py-3 font-display font-semibold transition-colors hover:bg-primary/10">
+              Simular experiência
+            </Link>
             <a href="#planos" className="inline-flex items-center gap-2 rounded-full border border-current/25 px-6 py-3 font-display font-semibold transition-colors hover:bg-primary/10">
               Ver planos
             </a>
