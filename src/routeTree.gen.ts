@@ -13,8 +13,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as RestauranteMesaRouteImport } from './routes/$restaurante.$mesa'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
-import { Route as MesaRestauranteMesaRouteImport } from './routes/mesa.$restaurante.$mesa'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -35,30 +35,30 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RestauranteMesaRoute = RestauranteMesaRouteImport.update({
+  id: '/$restaurante/$mesa',
+  path: '/$restaurante/$mesa',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
   id: '/painel',
   path: '/painel',
   getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const MesaRestauranteMesaRoute = MesaRestauranteMesaRouteImport.update({
-  id: '/mesa/$restaurante/$mesa',
-  path: '/mesa/$restaurante/$mesa',
-  getParentRoute: () => rootRouteImport,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/entrar': typeof EntrarRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/$restaurante/$mesa': typeof RestauranteMesaRoute
   '/painel': typeof AuthenticatedPainelRoute
-  '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/entrar': typeof EntrarRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/$restaurante/$mesa': typeof RestauranteMesaRoute
   '/painel': typeof AuthenticatedPainelRoute
-  '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -66,24 +66,23 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/entrar': typeof EntrarRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/$restaurante/$mesa': typeof RestauranteMesaRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
-  '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/entrar' | '/reset-password' | '/painel' | '/mesa/$restaurante/$mesa'
+    '/' | '/entrar' | '/reset-password' | '/$restaurante/$mesa' | '/painel'
   fileRoutesByTo: FileRoutesByTo
-  to:
-    '/' | '/entrar' | '/reset-password' | '/painel' | '/mesa/$restaurante/$mesa'
+  to: '/' | '/entrar' | '/reset-password' | '/$restaurante/$mesa' | '/painel'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
     | '/entrar'
     | '/reset-password'
+    | '/$restaurante/$mesa'
     | '/_authenticated/painel'
-    | '/mesa/$restaurante/$mesa'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -91,7 +90,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   EntrarRoute: typeof EntrarRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
-  MesaRestauranteMesaRoute: typeof MesaRestauranteMesaRoute
+  RestauranteMesaRoute: typeof RestauranteMesaRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -124,19 +123,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$restaurante/$mesa': {
+      id: '/$restaurante/$mesa'
+      path: '/$restaurante/$mesa'
+      fullPath: '/$restaurante/$mesa'
+      preLoaderRoute: typeof RestauranteMesaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/painel': {
       id: '/_authenticated/painel'
       path: '/painel'
       fullPath: '/painel'
       preLoaderRoute: typeof AuthenticatedPainelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/mesa/$restaurante/$mesa': {
-      id: '/mesa/$restaurante/$mesa'
-      path: '/mesa/$restaurante/$mesa'
-      fullPath: '/mesa/$restaurante/$mesa'
-      preLoaderRoute: typeof MesaRestauranteMesaRouteImport
-      parentRoute: typeof rootRouteImport
     }
   }
 }
@@ -157,7 +156,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   EntrarRoute: EntrarRoute,
   ResetPasswordRoute: ResetPasswordRoute,
-  MesaRestauranteMesaRoute: MesaRestauranteMesaRoute,
+  RestauranteMesaRoute: RestauranteMesaRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
