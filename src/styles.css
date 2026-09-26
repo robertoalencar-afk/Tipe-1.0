@@ -158,3 +158,40 @@
     color: var(--color-foreground);
   }
 }
+
+@keyframes tipe-pingpong {
+  0%,
+  100% {
+    left: 0;
+  }
+  50% {
+    left: calc(100% - 2.25rem);
+  }
+}
+
+.tipe-pingpong {
+  animation: tipe-pingpong 2.4s ease-in-out infinite;
+}
+
+@keyframes tipe-check-pop {
+  0%,
+  15% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+  30%,
+  85% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  95%,
+  100% {
+    opacity: 0;
+    transform: scale(0.4);
+  }
+}
+
+.tipe-check {
+  opacity: 0;
+  animation: tipe-check-pop 4.2s ease-in-out infinite;
+}
