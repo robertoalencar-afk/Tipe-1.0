@@ -105,7 +105,7 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
   const mesaSel = mesas.find((m) => m.number === mesaAberta);
   const abertas = mesas.filter((m) => m.status === "ocupada" || m.status === "aguardando");
   const visiveis = secoes.filter((x) => !("dono" in x) || podeDono);
-  const pdvLabel = (d.restaurant as { pos_mode?: string }).pos_mode === "external" ? `PDV conectado: ${d.restaurant.pos_provider}` : "PDV TIPE";
+  const pdvLabel = d.restaurant.pos_mode === "external" ? `PDV conectado: ${d.restaurant.pos_provider}` : "PDV TIPE";
 
   const confirmacoes = (
     <>

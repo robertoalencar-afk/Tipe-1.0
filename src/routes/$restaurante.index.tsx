@@ -53,7 +53,7 @@ function AreaRestaurante() {
           <Button size="sm" variant="ghost" onClick={sair} className="text-secondary-foreground"><LogOut className="mr-1 h-4 w-4" />Sair</Button>
         </div>
       </header>
-      <main className="mx-auto max-w-6xl p-4">
+      <main className="mx-auto max-w-7xl p-4">
         {access.isLoading && <p className="text-muted-foreground">Carregando…</p>}
         {access.error && <p className="text-destructive">{(access.error as Error).message}</p>}
         {access.data && !r && (
