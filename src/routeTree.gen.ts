@@ -19,6 +19,7 @@ import { Route as RestauranteIndexRouteImport } from './routes/$restaurante.inde
 import { Route as RestauranteMesaRouteImport } from './routes/$restaurante.$mesa'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as MesaRestauranteMesaRouteImport } from './routes/mesa.$restaurante.$mesa'
+import { Route as ApiPublicPosSlugRouteImport } from './routes/api/public/pos.$slug'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -69,6 +70,11 @@ const MesaRestauranteMesaRoute = MesaRestauranteMesaRouteImport.update({
   path: '/mesa/$restaurante/$mesa',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPosSlugRoute = ApiPublicPosSlugRouteImport.update({
+  id: '/api/public/pos/$slug',
+  path: '/api/public/pos/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -80,6 +86,7 @@ export interface FileRoutesByFullPath {
   '/painel': typeof AuthenticatedPainelRoute
   '/$restaurante/': typeof RestauranteIndexRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
+  '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -91,6 +98,7 @@ export interface FileRoutesByTo {
   '/painel': typeof AuthenticatedPainelRoute
   '/$restaurante': typeof RestauranteIndexRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
+  '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -104,6 +112,7 @@ export interface FileRoutesById {
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/$restaurante/': typeof RestauranteIndexRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
+  '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -117,6 +126,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/$restaurante/'
     | '/mesa/$restaurante/$mesa'
+    | '/api/public/pos/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -128,6 +138,7 @@ export interface FileRouteTypes {
     | '/painel'
     | '/$restaurante'
     | '/mesa/$restaurante/$mesa'
+    | '/api/public/pos/$slug'
   id:
     | '__root__'
     | '/'
@@ -140,6 +151,7 @@ export interface FileRouteTypes {
     | '/_authenticated/painel'
     | '/$restaurante/'
     | '/mesa/$restaurante/$mesa'
+    | '/api/public/pos/$slug'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -152,6 +164,7 @@ export interface RootRouteChildren {
   RestauranteMesaRoute: typeof RestauranteMesaRoute
   RestauranteIndexRoute: typeof RestauranteIndexRoute
   MesaRestauranteMesaRoute: typeof MesaRestauranteMesaRoute
+  ApiPublicPosSlugRoute: typeof ApiPublicPosSlugRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -226,6 +239,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MesaRestauranteMesaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/pos/$slug': {
+      id: '/api/public/pos/$slug'
+      path: '/api/public/pos/$slug'
+      fullPath: '/api/public/pos/$slug'
+      preLoaderRoute: typeof ApiPublicPosSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -250,6 +270,7 @@ const rootRouteChildren: RootRouteChildren = {
   RestauranteMesaRoute: RestauranteMesaRoute,
   RestauranteIndexRoute: RestauranteIndexRoute,
   MesaRestauranteMesaRoute: MesaRestauranteMesaRoute,
+  ApiPublicPosSlugRoute: ApiPublicPosSlugRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
