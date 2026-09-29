@@ -15,5 +15,8 @@
 - [x] Painel do restaurante (login, cargos, mesas em tempo real, confirmação presencial, equipe, auditoria)
 - [x] Endereço próprio do restaurante (tipe.digital/marealta), PDV simulado, QR por mesa (tipe.digital/marealta/mesa12)
 - [x] Simulador público independente em /simulador, com totem/QR, itens fixos da Mesa 12 e reinício em 2 minutos
+- [x] PDV TIPE completo (salão, lançar pedido com observação, cozinha/bar, caixa, cardápio, mesas em lote, relatórios, configurações)
+- [x] Integração com qualquer PDV (endereço + chave por restaurante, histórico de sincronização)
+- [ ] Adicionais de produto, nota fiscal (NFC-e), estoque e delivery
 - [ ] Painel do garçom
 - [ ] Painel do fundador
