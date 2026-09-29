@@ -10,6 +10,10 @@ import { cashAction, getOpsData, getReports, saveSettings, setIntegration, setIt
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const hora = (s: string) => new Date(s).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 const metodoLabel: Record<string, string> = { pix: "Pix", card: "Cartão", apple_pay: "Apple Pay", google_pay: "Google Pay", at_establishment: "Dinheiro ou maquininha" };
+type CashInput =
+  | { action: "open"; slug: string; amount: number }
+  | { action: "move"; slug: string; kind: "withdrawal" | "deposit"; amount: number; reason: string }
+  | { action: "close"; slug: string; counted: number; expected: number; notes: string };
 export type OpsData = Awaited<ReturnType<typeof getOpsData>>;
 
 export function useOps(slug: string) {
@@ -116,7 +120,7 @@ export function Caixa({ slug, podeCaixa, confirmacoes }: { slug: string; podeCai
   const reforco = mov.filter((m) => m.kind === "deposit").reduce((a, m) => a + m.amount, 0);
   const sangria = mov.filter((m) => m.kind === "withdrawal").reduce((a, m) => a + m.amount, 0);
   const esperado = (s?.opening_amount ?? 0) + reforco - sangria;
-  async function run(data: Parameters<typeof cashAction>[0]["data"], ok: string) {
+  async function run(data: CashInput, ok: string) {
     try { await act({ data }); toast.success(ok); qc.invalidateQueries({ queryKey: ["ops", slug] }); return true; } catch (e) { toast.error((e as Error).message); return false; }
   }
   return (
