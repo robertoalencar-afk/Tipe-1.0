@@ -56,6 +56,101 @@ export type Database = {
         }
         Relationships: []
       }
+      cash_movements: {
+        Row: {
+          actor_id: string | null
+          amount: number
+          created_at: string
+          id: string
+          kind: string
+          reason: string | null
+          restaurant_id: string
+          session_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          amount: number
+          created_at?: string
+          id?: string
+          kind: string
+          reason?: string | null
+          restaurant_id: string
+          session_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          amount?: number
+          created_at?: string
+          id?: string
+          kind?: string
+          reason?: string | null
+          restaurant_id?: string
+          session_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cash_movements_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cash_movements_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "cash_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cash_sessions: {
+        Row: {
+          closed_at: string | null
+          closed_by: string | null
+          counted_amount: number | null
+          expected_amount: number | null
+          id: string
+          notes: string | null
+          opened_at: string
+          opened_by: string | null
+          opening_amount: number
+          restaurant_id: string
+        }
+        Insert: {
+          closed_at?: string | null
+          closed_by?: string | null
+          counted_amount?: number | null
+          expected_amount?: number | null
+          id?: string
+          notes?: string | null
+          opened_at?: string
+          opened_by?: string | null
+          opening_amount?: number
+          restaurant_id: string
+        }
+        Update: {
+          closed_at?: string | null
+          closed_by?: string | null
+          counted_amount?: number | null
+          expected_amount?: number | null
+          id?: string
+          notes?: string | null
+          opened_at?: string
+          opened_by?: string | null
+          opening_amount?: number
+          restaurant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cash_sessions_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payment_audit_log: {
         Row: {
           action: string
@@ -127,11 +222,13 @@ export type Database = {
           category_id: string | null
           code: string
           created_at: string
+          description: string | null
           id: string
           name: string
           position: number
           price: number
           restaurant_id: string
+          sector: string
           updated_at: string
         }
         Insert: {
@@ -139,11 +236,13 @@ export type Database = {
           category_id?: string | null
           code: string
           created_at?: string
+          description?: string | null
           id?: string
           name: string
           position?: number
           price: number
           restaurant_id: string
+          sector?: string
           updated_at?: string
         }
         Update: {
@@ -151,11 +250,13 @@ export type Database = {
           category_id?: string | null
           code?: string
           created_at?: string
+          description?: string | null
           id?: string
           name?: string
           position?: number
           price?: number
           restaurant_id?: string
+          sector?: string
           updated_at?: string
         }
         Relationships: [
@@ -181,9 +282,13 @@ export type Database = {
           id: string
           item_code: string
           item_name: string
+          notes: string | null
           order_id: string
           quantity: number
           restaurant_id: string
+          sector: string
+          status: string
+          status_at: string
           unit_price: number
         }
         Insert: {
@@ -191,9 +296,13 @@ export type Database = {
           id?: string
           item_code: string
           item_name: string
+          notes?: string | null
           order_id: string
           quantity: number
           restaurant_id: string
+          sector?: string
+          status?: string
+          status_at?: string
           unit_price: number
         }
         Update: {
@@ -201,9 +310,13 @@ export type Database = {
           id?: string
           item_code?: string
           item_name?: string
+          notes?: string | null
           order_id?: string
           quantity?: number
           restaurant_id?: string
+          sector?: string
+          status?: string
+          status_at?: string
           unit_price?: number
         }
         Relationships: [
@@ -265,6 +378,53 @@ export type Database = {
           },
         ]
       }
+      pdv_voids: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          id: string
+          item_code: string
+          item_name: string
+          quantity: number
+          reason: string
+          restaurant_id: string
+          table_number: string
+          unit_price: number
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          item_code: string
+          item_name: string
+          quantity: number
+          reason: string
+          restaurant_id: string
+          table_number: string
+          unit_price: number
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          id?: string
+          item_code?: string
+          item_name?: string
+          quantity?: number
+          reason?: string
+          restaurant_id?: string
+          table_number?: string
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pdv_voids_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pdv_waiters: {
         Row: {
           active: boolean
@@ -293,6 +453,85 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "pdv_waiters_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pos_integrations: {
+        Row: {
+          created_at: string
+          id: string
+          key_hash: string | null
+          key_prefix: string | null
+          last_sync_at: string | null
+          provider: string
+          restaurant_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          key_hash?: string | null
+          key_prefix?: string | null
+          last_sync_at?: string | null
+          provider: string
+          restaurant_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          key_hash?: string | null
+          key_prefix?: string | null
+          last_sync_at?: string | null
+          provider?: string
+          restaurant_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pos_integrations_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: true
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pos_sync_log: {
+        Row: {
+          created_at: string
+          detail: string | null
+          event: string
+          id: string
+          restaurant_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          detail?: string | null
+          event: string
+          id?: string
+          restaurant_id: string
+          status: string
+        }
+        Update: {
+          created_at?: string
+          detail?: string | null
+          event?: string
+          id?: string
+          restaurant_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pos_sync_log_restaurant_id_fkey"
             columns: ["restaurant_id"]
             isOneToOne: false
             referencedRelation: "restaurants"
@@ -383,26 +622,41 @@ export type Database = {
       }
       restaurants: {
         Row: {
+          address: string | null
           created_at: string
           id: string
           name: string
+          opening_hours: string | null
+          phone: string | null
+          pos_mode: string
           pos_provider: string
+          service_rate: number
           slug: string
           updated_at: string
         }
         Insert: {
+          address?: string | null
           created_at?: string
           id?: string
           name: string
+          opening_hours?: string | null
+          phone?: string | null
+          pos_mode?: string
           pos_provider?: string
+          service_rate?: number
           slug: string
           updated_at?: string
         }
         Update: {
+          address?: string | null
           created_at?: string
           id?: string
           name?: string
+          opening_hours?: string | null
+          phone?: string | null
+          pos_mode?: string
           pos_provider?: string
+          service_rate?: number
           slug?: string
           updated_at?: string
         }
@@ -577,6 +831,25 @@ export type Database = {
         Args: { p_slug: string; p_table: string }
         Returns: undefined
       }
+      cash_close: {
+        Args: {
+          p_counted: number
+          p_expected: number
+          p_notes: string
+          p_slug: string
+        }
+        Returns: undefined
+      }
+      cash_move: {
+        Args: {
+          p_amount: number
+          p_kind: string
+          p_reason: string
+          p_slug: string
+        }
+        Returns: undefined
+      }
+      cash_open: { Args: { p_amount: number; p_slug: string }; Returns: string }
       claim_founder: { Args: never; Returns: boolean }
       has_restaurant_role: {
         Args: {
@@ -614,8 +887,31 @@ export type Database = {
         }
         Returns: string
       }
+      pdv_set_item_status: {
+        Args: { p_item: string; p_status: string }
+        Returns: undefined
+      }
+      pdv_transfer_table: {
+        Args: { p_from: string; p_slug: string; p_to: string }
+        Returns: undefined
+      }
       pdv_void_item: {
-        Args: { p_code: string; p_qty: number; p_slug: string; p_table: string }
+        Args: {
+          p_code: string
+          p_qty: number
+          p_reason: string
+          p_slug: string
+          p_table: string
+        }
+        Returns: undefined
+      }
+      pos_integration_set: {
+        Args: {
+          p_key_hash: string
+          p_key_prefix: string
+          p_provider: string
+          p_slug: string
+        }
         Returns: undefined
       }
       register_table_payment: {
