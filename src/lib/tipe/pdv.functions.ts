@@ -50,7 +50,7 @@ async function restaurantId(supabase: any, slug: string) {
 }
 
 const friendly = (msg: string, fallback: string) => {
-  for (const k of ["Sem permissão", "Mesa inativa", "Garçom inválido", "Pedido vazio", "Item indisponível", "Quantidade", "Há pagamentos"]) if (msg.includes(k)) return msg;
+  for (const k of ["Sem permissão", "Mesa inativa", "Garçom inválido", "Pedido vazio", "Item indisponível", "Quantidade", "Há pagamentos", "Informe o motivo"]) if (msg.includes(k)) return msg;
   return fallback;
 };
 
@@ -61,7 +61,7 @@ export const getPdvData = createServerFn({ method: "GET" })
     const rid = await restaurantId(context.supabase, data.slug);
     const [cats, items, waiters, tables] = await Promise.all([
       context.supabase.from("pdv_menu_categories").select("id, name, position").eq("restaurant_id", rid).order("position"),
-      context.supabase.from("pdv_menu_items").select("id, category_id, code, name, price, available, position").eq("restaurant_id", rid).order("position"),
+      context.supabase.from("pdv_menu_items").select("id, category_id, code, name, price, available, position, sector, description").eq("restaurant_id", rid).order("position"),
       context.supabase.from("pdv_waiters").select("id, code, name, active").eq("restaurant_id", rid).order("code"),
       context.supabase.from("restaurant_tables").select("id, number, code, active, access_token, waiter_id").eq("restaurant_id", rid),
     ]);
@@ -77,7 +77,7 @@ export const launchOrder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({
     slug: Slug, table: z.string().min(1).max(16), waiterId: z.string().uuid(),
-    items: z.array(z.object({ code: z.string().min(1).max(16), qty: z.number().int().min(1).max(99) })).min(1).max(60),
+    items: z.array(z.object({ code: z.string().min(1).max(16), qty: z.number().int().min(1).max(99), notes: z.string().max(140).optional() })).min(1).max(60),
   }).parse(d))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.rpc("pdv_launch_order", { p_slug: data.slug, p_table: data.table, p_waiter: data.waiterId, p_items: data.items });
@@ -87,9 +87,9 @@ export const launchOrder = createServerFn({ method: "POST" })
 
 export const voidItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ slug: Slug, table: z.string().max(16), code: z.string().max(16), qty: z.number().int().min(1).max(99) }).parse(d))
+  .inputValidator((d) => z.object({ slug: Slug, table: z.string().max(16), code: z.string().max(16), qty: z.number().int().min(1).max(99), reason: z.string().trim().min(3).max(140) }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.rpc("pdv_void_item", { p_slug: data.slug, p_table: data.table, p_code: data.code, p_qty: data.qty });
+    const { error } = await context.supabase.rpc("pdv_void_item", { p_slug: data.slug, p_table: data.table, p_code: data.code, p_qty: data.qty, p_reason: data.reason });
     if (error) throw new Error(friendly(error.message, "Não foi possível estornar"));
     return { ok: true };
   });
@@ -130,10 +130,11 @@ export const saveMenuItem = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({
     slug: Slug, id: z.string().uuid().optional(), categoryId: z.string().uuid().nullable(),
     code: z.string().trim().min(1).max(16), name: z.string().trim().min(2).max(80), price: z.number().min(0).max(10000), available: z.boolean(),
+    sector: z.enum(["kitchen", "bar"]).optional(), description: z.string().trim().max(200).optional(),
   }).parse(d))
   .handler(async ({ data, context }) => {
     const rid = await restaurantId(context.supabase, data.slug);
-    const row = { restaurant_id: rid, category_id: data.categoryId, code: data.code.toUpperCase(), name: data.name, price: data.price, available: data.available };
+    const row = { restaurant_id: rid, category_id: data.categoryId, code: data.code.toUpperCase(), name: data.name, price: data.price, available: data.available, ...(data.sector ? { sector: data.sector } : {}), ...(data.description !== undefined ? { description: data.description || null } : {}) };
     const q = data.id
       ? context.supabase.from("pdv_menu_items").update(row).eq("id", data.id).select("id")
       : context.supabase.from("pdv_menu_items").insert(row).select("id");
@@ -153,5 +154,33 @@ export const saveWaiter = createServerFn({ method: "POST" })
       : context.supabase.from("pdv_waiters").insert(row).select("id");
     const { data: rows, error } = await q;
     if (error || !rows?.length) throw new Error(error?.code === "23505" ? "Código já usado" : "Somente o dono pode editar garçons");
+    return { ok: true };
+  });
+
+export const addTablesBulk = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ slug: Slug, from: z.number().int().min(1).max(999), to: z.number().int().min(1).max(999) }).refine((x) => x.to >= x.from && x.to - x.from < 100).parse(d))
+  .handler(async ({ data, context }) => {
+    const rid = await restaurantId(context.supabase, data.slug);
+    const { data: existing } = await context.supabase.from("restaurant_tables").select("number").eq("restaurant_id", rid);
+    const have = new Set((existing ?? []).map((t: { number: string }) => t.number));
+    const rows = [];
+    for (let n = data.from; n <= data.to; n++) if (!have.has(String(n))) rows.push({ restaurant_id: rid, number: String(n), code: `mesa${n}` });
+    if (!rows.length) return { created: 0 };
+    const { error } = await context.supabase.from("restaurant_tables").insert(rows);
+    if (error) throw new Error("Somente o dono pode cadastrar mesas");
+    return { created: rows.length };
+  });
+
+export const saveCategory = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ slug: Slug, id: z.string().uuid().optional(), name: z.string().trim().min(2).max(60) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const rid = await restaurantId(context.supabase, data.slug);
+    const q = data.id
+      ? context.supabase.from("pdv_menu_categories").update({ name: data.name }).eq("id", data.id).select("id")
+      : context.supabase.from("pdv_menu_categories").insert({ restaurant_id: rid, name: data.name, position: 99 }).select("id");
+    const { data: rows, error } = await q;
+    if (error || !rows?.length) throw new Error("Somente o dono pode editar categorias");
     return { ok: true };
   });
