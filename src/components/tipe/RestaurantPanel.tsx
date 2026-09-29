@@ -3,16 +3,20 @@ import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
-import { Check, Minus, Plus, Printer, RefreshCw, X } from "lucide-react";
+import {
+  ArrowRightLeft, BarChart3, ChefHat, Check, History, Home, LayoutGrid, Minus, Plug, Plus, Printer, QrCode, RefreshCw,
+  Settings, ShoppingCart, UtensilsCrossed, Users, Wallet, X,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { getPanelData, inviteStaff, removeStaff, resolvePayment, type StaffRole } from "@/lib/tipe/staff.functions";
 import {
-  addTable, closeTable, getPdvData, launchOrder, saveMenuItem, saveWaiter, updateTable, voidItem,
+  addTable, addTablesBulk, closeTable, getPdvData, launchOrder, saveCategory, saveMenuItem, saveWaiter, updateTable, voidItem,
 } from "@/lib/tipe/pdv.functions";
+import { transferTable } from "@/lib/tipe/admin.functions";
+import { Caixa, Configuracoes, Cozinha, Inicio, Integracoes, Relatorios } from "@/components/tipe/AdminSections";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const hora = (s: string) => new Date(s).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
@@ -29,6 +33,21 @@ const statusInfo: Record<Status, { label: string; cls: string }> = {
   inativa: { label: "Desativada", cls: "border-dashed border-border bg-background text-muted-foreground opacity-60" },
 };
 
+const secoes = [
+  { k: "inicio", l: "Início", i: Home },
+  { k: "salao", l: "Salão", i: LayoutGrid },
+  { k: "pdv", l: "Lançar pedido", i: ShoppingCart },
+  { k: "cozinha", l: "Cozinha e bar", i: ChefHat },
+  { k: "caixa", l: "Caixa", i: Wallet },
+  { k: "cardapio", l: "Cardápio", i: UtensilsCrossed, dono: true },
+  { k: "qr", l: "Mesas e QR Codes", i: QrCode },
+  { k: "equipe", l: "Equipe e garçons", i: Users, dono: true },
+  { k: "relatorios", l: "Relatórios", i: BarChart3 },
+  { k: "historico", l: "Histórico", i: History },
+  { k: "integracoes", l: "Integrações (PDV)", i: Plug, dono: true },
+  { k: "config", l: "Configurações", i: Settings },
+] as const;
+
 export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; myRoles: StaffRole[]; isFounder: boolean }) {
   const fetchPanel = useServerFn(getPanelData);
   const fetchPdv = useServerFn(getPdvData);
@@ -38,7 +57,7 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
   const pdv = useQuery({ queryKey: ["pdv", slug], queryFn: () => fetchPdv({ data: { slug } }) });
   const [mesaAberta, setMesaAberta] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState<string | null>(null);
-  const [aba, setAba] = useState("mesas");
+  const [aba, setAba] = useState("inicio");
   const [mesaPedido, setMesaPedido] = useState<string>("");
 
   useEffect(() => {
@@ -52,7 +71,7 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
 
   const podeConfirmar = isFounder || myRoles.includes("owner") || myRoles.includes("cashier");
   const podeDono = isFounder || myRoles.includes("owner");
-  const refresh = () => { qc.invalidateQueries({ queryKey: ["panel", slug] }); qc.invalidateQueries({ queryKey: ["pdv", slug] }); };
+  const refresh = () => { qc.invalidateQueries({ queryKey: ["panel", slug] }); qc.invalidateQueries({ queryKey: ["pdv", slug] }); qc.invalidateQueries({ queryKey: ["ops", slug] }); };
 
   const mesas = useMemo(() => {
     if (!q.data || !pdv.data) return [];
@@ -84,68 +103,86 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
   const pendentes = d.payments.filter((p) => p.status === "pending");
   const itemNome = (mesa: string, code: string) => d.items.find((i) => i.table_number === mesa && i.item_code === code)?.item_name ?? code;
   const mesaSel = mesas.find((m) => m.number === mesaAberta);
+  const abertas = mesas.filter((m) => m.status === "ocupada" || m.status === "aguardando");
+  const visiveis = secoes.filter((x) => !("dono" in x) || podeDono);
+  const pdvLabel = (d.restaurant as { pos_mode?: string }).pos_mode === "external" ? `PDV conectado: ${d.restaurant.pos_provider}` : "PDV TIPE";
+
+  const confirmacoes = (
+    <>
+      {pendentes.length === 0 && <p className="rounded-2xl border border-border bg-card py-8 text-center text-muted-foreground">Nenhum pagamento aguardando confirmação.</p>}
+      <ul className="space-y-3">
+        {pendentes.map((p) => (
+          <li key={p.id} className="rounded-2xl border border-border bg-card p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <div className="font-semibold">Mesa {p.table_number} · {p.customer_name}</div>
+                <div className="text-xs text-muted-foreground">{metodoLabel[p.payment_method] ?? p.payment_method} · {hora(p.created_at)}</div>
+              </div>
+              <div className="font-display text-xl font-bold">{brl(p.amount)}</div>
+            </div>
+            <div className="mt-2 text-sm text-muted-foreground">
+              {Object.entries(p.item_quantities).filter(([, n]) => n > 0).map(([c, n]) => `${n}× ${itemNome(p.table_number, c)}`).join(" · ")}
+            </div>
+            {podeConfirmar ? (
+              <div className="mt-3 flex gap-2">
+                <Button size="sm" disabled={ocupado === p.id} onClick={() => agir(p.id, "confirm")}><Check className="mr-1 h-4 w-4" />Confirmar recebimento</Button>
+                <Button size="sm" variant="outline" disabled={ocupado === p.id} onClick={() => agir(p.id, "cancel")}><X className="mr-1 h-4 w-4" />Cancelar</Button>
+              </div>
+            ) : <p className="mt-2 text-xs text-muted-foreground">Somente caixa, gerente ou dono confirmam.</p>}
+          </li>
+        ))}
+      </ul>
+    </>
+  );
 
   return (
-    <div>
-      <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2">
-        <h1 className="font-display text-2xl font-bold">{d.restaurant.name}</h1>
-        <span className="text-sm text-muted-foreground">PDV {d.restaurant.pos_provider === "totvs" ? "TOTVS Food Service" : "Saipos"} · simulado</span>
-      </div>
-      <Tabs value={aba} onValueChange={setAba}>
-        <TabsList className="h-auto flex-wrap justify-start">
-          <TabsTrigger value="mesas">Mesas</TabsTrigger>
-          <TabsTrigger value="pedido">Lançar pedido</TabsTrigger>
-          <TabsTrigger value="confirmar">Confirmações{pendentes.length ? ` (${pendentes.length})` : ""}</TabsTrigger>
-          <TabsTrigger value="historico">Histórico</TabsTrigger>
-          <TabsTrigger value="qr">Mesas e QR Codes</TabsTrigger>
-          {podeDono && <TabsTrigger value="cardapio">Cardápio e garçons</TabsTrigger>}
-          {podeDono && <TabsTrigger value="equipe">Equipe</TabsTrigger>}
-        </TabsList>
+    <div className="pb-20 lg:grid lg:grid-cols-[220px_1fr] lg:gap-6 lg:pb-0">
+      <nav className="hidden h-fit space-y-1 rounded-2xl border border-border bg-card p-2 lg:sticky lg:top-4 lg:block print:hidden">
+        {visiveis.map(({ k, l, i: Icon }) => (
+          <button key={k} onClick={() => setAba(k)} className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm ${aba === k ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}>
+            <Icon className="h-4 w-4" />{l}
+            {k === "caixa" && pendentes.length > 0 && <span className="ml-auto rounded-full bg-accent px-1.5 text-xs text-accent-foreground">{pendentes.length}</span>}
+          </button>
+        ))}
+      </nav>
+      <nav className="fixed inset-x-0 bottom-0 z-30 flex gap-1 overflow-x-auto border-t border-border bg-card p-2 lg:hidden print:hidden">
+        {visiveis.map(({ k, l, i: Icon }) => (
+          <button key={k} onClick={() => setAba(k)} className={`flex min-w-[72px] flex-col items-center gap-0.5 rounded-lg px-2 py-1 text-[10px] ${aba === k ? "bg-primary text-primary-foreground" : ""}`}>
+            <Icon className="h-4 w-4" />{l}
+          </button>
+        ))}
+      </nav>
+      <div className="min-w-0">
+        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2 print:hidden">
+          <h1 className="font-display text-2xl font-bold">{d.restaurant.name} <span className="text-base font-normal text-muted-foreground">· {visiveis.find((x) => x.k === aba)?.l}</span></h1>
+          <span className="text-sm text-muted-foreground">{pdvLabel}</span>
+        </div>
 
-        <TabsContent value="mesas">
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
-            {mesas.map((m) => (
-              <button key={m.id} onClick={() => setMesaAberta(m.number)} className={`rounded-2xl border-2 p-4 text-left transition hover:shadow-md ${statusInfo[m.status].cls}`}>
-                <div className="font-display text-2xl font-bold">Mesa {m.number}</div>
-                <div className="mt-1 text-xs">{statusInfo[m.status].label}</div>
-                {m.itens.length > 0 && <div className="mt-2 text-sm font-semibold">{brl(m.pago)} / {brl(m.total)}</div>}
-                {m.garcom && m.itens.length > 0 && <div className="mt-1 truncate text-xs text-muted-foreground">{m.garcom}</div>}
-              </button>
-            ))}
-          </div>
-        </TabsContent>
+        {aba === "inicio" && <Inicio slug={slug} mesasAbertas={abertas.length} emAberto={abertas.reduce((s, m) => s + m.total - m.pago, 0)} pendentes={pendentes.length} onGo={setAba} />}
 
-        <TabsContent value="pedido">
-          <LancarPedido slug={slug} pdv={pdv.data} mesa={mesaPedido} setMesa={setMesaPedido} onDone={refresh} />
-        </TabsContent>
+        {aba === "salao" && (
+          <>
+            <div className="mb-3 flex flex-wrap gap-2 text-xs">
+              {(["livre", "ocupada", "aguardando", "encerrada"] as Status[]).map((s) => <span key={s} className={`rounded-full border-2 px-2 py-0.5 ${statusInfo[s].cls}`}>{statusInfo[s].label}: {mesas.filter((m) => m.status === s).length}</span>)}
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-6">
+              {mesas.map((m) => (
+                <button key={m.id} onClick={() => setMesaAberta(m.number)} className={`rounded-2xl border-2 p-4 text-left transition hover:shadow-md ${statusInfo[m.status].cls}`}>
+                  <div className="font-display text-2xl font-bold">Mesa {m.number}</div>
+                  <div className="mt-1 text-xs">{statusInfo[m.status].label}</div>
+                  {m.itens.length > 0 && <div className="mt-2 text-sm font-semibold">{brl(m.pago)} / {brl(m.total)}</div>}
+                  {m.garcom && m.itens.length > 0 && <div className="mt-1 truncate text-xs text-muted-foreground">{m.garcom}</div>}
+                </button>
+              ))}
+            </div>
+          </>
+        )}
 
-        <TabsContent value="confirmar">
-          {pendentes.length === 0 && <p className="py-8 text-center text-muted-foreground">Nenhum pagamento aguardando confirmação.</p>}
-          <ul className="space-y-3">
-            {pendentes.map((p) => (
-              <li key={p.id} className="rounded-2xl border border-border bg-card p-4">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <div className="font-semibold">Mesa {p.table_number} · {p.customer_name}</div>
-                    <div className="text-xs text-muted-foreground">{metodoLabel[p.payment_method] ?? p.payment_method} · {hora(p.created_at)}</div>
-                  </div>
-                  <div className="font-display text-xl font-bold">{brl(p.amount)}</div>
-                </div>
-                <div className="mt-2 text-sm text-muted-foreground">
-                  {Object.entries(p.item_quantities).filter(([, n]) => n > 0).map(([c, n]) => `${n}× ${itemNome(p.table_number, c)}`).join(" · ")}
-                </div>
-                {podeConfirmar ? (
-                  <div className="mt-3 flex gap-2">
-                    <Button size="sm" disabled={ocupado === p.id} onClick={() => agir(p.id, "confirm")}><Check className="mr-1 h-4 w-4" />Confirmar recebimento</Button>
-                    <Button size="sm" variant="outline" disabled={ocupado === p.id} onClick={() => agir(p.id, "cancel")}><X className="mr-1 h-4 w-4" />Cancelar</Button>
-                  </div>
-                ) : <p className="mt-2 text-xs text-muted-foreground">Somente caixa, gerente ou dono confirmam.</p>}
-              </li>
-            ))}
-          </ul>
-        </TabsContent>
+        {aba === "pdv" && <LancarPedido slug={slug} pdv={pdv.data} mesa={mesaPedido} setMesa={setMesaPedido} onDone={refresh} />}
+        {aba === "cozinha" && <Cozinha slug={slug} />}
+        {aba === "caixa" && <Caixa slug={slug} podeCaixa={podeConfirmar} confirmacoes={confirmacoes} />}
 
-        <TabsContent value="historico">
+        {aba === "historico" && (
           <ul className="divide-y divide-border rounded-2xl border border-border bg-card">
             {d.audit.length === 0 && <li className="p-4 text-center text-muted-foreground">Sem registros ainda.</li>}
             {d.audit.map((a) => (
@@ -155,19 +192,25 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
               </li>
             ))}
           </ul>
-        </TabsContent>
+        )}
 
-        <TabsContent value="qr"><MesasQr slug={slug} tables={pdv.data.tables} podeDono={podeDono} onDone={refresh} /></TabsContent>
-        {podeDono && <TabsContent value="cardapio"><Cardapio slug={slug} pdv={pdv.data} onDone={refresh} /></TabsContent>}
-        {podeDono && <TabsContent value="equipe"><Equipe slug={slug} staff={d.staff} /></TabsContent>}
-      </Tabs>
+        {aba === "qr" && <MesasQr slug={slug} tables={pdv.data.tables} podeDono={podeDono} onDone={refresh} />}
+        {aba === "cardapio" && podeDono && <Cardapio slug={slug} pdv={pdv.data} onDone={refresh} />}
+        {aba === "equipe" && podeDono && (
+          <div className="space-y-6"><Garcons slug={slug} pdv={pdv.data} onDone={refresh} /><Equipe slug={slug} staff={d.staff} /></div>
+        )}
+        {aba === "relatorios" && <Relatorios slug={slug} />}
+        {aba === "integracoes" && <Integracoes slug={slug} podeDono={podeDono} />}
+        {aba === "config" && <Configuracoes slug={slug} podeDono={podeDono} />}
+      </div>
 
       <Dialog open={!!mesaSel} onOpenChange={(o) => !o && setMesaAberta(null)}>
         <DialogContent className="max-h-[85vh] overflow-y-auto">
           {mesaSel && (
-            <MesaDetalhe slug={slug} mesa={mesaSel} payments={d.payments.filter((p) => p.table_number === mesaSel.number)} podeConfirmar={podeConfirmar}
-              onLancar={() => { setMesaPedido(mesaSel.number); setMesaAberta(null); setAba("pedido"); }}
-              onDone={() => { refresh(); }} />
+            <MesaDetalhe slug={slug} mesa={mesaSel} outras={mesas.filter((m) => m.active && m.number !== mesaSel.number).map((m) => m.number)}
+              payments={d.payments.filter((p) => p.table_number === mesaSel.number)} podeConfirmar={podeConfirmar}
+              onLancar={() => { setMesaPedido(mesaSel.number); setMesaAberta(null); setAba("pdv"); }}
+              onDone={() => { refresh(); }} onClose={() => setMesaAberta(null)} />
           )}
         </DialogContent>
       </Dialog>
@@ -178,14 +221,16 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
 type PdvData = Awaited<ReturnType<typeof getPdvData>>;
 type PanelData = Awaited<ReturnType<typeof getPanelData>>;
 
-function MesaDetalhe({ slug, mesa, payments, podeConfirmar, onLancar, onDone }: {
-  slug: string; podeConfirmar: boolean; onLancar: () => void; onDone: () => void;
+function MesaDetalhe({ slug, mesa, outras, payments, podeConfirmar, onLancar, onDone, onClose }: {
+  slug: string; outras: string[]; podeConfirmar: boolean; onLancar: () => void; onDone: () => void; onClose: () => void;
   mesa: { number: string; status: Status; garcom?: string | undefined; total: number; itens: PanelData["items"] };
   payments: PanelData["payments"];
 }) {
   const estornar = useServerFn(voidItem);
   const fechar = useServerFn(closeTable);
+  const transferir = useServerFn(transferTable);
   const [ocupado, setOcupado] = useState(false);
+  const [destino, setDestino] = useState("");
   async function run(fn: () => Promise<unknown>, ok: string) {
     setOcupado(true);
     try { await fn(); toast.success(ok); onDone(); } catch (e) { toast.error((e as Error).message); } finally { setOcupado(false); }
@@ -207,7 +252,11 @@ function MesaDetalhe({ slug, mesa, payments, podeConfirmar, onLancar, onDone }: 
                   <td className="text-right">
                     {podeConfirmar && livre > 0 && (
                       <Button size="sm" variant="ghost" disabled={ocupado} title="Estornar 1 unidade"
-                        onClick={() => run(() => estornar({ data: { slug, table: mesa.number, code: i.item_code, qty: 1 } }), "Item estornado")}>
+                        onClick={() => {
+                          const reason = window.prompt(`Motivo do estorno de 1× ${i.item_name}:`);
+                          if (!reason || reason.trim().length < 3) { if (reason !== null) toast.error("Informe o motivo (mín. 3 letras)"); return; }
+                          void run(() => estornar({ data: { slug, table: mesa.number, code: i.item_code, qty: 1, reason } }), "Item estornado");
+                        }}>
                         <Minus className="h-4 w-4" />
                       </Button>
                     )}
@@ -237,6 +286,19 @@ function MesaDetalhe({ slug, mesa, payments, podeConfirmar, onLancar, onDone }: 
             void run(() => fechar({ data: { slug, table: mesa.number } }), "Mesa fechada e liberada");
           }}>Fechar e liberar mesa</Button>
         )}
+        {mesa.itens.length > 0 && payments.length === 0 && mesa.status !== "inativa" && (
+          <div className="flex w-full items-center gap-2 border-t border-border pt-3">
+            <ArrowRightLeft className="h-4 w-4 text-muted-foreground" />
+            <select className="flex-1 rounded-md border border-input bg-background px-2 py-1.5 text-sm" value={destino} onChange={(e) => setDestino(e.target.value)}>
+              <option value="">Transferir / juntar com a mesa…</option>
+              {outras.map((n) => <option key={n} value={n}>Mesa {n}</option>)}
+            </select>
+            <Button size="sm" variant="outline" disabled={!destino || ocupado} onClick={() => {
+              if (!window.confirm(`Mover todos os itens da mesa ${mesa.number} para a mesa ${destino}? Se a mesa ${destino} já tiver itens, as contas serão juntadas.`)) return;
+              void run(() => transferir({ data: { slug, from: mesa.number, to: destino } }), `Itens movidos para a mesa ${destino}`).then(onClose);
+            }}>Mover</Button>
+          </div>
+        )}
       </div>
     </>
   );
@@ -247,6 +309,8 @@ function LancarPedido({ slug, pdv, mesa, setMesa, onDone }: { slug: string; pdv:
   const [garcom, setGarcom] = useState("");
   const [carrinho, setCarrinho] = useState<Record<string, number>>({});
   const [busca, setBusca] = useState("");
+  const [obs, setObs] = useState<Record<string, string>>({});
+  const [cat, setCat] = useState<string>("");
   const [enviando, setEnviando] = useState(false);
   const ativos = pdv.waiters.filter((w) => w.active);
   const mesasAtivas = pdv.tables.filter((t) => t.active);
@@ -256,7 +320,7 @@ function LancarPedido({ slug, pdv, mesa, setMesa, onDone }: { slug: string; pdv:
     if (t?.waiter_id) setGarcom(t.waiter_id);
   }, [mesa, pdv.tables]);
 
-  const itens = pdv.items.filter((i) => i.available && (!busca || i.name.toLowerCase().includes(busca.toLowerCase()) || i.code.toLowerCase() === busca.toLowerCase()));
+  const itens = pdv.items.filter((i) => i.available && (busca || !cat || i.category_id === cat) && (!busca || i.name.toLowerCase().includes(busca.toLowerCase()) || i.code.toLowerCase() === busca.toLowerCase()));
   const linhas = Object.entries(carrinho).filter(([, n]) => n > 0);
   const total = linhas.reduce((s, [c, n]) => s + (pdv.items.find((i) => i.code === c)?.price ?? 0) * n, 0);
   const add = (code: string, delta: number) => setCarrinho((c) => ({ ...c, [code]: Math.max(0, Math.min(99, (c[code] ?? 0) + delta)) }));
@@ -265,9 +329,9 @@ function LancarPedido({ slug, pdv, mesa, setMesa, onDone }: { slug: string; pdv:
     if (!mesa || !garcom || linhas.length === 0) return;
     setEnviando(true);
     try {
-      await launch({ data: { slug, table: mesa, waiterId: garcom, items: linhas.map(([code, qty]) => ({ code, qty })) } });
+      await launch({ data: { slug, table: mesa, waiterId: garcom, items: linhas.map(([code, qty]) => ({ code, qty, ...(obs[code]?.trim() ? { notes: obs[code]!.trim() } : {}) })) } });
       toast.success(`Pedido lançado na mesa ${mesa}`);
-      setCarrinho({});
+      setCarrinho({}); setObs({});
       onDone();
     } catch (e) { toast.error((e as Error).message); } finally { setEnviando(false); }
   }
@@ -276,6 +340,10 @@ function LancarPedido({ slug, pdv, mesa, setMesa, onDone }: { slug: string; pdv:
     <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
       <div>
         <Input placeholder="Buscar item ou código (ex.: P01)" value={busca} onChange={(e) => setBusca(e.target.value)} className="mb-3" />
+        <div className="mb-3 flex flex-wrap gap-2">
+          <Button size="sm" variant={!cat ? "default" : "outline"} onClick={() => setCat("")}>Todos</Button>
+          {pdv.categories.map((c) => <Button key={c.id} size="sm" variant={cat === c.id ? "default" : "outline"} onClick={() => setCat(c.id)}>{c.name}</Button>)}
+        </div>
         {pdv.categories.map((cat) => {
           const lista = itens.filter((i) => i.category_id === cat.id);
           if (!lista.length) return null;
@@ -309,13 +377,16 @@ function LancarPedido({ slug, pdv, mesa, setMesa, onDone }: { slug: string; pdv:
             {linhas.map(([code, n]) => {
               const it = pdv.items.find((i) => i.code === code);
               return (
-                <li key={code} className="flex items-center justify-between gap-2">
+                <li key={code} className="space-y-1">
+                  <div className="flex items-center justify-between gap-2">
                   <span className="flex-1">{it?.name}</span>
                   <div className="flex items-center gap-1">
                     <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => add(code, -1)}><Minus className="h-3 w-3" /></Button>
                     <span className="w-6 text-center">{n}</span>
                     <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => add(code, 1)}><Plus className="h-3 w-3" /></Button>
                   </div>
+                  </div>
+                  <Input className="h-7 text-xs" placeholder="Observação (ex.: sem cebola)" maxLength={140} value={obs[code] ?? ""} onChange={(e) => setObs({ ...obs, [code]: e.target.value })} />
                 </li>
               );
             })}
@@ -331,7 +402,9 @@ function LancarPedido({ slug, pdv, mesa, setMesa, onDone }: { slug: string; pdv:
 function MesasQr({ slug, tables, podeDono, onDone }: { slug: string; tables: PdvData["tables"]; podeDono: boolean; onDone: () => void }) {
   const add = useServerFn(addTable);
   const upd = useServerFn(updateTable);
+  const bulk = useServerFn(addTablesBulk);
   const [nova, setNova] = useState("");
+  const [lote, setLote] = useState({ from: "", to: "" });
   const base = typeof window !== "undefined" && !window.location.hostname.includes("lovable") && !window.location.hostname.includes("localhost") ? window.location.origin : "https://tipe.digital";
   const link = (t: PdvData["tables"][number]) => `${base}/${slug}/${t.code}?t=${t.access_token}`;
   async function run(fn: () => Promise<unknown>, ok: string) {
@@ -344,6 +417,17 @@ function MesasQr({ slug, tables, podeDono, onDone }: { slug: string; tables: Pdv
           <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); if (nova.trim()) void run(() => add({ data: { slug, number: nova.trim() } }), "Mesa cadastrada").then(() => setNova("")); }}>
             <Input className="w-32" placeholder="Nº da mesa" value={nova} onChange={(e) => setNova(e.target.value)} />
             <Button type="submit" variant="outline">Cadastrar mesa</Button>
+          </form>
+        )}
+        {podeDono && (
+          <form className="flex items-center gap-2" onSubmit={(e) => {
+            e.preventDefault();
+            void run(async () => { const r = await bulk({ data: { slug, from: Number(lote.from), to: Number(lote.to) } }); toast.info(`${r.created} mesa(s) nova(s)`); }, "Mesas cadastradas").then(() => setLote({ from: "", to: "" }));
+          }}>
+            <span className="text-sm text-muted-foreground">Em lote:</span>
+            <Input required type="number" min={1} className="w-20" placeholder="de" value={lote.from} onChange={(e) => setLote({ ...lote, from: e.target.value })} />
+            <Input required type="number" min={1} className="w-20" placeholder="até" value={lote.to} onChange={(e) => setLote({ ...lote, to: e.target.value })} />
+            <Button type="submit" variant="outline">Criar</Button>
           </form>
         )}
         <Button variant="outline" onClick={() => window.print()}><Printer className="mr-1 h-4 w-4" />Imprimir QR Codes</Button>
@@ -374,13 +458,14 @@ function MesasQr({ slug, tables, podeDono, onDone }: { slug: string; tables: Pdv
 
 function Cardapio({ slug, pdv, onDone }: { slug: string; pdv: PdvData; onDone: () => void }) {
   const saveItem = useServerFn(saveMenuItem);
-  const saveW = useServerFn(saveWaiter);
-  const vazio = { id: undefined as string | undefined, categoryId: pdv.categories[0]?.id ?? null, code: "", name: "", price: 0, available: true };
+  const saveCat = useServerFn(saveCategory);
+  const vazio = { id: undefined as string | undefined, categoryId: pdv.categories[0]?.id ?? null, code: "", name: "", price: 0, available: true, sector: "kitchen" as "kitchen" | "bar", description: "" };
   const [f, setF] = useState(vazio);
-  const [w, setW] = useState({ code: "", name: "" });
+  const [novaCat, setNovaCat] = useState("");
   async function run(fn: () => Promise<unknown>, ok: string) {
     try { await fn(); toast.success(ok); onDone(); return true; } catch (e) { toast.error((e as Error).message); return false; }
   }
+  const base = (i: PdvData["items"][number]) => ({ slug, id: i.id, categoryId: i.category_id, code: i.code, name: i.name, price: i.price, available: i.available });
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
       <div>
@@ -390,13 +475,15 @@ function Cardapio({ slug, pdv, onDone }: { slug: string; pdv: PdvData; onDone: (
             <ul className="divide-y divide-border rounded-2xl border border-border bg-card">
               {pdv.items.filter((i) => i.category_id === cat.id).map((i) => (
                 <li key={i.id} className="flex items-center justify-between gap-2 p-3 text-sm">
-                  <button className="flex-1 text-left" onClick={() => setF({ id: i.id, categoryId: i.category_id, code: i.code, name: i.name, price: i.price, available: i.available })}>
+                  <button className="flex-1 text-left" onClick={() => setF({ id: i.id, categoryId: i.category_id, code: i.code, name: i.name, price: i.price, available: i.available, sector: (i.sector as "kitchen" | "bar") ?? "kitchen", description: i.description ?? "" })}>
                     <span className="mr-2 text-xs text-muted-foreground">{i.code}</span>
                     <span className={i.available ? "" : "line-through opacity-60"}>{i.name}</span>
+                    <span className="ml-2 rounded bg-muted px-1.5 text-[10px] text-muted-foreground">{i.sector === "bar" ? "Bar" : "Cozinha"}</span>
+                    {!i.available && <span className="ml-2 text-[10px] text-destructive">Esgotado</span>}
                   </button>
                   <span className="font-semibold">{brl(i.price)}</span>
-                  <Button size="sm" variant="ghost" onClick={() => run(() => saveItem({ data: { slug, id: i.id, categoryId: i.category_id, code: i.code, name: i.name, price: i.price, available: !i.available } }), i.available ? "Item pausado" : "Item disponível")}>
-                    {i.available ? "Pausar" : "Ativar"}
+                  <Button size="sm" variant="ghost" onClick={() => run(() => saveItem({ data: { ...base(i), available: !i.available } }), i.available ? "Marcado como esgotado" : "Item disponível")}>
+                    {i.available ? "Esgotar" : "Ativar"}
                   </Button>
                 </li>
               ))}
@@ -405,42 +492,65 @@ function Cardapio({ slug, pdv, onDone }: { slug: string; pdv: PdvData; onDone: (
         ))}
       </div>
       <div className="space-y-4">
-        <form className="space-y-3 rounded-2xl border border-border bg-card p-4" onSubmit={async (e) => {
+        <form className="space-y-3 rounded-2xl border border-border bg-card p-4 lg:sticky lg:top-4" onSubmit={async (e) => {
           e.preventDefault();
-          if (await run(() => saveItem({ data: { slug, ...f } }), f.id ? "Item atualizado" : "Item cadastrado")) setF(vazio);
+          if (await run(() => saveItem({ data: { slug, ...f } }), f.id ? "Produto atualizado" : "Produto cadastrado")) setF(vazio);
         }}>
-          <h3 className="font-semibold">{f.id ? "Editar item" : "Novo item"}</h3>
+          <h3 className="font-semibold">{f.id ? "Editar produto" : "Novo produto"}</h3>
           <select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={f.categoryId ?? ""} onChange={(e) => setF({ ...f, categoryId: e.target.value || null })}>
             {pdv.categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
           </select>
           <Input required placeholder="Código (ex.: P10)" value={f.code} onChange={(e) => setF({ ...f, code: e.target.value })} />
           <Input required placeholder="Nome" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
+          <Input placeholder="Descrição (opcional)" maxLength={200} value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} />
           <Input required type="number" step="0.01" min={0} placeholder="Preço" value={f.price || ""} onChange={(e) => setF({ ...f, price: Number(e.target.value) })} />
+          <div className="flex gap-2">
+            <Button type="button" size="sm" className="flex-1" variant={f.sector === "kitchen" ? "default" : "outline"} onClick={() => setF({ ...f, sector: "kitchen" })}>Cozinha</Button>
+            <Button type="button" size="sm" className="flex-1" variant={f.sector === "bar" ? "default" : "outline"} onClick={() => setF({ ...f, sector: "bar" })}>Bar</Button>
+          </div>
           <div className="flex gap-2">
             <Button type="submit" className="flex-1">Salvar</Button>
             {f.id && <Button type="button" variant="outline" onClick={() => setF(vazio)}>Novo</Button>}
           </div>
         </form>
-        <div className="space-y-3 rounded-2xl border border-border bg-card p-4">
-          <h3 className="font-semibold">Garçons</h3>
-          <ul className="space-y-1 text-sm">
-            {pdv.waiters.map((x) => (
-              <li key={x.id} className="flex items-center justify-between">
-                <span className={x.active ? "" : "line-through opacity-60"}>{x.code} · {x.name}</span>
-                <Button size="sm" variant="ghost" onClick={() => run(() => saveW({ data: { slug, id: x.id, code: x.code, name: x.name, active: !x.active } }), "Garçom atualizado")}>{x.active ? "Desativar" : "Ativar"}</Button>
-              </li>
-            ))}
-          </ul>
-          <form className="flex gap-2" onSubmit={async (e) => {
-            e.preventDefault();
-            if (await run(() => saveW({ data: { slug, ...w, active: true } }), "Garçom cadastrado")) setW({ code: "", name: "" });
-          }}>
-            <Input required className="w-20" placeholder="G06" value={w.code} onChange={(e) => setW({ ...w, code: e.target.value })} />
-            <Input required placeholder="Nome" value={w.name} onChange={(e) => setW({ ...w, name: e.target.value })} />
-            <Button type="submit" size="icon" variant="outline"><Plus className="h-4 w-4" /></Button>
-          </form>
-        </div>
+        <form className="flex gap-2 rounded-2xl border border-border bg-card p-4" onSubmit={async (e) => {
+          e.preventDefault();
+          if (await run(() => saveCat({ data: { slug, name: novaCat } }), "Categoria criada")) setNovaCat("");
+        }}>
+          <Input required placeholder="Nova categoria" value={novaCat} onChange={(e) => setNovaCat(e.target.value)} />
+          <Button type="submit" size="icon" variant="outline"><Plus className="h-4 w-4" /></Button>
+        </form>
       </div>
+    </div>
+  );
+}
+
+function Garcons({ slug, pdv, onDone }: { slug: string; pdv: PdvData; onDone: () => void }) {
+  const saveW = useServerFn(saveWaiter);
+  const [w, setW] = useState({ code: "", name: "" });
+  async function run(fn: () => Promise<unknown>, ok: string) {
+    try { await fn(); toast.success(ok); onDone(); return true; } catch (e) { toast.error((e as Error).message); return false; }
+  }
+  return (
+    <div className="space-y-3 rounded-2xl border border-border bg-card p-4">
+      <h3 className="font-semibold">Garçons</h3>
+      <p className="text-xs text-muted-foreground">Garçons aparecem no lançamento de pedidos e na conta do cliente. Não precisam ter login.</p>
+      <ul className="grid gap-1 text-sm sm:grid-cols-2">
+        {pdv.waiters.map((x) => (
+          <li key={x.id} className="flex items-center justify-between rounded-lg bg-muted/50 px-2">
+            <span className={x.active ? "" : "line-through opacity-60"}>{x.code} · {x.name}</span>
+            <Button size="sm" variant="ghost" onClick={() => run(() => saveW({ data: { slug, id: x.id, code: x.code, name: x.name, active: !x.active } }), "Garçom atualizado")}>{x.active ? "Desativar" : "Ativar"}</Button>
+          </li>
+        ))}
+      </ul>
+      <form className="flex max-w-md gap-2" onSubmit={async (e) => {
+        e.preventDefault();
+        if (await run(() => saveW({ data: { slug, ...w, active: true } }), "Garçom cadastrado")) setW({ code: "", name: "" });
+      }}>
+        <Input required className="w-20" placeholder="G06" value={w.code} onChange={(e) => setW({ ...w, code: e.target.value })} />
+        <Input required placeholder="Nome do garçom" value={w.name} onChange={(e) => setW({ ...w, name: e.target.value })} />
+        <Button type="submit" size="icon" variant="outline"><Plus className="h-4 w-4" /></Button>
+      </form>
     </div>
   );
 }
