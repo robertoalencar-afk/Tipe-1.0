@@ -4,10 +4,11 @@ import { SERVICE_FEE } from "./rules";
 
 const Input = z.object({
   method: z.enum(["pix", "card", "apple_pay", "google_pay", "at_establishment"]),
-  tip: z.number().min(0).max(10000),
+  tip: z.number().min(0).max(1000),
   tableId: z.string().max(16),
   restaurantId: z.string().max(64),
-  idempotencyKey: z.string().max(80),
+  idempotencyKey: z.string().min(8).max(80).regex(/^[A-Za-z0-9_-]+$/),
+  session: z.string().min(16).max(96),
   customerName: z.string().min(1).max(40),
   itemQuantities: z.record(z.string(), z.number().int().nonnegative()),
   target: z.enum(["restaurant", "tipe"]),
@@ -28,6 +29,10 @@ export type PaymentResult = {
 export const createPayment = createServerFn({ method: "POST" })
   .inputValidator((d) => Input.parse(d))
   .handler(async ({ data }): Promise<PaymentResult> => {
+    const { verifyTableSession, enforceRate, clientIp } = await import("./security.server");
+    await enforceRate(`pay:${data.restaurantId}:${data.tableId}:${clientIp()}`, 20, 60, data.restaurantId);
+    const ok = await verifyTableSession(data.restaurantId, data.tableId, data.session);
+    if (!ok) throw new Error("A conta desta mesa foi atualizada. Leia o QR Code da mesa novamente.");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const id = `tp_${data.idempotencyKey.slice(0, 12)}`;
 
@@ -56,7 +61,7 @@ export const createPayment = createServerFn({ method: "POST" })
       amount = +(subtotal * (1 + SERVICE_FEE)).toFixed(2);
     } else {
       if (data.tip <= 0) throw new Error("Informe o valor da gorjeta");
-      amount = +data.tip.toFixed(2);
+      amount = Math.round(data.tip * 100) / 100;
     }
     const cents = Math.round(amount * 100);
 
@@ -70,8 +75,12 @@ export const createPayment = createServerFn({ method: "POST" })
         p_status: status,
         p_amount: amount,
         p_item_quantities: itemQuantities,
-      });
-      if (error) throw new Error(error.message.includes("não está mais disponível") ? error.message : "Não foi possível atualizar a conta");
+        p_idempotency_key: data.idempotencyKey,
+      } as never);
+      if (error) {
+        console.error("register_table_payment", error.message);
+        throw new Error(error.message.includes("não está mais disponível") ? "Um item selecionado acabou de ser pago por outra pessoa. A conta foi atualizada." : error.message.includes("já registrado") ? "Este pagamento já foi registrado." : "Não foi possível atualizar a conta");
+      }
     };
 
     if (data.method === "at_establishment") {
@@ -123,7 +132,7 @@ export const createPayment = createServerFn({ method: "POST" })
     return { id, status: "pending", provider: "simulado" };
   });
 
-const TableInput = z.object({ restaurantId: z.string().max(64), tableId: z.string().max(16) });
+const TableInput = z.object({ restaurantId: z.string().max(64), tableId: z.string().max(16), session: z.string().min(16).max(96) });
 
 export type SharedBillItem = {
   item_code: string;
@@ -145,6 +154,8 @@ export type SharedPayment = {
 export const getSharedTableState = createServerFn({ method: "GET" })
   .inputValidator((d) => TableInput.parse(d))
   .handler(async ({ data }): Promise<{ items: SharedBillItem[]; payments: SharedPayment[] }> => {
+    const { verifyTableSession } = await import("./security.server");
+    if (!(await verifyTableSession(data.restaurantId, data.tableId, data.session))) throw new Error("Sessão da mesa expirada");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [itemsResult, paymentsResult] = await Promise.all([
       supabaseAdmin.from("table_bill_items").select("item_code, ordered_quantity, reserved_quantity, paid_quantity")
@@ -165,6 +176,9 @@ const REOPEN_DELAY_MS = 2 * 60 * 1000;
 export const reopenClosedTable = createServerFn({ method: "POST" })
   .inputValidator((d) => TableInput.parse(d))
   .handler(async ({ data }) => {
+    const { verifyTableSession, enforceRate, clientIp } = await import("./security.server");
+    await enforceRate(`reopen:${data.restaurantId}:${data.tableId}:${clientIp()}`, 30, 60, data.restaurantId);
+    if (!(await verifyTableSession(data.restaurantId, data.tableId, data.session))) return { reopened: false };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [itemsResult, paymentsResult] = await Promise.all([
       supabaseAdmin.from("table_bill_items").select("ordered_quantity, reserved_quantity, paid_quantity, updated_at")
