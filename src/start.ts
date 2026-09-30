@@ -18,6 +18,21 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
   }
 });
 
+// Cabeçalhos de segurança. CSP limitada a diretivas que não quebram
+// Supabase/Google/Lovable (frame-ancestors permite apenas o editor Lovable).
+const securityHeadersMiddleware = createMiddleware().server(async ({ next }) => {
+  const result = await next();
+  const h = result.response?.headers;
+  if (h) {
+    h.set("X-Content-Type-Options", "nosniff");
+    h.set("Referrer-Policy", "strict-origin-when-cross-origin");
+    h.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+    h.set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(self)");
+    h.set("Content-Security-Policy", "frame-ancestors 'self' https://*.lovable.app https://*.lovable.dev https://lovable.dev https://*.lovableproject.com; object-src 'none'; base-uri 'self'; form-action 'self'");
+  }
+  return result;
+});
+
 // Start installs this automatically when src/start.ts is absent; defining the
 // file opts out, so re-add it explicitly to keep server functions protected
 // from cross-site requests.
@@ -27,5 +42,5 @@ const csrfMiddleware = createCsrfMiddleware({
 
 export const startInstance = createStart(() => ({
   functionMiddleware: [attachSupabaseAuth],
-  requestMiddleware: [errorMiddleware, csrfMiddleware],
+  requestMiddleware: [securityHeadersMiddleware, errorMiddleware, csrfMiddleware],
 }));

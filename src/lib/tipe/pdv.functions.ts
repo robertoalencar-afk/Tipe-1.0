@@ -11,21 +11,31 @@ export type PublicTable = {
   restaurantName: string;
   tableNumber: string;
   waiterName: string;
+  session: string;
   items: { item_code: string; item_name: string; unit_price: number; ordered_quantity: number; reserved_quantity: number; paid_quantity: number; ordered_at: string }[];
   payments: { id: string; customer_name: string; payment_method: string; status: "pending" | "approved" | "cancelled" | "failed"; amount: number; item_quantities: Record<string, number>; created_at: string }[];
 };
 
 // Leitura pública da mesa pelo cliente (link do QR). Nunca expõe dados da equipe.
 export const getPublicTable = createServerFn({ method: "GET" })
-  .inputValidator((d) => z.object({ slug: Slug, code: z.string().min(1).max(32), token: z.string().max(64).optional() }).parse(d))
+  .inputValidator((d) => z.object({ slug: Slug, code: z.string().min(1).max(32), token: z.string().max(64).optional(), session: z.string().max(96).optional() }).parse(d))
   .handler(async ({ data }): Promise<PublicTable | { error: "not_found" | "invalid_token" | "inactive" }> => {
+    const { enforceRate, clientIp, safeEqual, logSecurityEvent } = await import("./security.server");
+    // Limite generoso: vários clientes podem compartilhar o Wi-Fi do restaurante (mesmo IP).
+    await enforceRate(`qr:${data.slug}:${data.code}:${clientIp()}`, 90, 60, data.slug);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: r } = await supabaseAdmin.from("restaurants").select("id, name").eq("slug", data.slug).maybeSingle();
     if (!r) return { error: "not_found" };
-    const { data: t } = await supabaseAdmin.from("restaurant_tables").select("number, active, access_token, waiter_id").eq("restaurant_id", r.id).eq("code", data.code.toLowerCase()).maybeSingle();
+    const { data: t } = await supabaseAdmin.from("restaurant_tables").select("number, active, access_token, waiter_id, session_token" as never).eq("restaurant_id", r.id).eq("code", data.code.toLowerCase()).maybeSingle() as unknown as { data: { number: string; active: boolean; access_token: string; waiter_id: string | null; session_token: string } | null };
     if (!t) return { error: "not_found" };
     if (!t.active) return { error: "inactive" };
-    if (!data.token || data.token !== t.access_token) return { error: "invalid_token" };
+    // Autoriza com o token do QR da mesa (físico) OU com a sessão da conta ativa.
+    const viaQr = !!data.token && safeEqual(data.token, t.access_token);
+    const viaSession = !!data.session && safeEqual(data.session, t.session_token);
+    if (!viaQr && !viaSession) {
+      await logSecurityEvent({ action: "table_token_denied", resource: `mesa:${t.number}`, result: "denied", restaurantSlug: data.slug, restaurantId: r.id, detail: `ip=${clientIp()}` });
+      return { error: "invalid_token" };
+    }
     const [items, payments, waiter] = await Promise.all([
       supabaseAdmin.from("table_bill_items").select("item_code, item_name, unit_price, ordered_quantity, reserved_quantity, paid_quantity, ordered_at")
         .eq("restaurant_slug", data.slug).eq("table_number", t.number).order("ordered_at"),
@@ -37,6 +47,7 @@ export const getPublicTable = createServerFn({ method: "GET" })
     return {
       restaurantName: r.name,
       tableNumber: t.number,
+      session: t.session_token,
       waiterName: (waiter.data as { name: string } | null)?.name?.split(" ")[0] ?? "",
       items: (items.data ?? []).map((i) => ({ ...i, unit_price: Number(i.unit_price), ordered_quantity: Number(i.ordered_quantity), reserved_quantity: Number(i.reserved_quantity), paid_quantity: Number(i.paid_quantity) })),
       payments: (payments.data ?? []).map((p) => ({ ...p, amount: Number(p.amount), item_quantities: (p.item_quantities ?? {}) as Record<string, number> })) as PublicTable["payments"],
