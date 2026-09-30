@@ -13,6 +13,8 @@ const leadSchema = z.object({
 export const submitLead = createServerFn({ method: "POST" })
   .inputValidator((data) => leadSchema.parse(data))
   .handler(async ({ data }) => {
+    const { enforceRate, clientIp } = await import("./security.server");
+    await enforceRate(`lead:${clientIp()}`, 5, 600);
     // Cliente público somente leitura/gravação via RLS: apenas insere o contato.
     const db = createClient(
       process.env['VITE_SUPABASE_URL']!,

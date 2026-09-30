@@ -22,6 +22,9 @@ function safeEq(a: string, b: string) {
 
 async function auth(request: Request, slug: string) {
   const key = request.headers.get("x-tipe-key") ?? "";
+  const { rateLimit, logSecurityEvent } = await import("@/lib/tipe/security.server");
+  const ip = request.headers.get("cf-connecting-ip") ?? "unknown";
+  if (!(await rateLimit(`pos:${slug}:${ip}`, 300, 60))) return "limited" as const;
   if (!/^tipe_[0-9a-f]{48}$/.test(key) || !/^[a-z0-9-]{1,64}$/.test(slug)) return null;
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: r } = await supabaseAdmin.from("restaurants").select("id, slug").eq("slug", slug).maybeSingle();
@@ -29,18 +32,22 @@ async function auth(request: Request, slug: string) {
   const { data: integ } = await supabaseAdmin.from("pos_integrations").select("key_hash").eq("restaurant_id", r.id).maybeSingle();
   if (!integ?.key_hash) return null;
   const h = hex(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(key)));
-  if (!safeEq(h, integ.key_hash)) return null;
+  if (!safeEq(h, integ.key_hash)) {
+    await logSecurityEvent({ action: "pos_key_denied", resource: "api/pos", result: "denied", restaurantId: r.id, restaurantSlug: r.slug, detail: `ip=${ip}` });
+    return null;
+  }
   return { admin: supabaseAdmin, rid: r.id as string, slug: r.slug as string };
 }
 
-const json = (b: unknown, status = 200) => Response.json(b, { status });
+const json = (b: unknown, status = 200) => Response.json(b, { status, headers: { "cache-control": "no-store" } });
+const deny = (a: unknown) => a === "limited" ? json({ error: "rate_limited" }, 429) : json({ error: "unauthorized" }, 401);
 
 export const Route = createFileRoute("/api/public/pos/$slug")({
   server: {
     handlers: {
       GET: async ({ request, params }) => {
         const a = await auth(request, params.slug);
-        if (!a) return json({ error: "unauthorized" }, 401);
+        if (!a || a === "limited") return deny(a);
         const since = new URL(request.url).searchParams.get("since");
         const d = since && !Number.isNaN(Date.parse(since)) ? new Date(since).toISOString() : new Date(Date.now() - 86400000).toISOString();
         const { data } = await a.admin.from("table_payment_requests").select("id, table_number, payment_method, status, amount, item_quantities, created_at")
@@ -50,7 +57,7 @@ export const Route = createFileRoute("/api/public/pos/$slug")({
       },
       POST: async ({ request, params }) => {
         const a = await auth(request, params.slug);
-        if (!a) return json({ error: "unauthorized" }, 401);
+        if (!a || a === "limited") return deny(a);
         let body: z.infer<typeof Body>;
         try { body = Body.parse(await request.json()); } catch { return json({ error: "invalid_payload" }, 400); }
         const log = (status: string, detail: string) => a.admin.from("pos_sync_log").insert({ restaurant_id: a.rid, event: body.event, status, detail: detail.slice(0, 200) });
@@ -68,7 +75,8 @@ export const Route = createFileRoute("/api/public/pos/$slug")({
           } else {
             const { count } = await a.admin.from("table_payment_requests").select("id", { count: "exact", head: true }).eq("restaurant_slug", a.slug).eq("table_number", body.table).eq("status", "pending");
             if (count) { await log("error", `Mesa ${body.table} com pagamento pendente`); return json({ error: "pending_payments" }, 409); }
-            await a.admin.rpc("archive_and_reopen_table", { p_slug: a.slug, p_table: body.table });
+            const { error: closeErr } = await a.admin.rpc("archive_and_reopen_table", { p_slug: a.slug, p_table: body.table });
+            if (closeErr) { await log("error", `Mesa ${body.table} não encontrada`); return json({ error: "table_not_found" }, 404); }
             await log("ok", `Mesa ${body.table} fechada`);
           }
           await a.admin.from("pos_integrations").update({ last_sync_at: new Date().toISOString(), status: "connected" }).eq("restaurant_id", a.rid);
