@@ -21,6 +21,7 @@ export type Database = {
           created_at: string
           customer_name: string
           id: string
+          idempotency_key: string | null
           item_quantities: Json
           payment_method: string
           payment_target: string
@@ -34,6 +35,7 @@ export type Database = {
           created_at: string
           customer_name: string
           id: string
+          idempotency_key?: string | null
           item_quantities?: Json
           payment_method: string
           payment_target: string
@@ -47,6 +49,7 @@ export type Database = {
           created_at?: string
           customer_name?: string
           id?: string
+          idempotency_key?: string | null
           item_quantities?: Json
           payment_method?: string
           payment_target?: string
@@ -539,6 +542,24 @@ export type Database = {
           },
         ]
       }
+      rate_limit_buckets: {
+        Row: {
+          hits: number
+          key: string
+          window_start: string
+        }
+        Insert: {
+          hits?: number
+          key: string
+          window_start?: string
+        }
+        Update: {
+          hits?: number
+          key?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       restaurant_leads: {
         Row: {
           contact_name: string
@@ -578,6 +599,7 @@ export type Database = {
           id: string
           number: string
           restaurant_id: string
+          session_token: string
           updated_at: string
           waiter_id: string | null
         }
@@ -589,6 +611,7 @@ export type Database = {
           id?: string
           number: string
           restaurant_id: string
+          session_token?: string
           updated_at?: string
           waiter_id?: string | null
         }
@@ -600,6 +623,7 @@ export type Database = {
           id?: string
           number?: string
           restaurant_id?: string
+          session_token?: string
           updated_at?: string
           waiter_id?: string | null
         }
@@ -659,6 +683,42 @@ export type Database = {
           service_rate?: number
           slug?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      security_events: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          detail: string | null
+          id: string
+          resource: string | null
+          restaurant_id: string | null
+          restaurant_slug: string | null
+          result: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          detail?: string | null
+          id?: string
+          resource?: string | null
+          restaurant_id?: string | null
+          restaurant_slug?: string | null
+          result?: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          detail?: string | null
+          id?: string
+          resource?: string | null
+          restaurant_id?: string | null
+          restaurant_slug?: string | null
+          result?: string
         }
         Relationships: []
       }
@@ -754,6 +814,7 @@ export type Database = {
           created_at: string
           customer_name: string
           id: string
+          idempotency_key: string | null
           item_quantities: Json
           payment_method: string
           payment_target: string
@@ -767,6 +828,7 @@ export type Database = {
           created_at?: string
           customer_name: string
           id?: string
+          idempotency_key?: string | null
           item_quantities?: Json
           payment_method: string
           payment_target: string
@@ -780,6 +842,7 @@ export type Database = {
           created_at?: string
           customer_name?: string
           id?: string
+          idempotency_key?: string | null
           item_quantities?: Json
           payment_method?: string
           payment_target?: string
@@ -914,10 +977,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      rate_limit_hit: {
+        Args: { p_key: string; p_max: number; p_window_seconds: number }
+        Returns: boolean
+      }
       register_table_payment: {
         Args: {
           p_amount: number
           p_customer_name: string
+          p_idempotency_key: string
           p_item_quantities: Json
           p_payment_method: string
           p_payment_target: string
