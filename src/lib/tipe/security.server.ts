@@ -30,7 +30,7 @@ export async function rateLimit(key: string, max: number, windowSeconds: number)
 
 export async function enforceRate(key: string, max: number, windowSeconds: number, slug?: string) {
   if (await rateLimit(key, max, windowSeconds)) return;
-  await logSecurityEvent({ action: "rate_limited", resource: key.split(":")[0], result: "denied", restaurantSlug: slug });
+  await logSecurityEvent({ action: "rate_limited", resource: key.split(":")[0] ?? "unknown", result: "denied", restaurantSlug: slug });
   throw new RateLimitError();
 }
 
