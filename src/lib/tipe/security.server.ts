@@ -34,7 +34,7 @@ export async function enforceRate(key: string, max: number, windowSeconds: numbe
   throw new RateLimitError();
 }
 
-export async function logSecurityEvent(e: { action: string; resource?: string; result?: "ok" | "denied" | "error"; restaurantSlug?: string; restaurantId?: string; actorId?: string; detail?: string }) {
+export async function logSecurityEvent(e: { action: string; resource?: string | undefined; result?: "ok" | "denied" | "error"; restaurantSlug?: string | undefined; restaurantId?: string | undefined; actorId?: string | undefined; detail?: string | undefined }) {
   try {
     const db = await admin();
     await db.from("security_events" as never).insert({
