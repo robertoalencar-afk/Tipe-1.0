@@ -110,6 +110,8 @@ function MesaPage() {
   const [disponiveis, setDisponiveis] = useState<Record<string, number>>(() => Object.fromEntries(dados.itens.map((item) => [item.id, item.qtd])));
   const [pagamentos, setPagamentos] = useState<SharedPayment[]>([]);
   const [mesaSincronizada, setMesaSincronizada] = useState(false);
+  const [sessaoMesa, setSessaoMesa] = useState("");
+  const chavePagamento = useRef<string | null>(null);
 
   useEffect(() => {
     try {
@@ -139,6 +141,7 @@ function MesaPage() {
       setDados({ restaurante: estado.restaurantName, mesa: estado.tableNumber, garcom: estado.waiterName, itens: itensMesa });
       setDisponiveis(Object.fromEntries(estado.items.map((item) => [item.item_code, Math.max(0, item.ordered_quantity - item.reserved_quantity - item.paid_quantity)])));
       setPagamentos(estado.payments);
+      setSessaoMesa(estado.session);
       setQtds((atuais) => Object.fromEntries(itensMesa.map((item) => [item.id, Math.min(atuais[item.id] ?? 0, Math.max(0, estado.items.find((shared) => shared.item_code === item.id)?.ordered_quantity ?? item.qtd) - (estado.items.find((shared) => shared.item_code === item.id)?.reserved_quantity ?? 0) - (estado.items.find((shared) => shared.item_code === item.id)?.paid_quantity ?? 0))])));
       setMesaSincronizada(true);
     } catch {
@@ -171,14 +174,14 @@ function MesaPage() {
     let ativo = true;
     const verificar = async () => {
       try {
-        const r = await reopenClosedTable({ data: { restaurantId: restaurante, tableId: String(dados.mesa) } });
+        const r = await reopenClosedTable({ data: { restaurantId: restaurante, tableId: String(dados.mesa), session: sessaoMesa } });
         if (!ativo || !r.reopened) return;
       } catch { return; }
     };
     void verificar();
     const timer = window.setInterval(() => void verificar(), 15000);
     return () => { ativo = false; window.clearInterval(timer); };
-  }, [mesaEncerrada, restaurante, dados.mesa]);
+  }, [mesaEncerrada, restaurante, dados.mesa, sessaoMesa]);
 
   const [estavaEncerrada, setEstavaEncerrada] = useState(false);
   useEffect(() => {
@@ -211,6 +214,8 @@ function MesaPage() {
     if (!metodo || valor <= 0) return;
     setPagando(true);
     setErroPagamento(null);
+    // Mesma chave em cliques repetidos/reenvios: o servidor não duplica o pagamento.
+    if (!chavePagamento.current) chavePagamento.current = `${tipo}_${crypto.randomUUID().replace(/-/g, "")}`;
     try {
       const resultado = await createPayment({
         data: {
@@ -218,16 +223,20 @@ function MesaPage() {
           tip: tipo === "gorjeta" ? gorjetaExtra : 0,
           tableId: String(dados.mesa),
           restaurantId: restaurante,
-          idempotencyKey: `${tipo}-${restaurante}-${dados.mesa}-${Date.now()}`,
+          idempotencyKey: chavePagamento.current,
+          session: sessaoMesa,
           customerName: nome.trim(),
           itemQuantities: tipo === "conta" ? qtds : {},
           target: tipo === "conta" ? "restaurant" : "tipe",
         },
       });
+      chavePagamento.current = null;
       await atualizarMesa();
       setEtapa(tipo === "conta" ? (resultado.status === "approved" ? "conta-confirmada" : "conta-pendente") : "fim");
     } catch (error) {
-      setErroPagamento(error instanceof Error ? error.message : "Não foi possível concluir o pagamento");
+      const msg = error instanceof Error ? error.message : "";
+      if (/não está mais disponível|acabou de ser pago|foi atualizada/.test(msg)) chavePagamento.current = null;
+      setErroPagamento(msg || "Não foi possível concluir o pagamento");
     } finally {
       setPagando(false);
     }
