@@ -23,3 +23,6 @@
 - Bill items come from the PDV TIPE (pdv_launch_order RPC) or from an external PDV via /api/public/pos/$slug (x-tipe-key, SHA-256 hash in pos_integrations); both write table_bill_items. Why: restaurants can use our PDV or keep any market PDV.
 - Restaurant area sections live in RestaurantPanel (shell/salão/PDV/cardápio) and AdminSections (início, cozinha, caixa, relatórios, integrações, config); cash/KDS/void/transfer changes only via SECURITY DEFINER RPCs. Why: role checks stay in the database.
 - Public simulator `/simulador` uses browser-local demo state and fixed Mesa 12 data; it must never read or mutate restaurant PDV data. Why: the sales demo must remain repeatable and isolated from restaurant operations.
+- Customer table access: QR token (?t=) only opens the table; payments/reopen require restaurant_tables.session_token, rotated by archive_and_reopen_table. Why: an old session never authorizes a new bill.
+- Server code using supabaseAdmin must authorize via src/lib/tipe/security.server.ts (verifyTableSession, enforceRate, logSecurityEvent). Why: admin client bypasses RLS.
+- register_table_payment requires p_idempotency_key (unique per restaurant) and is service_role-only. Why: retries/double-clicks never duplicate payments.
