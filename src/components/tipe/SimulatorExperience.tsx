@@ -240,7 +240,8 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
                       </div>
                       <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
                         <span className="text-xs text-muted-foreground">Quantidade a pagar</span>
-                         <select value={Math.floor(qty + EPSILON)} onChange={(event) => setQuantities((current) => ({ ...current, [item.id]: Number(event.target.value) }))} className="h-10 min-w-20 rounded-md border border-input bg-background px-3 text-sm font-bold outline-none focus:ring-1 focus:ring-ring" aria-label={`Quantidade de ${item.name}`}>
+                         <select value={qty} onChange={(event) => setQuantities((current) => ({ ...current, [item.id]: Number(event.target.value) }))} className="h-10 min-w-20 rounded-md border border-input bg-background px-3 text-sm font-bold outline-none focus:ring-1 focus:ring-ring" aria-label={`Quantidade de ${item.name}`}>
+                           {Math.abs(qty - Math.round(qty)) > EPSILON && <option value={qty}>{formatPortion(qty)}</option>}
                            {Array.from({ length: Math.floor(max) + 1 }, (_, number) => <option key={number} value={number}>{number}</option>)}
                         </select>
                       </div>

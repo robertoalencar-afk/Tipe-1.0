@@ -362,11 +362,12 @@ function MesaPage() {
                       <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
                         <span className="text-xs text-muted-foreground">Quantidade a pagar</span>
                         <select
-                          value={Math.floor(quantidade + EPSILON)}
+                          value={quantidade}
                           onChange={(event) => setQtd(item.id, Number(event.target.value), disponivel)}
                           className="h-10 min-w-20 rounded-md border border-input bg-background px-3 text-sm font-bold outline-none focus:ring-1 focus:ring-ring"
                           aria-label={`Quantidade de ${item.nome}`}
                         >
+                          {Math.abs(quantidade - Math.round(quantidade)) > EPSILON && <option value={quantidade}>{formatPortion(quantidade)}</option>}
                           {Array.from({ length: Math.floor(disponivel) + 1 }, (_, numero) => (
                             <option key={numero} value={numero}>{numero}</option>
                           ))}
