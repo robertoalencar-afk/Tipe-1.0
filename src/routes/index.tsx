@@ -7,6 +7,7 @@ import {
   Hand, ClipboardList, Calculator, ArrowLeftRight, CreditCard, Sparkles,
 } from "lucide-react";
 import { submitLead } from "@/lib/tipe/leads.functions";
+import { PLANS, TRIAL_DAYS, priceLabel, type PlanId } from "@/lib/tipe/plans";
 import logo from "@/assets/logo-dark.png.asset.json";
 import mascotThanks from "@/assets/mascot-thanks-filled.png";
 import mascotWaiting from "@/assets/mascot-waiting-filled.png";
@@ -19,12 +20,12 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Plataforma TIPE: o cliente paga a conta pelo QR Code da mesa e o restaurante acompanha tudo em tempo real. Conecte seu PDV ou use o PDV TIPE. Planos a partir de R$ 199/mês.",
+          "Plataforma TIPE: o cliente paga a conta pelo QR Code da mesa e o restaurante acompanha tudo em tempo real. Conecte seu PDV ou use o PDV TIPE. Planos a partir de R$ 49,90/mês, com 30 dias grátis.",
       },
       { property: "og:title", content: "TIPE — Pague. Sem esperar." },
       {
         property: "og:description",
-        content: "Pagamento na mesa por QR Code, gorjeta extra para o garçom, painel em tempo real e PDV próprio. Planos por assinatura a partir de R$ 199/mês.",
+        content: "Pagamento na mesa por QR Code, gorjeta extra para o garçom, painel em tempo real e PDV próprio. Assinatura a partir de R$ 49,90/mês, 30 dias grátis.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://tipe.digital/" },
@@ -66,6 +67,7 @@ function Header() {
           ))}
           <Link to="/simulador" className="hidden rounded-full px-4 py-2 font-semibold text-muted-foreground transition-colors hover:text-foreground lg:block">Simular</Link>
           <Link to="/entrar" className="hidden rounded-full px-4 py-2 font-semibold text-foreground hover:bg-muted sm:block">Entrar</Link>
+          <Link to="/cadastro" className="rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground">Teste grátis</Link>
           <a href="#fale-conosco" className="rounded-full bg-primary px-4 py-2 font-display text-sm font-semibold text-primary-foreground shadow-md transition-transform hover:-translate-y-0.5">
             Quero a TIPE
           </a>
@@ -91,9 +93,9 @@ function Hero() {
             deixa a gorjeta. Seu restaurante gira mais mesas e acompanha tudo em tempo real.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <a href="#fale-conosco" className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-display font-semibold text-primary-foreground shadow-lg transition-transform hover:-translate-y-0.5">
-              Agendar demonstração <ChevronRight className="h-4 w-4" />
-            </a>
+            <Link to="/cadastro" className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-display font-semibold text-primary-foreground shadow-lg transition-transform hover:-translate-y-0.5">
+              Testar 30 dias grátis <ChevronRight className="h-4 w-4" />
+            </Link>
             <Link to="/simulador" className="inline-flex items-center gap-2 rounded-full border border-current/25 px-6 py-3 font-display font-semibold transition-colors hover:bg-primary/10">
               Simular experiência
             </Link>
@@ -504,7 +506,7 @@ function Faq() {
         ["E se um pagamento sair errado?", "O restaurante cancela pelo painel e os itens pagos voltam a ficar disponíveis na conta. Tudo fica registrado com data, horário e nome de quem pagou — sem apagar o histórico."],
         ["Preciso trocar o meu sistema?", "Não. A TIPE se conecta ao PDV que você já usa, como Saipos e TOTVS. Se preferir, você contrata o PDV TIPE, que já vem integrado ao pagamento na mesa."],
         ["Quanto tempo leva para começar?", "A implantação é assistida: cadastramos as mesas, geramos os totens com QR Code e treinamos a equipe. Você pode começar por um salão e ir ampliando conforme o resultado."],
-        ["Como é cobrada a assinatura?", "Mensalmente, de acordo com o número de mesas do seu restaurante, a partir de R$ 199/mês. Sem fidelidade: você cancela quando quiser."],
+        ["Como é cobrada a assinatura?", "Mensalmente, de acordo com o número de mesas do seu restaurante, a partir de R$ 49,90/mês, com 30 dias grátis e sem cartão no teste. Sem fidelidade: você cancela quando quiser."],
       ],
     },
   ];

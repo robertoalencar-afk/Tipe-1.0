@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
 import {
   ArrowRightLeft, BarChart3, ChefHat, Check, History, Home, LayoutGrid, Minus, Plug, Plus, Printer, QrCode, RefreshCw,
-  Settings, ShoppingCart, UtensilsCrossed, Users, Wallet, X,
+  CreditCard, Settings, ShoppingCart, UtensilsCrossed, Users, Wallet, X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,7 @@ import {
 import { transferTable } from "@/lib/tipe/admin.functions";
 import { Caixa, Configuracoes, Cozinha, Inicio, Integracoes, Relatorios } from "@/components/tipe/AdminSections";
 import { TotemStudio } from "@/components/tipe/TotemStudio";
+import { Assinatura } from "@/components/tipe/Assinatura";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const hora = (s: string) => new Date(s).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
@@ -55,6 +56,7 @@ const secoes = [
   { k: "historico", l: "Histórico", i: History },
   { k: "integracoes", l: "Integrações (PDV)", i: Plug, dono: true },
   { k: "config", l: "Configurações", i: Settings },
+  { k: "assinatura", l: "Assinatura", i: CreditCard, dono: true },
 ] as const;
 
 export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; myRoles: StaffRole[]; isFounder: boolean }) {
@@ -211,6 +213,7 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
         {aba === "relatorios" && <Relatorios slug={slug} />}
         {aba === "integracoes" && <Integracoes slug={slug} podeDono={podeDono} />}
         {aba === "config" && <Configuracoes slug={slug} podeDono={podeDono} />}
+        {aba === "assinatura" && podeDono && <Assinatura slug={slug} />}
       </div>
 
       <Dialog open={!!mesaSel} onOpenChange={(o) => !o && setMesaAberta(null)}>
