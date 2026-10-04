@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SimuladorRouteImport } from './routes/simulador'
@@ -28,6 +29,11 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CadastroRoute = CadastroRouteImport.update({
+  id: '/cadastro',
+  path: '/cadastro',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EntrarRoute = EntrarRouteImport.update({
@@ -78,6 +84,7 @@ const ApiPublicPosSlugRoute = ApiPublicPosSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/cadastro': typeof CadastroRoute
   '/entrar': typeof EntrarRoute
   '/reset-password': typeof ResetPasswordRoute
   '/simulador': typeof SimuladorRoute
@@ -90,6 +97,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/cadastro': typeof CadastroRoute
   '/entrar': typeof EntrarRoute
   '/reset-password': typeof ResetPasswordRoute
   '/simulador': typeof SimuladorRoute
@@ -104,6 +112,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/cadastro': typeof CadastroRoute
   '/entrar': typeof EntrarRoute
   '/reset-password': typeof ResetPasswordRoute
   '/simulador': typeof SimuladorRoute
@@ -118,6 +127,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/cadastro'
     | '/entrar'
     | '/reset-password'
     | '/simulador'
@@ -130,6 +140,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/cadastro'
     | '/entrar'
     | '/reset-password'
     | '/simulador'
@@ -143,6 +154,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/cadastro'
     | '/entrar'
     | '/reset-password'
     | '/simulador'
@@ -157,6 +169,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  CadastroRoute: typeof CadastroRoute
   EntrarRoute: typeof EntrarRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SimuladorRoute: typeof SimuladorRoute
@@ -181,6 +194,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cadastro': {
+      id: '/cadastro'
+      path: '/cadastro'
+      fullPath: '/cadastro'
+      preLoaderRoute: typeof CadastroRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/entrar': {
@@ -263,6 +283,7 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  CadastroRoute: CadastroRoute,
   EntrarRoute: EntrarRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SimuladorRoute: SimuladorRoute,
