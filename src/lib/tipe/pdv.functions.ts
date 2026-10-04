@@ -12,7 +12,7 @@ export type PublicTable = {
   tableNumber: string;
   waiterName: string;
   session: string;
-  items: { item_code: string; item_name: string; unit_price: number; ordered_quantity: number; reserved_quantity: number; paid_quantity: number; ordered_at: string }[];
+  items: { item_code: string; item_name: string; unit_price: number; ordered_quantity: number; reserved_portion: number; paid_portion: number; ordered_at: string }[];
   payments: { id: string; customer_name: string; payment_method: string; status: "pending" | "approved" | "cancelled" | "failed"; amount: number; item_quantities: Record<string, number>; created_at: string }[];
 };
 
@@ -37,7 +37,7 @@ export const getPublicTable = createServerFn({ method: "GET" })
       return { error: "invalid_token" };
     }
     const [items, payments, waiter] = await Promise.all([
-      supabaseAdmin.from("table_bill_items").select("item_code, item_name, unit_price, ordered_quantity, reserved_quantity, paid_quantity, ordered_at")
+      supabaseAdmin.from("table_bill_items").select("item_code, item_name, unit_price, ordered_quantity, reserved_portion, paid_portion, ordered_at")
         .eq("restaurant_slug", data.slug).eq("table_number", t.number).order("ordered_at"),
       supabaseAdmin.from("table_payment_requests").select("id, customer_name, payment_method, status, amount, item_quantities, created_at")
         .eq("restaurant_slug", data.slug).eq("table_number", t.number).eq("payment_target", "restaurant").order("created_at", { ascending: false }),
@@ -49,7 +49,7 @@ export const getPublicTable = createServerFn({ method: "GET" })
       tableNumber: t.number,
       session: t.session_token,
       waiterName: (waiter.data as { name: string } | null)?.name?.split(" ")[0] ?? "",
-      items: (items.data ?? []).map((i) => ({ ...i, unit_price: Number(i.unit_price), ordered_quantity: Number(i.ordered_quantity), reserved_quantity: Number(i.reserved_quantity), paid_quantity: Number(i.paid_quantity) })),
+      items: (items.data ?? []).map((i) => ({ ...i, unit_price: Number(i.unit_price), ordered_quantity: Number(i.ordered_quantity), reserved_portion: Number(i.reserved_portion), paid_portion: Number(i.paid_portion) })),
       payments: (payments.data ?? []).map((p) => ({ ...p, amount: Number(p.amount), item_quantities: (p.item_quantities ?? {}) as Record<string, number> })) as PublicTable["payments"],
     };
   });

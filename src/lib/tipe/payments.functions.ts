@@ -10,7 +10,7 @@ const Input = z.object({
   idempotencyKey: z.string().min(8).max(80).regex(/^[A-Za-z0-9_-]+$/),
   session: z.string().min(16).max(96),
   customerName: z.string().min(1).max(40),
-  itemQuantities: z.record(z.string(), z.number().int().nonnegative()),
+  itemQuantities: z.record(z.string(), z.number().min(0).max(99).multipleOf(0.0001)),
   target: z.enum(["restaurant", "tipe"]),
 });
 
@@ -43,15 +43,15 @@ export const createPayment = createServerFn({ method: "POST" })
     if (data.target === "restaurant") {
       const { data: billItems, error } = await supabaseAdmin
         .from("table_bill_items")
-        .select("item_code, unit_price, ordered_quantity, reserved_quantity, paid_quantity")
+        .select("item_code, unit_price, ordered_quantity, reserved_portion, paid_portion")
         .eq("restaurant_slug", data.restaurantId)
         .eq("table_number", data.tableId);
       if (error) throw new Error("Não foi possível ler a conta da mesa");
       let subtotal = 0;
       for (const item of billItems ?? []) {
-        const requested = Math.floor(data.itemQuantities[item.item_code] ?? 0);
+        const requested = Math.round((data.itemQuantities[item.item_code] ?? 0) * 10000) / 10000;
         if (requested <= 0) continue;
-        const available = Number(item.ordered_quantity) - Number(item.reserved_quantity) - Number(item.paid_quantity);
+        const available = Number(item.ordered_quantity) - Number(item.reserved_portion) - Number(item.paid_portion);
         const qty = Math.min(requested, Math.max(0, available));
         if (qty <= 0) continue;
         subtotal += Number(item.unit_price) * qty;
@@ -137,8 +137,8 @@ const TableInput = z.object({ restaurantId: z.string().max(64), tableId: z.strin
 export type SharedBillItem = {
   item_code: string;
   ordered_quantity: number;
-  reserved_quantity: number;
-  paid_quantity: number;
+  reserved_portion: number;
+  paid_portion: number;
 };
 
 export type SharedPayment = {
@@ -158,14 +158,14 @@ export const getSharedTableState = createServerFn({ method: "GET" })
     if (!(await verifyTableSession(data.restaurantId, data.tableId, data.session))) throw new Error("Sessão da mesa expirada");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [itemsResult, paymentsResult] = await Promise.all([
-      supabaseAdmin.from("table_bill_items").select("item_code, ordered_quantity, reserved_quantity, paid_quantity")
+      supabaseAdmin.from("table_bill_items").select("item_code, ordered_quantity, reserved_portion, paid_portion")
         .eq("restaurant_slug", data.restaurantId).eq("table_number", data.tableId),
       supabaseAdmin.from("table_payment_requests").select("id, customer_name, payment_method, status, amount, item_quantities, created_at")
         .eq("restaurant_slug", data.restaurantId).eq("table_number", data.tableId).eq("payment_target", "restaurant").order("created_at", { ascending: false }),
     ]);
     if (itemsResult.error || paymentsResult.error) throw new Error("Não foi possível atualizar a mesa");
     return {
-      items: (itemsResult.data ?? []).map((item) => ({ ...item, ordered_quantity: Number(item.ordered_quantity), reserved_quantity: Number(item.reserved_quantity), paid_quantity: Number(item.paid_quantity) })),
+      items: (itemsResult.data ?? []).map((item) => ({ ...item, ordered_quantity: Number(item.ordered_quantity), reserved_portion: Number(item.reserved_portion), paid_portion: Number(item.paid_portion) })),
       payments: (paymentsResult.data ?? []).map((payment) => ({ ...payment, amount: Number(payment.amount) })) as SharedPayment[],
     };
   });
@@ -181,7 +181,7 @@ export const reopenClosedTable = createServerFn({ method: "POST" })
     if (!(await verifyTableSession(data.restaurantId, data.tableId, data.session))) return { reopened: false };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [itemsResult, paymentsResult] = await Promise.all([
-      supabaseAdmin.from("table_bill_items").select("ordered_quantity, reserved_quantity, paid_quantity, updated_at")
+      supabaseAdmin.from("table_bill_items").select("ordered_quantity, reserved_portion, paid_portion, updated_at")
         .eq("restaurant_slug", data.restaurantId).eq("table_number", data.tableId),
       supabaseAdmin.from("table_payment_requests").select("status, updated_at")
         .eq("restaurant_slug", data.restaurantId).eq("table_number", data.tableId).eq("payment_target", "restaurant"),
@@ -190,7 +190,7 @@ export const reopenClosedTable = createServerFn({ method: "POST" })
     const items = itemsResult.data ?? [];
     const payments = paymentsResult.data ?? [];
     const closed = items.length > 0
-      && items.every((i) => Number(i.ordered_quantity) - Number(i.reserved_quantity) - Number(i.paid_quantity) <= 0)
+      && items.every((i) => Number(i.ordered_quantity) - Number(i.reserved_portion) - Number(i.paid_portion) <= 0.0001)
       && payments.every((p) => p.status !== "pending");
     if (!closed) return { reopened: false };
     const last = Math.max(...items.map((i) => Date.parse(i.updated_at)), ...payments.map((p) => Date.parse(p.updated_at)));
