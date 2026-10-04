@@ -37,7 +37,7 @@ export const getPanelData = createServerFn({ method: "GET" })
   .inputValidator((d) => Slug.parse(d))
   .handler(async ({ data, context }) => {
     const { supabase } = context;
-    const { data: restaurant, error } = await supabase.from("restaurants").select("id, slug, name, pos_provider, pos_mode").eq("slug", data.slug).maybeSingle();
+    const { data: restaurant, error } = await supabase.from("restaurants").select("id, slug, name, pos_provider, pos_mode, onboarding_step").eq("slug", data.slug).maybeSingle();
     if (error || !restaurant) throw new Error("Restaurante não encontrado ou sem acesso");
     const [tables, items, payments, staff, roles, audit] = await Promise.all([
       supabase.from("restaurant_tables").select("id, number, active").eq("restaurant_id", restaurant.id),
