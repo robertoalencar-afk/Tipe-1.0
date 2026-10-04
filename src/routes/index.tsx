@@ -7,6 +7,7 @@ import {
   Hand, ClipboardList, Calculator, ArrowLeftRight, CreditCard, Sparkles,
 } from "lucide-react";
 import { submitLead } from "@/lib/tipe/leads.functions";
+import { PLANS, TRIAL_DAYS, priceLabel, type PlanId } from "@/lib/tipe/plans";
 import logo from "@/assets/logo-dark.png.asset.json";
 import mascotThanks from "@/assets/mascot-thanks-filled.png";
 import mascotWaiting from "@/assets/mascot-waiting-filled.png";
@@ -19,12 +20,12 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Plataforma TIPE: o cliente paga a conta pelo QR Code da mesa e o restaurante acompanha tudo em tempo real. Conecte seu PDV ou use o PDV TIPE. Planos a partir de R$ 199/mês.",
+          "Plataforma TIPE: o cliente paga a conta pelo QR Code da mesa e o restaurante acompanha tudo em tempo real. Conecte seu PDV ou use o PDV TIPE. Planos a partir de R$ 49,90/mês, com 30 dias grátis.",
       },
       { property: "og:title", content: "TIPE — Pague. Sem esperar." },
       {
         property: "og:description",
-        content: "Pagamento na mesa por QR Code, gorjeta extra para o garçom, painel em tempo real e PDV próprio. Planos por assinatura a partir de R$ 199/mês.",
+        content: "Pagamento na mesa por QR Code, gorjeta extra para o garçom, painel em tempo real e PDV próprio. Assinatura a partir de R$ 49,90/mês, 30 dias grátis.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://tipe.digital/" },
@@ -66,6 +67,7 @@ function Header() {
           ))}
           <Link to="/simulador" className="hidden rounded-full px-4 py-2 font-semibold text-muted-foreground transition-colors hover:text-foreground lg:block">Simular</Link>
           <Link to="/entrar" className="hidden rounded-full px-4 py-2 font-semibold text-foreground hover:bg-muted sm:block">Entrar</Link>
+          <Link to="/cadastro" className="rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground">Teste grátis</Link>
           <a href="#fale-conosco" className="rounded-full bg-primary px-4 py-2 font-display text-sm font-semibold text-primary-foreground shadow-md transition-transform hover:-translate-y-0.5">
             Quero a TIPE
           </a>
@@ -91,9 +93,9 @@ function Hero() {
             deixa a gorjeta. Seu restaurante gira mais mesas e acompanha tudo em tempo real.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <a href="#fale-conosco" className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-display font-semibold text-primary-foreground shadow-lg transition-transform hover:-translate-y-0.5">
-              Agendar demonstração <ChevronRight className="h-4 w-4" />
-            </a>
+            <Link to="/cadastro" className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-display font-semibold text-primary-foreground shadow-lg transition-transform hover:-translate-y-0.5">
+              Testar 30 dias grátis <ChevronRight className="h-4 w-4" />
+            </Link>
             <Link to="/simulador" className="inline-flex items-center gap-2 rounded-full border border-current/25 px-6 py-3 font-display font-semibold transition-colors hover:bg-primary/10">
               Simular experiência
             </Link>
@@ -444,17 +446,15 @@ function PdvOptions() {
 }
 
 const plans = [
-  { name: "Essencial", price: "199", tables: "Até 10 mesas", features: ["Pagamento na mesa por QR Code", "Gorjeta digital", "Painel em tempo real", "Integração com seu PDV"] },
-  { name: "Profissional", price: "349", tables: "Até 25 mesas", popular: true, features: ["Tudo do Essencial", "Relatórios e gorjetas por garçom", "App do garçom", "Suporte prioritário"] },
-  { name: "Premium", price: "599", tables: "Até 50 mesas", features: ["Tudo do Profissional", "Múltiplos salões e setores", "Gestão de equipe avançada", "Gerente de conta dedicado"] },
-  { name: "Redes", price: null, tables: "Acima de 50 mesas", features: ["Várias unidades", "Painel consolidado", "Integrações sob medida", "Condições especiais"] },
+  ...PLANS.map((p) => ({ id: p.id as string | null, name: p.name, price: priceLabel(p.price) as string | null, tables: `Até ${p.maxTables} mesas`, popular: "popular" in p ? p.popular : false, features: [...p.features] as string[] })),
+  { id: null, name: "Personalizado", price: null, tables: "Acima de 40 mesas ou redes", popular: false, features: ["Várias unidades", "Painel consolidado", "Integrações sob medida", "Condições negociadas"] },
 ];
 
 function Pricing() {
   return (
     <section id="planos" className="bg-muted/50 py-20 sm:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <SectionTitle eyebrow="Planos" title="Assinatura que cresce com o seu salão" text="Escolha pelo número de mesas. O PDV TIPE pode ser contratado junto com qualquer plano." />
+        <SectionTitle eyebrow="Planos" title="Assinatura mensal, simples como streaming" text={`Teste grátis por ${TRIAL_DAYS} dias, sem cartão. Depois, escolha pelo número de mesas.`} />
         <div className="mt-14 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
           {plans.map((p) => (
             <div key={p.name} className={`relative flex flex-col rounded-3xl border p-7 ${p.popular ? "border-primary bg-secondary text-secondary-foreground shadow-2xl xl:-translate-y-4" : "bg-card shadow-sm"}`}>
@@ -467,17 +467,20 @@ function Pricing() {
                 ) : (
                   <p className="font-display text-3xl font-extrabold">Sob consulta</p>
                 )}
+                {p.price && <p className="mt-1 text-xs font-semibold text-primary">{TRIAL_DAYS} dias grátis</p>}
               </div>
               <ul className="mt-6 flex-1 space-y-2.5 text-sm">
                 {p.features.map((f) => <li key={f} className="flex gap-2"><Check className="h-4 w-4 shrink-0 text-primary" />{f}</li>)}
               </ul>
-              <a href="#fale-conosco" className={`mt-8 rounded-full py-3 text-center font-display font-semibold transition-transform hover:-translate-y-0.5 ${p.popular ? "bg-primary text-primary-foreground" : "border border-border hover:bg-muted"}`}>
-                {p.price ? "Assinar" : "Falar com vendas"}
-              </a>
+              {p.id ? (
+                <Link to="/cadastro" search={{ plano: p.id as PlanId }} className={`mt-8 rounded-full py-3 text-center font-display font-semibold transition-transform hover:-translate-y-0.5 ${p.popular ? "bg-primary text-primary-foreground" : "border border-border hover:bg-muted"}`}>Testar grátis</Link>
+              ) : (
+                <a href="#fale-conosco" className="mt-8 rounded-full border border-border py-3 text-center font-display font-semibold transition-transform hover:-translate-y-0.5 hover:bg-muted">Falar com vendas</a>
+              )}
             </div>
           ))}
         </div>
-        <p className="mt-8 flex items-center justify-center gap-2 text-center text-sm text-muted-foreground"><ShieldCheck className="h-4 w-4 text-primary" />Sem fidelidade. Cancele quando quiser.</p>
+        <p className="mt-8 flex items-center justify-center gap-2 text-center text-sm text-muted-foreground"><ShieldCheck className="h-4 w-4 text-primary" />Sem cartão no teste. Sem fidelidade. Cancele quando quiser.</p>
       </div>
     </section>
   );
@@ -503,7 +506,7 @@ function Faq() {
         ["E se um pagamento sair errado?", "O restaurante cancela pelo painel e os itens pagos voltam a ficar disponíveis na conta. Tudo fica registrado com data, horário e nome de quem pagou — sem apagar o histórico."],
         ["Preciso trocar o meu sistema?", "Não. A TIPE se conecta ao PDV que você já usa, como Saipos e TOTVS. Se preferir, você contrata o PDV TIPE, que já vem integrado ao pagamento na mesa."],
         ["Quanto tempo leva para começar?", "A implantação é assistida: cadastramos as mesas, geramos os totens com QR Code e treinamos a equipe. Você pode começar por um salão e ir ampliando conforme o resultado."],
-        ["Como é cobrada a assinatura?", "Mensalmente, de acordo com o número de mesas do seu restaurante, a partir de R$ 199/mês. Sem fidelidade: você cancela quando quiser."],
+        ["Como é cobrada a assinatura?", "Mensalmente, de acordo com o número de mesas do seu restaurante, a partir de R$ 49,90/mês, com 30 dias grátis e sem cartão no teste. Sem fidelidade: você cancela quando quiser."],
       ],
     },
   ];
