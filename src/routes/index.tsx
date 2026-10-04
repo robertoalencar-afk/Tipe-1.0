@@ -444,17 +444,15 @@ function PdvOptions() {
 }
 
 const plans = [
-  { name: "Essencial", price: "199", tables: "Até 10 mesas", features: ["Pagamento na mesa por QR Code", "Gorjeta digital", "Painel em tempo real", "Integração com seu PDV"] },
-  { name: "Profissional", price: "349", tables: "Até 25 mesas", popular: true, features: ["Tudo do Essencial", "Relatórios e gorjetas por garçom", "App do garçom", "Suporte prioritário"] },
-  { name: "Premium", price: "599", tables: "Até 50 mesas", features: ["Tudo do Profissional", "Múltiplos salões e setores", "Gestão de equipe avançada", "Gerente de conta dedicado"] },
-  { name: "Redes", price: null, tables: "Acima de 50 mesas", features: ["Várias unidades", "Painel consolidado", "Integrações sob medida", "Condições especiais"] },
+  ...PLANS.map((p) => ({ id: p.id as string | null, name: p.name, price: priceLabel(p.price) as string | null, tables: `Até ${p.maxTables} mesas`, popular: "popular" in p ? p.popular : false, features: [...p.features] as string[] })),
+  { id: null, name: "Personalizado", price: null, tables: "Acima de 40 mesas ou redes", popular: false, features: ["Várias unidades", "Painel consolidado", "Integrações sob medida", "Condições negociadas"] },
 ];
 
 function Pricing() {
   return (
     <section id="planos" className="bg-muted/50 py-20 sm:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <SectionTitle eyebrow="Planos" title="Assinatura que cresce com o seu salão" text="Escolha pelo número de mesas. O PDV TIPE pode ser contratado junto com qualquer plano." />
+        <SectionTitle eyebrow="Planos" title="Assinatura mensal, simples como streaming" text={`Teste grátis por ${TRIAL_DAYS} dias, sem cartão. Depois, escolha pelo número de mesas.`} />
         <div className="mt-14 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
           {plans.map((p) => (
             <div key={p.name} className={`relative flex flex-col rounded-3xl border p-7 ${p.popular ? "border-primary bg-secondary text-secondary-foreground shadow-2xl xl:-translate-y-4" : "bg-card shadow-sm"}`}>
@@ -467,17 +465,20 @@ function Pricing() {
                 ) : (
                   <p className="font-display text-3xl font-extrabold">Sob consulta</p>
                 )}
+                {p.price && <p className="mt-1 text-xs font-semibold text-primary">{TRIAL_DAYS} dias grátis</p>}
               </div>
               <ul className="mt-6 flex-1 space-y-2.5 text-sm">
                 {p.features.map((f) => <li key={f} className="flex gap-2"><Check className="h-4 w-4 shrink-0 text-primary" />{f}</li>)}
               </ul>
-              <a href="#fale-conosco" className={`mt-8 rounded-full py-3 text-center font-display font-semibold transition-transform hover:-translate-y-0.5 ${p.popular ? "bg-primary text-primary-foreground" : "border border-border hover:bg-muted"}`}>
-                {p.price ? "Assinar" : "Falar com vendas"}
-              </a>
+              {p.id ? (
+                <Link to="/cadastro" search={{ plano: p.id as PlanId }} className={`mt-8 rounded-full py-3 text-center font-display font-semibold transition-transform hover:-translate-y-0.5 ${p.popular ? "bg-primary text-primary-foreground" : "border border-border hover:bg-muted"}`}>Testar grátis</Link>
+              ) : (
+                <a href="#fale-conosco" className="mt-8 rounded-full border border-border py-3 text-center font-display font-semibold transition-transform hover:-translate-y-0.5 hover:bg-muted">Falar com vendas</a>
+              )}
             </div>
           ))}
         </div>
-        <p className="mt-8 flex items-center justify-center gap-2 text-center text-sm text-muted-foreground"><ShieldCheck className="h-4 w-4 text-primary" />Sem fidelidade. Cancele quando quiser.</p>
+        <p className="mt-8 flex items-center justify-center gap-2 text-center text-sm text-muted-foreground"><ShieldCheck className="h-4 w-4 text-primary" />Sem cartão no teste. Sem fidelidade. Cancele quando quiser.</p>
       </div>
     </section>
   );
