@@ -26,3 +26,4 @@
 - Customer table access: QR token (?t=) only opens the table; payments/reopen require restaurant_tables.session_token, rotated by archive_and_reopen_table. Why: an old session never authorizes a new bill.
 - Server code using supabaseAdmin must authorize via src/lib/tipe/security.server.ts (verifyTableSession, enforceRate, logSecurityEvent). Why: admin client bypasses RLS.
 - register_table_payment requires p_idempotency_key (unique per restaurant) and is service_role-only. Why: retries/double-clicks never duplicate payments.
+- Shared item payments use decimal portions with row locking; integer quantity columns remain compatibility shadows. Why: diners can split one item safely without overselling it.

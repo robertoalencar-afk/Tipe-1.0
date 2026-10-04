@@ -24,10 +24,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getPublicTable } from "@/lib/tipe/pdv.functions";
 import { createPayment, reopenClosedTable, type SharedPayment } from "@/lib/tipe/payments.functions";
-import mascotThanks from "@/assets/mascot-thanks.png";
-import mascotRating from "@/assets/mascot-rating.png";
-import mascotWaiting from "@/assets/mascot-waiting.png";
-import mascotTableClosed from "@/assets/mascot-table-closed.png";
+import mascotThanks from "@/assets/mascot-thanks-filled.png";
+import mascotRating from "@/assets/mascot-rating-filled.png";
+import mascotWaiting from "@/assets/mascot-waiting-filled.png";
+import mascotTableClosed from "@/assets/mascot-table-closed-filled.png";
 
 export const Route = createFileRoute("/$restaurante/$mesa")({
   validateSearch: z.object({ t: z.string().max(64).optional() }),
@@ -87,6 +87,16 @@ const formatPaymentDate = (value: string) => new Intl.DateTimeFormat("pt-BR", {
 const customerStorageKey = (restaurantId: string, tableId: string) =>
   `tipe:cliente:${restaurantId}:${tableId}`;
 const hasFirstAndLastName = (value: string) => value.trim().split(/\s+/).length >= 2;
+const EPSILON = 0.0001;
+const roundPortion = (value: number) => Math.round(value * 10000) / 10000;
+const formatPortion = (value: number) => {
+  const rounded = roundPortion(value);
+  const whole = Math.floor(rounded + EPSILON);
+  const fraction = rounded - whole;
+  const fractionLabel = Math.abs(fraction - 0.5) < EPSILON ? "metade" : Math.abs(fraction - 1 / 3) < EPSILON ? "1/3" : Math.abs(fraction - 0.25) < EPSILON ? "1/4" : fraction > EPSILON ? `${Math.round(fraction * 100)}%` : "";
+  if (!whole) return fractionLabel || "0";
+  return fractionLabel ? `${whole} unidade${whole === 1 ? "" : "s"} + ${fractionLabel}` : `${whole} unidade${whole === 1 ? "" : "s"}`;
+};
 
 function MesaPage() {
   const { restaurante, mesa: codigoMesa } = Route.useParams();
@@ -100,6 +110,7 @@ function MesaPage() {
   const [qtds, setQtds] = useState<Record<string, number>>(() =>
     Object.fromEntries(dados.itens.map((item) => [item.id, 0])),
   );
+  const [dividindo, setDividindo] = useState<string | null>(null);
   const [metodoConta, setMetodoConta] = useState<Metodo | null>(null);
   const [metodoGorjeta, setMetodoGorjeta] = useState<Metodo | null>(null);
   const [estrelas, setEstrelas] = useState(0);
@@ -139,10 +150,14 @@ function MesaPage() {
         return { id: i.item_code, nome: i.item_name, qtd: i.ordered_quantity, preco: i.unit_price, data: d.toLocaleDateString("pt-BR"), hora: d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) };
       });
       setDados({ restaurante: estado.restaurantName, mesa: estado.tableNumber, garcom: estado.waiterName, itens: itensMesa });
-      setDisponiveis(Object.fromEntries(estado.items.map((item) => [item.item_code, Math.max(0, item.ordered_quantity - item.reserved_quantity - item.paid_quantity)])));
+      setDisponiveis(Object.fromEntries(estado.items.map((item) => [item.item_code, roundPortion(Math.max(0, item.ordered_quantity - item.reserved_portion - item.paid_portion))])));
       setPagamentos(estado.payments);
       setSessaoMesa(estado.session);
-      setQtds((atuais) => Object.fromEntries(itensMesa.map((item) => [item.id, Math.min(atuais[item.id] ?? 0, Math.max(0, estado.items.find((shared) => shared.item_code === item.id)?.ordered_quantity ?? item.qtd) - (estado.items.find((shared) => shared.item_code === item.id)?.reserved_quantity ?? 0) - (estado.items.find((shared) => shared.item_code === item.id)?.paid_quantity ?? 0))])));
+      setQtds((atuais) => Object.fromEntries(itensMesa.map((item) => {
+        const shared = estado.items.find((candidate) => candidate.item_code === item.id);
+        const available = roundPortion(Math.max(0, (shared?.ordered_quantity ?? item.qtd) - (shared?.reserved_portion ?? 0) - (shared?.paid_portion ?? 0)));
+        return [item.id, Math.min(atuais[item.id] ?? 0, available)];
+      })));
       setMesaSincronizada(true);
     } catch {
       setErroPagamento("Não foi possível atualizar a mesa agora.");
@@ -163,7 +178,7 @@ function MesaPage() {
   const totalConta = +(subtotal + servico).toFixed(2);
   const mesaEncerrada = mesaSincronizada
     && dados.itens.length > 0
-    && dados.itens.every((item) => (disponiveis[item.id] ?? item.qtd) <= 0)
+    && dados.itens.every((item) => (disponiveis[item.id] ?? item.qtd) <= EPSILON)
     && pagamentos.every((pagamento) => pagamento.status !== "pending");
   const etapaVisivel: Etapa = mesaEncerrada && ["carregando", "identificacao", "conta", "pagamento-conta", "conta-pendente"].includes(etapa)
     ? "mesa-encerrada"
@@ -205,7 +220,13 @@ function MesaPage() {
   }
 
   function setQtd(id: string, valor: number, maximo: number) {
-    setQtds((atuais) => ({ ...atuais, [id]: Math.max(0, Math.min(maximo, valor)) }));
+    setQtds((atuais) => ({ ...atuais, [id]: roundPortion(Math.max(0, Math.min(maximo, valor))) }));
+  }
+
+  function setFracao(id: string, divisor: 2 | 3 | 4, maximo: number) {
+    const inteiros = Math.floor(qtds[id] ?? 0);
+    setQtd(id, inteiros + Math.min(1 / divisor, Math.max(0, maximo - inteiros)), maximo);
+    setDividindo(null);
   }
 
   async function processarPagamento(tipo: "conta" | "gorjeta") {
@@ -313,7 +334,7 @@ function MesaPage() {
           {aba === "conta" && (
             <>
               {dados.itens.some((item) => (disponiveis[item.id] ?? item.qtd) > 0) && (() => {
-                const tudoSelecionado = dados.itens.every((item) => (qtds[item.id] ?? 0) === (disponiveis[item.id] ?? item.qtd));
+                const tudoSelecionado = dados.itens.every((item) => Math.abs((qtds[item.id] ?? 0) - (disponiveis[item.id] ?? item.qtd)) < EPSILON);
                 return (
                   <Button
                     variant={tudoSelecionado ? "default" : "outline"}
@@ -334,7 +355,7 @@ function MesaPage() {
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
                           <p className="font-semibold">{item.nome}</p>
-                           <p className="mt-1 text-xs text-muted-foreground">{money(item.preco)} cada · {disponivel} disponível{disponivel === 1 ? "" : "is"}</p>
+                           <p className="mt-1 text-xs text-muted-foreground">{money(item.preco)} cada · {formatPortion(disponivel)} disponível</p>
                         </div>
                         <span className="shrink-0 text-sm font-bold">{money(item.preco * quantidade)}</span>
                       </div>
@@ -346,11 +367,24 @@ function MesaPage() {
                           className="h-10 min-w-20 rounded-md border border-input bg-background px-3 text-sm font-bold outline-none focus:ring-1 focus:ring-ring"
                           aria-label={`Quantidade de ${item.nome}`}
                         >
-                          {Array.from({ length: disponivel + 1 }, (_, numero) => (
+                          {Array.from({ length: Math.floor(disponivel) + 1 }, (_, numero) => (
                             <option key={numero} value={numero}>{numero}</option>
                           ))}
                         </select>
                       </div>
+                      <div className="mt-2 flex min-h-9 items-center justify-end">
+                        {dividindo === item.id ? (
+                          <div className="flex flex-wrap justify-end gap-1.5" role="group" aria-label={`Dividir ${item.nome}`}>
+                            <Button type="button" size="sm" variant="outline" onClick={() => setFracao(item.id, 2, disponivel)}>Metade</Button>
+                            <Button type="button" size="sm" variant="outline" onClick={() => setFracao(item.id, 3, disponivel)}>1/3</Button>
+                            <Button type="button" size="sm" variant="outline" onClick={() => setFracao(item.id, 4, disponivel)}>1/4</Button>
+                            <Button type="button" size="sm" variant="ghost" onClick={() => { setQtd(item.id, disponivel, disponivel); setDividindo(null); }}>Restante</Button>
+                          </div>
+                        ) : (
+                          <Button type="button" size="sm" variant="ghost" onClick={() => setDividindo(item.id)} className="text-primary">Dividir este item</Button>
+                        )}
+                      </div>
+                      {quantidade > 0 && <p className="mt-1 text-right text-xs font-semibold text-primary">Você paga {formatPortion(quantidade)}</p>}
                     </li>
                   );
                 })}
@@ -399,7 +433,7 @@ function MesaPage() {
                         </div>
                         <ul className="mt-3 space-y-1 border-l-2 border-primary/30 pl-3 text-xs text-muted-foreground">
                           {Object.entries(pagamento.item_quantities ?? {}).filter(([, quantidade]) => quantidade > 0).map(([itemId, quantidade]) => (
-                            <li key={itemId}>{quantidade}× {dados.itens.find((item) => item.id === itemId)?.nome ?? "Item da conta"}</li>
+                             <li key={itemId}>{formatPortion(quantidade)} de {dados.itens.find((item) => item.id === itemId)?.nome ?? "Item da conta"}</li>
                           ))}
                         </ul>
                      </div>

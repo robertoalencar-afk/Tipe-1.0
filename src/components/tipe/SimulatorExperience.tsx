@@ -7,10 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import mascotThanks from "@/assets/mascot-thanks.png";
-import mascotRating from "@/assets/mascot-rating.png";
-import mascotWaiting from "@/assets/mascot-waiting.png";
-import mascotTableClosed from "@/assets/mascot-table-closed.png";
+import mascotThanks from "@/assets/mascot-thanks-filled.png";
+import mascotRating from "@/assets/mascot-rating-filled.png";
+import mascotWaiting from "@/assets/mascot-waiting-filled.png";
+import mascotTableClosed from "@/assets/mascot-table-closed-filled.png";
 
 type Stage = "totem" | "identification" | "bill" | "payment" | "approved" | "pending" | "rating" | "tip" | "tip-payment" | "closed" | "done";
 type Tab = "bill" | "activity";
@@ -33,6 +33,16 @@ const NAME_KEY = "tipe:simulador:mesa12:cliente";
 const REOPEN_MS = 2 * 60 * 1000;
 const money = (value: number) => value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const fullName = (value: string) => value.trim().split(/\s+/).length >= 2;
+const EPSILON = 0.0001;
+const roundPortion = (value: number) => Math.round(value * 10000) / 10000;
+const formatPortion = (value: number) => {
+  const rounded = roundPortion(value);
+  const whole = Math.floor(rounded + EPSILON);
+  const fraction = rounded - whole;
+  const fractionLabel = Math.abs(fraction - 0.5) < EPSILON ? "metade" : Math.abs(fraction - 1 / 3) < EPSILON ? "1/3" : Math.abs(fraction - 0.25) < EPSILON ? "1/4" : fraction > EPSILON ? `${Math.round(fraction * 100)}%` : "";
+  if (!whole) return fractionLabel || "0";
+  return fractionLabel ? `${whole} unidade${whole === 1 ? "" : "s"} + ${fractionLabel}` : `${whole} unidade${whole === 1 ? "" : "s"}`;
+};
 
 const METHOD_DETAILS: Record<Method, { label: string; description: string; Icon: typeof QrCode }> = {
   pix: { label: "Pix", description: "Confirmação simulada na hora", Icon: QrCode },
@@ -62,6 +72,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
   const [name, setName] = useState("");
   const [tab, setTab] = useState<Tab>("bill");
   const [quantities, setQuantities] = useState<Record<string, number>>({});
+  const [splitting, setSplitting] = useState<string | null>(null);
   const [method, setMethod] = useState<Method | null>(null);
   const [tipMethod, setTipMethod] = useState<Exclude<Method, "at_establishment"> | null>(null);
   const [terms, setTerms] = useState(false);
@@ -97,11 +108,11 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
     return () => window.clearTimeout(timer);
   }, [demo.closedAt]);
 
-  const available = (id: string, qty: number) => Math.max(0, qty - (demo.paid[id] ?? 0) - (demo.reserved[id] ?? 0));
+  const available = (id: string, qty: number) => roundPortion(Math.max(0, qty - (demo.paid[id] ?? 0) - (demo.reserved[id] ?? 0)));
   const subtotal = useMemo(() => ITEMS.reduce((sum, item) => sum + item.price * (quantities[item.id] ?? 0), 0), [quantities]);
   const service = +(subtotal * 0.1).toFixed(2);
   const total = +(subtotal + service).toFixed(2);
-  const allSelected = ITEMS.every((item) => (quantities[item.id] ?? 0) === available(item.id, item.qty));
+  const allSelected = ITEMS.every((item) => Math.abs((quantities[item.id] ?? 0) - available(item.id, item.qty)) < EPSILON);
 
   const saveDemo = (next: DemoState) => {
     setDemo(next);
@@ -128,7 +139,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
       if (status === "approved") nextPaid[id] = (nextPaid[id] ?? 0) + qty;
       else nextReserved[id] = (nextReserved[id] ?? 0) + qty;
     }
-    const closed = status === "approved" && ITEMS.every((item) => (nextPaid[item.id] ?? 0) >= item.qty);
+    const closed = status === "approved" && ITEMS.every((item) => (nextPaid[item.id] ?? 0) >= item.qty - EPSILON);
     const payment: DemoPayment = { id: crypto.randomUUID(), name: name.trim(), amount: total, quantities: selected, status, createdAt: new Date().toISOString() };
     saveDemo({ ...demo, paid: nextPaid, reserved: nextReserved, payments: [payment, ...demo.payments], closedAt: closed ? Date.now() : demo.closedAt });
     setQuantities({});
@@ -146,7 +157,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
       }
       return { ...payment, status: "approved" as const };
     });
-    const closed = ITEMS.every((item) => (nextPaid[item.id] ?? 0) >= item.qty);
+    const closed = ITEMS.every((item) => (nextPaid[item.id] ?? 0) >= item.qty - EPSILON);
     saveDemo({ paid: nextPaid, reserved: nextReserved, payments, closedAt: closed ? Date.now() : null });
     setStage("rating");
   };

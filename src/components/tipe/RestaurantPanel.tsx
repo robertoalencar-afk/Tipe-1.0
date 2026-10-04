@@ -23,6 +23,14 @@ const hora = (s: string) => new Date(s).toLocaleString("pt-BR", { day: "2-digit"
 const cargoLabel: Record<StaffRole, string> = { founder: "Fundador", owner: "Dono", cashier: "Caixa / gerente", waiter: "Garçom" };
 const metodoLabel: Record<string, string> = { pix: "Pix", card: "Cartão", apple_pay: "Apple Pay", google_pay: "Google Pay", at_establishment: "Dinheiro ou maquininha" };
 const acaoLabel: Record<string, string> = { confirm: "Pagamento confirmado", cancel: "Pagamento cancelado", table_reopened: "Mesa encerrada e liberada" };
+const formatPortion = (value: number) => {
+  const rounded = Math.round(value * 10000) / 10000;
+  const whole = Math.floor(rounded + 0.0001);
+  const fraction = rounded - whole;
+  const fractionLabel = Math.abs(fraction - 0.5) < 0.0001 ? "metade" : Math.abs(fraction - 1 / 3) < 0.0001 ? "1/3" : Math.abs(fraction - 0.25) < 0.0001 ? "1/4" : fraction > 0.0001 ? `${Math.round(fraction * 100)}%` : "";
+  if (!whole) return fractionLabel || "0";
+  return fractionLabel ? `${whole} + ${fractionLabel}` : `${whole}×`;
+};
 
 type Status = "livre" | "ocupada" | "aguardando" | "encerrada" | "inativa";
 const statusInfo: Record<Status, { label: string; cls: string }> = {
