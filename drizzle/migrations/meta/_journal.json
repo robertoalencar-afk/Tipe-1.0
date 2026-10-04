@@ -8,6 +8,13 @@
       "when": 1791111016521,
       "tag": "0000_support_fractional_item_payments",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1791144995543,
+      "tag": "0001_restaurant_subscriptions",
+      "breakpoints": true
     }
   ]
 }

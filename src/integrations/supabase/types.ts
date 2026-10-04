@@ -590,6 +590,53 @@ export type Database = {
         }
         Relationships: []
       }
+      restaurant_subscriptions: {
+        Row: {
+          created_at: string
+          current_period_end: string | null
+          plan: string
+          provider: string
+          provider_customer_id: string | null
+          provider_subscription_id: string | null
+          restaurant_id: string
+          status: string
+          trial_ends_at: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_period_end?: string | null
+          plan?: string
+          provider?: string
+          provider_customer_id?: string | null
+          provider_subscription_id?: string | null
+          restaurant_id: string
+          status?: string
+          trial_ends_at?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_period_end?: string | null
+          plan?: string
+          provider?: string
+          provider_customer_id?: string | null
+          provider_subscription_id?: string | null
+          restaurant_id?: string
+          status?: string
+          trial_ends_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_subscriptions_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: true
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       restaurant_tables: {
         Row: {
           access_token: string
@@ -1004,6 +1051,16 @@ export type Database = {
       resolve_table_payment: {
         Args: { p_action: string; p_payment_id: string }
         Returns: undefined
+      }
+      signup_restaurant: {
+        Args: {
+          p_display_name: string
+          p_name: string
+          p_plan: string
+          p_slug: string
+          p_tables: number
+        }
+        Returns: string
       }
       sync_bill_item_quantity_shadows: {
         Args: { p_item_id: string }
