@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import logo from "@/assets/logo.png.asset.json";
 import logoDark from "@/assets/logo-dark.png.asset.json";
 
-type Table = { id: string; number: string; code: string; access_token: string; active: boolean };
+type Table = { id: string; number: string; code: string; access_token: string; active: boolean; waiter_id: string | null };
 
 // Paletas fixas do material impresso (independem do tema da tela).
 const MODELOS = {
@@ -61,9 +61,9 @@ export function TotemStudio({ tables, link, restaurante }: { tables: Table[]; li
   const printRef = useRef<HTMLDivElement>(null);
 
   function imprimir() {
-    if (!escolhidas.length) return toast.error("Selecione ao menos uma mesa");
+    if (!escolhidas.length) { toast.error("Selecione ao menos uma mesa"); return; }
     const w = window.open("", "_blank");
-    if (!w) return toast.error("Permita pop-ups para imprimir");
+    if (!w) { toast.error("Permita pop-ups para imprimir"); return; }
     w.document.write(`<!doctype html><html><head><title>Totens — ${restaurante}</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@700;800&display=swap"><style>@page{size:A4;margin:8mm}body{margin:0;font-family:Sora,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}.grid{display:flex;flex-wrap:wrap;gap:4mm}.totem{break-inside:avoid;page-break-inside:avoid}</style></head><body><div class="grid">${printRef.current?.innerHTML ?? ""}</div><script>window.onload=()=>setTimeout(()=>window.print(),400)</script></body></html>`);
     w.document.close();
   }
