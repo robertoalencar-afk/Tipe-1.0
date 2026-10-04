@@ -17,6 +17,7 @@ import {
 } from "@/lib/tipe/pdv.functions";
 import { transferTable } from "@/lib/tipe/admin.functions";
 import { Caixa, Configuracoes, Cozinha, Inicio, Integracoes, Relatorios } from "@/components/tipe/AdminSections";
+import { TotemStudio } from "@/components/tipe/TotemStudio";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const hora = (s: string) => new Date(s).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
@@ -202,7 +203,7 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
           </ul>
         )}
 
-        {aba === "qr" && <MesasQr slug={slug} tables={pdv.data.tables} podeDono={podeDono} onDone={refresh} />}
+        {aba === "qr" && <MesasQr slug={slug} restaurante={d.restaurant.name} tables={pdv.data.tables} podeDono={podeDono} onDone={refresh} />}
         {aba === "cardapio" && podeDono && <Cardapio slug={slug} pdv={pdv.data} onDone={refresh} />}
         {aba === "equipe" && podeDono && (
           <div className="space-y-6"><Garcons slug={slug} pdv={pdv.data} onDone={refresh} /><Equipe slug={slug} staff={d.staff} /></div>
@@ -407,7 +408,7 @@ function LancarPedido({ slug, pdv, mesa, setMesa, onDone }: { slug: string; pdv:
   );
 }
 
-function MesasQr({ slug, tables, podeDono, onDone }: { slug: string; tables: PdvData["tables"]; podeDono: boolean; onDone: () => void }) {
+function MesasQr({ slug, restaurante, tables, podeDono, onDone }: { slug: string; restaurante: string; tables: PdvData["tables"]; podeDono: boolean; onDone: () => void }) {
   const add = useServerFn(addTable);
   const upd = useServerFn(updateTable);
   const bulk = useServerFn(addTablesBulk);
@@ -460,6 +461,7 @@ function MesasQr({ slug, tables, podeDono, onDone }: { slug: string; tables: Pdv
           </div>
         ))}
       </div>
+      <TotemStudio tables={tables} link={link} restaurante={restaurante} />
     </div>
   );
 }
