@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { ArrowLeft, Check, ChevronRight, ClipboardList, HandCoins, Heart, QrCode, ReceiptText, Smartphone, Star, Users, WalletCards } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { TipeLogo } from "@/components/tipe/Logo";
+import { SplitPicker } from "@/components/tipe/SplitPicker";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -247,10 +248,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
                       </div>
                        <div className="mt-2 flex min-h-9 items-center justify-end">
                          {splitting === item.id ? (
-                           <div className="flex flex-wrap justify-end gap-1.5" role="group" aria-label={`Dividir ${item.name}`}>
-                             {([2, 3, 4] as const).map((divisor) => <Button key={divisor} type="button" size="sm" variant="outline" onClick={() => { const whole = Math.floor(qty); setQuantities((current) => ({ ...current, [item.id]: roundPortion(Math.min(max, whole + Math.min(1 / divisor, Math.max(0, max - whole)))) })); setSplitting(null); }}>{divisor === 2 ? "Por dois" : divisor === 3 ? "Por três" : "Por quatro"}</Button>)}
-                             <Button type="button" size="sm" variant="ghost" onClick={() => { setQuantities((current) => ({ ...current, [item.id]: max })); setSplitting(null); }}>Restante</Button>
-                           </div>
+                           <SplitPicker itemName={item.name} unitPrice={item.price} onPick={(c) => { if (c === "rest") setQuantities((current) => ({ ...current, [item.id]: max })); else { const whole = Math.floor(qty); setQuantities((current) => ({ ...current, [item.id]: roundPortion(Math.min(max, whole + Math.min(1 / c, Math.max(0, max - whole)))) })); } setSplitting(null); }} />
                          ) : <Button type="button" size="sm" variant="ghost" onClick={() => setSplitting(item.id)} className="text-primary">Dividir este item</Button>}
                        </div>
                        {qty > 0 && <p className="mt-1 text-right text-xs font-semibold text-primary">Você paga {formatPortion(qty)}</p>}

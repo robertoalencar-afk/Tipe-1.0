@@ -17,6 +17,7 @@ import {
   WalletCards,
 } from "lucide-react";
 import { TipeLogo } from "@/components/tipe/Logo";
+import { SplitPicker } from "@/components/tipe/SplitPicker";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -375,12 +376,7 @@ function MesaPage() {
                       </div>
                       <div className="mt-2 flex min-h-9 items-center justify-end">
                         {dividindo === item.id ? (
-                          <div className="flex flex-wrap justify-end gap-1.5" role="group" aria-label={`Dividir ${item.nome}`}>
-                            <Button type="button" size="sm" variant="outline" onClick={() => setFracao(item.id, 2, disponivel)}>Por dois</Button>
-                            <Button type="button" size="sm" variant="outline" onClick={() => setFracao(item.id, 3, disponivel)}>Por três</Button>
-                            <Button type="button" size="sm" variant="outline" onClick={() => setFracao(item.id, 4, disponivel)}>Por quatro</Button>
-                            <Button type="button" size="sm" variant="ghost" onClick={() => { setQtd(item.id, disponivel, disponivel); setDividindo(null); }}>Restante</Button>
-                          </div>
+                          <SplitPicker itemName={item.nome} unitPrice={item.preco} onPick={(c) => { if (c === "rest") { setQtd(item.id, disponivel, disponivel); setDividindo(null); } else setFracao(item.id, c, disponivel); }} />
                         ) : (
                           <Button type="button" size="sm" variant="ghost" onClick={() => setDividindo(item.id)} className="text-primary">Dividir este item</Button>
                         )}
