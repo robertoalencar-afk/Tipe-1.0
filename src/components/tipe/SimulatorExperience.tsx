@@ -248,7 +248,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
                        <div className="mt-2 flex min-h-9 items-center justify-end">
                          {splitting === item.id ? (
                            <div className="flex flex-wrap justify-end gap-1.5" role="group" aria-label={`Dividir ${item.name}`}>
-                             {([2, 3, 4] as const).map((divisor) => <Button key={divisor} type="button" size="sm" variant="outline" onClick={() => { const whole = Math.floor(qty); setQuantities((current) => ({ ...current, [item.id]: roundPortion(Math.min(max, whole + Math.min(1 / divisor, Math.max(0, max - whole)))) })); setSplitting(null); }}>{divisor === 2 ? "Metade" : `1/${divisor}`}</Button>)}
+                             {([2, 3, 4] as const).map((divisor) => <Button key={divisor} type="button" size="sm" variant="outline" onClick={() => { const whole = Math.floor(qty); setQuantities((current) => ({ ...current, [item.id]: roundPortion(Math.min(max, whole + Math.min(1 / divisor, Math.max(0, max - whole)))) })); setSplitting(null); }}>{divisor === 2 ? "Por dois" : divisor === 3 ? "Por três" : "Por quatro"}</Button>)}
                              <Button type="button" size="sm" variant="ghost" onClick={() => { setQuantities((current) => ({ ...current, [item.id]: max })); setSplitting(null); }}>Restante</Button>
                            </div>
                          ) : <Button type="button" size="sm" variant="ghost" onClick={() => setSplitting(item.id)} className="text-primary">Dividir este item</Button>}
