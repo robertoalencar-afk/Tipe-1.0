@@ -362,7 +362,7 @@ function MesaPage() {
                       <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
                         <span className="text-xs text-muted-foreground">Quantidade a pagar</span>
                         <select
-                          value={quantidade}
+                          value={Math.floor(quantidade + EPSILON)}
                           onChange={(event) => setQtd(item.id, Number(event.target.value), disponivel)}
                           className="h-10 min-w-20 rounded-md border border-input bg-background px-3 text-sm font-bold outline-none focus:ring-1 focus:ring-ring"
                           aria-label={`Quantidade de ${item.nome}`}

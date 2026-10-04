@@ -235,15 +235,24 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
                   return (
                     <li key={item.id} className={`rounded-lg border bg-card p-4 transition ${qty > 0 ? "border-primary/60" : "border-border"}`}>
                       <div className="flex items-start justify-between gap-3">
-                        <div className="min-w-0 flex-1"><p className="font-semibold">{item.name}</p><p className="mt-1 text-xs text-muted-foreground">{money(item.price)} cada · {max} disponível{max === 1 ? "" : "is"}</p></div>
+                       <div className="min-w-0 flex-1"><p className="font-semibold">{item.name}</p><p className="mt-1 text-xs text-muted-foreground">{money(item.price)} cada · {formatPortion(max)} disponível</p></div>
                         <span className="shrink-0 text-sm font-bold">{money(item.price * qty)}</span>
                       </div>
                       <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
                         <span className="text-xs text-muted-foreground">Quantidade a pagar</span>
-                        <select value={qty} onChange={(event) => setQuantities((current) => ({ ...current, [item.id]: Number(event.target.value) }))} className="h-10 min-w-20 rounded-md border border-input bg-background px-3 text-sm font-bold outline-none focus:ring-1 focus:ring-ring" aria-label={`Quantidade de ${item.name}`}>
-                          {Array.from({ length: max + 1 }, (_, number) => <option key={number} value={number}>{number}</option>)}
+                         <select value={Math.floor(qty + EPSILON)} onChange={(event) => setQuantities((current) => ({ ...current, [item.id]: Number(event.target.value) }))} className="h-10 min-w-20 rounded-md border border-input bg-background px-3 text-sm font-bold outline-none focus:ring-1 focus:ring-ring" aria-label={`Quantidade de ${item.name}`}>
+                           {Array.from({ length: Math.floor(max) + 1 }, (_, number) => <option key={number} value={number}>{number}</option>)}
                         </select>
                       </div>
+                       <div className="mt-2 flex min-h-9 items-center justify-end">
+                         {splitting === item.id ? (
+                           <div className="flex flex-wrap justify-end gap-1.5" role="group" aria-label={`Dividir ${item.name}`}>
+                             {([2, 3, 4] as const).map((divisor) => <Button key={divisor} type="button" size="sm" variant="outline" onClick={() => { const whole = Math.floor(qty); setQuantities((current) => ({ ...current, [item.id]: roundPortion(Math.min(max, whole + Math.min(1 / divisor, Math.max(0, max - whole)))) })); setSplitting(null); }}>{divisor === 2 ? "Metade" : `1/${divisor}`}</Button>)}
+                             <Button type="button" size="sm" variant="ghost" onClick={() => { setQuantities((current) => ({ ...current, [item.id]: max })); setSplitting(null); }}>Restante</Button>
+                           </div>
+                         ) : <Button type="button" size="sm" variant="ghost" onClick={() => setSplitting(item.id)} className="text-primary">Dividir este item</Button>}
+                       </div>
+                       {qty > 0 && <p className="mt-1 text-right text-xs font-semibold text-primary">Você paga {formatPortion(qty)}</p>}
                     </li>
                   );
                 })}
@@ -261,7 +270,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
               <ol className="border-l border-border pl-4">
                 {ITEMS.map((item) => <li key={item.id} className="relative border-b border-border py-4 first:pt-1 last:border-0"><span className="absolute -left-[1.18rem] top-5 h-2 w-2 rounded-full bg-primary" /><div className="flex justify-between gap-3"><p className="font-medium">{item.qty}× {item.name}</p><div className="shrink-0 text-right text-xs text-muted-foreground"><p>{item.date}</p><p>{item.time}</p></div></div></li>)}
               </ol>
-              {demo.payments.length > 0 && <div className="mt-6 border-t border-border pt-5"><h3 className="mb-2 text-sm font-semibold">Pagamentos</h3>{demo.payments.map((payment) => <div key={payment.id} className="border-b border-border py-4 text-sm last:border-0"><div className="flex justify-between gap-3"><div><p className="font-semibold">{payment.name}</p><p className="mt-0.5 text-xs text-muted-foreground">{new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(new Date(payment.createdAt))}</p></div><div className="text-right"><p className="font-semibold">{money(payment.amount)}</p><p className={payment.status === "pending" ? "text-xs font-semibold text-highlight" : "text-xs font-semibold text-primary"}>{payment.status === "pending" ? "Pendente" : "Confirmado"}</p></div></div><ul className="mt-3 space-y-1 border-l-2 border-primary/30 pl-3 text-xs text-muted-foreground">{Object.entries(payment.quantities).map(([id, qty]) => <li key={id}>{qty}× {ITEMS.find((item) => item.id === id)?.name}</li>)}</ul></div>)}</div>}
+              {demo.payments.length > 0 && <div className="mt-6 border-t border-border pt-5"><h3 className="mb-2 text-sm font-semibold">Pagamentos</h3>{demo.payments.map((payment) => <div key={payment.id} className="border-b border-border py-4 text-sm last:border-0"><div className="flex justify-between gap-3"><div><p className="font-semibold">{payment.name}</p><p className="mt-0.5 text-xs text-muted-foreground">{new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" }).format(new Date(payment.createdAt))}</p></div><div className="text-right"><p className="font-semibold">{money(payment.amount)}</p><p className={payment.status === "pending" ? "text-xs font-semibold text-highlight" : "text-xs font-semibold text-primary"}>{payment.status === "pending" ? "Pendente" : "Confirmado"}</p></div></div><ul className="mt-3 space-y-1 border-l-2 border-primary/30 pl-3 text-xs text-muted-foreground">{Object.entries(payment.quantities).map(([id, qty]) => <li key={id}>{formatPortion(qty)} de {ITEMS.find((item) => item.id === id)?.name}</li>)}</ul></div>)}</div>}
             </section>
           )}
         </main>
