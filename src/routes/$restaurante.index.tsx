@@ -63,7 +63,7 @@ function AreaRestaurante() {
             <Link to="/painel" className="mt-4 inline-block text-sm underline">Ir para meus restaurantes</Link>
           </div>
         )}
-        {r && access.data && <RestaurantPanel slug={restaurante} myRoles={myRoles} isFounder={access.data.isFounder} />}
+        {r && access.data && <RestaurantPanel key={restaurante} slug={restaurante} myRoles={myRoles} isFounder={access.data.isFounder} />}
       </main>
     </div>
   );

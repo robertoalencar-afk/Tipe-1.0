@@ -19,6 +19,7 @@ import { transferTable } from "@/lib/tipe/admin.functions";
 import { Caixa, Configuracoes, Cozinha, Inicio, Integracoes, Relatorios } from "@/components/tipe/AdminSections";
 import { TotemStudio } from "@/components/tipe/TotemStudio";
 import { Assinatura } from "@/components/tipe/Assinatura";
+import { OnboardingPdv } from "@/components/tipe/OnboardingPdv";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const hora = (s: string) => new Date(s).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
@@ -111,11 +112,16 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
   if (q.isLoading || pdv.isLoading) return <p className="text-muted-foreground">Carregando…</p>;
   if (q.error || !q.data || pdv.error || !pdv.data) return <p className="text-destructive">{((q.error ?? pdv.error) as Error)?.message ?? "Erro"}</p>;
   const d = q.data;
+  if (d.restaurant.onboarding_step === "pos" && podeDono) {
+    const nome = d.staff.find((x) => x.roles.includes("owner"))?.display_name?.split(" ")[0] ?? "";
+    return <OnboardingPdv slug={slug} nome={nome} onDone={refresh} />;
+  }
   const pendentes = d.payments.filter((p) => p.status === "pending");
   const itemNome = (mesa: string, code: string) => d.items.find((i) => i.table_number === mesa && i.item_code === code)?.item_name ?? code;
   const mesaSel = mesas.find((m) => m.number === mesaAberta);
   const abertas = mesas.filter((m) => m.status === "ocupada" || m.status === "aguardando");
-  const visiveis = secoes.filter((x) => !("dono" in x) || podeDono);
+  const externo = d.restaurant.pos_mode === "external";
+  const visiveis = secoes.filter((x) => (!("dono" in x) || podeDono) && !(externo && ["pdv", "cardapio", "cozinha"].includes(x.k)));
   const pdvLabel = d.restaurant.pos_mode === "external" ? `PDV conectado: ${d.restaurant.pos_provider}` : "PDV TIPE";
 
   const confirmacoes = (

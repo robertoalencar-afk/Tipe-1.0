@@ -10,16 +10,19 @@ export const signupRestaurant = createServerFn({ method: "POST" })
     name: z.string().trim().min(2).max(80),
     slug: Slug,
     plan: z.enum(["essencial", "profissional", "premium"]),
-    tables: z.number().int().min(1).max(40),
-    displayName: z.string().trim().max(80),
+    tables: z.number().int().min(1).max(500),
+    displayName: z.string().trim().min(2).max(80),
+    cnpj: z.string().regex(/^\d{14}$/),
+    address: z.string().trim().min(8).max(160),
+    phone: z.string().trim().max(30),
   }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: slug, error } = await context.supabase.rpc("signup_restaurant" as never, {
-      p_name: data.name, p_slug: data.slug, p_plan: data.plan, p_tables: data.tables, p_display_name: data.displayName,
+      p_name: data.name, p_slug: data.slug, p_plan: data.plan, p_tables: data.tables, p_display_name: data.displayName, p_cnpj: data.cnpj, p_address: data.address, p_phone: data.phone,
     } as never);
     if (error) {
       const m = error.message;
-      for (const k of ["Já existe", "Escolha outro", "Quantidade de mesas", "Limite de restaurantes", "Plano inválido"]) if (m.includes(k)) throw new Error(m);
+      for (const k of ["Já existe", "Escolha outro", "Quantidade de mesas", "Limite de restaurantes", "Plano inválido", "CNPJ", "endereço completo"]) if (m.includes(k)) throw new Error(m);
       throw new Error("Não foi possível cadastrar o restaurante");
     }
     return { slug: slug as unknown as string };
@@ -45,4 +48,13 @@ export const startSubscription = createServerFn({ method: "POST" })
       return { ok: false as const, message: "A cobrança mensal será liberada em breve. Seu teste grátis continua ativo." };
     }
     return { ok: false as const, message: "Integração de assinatura com o Pagar.me em configuração." };
+  });
+
+export const finishOnboarding = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ slug: Slug }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { error } = await context.supabase.rpc("finish_onboarding" as never, { p_slug: data.slug } as never);
+    if (error) throw new Error("Somente o dono pode concluir a integração");
+    return { ok: true };
   });

@@ -694,9 +694,11 @@ export type Database = {
       restaurants: {
         Row: {
           address: string | null
+          cnpj: string | null
           created_at: string
           id: string
           name: string
+          onboarding_step: string
           opening_hours: string | null
           phone: string | null
           pos_mode: string
@@ -707,9 +709,11 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          cnpj?: string | null
           created_at?: string
           id?: string
           name: string
+          onboarding_step?: string
           opening_hours?: string | null
           phone?: string | null
           pos_mode?: string
@@ -720,9 +724,11 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          cnpj?: string | null
           created_at?: string
           id?: string
           name?: string
+          onboarding_step?: string
           opening_hours?: string | null
           phone?: string | null
           pos_mode?: string
@@ -967,6 +973,7 @@ export type Database = {
       }
       cash_open: { Args: { p_amount: number; p_slug: string }; Returns: string }
       claim_founder: { Args: never; Returns: boolean }
+      finish_onboarding: { Args: { p_slug: string }; Returns: undefined }
       has_restaurant_role: {
         Args: {
           _restaurant_id: string
@@ -1054,8 +1061,11 @@ export type Database = {
       }
       signup_restaurant: {
         Args: {
+          p_address: string
+          p_cnpj: string
           p_display_name: string
           p_name: string
+          p_phone: string
           p_plan: string
           p_slug: string
           p_tables: number

@@ -15,6 +15,13 @@
       "when": 1791144995543,
       "tag": "0001_restaurant_subscriptions",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791146608010,
+      "tag": "0002_restaurant_onboarding_cnpj",
+      "breakpoints": true
     }
   ]
 }
