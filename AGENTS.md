@@ -27,3 +27,4 @@
 - Server code using supabaseAdmin must authorize via src/lib/tipe/security.server.ts (verifyTableSession, enforceRate, logSecurityEvent). Why: admin client bypasses RLS.
 - register_table_payment requires p_idempotency_key (unique per restaurant) and is service_role-only. Why: retries/double-clicks never duplicate payments.
 - Shared item payments use decimal portions with row locking; integer quantity columns remain compatibility shadows. Why: diners can split one item safely without overselling it.
+- Restaurant self-signup goes through the signup_restaurant SECURITY DEFINER RPC and restaurant_subscriptions (plan/status/trial); plan limits live in src/lib/tipe/plans.ts and the RPC. Why: owners create their own restaurant without founder rights.
