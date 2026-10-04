@@ -41,7 +41,7 @@ export const getPanelData = createServerFn({ method: "GET" })
     if (error || !restaurant) throw new Error("Restaurante não encontrado ou sem acesso");
     const [tables, items, payments, staff, roles, audit] = await Promise.all([
       supabase.from("restaurant_tables").select("id, number, active").eq("restaurant_id", restaurant.id),
-      supabase.from("table_bill_items").select("table_number, item_code, item_name, unit_price, ordered_quantity, reserved_quantity, paid_quantity, ordered_at").eq("restaurant_slug", data.slug),
+      supabase.from("table_bill_items").select("table_number, item_code, item_name, unit_price, ordered_quantity, reserved_quantity, paid_quantity, reserved_portion, paid_portion, ordered_at").eq("restaurant_slug", data.slug),
       supabase.from("table_payment_requests").select("id, table_number, customer_name, payment_method, status, amount, item_quantities, created_at").eq("restaurant_slug", data.slug).eq("payment_target", "restaurant").order("created_at", { ascending: false }),
       supabase.from("staff_members").select("user_id, display_name, email").eq("restaurant_id", restaurant.id),
       supabase.from("user_roles").select("user_id, role").eq("restaurant_id", restaurant.id),
@@ -50,7 +50,7 @@ export const getPanelData = createServerFn({ method: "GET" })
     return {
       restaurant,
       tables: (tables.data ?? []).sort((a, b) => Number(a.number) - Number(b.number) || a.number.localeCompare(b.number)),
-      items: (items.data ?? []).map((i) => ({ ...i, unit_price: Number(i.unit_price) })),
+      items: (items.data ?? []).map((i) => ({ ...i, unit_price: Number(i.unit_price), reserved_portion: Number(i.reserved_portion), paid_portion: Number(i.paid_portion) })),
       payments: (payments.data ?? []).map((p) => ({ ...p, amount: Number(p.amount), item_quantities: (p.item_quantities ?? {}) as Record<string, number> })),
       staff: (staff.data ?? []).map((s) => ({ ...s, roles: (roles.data ?? []).filter((r) => r.user_id === s.user_id).map((r) => r.role as StaffRole) })),
       audit: (audit.data ?? []).map((a) => ({ ...a, amount: Number(a.amount) })),

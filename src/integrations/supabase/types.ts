@@ -769,7 +769,9 @@ export type Database = {
           ordered_at: string
           ordered_by: string
           ordered_quantity: number
+          paid_portion: number
           paid_quantity: number
+          reserved_portion: number
           reserved_quantity: number
           restaurant_slug: string
           table_number: string
@@ -784,7 +786,9 @@ export type Database = {
           ordered_at: string
           ordered_by: string
           ordered_quantity: number
+          paid_portion?: number
           paid_quantity?: number
+          reserved_portion?: number
           reserved_quantity?: number
           restaurant_slug: string
           table_number: string
@@ -799,7 +803,9 @@ export type Database = {
           ordered_at?: string
           ordered_by?: string
           ordered_quantity?: number
+          paid_portion?: number
           paid_quantity?: number
+          reserved_portion?: number
           reserved_quantity?: number
           restaurant_slug?: string
           table_number?: string
@@ -997,6 +1003,10 @@ export type Database = {
       }
       resolve_table_payment: {
         Args: { p_action: string; p_payment_id: string }
+        Returns: undefined
+      }
+      sync_bill_item_quantity_shadows: {
+        Args: { p_item_id: string }
         Returns: undefined
       }
     }

@@ -11,6 +11,7 @@
 - [x] Cliente: totem simplificado, nome completo e mascotes oficiais nas telas de espera e agradecimento
 - [x] Cliente: pagamento da conta sem cartão, opção presencial destacada e mascote na avaliação
 - [x] Cliente: manter fluxo itens → meio → pagamento, remover autor dos pedidos e detalhar pagamentos na atividade
+- [x] Cliente: divisão simples de um item por metade, 1/3 ou 1/4, com proteção contra pagamentos simultâneos
 - [x] Cliente: retorno direto à conta e tela automática de mesa encerrada após todas as confirmações
 - [x] Painel do restaurante (login, cargos, mesas em tempo real, confirmação presencial, equipe, auditoria)
 - [x] Endereço próprio do restaurante (tipe.digital/marealta), PDV simulado, QR por mesa (tipe.digital/marealta/mesa12)

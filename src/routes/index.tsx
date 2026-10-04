@@ -10,7 +10,7 @@ import { submitLead } from "@/lib/tipe/leads.functions";
 import logo from "@/assets/logo-dark.png.asset.json";
 import mascotThanks from "@/assets/mascot-thanks-filled.png";
 import mascotWaiting from "@/assets/mascot-waiting-filled.png";
-import mascotRating from "@/assets/mascot-rating.png";
+import mascotRating from "@/assets/mascot-rating-filled.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({

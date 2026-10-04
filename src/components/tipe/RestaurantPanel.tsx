@@ -23,6 +23,14 @@ const hora = (s: string) => new Date(s).toLocaleString("pt-BR", { day: "2-digit"
 const cargoLabel: Record<StaffRole, string> = { founder: "Fundador", owner: "Dono", cashier: "Caixa / gerente", waiter: "Garçom" };
 const metodoLabel: Record<string, string> = { pix: "Pix", card: "Cartão", apple_pay: "Apple Pay", google_pay: "Google Pay", at_establishment: "Dinheiro ou maquininha" };
 const acaoLabel: Record<string, string> = { confirm: "Pagamento confirmado", cancel: "Pagamento cancelado", table_reopened: "Mesa encerrada e liberada" };
+const formatPortion = (value: number) => {
+  const rounded = Math.round(value * 10000) / 10000;
+  const whole = Math.floor(rounded + 0.0001);
+  const fraction = rounded - whole;
+  const fractionLabel = Math.abs(fraction - 0.5) < 0.0001 ? "metade" : Math.abs(fraction - 1 / 3) < 0.0001 ? "1/3" : Math.abs(fraction - 0.25) < 0.0001 ? "1/4" : fraction > 0.0001 ? `${Math.round(fraction * 100)}%` : "";
+  if (!whole) return fractionLabel || "0";
+  return fractionLabel ? `${whole} + ${fractionLabel}` : `${whole}×`;
+};
 
 type Status = "livre" | "ocupada" | "aguardando" | "encerrada" | "inativa";
 const statusInfo: Record<Status, { label: string; cls: string }> = {
@@ -79,8 +87,8 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
       const itens = q.data.items.filter((i) => i.table_number === t.number);
       const pend = q.data.payments.filter((p) => p.table_number === t.number && p.status === "pending");
       const total = itens.reduce((s, i) => s + i.unit_price * i.ordered_quantity, 0);
-      const pago = itens.reduce((s, i) => s + i.unit_price * i.paid_quantity, 0);
-      const disponivel = itens.reduce((s, i) => s + (i.ordered_quantity - i.reserved_quantity - i.paid_quantity), 0);
+      const pago = itens.reduce((s, i) => s + i.unit_price * i.paid_portion, 0);
+      const disponivel = itens.reduce((s, i) => s + (i.ordered_quantity - i.reserved_portion - i.paid_portion), 0);
       const status: Status = !t.active ? "inativa" : itens.length === 0 ? "livre" : pend.length ? "aguardando" : disponivel <= 0 ? "encerrada" : "ocupada";
       const garcom = pdv.data.waiters.find((w) => w.id === t.waiter_id)?.name;
       return { ...t, itens, total, pago, status, garcom };
@@ -121,7 +129,7 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
               <div className="font-display text-xl font-bold">{brl(p.amount)}</div>
             </div>
             <div className="mt-2 text-sm text-muted-foreground">
-              {Object.entries(p.item_quantities).filter(([, n]) => n > 0).map(([c, n]) => `${n}× ${itemNome(p.table_number, c)}`).join(" · ")}
+              {Object.entries(p.item_quantities).filter(([, n]) => n > 0).map(([c, n]) => `${formatPortion(n)} de ${itemNome(p.table_number, c)}`).join(" · ")}
             </div>
             {podeConfirmar ? (
               <div className="mt-3 flex gap-2">
@@ -244,11 +252,11 @@ function MesaDetalhe({ slug, mesa, outras, payments, podeConfirmar, onLancar, on
           <thead><tr className="text-left text-muted-foreground"><th>Item</th><th>Qtd</th><th>Reserv.</th><th>Pago</th><th /></tr></thead>
           <tbody>
             {mesa.itens.map((i) => {
-              const livre = i.ordered_quantity - i.reserved_quantity - i.paid_quantity;
+              const livre = i.ordered_quantity - i.reserved_portion - i.paid_portion;
               return (
                 <tr key={i.item_code} className="border-t border-border">
                   <td className="py-1">{i.item_name}<div className="text-xs text-muted-foreground">{brl(i.unit_price)}</div></td>
-                  <td>{i.ordered_quantity}</td><td>{i.reserved_quantity}</td><td>{i.paid_quantity}</td>
+                  <td>{i.ordered_quantity}</td><td>{formatPortion(i.reserved_portion)}</td><td>{formatPortion(i.paid_portion)}</td>
                   <td className="text-right">
                     {podeConfirmar && livre > 0 && (
                       <Button size="sm" variant="ghost" disabled={ocupado} title="Estornar 1 unidade"
