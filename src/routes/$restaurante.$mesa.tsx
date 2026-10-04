@@ -376,9 +376,9 @@ function MesaPage() {
                       <div className="mt-2 flex min-h-9 items-center justify-end">
                         {dividindo === item.id ? (
                           <div className="flex flex-wrap justify-end gap-1.5" role="group" aria-label={`Dividir ${item.nome}`}>
-                            <Button type="button" size="sm" variant="outline" onClick={() => setFracao(item.id, 2, disponivel)}>Metade</Button>
-                            <Button type="button" size="sm" variant="outline" onClick={() => setFracao(item.id, 3, disponivel)}>1/3</Button>
-                            <Button type="button" size="sm" variant="outline" onClick={() => setFracao(item.id, 4, disponivel)}>1/4</Button>
+                            <Button type="button" size="sm" variant="outline" onClick={() => setFracao(item.id, 2, disponivel)}>Por dois</Button>
+                            <Button type="button" size="sm" variant="outline" onClick={() => setFracao(item.id, 3, disponivel)}>Por três</Button>
+                            <Button type="button" size="sm" variant="outline" onClick={() => setFracao(item.id, 4, disponivel)}>Por quatro</Button>
                             <Button type="button" size="sm" variant="ghost" onClick={() => { setQtd(item.id, disponivel, disponivel); setDividindo(null); }}>Restante</Button>
                           </div>
                         ) : (
