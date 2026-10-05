@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PLANS, TRIAL_DAYS, priceLabel, type PlanId } from "@/lib/tipe/plans";
 import { signupRestaurant } from "@/lib/tipe/subscription.functions";
+import { recordLegalAcceptance } from "@/lib/tipe/legal.functions";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export const Route = createFileRoute("/cadastro")({
   ssr: false,
@@ -48,6 +50,8 @@ function Cadastro() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const signup = useServerFn(signupRestaurant);
+  const aceitar = useServerFn(recordLegalAcceptance);
+  const [aceite, setAceite] = useState(false);
   const [logado, setLogado] = useState<boolean | null>(null);
   const [f, setF] = useState<Dados>({ displayName: "", name: "", slug: "", cnpj: "", address: "", phone: "", tables: 10, plan: plano ?? "profissional" });
   const [conta, setConta] = useState({ email: "", senha: "", senha2: "" });
@@ -56,6 +60,7 @@ function Cadastro() {
   const tentou = useRef(false);
 
   async function criarRestaurante(d: Dados) {
+    await aceitar({ data: { documents: ["partner_terms", "privacy_policy"] } });
     const r = await signup({ data: { ...d, cnpj: d.cnpj.replace(/\D/g, "") } });
     localStorage.removeItem(PENDING);
     toast.success(`Restaurante cadastrado! Seu teste grátis de ${TRIAL_DAYS} dias começou.`);
@@ -83,6 +88,7 @@ function Cadastro() {
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
+    if (!aceite) return void toast.error("Aceite os Termos para Parceiros e a Política de Privacidade para continuar.");
     if (!cnpjValido(f.cnpj)) return void toast.error("CNPJ inválido. Confira os números.");
     setEnviando(true);
     try {
@@ -164,7 +170,10 @@ function Cadastro() {
             {logado && <p className="text-sm text-muted-foreground">Você está conectado; o restaurante será vinculado à sua conta.</p>}
           </section>
 
-          <p className="text-xs text-muted-foreground">Ao continuar, você concorda com os <Link to="/termos" className="underline">termos de uso</Link>. Nenhuma cobrança durante o teste.</p>
+          <div className="flex items-start gap-3">
+            <Checkbox id="aceite-parceiro" checked={aceite} onCheckedChange={(v) => setAceite(v === true)} className="mt-0.5" />
+            <label htmlFor="aceite-parceiro" className="text-sm text-muted-foreground">Li e aceito os <Link to="/termos-parceiros" target="_blank" className="underline">Termos para Parceiros</Link> e a <Link to="/privacidade" target="_blank" className="underline">Política de Privacidade</Link>. Nenhuma cobrança durante o teste.</label>
+          </div>
           <Button type="submit" className="w-full" size="lg" disabled={enviando || logado === null}>{enviando ? "Cadastrando…" : `Começar ${TRIAL_DAYS} dias grátis`}</Button>
         </form>
       </div>

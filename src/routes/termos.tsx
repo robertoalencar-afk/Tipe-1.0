@@ -1,10 +1,11 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
-import logo from "@/assets/logo-dark.png.asset.json";
+import { createFileRoute } from "@tanstack/react-router";
+import { LegalPage } from "@/components/tipe/LegalPage";
+import { LEGAL } from "@/lib/tipe/legal";
 
 export const Route = createFileRoute("/termos")({
   head: () => ({
     meta: [
-      { title: "Termos de Uso e Privacidade — TIPE" },
+      { title: "Termos de Uso — TIPE" },
       {
         name: "description",
         content:
@@ -59,11 +60,16 @@ const sections: { title: string; paragraphs: string[]; bullets?: string[] }[] = 
     ],
   },
   {
-    title: "5. Política de Privacidade",
+    title: "5. Privacidade",
     paragraphs: [
-      "O TIPE coleta apenas os dados necessários para funcionar: nome e sobrenome informados na identificação da mesa, registro dos pedidos e pagamentos da mesa e, quando você envia um contato pelo site, o nome do restaurante, o seu nome, o e-mail, o WhatsApp e a mensagem que você digitou.",
-      "Os dados de pagamento não são armazenados pelo TIPE: eles são processados diretamente pelos provedores de pagamento autorizados (como Pix, carteiras digitais e adquirentes). O TIPE guarda apenas o registro do valor, dos itens pagos e do status do pagamento.",
-      "Você pode solicitar a correção ou a exclusão dos seus dados pessoais a qualquer momento, conforme a Lei Geral de Proteção de Dados (LGPD), pelos canais de contato informados no final deste documento.",
+      "O tratamento de dados pessoais está descrito na Política de Privacidade (tipe.digital/privacidade) e na Política de Cookies (tipe.digital/cookies). Para exercer seus direitos, use tipe.digital/privacidade/solicitacao.",
+    ],
+  },
+  {
+    title: "5.1 Erros, cancelamentos e estornos",
+    paragraphs: [
+      "Se um pagamento for cancelado pelo restaurante, os itens voltam para a conta. Cobranças indevidas ou em duplicidade devem ser comunicadas ao restaurante e ao TIPE pelos canais de contato; estornos seguem as regras do meio de pagamento e a legislação de defesa do consumidor.",
+      "O TIPE emprega esforços para manter o serviço disponível, mas poderá haver indisponibilidades; nesse caso, o pagamento pode ser feito diretamente no estabelecimento.",
     ],
   },
   {
@@ -81,50 +87,12 @@ const sections: { title: string; paragraphs: string[]; bullets?: string[] }[] = 
   {
     title: "8. Alterações e contato",
     paragraphs: [
-      "Estes termos podem ser atualizados para refletir novas funcionalidades. A versão vigente está sempre nesta página.",
+      "Estes termos podem ser atualizados; cada alteração relevante gera nova versão com data de vigência. A marca, o software e os mascotes do TIPE são protegidos por propriedade intelectual. Aplica-se a legislação brasileira, incluindo o Código de Defesa do Consumidor.",
       "Dúvidas, solicitações sobre seus dados ou relatos de problemas: fale com a equipe pela página inicial, em tipe.digital/fale-conosco, ou escreva para contato@tipe.digital.",
     ],
   },
 ];
 
 function TermosPage() {
-  return (
-    <div className="min-h-screen bg-background">
-      <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
-        <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
-          ← Voltar para a página inicial
-        </Link>
-        <div className="mt-8 rounded-3xl border bg-card p-6 shadow-sm sm:p-10">
-          <img src={logo.url} alt="TIPE" className="h-12 w-auto object-contain" />
-          <h1 className="mt-6 font-display text-3xl font-bold sm:text-4xl">Termos de Uso e Política de Privacidade</h1>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Última atualização: 26 de setembro de 2026
-          </p>
-
-          <div className="mt-8 space-y-10">
-            {sections.map((section) => (
-              <section key={section.title}>
-                <h2 className="font-display text-xl font-semibold">{section.title}</h2>
-                {section.paragraphs.map((paragraph) => (
-                  <p key={paragraph.slice(0, 24)} className="mt-3 text-sm leading-relaxed text-foreground/90">
-                    {paragraph}
-                  </p>
-                ))}
-                {section.bullets && (
-                  <ul className="mt-3 space-y-2 text-sm leading-relaxed text-foreground/90">
-                    {section.bullets.map((bullet) => (
-                      <li key={bullet.slice(0, 24)} className="flex gap-2">
-                        <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" />
-                        <span>{bullet}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </section>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
+  return <LegalPage title="Termos de Uso" version={LEGAL.consumer_terms.version} effective={LEGAL.consumer_terms.effective} sections={sections} />;
 }

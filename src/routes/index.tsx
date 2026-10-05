@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { PrivacyPreferences } from "@/components/tipe/PrivacyPreferences";
 import { useState } from "react";
 import { toast } from "sonner";
 import {
@@ -609,7 +610,7 @@ function ContactSection() {
               <button disabled={sending} className="w-full rounded-full bg-primary py-3 font-display font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60">
                 {sending ? "Enviando..." : "Quero conhecer a TIPE"}
               </button>
-              <p className="text-center text-xs text-muted-foreground">Ao enviar, você concorda com os <Link to="/termos" className="underline">Termos de Uso e Privacidade</Link>.</p>
+              <p className="text-center text-xs text-muted-foreground">Usaremos seus dados apenas para responder ao contato. Veja a <Link to="/privacidade" className="underline">Política de Privacidade</Link>.</p>
             </form>
           )}
         </div>
@@ -635,9 +636,16 @@ function Footer() {
         <div className="space-y-2 text-sm">
           <p className="font-display font-bold">Empresa</p>
           <Link to="/entrar" className="block text-muted-foreground hover:text-foreground">Área do restaurante</Link>
-          <Link to="/termos" className="block text-muted-foreground hover:text-foreground">Termos de uso e privacidade</Link>
           <a href="#fale-conosco" className="block text-muted-foreground hover:text-foreground">Fale conosco</a>
         </div>
+      </div>
+      <div className="mx-auto flex max-w-7xl flex-wrap gap-x-5 gap-y-2 border-t px-4 py-5 text-xs sm:px-6">
+        <Link to="/termos" className="text-muted-foreground hover:text-foreground">Termos de Uso</Link>
+        <Link to="/privacidade" className="text-muted-foreground hover:text-foreground">Privacidade</Link>
+        <Link to="/cookies" className="text-muted-foreground hover:text-foreground">Cookies</Link>
+        <PrivacyPreferences triggerClassName="text-muted-foreground hover:text-foreground" />
+        <Link to="/termos-parceiros" className="text-muted-foreground hover:text-foreground">Termos para Parceiros</Link>
+        <Link to="/privacidade/solicitacao" className="text-muted-foreground hover:text-foreground">Seus direitos (LGPD)</Link>
       </div>
       <p className="border-t py-5 text-center text-xs text-muted-foreground">© {new Date().getFullYear()} TIPE · tipe.digital</p>
     </footer>
