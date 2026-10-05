@@ -10,7 +10,6 @@ import { TipeLogo } from "@/components/tipe/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { SaquesGarcons } from "@/components/tipe/SaquesGarcons";
 import { claimFounder, createRestaurant, getMyAccess } from "@/lib/tipe/staff.functions";
 
 export const Route = createFileRoute("/_authenticated/painel")({
