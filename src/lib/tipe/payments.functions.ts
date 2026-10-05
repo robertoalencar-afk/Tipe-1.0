@@ -12,16 +12,18 @@ const Input = z.object({
   customerName: z.string().min(1).max(40),
   itemQuantities: z.record(z.string(), z.number().min(0).max(99).multipleOf(0.0001)),
   target: z.enum(["restaurant", "tipe"]),
+  cardToken: z.string().min(8).max(120).regex(/^[A-Za-z0-9_-]+$/).optional(),
 });
 
 export type PaymentResult = {
   id: string;
   status: "approved" | "pending";
-  provider: "pagarme" | "stripe" | "simulado" | "estabelecimento";
-  pixCode?: string;
+  provider: "pagarme" | "simulado" | "estabelecimento";
+  pixCode?: string | undefined;
+  pixQrUrl?: string | undefined;
 };
 
-// Pix -> Pagar.me ; Cartão / Apple Pay / Google Pay -> Stripe.
+// Pagamentos digitais via Pagar.me (Pix e cartão tokenizado no navegador).
 // O valor é sempre calculado no servidor a partir da conta da mesa;
 // o cliente nunca define quanto será cobrado. Um pagamento só fica
 // "approved" quando o provedor confirma a cobrança; sem provedor
@@ -65,8 +67,8 @@ export const createPayment = createServerFn({ method: "POST" })
     }
     const cents = Math.round(amount * 100);
 
-    const register = async (status: "approved" | "pending") => {
-      const { error } = await supabaseAdmin.rpc("register_table_payment", {
+    const register = async (status: "approved" | "pending"): Promise<string> => {
+      const { data: payId, error } = await supabaseAdmin.rpc("register_table_payment", {
         p_restaurant_slug: data.restaurantId,
         p_table_number: data.tableId,
         p_customer_name: data.customerName,
@@ -81,6 +83,7 @@ export const createPayment = createServerFn({ method: "POST" })
         console.error("register_table_payment", error.message);
         throw new Error(error.message.includes("não está mais disponível") ? "Um item selecionado acabou de ser pago por outra pessoa. A conta foi atualizada." : error.message.includes("já registrado") ? "Este pagamento já foi registrado." : "Não foi possível atualizar a conta");
       }
+      return payId as unknown as string;
     };
 
     if (data.method === "at_establishment") {
@@ -88,48 +91,67 @@ export const createPayment = createServerFn({ method: "POST" })
       return { id, status: "pending", provider: "estabelecimento" };
     }
 
-    if (data.method === "pix") {
-      const key = process.env["PAGARME_SECRET_KEY"];
-      if (key) {
-        const res = await fetch("https://api.pagar.me/core/v5/orders", {
-          method: "POST",
-          headers: {
-            Authorization: `Basic ${btoa(key + ":")}`,
-            "Content-Type": "application/json",
-            "Idempotency-Key": data.idempotencyKey,
-          },
-          body: JSON.stringify({
-            items: [{ amount: cents, description: `Mesa ${data.tableId}`, quantity: 1, code: data.tableId }],
-            payments: [{ payment_method: "pix", pix: { expires_in: 900 } }],
-            closed: true,
-          }),
-        });
-        const j: any = await res.json();
-        if (!res.ok) { console.error("Pagar.me", j); throw new Error("Não foi possível gerar o Pix"); }
-        const paid = j.charges?.[0]?.status === "paid";
-        await register(paid ? "approved" : "pending");
-        return { id: j.id, status: paid ? "approved" : "pending", provider: "pagarme", pixCode: j.charges?.[0]?.last_transaction?.qr_code };
-      }
+    const { pagarmeEnabled, pagarme, restaurantSplit, orderPaid, orderFailed } = await import("./pagarme.server");
+
+    // Modo simulação: sem conta Pagar.me configurada, nada é cobrado de verdade.
+    if (!pagarmeEnabled()) {
       await register("pending");
-      return { id, status: "pending", provider: "simulado", pixCode: `00020126TIPE${cents}BR.GOV.BCB.PIX5204000053039865802BR` };
+      return data.method === "pix"
+        ? { id, status: "pending", provider: "simulado", pixCode: `00020126TIPE${cents}BR.GOV.BCB.PIX5204000053039865802BR` }
+        : { id, status: "pending", provider: "simulado" };
     }
 
-    const sk = process.env["STRIPE_SECRET_KEY"];
-    if (sk) {
-      const body = new URLSearchParams({ amount: String(cents), currency: "brl", "automatic_payment_methods[enabled]": "true" });
-      const res = await fetch("https://api.stripe.com/v1/payment_intents", {
-        method: "POST",
-        headers: { Authorization: `Bearer ${sk}`, "Idempotency-Key": data.idempotencyKey, "Content-Type": "application/x-www-form-urlencoded" },
-        body,
-      });
-      const j: any = await res.json();
-      if (!res.ok) { console.error("Stripe", j); throw new Error("Pagamento recusado"); }
-      const paid = j.status === "succeeded";
-      await register(paid ? "approved" : "pending");
-      return { id: j.id, status: paid ? "approved" : "pending", provider: "stripe" };
+    if (data.method === "apple_pay" || data.method === "google_pay") {
+      throw new Error("Apple Pay e Google Pay serão liberados em breve. Use Pix por enquanto.");
     }
-    await register("pending");
-    return { id, status: "pending", provider: "simulado" };
+    if (data.method === "card" && !data.cardToken) throw new Error("Informe os dados do cartão");
+
+    let split: unknown[] | undefined;
+    if (data.target === "restaurant") {
+      const { data: rest } = await supabaseAdmin.from("restaurants").select("id").eq("slug", data.restaurantId).maybeSingle();
+      const { data: acc } = rest ? await supabaseAdmin.from("restaurant_payout_accounts").select("pagarme_recipient_id, status").eq("restaurant_id", rest.id).maybeSingle() : { data: null };
+      if (!acc?.pagarme_recipient_id || acc.status !== "active") throw new Error("Este restaurante ainda não ativou o recebimento digital. Escolha pagar no estabelecimento.");
+      split = restaurantSplit(acc.pagarme_recipient_id);
+    }
+
+    // Reserva os itens antes de cobrar; se a cobrança falhar, a reserva é liberada.
+    const payId = await register("pending");
+    const localRef = `local_${data.idempotencyKey}`;
+    await supabaseAdmin.from("table_payment_requests").update({ provider: "pagarme", provider_order_id: localRef }).eq("id", payId);
+
+    const payment = data.method === "pix"
+      ? { payment_method: "pix", pix: { expires_in: 900 }, ...(split ? { split } : {}) }
+      : { payment_method: "credit_card", credit_card: { installments: 1, statement_descriptor: "TIPE", card_token: data.cardToken }, ...(split ? { split } : {}) };
+
+    let order;
+    try {
+      order = await pagarme<import("./pagarme.server").PagarmeOrder>("/orders", {
+        method: "POST",
+        idempotencyKey: data.idempotencyKey,
+        body: {
+          code: payId,
+          customer: { name: data.customerName, type: "individual" },
+          items: [{ amount: cents, description: data.target === "restaurant" ? `Conta mesa ${data.tableId}` : "Gorjeta extra", quantity: 1, code: data.target }],
+          payments: [payment],
+          metadata: { payment_id: payId, restaurant: data.restaurantId, table: data.tableId, target: data.target },
+        },
+      });
+    } catch {
+      await supabaseAdmin.rpc("provider_settle_payment" as never, { p_order_id: localRef, p_paid: false } as never);
+      throw new Error(data.method === "pix" ? "Não foi possível gerar o Pix. Tente novamente." : "Pagamento recusado. Confira os dados do cartão.");
+    }
+
+    await supabaseAdmin.from("table_payment_requests").update({ provider_order_id: order.id }).eq("id", payId);
+    if (orderPaid(order)) {
+      await supabaseAdmin.rpc("provider_settle_payment" as never, { p_order_id: order.id, p_paid: true } as never);
+      return { id: payId, status: "approved", provider: "pagarme" };
+    }
+    if (orderFailed(order)) {
+      await supabaseAdmin.rpc("provider_settle_payment" as never, { p_order_id: order.id, p_paid: false } as never);
+      throw new Error("Pagamento recusado. Tente outro meio de pagamento.");
+    }
+    const tx = order.charges?.[0]?.last_transaction;
+    return { id: payId, status: "pending", provider: "pagarme", pixCode: tx?.qr_code, pixQrUrl: tx?.qr_code_url };
   });
 
 const TableInput = z.object({ restaurantId: z.string().max(64), tableId: z.string().max(16), session: z.string().min(16).max(96) });
@@ -199,4 +221,22 @@ export const reopenClosedTable = createServerFn({ method: "POST" })
     const { error } = await supabaseAdmin.rpc("archive_and_reopen_table", { p_slug: data.restaurantId, p_table: data.tableId });
     if (error) throw new Error("Não foi possível reabrir a mesa");
     return { reopened: true };
+  });
+
+// Chave pública do Pagar.me (publicável) para tokenizar cartões no navegador.
+export const getPaymentConfig = createServerFn({ method: "GET" }).handler(async () => ({
+  live: !!process.env["PAGARME_SECRET_KEY"],
+  publicKey: process.env["PAGARME_PUBLIC_KEY"] ?? null,
+}));
+
+// Situação de um pagamento da própria mesa (usado para acompanhar o Pix).
+export const getPaymentStatus = createServerFn({ method: "GET" })
+  .inputValidator((d) => TableInput.extend({ paymentId: z.string().uuid() }).parse(d))
+  .handler(async ({ data }) => {
+    const { verifyTableSession } = await import("./security.server");
+    if (!(await verifyTableSession(data.restaurantId, data.tableId, data.session))) throw new Error("Sessão da mesa expirada");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: p } = await supabaseAdmin.from("table_payment_requests").select("status")
+      .eq("id", data.paymentId).eq("restaurant_slug", data.restaurantId).eq("table_number", data.tableId).maybeSingle();
+    return { status: (p?.status ?? "failed") as "pending" | "approved" | "cancelled" | "failed" };
   });

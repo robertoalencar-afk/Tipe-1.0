@@ -29,6 +29,13 @@
       "when": 1791228658802,
       "tag": "0003_lgpd_phase3",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1791229180920,
+      "tag": "0004_pagarme_integration",
+      "breakpoints": true
     }
   ]
 }

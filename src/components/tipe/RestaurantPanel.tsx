@@ -19,6 +19,8 @@ import { transferTable } from "@/lib/tipe/admin.functions";
 import { Caixa, Configuracoes, Cozinha, Inicio, Integracoes, Relatorios } from "@/components/tipe/AdminSections";
 import { TotemStudio } from "@/components/tipe/TotemStudio";
 import { Assinatura } from "@/components/tipe/Assinatura";
+import { Recebimentos } from "@/components/tipe/Recebimentos";
+import { Landmark } from "lucide-react";
 import { OnboardingPdv } from "@/components/tipe/OnboardingPdv";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -57,6 +59,7 @@ const secoes = [
   { k: "historico", l: "Histórico", i: History },
   { k: "integracoes", l: "Integrações (PDV)", i: Plug, dono: true },
   { k: "config", l: "Configurações", i: Settings },
+  { k: "recebimentos", l: "Recebimentos", i: Landmark, dono: true },
   { k: "assinatura", l: "Assinatura", i: CreditCard, dono: true },
 ] as const;
 
@@ -219,6 +222,7 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
         {aba === "relatorios" && <Relatorios slug={slug} />}
         {aba === "integracoes" && <Integracoes slug={slug} podeDono={podeDono} />}
         {aba === "config" && <Configuracoes slug={slug} podeDono={podeDono} />}
+        {aba === "recebimentos" && podeDono && <Recebimentos slug={slug} podeDono={podeDono} />}
         {aba === "assinatura" && podeDono && <Assinatura slug={slug} />}
       </div>
 
