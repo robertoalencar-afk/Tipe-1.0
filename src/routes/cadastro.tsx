@@ -54,6 +54,8 @@ function Cadastro() {
   const [aceite, setAceite] = useState(false);
   const [logado, setLogado] = useState<boolean | null>(null);
   const [f, setF] = useState<Dados>({ displayName: "", name: "", slug: "", cnpj: "", address: "", phone: "", tables: 10, plan: plano ?? "profissional" });
+  const [slugEditado, setSlugEditado] = useState(false);
+  const slugDe = (nome: string) => nome.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "").slice(0, 40);
   const [conta, setConta] = useState({ email: "", senha: "", senha2: "" });
   const [aguardandoEmail, setAguardandoEmail] = useState(false);
   const [enviando, setEnviando] = useState(false);
@@ -139,7 +141,7 @@ function Cadastro() {
           <section className="space-y-3 rounded-2xl border border-border bg-card p-5">
             <h2 className="font-display text-lg font-bold">2. Dados do restaurante</h2>
             <label className={campo}>Nome do restaurante
-              <Input required minLength={2} maxLength={80} className="mt-1" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value, slug: e.target.value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "").slice(0, 40) })} />
+              <Input required minLength={2} maxLength={80} className="mt-1" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value, slug: slugEditado ? f.slug : slugDe(e.target.value) })} />
             </label>
             <div className="grid gap-3 sm:grid-cols-2">
               <label className={campo}>CNPJ<Input required inputMode="numeric" placeholder="00.000.000/0000-00" className="mt-1" value={mascaraCnpj(f.cnpj)} onChange={(e) => setF({ ...f, cnpj: e.target.value.replace(/\D/g, "").slice(0, 14) })} /></label>
@@ -148,7 +150,7 @@ function Cadastro() {
             <label className={campo}>Endereço completo<Input required minLength={8} maxLength={160} placeholder="Rua, número, bairro, cidade – UF" className="mt-1" value={f.address} onChange={(e) => setF({ ...f, address: e.target.value })} /></label>
             <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
               <label className={campo}>Endereço na TIPE
-                <div className="mt-1 flex items-center rounded-md border border-input bg-background pl-3 text-sm"><span className="text-muted-foreground">tipe.digital/</span><input required pattern="[a-z0-9-]{2,64}" className="h-10 flex-1 bg-transparent px-1 outline-none" value={f.slug} onChange={(e) => setF({ ...f, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") })} /></div>
+                <div className="mt-1 flex items-center rounded-md border border-input bg-background pl-3 text-sm"><span className="text-muted-foreground">tipe.digital/</span><input required pattern="[a-z0-9-]{2,64}" className="h-10 flex-1 bg-transparent px-1 outline-none" value={f.slug} onChange={(e) => { setSlugEditado(true); setF({ ...f, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") }); }} /></div>
               </label>
               <label className={campo}>Mesas<Input type="number" required min={1} max={500} className="mt-1 w-28" value={f.tables} onChange={(e) => setF({ ...f, tables: Number(e.target.value) })} /></label>
             </div>
