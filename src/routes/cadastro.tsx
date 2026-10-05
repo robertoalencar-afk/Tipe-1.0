@@ -54,6 +54,8 @@ function Cadastro() {
   const [aceite, setAceite] = useState(false);
   const [logado, setLogado] = useState<boolean | null>(null);
   const [f, setF] = useState<Dados>({ displayName: "", name: "", slug: "", cnpj: "", address: "", phone: "", tables: 10, plan: plano ?? "profissional" });
+  const [slugEditado, setSlugEditado] = useState(false);
+  const slugDe = (nome: string) => nome.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "").slice(0, 40);
   const [conta, setConta] = useState({ email: "", senha: "", senha2: "" });
   const [aguardandoEmail, setAguardandoEmail] = useState(false);
   const [enviando, setEnviando] = useState(false);
