@@ -9,8 +9,8 @@ async function requireFounder(ctx: { supabase: any; userId: string }) {
 }
 
 const planPrice = (plan: string) => {
-  const p = (PLANS as any[]).find((x) => x.id === plan);
-  return p ? Number(p.price ?? p.priceMonthly ?? 0) : 0;
+  const p = PLANS.find((x) => x.id === plan);
+  return p ? p.price : 0;
 };
 
 /** Visão completa do fundador: restaurantes, garçons, indicadores, leads, LGPD e segurança. */
