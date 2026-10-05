@@ -24,7 +24,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getPublicTable } from "@/lib/tipe/pdv.functions";
-import { createPayment, reopenClosedTable, type SharedPayment } from "@/lib/tipe/payments.functions";
+import { createPayment, getPaymentConfig, getPaymentStatus, reopenClosedTable, type SharedPayment } from "@/lib/tipe/payments.functions";
+import { CardFields } from "@/components/tipe/CardFields";
+import { cardValid, tokenizeCard, type CardInput } from "@/lib/tipe/pagarme-client";
 import mascotThanks from "@/assets/mascot-thanks-filled.png";
 import mascotRating from "@/assets/mascot-rating-filled.png";
 import mascotWaiting from "@/assets/mascot-waiting-filled.png";
@@ -52,6 +54,7 @@ type Etapa =
   | "pagamento-conta"
   | "conta-confirmada"
   | "conta-pendente"
+  | "pix"
   | "avaliacao"
   | "gorjeta"
   | "pagamento-gorjeta"
@@ -123,6 +126,10 @@ function MesaPage() {
   const [pagamentos, setPagamentos] = useState<SharedPayment[]>([]);
   const [mesaSincronizada, setMesaSincronizada] = useState(false);
   const [sessaoMesa, setSessaoMesa] = useState("");
+  const [cartao, setCartao] = useState<CardInput>({ number: "", holder: "", exp: "", cvv: "" });
+  const [chavePublica, setChavePublica] = useState<string | null>(null);
+  const [pix, setPix] = useState<{ id: string; code: string; qrUrl?: string; tipo: "conta" | "gorjeta" } | null>(null);
+  useEffect(() => { getPaymentConfig().then((c) => setChavePublica(c.publicKey)).catch(() => undefined); }, []);
   const chavePagamento = useRef<string | null>(null);
 
   useEffect(() => {
@@ -239,8 +246,10 @@ function MesaPage() {
     // Mesma chave em cliques repetidos/reenvios: o servidor não duplica o pagamento.
     if (!chavePagamento.current) chavePagamento.current = `${tipo}_${crypto.randomUUID().replace(/-/g, "")}`;
     try {
+      const cardToken = metodo === "card" && chavePublica ? await tokenizeCard(chavePublica, cartao) : undefined;
       const resultado = await createPayment({
         data: {
+          cardToken,
           method: metodo,
           tip: tipo === "gorjeta" ? gorjetaExtra : 0,
           tableId: String(dados.mesa),
@@ -254,6 +263,11 @@ function MesaPage() {
       });
       chavePagamento.current = null;
       await atualizarMesa();
+      if (resultado.provider === "pagarme" && resultado.status === "pending" && resultado.pixCode) {
+        setPix({ id: resultado.id, code: resultado.pixCode, qrUrl: resultado.pixQrUrl, tipo });
+        setEtapa("pix");
+        return;
+      }
       setEtapa(tipo === "conta" ? (resultado.status === "approved" ? "conta-confirmada" : "conta-pendente") : "fim");
     } catch (error) {
       const msg = error instanceof Error ? error.message : "";
@@ -263,6 +277,18 @@ function MesaPage() {
       setPagando(false);
     }
   }
+
+  useEffect(() => {
+    if (etapa !== "pix" || !pix) return;
+    const t = window.setInterval(async () => {
+      try {
+        const r = await getPaymentStatus({ data: { restaurantId: restaurante, tableId: String(dados.mesa), session: sessaoMesa, paymentId: pix.id } });
+        if (r.status === "approved") { await atualizarMesa(); setEtapa(pix.tipo === "conta" ? "conta-confirmada" : "fim"); }
+        else if (r.status !== "pending") { setErroPagamento("O Pix expirou ou não foi concluído. Tente novamente."); setEtapa(pix.tipo === "conta" ? "pagamento-conta" : "pagamento-gorjeta"); }
+      } catch { /* tenta de novo */ }
+    }, 4000);
+    return () => window.clearInterval(t);
+  }, [etapa, pix, restaurante, dados.mesa, sessaoMesa, atualizarMesa]);
 
   return (
     <div className="mx-auto flex min-h-svh max-w-md flex-col bg-background">
@@ -458,6 +484,18 @@ function MesaPage() {
         />
       )}
 
+      {etapa === "pix" && pix && (
+        <TelaCentral>
+          <p className="text-sm font-semibold text-primary">Pix gerado</p>
+          <h1 className="mt-2 text-2xl font-bold">Pague com Pix</h1>
+          <p className="mt-2 text-center text-sm text-muted-foreground">Abra o app do seu banco e use o QR Code ou o código copia e cola. A confirmação aparece aqui sozinha.</p>
+          {pix.qrUrl && <img src={pix.qrUrl} alt="QR Code do Pix" className="mx-auto mt-5 h-52 w-52 rounded-lg bg-card p-2" />}
+          <p className="mt-4 w-full break-all rounded-lg border border-border bg-card p-3 text-xs">{pix.code}</p>
+          <Button onClick={() => { void navigator.clipboard.writeText(pix.code); }} className="mt-4 h-12 w-full rounded-lg text-base font-bold">Copiar código Pix</Button>
+          <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground"><span className="h-3 w-3 animate-spin rounded-full border-2 border-muted border-t-primary motion-reduce:animate-none" />Aguardando o pagamento…</p>
+        </TelaCentral>
+      )}
+
       {etapaVisivel === "conta-pendente" && (
         <TelaCentral>
           <img src={mascotWaiting} alt="Mascote TIPE aguardando" className="mx-auto mb-3 h-44 w-44 object-contain" />
@@ -526,6 +564,8 @@ function MesaPage() {
           erro={erroPagamento}
           voltar={() => setEtapa("gorjeta")}
           pagar={() => processarPagamento("gorjeta")}
+          cartao={chavePublica ? cartao : undefined}
+          setCartao={setCartao}
         />
       )}
 
@@ -568,7 +608,9 @@ function ResumoLinha({ label, valor, className = "" }: { label: string; valor: n
   return <div className={`flex justify-between gap-4 ${className}`}><span className="text-muted-foreground">{label}</span><span>{money(valor)}</span></div>;
 }
 
-function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, pagando, erro, voltar, pagar, permitirEstabelecimento = false }: {
+function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, pagando, erro, voltar, pagar, permitirEstabelecimento = false, cartao, setCartao }: {
+  cartao?: CardInput | undefined;
+  setCartao?: (c: CardInput) => void;
   titulo: string;
   descricao: string;
   rotuloValor: string;
@@ -639,8 +681,9 @@ function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, p
            </label>
          </div>
        )}
+      {metodo === "card" && cartao && setCartao && <div className="mt-5"><CardFields value={cartao} onChange={setCartao} /></div>}
       {erro && <p role="alert" className="mt-4 text-sm text-destructive">{erro}</p>}
-       <Button disabled={!metodo || pagando || (permitirEstabelecimento && !aceitouTermos)} onClick={pagar} className="mt-6 h-12 rounded-lg text-base font-bold">{pagando ? "Processando…" : `Pagar ${money(valor)}`}</Button>
+       <Button disabled={!metodo || pagando || (permitirEstabelecimento && !aceitouTermos) || (metodo === "card" && !!cartao && !cardValid(cartao))} onClick={pagar} className="mt-6 h-12 rounded-lg text-base font-bold">{pagando ? "Processando…" : `Pagar ${money(valor)}`}</Button>
         {metodo === "at_establishment" && <p className="mt-3 text-center text-xs text-muted-foreground">A confirmação será feita pelo estabelecimento.</p>}
     </main>
   );
