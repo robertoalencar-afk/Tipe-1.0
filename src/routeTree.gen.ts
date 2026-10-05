@@ -12,13 +12,17 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as CadastroRouteImport } from './routes/cadastro'
+import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SimuladorRouteImport } from './routes/simulador'
 import { Route as TermosRouteImport } from './routes/termos'
+import { Route as TermosParceirosRouteImport } from './routes/termos-parceiros'
 import { Route as RestauranteIndexRouteImport } from './routes/$restaurante.index'
 import { Route as RestauranteMesaRouteImport } from './routes/$restaurante.$mesa'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
+import { Route as PrivacidadeIndexRouteImport } from './routes/privacidade.index'
+import { Route as PrivacidadeSolicitacaoRouteImport } from './routes/privacidade.solicitacao'
 import { Route as MesaRestauranteMesaRouteImport } from './routes/mesa.$restaurante.$mesa'
 import { Route as ApiPublicPosSlugRouteImport } from './routes/api/public/pos.$slug'
 
@@ -34,6 +38,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const CadastroRoute = CadastroRouteImport.update({
   id: '/cadastro',
   path: '/cadastro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CookiesRoute = CookiesRouteImport.update({
+  id: '/cookies',
+  path: '/cookies',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EntrarRoute = EntrarRouteImport.update({
@@ -56,6 +65,11 @@ const TermosRoute = TermosRouteImport.update({
   path: '/termos',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TermosParceirosRoute = TermosParceirosRouteImport.update({
+  id: '/termos-parceiros',
+  path: '/termos-parceiros',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RestauranteIndexRoute = RestauranteIndexRouteImport.update({
   id: '/$restaurante/',
   path: '/$restaurante/',
@@ -71,6 +85,16 @@ const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
   path: '/painel',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const PrivacidadeIndexRoute = PrivacidadeIndexRouteImport.update({
+  id: '/privacidade/',
+  path: '/privacidade/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrivacidadeSolicitacaoRoute = PrivacidadeSolicitacaoRouteImport.update({
+  id: '/privacidade/solicitacao',
+  path: '/privacidade/solicitacao',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MesaRestauranteMesaRoute = MesaRestauranteMesaRouteImport.update({
   id: '/mesa/$restaurante/$mesa',
   path: '/mesa/$restaurante/$mesa',
@@ -85,26 +109,34 @@ const ApiPublicPosSlugRoute = ApiPublicPosSlugRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cadastro': typeof CadastroRoute
+  '/cookies': typeof CookiesRoute
   '/entrar': typeof EntrarRoute
   '/reset-password': typeof ResetPasswordRoute
   '/simulador': typeof SimuladorRoute
   '/termos': typeof TermosRoute
+  '/termos-parceiros': typeof TermosParceirosRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
   '/$restaurante/': typeof RestauranteIndexRoute
+  '/privacidade/': typeof PrivacidadeIndexRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cadastro': typeof CadastroRoute
+  '/cookies': typeof CookiesRoute
   '/entrar': typeof EntrarRoute
   '/reset-password': typeof ResetPasswordRoute
   '/simulador': typeof SimuladorRoute
   '/termos': typeof TermosRoute
+  '/termos-parceiros': typeof TermosParceirosRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
   '/$restaurante': typeof RestauranteIndexRoute
+  '/privacidade': typeof PrivacidadeIndexRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
 }
@@ -113,13 +145,17 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/cadastro': typeof CadastroRoute
+  '/cookies': typeof CookiesRoute
   '/entrar': typeof EntrarRoute
   '/reset-password': typeof ResetPasswordRoute
   '/simulador': typeof SimuladorRoute
   '/termos': typeof TermosRoute
+  '/termos-parceiros': typeof TermosParceirosRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
+  '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
   '/$restaurante/': typeof RestauranteIndexRoute
+  '/privacidade/': typeof PrivacidadeIndexRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
 }
@@ -128,26 +164,34 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/cadastro'
+    | '/cookies'
     | '/entrar'
     | '/reset-password'
     | '/simulador'
     | '/termos'
+    | '/termos-parceiros'
     | '/$restaurante/$mesa'
     | '/painel'
+    | '/privacidade/solicitacao'
     | '/$restaurante/'
+    | '/privacidade/'
     | '/mesa/$restaurante/$mesa'
     | '/api/public/pos/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/cadastro'
+    | '/cookies'
     | '/entrar'
     | '/reset-password'
     | '/simulador'
     | '/termos'
+    | '/termos-parceiros'
     | '/$restaurante/$mesa'
     | '/painel'
+    | '/privacidade/solicitacao'
     | '/$restaurante'
+    | '/privacidade'
     | '/mesa/$restaurante/$mesa'
     | '/api/public/pos/$slug'
   id:
@@ -155,13 +199,17 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/cadastro'
+    | '/cookies'
     | '/entrar'
     | '/reset-password'
     | '/simulador'
     | '/termos'
+    | '/termos-parceiros'
     | '/$restaurante/$mesa'
     | '/_authenticated/painel'
+    | '/privacidade/solicitacao'
     | '/$restaurante/'
+    | '/privacidade/'
     | '/mesa/$restaurante/$mesa'
     | '/api/public/pos/$slug'
   fileRoutesById: FileRoutesById
@@ -170,12 +218,16 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   CadastroRoute: typeof CadastroRoute
+  CookiesRoute: typeof CookiesRoute
   EntrarRoute: typeof EntrarRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SimuladorRoute: typeof SimuladorRoute
   TermosRoute: typeof TermosRoute
+  TermosParceirosRoute: typeof TermosParceirosRoute
   RestauranteMesaRoute: typeof RestauranteMesaRoute
+  PrivacidadeSolicitacaoRoute: typeof PrivacidadeSolicitacaoRoute
   RestauranteIndexRoute: typeof RestauranteIndexRoute
+  PrivacidadeIndexRoute: typeof PrivacidadeIndexRoute
   MesaRestauranteMesaRoute: typeof MesaRestauranteMesaRoute
   ApiPublicPosSlugRoute: typeof ApiPublicPosSlugRoute
 }
@@ -201,6 +253,13 @@ declare module '@tanstack/react-router' {
       path: '/cadastro'
       fullPath: '/cadastro'
       preLoaderRoute: typeof CadastroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cookies': {
+      id: '/cookies'
+      path: '/cookies'
+      fullPath: '/cookies'
+      preLoaderRoute: typeof CookiesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/entrar': {
@@ -231,6 +290,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TermosRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/termos-parceiros': {
+      id: '/termos-parceiros'
+      path: '/termos-parceiros'
+      fullPath: '/termos-parceiros'
+      preLoaderRoute: typeof TermosParceirosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/$restaurante/': {
       id: '/$restaurante/'
       path: '/$restaurante'
@@ -251,6 +317,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/painel'
       preLoaderRoute: typeof AuthenticatedPainelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/privacidade/': {
+      id: '/privacidade/'
+      path: '/privacidade'
+      fullPath: '/privacidade/'
+      preLoaderRoute: typeof PrivacidadeIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/privacidade/solicitacao': {
+      id: '/privacidade/solicitacao'
+      path: '/privacidade/solicitacao'
+      fullPath: '/privacidade/solicitacao'
+      preLoaderRoute: typeof PrivacidadeSolicitacaoRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/mesa/$restaurante/$mesa': {
       id: '/mesa/$restaurante/$mesa'
@@ -284,12 +364,16 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   CadastroRoute: CadastroRoute,
+  CookiesRoute: CookiesRoute,
   EntrarRoute: EntrarRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SimuladorRoute: SimuladorRoute,
   TermosRoute: TermosRoute,
+  TermosParceirosRoute: TermosParceirosRoute,
   RestauranteMesaRoute: RestauranteMesaRoute,
+  PrivacidadeSolicitacaoRoute: PrivacidadeSolicitacaoRoute,
   RestauranteIndexRoute: RestauranteIndexRoute,
+  PrivacidadeIndexRoute: PrivacidadeIndexRoute,
   MesaRestauranteMesaRoute: MesaRestauranteMesaRoute,
   ApiPublicPosSlugRoute: ApiPublicPosSlugRoute,
 }

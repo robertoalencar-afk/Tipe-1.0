@@ -154,6 +154,30 @@ export type Database = {
           },
         ]
       }
+      legal_acceptances: {
+        Row: {
+          accepted_at: string
+          document: string
+          id: string
+          user_id: string
+          version: string
+        }
+        Insert: {
+          accepted_at?: string
+          document: string
+          id?: string
+          user_id: string
+          version: string
+        }
+        Update: {
+          accepted_at?: string
+          document?: string
+          id?: string
+          user_id?: string
+          version?: string
+        }
+        Relationships: []
+      }
       payment_audit_log: {
         Row: {
           action: string
@@ -541,6 +565,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      privacy_requests: {
+        Row: {
+          created_at: string
+          details: string | null
+          email: string
+          holder_category: string
+          id: string
+          name: string
+          request_type: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          details?: string | null
+          email: string
+          holder_category: string
+          id?: string
+          name: string
+          request_type: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          details?: string | null
+          email?: string
+          holder_category?: string
+          id?: string
+          name?: string
+          request_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       rate_limit_buckets: {
         Row: {

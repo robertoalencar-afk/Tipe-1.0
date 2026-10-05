@@ -28,3 +28,4 @@
 - register_table_payment requires p_idempotency_key (unique per restaurant) and is service_role-only. Why: retries/double-clicks never duplicate payments.
 - Shared item payments use decimal portions with row locking; integer quantity columns remain compatibility shadows. Why: diners can split one item safely without overselling it.
 - Restaurant self-signup goes through the signup_restaurant SECURITY DEFINER RPC (CNPJ, address, no table cap in trial) and restaurant_subscriptions; new restaurants start with restaurants.onboarding_step = "pos", which gates the panel behind OnboardingPdv until finish_onboarding. Why: owners create their own restaurant and connect their PDV first.
+- Legal docs are versioned in src/lib/tipe/legal.ts; acceptances go to legal_acceptances with server-chosen version, and optional scripts must check hasConsent() from src/lib/tipe/consent.ts. Why: provable acceptance and no tracker before consent.
