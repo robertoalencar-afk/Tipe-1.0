@@ -1,4 +1,8 @@
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { CardFields } from "@/components/tipe/CardFields";
+import { cardValid, tokenizeCard, type CardInput } from "@/lib/tipe/pagarme-client";
+import { getPaymentConfig } from "@/lib/tipe/payments.functions";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -10,6 +14,10 @@ const STATUS: Record<string, string> = { trialing: "Teste grátis", active: "Ati
 export function Assinatura({ slug }: { slug: string }) {
   const fetchSub = useServerFn(getSubscription);
   const start = useServerFn(startSubscription);
+  const [card, setCard] = useState<CardInput>({ number: "", holder: "", exp: "", cvv: "" });
+  const [pk, setPk] = useState<string | null>(null);
+  const [busy, setBusy] = useState(false);
+  useEffect(() => { getPaymentConfig().then((c) => setPk(c.publicKey)).catch(() => undefined); }, []);
   const q = useQuery({ queryKey: ["subscription", slug], queryFn: () => fetchSub({ data: { slug } }) });
   if (q.isLoading) return <p className="text-muted-foreground">Carregando…</p>;
   const s = q.data;
@@ -29,7 +37,15 @@ export function Assinatura({ slug }: { slug: string }) {
           <p className="mt-1 text-sm text-muted-foreground">Termina em {new Date(s.trial_ends_at).toLocaleDateString("pt-BR")}. Nenhuma cobrança foi feita até agora.</p>
         </div>
       )}
-      <Button className="mt-5 w-full" onClick={async () => { const r = await start({ data: { slug } }); if (r.ok) toast.success("Assinatura ativada"); else toast.info(r.message); }}>Ativar assinatura mensal</Button>
+      {pk && <div className="mt-5"><p className="mb-2 text-sm font-semibold">Cartão para cobrança mensal</p><CardFields value={card} onChange={setCard} /></div>}
+      <Button className="mt-5 w-full" disabled={busy || (!!pk && !cardValid(card))} onClick={async () => {
+        setBusy(true);
+        try {
+          const cardToken = pk ? await tokenizeCard(pk, card) : undefined;
+          const r = await start({ data: { slug, cardToken } });
+          if (r.ok) { toast.success(r.message); void q.refetch(); } else toast.info(r.message);
+        } catch (e) { toast.error((e as Error).message); } finally { setBusy(false); }
+      }}>{busy ? "Processando…" : "Ativar assinatura mensal"}</Button>
       <p className="mt-3 text-center text-xs text-muted-foreground">Sem fidelidade. Cancele quando quiser.</p>
     </div>
   );
