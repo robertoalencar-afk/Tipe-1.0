@@ -10,7 +10,6 @@ import { TipeLogo } from "@/components/tipe/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { SaquesGarcons } from "@/components/tipe/SaquesGarcons";
 import { claimFounder, createRestaurant, getMyAccess } from "@/lib/tipe/staff.functions";
 
 export const Route = createFileRoute("/_authenticated/painel")({
@@ -62,7 +61,12 @@ function Painel() {
         {access.isLoading && <p className="text-muted-foreground">Carregando…</p>}
         {access.error && <p className="text-destructive">{(access.error as Error).message}</p>}
         {access.data && !slug && <SemAcesso isFounder={access.data.isFounder} email={access.data.email} />}
-        {access.data?.isFounder && <SaquesGarcons />}
+        {access.data?.isFounder && (
+          <Link to="/fundador" className="mb-4 block rounded-2xl border border-primary bg-primary/10 p-5 hover:bg-primary/15">
+            <div className="font-display text-lg font-bold">Painel do fundador</div>
+            <div className="text-sm text-muted-foreground">Restaurantes, garçons, assinaturas, saques, interessados e indicadores.</div>
+          </Link>
+        )}
         {access.data?.isFounder && <NovoRestaurante />}
         {access.data && access.data.restaurants.length > 0 && (
           <div className="grid gap-3 sm:grid-cols-2">

@@ -20,6 +20,7 @@ import { Route as TermosRouteImport } from './routes/termos'
 import { Route as TermosParceirosRouteImport } from './routes/termos-parceiros'
 import { Route as RestauranteIndexRouteImport } from './routes/$restaurante.index'
 import { Route as RestauranteMesaRouteImport } from './routes/$restaurante.$mesa'
+import { Route as AuthenticatedFundadorRouteImport } from './routes/_authenticated/fundador'
 import { Route as AuthenticatedGarcomRouteImport } from './routes/_authenticated/garcom'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as PrivacidadeIndexRouteImport } from './routes/privacidade.index'
@@ -82,6 +83,11 @@ const RestauranteMesaRoute = RestauranteMesaRouteImport.update({
   path: '/$restaurante/$mesa',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedFundadorRoute = AuthenticatedFundadorRouteImport.update({
+  id: '/fundador',
+  path: '/fundador',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedGarcomRoute = AuthenticatedGarcomRouteImport.update({
   id: '/garcom',
   path: '/garcom',
@@ -128,6 +134,7 @@ export interface FileRoutesByFullPath {
   '/termos': typeof TermosRoute
   '/termos-parceiros': typeof TermosParceirosRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
+  '/fundador': typeof AuthenticatedFundadorRoute
   '/garcom': typeof AuthenticatedGarcomRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
@@ -147,6 +154,7 @@ export interface FileRoutesByTo {
   '/termos': typeof TermosRoute
   '/termos-parceiros': typeof TermosParceirosRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
+  '/fundador': typeof AuthenticatedFundadorRoute
   '/garcom': typeof AuthenticatedGarcomRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
@@ -168,6 +176,7 @@ export interface FileRoutesById {
   '/termos': typeof TermosRoute
   '/termos-parceiros': typeof TermosParceirosRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
+  '/_authenticated/fundador': typeof AuthenticatedFundadorRoute
   '/_authenticated/garcom': typeof AuthenticatedGarcomRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
@@ -189,6 +198,7 @@ export interface FileRouteTypes {
     | '/termos'
     | '/termos-parceiros'
     | '/$restaurante/$mesa'
+    | '/fundador'
     | '/garcom'
     | '/painel'
     | '/privacidade/solicitacao'
@@ -208,6 +218,7 @@ export interface FileRouteTypes {
     | '/termos'
     | '/termos-parceiros'
     | '/$restaurante/$mesa'
+    | '/fundador'
     | '/garcom'
     | '/painel'
     | '/privacidade/solicitacao'
@@ -228,6 +239,7 @@ export interface FileRouteTypes {
     | '/termos'
     | '/termos-parceiros'
     | '/$restaurante/$mesa'
+    | '/_authenticated/fundador'
     | '/_authenticated/garcom'
     | '/_authenticated/painel'
     | '/privacidade/solicitacao'
@@ -336,6 +348,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RestauranteMesaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/fundador': {
+      id: '/_authenticated/fundador'
+      path: '/fundador'
+      fullPath: '/fundador'
+      preLoaderRoute: typeof AuthenticatedFundadorRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/garcom': {
       id: '/_authenticated/garcom'
       path: '/garcom'
@@ -389,11 +408,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedFundadorRoute: typeof AuthenticatedFundadorRoute
   AuthenticatedGarcomRoute: typeof AuthenticatedGarcomRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedFundadorRoute: AuthenticatedFundadorRoute,
   AuthenticatedGarcomRoute: AuthenticatedGarcomRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
 }
