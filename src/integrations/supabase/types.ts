@@ -28,6 +28,7 @@ export type Database = {
           restaurant_slug: string
           status: string
           table_number: string
+          waiter_id: string | null
         }
         Insert: {
           amount: number
@@ -42,6 +43,7 @@ export type Database = {
           restaurant_slug: string
           status: string
           table_number: string
+          waiter_id?: string | null
         }
         Update: {
           amount?: number
@@ -56,6 +58,7 @@ export type Database = {
           restaurant_slug?: string
           status?: string
           table_number?: string
+          waiter_id?: string | null
         }
         Relationships: []
       }
@@ -457,25 +460,31 @@ export type Database = {
           active: boolean
           code: string
           created_at: string
+          email: string | null
           id: string
           name: string
           restaurant_id: string
+          user_id: string | null
         }
         Insert: {
           active?: boolean
           code: string
           created_at?: string
+          email?: string | null
           id?: string
           name: string
           restaurant_id: string
+          user_id?: string | null
         }
         Update: {
           active?: boolean
           code?: string
           created_at?: string
+          email?: string | null
           id?: string
           name?: string
           restaurant_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
@@ -1008,6 +1017,7 @@ export type Database = {
           status: string
           table_number: string
           updated_at: string
+          waiter_id: string | null
         }
         Insert: {
           amount: number
@@ -1024,6 +1034,7 @@ export type Database = {
           status?: string
           table_number: string
           updated_at?: string
+          waiter_id?: string | null
         }
         Update: {
           amount?: number
@@ -1040,8 +1051,17 @@ export type Database = {
           status?: string
           table_number?: string
           updated_at?: string
+          waiter_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "table_payment_requests_waiter_id_fkey"
+            columns: ["waiter_id"]
+            isOneToOne: false
+            referencedRelation: "pdv_waiters"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
@@ -1071,6 +1091,107 @@ export type Database = {
             columns: ["restaurant_id"]
             isOneToOne: false
             referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      waiter_payout_accounts: {
+        Row: {
+          holder_document: string
+          holder_name: string
+          pix_key: string
+          pix_key_type: string
+          updated_at: string
+          waiter_id: string
+        }
+        Insert: {
+          holder_document: string
+          holder_name: string
+          pix_key: string
+          pix_key_type: string
+          updated_at?: string
+          waiter_id: string
+        }
+        Update: {
+          holder_document?: string
+          holder_name?: string
+          pix_key?: string
+          pix_key_type?: string
+          updated_at?: string
+          waiter_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waiter_payout_accounts_waiter_id_fkey"
+            columns: ["waiter_id"]
+            isOneToOne: true
+            referencedRelation: "pdv_waiters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      waiter_withdrawals: {
+        Row: {
+          amount: number
+          cycle_end: string
+          holder_name: string
+          id: string
+          note: string | null
+          pix_key: string
+          pix_key_type: string
+          requested_at: string
+          resolved_at: string | null
+          resolved_by: string | null
+          restaurant_id: string
+          scheduled_for: string
+          status: string
+          waiter_id: string
+        }
+        Insert: {
+          amount: number
+          cycle_end: string
+          holder_name: string
+          id?: string
+          note?: string | null
+          pix_key: string
+          pix_key_type: string
+          requested_at?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          restaurant_id: string
+          scheduled_for: string
+          status?: string
+          waiter_id: string
+        }
+        Update: {
+          amount?: number
+          cycle_end?: string
+          holder_name?: string
+          id?: string
+          note?: string | null
+          pix_key?: string
+          pix_key_type?: string
+          requested_at?: string
+          resolved_at?: string | null
+          resolved_by?: string | null
+          restaurant_id?: string
+          scheduled_for?: string
+          status?: string
+          waiter_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waiter_withdrawals_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waiter_withdrawals_waiter_id_fkey"
+            columns: ["waiter_id"]
+            isOneToOne: false
+            referencedRelation: "pdv_waiters"
             referencedColumns: ["id"]
           },
         ]
@@ -1211,6 +1332,16 @@ export type Database = {
         Args: { p_item_id: string }
         Returns: undefined
       }
+      tipe_cycle_start: { Args: { p_at?: string }; Returns: string }
+      waiter_balance: {
+        Args: { p_waiter: string }
+        Returns: {
+          available: number
+          current_cycle: number
+          withdrawn: number
+        }[]
+      }
+      waiter_request_withdrawal: { Args: { p_waiter: string }; Returns: string }
     }
     Enums: {
       app_role: "founder" | "owner" | "cashier" | "waiter"

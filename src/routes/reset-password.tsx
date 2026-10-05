@@ -33,7 +33,7 @@ function ResetPassword() {
       toast.error("Não foi possível salvar. Abra novamente o link do e-mail ou escolha uma senha mais forte.");
     } else {
       toast.success("Senha atualizada");
-      navigate({ to: "/painel" });
+      navigate({ to: new URLSearchParams(window.location.search).has("garcom") ? "/garcom" : "/painel" });
     }
   }
 

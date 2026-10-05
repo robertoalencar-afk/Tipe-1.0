@@ -20,6 +20,7 @@ import { Caixa, Configuracoes, Cozinha, Inicio, Integracoes, Relatorios } from "
 import { TotemStudio } from "@/components/tipe/TotemStudio";
 import { Assinatura } from "@/components/tipe/Assinatura";
 import { Recebimentos } from "@/components/tipe/Recebimentos";
+import { grantWaiterAccess } from "@/lib/tipe/waiter.functions";
 import { Landmark } from "lucide-react";
 import { OnboardingPdv } from "@/components/tipe/OnboardingPdv";
 
@@ -550,6 +551,8 @@ function Cardapio({ slug, pdv, onDone }: { slug: string; pdv: PdvData; onDone: (
 
 function Garcons({ slug, pdv, onDone }: { slug: string; pdv: PdvData; onDone: () => void }) {
   const saveW = useServerFn(saveWaiter);
+  const grant = useServerFn(grantWaiterAccess);
+  const [acesso, setAcesso] = useState<{ id: string; email: string } | null>(null);
   const [w, setW] = useState({ code: "", name: "" });
   async function run(fn: () => Promise<unknown>, ok: string) {
     try { await fn(); toast.success(ok); onDone(); return true; } catch (e) { toast.error((e as Error).message); return false; }
@@ -557,15 +560,28 @@ function Garcons({ slug, pdv, onDone }: { slug: string; pdv: PdvData; onDone: ()
   return (
     <div className="space-y-3 rounded-2xl border border-border bg-card p-4">
       <h3 className="font-semibold">Garçons</h3>
-      <p className="text-xs text-muted-foreground">Garçons aparecem no lançamento de pedidos e na conta do cliente. Não precisam ter login.</p>
+      <p className="text-xs text-muted-foreground">Garçons aparecem no lançamento de pedidos e na conta do cliente. Libere o acesso para o garçom acompanhar gorjetas e sacar pela área do garçom.</p>
       <ul className="grid gap-1 text-sm sm:grid-cols-2">
         {pdv.waiters.map((x) => (
           <li key={x.id} className="flex items-center justify-between rounded-lg bg-muted/50 px-2">
             <span className={x.active ? "" : "line-through opacity-60"}>{x.code} · {x.name}</span>
-            <Button size="sm" variant="ghost" onClick={() => run(() => saveW({ data: { slug, id: x.id, code: x.code, name: x.name, active: !x.active } }), "Garçom atualizado")}>{x.active ? "Desativar" : "Ativar"}</Button>
+            <span className="flex items-center">
+              {x.active && (x.user_id ? <span className="px-2 text-xs text-primary" title={x.email ?? ""}>Com acesso</span> : <Button size="sm" variant="ghost" onClick={() => setAcesso({ id: x.id, email: "" })}>Dar acesso</Button>)}
+              <Button size="sm" variant="ghost" onClick={() => run(() => saveW({ data: { slug, id: x.id, code: x.code, name: x.name, active: !x.active } }), "Garçom atualizado")}>{x.active ? "Desativar" : "Ativar"}</Button>
+            </span>
           </li>
         ))}
       </ul>
+      {acesso && (
+        <form className="flex max-w-md flex-wrap gap-2 rounded-lg bg-muted/50 p-2" onSubmit={async (e) => {
+          e.preventDefault();
+          if (await run(async () => { const r = await grant({ data: { slug, waiterId: acesso.id, email: acesso.email } }); if (!r.invited) toast.info("Esse e-mail já tinha conta: o garçom entra com a senha dele (ou usa “Esqueci a senha”)."); }, "Convite enviado: o garçom define a senha pelo link no e-mail")) setAcesso(null);
+        }}>
+          <Input required type="email" className="flex-1" placeholder="E-mail do garçom" value={acesso.email} onChange={(e) => setAcesso({ ...acesso, email: e.target.value })} />
+          <Button type="submit" size="sm">Enviar convite</Button>
+          <Button type="button" size="sm" variant="ghost" onClick={() => setAcesso(null)}>Cancelar</Button>
+        </form>
+      )}
       <form className="flex max-w-md gap-2" onSubmit={async (e) => {
         e.preventDefault();
         if (await run(() => saveW({ data: { slug, ...w, active: true } }), "Garçom cadastrado")) setW({ code: "", name: "" });

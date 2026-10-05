@@ -73,7 +73,7 @@ export const getPdvData = createServerFn({ method: "GET" })
     const [cats, items, waiters, tables] = await Promise.all([
       context.supabase.from("pdv_menu_categories").select("id, name, position").eq("restaurant_id", rid).order("position"),
       context.supabase.from("pdv_menu_items").select("id, category_id, code, name, price, available, position, sector, description").eq("restaurant_id", rid).order("position"),
-      context.supabase.from("pdv_waiters").select("id, code, name, active").eq("restaurant_id", rid).order("code"),
+      context.supabase.from("pdv_waiters").select("id, code, name, active, email, user_id").eq("restaurant_id", rid).order("code"),
       context.supabase.from("restaurant_tables").select("id, number, code, active, access_token, waiter_id").eq("restaurant_id", rid),
     ]);
     return {

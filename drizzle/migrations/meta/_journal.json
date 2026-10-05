@@ -36,6 +36,13 @@
       "when": 1791229180920,
       "tag": "0004_pagarme_integration",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791230367759,
+      "tag": "0005_waiter_area",
+      "breakpoints": true
     }
   ]
 }
