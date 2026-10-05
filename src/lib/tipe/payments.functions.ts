@@ -19,8 +19,8 @@ export type PaymentResult = {
   id: string;
   status: "approved" | "pending";
   provider: "pagarme" | "simulado" | "estabelecimento";
-  pixCode?: string;
-  pixQrUrl?: string;
+  pixCode?: string | undefined;
+  pixQrUrl?: string | undefined;
 };
 
 // Pagamentos digitais via Pagar.me (Pix e cartão tokenizado no navegador).

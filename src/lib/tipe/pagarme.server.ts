@@ -16,7 +16,7 @@ export async function pagarme<T = any>(path: string, init: { method?: string; bo
       "Content-Type": "application/json",
       ...(init.idempotencyKey ? { "Idempotency-Key": init.idempotencyKey } : {}),
     },
-    body: init.body ? JSON.stringify(init.body) : undefined,
+    body: init.body ? JSON.stringify(init.body) : null,
   });
   const j = await res.json().catch(() => ({}));
   if (!res.ok) {

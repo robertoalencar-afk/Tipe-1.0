@@ -128,7 +128,7 @@ function MesaPage() {
   const [sessaoMesa, setSessaoMesa] = useState("");
   const [cartao, setCartao] = useState<CardInput>({ number: "", holder: "", exp: "", cvv: "" });
   const [chavePublica, setChavePublica] = useState<string | null>(null);
-  const [pix, setPix] = useState<{ id: string; code: string; qrUrl?: string; tipo: "conta" | "gorjeta" } | null>(null);
+  const [pix, setPix] = useState<{ id: string; code: string; qrUrl?: string | undefined; tipo: "conta" | "gorjeta" } | null>(null);
   useEffect(() => { getPaymentConfig().then((c) => setChavePublica(c.publicKey)).catch(() => undefined); }, []);
   const chavePagamento = useRef<string | null>(null);
 

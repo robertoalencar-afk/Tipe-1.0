@@ -24,6 +24,7 @@ import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated
 import { Route as PrivacidadeIndexRouteImport } from './routes/privacidade.index'
 import { Route as PrivacidadeSolicitacaoRouteImport } from './routes/privacidade.solicitacao'
 import { Route as MesaRestauranteMesaRouteImport } from './routes/mesa.$restaurante.$mesa'
+import { Route as ApiPublicPagarmeWebhookRouteImport } from './routes/api/public/pagarme/webhook'
 import { Route as ApiPublicPosSlugRouteImport } from './routes/api/public/pos.$slug'
 
 const IndexRoute = IndexRouteImport.update({
@@ -100,6 +101,11 @@ const MesaRestauranteMesaRoute = MesaRestauranteMesaRouteImport.update({
   path: '/mesa/$restaurante/$mesa',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPagarmeWebhookRoute = ApiPublicPagarmeWebhookRouteImport.update({
+  id: '/api/public/pagarme/webhook',
+  path: '/api/public/pagarme/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPosSlugRoute = ApiPublicPosSlugRouteImport.update({
   id: '/api/public/pos/$slug',
   path: '/api/public/pos/$slug',
@@ -121,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/$restaurante/': typeof RestauranteIndexRoute
   '/privacidade/': typeof PrivacidadeIndexRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
+  '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
 }
 export interface FileRoutesByTo {
@@ -138,6 +145,7 @@ export interface FileRoutesByTo {
   '/$restaurante': typeof RestauranteIndexRoute
   '/privacidade': typeof PrivacidadeIndexRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
+  '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
 }
 export interface FileRoutesById {
@@ -157,6 +165,7 @@ export interface FileRoutesById {
   '/$restaurante/': typeof RestauranteIndexRoute
   '/privacidade/': typeof PrivacidadeIndexRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
+  '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
 }
 export interface FileRouteTypes {
@@ -176,6 +185,7 @@ export interface FileRouteTypes {
     | '/$restaurante/'
     | '/privacidade/'
     | '/mesa/$restaurante/$mesa'
+    | '/api/public/pagarme/webhook'
     | '/api/public/pos/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -193,6 +203,7 @@ export interface FileRouteTypes {
     | '/$restaurante'
     | '/privacidade'
     | '/mesa/$restaurante/$mesa'
+    | '/api/public/pagarme/webhook'
     | '/api/public/pos/$slug'
   id:
     | '__root__'
@@ -211,6 +222,7 @@ export interface FileRouteTypes {
     | '/$restaurante/'
     | '/privacidade/'
     | '/mesa/$restaurante/$mesa'
+    | '/api/public/pagarme/webhook'
     | '/api/public/pos/$slug'
   fileRoutesById: FileRoutesById
 }
@@ -229,6 +241,7 @@ export interface RootRouteChildren {
   RestauranteIndexRoute: typeof RestauranteIndexRoute
   PrivacidadeIndexRoute: typeof PrivacidadeIndexRoute
   MesaRestauranteMesaRoute: typeof MesaRestauranteMesaRoute
+  ApiPublicPagarmeWebhookRoute: typeof ApiPublicPagarmeWebhookRoute
   ApiPublicPosSlugRoute: typeof ApiPublicPosSlugRoute
 }
 
@@ -339,6 +352,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MesaRestauranteMesaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/pagarme/webhook': {
+      id: '/api/public/pagarme/webhook'
+      path: '/api/public/pagarme/webhook'
+      fullPath: '/api/public/pagarme/webhook'
+      preLoaderRoute: typeof ApiPublicPagarmeWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/pos/$slug': {
       id: '/api/public/pos/$slug'
       path: '/api/public/pos/$slug'
@@ -375,6 +395,7 @@ const rootRouteChildren: RootRouteChildren = {
   RestauranteIndexRoute: RestauranteIndexRoute,
   PrivacidadeIndexRoute: PrivacidadeIndexRoute,
   MesaRestauranteMesaRoute: MesaRestauranteMesaRoute,
+  ApiPublicPagarmeWebhookRoute: ApiPublicPagarmeWebhookRoute,
   ApiPublicPosSlugRoute: ApiPublicPosSlugRoute,
 }
 export const routeTree = rootRouteImport
