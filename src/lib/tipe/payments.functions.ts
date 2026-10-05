@@ -83,6 +83,12 @@ export const createPayment = createServerFn({ method: "POST" })
         console.error("register_table_payment", error.message);
         throw new Error(error.message.includes("não está mais disponível") ? "Um item selecionado acabou de ser pago por outra pessoa. A conta foi atualizada." : error.message.includes("já registrado") ? "Este pagamento já foi registrado." : "Não foi possível atualizar a conta");
       }
+      // Vincula o pagamento ao garçom da mesa (usado nas gorjetas e vendas do garçom).
+      const { data: rest } = await supabaseAdmin.from("restaurants").select("id").eq("slug", data.restaurantId).maybeSingle();
+      if (rest) {
+        const { data: t } = await supabaseAdmin.from("restaurant_tables").select("waiter_id").eq("restaurant_id", rest.id).eq("number", data.tableId).maybeSingle();
+        if (t?.waiter_id) await supabaseAdmin.from("table_payment_requests").update({ waiter_id: t.waiter_id }).eq("id", payId as unknown as string);
+      }
       return payId as unknown as string;
     };
 
