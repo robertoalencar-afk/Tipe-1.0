@@ -222,3 +222,21 @@ export const reopenClosedTable = createServerFn({ method: "POST" })
     if (error) throw new Error("Não foi possível reabrir a mesa");
     return { reopened: true };
   });
+
+// Chave pública do Pagar.me (publicável) para tokenizar cartões no navegador.
+export const getPaymentConfig = createServerFn({ method: "GET" }).handler(async () => ({
+  live: !!process.env["PAGARME_SECRET_KEY"],
+  publicKey: process.env["PAGARME_PUBLIC_KEY"] ?? null,
+}));
+
+// Situação de um pagamento da própria mesa (usado para acompanhar o Pix).
+export const getPaymentStatus = createServerFn({ method: "GET" })
+  .inputValidator((d) => TableInput.extend({ paymentId: z.string().uuid() }).parse(d))
+  .handler(async ({ data }) => {
+    const { verifyTableSession } = await import("./security.server");
+    if (!(await verifyTableSession(data.restaurantId, data.tableId, data.session))) throw new Error("Sessão da mesa expirada");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: p } = await supabaseAdmin.from("table_payment_requests").select("status")
+      .eq("id", data.paymentId).eq("restaurant_slug", data.restaurantId).eq("table_number", data.tableId).maybeSingle();
+    return { status: (p?.status ?? "failed") as "pending" | "approved" | "cancelled" | "failed" };
+  });
