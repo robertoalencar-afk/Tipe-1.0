@@ -20,6 +20,7 @@ import { Route as TermosRouteImport } from './routes/termos'
 import { Route as TermosParceirosRouteImport } from './routes/termos-parceiros'
 import { Route as RestauranteIndexRouteImport } from './routes/$restaurante.index'
 import { Route as RestauranteMesaRouteImport } from './routes/$restaurante.$mesa'
+import { Route as AuthenticatedGarcomRouteImport } from './routes/_authenticated/garcom'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as PrivacidadeIndexRouteImport } from './routes/privacidade.index'
 import { Route as PrivacidadeSolicitacaoRouteImport } from './routes/privacidade.solicitacao'
@@ -81,6 +82,11 @@ const RestauranteMesaRoute = RestauranteMesaRouteImport.update({
   path: '/$restaurante/$mesa',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedGarcomRoute = AuthenticatedGarcomRouteImport.update({
+  id: '/garcom',
+  path: '/garcom',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
   id: '/painel',
   path: '/painel',
@@ -122,6 +128,7 @@ export interface FileRoutesByFullPath {
   '/termos': typeof TermosRoute
   '/termos-parceiros': typeof TermosParceirosRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
+  '/garcom': typeof AuthenticatedGarcomRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
   '/$restaurante/': typeof RestauranteIndexRoute
@@ -140,6 +147,7 @@ export interface FileRoutesByTo {
   '/termos': typeof TermosRoute
   '/termos-parceiros': typeof TermosParceirosRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
+  '/garcom': typeof AuthenticatedGarcomRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
   '/$restaurante': typeof RestauranteIndexRoute
@@ -160,6 +168,7 @@ export interface FileRoutesById {
   '/termos': typeof TermosRoute
   '/termos-parceiros': typeof TermosParceirosRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
+  '/_authenticated/garcom': typeof AuthenticatedGarcomRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
   '/$restaurante/': typeof RestauranteIndexRoute
@@ -180,6 +189,7 @@ export interface FileRouteTypes {
     | '/termos'
     | '/termos-parceiros'
     | '/$restaurante/$mesa'
+    | '/garcom'
     | '/painel'
     | '/privacidade/solicitacao'
     | '/$restaurante/'
@@ -198,6 +208,7 @@ export interface FileRouteTypes {
     | '/termos'
     | '/termos-parceiros'
     | '/$restaurante/$mesa'
+    | '/garcom'
     | '/painel'
     | '/privacidade/solicitacao'
     | '/$restaurante'
@@ -217,6 +228,7 @@ export interface FileRouteTypes {
     | '/termos'
     | '/termos-parceiros'
     | '/$restaurante/$mesa'
+    | '/_authenticated/garcom'
     | '/_authenticated/painel'
     | '/privacidade/solicitacao'
     | '/$restaurante/'
@@ -324,6 +336,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RestauranteMesaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/garcom': {
+      id: '/_authenticated/garcom'
+      path: '/garcom'
+      fullPath: '/garcom'
+      preLoaderRoute: typeof AuthenticatedGarcomRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/painel': {
       id: '/_authenticated/painel'
       path: '/painel'
@@ -370,10 +389,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedGarcomRoute: typeof AuthenticatedGarcomRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedGarcomRoute: AuthenticatedGarcomRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
 }
 
