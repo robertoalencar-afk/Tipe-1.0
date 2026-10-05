@@ -35,6 +35,11 @@ export const grantWaiterAccess = createServerFn({ method: "POST" })
       }
     }
     if (!userId) throw new Error("Não foi possível enviar o convite para esse e-mail");
+    // Conta já existente: envia o link para definir/redefinir a senha e entrar na área do garçom.
+    if (!invited) {
+      const { error: rErr } = await supabaseAdmin.auth.resetPasswordForEmail(data.email, { redirectTo: `${origin}/reset-password?garcom=1` });
+      if (rErr) console.error("waiter reset email", rErr.message);
+    }
     const { data: other } = await supabaseAdmin.from("pdv_waiters").select("id").eq("user_id", userId).neq("id", w.id).maybeSingle();
     if (other) throw new Error("Esse e-mail já está ligado a outro garçom");
 

@@ -575,7 +575,7 @@ function Garcons({ slug, pdv, onDone }: { slug: string; pdv: PdvData; onDone: ()
       {acesso && (
         <form className="flex max-w-md flex-wrap gap-2 rounded-lg bg-muted/50 p-2" onSubmit={async (e) => {
           e.preventDefault();
-          if (await run(async () => { const r = await grant({ data: { slug, waiterId: acesso.id, email: acesso.email } }); if (!r.invited) toast.info("Esse e-mail já tinha conta: o garçom entra com a senha dele (ou usa “Esqueci a senha”)."); }, "Convite enviado: o garçom define a senha pelo link no e-mail")) setAcesso(null);
+          if (await run(async () => { const r = await grant({ data: { slug, waiterId: acesso.id, email: acesso.email } }); if (!r.invited) toast.info("Esse e-mail já tinha conta: enviamos um link para o garçom definir a senha."); }, "E-mail enviado: o garçom define a senha pelo link")) setAcesso(null);
         }}>
           <Input required type="email" className="flex-1" placeholder="E-mail do garçom" value={acesso.email} onChange={(e) => setAcesso({ ...acesso, email: e.target.value })} />
           <Button type="submit" size="sm">Enviar convite</Button>
