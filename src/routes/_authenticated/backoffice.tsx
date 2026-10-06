@@ -16,7 +16,7 @@ import { SaquesGarcons } from "@/components/tipe/SaquesGarcons";
 import { getFounderOverview } from "@/lib/tipe/founder.functions";
 import { createRestaurant } from "@/lib/tipe/staff.functions";
 
-export const Route = createFileRoute("/_authenticated/fundador")({
+export const Route = createFileRoute("/_authenticated/backoffice")({
   head: () => ({ meta: [
     { title: "Backoffice administrativo e financeiro | TIPE" },
     { name: "description", content: "Operação, clientes, assinaturas, suporte e governança da TIPE." },
