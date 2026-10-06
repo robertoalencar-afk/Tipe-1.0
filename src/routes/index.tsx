@@ -13,6 +13,7 @@ import logo from "@/assets/logo-dark.png.asset.json";
 import mascotAssistant from "@/assets/lebre-ai-official.svg";
 import { LebreAssistant } from "@/components/tipe/LebreAssistant";
 import { PaymentJourneyDemo } from "@/components/tipe/PaymentJourneyDemo";
+import { MesaViva } from "@/components/tipe/MesaViva";
 import { Button } from "@/components/ui/button";
 import { COMPANY } from "@/lib/tipe/legal";
 
@@ -44,6 +45,7 @@ function LandingPage() {
     <div className="min-h-screen bg-background text-foreground">
       <Header />
       <main>
+        <MesaViva />
         <Hero />
         <Stats />
         <Dinamica />

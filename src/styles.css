@@ -299,3 +299,37 @@
     animation: none;
   }
 }
+
+/* Mesa viva: animação de abertura da landing */
+@keyframes mv-word { from { opacity: 0; transform: translateY(0.6em) skewY(4deg); filter: blur(8px); } to { opacity: 1; transform: none; filter: none; } }
+@keyframes mv-echo { 0% { opacity: 0; transform: translateY(0.6em); } 40% { opacity: 1; } 100% { opacity: 0; transform: translateY(-0.25em); } }
+@keyframes mv-pop { from { opacity: 0; transform: scale(0.4); } 70% { transform: scale(1.08); } to { opacity: 1; transform: scale(1); } }
+@keyframes mv-rise { from { opacity: 0; transform: translateY(60px) rotate(-4deg); } to { opacity: 1; transform: none; } }
+@keyframes mv-slide { from { opacity: 0; transform: translateX(24px); } to { opacity: 1; transform: none; } }
+@keyframes mv-draw { from { stroke-dasharray: 1; stroke-dashoffset: 1; } to { stroke-dasharray: 1; stroke-dashoffset: 0; } }
+@keyframes mv-float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-12px); } }
+@keyframes mv-scan { 0%,100% { top: 12%; } 50% { top: 85%; } }
+@keyframes mv-ripple { from { opacity: 0.8; transform: scale(1); } to { opacity: 0; transform: scale(2.4); } }
+@keyframes mv-fill { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@keyframes mv-progress { from { width: 0; } to { width: 100%; } }
+@keyframes mv-aura { from { opacity: 0; transform: translateY(-50%) scale(0.7); } to { opacity: 1; transform: translateY(-50%) scale(1); } }
+@keyframes mv-spin { to { transform: rotate(360deg); } }
+.mv-word { opacity: 0; animation: mv-word 0.75s cubic-bezier(0.2, 0.8, 0.2, 1) forwards; }
+.mv-echo { opacity: 0; animation: mv-echo 0.9s ease-out forwards; }
+.mv-pop { opacity: 0; animation: mv-pop 0.6s cubic-bezier(0.3, 1.4, 0.5, 1) forwards; }
+.mv-rise { animation: mv-rise 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.mv-slide { opacity: 0; animation: mv-slide 0.5s ease-out forwards; }
+.mv-draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: mv-draw 1.2s ease-in-out forwards; }
+.mv-float { animation: mv-float 3.2s ease-in-out infinite; }
+.mv-scan { animation: mv-scan 1.6s ease-in-out infinite; }
+.mv-ripple { opacity: 0; animation: mv-ripple 1.4s ease-out infinite; }
+.mv-fill { transform: scaleX(0); transform-origin: left; animation: mv-fill 0.4s ease-out forwards; }
+.mv-progress { animation: mv-progress linear forwards; }
+.mv-aura { animation: mv-aura 1.2s ease-out both; }
+.mv-spin-slow { animation: mv-spin 24s linear infinite; }
+.mv-glow { filter: drop-shadow(0 0 18px color-mix(in oklab, var(--primary) 60%, transparent)); }
+@media (prefers-reduced-motion: reduce) {
+  .mv-word, .mv-pop, .mv-slide, .mv-rise, .mv-draw, .mv-fill { animation: none; opacity: 1; transform: none; stroke-dashoffset: 0; filter: none; }
+  .mv-echo, .mv-ripple { display: none; }
+  .mv-float, .mv-scan, .mv-spin-slow { animation: none; }
+}
