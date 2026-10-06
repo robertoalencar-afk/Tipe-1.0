@@ -71,14 +71,12 @@ export function CookieBanner() {
   const decidir = (v: Escolha) => { saveConsent(v); setVisivel(false); };
   return (
     <>
-      <div role="dialog" aria-label="Aviso de cookies" className="fixed inset-x-3 bottom-3 z-50 mx-auto max-w-2xl rounded-2xl border bg-card p-4 text-card-foreground shadow-xl sm:inset-x-6 sm:bottom-6 sm:p-5">
-        <p className="text-sm font-semibold">Sua privacidade importa</p>
-        <p className="mt-1 text-xs leading-5 text-muted-foreground">
-          Usamos apenas o essencial para o TIPE funcionar, como manter seu acesso e sua identificação na mesa. Você escolhe sobre o restante. Saiba mais na <Link to="/cookies" className="font-medium text-primary underline-offset-2 hover:underline">Política de Cookies</Link>.
+      <div role="dialog" aria-label="Aviso de cookies" className="fixed inset-x-3 bottom-3 z-50 mx-auto max-w-2xl rounded-2xl border border-border/40 bg-background/60 p-4 text-foreground shadow-lg backdrop-blur-md sm:inset-x-6 sm:bottom-6">
+        <p className="text-xs leading-5 text-muted-foreground">
+          Usamos cookies para o site funcionar e, com o seu aceite, para melhorar sua experiência. <Link to="/cookies" className="font-medium text-primary underline-offset-2 hover:underline">Saiba mais</Link>
         </p>
-        <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
-          <Button size="sm" variant="ghost" onClick={() => setOpen(true)}>Gerenciar preferências</Button>
-          <Button size="sm" variant="outline" onClick={() => decidir(NENHUM)}>Rejeitar não essenciais</Button>
+        <div className="mt-3 grid grid-cols-2 gap-2">
+          <Button size="sm" variant="outline" onClick={() => decidir(NENHUM)}>Não aceitar</Button>
           <Button size="sm" onClick={() => decidir(TODOS)}>Aceitar todos</Button>
         </div>
       </div>
