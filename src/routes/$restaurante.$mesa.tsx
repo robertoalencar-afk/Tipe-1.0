@@ -191,6 +191,7 @@ function MesaPage() {
     && dados.itens.length > 0
     && dados.itens.every((item) => (disponiveis[item.id] ?? item.qtd) <= EPSILON)
     && pagamentos.every((pagamento) => pagamento.status !== "pending");
+  const pagamentoPresencialPendente = pagamentos.find((pagamento) => pagamento.status === "pending" && pagamento.establishment_method);
   const etapaVisivel: Etapa = mesaEncerrada && ["carregando", "identificacao", "conta", "pagamento-conta", "conta-pendente"].includes(etapa)
     ? "mesa-encerrada"
     : etapa;
@@ -511,7 +512,7 @@ function MesaPage() {
           <img src={mascotWaiting} alt="Mascote TIPE aguardando" className="mx-auto mb-3 h-44 w-44 object-contain" />
           <p className="text-sm font-semibold text-highlight">Aguardando confirmação</p>
           <h1 className="mt-2 text-2xl font-bold">Pagamento no estabelecimento</h1>
-          <p className="mt-3 text-center text-sm leading-6 text-muted-foreground">Os itens foram reservados. Pague na maquininha ou em dinheiro. O garçom virá em breve e o restaurante confirmará o recebimento manualmente no sistema.</p>
+          <p className="mt-3 text-center text-sm leading-6 text-muted-foreground">{pagamentoPresencialPendente?.establishment_method === "cash" ? `Prepare o dinheiro. O garçom tratará do seu troco${pagamentoPresencialPendente.change_due !== null && pagamentoPresencialPendente.change_due !== undefined ? ` de ${money(pagamentoPresencialPendente.change_due)}` : ""} em breve.` : "O garçom irá em instantes até sua mesa com a maquininha."}</p>
           <Button onClick={() => setEtapa("avaliacao")} className="mt-8 h-12 w-full rounded-lg text-base font-bold">Avaliar atendimento <ChevronRight /></Button>
           <Button variant="ghost" onClick={() => { setEtapa("conta"); setAba("atividade"); }} className="mt-2 h-11">Ver atividade da mesa</Button>
         </TelaCentral>
@@ -689,6 +690,7 @@ function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, p
                {valorDinheiro && Number(valorDinheiro.replace(",", ".")) < valor && <p role="alert" className="mt-2 text-xs text-destructive">O valor precisa cobrir o total da conta.</p>}
              </div>
            )}
+           {metodoEstabelecimento && <p className="mt-4 text-sm leading-6 text-muted-foreground">{metodoEstabelecimento === "cash" ? "Prepare o dinheiro. O garçom tratará do seu troco em breve." : "O garçom irá em instantes até sua mesa com a maquininha."}</p>}
          </div>
        )}
        {permitirEstabelecimento && (
