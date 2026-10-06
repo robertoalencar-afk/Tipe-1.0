@@ -256,7 +256,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
                   return (
                     <li key={item.id} className={`rounded-2xl border bg-card p-4 shadow-sm transition ${qty > 0 ? "border-2 border-primary bg-primary/10" : "border-border"}`}>
                       <div className="flex items-start justify-between gap-3">
-                       <span className={`mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full border ${qty > 0 ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}>{qty > 0 && <Check className="h-3.5 w-3.5" />}</span>
+                       <button type="button" onClick={() => setQuantities((current) => ({ ...current, [item.id]: qty >= Math.floor(max) ? 0 : Math.floor(qty) + 1 }))} aria-label={`Adicionar uma unidade de ${item.name}`} className={`mt-0.5 grid h-6 w-6 shrink-0 cursor-pointer place-items-center rounded-full border transition ${qty > 0 ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary"}`}>{qty > 0 && <Check className="h-3.5 w-3.5" />}</button>
                        <div className="min-w-0 flex-1"><p className="font-semibold">{item.name}</p><p className="mt-1 text-xs text-muted-foreground">{money(item.price)} cada · {formatPortion(max)} {max > 1 ? "disponíveis" : "disponível"}</p></div>
                         <span className="shrink-0 text-sm font-bold">{money(item.price * qty)}</span>
                       </div>

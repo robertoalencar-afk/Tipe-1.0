@@ -394,7 +394,7 @@ function MesaPage() {
                   return (
                     <li key={item.id} className={`rounded-2xl border bg-card p-4 shadow-sm transition ${quantidade > 0 ? "border-2 border-primary bg-primary/10" : "border-border"}`}>
                       <div className="flex items-start justify-between gap-3">
-                        <span className={`mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full border ${quantidade > 0 ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}>{quantidade > 0 && <Check className="h-3.5 w-3.5" />}</span>
+                        <button type="button" onClick={() => setQtd(item.id, quantidade >= Math.floor(disponivel) ? 0 : Math.floor(quantidade) + 1, disponivel)} aria-label={`Adicionar uma unidade de ${item.nome}`} className={`mt-0.5 grid h-6 w-6 shrink-0 cursor-pointer place-items-center rounded-full border transition ${quantidade > 0 ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary"}`}>{quantidade > 0 && <Check className="h-3.5 w-3.5" />}</button>
                         <div className="min-w-0 flex-1">
                           <p className="font-semibold">{item.nome}</p>
                            <p className="mt-1 text-xs text-muted-foreground">{money(item.preco)} cada · {formatPortion(disponivel)} {disponivel > 1 ? "disponíveis" : "disponível"}</p>
