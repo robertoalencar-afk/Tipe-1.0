@@ -27,7 +27,7 @@ const securityHeadersMiddleware = createMiddleware().server(async ({ next }) => 
     h.set("X-Content-Type-Options", "nosniff");
     h.set("Referrer-Policy", "strict-origin-when-cross-origin");
     h.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
-    h.set("Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(self)");
+    h.set("Permissions-Policy", "camera=(), microphone=(self), geolocation=(), payment=(self)");
     h.set("Content-Security-Policy", "frame-ancestors 'self' https://*.lovable.app https://*.lovable.dev https://lovable.dev https://*.lovableproject.com; object-src 'none'; base-uri 'self'; form-action 'self'");
   }
   return result;

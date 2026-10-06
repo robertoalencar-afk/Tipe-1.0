@@ -39,13 +39,33 @@ function readOutput(body: unknown): string {
   return value.output?.flatMap((item) => item.content ?? []).map((part) => part.text ?? "").join("").trim() ?? "";
 }
 
-async function askModel(instructions: string, question: string) {
+export type LebreFile = { name: string; mediaType: string; dataUrl: string };
+
+const FileSchema = z.object({
+  name: z.string().trim().min(1).max(160),
+  mediaType: z.enum(["image/png", "image/jpeg", "image/webp", "image/gif", "application/pdf"]),
+  dataUrl: z.string().max(7_000_000).regex(/^data:[a-z/+.-]+;base64,[A-Za-z0-9+/=]+$/),
+});
+const Files = z.array(FileSchema).max(3).optional();
+
+function buildInput(question: string, files: LebreFile[] = []) {
+  if (!files.length) return question;
+  const parts: Array<Record<string, string>> = [{ type: "input_text", text: question }];
+  for (const file of files) {
+    if (!file.dataUrl.startsWith(`data:${file.mediaType};base64,`)) throw new Error("Anexo inválido.");
+    if (file.mediaType === "application/pdf") parts.push({ type: "input_file", filename: file.name, file_data: file.dataUrl });
+    else parts.push({ type: "input_image", image_url: file.dataUrl });
+  }
+  return [{ role: "user", content: parts }];
+}
+
+async function askModel(instructions: string, question: string, files?: LebreFile[]) {
   const apiKey = process.env["LOVABLE_API_KEY"];
   if (!apiKey) return "A Lebre está se preparando para responder. Enquanto isso, você pode simular a experiência ou falar com nossa equipe.";
   const response = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
     method: "POST",
     headers: { "Content-Type": "application/json", "Lovable-API-Key": apiKey, "X-Lovable-AIG-SDK": "fetch" },
-    body: JSON.stringify({ model: "openai/gpt-6-astra", instructions, input: question, stream: false, store: false, reasoning: { effort: "low" } }),
+    body: JSON.stringify({ model: "openai/gpt-6-astra", instructions, input: buildInput(question, files), stream: false, store: false, reasoning: { effort: "low" } }),
   });
   if (!response.ok) throw new Error(response.status === 429 ? "A Lebre recebeu muitas perguntas agora. Tente novamente em instantes." : "A Lebre não conseguiu responder agora.");
   const text = readOutput(await response.json());
@@ -54,13 +74,14 @@ async function askModel(instructions: string, question: string) {
 }
 
 export const askPublicLebre = createServerFn({ method: "POST" })
-  .inputValidator((data) => z.object({ question: Question }).parse(data))
+  .inputValidator((data) => z.object({ question: Question, files: Files }).parse(data))
   .handler(async ({ data }): Promise<LebreReply> => {
     const { enforceRate, clientIp } = await import("./security.server");
     await enforceRate(`lebre-public:${clientIp()}`, 12, 60);
     const answer = await askModel(
-      `Você é a Lebre, especialista oficial da TIPE. Responda em português brasileiro, com tom pessoal, claro e breve. Nunca use travessões. Use somente os fatos abaixo. Se não souber, diga que a equipe confirma. Não invente integrações, taxas, resultados ou funcionalidades.\n${publicFacts}`,
+      `Você é a Lebre, especialista oficial da TIPE. Responda em português brasileiro, com tom pessoal, claro e breve. Nunca use travessões. Use somente os fatos abaixo. Se não souber, diga que a equipe confirma. Se receber anexos, descreva com precisão apenas o que aparece neles. Não invente integrações, taxas, resultados ou funcionalidades.\n${publicFacts}`,
       data.question,
+      data.files,
     );
     return { answer };
   });
@@ -97,7 +118,7 @@ function parseIntent(text: string): { reply?: string; action?: unknown } | null 
 
 export const askRestaurantLebre = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => z.object({ slug: Slug, question: Question, history: History }).parse(data))
+  .inputValidator((data) => z.object({ slug: Slug, question: Question, history: History, files: Files }).parse(data))
   .handler(async ({ data, context }): Promise<LebreReply> => {
     const { enforceRate, logSecurityEvent } = await import("./security.server");
     await enforceRate(`lebre-panel:${context.userId}`, 20, 60, data.slug);
@@ -131,8 +152,10 @@ ${canManage ? "" : "Este usuário NÃO pode alterar cadastros. Nunca proponha a�
 Se faltar dado obrigatório (ex.: número da mesa ou e-mail incompleto), pergunte em vez de propor.
 Responda SEMPRE apenas com JSON: {"reply": "texto curto", "action": null ou {"action": "...", ...campos}}.
 Contexto: ${contextText}
-${history ? `Conversa recente:\n${history}` : ""}`,
+${history ? `Conversa recente:\n${history}` : ""}
+Se houver anexos (foto, comprovante, cardápio ou PDF), leia com atenção, descreva só o que realmente aparece e use isso para responder ou propor ações.`,
       data.question,
+      data.files,
     );
     const parsed = parseIntent(raw);
     if (!parsed) return { answer: raw };
@@ -200,4 +223,37 @@ export const executeLebreProposal = createServerFn({ method: "POST" })
     }
     await logSecurityEvent({ action: "lebre_execute", resource: a.action, restaurantSlug: data.slug, restaurantId: rid, actorId: context.userId, detail: `proposal=${data.proposalId}` });
     return { ok: true, message };
+  });
+
+export const transcribeLebreAudio = createServerFn({ method: "POST" })
+  .inputValidator((data) => z.object({
+    mediaType: z.string().regex(/^audio\/(webm|mp4|mpeg|ogg|wav|x-m4a|aac)(;.*)?$/),
+    base64: z.string().min(100).max(6_000_000).regex(/^[A-Za-z0-9+/=]+$/),
+  }).parse(data))
+  .handler(async ({ data }) => {
+    const { enforceRate, clientIp } = await import("./security.server");
+    await enforceRate(`lebre-audio:${clientIp()}`, 10, 60);
+    const apiKey = process.env["LOVABLE_API_KEY"];
+    if (!apiKey) throw new Error("O áudio ainda não está disponível. Escreva sua pergunta.");
+    const type = data.mediaType.split(";")[0]!;
+    const ext = type.includes("mp4") || type.includes("m4a") ? "m4a" : type.includes("mpeg") ? "mp3" : type.split("/")[1]!;
+    const bytes = Uint8Array.from(atob(data.base64), (c) => c.charCodeAt(0));
+    const form = new FormData();
+    form.append("model", "openai/gpt-transcribe");
+    form.append("file", new File([bytes], `lebre.${ext}`, { type }));
+    form.append("response_format", "json");
+    form.append("language", "pt");
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/audio/transcriptions", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "X-Lovable-AIG-SDK": "fetch" },
+      body: form,
+    });
+    if (!response.ok) {
+      console.error("lebre transcription", response.status, (await response.text()).slice(0, 300));
+      throw new Error(response.status === 429 ? "Muitos áudios agora. Tente em instantes." : "Não consegui entender o áudio. Tente de novo ou escreva.");
+    }
+    const body = (await response.json()) as { text?: string };
+    const text = body.text?.trim() ?? "";
+    if (!text) throw new Error("Não ouvi nada no áudio. Tente falar mais perto do microfone.");
+    return { text: text.slice(0, 600) };
   });
