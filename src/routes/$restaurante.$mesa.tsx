@@ -390,7 +390,7 @@ function MesaPage() {
                         <span className={`mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full border ${quantidade > 0 ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}>{quantidade > 0 && <Check className="h-3.5 w-3.5" />}</span>
                         <div className="min-w-0 flex-1">
                           <p className="font-semibold">{item.nome}</p>
-                           <p className="mt-1 text-xs text-muted-foreground">{money(item.preco)} cada · {formatPortion(disponivel)} disponível</p>
+                           <p className="mt-1 text-xs text-muted-foreground">{money(item.preco)} cada · {formatPortion(disponivel)} {disponivel > 1 ? "disponíveis" : "disponível"}</p>
                         </div>
                         <span className="shrink-0 text-sm font-bold">{money(item.preco * quantidade)}</span>
                       </div>
