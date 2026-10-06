@@ -193,15 +193,29 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
             <div className="mb-3 flex flex-wrap gap-2 text-xs">
               {(["livre", "ocupada", "aguardando", "encerrada"] as Status[]).map((s) => <span key={s} className={`rounded-full border-2 px-2 py-0.5 ${statusInfo[s].cls}`}>{statusInfo[s].label}: {mesas.filter((m) => m.status === s).length}</span>)}
             </div>
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 xl:grid-cols-6">
-              {mesas.map((m) => (
-                <button key={m.id} onClick={() => setMesaAberta(m.number)} className={`rounded-2xl border-2 p-4 text-left transition hover:shadow-md ${statusInfo[m.status].cls}`}>
-                  <div className="font-display text-2xl font-bold">Mesa {m.number}</div>
-                  <div className="mt-1 text-xs">{statusInfo[m.status].label}</div>
-                  {m.itens.length > 0 && <div className="mt-2 text-sm font-semibold">{brl(m.pago)} / {brl(m.total)}</div>}
-                  {m.garcom && m.itens.length > 0 && <div className="mt-1 truncate text-xs text-muted-foreground">{m.garcom}</div>}
-                </button>
-              ))}
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
+              {mesas.map((m) => {
+                const temItens = m.itens.length > 0;
+                const pct = temItens && m.total > 0 ? Math.min(100, Math.round((m.pago / m.total) * 100)) : 0;
+                return (
+                  <button key={m.id} onClick={() => setMesaAberta(m.number)} className={`flex min-h-[148px] flex-col rounded-2xl border-2 p-4 text-left transition hover:shadow-md ${statusInfo[m.status].cls}`}>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="font-display text-xl font-bold leading-tight">Mesa {m.number}</div>
+                      <span className="mt-0.5 shrink-0 rounded-full border border-current/20 px-2 py-0.5 text-[11px] font-medium">{statusInfo[m.status].label}</span>
+                    </div>
+                    {temItens ? (
+                      <div className="mt-auto pt-3">
+                        <div className="whitespace-nowrap text-base font-semibold tabular-nums">{brl(m.total)}</div>
+                        <div className="whitespace-nowrap text-xs text-muted-foreground tabular-nums">Pago {brl(m.pago)}</div>
+                        <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-muted"><div className="h-full rounded-full bg-primary" style={{ width: `${pct}%` }} /></div>
+                        {m.garcom && <div className="mt-2 truncate text-xs text-muted-foreground">{m.garcom}</div>}
+                      </div>
+                    ) : (
+                      <div className="mt-auto pt-3 text-xs text-muted-foreground">Sem itens</div>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           </>
         )}
