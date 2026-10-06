@@ -73,7 +73,7 @@ function Header() {
           ))}
           <span className="hidden rounded-full px-3 py-2 font-semibold text-muted-foreground sm:block sm:px-4">Entrar · em breve</span>
           <Link to="/simulador" className="hidden rounded-full border px-4 py-2 font-semibold text-foreground sm:block">Simular</Link>
-          <span className="rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground">Em breve</span>
+          <a href="#lista-de-espera" className="rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5">Lista de espera</a>
         </nav>
       </div>
     </header>
@@ -93,8 +93,8 @@ function Hero() {
             A conta chega ao celular do cliente pelo QR Code da mesa. Ele confere, escolhe o que vai pagar e resolve tudo sem interromper o atendimento.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <a href="#fale-conosco" className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-display font-semibold text-primary-foreground shadow-lg transition-transform hover:-translate-y-0.5">
-              Em breve · quero saber mais <ChevronRight className="h-4 w-4" />
+            <a href="#lista-de-espera" className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-display font-semibold text-primary-foreground shadow-lg transition-transform hover:-translate-y-0.5">
+              Entrar na lista de espera <ChevronRight className="h-4 w-4" />
             </a>
             <Link to="/simulador" className="inline-flex items-center gap-2 rounded-full border border-current/25 px-6 py-3 font-display font-semibold transition-colors hover:bg-primary/10">
               Simular experiência
@@ -271,8 +271,8 @@ function Dinamica() {
            A conta chega no celular antes de o cliente pedir. O garçom não vive em idas e voltas com a maquininha.
           Quem coloca a nova tecnologia primeiro nas mesas gira mais salão.
         </p>
-        <a href="#fale-conosco" className="mt-6 inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-primary px-5 py-3 font-display text-sm font-semibold text-primary-foreground shadow-lg transition-transform hover:-translate-y-0.5 sm:px-6 sm:text-base">
-          Colocar a TIPE nas minhas mesas <ChevronRight className="h-4 w-4" />
+        <a href="#lista-de-espera" className="mt-6 inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-primary px-5 py-3 font-display text-sm font-semibold text-primary-foreground shadow-lg transition-transform hover:-translate-y-0.5 sm:px-6 sm:text-base">
+          Entrar na lista de espera <ChevronRight className="h-4 w-4" />
         </a>
       </div>
     </section>
@@ -475,7 +475,7 @@ function Pricing() {
   return (
     <section id="planos" className="bg-muted/50 py-12 sm:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <SectionTitle eyebrow="Planos" title="Assinatura mensal, simples como streaming" text="Lançamento em breve. Os planos serão por número de mesas." />
+        <SectionTitle eyebrow="Planos" title="Assinatura mensal, simples como streaming" text="Quem entra na lista de espera começa primeiro. Os planos serão por número de mesas." />
         <div className="mt-10 grid gap-6 sm:mt-12 md:grid-cols-2 xl:grid-cols-4">
           {plans.map((p) => (
             <div key={p.name} className={`relative flex flex-col rounded-3xl border p-7 ${p.popular ? "border-primary bg-secondary text-secondary-foreground shadow-2xl xl:-translate-y-4" : "bg-card shadow-sm"}`}>
@@ -489,7 +489,7 @@ function Pricing() {
               <ul className="mt-6 flex-1 space-y-2.5 text-sm">
                 {p.features.map((f) => <li key={f} className="flex gap-2"><Check className="h-4 w-4 shrink-0 text-primary" />{f}</li>)}
               </ul>
-              <a href="#fale-conosco" className={`mt-8 rounded-full py-3 text-center font-display font-semibold transition-transform hover:-translate-y-0.5 ${p.popular ? "bg-primary text-primary-foreground" : "border border-border hover:bg-muted"}`}>Quero ser avisado</a>
+              <a href="#lista-de-espera" className={`mt-8 rounded-full py-3 text-center font-display font-semibold transition-transform hover:-translate-y-0.5 ${p.popular ? "bg-primary text-primary-foreground" : "border border-border hover:bg-muted"}`}>Entrar na lista de espera</a>
             </div>
           ))}
         </div>
@@ -589,14 +589,14 @@ function ContactSection() {
 
   const input = "w-full rounded-xl border bg-background px-4 py-3 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/30";
   return (
-    <section id="fale-conosco" className="px-4 pb-16 sm:px-6 sm:pb-20">
+    <section id="lista-de-espera" className="px-4 pb-16 sm:px-6 sm:pb-20">
       <div className="relative mx-auto grid max-w-6xl gap-10 overflow-hidden rounded-[2rem] p-8 text-secondary-foreground shadow-2xl sm:p-12 lg:grid-cols-2" style={{ background: "var(--gradient-brand)" }}>
         <div aria-hidden className="absolute -left-20 -top-20 h-72 w-72 rounded-full bg-primary/25 blur-3xl" />
         <div className="relative">
-          <h2 className="font-display text-3xl font-extrabold sm:text-4xl">Leve a TIPE para o seu restaurante</h2>
-          <p className="mt-4 opacity-85">Conte um pouco sobre o seu salão. Nossa equipe apresenta a plataforma, indica o plano ideal e ajuda na integração com o seu PDV.</p>
+          <h2 className="font-display text-3xl font-extrabold sm:text-4xl">Entre na lista de espera</h2>
+          <p className="mt-4 opacity-85">Reserve o lugar do seu restaurante para o lançamento. Quem está na lista recebe a demonstração primeiro e começa a usar a TIPE antes de todo mundo.</p>
           <ul className="mt-6 space-y-2 text-sm">
-            {["Demonstração gratuita", "Resposta em até 1 dia útil", "Implantação acompanhada"].map((t) => (
+            {["Vagas na ordem de chegada", "Demonstração gratuita", "Implantação acompanhada"].map((t) => (
               <li key={t} className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-primary" />{t}</li>
             ))}
           </ul>
