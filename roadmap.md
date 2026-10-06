@@ -38,3 +38,6 @@
 - [x] Simplificar os totens para os modelos Clássico e Claro, com marca, frase e restaurante obrigatórios em todos os formatos
 - [x] Testar Apple Pay (valor pago) e releitura do QR na conta real
 - [x] Melhorar diagramação apontada na captura de 14:53
+
+## Novas tarefas
+- [ ] Aviso de cookies: fundo transparente, texto curto ("Usamos cookies para o site funcionar e, com o seu aceite, para melhorar sua experiência. Saiba mais"), botões "Não aceitar" e "Aceitar todos"
