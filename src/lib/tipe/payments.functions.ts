@@ -115,7 +115,7 @@ export const createPayment = createServerFn({ method: "POST" })
       const cashReceived = data.establishmentMethod === "cash" ? Math.round((data.cashReceived ?? 0) * 100) / 100 : null;
       const changeDue = cashReceived === null ? null : Math.round((cashReceived - amount) * 100) / 100;
       const { error: detailError } = await supabaseAdmin.from("table_payment_requests").update({
-        establishment_method: data.establishmentMethod,
+        establishment_method: data.establishmentMethod ?? null,
         cash_received: cashReceived,
         change_due: changeDue,
       }).eq("id", payId);
