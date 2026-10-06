@@ -198,7 +198,10 @@ function MesaPage() {
     && dados.itens.every((item) => (disponiveis[item.id] ?? item.qtd) <= EPSILON)
     && pagamentos.every((pagamento) => pagamento.status !== "pending");
   const pagamentoPresencialPendente = pagamentos.find((pagamento) => pagamento.status === "pending" && pagamento.establishment_method);
-  const etapaVisivel: Etapa = mesaEncerrada && ["carregando", "identificacao", "conta", "pagamento-conta", "conta-pendente"].includes(etapa)
+  // Enquanto a mesa está encerrada (até a nova conta abrir), o cliente ainda pode
+  // voltar à mesa para ver a atividade: o botão "Voltar à mesa" libera a visão da conta.
+  const [voltouParaMesa, setVoltouParaMesa] = useState(false);
+  const etapaVisivel: Etapa = mesaEncerrada && !voltouParaMesa && ["carregando", "identificacao", "conta", "pagamento-conta", "conta-pendente"].includes(etapa)
     ? "mesa-encerrada"
     : etapa;
 
@@ -222,6 +225,7 @@ function MesaPage() {
     if (estavaEncerrada && mesaSincronizada) {
       // Nova conta aberta: limpa a identificação e recomeça.
       setEstavaEncerrada(false);
+      setVoltouParaMesa(false);
       try { window.localStorage.removeItem(customerStorageKey(restaurante, codigoMesa)); } catch { /* ignora */ }
       setNome(""); setEstrelas(0); setComentario(""); setGorjetaExtra(0); setAba("conta");
       setEtapa("identificacao");
@@ -600,7 +604,7 @@ function MesaPage() {
           <h1 className="mt-2 text-2xl font-bold">Mesa encerrada</h1>
           <p className="mt-3 text-center text-sm leading-6 text-muted-foreground">Todos os itens desta mesa foram pagos e não há pagamentos pendentes.</p>
           <p className="mt-2 text-center text-xs text-muted-foreground">Uma nova conta será aberta nesta mesa automaticamente em até 2 minutos.</p>
-          <Button variant="outline" onClick={() => { setEtapa("conta"); setAba("conta"); }} className="mt-6 h-12 w-full rounded-lg text-base font-bold">Voltar à mesa</Button>
+          <Button variant="outline" onClick={() => { setVoltouParaMesa(true); setEtapa("conta"); setAba("atividade"); }} className="mt-6 h-12 w-full rounded-lg text-base font-bold">Voltar à mesa</Button>
         </TelaCentral>
       )}
 
@@ -614,7 +618,7 @@ function MesaPage() {
           {mesaEncerrada && (
             <Button onClick={() => setEtapa("mesa-encerrada")} className="mt-8 h-12 w-full rounded-lg text-base font-bold">Ver mesa encerrada <ChevronRight /></Button>
           )}
-          <Button variant="outline" onClick={() => { setEtapa("conta"); setAba("conta"); }} className="mt-6 h-12 w-full rounded-lg text-base font-bold">Voltar à mesa</Button>
+          <Button variant="outline" onClick={() => { setVoltouParaMesa(true); setEtapa("conta"); setAba("atividade"); }} className="mt-6 h-12 w-full rounded-lg text-base font-bold">Voltar à mesa</Button>
         </TelaCentral>
       )}
     </div>
