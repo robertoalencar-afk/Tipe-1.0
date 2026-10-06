@@ -4,7 +4,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { TipeLogo } from "@/components/tipe/Logo";
 import { Button } from "@/components/ui/button";
 import { RestaurantPanel } from "@/components/tipe/RestaurantPanel";
 import { getMyAccess } from "@/lib/tipe/staff.functions";

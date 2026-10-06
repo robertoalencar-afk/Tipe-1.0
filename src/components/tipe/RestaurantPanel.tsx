@@ -1,4 +1,4 @@
-import { pdvLabel } from "@/lib/tipe/pdvs";
+import { pdvLabel as nomePdv } from "@/lib/tipe/pdvs";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
@@ -128,7 +128,7 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
   const abertas = mesas.filter((m) => m.status === "ocupada" || m.status === "aguardando");
   const externo = d.restaurant.pos_mode === "external";
   const visiveis = secoes.filter((x) => (!("dono" in x) || podeDono) && !(externo && ["pdv", "cardapio", "cozinha"].includes(x.k)));
-  const pdvLabel = d.restaurant.pos_mode === "external" ? `PDV conectado: ${pdvLabel(d.restaurant.pos_provider)}` : "Modo demonstração";
+  const pdvLabel = d.restaurant.pos_mode === "external" ? `PDV conectado: ${nomePdv(d.restaurant.pos_provider)}` : "Modo demonstração";
 
   const confirmacoes = (
     <>
