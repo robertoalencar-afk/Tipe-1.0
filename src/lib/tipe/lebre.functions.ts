@@ -225,6 +225,13 @@ export const executeLebreProposal = createServerFn({ method: "POST" })
     return { ok: true, message };
   });
 
+// O nome TIPE soa como "tchípi" e costuma virar "chip", "chipe", "type" ou "tipi".
+function fixBrand(text: string): string {
+  return text
+    .replace(/\b(?:a|da|na|pela|com a)\s+(?:chip|chipe|chips|xip|ship|type|tipi|tchip|tchipe|tipe)\b/gi, (m) => m.replace(/\S+$/, "TIPE"))
+    .replace(/\b(?:tchipe|tchípi|tchip|chipe|tipi|tipe)\b/gi, "TIPE");
+}
+
 export const transcribeLebreAudio = createServerFn({ method: "POST" })
   .inputValidator((data) => z.object({
     mediaType: z.string().regex(/^audio\/(webm|mp4|mpeg|ogg|wav|x-m4a|aac)(;.*)?$/),
@@ -243,6 +250,7 @@ export const transcribeLebreAudio = createServerFn({ method: "POST" })
     form.append("file", new File([bytes], `lebre.${ext}`, { type }));
     form.append("response_format", "json");
     form.append("language", "pt");
+    form.append("prompt", "Conversa com a Lebre, assistente da TIPE (marca pronunciada \"tchípi\", escrita TIPE). Termos: TIPE, Lebre, mesa, garçom, restaurante, PDV, Pix, QR Code, gorjeta, cardápio.");
     const response = await fetch("https://ai.gateway.lovable.dev/v1/audio/transcriptions", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "X-Lovable-AIG-SDK": "fetch" },
@@ -253,7 +261,7 @@ export const transcribeLebreAudio = createServerFn({ method: "POST" })
       throw new Error(response.status === 429 ? "Muitos áudios agora. Tente em instantes." : "Não consegui entender o áudio. Tente de novo ou escreva.");
     }
     const body = (await response.json()) as { text?: string };
-    const text = body.text?.trim() ?? "";
+    const text = fixBrand(body.text?.trim() ?? "");
     if (!text) throw new Error("Não ouvi nada no áudio. Tente falar mais perto do microfone.");
     return { text: text.slice(0, 600) };
   });
