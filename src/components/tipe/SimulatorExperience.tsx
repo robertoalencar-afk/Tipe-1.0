@@ -90,11 +90,14 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
     const current = readState();
     setDemo(current);
     const savedName = window.localStorage.getItem(NAME_KEY)?.trim() ?? "";
+    const hasPending = !current.closedAt && current.payments.some((payment) => payment.status === "pending");
     if (enterDirectly && fullName(savedName)) {
       setName(savedName);
-      setStage(current.closedAt ? "closed" : "bill");
+      setStage(current.closedAt ? "closed" : hasPending ? "pending" : "bill");
     } else if (current.closedAt) {
       setStage("closed");
+    } else if (hasPending) {
+      setStage("pending");
     }
   }, [enterDirectly]);
 
@@ -227,6 +230,13 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
             <Button variant={tab === "activity" ? "outline" : "ghost"} onClick={() => setTab("activity")} className="h-10 rounded-full shadow-none"><ClipboardList /> Atividade</Button>
           </div>
           {tab === "bill" ? (
+            !ITEMS.some((item) => available(item.id, item.qty) > 0) && demo.payments.some((payment) => payment.status === "pending") ? (
+              <div className="mt-4 rounded-2xl border border-highlight/40 bg-highlight/10 p-5 text-center">
+                <p className="text-sm font-semibold text-highlight">Aguardando confirmação</p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">Seu pagamento no estabelecimento está pendente. Assim que o restaurante confirmar, os itens saem da conta.</p>
+                <Button onClick={() => setStage("pending")} className="mt-5 h-11 w-full rounded-full font-display text-base font-bold">Ver status do pagamento <ChevronRight /></Button>
+              </div>
+            ) : (
             <>
               {ITEMS.some((item) => available(item.id, item.qty) > 0) && (
                 <Button variant={allSelected ? "default" : "outline"} onClick={() => setQuantities(Object.fromEntries(ITEMS.map((item) => [item.id, allSelected ? 0 : available(item.id, item.qty)])))} className="mb-3 h-12 w-full rounded-full font-display text-base font-bold">
@@ -268,6 +278,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
               </div>
               <Button disabled={subtotal <= 0} onClick={() => setStage("payment")} className="mt-5 h-12 w-full rounded-full font-display text-base font-bold">Continuar para pagamento <ChevronRight /></Button>
             </>
+            )
           ) : (
             <section aria-labelledby="demo-activity">
               <h2 id="demo-activity" className="mb-3 flex items-center gap-2 text-sm font-semibold"><Users className="h-4 w-4 text-primary" /> Registro dos pedidos</h2>
