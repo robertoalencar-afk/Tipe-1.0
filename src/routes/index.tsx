@@ -10,7 +10,7 @@ import {
 import { submitLead } from "@/lib/tipe/leads.functions";
 import { PLANS, TRIAL_DAYS, priceLabel, type PlanId } from "@/lib/tipe/plans";
 import logo from "@/assets/logo-dark.png.asset.json";
-import mascotWaiting from "@/assets/mascot-waiting-filled.png";
+import mascotAssistant from "@/assets/mascot-lebre-assistant.png";
 import { LebreAssistant } from "@/components/tipe/LebreAssistant";
 import { PaymentJourneyDemo } from "@/components/tipe/PaymentJourneyDemo";
 import { Button } from "@/components/ui/button";
@@ -170,7 +170,7 @@ function Dinamica() {
     ["Água com gás", "R$ 7,50"],
   ] as const;
   return (
-    <section id="dinamica" className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28">
+    <section id="dinamica" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20">
       <div className="mx-auto max-w-2xl text-center">
         <span className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-1.5 font-display text-xs font-bold uppercase tracking-wider text-primary-foreground shadow-md">
           <Zap className="h-3.5 w-3.5" /> A nova era do pagamento em mesa
@@ -182,7 +182,7 @@ function Dinamica() {
         </p>
       </div>
 
-      <div className="mt-14 grid gap-6 lg:grid-cols-2">
+      <div className="mt-10 grid gap-6 sm:mt-12 lg:grid-cols-2">
         <div className="rounded-3xl border bg-card p-7 shadow-sm">
           <div className="flex items-center justify-between">
             <h3 className="font-display text-lg font-bold text-muted-foreground">Sem TIPE, o jeito antigo</h3>
@@ -264,7 +264,7 @@ function Dinamica() {
         ))}
       </div>
 
-      <div className="mx-auto mt-12 max-w-3xl rounded-3xl border-2 border-primary/30 bg-secondary p-8 text-center text-secondary-foreground sm:p-10">
+      <div className="mx-auto mt-10 max-w-3xl rounded-3xl border-2 border-primary/30 bg-secondary p-7 text-center text-secondary-foreground sm:p-9">
         <p className="font-display text-2xl font-extrabold leading-tight sm:text-3xl">O jeito de pagar a conta no restaurante mudou. Agora, tudo acontece na mesa.</p>
         <p className="mt-4 opacity-80">
            A conta chega no celular antes de o cliente pedir. O garçom não vive em idas e voltas com a maquininha.
@@ -286,9 +286,9 @@ function HowItWorks() {
     { icon: Star, t: "Avalia e agradece", d: "Dá nota ao atendimento e, se quiser, uma gorjeta extra direto para o garçom." },
   ];
   return (
-    <section id="como-funciona" className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28">
+    <section id="como-funciona" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20">
       <SectionTitle eyebrow="Como funciona" title="Da mesa ao pagamento em 4 toques" text="Um fluxo simples para o cliente: itens escolhidos, meio de pagamento, pronto." />
-      <div className="relative mt-14 grid gap-6 md:grid-cols-4">
+      <div className="relative mt-10 grid gap-8 sm:mt-12 md:grid-cols-4 md:gap-6">
         <div aria-hidden className="absolute left-0 right-0 top-8 hidden h-0.5 bg-gradient-to-r from-transparent via-primary/50 to-transparent md:block" />
         {steps.map((s, i) => (
           <div key={s.t} className="relative text-center">
@@ -314,7 +314,7 @@ function PaymentMethods() {
     { icon: Landmark, name: "Dinheiro", note: "Confirmação pelo caixa" },
   ];
   return (
-    <section className="bg-muted/50 py-20 sm:py-28">
+    <section className="bg-muted/50 py-16 sm:py-20">
       <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[0.9fr_1.1fr]">
         <div>
           <p className="font-display text-xs font-bold uppercase tracking-[0.2em] text-primary">Formas de pagamento</p>
@@ -349,7 +349,7 @@ function Dashboard() {
     { icon: BarChart3, t: "Relatórios e equipe", d: "Faturamento, gorjetas e produtividade por garçom." },
   ];
   return (
-    <section id="painel" className="relative overflow-hidden bg-secondary py-20 text-secondary-foreground sm:py-28">
+    <section id="painel" className="relative overflow-hidden bg-secondary py-16 text-secondary-foreground sm:py-20">
       <div aria-hidden className="absolute right-0 top-0 h-96 w-96 rounded-full bg-primary/20 blur-3xl" />
       <div className="relative mx-auto grid max-w-7xl items-center gap-14 px-4 sm:px-6 lg:grid-cols-[1fr_1.2fr]">
         <div>
@@ -403,9 +403,9 @@ function Dashboard() {
 
 function PdvOptions() {
   return (
-    <section id="pdv" className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28">
+    <section id="pdv" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20">
       <SectionTitle eyebrow="PDV" title="Use o seu PDV ou contrate o nosso" text="A TIPE se adapta ao seu restaurante. Você escolhe como os pedidos chegam à mesa." />
-      <div className="mt-14 grid gap-6 lg:grid-cols-2">
+      <div className="mt-10 grid gap-6 sm:mt-12 lg:grid-cols-2">
         <div className="rounded-3xl border bg-card p-8 shadow-sm">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent text-accent-foreground"><Plug className="h-7 w-7" /></div>
           <h3 className="mt-5 font-display text-2xl font-bold">Conecte seu PDV atual</h3>
@@ -446,11 +446,11 @@ function LebreSection() {
     ["Prepara ações seguras", "Mostra exatamente o que será feito e só executa depois da confirmação do usuário."],
   ] as const;
   return (
-    <section className="bg-secondary py-20 text-secondary-foreground sm:py-28">
-      <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[0.85fr_1.15fr]">
-        <div className="relative mx-auto h-[380px] w-full max-w-sm">
-          <div className="absolute inset-x-8 bottom-0 h-52 rounded-full bg-primary/10" />
-          <img src={mascotWaiting} alt="Lebre, assistente da TIPE" loading="lazy" width={768} height={768} className="relative mx-auto h-full w-auto object-contain" />
+    <section className="bg-secondary py-16 text-secondary-foreground sm:py-20">
+      <div className="mx-auto grid max-w-7xl items-center gap-8 px-4 sm:px-6 lg:grid-cols-[0.85fr_1.15fr] lg:gap-12">
+        <div className="relative mx-auto h-[290px] w-full max-w-sm sm:h-[340px]">
+          <div className="absolute inset-x-10 bottom-0 h-40 rounded-full bg-primary/10" />
+          <img src={mascotAssistant} alt="Lebre, assistente da TIPE" loading="lazy" width={768} height={768} className="relative mx-auto h-full w-auto object-contain" />
         </div>
         <div>
           <p className="font-display text-xs font-bold uppercase tracking-[0.2em] text-primary">Conheça a Lebre</p>
@@ -475,10 +475,10 @@ const plans = [
 
 function Pricing() {
   return (
-    <section id="planos" className="bg-muted/50 py-20 sm:py-28">
+    <section id="planos" className="bg-muted/50 py-16 sm:py-20">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <SectionTitle eyebrow="Planos" title="Assinatura mensal, simples como streaming" text={`Teste grátis por ${TRIAL_DAYS} dias, sem cartão. Depois, escolha pelo número de mesas.`} />
-        <div className="mt-14 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+        <div className="mt-10 grid gap-6 sm:mt-12 md:grid-cols-2 xl:grid-cols-4">
           {plans.map((p) => (
             <div key={p.name} className={`relative flex flex-col rounded-3xl border p-7 ${p.popular ? "border-primary bg-secondary text-secondary-foreground shadow-2xl xl:-translate-y-4" : "bg-card shadow-sm"}`}>
               {p.popular && <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground">Mais escolhido</span>}
@@ -534,7 +534,7 @@ function Faq() {
     },
   ];
   return (
-    <section id="duvidas" className="mx-auto grid max-w-6xl gap-12 px-4 py-20 sm:px-6 sm:py-28 lg:grid-cols-[1fr_1.4fr]">
+    <section id="duvidas" className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[1fr_1.4fr] lg:gap-12">
       <div>
         <p className="font-display text-xs font-bold uppercase tracking-[0.2em] text-primary">Dúvidas</p>
         <h2 className="mt-3 font-display text-3xl font-extrabold sm:text-4xl">Perguntas frequentes</h2>
@@ -599,7 +599,7 @@ function ContactSection() {
 
   const input = "w-full rounded-xl border bg-background px-4 py-3 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/30";
   return (
-    <section id="fale-conosco" className="px-4 pb-20 sm:px-6 sm:pb-28">
+    <section id="fale-conosco" className="px-4 pb-16 sm:px-6 sm:pb-20">
       <div className="relative mx-auto grid max-w-6xl gap-10 overflow-hidden rounded-[2rem] p-8 text-secondary-foreground shadow-2xl sm:p-12 lg:grid-cols-2" style={{ background: "var(--gradient-brand)" }}>
         <div aria-hidden className="absolute -left-20 -top-20 h-72 w-72 rounded-full bg-primary/25 blur-3xl" />
         <div className="relative">
