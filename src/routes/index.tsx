@@ -118,8 +118,8 @@ function Stats() {
   const stats: { icon: any; v: string; l: string; small?: boolean }[] = [
     { icon: Clock, v: "Na hora", l: "a conta aparece no celular do cliente", small: true },
     { icon: Wallet, v: "Na mesa", l: "cada pessoa escolhe o que deseja pagar", small: true },
-    { icon: Users, v: "Sem fila", l: "o cliente não precisa ir até o caixa", small: true },
-    { icon: ShieldCheck, v: "Ao vivo", l: "o restaurante acompanha cada pagamento", small: true },
+    { icon: Users, v: "Sem chamar o garçom", l: "o cliente resolve tudo pelo celular", small: true },
+    { icon: ShieldCheck, v: "Ao vivo", l: "a conta é atualizada em tempo real", small: true },
   ];
   return (
     <section className="relative z-10 mx-auto -mt-10 max-w-6xl px-4 sm:px-6">
