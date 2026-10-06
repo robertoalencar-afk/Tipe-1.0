@@ -3,7 +3,7 @@ import { Link } from '@tanstack/react-router';
 import { ChevronRight, Pause, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { TipeLogo } from './Logo';
-import { LivingTable, ProductPhone, SharedTable, Recognition } from './MesaVivaScenes';
+import { LivingTable, ProductPhone, SharedTable, Recognition, AccountOrbit } from './MesaVivaScenes';
 
 const scenes = [
  { words: ['A mesa', 'ganhou', 'vida.'], accent: 2, ms: 4800 },
@@ -27,8 +27,8 @@ export function MesaViva() {
  useEffect(()=>{if(stopped)return;const timer=window.setTimeout(()=>setIndex(n=>(n+1)%scenes.length),scene.ms);return()=>window.clearTimeout(timer);},[index,stopped,scene.ms]);
  return <section aria-label="Como a TIPE funciona" className={`mv-stage mv-stage-${index} relative overflow-hidden bg-secondary text-secondary-foreground`} onMouseEnter={()=>setHovered(true)} onMouseLeave={()=>setHovered(false)}>
  <div key={index} className="mv-composition">
- <div className="mv-type"><div className="mv-scene-number"><span>0{index+1}</span><span>/ 06</span></div><h2 className="mv-headline">{scene.words.map((word,n)=><span key={word} className="mv-word-line"><span aria-hidden className="mv-type-echo" style={{animationDelay:`${n*130}ms`}}>{word}</span><span className={`mv-type-word ${n===scene.accent?'text-primary':''}`} style={{animationDelay:`${n*130}ms`}}>{word}</span></span>)}</h2>{index===3&&<p className="mv-support mv-slide">Digital confirmado. No estabelecimento, após o recebimento.</p>}</div>
- <div className="mv-visual">{index===0?<LivingTable />:index===1?<div className="mv-account-scene"><LivingTable orbit /><ProductPhone /></div>:index===2?<SharedTable />:index===3?<ProductPhone payment />:index===4?<Recognition />:<BrandFinal />}</div>
+ <div className="mv-type"><div className="mv-scene-number"><span>0{index+1}</span><span>/ 06</span></div><h2 className="mv-headline">{scene.words.map((word,n)=><span key={word} className="mv-word-line"><span className={`mv-type-word ${n===scene.accent?'mv-type-accent text-primary':''}`} style={{animationDelay:`${n*130}ms`}}>{word}</span></span>)}</h2>{index===3&&<p className="mv-support mv-slide">Digital confirmado. No estabelecimento, após o recebimento.</p>}</div>
+ <div className="mv-visual">{index===0?<LivingTable />:index===1?<AccountOrbit />:index===2?<SharedTable />:index===3?<ProductPhone payment />:index===4?<Recognition />:<BrandFinal />}</div>
  </div>
  <div className="mv-controls"><div className="flex flex-1 gap-1.5">{scenes.map((item,n)=><Button key={n} variant="ghost" aria-label={`Cena ${n+1}`} aria-pressed={n===index} title={`Cena ${n+1}`} onClick={()=>setIndex(n)} className="mv-progress-control"><span className="mv-progress-track"><span key={`${index}-${n}`} className={`mv-progress-fill ${n<index?'mv-complete':n===index?'mv-running':''}`} style={{animationDuration:`${item.ms}ms`,animationPlayState:stopped?'paused':'running'}} /></span></Button>)}</div><Button variant="ghost" size="icon" className="h-8 w-8 shrink-0 text-secondary-foreground hover:bg-secondary-foreground/10" onClick={()=>setPaused(v=>!v)} title={paused?'Reproduzir animação':'Pausar animação'} aria-label={paused?'Reproduzir animação':'Pausar animação'}>{paused?<Play />:<Pause />}</Button></div>
  </section>;
