@@ -21,7 +21,7 @@ export function MesaViva() {
  const [paused,setPaused] = useState(false);
  const [hovered,setHovered] = useState(false);
  const [reduced,setReduced] = useState(false);
- const scene = scenes[index] ?? scenes[0];
+ const scene = scenes[index] ?? { words: ['Pague.', 'Sem esperar.'], accent: 1, ms: 5500 };
  const stopped=paused||hovered||reduced;
  useEffect(()=>{const media=window.matchMedia('(prefers-reduced-motion: reduce)');const update=()=>setReduced(media.matches);update();media.addEventListener('change',update);return()=>media.removeEventListener('change',update);},[]);
  useEffect(()=>{if(stopped)return;const timer=window.setTimeout(()=>setIndex(n=>(n+1)%scenes.length),scene.ms);return()=>window.clearTimeout(timer);},[index,stopped,scene.ms]);
