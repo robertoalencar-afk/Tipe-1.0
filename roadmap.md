@@ -35,3 +35,4 @@
 - [x] Pagamento presencial separado em dinheiro ou maquininha, com valor entregue, troco e aviso ao restaurante
 - [x] Reposicionar a Lebre no painel mobile para não cobrir a navegação inferior
 - [x] Otimizar carregamento dos mascotes mantendo qualidade
+- [x] Simplificar os totens para os modelos Clássico e Claro, com marca, frase e restaurante obrigatórios em todos os formatos
