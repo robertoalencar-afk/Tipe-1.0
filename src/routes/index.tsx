@@ -12,6 +12,7 @@ import { PLANS, TRIAL_DAYS, priceLabel, type PlanId } from "@/lib/tipe/plans";
 import logo from "@/assets/logo-dark.png.asset.json";
 import mascotWaiting from "@/assets/mascot-waiting-filled.png";
 import { LebreAssistant } from "@/components/tipe/LebreAssistant";
+import { PaymentJourneyDemo } from "@/components/tipe/PaymentJourneyDemo";
 import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
@@ -46,6 +47,7 @@ function LandingPage() {
         <Stats />
         <Dinamica />
         <HowItWorks />
+        <PaymentMethods />
         <Dashboard />
         <PdvOptions />
         <LebreSection />
@@ -103,45 +105,12 @@ function Hero() {
             ))}
           </div>
         </div>
-        <PhoneMockup />
+        <div>
+          <PaymentJourneyDemo />
+          <p className="mx-auto mt-7 max-w-sm text-center text-xs opacity-65">Demonstração da experiência planejada para o cliente.</p>
+        </div>
       </div>
     </section>
-  );
-}
-
-function PhoneMockup() {
-  const items = [["Moqueca de peixe", 1, "89,90"], ["Caipirinha", 2, "44,00"], ["Água com gás", 1, "7,50"]] as const;
-  return (
-    <div className="relative mx-auto w-full max-w-sm">
-       <img src={mascotWaiting} alt="Lebre da TIPE" className="absolute -left-20 bottom-2 z-20 hidden w-40 drop-shadow-2xl sm:block" />
-      <div className="relative z-10 mx-auto w-[290px] rounded-[2.6rem] border-[10px] border-foreground/90 bg-card p-4 text-card-foreground shadow-2xl">
-        <div className="mx-auto mb-4 h-1.5 w-16 rounded-full bg-muted" />
-        <div className="flex items-center justify-between">
-          <img src={logo.url} alt="" className="h-6 w-auto" />
-          <span className="rounded-full bg-accent px-2 py-0.5 text-[10px] font-semibold text-accent-foreground">Mesa 12</span>
-        </div>
-        <p className="mt-4 text-xs text-muted-foreground">Olá, Ana! Escolha o que vai pagar</p>
-        <div className="mt-3 space-y-2">
-          {items.map(([n, q, v]) => (
-            <div key={n} className="flex items-center justify-between rounded-xl border bg-background p-2.5 text-xs">
-              <div className="flex items-center gap-2"><span className="rounded-md bg-primary/15 px-1.5 py-0.5 font-bold text-primary">{q}×</span>{n}</div>
-              <span className="font-semibold">R$ {v}</span>
-            </div>
-          ))}
-        </div>
-        <div className="mt-3 flex justify-between border-t pt-3 text-xs text-muted-foreground"><span>Taxa de serviço 10%</span><span>R$ 14,14</span></div>
-        <div className="mt-1 flex justify-between font-display text-base font-bold"><span>Total</span><span>R$ 155,54</span></div>
-        <div className="mt-3 grid grid-cols-2 gap-2 text-[11px] font-semibold">
-          <div className="rounded-xl border-2 border-primary bg-primary/10 p-2 text-center">Pix</div>
-          <div className="rounded-xl border p-2 text-center">No local</div>
-        </div>
-        <div className="mt-3 rounded-full bg-primary py-2.5 text-center font-display text-sm font-bold text-primary-foreground">Pagar R$ 155,54</div>
-      </div>
-      <div className="absolute -right-4 top-16 z-20 rounded-2xl bg-card p-3 text-card-foreground shadow-xl">
-        <p className="flex items-center gap-1.5 text-xs font-semibold"><CheckCircle2 className="h-4 w-4 text-primary" />Pagamento aprovado</p>
-        <p className="text-[10px] text-muted-foreground">Mesa 12 · 21:43</p>
-      </div>
-    </div>
   );
 }
 
@@ -313,7 +282,7 @@ function HowItWorks() {
   const steps = [
     { icon: QrCode, t: "Lê o QR Code", d: "Cada mesa tem um totem com QR Code exclusivo. O cliente aponta a câmera e entra na conta." },
     { icon: Receipt, t: "Escolhe os itens", d: "A conta chega do PDV em tempo real. Ele paga tudo ou só o que consumiu, item por item." },
-    { icon: Smartphone, t: "Paga como preferir", d: "Pix quando habilitado, ou dinheiro e maquininha com confirmação do caixa." },
+    { icon: Smartphone, t: "Paga como preferir", d: "Carteira digital e Pix, quando habilitados, ou dinheiro e maquininha no estabelecimento." },
     { icon: Star, t: "Avalia e agradece", d: "Dá nota ao atendimento e, se quiser, uma gorjeta extra direto para o garçom." },
   ];
   return (
@@ -331,6 +300,39 @@ function HowItWorks() {
             <p className="mt-2 text-sm leading-relaxed text-muted-foreground">{s.d}</p>
           </div>
         ))}
+      </div>
+    </section>
+  );
+}
+
+function PaymentMethods() {
+  const methods = [
+    { icon: Wallet, name: "Apple Pay", note: "Um toque no iPhone" },
+    { icon: Smartphone, name: "Google Pay", note: "Carteira do Android" },
+    { icon: QrCode, name: "Pix", note: "Confirmação digital" },
+    { icon: CreditCard, name: "Maquininha", note: "Pagamento no local" },
+    { icon: Landmark, name: "Dinheiro", note: "Confirmação pelo caixa" },
+  ];
+  return (
+    <section className="bg-muted/50 py-20 sm:py-28">
+      <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[0.9fr_1.1fr]">
+        <div>
+          <p className="font-display text-xs font-bold uppercase tracking-[0.2em] text-primary">Formas de pagamento</p>
+          <h2 className="mt-3 font-display text-3xl font-extrabold sm:text-4xl">Cada cliente paga do jeito que já está acostumado</h2>
+          <p className="mt-4 max-w-xl leading-relaxed text-muted-foreground">A experiência foi pensada para unir a rapidez das carteiras digitais com as opções que o restaurante já recebe no dia a dia.</p>
+          <div className="mt-8 flex items-start gap-3 border-l-2 border-primary pl-4">
+            <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-primary" />
+            <p className="text-sm text-muted-foreground">Carteiras digitais e Pix aparecem conforme a habilitação do provedor de pagamento do restaurante.</p>
+          </div>
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-6">
+          {methods.map((method, index) => (
+            <div key={method.name} className={`flex min-h-36 flex-col justify-between rounded-2xl border bg-card p-5 shadow-sm ${index < 2 ? "sm:col-span-3" : "sm:col-span-2"}`}>
+              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary text-secondary-foreground"><method.icon className="h-5 w-5" /></div>
+              <div className="mt-6"><h3 className="font-display text-lg font-extrabold">{method.name}</h3><p className="mt-1 text-xs text-muted-foreground">{method.note}</p></div>
+            </div>
+          ))}
+        </div>
       </div>
     </section>
   );
