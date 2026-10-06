@@ -450,7 +450,7 @@ function LebreSection() {
       <div className="mx-auto grid max-w-7xl items-center gap-8 px-4 sm:px-6 lg:grid-cols-[0.85fr_1.15fr] lg:gap-12">
         <div className="relative mx-auto h-[290px] w-full max-w-sm sm:h-[340px]">
           <div className="absolute inset-x-10 bottom-0 h-40 rounded-full bg-primary/10" />
-          <img src={mascotAssistant} alt="Lebre, assistente da TIPE" loading="lazy" width={1024} height={1024} className="relative mx-auto h-full w-auto object-contain drop-shadow-xl" />
+          <img src={mascotAssistant} alt="Lebre, assistente da TIPE" loading="lazy" width={3584} height={4800} className="relative mx-auto h-full w-auto object-contain" />
         </div>
         <div>
           <p className="font-display text-xs font-bold uppercase tracking-[0.2em] text-primary">Conheça a Lebre</p>
