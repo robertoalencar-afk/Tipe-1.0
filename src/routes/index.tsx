@@ -71,9 +71,9 @@ function Header() {
           {[["#dinamica", "O novo jeito"], ["#como-funciona", "Como funciona"], ["#painel", "Painel"], ["#pdv", "PDV"], ["#planos", "Planos"], ["#duvidas", "Dúvidas"]].map(([h, l]) => (
             <a key={h} href={h} className="hidden rounded-lg px-3 py-2 text-muted-foreground transition-colors hover:text-foreground lg:block">{l}</a>
           ))}
-          <Link to="/entrar" className="rounded-full px-3 py-2 font-semibold text-foreground hover:bg-muted sm:px-4">Entrar</Link>
+          <span className="hidden rounded-full px-3 py-2 font-semibold text-muted-foreground sm:block sm:px-4">Entrar · em breve</span>
           <Link to="/simulador" className="hidden rounded-full border px-4 py-2 font-semibold text-foreground sm:block">Simular</Link>
-          <Link to="/cadastro" className="rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground">Testar grátis</Link>
+          <span className="rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground">Em breve</span>
         </nav>
       </div>
     </header>
@@ -93,9 +93,9 @@ function Hero() {
             A conta chega ao celular do cliente pelo QR Code da mesa. Ele confere, escolhe o que vai pagar e resolve tudo sem interromper o atendimento.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link to="/cadastro" className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-display font-semibold text-primary-foreground shadow-lg transition-transform hover:-translate-y-0.5">
-              Testar 30 dias grátis <ChevronRight className="h-4 w-4" />
-            </Link>
+            <a href="#fale-conosco" className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-display font-semibold text-primary-foreground shadow-lg transition-transform hover:-translate-y-0.5">
+              Em breve · quero saber mais <ChevronRight className="h-4 w-4" />
+            </a>
             <Link to="/simulador" className="inline-flex items-center gap-2 rounded-full border border-current/25 px-6 py-3 font-display font-semibold transition-colors hover:bg-primary/10">
               Simular experiência
             </Link>
@@ -483,21 +483,13 @@ function Pricing() {
               <h3 className="font-display text-xl font-bold">{p.name}</h3>
               <p className={`text-sm ${p.popular ? "opacity-75" : "text-muted-foreground"}`}>{p.tables}</p>
               <div className="mt-5">
-                {p.price ? (
-                  <p className="font-display"><span className="text-sm">R$</span> <span className="text-4xl font-extrabold">{p.price}</span><span className="text-sm opacity-70">/mês</span></p>
-                ) : (
-                  <p className="font-display text-3xl font-extrabold">Sob consulta</p>
-                )}
-                {p.price && <p className="mt-1 text-xs font-semibold text-primary">{TRIAL_DAYS} dias grátis</p>}
+                <p className="font-display text-3xl font-extrabold">Em breve</p>
+                <p className="mt-1 text-xs font-semibold text-primary">Valores no lançamento</p>
               </div>
               <ul className="mt-6 flex-1 space-y-2.5 text-sm">
                 {p.features.map((f) => <li key={f} className="flex gap-2"><Check className="h-4 w-4 shrink-0 text-primary" />{f}</li>)}
               </ul>
-              {p.id ? (
-                <Link to="/cadastro" search={{ plano: p.id as PlanId }} className={`mt-8 rounded-full py-3 text-center font-display font-semibold transition-transform hover:-translate-y-0.5 ${p.popular ? "bg-primary text-primary-foreground" : "border border-border hover:bg-muted"}`}>Testar grátis</Link>
-              ) : (
-                <a href="#fale-conosco" className="mt-8 rounded-full border border-border py-3 text-center font-display font-semibold transition-transform hover:-translate-y-0.5 hover:bg-muted">Falar com vendas</a>
-              )}
+              <a href="#fale-conosco" className={`mt-8 rounded-full py-3 text-center font-display font-semibold transition-transform hover:-translate-y-0.5 ${p.popular ? "bg-primary text-primary-foreground" : "border border-border hover:bg-muted"}`}>Quero ser avisado</a>
             </div>
           ))}
         </div>
