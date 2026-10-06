@@ -50,6 +50,13 @@
       "when": 1791249206700,
       "tag": "0006_add_cash_tender_details",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1791277407917,
+      "tag": "0007_restaurant_pagarme_accounts",
+      "breakpoints": true
     }
   ]
 }
