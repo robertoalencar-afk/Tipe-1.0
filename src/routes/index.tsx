@@ -70,7 +70,7 @@ function Header() {
           {[["#dinamica", "O novo jeito"], ["#como-funciona", "Como funciona"], ["#painel", "Painel"], ["#pdv", "PDV"], ["#planos", "Planos"], ["#duvidas", "Dúvidas"]].map(([h, l]) => (
             <a key={h} href={h} className="hidden rounded-lg px-3 py-2 text-muted-foreground transition-colors hover:text-foreground lg:block">{l}</a>
           ))}
-          <Link to="/entrar" className="hidden rounded-full px-4 py-2 font-semibold text-foreground hover:bg-muted sm:block">Entrar</Link>
+          <Link to="/entrar" className="rounded-full px-3 py-2 font-semibold text-foreground hover:bg-muted sm:px-4">Entrar</Link>
           <Link to="/simulador" className="hidden rounded-full border px-4 py-2 font-semibold text-foreground sm:block">Simular</Link>
           <Link to="/cadastro" className="rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground">Testar grátis</Link>
         </nav>
