@@ -8,10 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import mascotThanks from "@/assets/mascot-thanks-filled.png";
-import mascotRating from "@/assets/mascot-rating-filled.png";
-import mascotWaiting from "@/assets/mascot-waiting-filled.png";
-import mascotTableClosed from "@/assets/mascot-table-closed-filled.png";
+import mascotThanks from "@/assets/mascot-thanks.webp";
+import mascotRating from "@/assets/mascot-rating.webp";
+import mascotWaiting from "@/assets/mascot-waiting.webp";
+import mascotTableClosed from "@/assets/mascot-table-closed.webp";
 
 type Stage = "totem" | "identification" | "bill" | "payment" | "approved" | "pending" | "rating" | "tip" | "tip-payment" | "closed" | "done";
 type Tab = "bill" | "activity";
@@ -85,6 +85,10 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
   const [tip, setTip] = useState(0);
   const [paidAmount, setPaidAmount] = useState(0);
   const [demo, setDemo] = useState<DemoState>(EMPTY_STATE);
+
+  useEffect(() => {
+    for (const src of [mascotWaiting, mascotThanks, mascotRating, mascotTableClosed]) { const img = new Image(); img.src = src; }
+  }, []);
 
   useEffect(() => {
     const current = readState();
