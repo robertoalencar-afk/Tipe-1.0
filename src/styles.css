@@ -159,6 +159,32 @@
   }
 }
 
+/* Only the customer journey follows the device theme. :has keeps portalled
+   dialogs and the surrounding page on the same palette without JS flashes. */
+@media (prefers-color-scheme: dark) {
+  body:has(.customer-theme) {
+    color-scheme: dark;
+    --background: oklch(0.17 0.018 240);
+    --foreground: oklch(0.96 0.005 240);
+    --card: oklch(0.225 0.019 240);
+    --card-foreground: var(--foreground);
+    --popover: var(--card);
+    --popover-foreground: var(--foreground);
+    --primary: oklch(0.77 0.14 178);
+    --primary-foreground: oklch(0.2 0.04 250);
+    --secondary: oklch(0.2 0.04 250);
+    --secondary-foreground: oklch(0.98 0 0);
+    --muted: oklch(0.28 0.018 240);
+    --muted-foreground: oklch(0.75 0.018 240);
+    --accent: oklch(0.32 0.055 178);
+    --accent-foreground: var(--foreground);
+    --border: oklch(0.36 0.02 240);
+    --input: var(--border);
+    --ring: var(--primary);
+    --destructive: oklch(0.73 0.17 27);
+  }
+}
+
 @keyframes tipe-pingpong {
   0%,
   100% {

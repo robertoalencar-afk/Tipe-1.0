@@ -182,7 +182,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
 
   if (stage === "totem") {
     return (
-      <main className="flex min-h-svh items-center justify-center bg-secondary p-5 text-secondary-foreground">
+      <main className="customer-theme flex min-h-svh items-center justify-center bg-secondary p-5 text-secondary-foreground">
         <section className="w-full max-w-sm text-center">
           <TipeLogo className="mx-auto h-16" />
           <p className="mt-4 font-display text-xl font-bold text-primary">Pague. Sem esperar.</p>
@@ -204,7 +204,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
   }
 
   return (
-    <div className="mx-auto flex min-h-svh max-w-md flex-col bg-background">
+    <div className="customer-theme mx-auto flex min-h-svh max-w-md flex-col bg-background">
       <header className="mb-5 bg-secondary px-5 pb-5 pt-6 text-secondary-foreground">
         <div className="flex items-center justify-between"><TipeLogo className="h-10" /><span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-bold text-primary">Mesa 12</span></div>
         <div className="mt-4 flex items-center justify-between"><p className="text-sm text-secondary-foreground/70">Maré Alta</p><span className="text-xs font-semibold text-primary">Simulação</span></div>

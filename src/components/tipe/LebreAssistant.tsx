@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Bot, Check, MessageCircle, X } from "lucide-react";
+import { Check, MessageCircle, X } from "lucide-react";
+import { HareOutline } from "@/components/tipe/HareOutline";
 import { Button } from "@/components/ui/button";
 import { Conversation, ConversationContent, ConversationScrollButton } from "@/components/ai-elements/conversation";
 import { Message, MessageContent, MessageResponse } from "@/components/ai-elements/message";
@@ -83,7 +84,7 @@ export function LebreAssistant({ slug }: { slug?: string }) {
                     <div className="mt-3 grid grid-cols-2 gap-2">{panelExamples.map((ex) => <div key={ex.title} className="rounded-md border bg-muted/40 p-3"><p className="text-sm font-semibold">{ex.title}</p><p className="mt-1 text-xs text-muted-foreground">{ex.text}</p></div>)}</div>
                     <p className="mt-3 text-xs text-muted-foreground">Toque num exemplo abaixo ou escreva do seu jeito. Toda alteração pede sua confirmação.</p></div>
                 ) : (
-                <div className="py-5 text-center"><Bot className="mx-auto h-7 w-7 text-primary" /><p className="mt-3 font-display font-semibold">Como posso ajudar?</p><p className="mt-1 text-sm text-muted-foreground">Pergunte sobre a TIPE ou sobre a operação do seu restaurante.</p></div>)
+                <div className="py-5 text-center"><HareOutline className="mx-auto h-9 w-7 text-primary" /><p className="mt-3 font-display font-semibold">Como posso ajudar?</p><p className="mt-1 text-sm text-muted-foreground">Pergunte sobre a TIPE ou sobre a operação do seu restaurante.</p></div>)
               )}
               {messages.map((message) => (
                 <Message key={message.id} from={message.role}>

@@ -309,7 +309,7 @@ function MesaPage() {
   }, [etapa, pix, restaurante, dados.mesa, sessaoMesa, atualizarMesa]);
 
   return (
-    <div className="mx-auto flex min-h-svh max-w-md flex-col bg-background">
+    <div className="customer-theme mx-auto flex min-h-svh max-w-md flex-col bg-background">
       <header className="mb-5 bg-secondary px-5 pb-5 pt-6 text-secondary-foreground">
         <div className="flex items-center justify-between"><TipeLogo className="h-10" />{etapaVisivel !== "identificacao" && etapaVisivel !== "carregando" && <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-bold text-primary">Mesa {dados.mesa}</span>}</div>
         {etapaVisivel !== "identificacao" && etapaVisivel !== "carregando" && <p className="mt-4 text-sm text-secondary-foreground/70">{dados.restaurante}</p>}
