@@ -90,7 +90,7 @@ function Entrar() {
   const perks = [
     { icon: Zap, text: "Acompanhe mesas e pedidos em tempo real" },
     { icon: CheckCircle2, text: "Confirme pagamentos no estabelecimento com um toque" },
-    { icon: ShieldCheck, text: "Seus dados protegidos com segurança" },
+    { icon: ShieldCheck, text: "Conectado ao PDV que você já usa" },
   ];
 
   return (

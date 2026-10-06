@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import { LogOut, Store, Users, Wallet, TrendingUp, Gift, Inbox, ShieldCheck, Table2 } from "lucide-react";
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { supabase } from "@/integrations/supabase/client";
-import { TipeLogo } from "@/components/tipe/Logo";
+import { AreaShell } from "@/components/tipe/AreaShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -50,24 +50,16 @@ function Fundador() {
   const garc = useMemo(() => (d?.waiters ?? []).filter((w) => (w.name + (w.email ?? "") + w.restaurant).toLowerCase().includes(busca.toLowerCase())), [d, busca]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="flex items-center justify-between gap-3 bg-secondary px-4 py-3 text-secondary-foreground">
-        <div className="flex items-center gap-3"><TipeLogo className="h-9" /><span className="hidden text-sm opacity-80 sm:inline">Painel do fundador</span></div>
-        <div className="flex items-center gap-2">
-          <Button asChild size="sm" variant="ghost" className="text-secondary-foreground"><Link to="/painel">Restaurantes</Link></Button>
-          <Button size="sm" variant="ghost" onClick={sair} className="text-secondary-foreground"><LogOut className="mr-1 h-4 w-4" />Sair</Button>
-        </div>
-      </header>
-
-      <main className="mx-auto max-w-7xl space-y-6 p-4">
+    <AreaShell eyebrow="Painel do fundador" title="Visão geral da TIPE" subtitle="Indicadores dos últimos 30 dias, atualizados a cada minuto."
+      actions={<>
+        <Button asChild size="sm" variant="ghost" className="text-secondary-foreground hover:bg-secondary-foreground/10 hover:text-secondary-foreground"><Link to="/painel">Restaurantes</Link></Button>
+        <Button size="sm" variant="ghost" onClick={sair} className="text-secondary-foreground hover:bg-secondary-foreground/10 hover:text-secondary-foreground"><LogOut className="mr-1 h-4 w-4" />Sair</Button>
+      </>}>
+      <div className="space-y-6">
         {q.isLoading && <p className="text-muted-foreground">Carregando…</p>}
         {q.error && <p className="text-destructive">{(q.error as Error).message}</p>}
         {d && (
           <>
-            <div>
-              <h1 className="font-display text-2xl font-bold">Visão geral</h1>
-              <p className="text-sm text-muted-foreground">Indicadores dos últimos 30 dias · atualiza a cada minuto</p>
-            </div>
             <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
               <Kpi icon={Store} label="Restaurantes" value={String(d.kpis.restaurants)} sub={`${d.kpis.trial} em teste · ${d.kpis.active} pagantes`} />
               <Kpi icon={Wallet} label="Receita recorrente (mês)" value={brl(d.kpis.mrr)} sub={`${d.kpis.onboardingPending} sem PDV conectado`} />
@@ -79,7 +71,7 @@ function Fundador() {
               <Kpi icon={ShieldCheck} label="Pedidos de privacidade" value={String(d.kpis.openPrivacy)} sub="Em aberto" />
             </div>
 
-            <section className="rounded-2xl border border-border bg-card p-5">
+            <section className="rounded-3xl border border-border bg-card p-5 shadow-sm">
               <h2 className="mb-3 font-display text-lg font-bold">Volume diário pago nas mesas</h2>
               <div className="h-56">
                 <ResponsiveContainer width="100%" height="100%">
@@ -183,14 +175,14 @@ function Fundador() {
             </Tabs>
           </>
         )}
-      </main>
-    </div>
+      </div>
+    </AreaShell>
   );
 }
 
 function Kpi({ icon: Icon, label, value, sub }: { icon: typeof Store; label: string; value: string; sub?: string }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-4">
+    <div className="rounded-2xl border border-border bg-card p-4 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md">
       <div className="flex items-center gap-2 text-xs text-muted-foreground"><Icon className="h-4 w-4 text-primary" />{label}</div>
       <div className="mt-1 font-display text-xl font-bold">{value}</div>
       {sub && <div className="text-xs text-muted-foreground">{sub}</div>}

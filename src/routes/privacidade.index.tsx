@@ -66,7 +66,7 @@ const sections: LegalSection[] = [
     `Os pagamentos digitais serão processados por provedores de pagamento autorizados. Provedor em definição: ${PENDING}. O TIPE não armazena dados de cartão; guarda apenas valor, itens, meio escolhido e status. Pagamentos no estabelecimento (dinheiro ou maquininha) ficam pendentes até a confirmação do restaurante.`,
   ] },
   { title: "10. Integração com PDVs", paragraphs: [
-    "Os itens da conta podem vir do PDV TIPE ou do PDV que o restaurante já usa. Quando o restaurante conecta um PDV externo, recebemos itens, quantidades, preços e mesa — não pedimos dados pessoais de clientes ao PDV.",
+    "Os itens da conta vêm do PDV que o restaurante já usa. Quando o restaurante conecta um PDV externo, recebemos itens, quantidades, preços e mesa — não pedimos dados pessoais de clientes ao PDV.",
   ] },
   { title: "11. Segurança", paragraphs: [
     "Usamos conexão criptografada (HTTPS), controle de acesso por restaurante e por cargo, chaves de integração armazenadas apenas como hash, sessões de mesa renovadas a cada reabertura, limites de requisições e trilhas de auditoria. Nenhum sistema é totalmente imune a incidentes; havendo incidente relevante, comunicaremos titulares e autoridade conforme a lei.",

@@ -1,9 +1,9 @@
+import { AreaShell } from "@/components/tipe/AreaShell";
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { TipeLogo } from "@/components/tipe/Logo";
 import { Button } from "@/components/ui/button";
 import { RestaurantPanel } from "@/components/tipe/RestaurantPanel";
 import { getMyAccess } from "@/lib/tipe/staff.functions";
@@ -45,15 +45,12 @@ function AreaRestaurante() {
   const myRoles = access.data?.roles.filter((x) => x.restaurantId === r?.id).map((x) => x.role) ?? [];
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="flex items-center justify-between gap-3 bg-secondary px-4 py-3 text-secondary-foreground print:hidden">
-        <TipeLogo className="h-9" />
-        <div className="flex items-center gap-2">
-          {access.data?.isFounder && <Link to="/painel" className="text-sm underline opacity-80">Todos os restaurantes</Link>}
-          <Button size="sm" variant="ghost" onClick={sair} className="text-secondary-foreground"><LogOut className="mr-1 h-4 w-4" />Sair</Button>
-        </div>
-      </header>
-      <main className="mx-auto max-w-7xl p-4">
+    <AreaShell eyebrow="Área do restaurante"
+      actions={<>
+        {access.data?.isFounder && <Link to="/painel" className="px-2 text-sm underline opacity-80">Todos os restaurantes</Link>}
+        <Button size="sm" variant="ghost" onClick={sair} className="text-secondary-foreground hover:bg-secondary-foreground/10 hover:text-secondary-foreground"><LogOut className="mr-1 h-4 w-4" />Sair</Button>
+      </>}>
+      <div>
         {access.isLoading && <p className="text-muted-foreground">Carregando…</p>}
         {access.error && <p className="text-destructive">{(access.error as Error).message}</p>}
         {access.data && !r && (
@@ -64,7 +61,7 @@ function AreaRestaurante() {
           </div>
         )}
         {r && access.data && <RestaurantPanel key={restaurante} slug={restaurante} myRoles={myRoles} isFounder={access.data.isFounder} />}
-      </main>
-    </div>
+      </div>
+    </AreaShell>
   );
 }

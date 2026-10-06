@@ -54,7 +54,7 @@ export const getFounderOverview = createServerFn({ method: "GET" })
       const m = bySlug.get(r.slug) ?? { gmv: 0, tips: 0, count: 0 };
       return {
         id: r.id, slug: r.slug, name: r.name, cnpj: r.cnpj, phone: r.phone, address: r.address, createdAt: r.created_at,
-        pos: r.pos_mode === "tipe" ? "PDV TIPE" : r.pos_provider, onboarding: r.onboarding_step,
+        pos: r.pos_mode === "tipe" ? "Sem PDV conectado" : r.pos_provider, onboarding: r.onboarding_step,
         plan: sub?.plan ?? "—", subStatus: sub?.status ?? "sem assinatura", trialEndsAt: sub?.trial_ends_at ?? null,
         tables: (tables.data ?? []).filter((t) => t.restaurant_id === r.id && t.active).length,
         waiters: (waiters.data ?? []).filter((w) => w.restaurant_id === r.id && w.active).length,
