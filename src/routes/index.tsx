@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import {
   QrCode, Receipt, Smartphone, CheckCircle2, ChevronRight, MonitorSmartphone, History, Landmark,
   Plug, Store, Zap, ShieldCheck, Clock, Users, Check, Star, BarChart3, Wallet,
-  Hand, ClipboardList, Calculator, ArrowLeftRight, CreditCard, Bot, Headphones,
+  Hand, ClipboardList, Calculator, ArrowLeftRight, CreditCard, Bot, Headphones, Instagram,
 } from "lucide-react";
 import { submitLead } from "@/lib/tipe/leads.functions";
 import { PLANS, TRIAL_DAYS, priceLabel, type PlanId } from "@/lib/tipe/plans";
