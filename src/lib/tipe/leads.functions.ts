@@ -19,17 +19,27 @@ export const submitLead = createServerFn({ method: "POST" })
     // Entrada já validada e limitada por IP acima; gravação apenas nesta tabela.
     const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
 
-    const { error } = await db.from("restaurant_leads").insert({
+    const { data: row, error } = await db.from("restaurant_leads").insert({
       restaurant_name: data.restaurantName,
       contact_name: data.contactName,
       email: data.email,
       phone: data.phone ? data.phone.slice(0, 30) : null,
       message: `Mesas: ${data.tables} · PDV: ${data.pdv}${data.message ? ` · ${data.message}` : ""}`,
-    });
+    }).select("id").single();
 
     if (error) {
       console.error("lead_insert", error.message);
       throw new Error("Falha ao registrar o contato");
+    }
+    try {
+      const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
+      const templateData = { restaurantName: data.restaurantName, contactName: data.contactName, email: data.email, phone: data.phone, tables: data.tables, pdv: data.pdv };
+      await Promise.allSettled([
+        sendTemplateEmail("lead-notification", "roberto@tipe.digital", { templateData, idempotencyKey: `lead-notification-${row.id}`, replyTo: data.email }),
+        sendTemplateEmail("lead-confirmation", data.email, { templateData, idempotencyKey: `lead-confirmation-${row.id}`, replyTo: "contato@tipe.digital" }),
+      ]).then((r) => r.forEach((x) => x.status === "rejected" && console.error("lead_email", x.reason)));
+    } catch (e) {
+      console.error("lead_email", e);
     }
     return { ok: true as const };
   });

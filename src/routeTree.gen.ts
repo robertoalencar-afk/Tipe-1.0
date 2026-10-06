@@ -29,6 +29,7 @@ import { Route as PrivacidadeSolicitacaoRouteImport } from './routes/privacidade
 import { Route as MesaRestauranteMesaRouteImport } from './routes/mesa.$restaurante.$mesa'
 import { Route as ApiPublicPagarmeWebhookRouteImport } from './routes/api/public/pagarme/webhook'
 import { Route as ApiPublicPosSlugRouteImport } from './routes/api/public/pos.$slug'
+import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as ApiPublicPagarmeRestauranteSlugRouteImport } from './routes/api/public/pagarme/restaurante.$slug'
 
 const IndexRoute = IndexRouteImport.update({
@@ -130,6 +131,12 @@ const ApiPublicPosSlugRoute = ApiPublicPosSlugRouteImport.update({
   path: '/api/public/pos/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LovableEmailTransactionalPreviewRoute =
+  LovableEmailTransactionalPreviewRouteImport.update({
+    id: '/lovable/email/transactional/preview',
+    path: '/lovable/email/transactional/preview',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicPagarmeRestauranteSlugRoute =
   ApiPublicPagarmeRestauranteSlugRouteImport.update({
     id: '/api/public/pagarme/restaurante/$slug',
@@ -157,6 +164,7 @@ export interface FileRoutesByFullPath {
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
+  '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/api/public/pagarme/restaurante/$slug': typeof ApiPublicPagarmeRestauranteSlugRoute
 }
 export interface FileRoutesByTo {
@@ -179,6 +187,7 @@ export interface FileRoutesByTo {
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
+  '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/api/public/pagarme/restaurante/$slug': typeof ApiPublicPagarmeRestauranteSlugRoute
 }
 export interface FileRoutesById {
@@ -203,6 +212,7 @@ export interface FileRoutesById {
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
+  '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/api/public/pagarme/restaurante/$slug': typeof ApiPublicPagarmeRestauranteSlugRoute
 }
 export interface FileRouteTypes {
@@ -227,6 +237,7 @@ export interface FileRouteTypes {
     | '/mesa/$restaurante/$mesa'
     | '/api/public/pagarme/webhook'
     | '/api/public/pos/$slug'
+    | '/lovable/email/transactional/preview'
     | '/api/public/pagarme/restaurante/$slug'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -249,6 +260,7 @@ export interface FileRouteTypes {
     | '/mesa/$restaurante/$mesa'
     | '/api/public/pagarme/webhook'
     | '/api/public/pos/$slug'
+    | '/lovable/email/transactional/preview'
     | '/api/public/pagarme/restaurante/$slug'
   id:
     | '__root__'
@@ -272,6 +284,7 @@ export interface FileRouteTypes {
     | '/mesa/$restaurante/$mesa'
     | '/api/public/pagarme/webhook'
     | '/api/public/pos/$slug'
+    | '/lovable/email/transactional/preview'
     | '/api/public/pagarme/restaurante/$slug'
   fileRoutesById: FileRoutesById
 }
@@ -293,6 +306,7 @@ export interface RootRouteChildren {
   MesaRestauranteMesaRoute: typeof MesaRestauranteMesaRoute
   ApiPublicPagarmeWebhookRoute: typeof ApiPublicPagarmeWebhookRoute
   ApiPublicPosSlugRoute: typeof ApiPublicPosSlugRoute
+  LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
   ApiPublicPagarmeRestauranteSlugRoute: typeof ApiPublicPagarmeRestauranteSlugRoute
 }
 
@@ -438,6 +452,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPosSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/lovable/email/transactional/preview': {
+      id: '/lovable/email/transactional/preview'
+      path: '/lovable/email/transactional/preview'
+      fullPath: '/lovable/email/transactional/preview'
+      preLoaderRoute: typeof LovableEmailTransactionalPreviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/pagarme/restaurante/$slug': {
       id: '/api/public/pagarme/restaurante/$slug'
       path: '/api/public/pagarme/restaurante/$slug'
@@ -481,6 +502,7 @@ const rootRouteChildren: RootRouteChildren = {
   MesaRestauranteMesaRoute: MesaRestauranteMesaRoute,
   ApiPublicPagarmeWebhookRoute: ApiPublicPagarmeWebhookRoute,
   ApiPublicPosSlugRoute: ApiPublicPosSlugRoute,
+  LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
   ApiPublicPagarmeRestauranteSlugRoute: ApiPublicPagarmeRestauranteSlugRoute,
 }
 export const routeTree = rootRouteImport
