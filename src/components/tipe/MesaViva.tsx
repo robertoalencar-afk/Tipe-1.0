@@ -70,7 +70,7 @@ export function MesaViva() {
         const tl = gsap.timeline({
           repeat: -1,
           defaults: { ease: "expo.out" },
-          onUpdate() { if (bar.current) bar.current.style.transform = `scaleX(${this.progress()})`; },
+          onUpdate: () => { if (bar.current) bar.current.style.transform = `scaleX(${tl.progress()})`; },
         });
 
         const enter = (s: string, at: number) => {
