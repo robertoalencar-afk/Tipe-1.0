@@ -23,7 +23,7 @@
 - [x] Integração com qualquer PDV (endereço + chave por restaurante, histórico de sincronização)
 - [ ] Adicionais de produto, nota fiscal (NFC-e), estoque e delivery
 - [x] Painel do garçom
-- [x] Painel do fundador
+- [ ] Reestruturar o painel do fundador como backoffice administrativo e financeiro da TIPE, sem acesso direto às áreas privadas dos restaurantes
 - [x] Lebre IA pública para dúvidas e autenticada no restaurante, com primeira ação segura confirmada pelo usuário
 - [x] Renovar a landing na direção fintech escolhida, com narrativa de venda, produto em destaque, um mascote principal e linguagem sem travessões
 - [x] Substituir a Lebre gerada pelo mascote oficial da TIPE, preservando exatamente seu estilo visual
