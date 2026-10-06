@@ -106,8 +106,10 @@ export function MesaViva() {
         tl.from(q(".s2 .core"), { scale: 0.4, opacity: 0, duration: 0.9, ease: "back.out(1.8)" }, t + 0.2);
         tl.from(q(".s2 .ring"), { scale: 0.2, opacity: 0, stagger: 0.12, duration: 1.1 }, t + 0.25);
         tl.fromTo(q(".s2 .pulse"), { scale: 0.6, opacity: 0.7 }, { scale: 1.9, opacity: 0, duration: 1.6, ease: "power1.out", repeat: 2 }, t + 0.6);
-        tl.fromTo(q(".s2 .spin"), { rotate: -25 }, { rotate: 20, duration: 4.2, ease: "none" }, t + 0.2);
-        tl.fromTo(q(".s2 .chip"), { rotate: 25 }, { rotate: -20, duration: 4.2, ease: "none" }, t + 0.2);
+        tl.fromTo(q(".s2 .spin"), { rotate: -60 }, { rotate: 120, duration: 4.4, ease: "power1.inOut" }, t + 0.1);
+        tl.fromTo(q(".s2 .ring"), { rotate: 0 }, { rotate: (i: number) => (i % 2 ? -90 : 90), duration: 4.4, ease: "none" }, t + 0.1);
+        tl.fromTo(q(".s2 .chip"), { rotate: 60 }, { rotate: -120, duration: 4.4, ease: "power1.inOut" }, t + 0.1);
+        tl.fromTo(q(".s2 .core"), { scale: 1 }, { scale: 1.06, duration: 0.6, yoyo: true, repeat: 5, ease: "sine.inOut" }, t + 1.1);
         tl.from(q(".s2 .chipin"), { scale: 0, opacity: 0, stagger: 0.12, duration: 0.6, ease: "back.out(2.4)" }, t + 0.7);
         const money = { v: 0 };
         tl.fromTo(money, { v: 0 }, { v: 229.9, duration: 1.8, ease: "power2.out", onUpdate: () => { const el = q(".s2 .total")[0]; if (el) el.textContent = money.v.toFixed(2).replace(".", ","); } }, t + 0.8);
@@ -129,6 +131,7 @@ export function MesaViva() {
         tl.from(q(".s4 .paycard"), { y: 90, opacity: 0, duration: 0.9 }, t + 0.2);
         tl.from(q(".s4 .bub"), { x: 90, opacity: 0, stagger: 0.25, duration: 0.6 }, t + 0.5);
         tl.fromTo(q(".s4 .prog"), { scaleX: 0 }, { scaleX: 1, duration: 1.5, ease: "power2.inOut" }, t + 0.8);
+        tl.fromTo(q(".s4 .shine"), { xPercent: -100 }, { xPercent: 500, duration: 1.1, ease: "power1.inOut", repeat: 2 }, t + 0.8);
         tl.from(q(".s4 .seal"), { opacity: 0, y: 8, stagger: 0.15, duration: 0.4 }, t + 2.8);
         tl.from(q(".s4 .ok"), { scale: 0, rotate: -90, duration: 0.6, ease: "back.out(2.5)" }, t + 2.4);
         tl.from(q(".s4 .okt"), { opacity: 0, x: -10, duration: 0.4 }, t + 2.7);
@@ -148,9 +151,12 @@ export function MesaViva() {
         t = 26.8;
         tl.set(q(".s6"), { autoAlpha: 1 }, t);
         tl.fromTo(q(".s6 .aura"), { scale: 0.3, opacity: 0 }, { scale: 1, opacity: 1, duration: 2.2, ease: "power2.out" }, t);
-        tl.fromTo(q(".s6 .logo"), { scale: 1.15, opacity: 0, filter: lite ? "none" : "blur(18px)" }, { scale: 1, opacity: 1, filter: lite ? "none" : "blur(0px)", duration: 1.8, ease: "power3.out" }, t + 0.2);
+        tl.fromTo(q(".s6 .burst"), { scale: 0.4, opacity: 0.9 }, { scale: 2.4, opacity: 0, duration: 1.4, stagger: 0.25, ease: "power2.out" }, t + 0.5);
+        tl.fromTo(q(".s6 .logo"), { scale: 0.55, opacity: 0, rotate: -25, filter: "blur(22px) brightness(2.2)" }, { scale: 1, opacity: 1, rotate: 0, filter: "blur(0px) brightness(1)", duration: 1.6, ease: "expo.out" }, t + 0.25);
+        tl.to(q(".s6 .logo"), { scale: 1.04, duration: 1.6, yoyo: true, repeat: 2, ease: "sine.inOut" }, t + 1.9);
         tl.from(q(".s6 .w"), { yPercent: 110, opacity: 0, filter: lite ? "none" : "blur(10px)", stagger: 0.14, duration: 1 }, t + 1.1);
         tl.fromTo(q(".s6 .beam"), { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 1.4, ease: "power3.inOut" }, t + 1.8);
+        tl.fromTo(q(".s6 .shine"), { xPercent: -100 }, { xPercent: 500, duration: 1.3, ease: "power1.inOut", repeat: 2, repeatDelay: 0.2 }, t + 2.6);
         tl.from(q(".s6 .cta"), { y: 16, opacity: 0, duration: 0.8 }, t + 2.4);
         tl.to(q(".s6"), { autoAlpha: 0, duration: 0.9, ease: "power2.inOut" }, t + 6.3);
 
@@ -200,7 +206,7 @@ export function MesaViva() {
             <span className="pulse absolute inset-[34%] rounded-full border-2 border-primary/50" />
             <div className="core absolute inset-[34%] flex flex-col items-center justify-center rounded-full bg-primary text-primary-foreground shadow-[0_0_60px_var(--primary)]">
               <span className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-75">Mesa 12</span>
-              <span className="font-display text-lg font-extrabold sm:text-2xl">R$ <span className="total">229,90</span></span>
+              <span className="whitespace-nowrap font-display text-base font-extrabold sm:text-xl lg:text-2xl">R$ <span className="total">229,90</span></span>
             </div>
             <div className="spin absolute inset-0">
               {orbit.map(([n, p, who], i) => {
@@ -270,7 +276,7 @@ export function MesaViva() {
                 <span className="rounded-full bg-secondary-foreground/10 px-3 py-1.5">Google Pay</span>
               </div>
               <div className="mt-4 h-1.5 overflow-hidden rounded-full bg-secondary-foreground/10">
-                <div className="prog h-full origin-left rounded-full bg-primary shadow-[0_0_14px_var(--primary)]" />
+                <div className="prog relative h-full origin-left overflow-hidden rounded-full bg-primary shadow-[0_0_14px_var(--primary)]"><span className="shine absolute inset-y-0 left-0 w-1/5 bg-gradient-to-r from-transparent via-primary-foreground/80 to-transparent" /></div>
               </div>
               <div className="mt-3 flex items-center gap-2">
                 <span className="ok flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground"><Check className="h-5 w-5" /></span>
@@ -303,6 +309,7 @@ export function MesaViva() {
         <div className="layer invisible s6 absolute inset-0 flex flex-col items-center justify-center gap-8 px-6 pb-10 sm:flex-row sm:gap-12">
           <div className="relative flex items-center justify-center">
             <span aria-hidden className="aura absolute h-[150%] w-[150%] rounded-full bg-primary/20 blur-3xl" />
+            {[0, 1, 2].map((i) => <span key={i} aria-hidden className="burst absolute inset-0 rounded-full border-2 border-primary/60" />)}
             <div className="logo relative h-36 w-36 overflow-hidden rounded-full shadow-[0_0_50px_color-mix(in_oklab,var(--primary)_45%,transparent)] [clip-path:circle(50%)] sm:h-48 sm:w-48 lg:h-56 lg:w-56">
               <img src={roundLogo.url} alt="TIPE" className="h-full w-full scale-[1.03] rounded-full object-cover" />
             </div>
@@ -313,7 +320,7 @@ export function MesaViva() {
               <span className="block"><span className="w inline-block">Sem</span></span>
               <span className="block"><span className="w inline-block text-primary">esperar.</span></span>
             </h2>
-            <div className="beam mx-auto mt-6 h-px w-full max-w-[420px] origin-left bg-gradient-to-r from-primary via-primary/60 to-transparent sm:mx-0" />
+            <div className="beam relative mx-auto mt-6 h-[2px] w-full max-w-[420px] origin-left overflow-hidden rounded-full bg-gradient-to-r from-primary/70 via-primary/40 to-transparent sm:mx-0"><span className="shine absolute inset-y-0 left-0 w-1/4 bg-gradient-to-r from-transparent via-primary to-transparent shadow-[0_0_12px_var(--primary)]" /></div>
             <div className="cta mt-7 flex flex-wrap justify-center gap-3 sm:justify-start">
               <a href="#lista-de-espera" className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-display font-semibold text-primary-foreground">Entrar na lista de espera <ChevronRight className="h-4 w-4" /></a>
               <Link to="/simulador" className="inline-flex items-center rounded-full border border-secondary-foreground/25 px-6 py-3 font-display font-semibold">Simular</Link>
