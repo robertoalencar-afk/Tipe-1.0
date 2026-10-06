@@ -12,7 +12,14 @@ import lebre from "@/assets/lebre-ai-official.svg";
 type ChatMessage = { id: string; role: "user" | "assistant"; text: string; proposal?: LebreProposal; result?: string; error?: string };
 
 const publicSuggestions = ["Como a TIPE funciona?", "Preciso trocar meu PDV?", "Como são os 30 dias grátis?"];
-const panelSuggestions = ["Resuma a situação do salão", "Como confirmo um pagamento?", "Quero cadastrar a mesa 21"];
+const panelSuggestions = ["Abrir a mesa 5", "Cadastrar a mesa 21", "Cadastrar o garçom João Mendes, e-mail joao@email.com", "Pausar o item Suco de laranja", "Resuma a situação do salão"];
+const panelExamples = [
+  { title: "Mesas", text: "Cadastrar, abrir ou desativar mesas" },
+  { title: "Equipe", text: "Cadastrar garçom e enviar convite por e-mail" },
+  { title: "Cardápio", text: "Pausar ou reativar itens" },
+  { title: "Salão", text: "Resumo de mesas e pagamentos pendentes" },
+];
+const confirmWords = /^(sim|confirmo|confirmar|pode|ok|pode fazer|isso)[.! ]*$/i;
 
 export function LebreAssistant({ slug }: { slug?: string }) {
   const askPublic = useServerFn(askPublicLebre);
@@ -26,11 +33,18 @@ export function LebreAssistant({ slug }: { slug?: string }) {
   async function send(text: string) {
     const question = text.trim();
     if (!question || busy) return;
+    const pendingProposal = [...messages].reverse().find((m) => m.role === "assistant" && m.proposal && !m.result && !m.error);
+    if (slug && pendingProposal?.proposal && confirmWords.test(question)) {
+      setMessages((current) => [...current, { id: crypto.randomUUID(), role: "user", text: question }]);
+      await confirm(pendingProposal.id, pendingProposal.proposal);
+      return;
+    }
+    const history = messages.slice(-8).map((m) => ({ role: m.role, text: (m.text + (m.result ? ` (${m.result})` : "")).slice(0, 2000) }));
     const user: ChatMessage = { id: crypto.randomUUID(), role: "user", text: question };
     setMessages((current) => [...current, user]);
     setBusy(true);
     try {
-      const reply = slug ? await askRestaurant({ data: { slug, question } }) : await askPublic({ data: { question } });
+      const reply = slug ? await askRestaurant({ data: { slug, question, history } }) : await askPublic({ data: { question } });
       const assistant: ChatMessage = { id: crypto.randomUUID(), role: "assistant", text: reply.answer, ...(reply.proposal ? { proposal: reply.proposal } : {}) };
       setMessages((current) => [...current, assistant]);
     } catch (error) {
@@ -42,7 +56,7 @@ export function LebreAssistant({ slug }: { slug?: string }) {
     if (!slug) return;
     setBusy(true);
     try {
-      const result = await execute({ data: { slug, proposalId: proposal.id, action: proposal.action, number: proposal.payload.number } });
+      const result = await execute({ data: { slug, proposalId: proposal.id, payload: proposal.payload } });
       setMessages((current) => current.map((message) => message.id === messageId ? { ...message, result: result.message } : message));
     } catch (error) {
       setMessages((current) => current.map((message) => message.id === messageId ? { ...message, error: (error as Error).message } : message));
@@ -64,7 +78,12 @@ export function LebreAssistant({ slug }: { slug?: string }) {
           <Conversation className="min-h-0">
             <ConversationContent className="gap-5">
               {messages.length === 0 && (
-                <div className="py-5 text-center"><Bot className="mx-auto h-7 w-7 text-primary" /><p className="mt-3 font-display font-semibold">Como posso ajudar?</p><p className="mt-1 text-sm text-muted-foreground">Pergunte sobre a TIPE ou sobre a operação do seu restaurante.</p></div>
+                slug ? (
+                  <div className="py-3"><p className="font-display font-semibold">Oi! Posso fazer por você:</p>
+                    <div className="mt-3 grid grid-cols-2 gap-2">{panelExamples.map((ex) => <div key={ex.title} className="rounded-md border bg-muted/40 p-3"><p className="text-sm font-semibold">{ex.title}</p><p className="mt-1 text-xs text-muted-foreground">{ex.text}</p></div>)}</div>
+                    <p className="mt-3 text-xs text-muted-foreground">Toque num exemplo abaixo ou escreva do seu jeito. Toda alteração pede sua confirmação.</p></div>
+                ) : (
+                <div className="py-5 text-center"><Bot className="mx-auto h-7 w-7 text-primary" /><p className="mt-3 font-display font-semibold">Como posso ajudar?</p><p className="mt-1 text-sm text-muted-foreground">Pergunte sobre a TIPE ou sobre a operação do seu restaurante.</p></div>)
               )}
               {messages.map((message) => (
                 <Message key={message.id} from={message.role}>
@@ -73,13 +92,19 @@ export function LebreAssistant({ slug }: { slug?: string }) {
                     <Tool defaultOpen={false}>
                       <ToolHeader type="dynamic-tool" toolName="ação-segura" state={message.result ? "output-available" : message.error ? "output-error" : "approval-requested"} title={message.proposal.title} />
                       <ToolContent>
-                        <p className="text-sm">{message.proposal.summary}</p>
-                        <ToolInput input={message.proposal.payload} />
-                        {(message.result || message.error) ? <ToolOutput output={message.result} errorText={message.error} /> : (
-                          <div className="flex gap-2"><Button disabled={busy} onClick={() => confirm(message.id, message.proposal as LebreProposal)}><Check />Confirmar</Button><Button variant="outline" onClick={() => setMessages((current) => current.map((item) => item.id === message.id ? { ...item, error: "Ação cancelada por você." } : item))}>Cancelar</Button></div>
-                        )}
+                                                <ToolInput input={message.proposal.payload} />
+                        {(message.result || message.error) && <ToolOutput output={message.result} errorText={message.error} />}
                       </ToolContent>
                     </Tool>
+                  )}
+                  {message.proposal && (
+                    <div className="rounded-md border bg-muted/40 p-3 text-sm">
+                      <p className="font-semibold">{message.proposal.title}</p>
+                      <p className="mt-1 text-muted-foreground">{message.proposal.summary}</p>
+                      {message.result ? <p className="mt-2 font-medium text-primary">{message.result}</p> : message.error ? <p className="mt-2 text-destructive">{message.error}</p> : (
+                        <div className="mt-3 flex gap-2"><Button size="sm" disabled={busy} onClick={() => confirm(message.id, message.proposal as LebreProposal)}><Check />Confirmar</Button><Button size="sm" variant="outline" onClick={() => setMessages((current) => current.map((item) => item.id === message.id ? { ...item, error: "Ação cancelada por você." } : item))}>Cancelar</Button></div>
+                      )}
+                    </div>
                   )}
                 </Message>
               ))}
