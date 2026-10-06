@@ -644,30 +644,32 @@ function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, p
   return (
     <main className="flex flex-1 flex-col px-5 pb-8">
       <Button variant="ghost" onClick={voltar} className="mb-4 w-fit px-2 text-muted-foreground"><ArrowLeft /> Voltar</Button>
-      <h1 className="text-2xl font-bold">{titulo}</h1>
+      <h1 className="font-display text-2xl font-extrabold">{titulo}</h1>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">{descricao}</p>
-      <div className="my-6 border-y border-border py-5 text-center">
-        <p className="text-xs text-muted-foreground">{rotuloValor}</p>
-        <p className="mt-1 font-display text-3xl font-bold">{money(valor)}</p>
+      <div className="my-6 rounded-2xl bg-muted/60 p-5 text-center">
+         <p className="text-xs text-muted-foreground">{rotuloValor}</p>
+        <p className="mt-1 font-display text-3xl font-extrabold">{money(valor)}</p>
       </div>
        <h2 className="text-sm font-semibold">Como deseja pagar?</h2>
-       <div className="mt-3 flex flex-col gap-2">
+       <div className="mt-3 flex flex-col gap-2.5">
          {opcoes.map((opcao) => {
            const { descricao: descricaoMetodo, Icone } = metodoDetalhes[opcao.id];
            const selecionado = metodo === opcao.id;
            return (
              <Button
-               key={opcao.id}
+                key={opcao.id}
                variant="outline"
                 onClick={() => { setMetodo(opcao.id); if (opcao.id !== "at_establishment") setMetodoEstabelecimento?.(null); }}
-               className={`h-auto min-h-16 justify-start rounded-lg px-4 py-3 text-left shadow-none ${selecionado ? "border-primary bg-primary/10 ring-1 ring-primary" : "bg-card"}`}
+               className={`h-auto min-h-16 justify-start rounded-2xl px-4 py-3.5 text-left shadow-none transition-all ${selecionado ? "border-2 border-primary bg-primary/10" : "bg-card"}`}
              >
-               <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${selecionado ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}><Icone className="h-4 w-4" /></span>
+               <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${selecionado ? "bg-secondary text-secondary-foreground" : "bg-muted text-foreground"}`}><Icone className="h-4 w-4" /></span>
                <span className="min-w-0 flex-1">
-                 <span className="block font-semibold">{opcao.label}</span>
+                 <span className="block font-bold">{opcao.label}</span>
                  <span className="block text-xs font-normal text-muted-foreground">{descricaoMetodo}</span>
                </span>
-               <span className={`h-4 w-4 shrink-0 rounded-full border-2 ${selecionado ? "border-primary bg-primary ring-2 ring-background" : "border-input"}`} aria-hidden="true" />
+                {selecionado
+                  ? <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary" aria-hidden="true"><Check className="h-3 w-3 text-primary-foreground" /></span>
+                  : <span className="h-5 w-5 shrink-0 rounded-full border-2 border-input" aria-hidden="true" />}
              </Button>
            );
          })}
