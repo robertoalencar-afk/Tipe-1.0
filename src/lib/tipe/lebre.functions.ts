@@ -228,7 +228,7 @@ export const executeLebreProposal = createServerFn({ method: "POST" })
 // O nome TIPE soa como "tchípi" e costuma virar "chip", "chipe", "type" ou "tipi".
 function fixBrand(text: string): string {
   return text
-    .replace(/\b(?:o|a|da|do|na|no|pela|pelo|com a|com o)\s+(?:chip|chipe|chips|xip|ship|type|tipi|tchip|tchipe|tipe)\b/gi, (m) => m.replace(/\S+$/, "TIPE"))
+    .replace(/\b(?:a|da|na|pela|com a)\s+(?:chip|chipe|chips|xip|ship|type|tipi|tchip|tchipe|tipe)\b/gi, (m) => m.replace(/\S+$/, "TIPE"))
     .replace(/\b(?:tchipe|tchípi|tchip|chipe|tipi|tipe)\b/gi, "TIPE");
 }
 
