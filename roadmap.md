@@ -34,4 +34,4 @@
 - [x] Usar a segunda Lebre em PNG transparente de alta qualidade, legível em fundos claros e escuros no celular e desktop
 - [x] Pagamento presencial separado em dinheiro ou maquininha, com valor entregue, troco e aviso ao restaurante
 - [x] Reposicionar a Lebre no painel mobile para não cobrir a navegação inferior
-- [ ] Otimizar carregamento dos mascotes mantendo qualidade
+- [x] Otimizar carregamento dos mascotes mantendo qualidade

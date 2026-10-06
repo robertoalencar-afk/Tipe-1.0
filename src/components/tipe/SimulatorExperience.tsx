@@ -87,6 +87,10 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
   const [demo, setDemo] = useState<DemoState>(EMPTY_STATE);
 
   useEffect(() => {
+    for (const src of [mascotWaiting, mascotThanks, mascotRating, mascotTableClosed]) { const img = new Image(); img.src = src; }
+  }, []);
+
+  useEffect(() => {
     const current = readState();
     setDemo(current);
     const savedName = window.localStorage.getItem(NAME_KEY)?.trim() ?? "";

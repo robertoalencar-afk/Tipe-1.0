@@ -104,6 +104,9 @@ const formatPortion = (value: number) => {
 };
 
 function MesaPage() {
+  useEffect(() => {
+    for (const src of [mascotWaiting, mascotThanks, mascotRating, mascotTableClosed]) { const img = new Image(); img.src = src; }
+  }, []);
   const { restaurante, mesa: codigoMesa } = Route.useParams();
   const { t: tokenMesa } = Route.useSearch();
   type ItemMesa = { id: string; nome: string; qtd: number; preco: number; data: string; hora: string };
