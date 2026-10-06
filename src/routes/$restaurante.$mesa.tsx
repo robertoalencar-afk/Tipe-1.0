@@ -191,6 +191,7 @@ function MesaPage() {
     && dados.itens.length > 0
     && dados.itens.every((item) => (disponiveis[item.id] ?? item.qtd) <= EPSILON)
     && pagamentos.every((pagamento) => pagamento.status !== "pending");
+  const pagamentoPresencialPendente = pagamentos.find((pagamento) => pagamento.status === "pending" && pagamento.establishment_method);
   const etapaVisivel: Etapa = mesaEncerrada && ["carregando", "identificacao", "conta", "pagamento-conta", "conta-pendente"].includes(etapa)
     ? "mesa-encerrada"
     : etapa;
@@ -297,13 +298,10 @@ function MesaPage() {
 
   return (
     <div className="mx-auto flex min-h-svh max-w-md flex-col bg-background">
-      <header className="mb-5 flex flex-col items-center bg-secondary px-6 pb-5 pt-7 text-secondary-foreground">
-        <TipeLogo className="h-14" />
-        {etapaVisivel !== "identificacao" && etapaVisivel !== "carregando" && (
-          <p className="mt-3 text-sm text-secondary-foreground/70">
-            {dados.restaurante} · Mesa {dados.mesa}
-          </p>
-        )}
+      <header className="mb-5 bg-secondary px-5 pb-5 pt-6 text-secondary-foreground">
+        <div className="flex items-center justify-between"><TipeLogo className="h-10" />{etapaVisivel !== "identificacao" && etapaVisivel !== "carregando" && <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-bold text-primary">Mesa {dados.mesa}</span>}</div>
+        {etapaVisivel !== "identificacao" && etapaVisivel !== "carregando" && <p className="mt-4 text-sm text-secondary-foreground/70">{dados.restaurante}</p>}
+        {etapaVisivel !== "identificacao" && etapaVisivel !== "carregando" && <div className="mt-4 flex gap-2" aria-hidden>{["conta", "pagamento-conta", "fim"].map((passo, indice) => <span key={passo} className={`h-1.5 flex-1 rounded-full ${(["conta", "pagamento-conta", "pix", "conta-pendente", "conta-confirmada", "avaliacao", "gorjeta", "pagamento-gorjeta", "fim"].indexOf(etapaVisivel) >= indice) ? "bg-primary" : "bg-secondary-foreground/20"}`} />)}</div>}
       </header>
 
       {erroMesa && (
@@ -347,14 +345,13 @@ function MesaPage() {
 
       {etapaVisivel === "conta" && (
         <main className="flex flex-1 flex-col px-5 pb-8">
-           <div className="mb-4 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3">
-            <p className="text-sm">Olá, <strong>{nome.trim()}</strong>.</p>
+           <p className="text-xs font-semibold text-primary">SUA MESA</p>
+           <h1 className="mt-1 font-display text-2xl font-extrabold">Olá, {nome.trim()}.</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {dados.garcom ? <>Você está sendo atendido por <strong className="text-foreground">{dados.garcom}</strong>.</> : "Bem-vindo! Seus pedidos aparecem aqui assim que forem lançados."}
             </p>
-          </div>
 
-          <div className="mb-5 grid grid-cols-2 gap-1 rounded-full bg-muted p-1">
+          <div className="mb-6 mt-5 grid grid-cols-2 gap-1 rounded-full bg-muted p-1">
             <Button variant={aba === "conta" ? "outline" : "ghost"} onClick={() => setAba("conta")} className="h-10 rounded-full shadow-none">
               <ReceiptText /> Conta
              </Button>
@@ -377,14 +374,15 @@ function MesaPage() {
                   </Button>
                 );
               })()}
-              {dados.itens.some((item) => (disponiveis[item.id] ?? item.qtd) > 0) && <p className="mb-3 text-sm text-muted-foreground">Ou escolha quanto de cada item você vai pagar.</p>}
+              {dados.itens.some((item) => (disponiveis[item.id] ?? item.qtd) > 0) && <><h2 className="font-display text-lg font-extrabold">O que você vai pagar?</h2><p className="mb-4 mt-1 text-sm text-muted-foreground">Escolha quanto de cada item ficará com você.</p></>}
               <ul className="flex flex-col gap-3">
                 {dados.itens.filter((item) => (disponiveis[item.id] ?? item.qtd) > 0).map((item) => {
                   const quantidade = qtds[item.id] ?? 0;
                   const disponivel = disponiveis[item.id] ?? item.qtd;
                   return (
-                    <li key={item.id} className={`rounded-2xl border bg-card p-4 transition ${quantidade > 0 ? "border-2 border-primary bg-primary/5" : "border-border"}`}>
+                    <li key={item.id} className={`rounded-2xl border bg-card p-4 shadow-sm transition ${quantidade > 0 ? "border-2 border-primary bg-primary/10" : "border-border"}`}>
                       <div className="flex items-start justify-between gap-3">
+                        <span className={`mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full border ${quantidade > 0 ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}>{quantidade > 0 && <Check className="h-3.5 w-3.5" />}</span>
                         <div className="min-w-0 flex-1">
                           <p className="font-semibold">{item.nome}</p>
                            <p className="mt-1 text-xs text-muted-foreground">{money(item.preco)} cada · {formatPortion(disponivel)} disponível</p>
@@ -419,7 +417,7 @@ function MesaPage() {
               </ul>
               {dados.itens.every((item) => (disponiveis[item.id] ?? item.qtd) <= 0) && <p className="py-10 text-center text-sm text-muted-foreground">{dados.itens.length === 0 ? "Nenhum pedido ainda. Chame o garçom para fazer seu pedido." : "Não há itens disponíveis para pagamento."}</p>}
 
-              <div className="mt-6 rounded-2xl bg-muted/60 p-4 text-sm">
+              <div className="mt-6 rounded-2xl border border-border bg-card p-5 text-sm shadow-sm">
                 <ResumoLinha label="Subtotal selecionado" valor={subtotal} />
                 <ResumoLinha label="Serviço do restaurante (10%)" valor={servico} className="mt-2" />
                 <ResumoLinha label="Total da conta" valor={totalConta} className="mt-3 border-t border-border pt-3 font-display text-base font-extrabold" />
@@ -511,7 +509,7 @@ function MesaPage() {
           <img src={mascotWaiting} alt="Mascote TIPE aguardando" className="mx-auto mb-3 h-44 w-44 object-contain" />
           <p className="text-sm font-semibold text-highlight">Aguardando confirmação</p>
           <h1 className="mt-2 text-2xl font-bold">Pagamento no estabelecimento</h1>
-          <p className="mt-3 text-center text-sm leading-6 text-muted-foreground">Os itens foram reservados. Pague na maquininha ou em dinheiro. O garçom virá em breve e o restaurante confirmará o recebimento manualmente no sistema.</p>
+          <p className="mt-3 text-center text-sm leading-6 text-muted-foreground">{pagamentoPresencialPendente?.establishment_method === "cash" ? `Prepare o dinheiro. O garçom tratará do seu troco${pagamentoPresencialPendente.change_due !== null && pagamentoPresencialPendente.change_due !== undefined ? ` de ${money(pagamentoPresencialPendente.change_due)}` : ""} em breve.` : "O garçom irá em instantes até sua mesa com a maquininha."}</p>
           <Button onClick={() => setEtapa("avaliacao")} className="mt-8 h-12 w-full rounded-lg text-base font-bold">Avaliar atendimento <ChevronRight /></Button>
           <Button variant="ghost" onClick={() => { setEtapa("conta"); setAba("atividade"); }} className="mt-2 h-11">Ver atividade da mesa</Button>
         </TelaCentral>
@@ -689,6 +687,7 @@ function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, p
                {valorDinheiro && Number(valorDinheiro.replace(",", ".")) < valor && <p role="alert" className="mt-2 text-xs text-destructive">O valor precisa cobrir o total da conta.</p>}
              </div>
            )}
+           {metodoEstabelecimento && <p className="mt-4 text-sm leading-6 text-muted-foreground">{metodoEstabelecimento === "cash" ? "Prepare o dinheiro. O garçom tratará do seu troco em breve." : "O garçom irá em instantes até sua mesa com a maquininha."}</p>}
          </div>
        )}
        {permitirEstabelecimento && (
