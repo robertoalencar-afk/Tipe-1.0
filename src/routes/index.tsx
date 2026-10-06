@@ -519,7 +519,7 @@ function Faq() {
         ["E se um pagamento sair errado?", "O restaurante cancela pelo painel e os itens voltam a ficar disponíveis na conta. Tudo permanece registrado com data, horário e nome de quem pagou."],
         ["Preciso trocar o meu sistema?", "Não. A TIPE se conecta ao PDV que você já usa, seja ele qual for. Logo após o cadastro, o painel mostra o passo a passo e nossa equipe ajuda se precisar."],
         ["Quanto tempo leva para começar?", "A implantação é assistida: cadastramos as mesas, geramos os totens com QR Code e treinamos a equipe. Você pode começar por um salão e ir ampliando conforme o resultado."],
-        ["Como é cobrada a assinatura?", "Mensalmente, de acordo com o número de mesas do seu restaurante, a partir de R$ 49,90/mês, com 30 dias grátis e sem cartão no teste. Sem fidelidade: você cancela quando quiser."],
+        ["Como é cobrada a assinatura?", "Mensalmente, de acordo com o número de mesas do seu restaurante. Os valores serão divulgados no lançamento. Sem fidelidade: você cancela quando quiser."],
       ],
     },
   ];
@@ -646,7 +646,7 @@ function Footer() {
         </div>
         <div className="space-y-2 text-sm">
           <p className="font-display font-bold">Empresa</p>
-          <Link to="/entrar" className="block text-muted-foreground hover:text-foreground">Área do restaurante</Link>
+          <span className="block text-muted-foreground">Área do restaurante · em breve</span>
           <a href="#fale-conosco" className="block text-muted-foreground hover:text-foreground">Fale conosco</a>
         </div>
       </div>
