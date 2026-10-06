@@ -461,7 +461,7 @@ function LebreSection() {
               <div key={title} className="border-l-2 border-primary pl-4"><span className="font-display text-xs font-bold text-primary">0{index + 1}</span><h3 className="mt-2 font-display font-bold">{title}</h3><p className="mt-1 text-sm opacity-70">{text}</p></div>
             ))}
           </div>
-          <div className="mt-8 flex flex-wrap gap-3"><Button onClick={() => document.querySelector<HTMLButtonElement>('[aria-label="Conversar com a Lebre"]')?.click()}><Bot />Conversar com a Lebre</Button><Link to="/cadastro" className="inline-flex items-center rounded-md border border-primary/40 px-4 text-sm font-semibold">Levar para meu restaurante</Link></div>
+          <div className="mt-8"><Button onClick={() => document.querySelector<HTMLButtonElement>('[aria-label="Conversar com a Lebre"]')?.click()}><Bot />Conversar com a Lebre</Button></div>
         </div>
       </div>
     </section>
