@@ -28,14 +28,14 @@ export function PaymentJourneyDemo() {
   useEffect(() => {
     if (!autoplay) return;
     const sequence = [
-      window.setTimeout(() => setSelected(["moqueca"]), 900),
-      window.setTimeout(() => setSelected(["moqueca", "caipirinha"]), 1900),
-      window.setTimeout(() => setStep("payment"), 3400),
-      window.setTimeout(() => setStep("approved"), 5700),
+      window.setTimeout(() => setSelected(["moqueca"]), 500),
+      window.setTimeout(() => setSelected(["moqueca", "caipirinha"]), 1100),
+      window.setTimeout(() => setStep("payment"), 2100),
+      window.setTimeout(() => setStep("approved"), 3700),
       window.setTimeout(() => {
         setSelected([]);
         setStep("items");
-      }, 8300),
+      }, 6200),
     ];
     return () => sequence.forEach(window.clearTimeout);
   }, [autoplay, step === "items" && selected.length === 0]);
