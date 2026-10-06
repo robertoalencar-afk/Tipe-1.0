@@ -111,7 +111,7 @@ function Entrar() {
             )}
           </div>
         </form>
-        <Link to="/" className="mt-4 block text-center text-sm text-muted-foreground underline">Voltar ao totem</Link>
+        <Link to="/" className="mt-4 block text-center text-sm text-muted-foreground underline">Voltar ao site</Link>
       </div>
     </main>
   );
