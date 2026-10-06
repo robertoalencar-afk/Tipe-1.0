@@ -188,15 +188,15 @@ export const executeLebreProposal = createServerFn({ method: "POST" })
       if (!found?.length) throw new Error(`Não encontrei o garçom ${a.name}. Quer que eu cadastre?`);
       if (found.length > 1) throw new Error(`Encontrei mais de um garçom com "${a.name}". Use o nome completo.`);
       const { grantWaiterAccessCore } = await import("./waiter-access.server");
-      await grantWaiterAccessCore({ restaurantId: rid, slug: data.slug, waiterId: found[0].id, email: a.email, actorId: context.userId });
-      message = `Convite enviado para ${a.email}. ${found[0].name} vai receber o link para criar a senha.`;
+      await grantWaiterAccessCore({ restaurantId: rid, slug: data.slug, waiterId: found[0]!.id, email: a.email, actorId: context.userId });
+      message = `Convite enviado para ${a.email}. ${found[0]!.name} vai receber o link para criar a senha.`;
     } else {
       const { data: found } = await sb.from("pdv_menu_items").select("id, name").eq("restaurant_id", rid).ilike("name", `%${a.name}%`).limit(2);
       if (!found?.length) throw new Error(`Não encontrei "${a.name}" no cardápio.`);
       if (found.length > 1) throw new Error(`Encontrei mais de um item com "${a.name}". Seja mais específico.`);
-      const { error } = await sb.from("pdv_menu_items").update({ available: a.available }).eq("id", found[0].id);
+      const { error } = await sb.from("pdv_menu_items").update({ available: a.available }).eq("id", found[0]!.id);
       if (error) throw new Error("Não foi possível alterar o item.");
-      message = a.available ? `"${found[0].name}" voltou ao cardápio.` : `"${found[0].name}" pausado.`;
+      message = a.available ? `"${found[0]!.name}" voltou ao cardápio.` : `"${found[0]!.name}" pausado.`;
     }
     await logSecurityEvent({ action: "lebre_execute", resource: a.action, restaurantSlug: data.slug, restaurantId: rid, actorId: context.userId, detail: `proposal=${data.proposalId}` });
     return { ok: true, message };
