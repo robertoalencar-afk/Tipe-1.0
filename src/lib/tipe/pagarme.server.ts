@@ -6,8 +6,8 @@ export function pagarmeEnabled() {
   return !!process.env["PAGARME_SECRET_KEY"];
 }
 
-export async function pagarme<T = any>(path: string, init: { method?: string; body?: unknown; idempotencyKey?: string } = {}): Promise<T> {
-  const key = process.env["PAGARME_SECRET_KEY"];
+export async function pagarme<T = any>(path: string, init: { method?: string; body?: unknown; idempotencyKey?: string; secretKey?: string } = {}): Promise<T> {
+  const key = init.secretKey ?? process.env["PAGARME_SECRET_KEY"];
   if (!key) throw new Error("Pagar.me não configurado");
   const res = await fetch(`${BASE}${path}`, {
     method: init.method ?? "GET",
@@ -57,4 +57,33 @@ export function orderPaid(o: PagarmeOrder) {
 }
 export function orderFailed(o: PagarmeOrder) {
   return ["failed", "canceled"].includes(o.status) || ["failed", "canceled"].includes(o.charges?.[0]?.status ?? "");
+}
+
+// Chave do restaurante guardada com AES-GCM; nunca volta para o navegador.
+async function cryptoKey() {
+  const raw = process.env["TIPE_ENCRYPTION_KEY"];
+  if (!raw) throw new Error("Criptografia não configurada");
+  const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw));
+  return crypto.subtle.importKey("raw", hash, "AES-GCM", false, ["encrypt", "decrypt"]);
+}
+const b64 = (u: Uint8Array) => btoa(String.fromCharCode(...u));
+const unb64 = (s: string) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
+
+export async function encryptSecret(plain: string) {
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const ct = new Uint8Array(await crypto.subtle.encrypt({ name: "AES-GCM", iv }, await cryptoKey(), new TextEncoder().encode(plain)));
+  return `${b64(iv)}.${b64(ct)}`;
+}
+export async function decryptSecret(enc: string) {
+  const [iv, ct] = enc.split(".");
+  const pt = await crypto.subtle.decrypt({ name: "AES-GCM", iv: unb64(iv!) }, await cryptoKey(), unb64(ct!));
+  return new TextDecoder().decode(pt);
+}
+
+/** Chave Pagar.me própria do restaurante, se conectada. */
+export async function restaurantPagarmeKey(restaurantId: string): Promise<string | null> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await supabaseAdmin.from("restaurant_pagarme_accounts").select("secret_key_enc, status").eq("restaurant_id", restaurantId).maybeSingle();
+  if (!data || data.status !== "active") return null;
+  return decryptSecret(data.secret_key_enc);
 }

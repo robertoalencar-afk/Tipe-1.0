@@ -31,7 +31,7 @@ export const getFounderOverview = createServerFn({ method: "GET" })
       db.from("privacy_requests").select("id, request_type, name, email, status, created_at").order("created_at", { ascending: false }).limit(50),
       db.from("security_events").select("id, created_at, action, restaurant_slug, result, detail").order("created_at", { ascending: false }).limit(40),
       db.from("waiter_withdrawals").select("waiter_id, amount, status"),
-      db.from("restaurant_payout_accounts").select("restaurant_id, status"),
+      db.from("restaurant_pagarme_accounts").select("restaurant_id, status"),
     ]);
 
     const payments = [...(pays.data ?? []), ...(arch.data ?? [])].filter((p) => p.status === "approved");

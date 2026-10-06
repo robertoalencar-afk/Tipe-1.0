@@ -668,6 +668,50 @@ export type Database = {
         }
         Relationships: []
       }
+      restaurant_pagarme_accounts: {
+        Row: {
+          connected_at: string
+          connected_by: string | null
+          key_mode: string
+          key_prefix: string
+          restaurant_id: string
+          secret_key_enc: string
+          status: string
+          updated_at: string
+          webhook_token: string
+        }
+        Insert: {
+          connected_at?: string
+          connected_by?: string | null
+          key_mode?: string
+          key_prefix: string
+          restaurant_id: string
+          secret_key_enc: string
+          status?: string
+          updated_at?: string
+          webhook_token: string
+        }
+        Update: {
+          connected_at?: string
+          connected_by?: string | null
+          key_mode?: string
+          key_prefix?: string
+          restaurant_id?: string
+          secret_key_enc?: string
+          status?: string
+          updated_at?: string
+          webhook_token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "restaurant_pagarme_accounts_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: true
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       restaurant_payout_accounts: {
         Row: {
           account_check_digit: string
