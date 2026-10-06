@@ -1,16 +1,17 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Check, MessageCircle, X } from "lucide-react";
+import { Check, FileText, Loader2, MessageCircle, Mic, Paperclip, Square, X } from "lucide-react";
 import { HareOutline } from "@/components/tipe/HareOutline";
 import { Button } from "@/components/ui/button";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { Conversation, ConversationContent, ConversationScrollButton } from "@/components/ai-elements/conversation";
 import { Message, MessageContent, MessageResponse } from "@/components/ai-elements/message";
-import { PromptInput, PromptInputBody, PromptInputFooter, PromptInputSubmit, PromptInputTextarea } from "@/components/ai-elements/prompt-input";
+import { PromptInput, PromptInputBody, PromptInputButton, PromptInputFooter, PromptInputHeader, PromptInputSubmit, PromptInputTextarea, PromptInputTools, usePromptInputAttachments, type PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import { Tool, ToolContent, ToolHeader, ToolInput, ToolOutput } from "@/components/ai-elements/tool";
-import { askPublicLebre, askRestaurantLebre, executeLebreProposal, type LebreProposal } from "@/lib/tipe/lebre.functions";
+import { askPublicLebre, askRestaurantLebre, executeLebreProposal, transcribeLebreAudio, type LebreFile, type LebreProposal } from "@/lib/tipe/lebre.functions";
 import lebre from "@/assets/lebre-ai-official.svg";
 
-type ChatMessage = { id: string; role: "user" | "assistant"; text: string; proposal?: LebreProposal; result?: string; error?: string };
+type ChatMessage = { id: string; role: "user" | "assistant"; text: string; files?: { name: string; mediaType: string; url: string }[]; proposal?: LebreProposal; result?: string; error?: string };
 
 const publicSuggestions = ["Como a TIPE funciona?", "Preciso trocar meu PDV?", "Como são os 30 dias grátis?"];
 const panelSuggestions = ["Abrir a mesa 5", "Cadastrar a mesa 21", "Cadastrar o garçom João Mendes, e-mail joao@email.com", "Pausar o item Suco de laranja", "Resuma a situação do salão"];
@@ -20,32 +21,107 @@ const panelExamples = [
   { title: "Cardápio", text: "Pausar ou reativar itens" },
   { title: "Salão", text: "Resumo de mesas e pagamentos pendentes" },
 ];
+const ACCEPT = "image/png,image/jpeg,image/webp,image/gif,application/pdf";
+const MAX_FILE = 5 * 1024 * 1024;
+const MAX_AUDIO_MS = 60_000;
+
+function blobToBase64(blob: Blob) {
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result).split(",")[1] ?? "");
+    reader.onerror = () => reject(new Error("Não foi possível ler o áudio."));
+    reader.readAsDataURL(blob);
+  });
+}
+
+function AttachmentChips() {
+  const attachments = usePromptInputAttachments();
+  if (!attachments.files.length) return null;
+  return (
+    <PromptInputHeader className="flex flex-wrap gap-2 px-3 pt-3">
+      {attachments.files.map((file) => (
+        <span key={file.id} className="flex max-w-[180px] items-center gap-2 rounded-md border bg-muted/50 py-1 pl-1 pr-2 text-xs">
+          {file.mediaType?.startsWith("image/") ? <img src={file.url} alt="" className="h-7 w-7 rounded object-cover" /> : <FileText className="h-5 w-5 shrink-0 text-primary" />}
+          <span className="truncate">{file.filename}</span>
+          <button type="button" onClick={() => attachments.remove(file.id)} aria-label={`Remover ${file.filename}`} className="text-muted-foreground hover:text-foreground"><X className="h-3.5 w-3.5" /></button>
+        </span>
+      ))}
+    </PromptInputHeader>
+  );
+}
+
+function AttachButton({ disabled }: { disabled: boolean }) {
+  const attachments = usePromptInputAttachments();
+  return <PromptInputButton disabled={disabled} onClick={() => attachments.openFileDialog()} aria-label="Anexar foto ou PDF" tooltip="Anexar foto ou PDF"><Paperclip /></PromptInputButton>;
+}
+
 const confirmWords = /^(sim|confirmo|confirmar|pode|ok|pode fazer|isso)[.! ]*$/i;
 
 export function LebreAssistant({ slug }: { slug?: string }) {
   const askPublic = useServerFn(askPublicLebre);
   const askRestaurant = useServerFn(askRestaurantLebre);
   const execute = useServerFn(executeLebreProposal);
+  const transcribe = useServerFn(transcribeLebreAudio);
+  const [draft, setDraft] = useState("");
+  const [recording, setRecording] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
+  const [notice, setNotice] = useState<string | null>(null);
+  const recorderRef = useRef<MediaRecorder | null>(null);
+  const timerRef = useRef<number | null>(null);
+
+  async function startRecording() {
+    setNotice(null);
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") { setNotice("Seu navegador não permite gravar áudio aqui."); return; }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const mimeType = ["audio/webm;codecs=opus", "audio/webm", "audio/mp4", "audio/ogg"].find((type) => MediaRecorder.isTypeSupported(type));
+      const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      const chunks: Blob[] = [];
+      recorder.ondataavailable = (event) => { if (event.data.size) chunks.push(event.data); };
+      recorder.onstop = async () => {
+        stream.getTracks().forEach((track) => track.stop());
+        if (timerRef.current) window.clearTimeout(timerRef.current);
+        setRecording(false);
+        const blob = new Blob(chunks, { type: recorder.mimeType || mimeType || "audio/webm" });
+        if (blob.size < 1500) { setNotice("O áudio ficou curto demais. Segure um pouco mais."); return; }
+        setTranscribing(true);
+        try {
+          const { text } = await transcribe({ data: { mediaType: blob.type, base64: await blobToBase64(blob) } });
+          setDraft((current) => (current ? `${current} ${text}` : text).slice(0, 600));
+        } catch (error) { setNotice((error as Error).message); }
+        finally { setTranscribing(false); }
+      };
+      recorderRef.current = recorder;
+      recorder.start();
+      setRecording(true);
+      timerRef.current = window.setTimeout(() => recorder.state === "recording" && recorder.stop(), MAX_AUDIO_MS);
+    } catch { setNotice("Permita o uso do microfone para falar com a Lebre."); }
+  }
+
+  function stopRecording() { if (recorderRef.current?.state === "recording") recorderRef.current.stop(); }
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const suggestions = slug ? panelSuggestions : publicSuggestions;
 
-  async function send(text: string) {
-    const question = text.trim();
-    if (!question || busy) return;
+  async function send(text: string, rawFiles: PromptInputMessage["files"] = []) {
+    const files: LebreFile[] = rawFiles.filter((f) => f.url?.startsWith("data:") && f.mediaType).map((f) => ({ name: f.filename || "anexo", mediaType: f.mediaType, url: f.url })).map((f) => ({ name: f.name, mediaType: f.mediaType, dataUrl: f.url }));
+    const question = text.trim() || (files.length ? "Veja o anexo e me ajude com ele." : "");
+    if (question.length < 2 || busy || recording || transcribing) return;
+    setDraft("");
+    setNotice(null);
     const pendingProposal = [...messages].reverse().find((m) => m.role === "assistant" && m.proposal && !m.result && !m.error);
-    if (slug && pendingProposal?.proposal && confirmWords.test(question)) {
+    if (slug && !files.length && pendingProposal?.proposal && confirmWords.test(question)) {
       setMessages((current) => [...current, { id: crypto.randomUUID(), role: "user", text: question }]);
       await confirm(pendingProposal.id, pendingProposal.proposal);
       return;
     }
     const history = messages.slice(-8).map((m) => ({ role: m.role, text: (m.text + (m.result ? ` (${m.result})` : "")).slice(0, 2000) }));
-    const user: ChatMessage = { id: crypto.randomUUID(), role: "user", text: question };
+    const user: ChatMessage = { id: crypto.randomUUID(), role: "user", text: question, ...(files.length ? { files: files.map((f) => ({ name: f.name, mediaType: f.mediaType, url: f.dataUrl })) } : {}) };
     setMessages((current) => [...current, user]);
     setBusy(true);
     try {
-      const reply = slug ? await askRestaurant({ data: { slug, question, history } }) : await askPublic({ data: { question } });
+      const reply = slug ? await askRestaurant({ data: { slug, question, history, ...(files.length ? { files } : {}) } }) : await askPublic({ data: { question, ...(files.length ? { files } : {}) } });
       const assistant: ChatMessage = { id: crypto.randomUUID(), role: "assistant", text: reply.answer, ...(reply.proposal ? { proposal: reply.proposal } : {}) };
       setMessages((current) => [...current, assistant]);
     } catch (error) {
@@ -88,7 +164,10 @@ export function LebreAssistant({ slug }: { slug?: string }) {
               )}
               {messages.map((message) => (
                 <Message key={message.id} from={message.role}>
-                  <MessageContent><MessageResponse>{message.text}</MessageResponse></MessageContent>
+                  <MessageContent>
+                    {message.files && <div className="flex flex-wrap gap-2">{message.files.map((file, index) => file.mediaType.startsWith("image/") ? <img key={index} src={file.url} alt={file.name} className="max-h-40 rounded-md object-cover" /> : <span key={index} className="flex items-center gap-1.5 rounded-md bg-background/20 px-2 py-1 text-xs"><FileText className="h-4 w-4" />{file.name}</span>)}</div>}
+                    <MessageResponse>{message.text}</MessageResponse>
+                  </MessageContent>
                   {message.proposal && (
                     <Tool defaultOpen={false}>
                       <ToolHeader type="dynamic-tool" toolName="ação-segura" state={message.result ? "output-available" : message.error ? "output-error" : "approval-requested"} title={message.proposal.title} />
@@ -114,10 +193,23 @@ export function LebreAssistant({ slug }: { slug?: string }) {
             <ConversationScrollButton />
           </Conversation>
           {messages.length === 0 && <div className="flex gap-2 overflow-x-auto px-3 pb-2">{suggestions.map((suggestion) => <Button key={suggestion} type="button" size="sm" variant="outline" className="shrink-0" onClick={() => void send(suggestion)}>{suggestion}</Button>)}</div>}
-          <PromptInput className="m-3 mt-0" onSubmit={({ text }) => send(text)}>
-            <PromptInputBody><PromptInputTextarea disabled={busy} placeholder="Pergunte à Lebre" /></PromptInputBody>
-            <PromptInputFooter><span className="text-xs text-muted-foreground">Ações sempre pedem confirmação</span><PromptInputSubmit disabled={busy} status={busy ? "submitted" : "ready"} /></PromptInputFooter>
+          {notice && <p role="status" className="mx-3 mb-2 rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">{notice}</p>}
+          <TooltipProvider delayDuration={300}>
+          <PromptInput className="m-3 mt-0" accept={ACCEPT} multiple maxFiles={3} maxFileSize={MAX_FILE} onError={(error) => setNotice(error.code === "max_file_size" ? "Cada anexo pode ter até 5 MB." : error.code === "max_files" ? "Envie no máximo 3 anexos por vez." : "Envie fotos (JPG, PNG, WEBP) ou PDF.")} onSubmit={({ text, files }) => send(text, files)}>
+            <AttachmentChips />
+            <PromptInputBody><PromptInputTextarea value={draft} onChange={(event) => setDraft(event.currentTarget.value)} disabled={busy || transcribing} placeholder={recording ? "Ouvindo... toque no quadrado para parar" : transcribing ? "Transcrevendo seu áudio..." : "Pergunte, fale ou anexe"} /></PromptInputBody>
+            <PromptInputFooter>
+              <PromptInputTools>
+                <AttachButton disabled={busy || recording} />
+                <PromptInputButton disabled={busy || transcribing} onClick={recording ? stopRecording : () => void startRecording()} aria-label={recording ? "Parar gravação" : "Falar com a Lebre"} tooltip={recording ? "Parar gravação" : "Falar"} className={recording ? "animate-pulse text-destructive" : ""}>
+                  {transcribing ? <Loader2 className="animate-spin" /> : recording ? <Square className="fill-current" /> : <Mic />}
+                </PromptInputButton>
+                <span className="hidden text-xs text-muted-foreground sm:inline">Ações pedem confirmação</span>
+              </PromptInputTools>
+              <PromptInputSubmit disabled={busy || recording || transcribing} status={busy ? "submitted" : "ready"} />
+            </PromptInputFooter>
           </PromptInput>
+          </TooltipProvider>
         </section>
       )}
     </>
