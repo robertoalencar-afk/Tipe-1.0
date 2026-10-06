@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalPage, type LegalSection } from "@/components/tipe/LegalPage";
-import { LEGAL, PENDING, PRIVACY_EMAIL } from "@/lib/tipe/legal";
+import { COMPANY, LEGAL, PENDING, PRIVACY_EMAIL } from "@/lib/tipe/legal";
 
 export const Route = createFileRoute("/privacidade/")({
   head: () => ({
@@ -19,7 +19,7 @@ export const Route = createFileRoute("/privacidade/")({
 
 const sections: LegalSection[] = [
   { title: "1. Quem somos", paragraphs: [
-    `TIPE, plataforma de pagamento na mesa e gestão para restaurantes, com sede em Fortaleza, CE. Razão social: ${PENDING}. CNPJ: ${PENDING}. Endereço: ${PENDING}.`,
+    `TIPE, plataforma de pagamento na mesa e gestão para restaurantes, operada por ${COMPANY.legalName}, inscrita no CNPJ ${COMPANY.cnpj}, com sede em ${COMPANY.city}. Contato: ${PRIVACY_EMAIL}.`,
   ] },
   { title: "2. Escopo e papéis", paragraphs: [
     "Esta política vale para o site tipe.digital, a página da mesa acessada por QR Code, o simulador e a área do restaurante.",

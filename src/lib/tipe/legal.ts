@@ -11,3 +11,11 @@ export type LegalDoc = keyof typeof LEGAL;
 
 export const PENDING = "[INFORMAÇÃO PENDENTE]";
 export const PRIVACY_EMAIL = "contato@tipe.digital";
+
+export const COMPANY = {
+  legalName: "Tipe Tecnologia de Integração para Pagamento Eletrônico LTDA",
+  tradeName: "TIPE",
+  cnpj: "69.486.521/0001-05",
+  city: "Fortaleza, CE",
+  forum: "Comarca de Fortaleza, Ceará",
+} as const;
