@@ -589,7 +589,7 @@ function ContactSection() {
 
   const input = "w-full rounded-xl border bg-background px-4 py-3 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/30";
   return (
-    <section id="lista-de-espera" className="px-4 pb-16 sm:px-6 sm:pb-20">
+    <section id="lista-de-espera" className="scroll-mt-20 px-4 pb-16 sm:px-6 sm:pb-20">
       <div className="relative mx-auto grid max-w-6xl gap-10 overflow-hidden rounded-[2rem] p-8 text-secondary-foreground shadow-2xl sm:p-12 lg:grid-cols-2" style={{ background: "var(--gradient-brand)" }}>
         <div aria-hidden className="absolute -left-20 -top-20 h-72 w-72 rounded-full bg-primary/25 blur-3xl" />
         <div className="relative">
