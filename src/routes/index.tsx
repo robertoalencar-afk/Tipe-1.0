@@ -23,12 +23,12 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Plataforma TIPE: o cliente paga a conta pelo QR Code da mesa e o restaurante acompanha tudo em tempo real. Funciona com o PDV que você já usa. Planos a partir de R$ 49,90/mês, com 30 dias grátis.",
+          "Plataforma TIPE: o cliente paga a conta pelo QR Code da mesa e o restaurante acompanha tudo em tempo real. Funciona com o PDV que você já usa. Lançamento em breve.",
       },
       { property: "og:title", content: "TIPE | Pague. Sem esperar." },
       {
         property: "og:description",
-        content: "Pagamento na mesa por QR Code, gorjeta extra para o garçom, painel em tempo real e integração com o seu PDV. Assinatura a partir de R$ 49,90/mês, 30 dias grátis.",
+        content: "Pagamento na mesa por QR Code, gorjeta extra para o garçom, painel em tempo real e integração com o seu PDV. Lançamento em breve.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://tipe.digital/" },
@@ -101,7 +101,7 @@ function Hero() {
             </Link>
           </div>
           <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm opacity-80">
-            {["Sem aplicativo para baixar", "Feita para conversar com seu PDV", "30 dias grátis sem cartão"].map((t) => (
+            {["Sem aplicativo para baixar", "Feita para conversar com seu PDV", "Lançamento em breve"].map((t) => (
               <span key={t} className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-primary" />{t}</span>
             ))}
           </div>
@@ -475,7 +475,7 @@ function Pricing() {
   return (
     <section id="planos" className="bg-muted/50 py-12 sm:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <SectionTitle eyebrow="Planos" title="Assinatura mensal, simples como streaming" text={`Teste grátis por ${TRIAL_DAYS} dias, sem cartão. Depois, escolha pelo número de mesas.`} />
+        <SectionTitle eyebrow="Planos" title="Assinatura mensal, simples como streaming" text="Lançamento em breve. Os planos serão por número de mesas." />
         <div className="mt-10 grid gap-6 sm:mt-12 md:grid-cols-2 xl:grid-cols-4">
           {plans.map((p) => (
             <div key={p.name} className={`relative flex flex-col rounded-3xl border p-7 ${p.popular ? "border-primary bg-secondary text-secondary-foreground shadow-2xl xl:-translate-y-4" : "bg-card shadow-sm"}`}>
@@ -493,7 +493,7 @@ function Pricing() {
             </div>
           ))}
         </div>
-        <p className="mt-8 flex items-center justify-center gap-2 text-center text-sm text-muted-foreground"><ShieldCheck className="h-4 w-4 text-primary" />Sem cartão no teste. Sem fidelidade. Cancele quando quiser.</p>
+        <p className="mt-8 flex items-center justify-center gap-2 text-center text-sm text-muted-foreground"><ShieldCheck className="h-4 w-4 text-primary" />Sem fidelidade. Cancele quando quiser.</p>
       </div>
     </section>
   );
