@@ -198,7 +198,10 @@ function MesaPage() {
     && dados.itens.every((item) => (disponiveis[item.id] ?? item.qtd) <= EPSILON)
     && pagamentos.every((pagamento) => pagamento.status !== "pending");
   const pagamentoPresencialPendente = pagamentos.find((pagamento) => pagamento.status === "pending" && pagamento.establishment_method);
-  const etapaVisivel: Etapa = mesaEncerrada && ["carregando", "identificacao", "conta", "pagamento-conta", "conta-pendente"].includes(etapa)
+  // Enquanto a mesa está encerrada (até a nova conta abrir), o cliente ainda pode
+  // voltar à mesa para ver a atividade: o botão "Voltar à mesa" libera a visão da conta.
+  const [voltouParaMesa, setVoltouParaMesa] = useState(false);
+  const etapaVisivel: Etapa = mesaEncerrada && !voltouParaMesa && ["carregando", "identificacao", "conta", "pagamento-conta", "conta-pendente"].includes(etapa)
     ? "mesa-encerrada"
     : etapa;
 
