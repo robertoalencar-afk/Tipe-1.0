@@ -201,10 +201,10 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
 
   return (
     <div className="mx-auto flex min-h-svh max-w-md flex-col bg-background">
-      <header className="mb-5 flex flex-col items-center bg-secondary px-6 pb-5 pt-6 text-secondary-foreground">
-        <TipeLogo className="h-14" />
-        <p className="mt-3 text-sm text-secondary-foreground/70">Maré Alta · Mesa 12</p>
-        <span className="mt-2 rounded-full bg-primary/15 px-3 py-1 text-xs font-semibold text-primary">Ambiente de simulação</span>
+      <header className="mb-5 bg-secondary px-5 pb-5 pt-6 text-secondary-foreground">
+        <div className="flex items-center justify-between"><TipeLogo className="h-10" /><span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-bold text-primary">Mesa 12</span></div>
+        <div className="mt-4 flex items-center justify-between"><p className="text-sm text-secondary-foreground/70">Maré Alta</p><span className="text-xs font-semibold text-primary">Simulação</span></div>
+        <div className="mt-4 flex gap-2" aria-hidden>{["bill", "payment", "done"].map((step, index) => <span key={step} className={`h-1.5 flex-1 rounded-full ${(["bill", "payment", "approved", "pending", "rating", "tip", "tip-payment", "done"].indexOf(stage) >= index || (index === 0 && stage === "identification")) ? "bg-primary" : "bg-secondary-foreground/20"}`} />)}</div>
       </header>
 
       {stage === "identification" && (
@@ -222,11 +222,10 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
 
       {stage === "bill" && (
         <main className="flex flex-1 flex-col px-5 pb-8">
-          <div className="mb-4 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3">
-            <p className="text-sm">Olá, <strong>{name.trim()}</strong>.</p>
-            <p className="mt-1 text-sm text-muted-foreground">Você está sendo atendido por <strong className="text-foreground">Carlos</strong>.</p>
-          </div>
-          <div className="mb-5 grid grid-cols-2 gap-1 rounded-full bg-muted p-1">
+          <p className="text-xs font-semibold text-primary">SUA MESA</p>
+          <h1 className="mt-1 font-display text-2xl font-extrabold">Olá, {name.trim()}.</h1>
+          <p className="mt-1 text-sm text-muted-foreground">Atendimento de <strong className="text-foreground">Carlos</strong></p>
+          <div className="mb-6 mt-5 grid grid-cols-2 gap-1 rounded-full bg-muted p-1">
             <Button variant={tab === "bill" ? "outline" : "ghost"} onClick={() => setTab("bill")} className="h-10 rounded-full shadow-none"><ReceiptText /> Conta</Button>
             <Button variant={tab === "activity" ? "outline" : "ghost"} onClick={() => setTab("activity")} className="h-10 rounded-full shadow-none"><ClipboardList /> Atividade</Button>
           </div>
@@ -244,14 +243,16 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
                   <ReceiptText /> {allSelected ? "Limpar seleção" : "Pagar a conta inteira"}
                 </Button>
               )}
-              <p className="mb-3 text-sm text-muted-foreground">Ou escolha quanto de cada item você vai pagar.</p>
+              <h2 className="font-display text-lg font-extrabold">O que você vai pagar?</h2>
+              <p className="mb-4 mt-1 text-sm text-muted-foreground">Escolha quanto de cada item ficará com você.</p>
               <ul className="flex flex-col gap-3">
                 {ITEMS.filter((item) => available(item.id, item.qty) > 0).map((item) => {
                   const qty = quantities[item.id] ?? 0;
                   const max = available(item.id, item.qty);
                   return (
-                    <li key={item.id} className={`rounded-2xl border bg-card p-4 transition ${qty > 0 ? "border-2 border-primary bg-primary/5" : "border-border"}`}>
+                    <li key={item.id} className={`rounded-2xl border bg-card p-4 shadow-sm transition ${qty > 0 ? "border-2 border-primary bg-primary/10" : "border-border"}`}>
                       <div className="flex items-start justify-between gap-3">
+                       <span className={`mt-0.5 grid h-6 w-6 shrink-0 place-items-center rounded-full border ${qty > 0 ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}>{qty > 0 && <Check className="h-3.5 w-3.5" />}</span>
                        <div className="min-w-0 flex-1"><p className="font-semibold">{item.name}</p><p className="mt-1 text-xs text-muted-foreground">{money(item.price)} cada · {formatPortion(max)} disponível</p></div>
                         <span className="shrink-0 text-sm font-bold">{money(item.price * qty)}</span>
                       </div>
@@ -272,7 +273,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
                   );
                 })}
               </ul>
-              <div className="mt-6 rounded-2xl bg-muted/60 p-4 text-sm">
+              <div className="mt-6 rounded-2xl border border-border bg-card p-5 text-sm shadow-sm">
                 <Summary label="Subtotal selecionado" value={subtotal} />
                 <Summary label="Serviço do restaurante (10%)" value={service} className="mt-2" />
                 <Summary label="Total da conta" value={total} className="mt-3 border-t border-border pt-3 font-display text-base font-extrabold" />
