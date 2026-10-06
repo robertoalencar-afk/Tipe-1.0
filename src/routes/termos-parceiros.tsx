@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalPage, type LegalSection } from "@/components/tipe/LegalPage";
-import { COMPANY, LEGAL, PENDING } from "@/lib/tipe/legal";
+import { COMPANY, LEGAL, PAYMENT_PROVIDER, PENDING } from "@/lib/tipe/legal";
 
 const COMERCIAL = "[CONDIÇÃO COMERCIAL PENDENTE]";
 
@@ -24,7 +24,7 @@ const sections: LegalSection[] = [
   { title: "2. Usuários autorizados e credenciais", paragraphs: ["O Parceiro define quem acessa o painel e com qual cargo (dono, caixa, garçom). Cada usuário é responsável por manter sua senha em sigilo. O Parceiro deve remover acessos de quem deixar a equipe."] },
   { title: "3. PDV e integrações", paragraphs: ["O Parceiro conecta o PDV que já utiliza pela chave de integração. A chave é exibida uma única vez e deve ser guardada com segurança. Integrações dependem também do fornecedor do PDV, que não é controlado pelo TIPE."] },
   { title: "4. Cardápio, preços e conta", paragraphs: ["O Parceiro é responsável pela exatidão dos itens, preços, taxa de serviço e lançamentos da conta, bem como pela confirmação dos pagamentos recebidos no estabelecimento."] },
-  { title: "5. Pagamentos, gorjetas e taxas", paragraphs: [`Provedor de pagamento digital: ${PENDING}. Taxas de transação, prazos de repasse e regras da gorjeta extra: ${COMERCIAL}. A taxa de serviço habitual integra a conta do restaurante.`] },
+  { title: "5. Pagamentos, gorjetas e taxas", paragraphs: [`Provedor de pagamento digital: ${PAYMENT_PROVIDER}, processando cada cobrança diretamente na conta de pagamento do restaurante. Taxas de transação, prazos de repasse e regras da gorjeta extra: ${COMERCIAL}. A taxa de serviço habitual integra a conta do restaurante.`] },
   { title: "6. Planos e cobrança", paragraphs: [`Os valores dos planos estão publicados no site. Reajustes, inadimplência e meios de cobrança: ${COMERCIAL}.`] },
   { title: "7. Disponibilidade e suporte", paragraphs: [`Empregamos esforços razoáveis para manter a plataforma disponível. Níveis de serviço e canais de suporte: ${COMERCIAL}.`] },
   { title: "8. Dados pessoais (LGPD)", paragraphs: [

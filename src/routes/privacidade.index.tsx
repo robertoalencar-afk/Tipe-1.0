@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalPage, type LegalSection } from "@/components/tipe/LegalPage";
-import { COMPANY, LEGAL, PENDING, PRIVACY_EMAIL } from "@/lib/tipe/legal";
+import { COMPANY, DPO, LEGAL, PAYMENT_PROVIDER, PRIVACY_EMAIL } from "@/lib/tipe/legal";
 
 export const Route = createFileRoute("/privacidade/")({
   head: () => ({
@@ -63,7 +63,7 @@ const sections: LegalSection[] = [
     "Autoridades, quando exigido por lei ou ordem judicial.",
   ] },
   { title: "9. Pagamentos", paragraphs: [
-    `Os pagamentos digitais serão processados por provedores de pagamento autorizados. Provedor em definição: ${PENDING}. O TIPE não armazena dados de cartão; guarda apenas valor, itens, meio escolhido e status. Pagamentos no estabelecimento (dinheiro ou maquininha) ficam pendentes até a confirmação do restaurante.`,
+    `Os pagamentos digitais são processados pelo provedor de pagamento autorizado ${PAYMENT_PROVIDER}. O TIPE não armazena dados de cartão; guarda apenas valor, itens, meio escolhido e status. Pagamentos no estabelecimento (dinheiro ou maquininha) ficam pendentes até a confirmação do restaurante.`,
   ] },
   { title: "10. Integração com PDVs", paragraphs: [
     "Os itens da conta vêm do PDV que o restaurante já usa. Quando o restaurante conecta um PDV externo, recebemos itens, quantidades, preços e mesa — não pedimos dados pessoais de clientes ao PDV.",
@@ -89,6 +89,6 @@ const sections: LegalSection[] = [
   { title: "16. Crianças e adolescentes", paragraphs: ["O TIPE não é direcionado a crianças e não coleta intencionalmente dados delas. A área do restaurante é destinada a maiores de 18 anos."] },
   { title: "17. Alterações", paragraphs: ["Mudanças relevantes geram nova versão desta política, com data de vigência. Quando necessário, pediremos novo aceite."] },
   { title: "18. Canal de privacidade", paragraphs: [
-    `Encarregado (DPO): ${PENDING}. Contato: ${PRIVACY_EMAIL} ou pela página de solicitação de privacidade.`,
+    `Encarregado (DPO): ${DPO}. Contato: ${PRIVACY_EMAIL} ou pela página de solicitação de privacidade.`,
   ] },
 ];
