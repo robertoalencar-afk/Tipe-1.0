@@ -139,7 +139,7 @@ export function PaymentJourneyDemo() {
           )}
         </div>
       </div>
-      <div className="absolute -right-3 top-24 rounded-2xl border bg-card px-3 py-2 text-card-foreground shadow-xl">
+      <div className="absolute right-1 top-24 rounded-2xl border bg-card px-3 py-2 text-card-foreground shadow-xl sm:-right-3">
         <p className="text-[10px] font-bold">Conta atualizada</p>
         <p className="text-[9px] text-muted-foreground">em tempo real</p>
       </div>
