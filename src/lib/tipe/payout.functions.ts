@@ -8,92 +8,71 @@ async function ownerRestaurant(ctx: { supabase: any; userId: string }, slug: str
   const { data: r } = await ctx.supabase.from("restaurants").select("id, name").eq("slug", slug).maybeSingle();
   if (!r) throw new Error("Restaurante não encontrado");
   const { data: ok } = await ctx.supabase.rpc("has_restaurant_role", { _user_id: ctx.userId, _restaurant_id: r.id, _roles: ["owner"] });
-  if (!ok) throw new Error("Somente o dono pode ver e alterar os dados de recebimento");
+  if (!ok) throw new Error("Somente o dono pode ver e alterar os recebimentos");
   return r as { id: string; name: string };
 }
 
+function webhookUrl(slug: string) {
+  return `https://tipe.digital/api/public/pagarme/restaurante/${slug}`;
+}
+
+/** Situação da conta Pagar.me própria do restaurante. A chave nunca é devolvida. */
 export const getPayoutAccount = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ slug: Slug }).parse(d))
   .handler(async ({ data, context }) => {
     const r = await ownerRestaurant(context, data.slug);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: a } = await supabaseAdmin.from("restaurant_payout_accounts").select("*").eq("restaurant_id", r.id).maybeSingle();
-    const live = !!process.env["PAGARME_SECRET_KEY"];
-    if (!a) return { live, account: null };
+    const { data: a } = await supabaseAdmin.from("restaurant_pagarme_accounts").select("key_prefix, key_mode, webhook_token, status, connected_at").eq("restaurant_id", r.id).maybeSingle();
+    if (!a || a.status !== "active") return { connected: false as const };
     return {
-      live,
-      account: {
-        holderName: a.holder_name, holderType: a.holder_type, email: a.email, bank: a.bank, accountType: a.account_type,
-        documentMasked: `•••${a.holder_document.slice(-4)}`, branch: a.branch_number, accountMasked: `•••${a.account_number.slice(-3)}-${a.account_check_digit}`,
-        status: a.status, statusDetail: a.status_detail,
-      },
+      connected: true as const,
+      keyMasked: `${a.key_prefix}••••••••`,
+      mode: a.key_mode as "live" | "test",
+      connectedAt: a.connected_at,
+      webhook: { url: webhookUrl(data.slug), user: "tipe", password: a.webhook_token },
     };
   });
 
-const Account = z.object({
-  slug: Slug,
-  holderName: z.string().trim().min(3).max(120),
-  holderType: z.enum(["individual", "company"]),
-  holderDocument: z.string().regex(/^\d{11}$|^\d{14}$/),
-  email: z.string().trim().email().max(200),
-  bank: z.string().regex(/^\d{3}$/),
-  branchNumber: z.string().regex(/^\d{1,4}$/),
-  branchCheckDigit: z.string().regex(/^\d?$/),
-  accountNumber: z.string().regex(/^\d{1,13}$/),
-  accountCheckDigit: z.string().regex(/^[0-9xX]{1,2}$/),
-  accountType: z.enum(["checking", "savings"]),
-}).refine((v) => (v.holderType === "company") === (v.holderDocument.length === 14), { message: "Documento não corresponde ao tipo de titular" });
-
-export const savePayoutAccount = createServerFn({ method: "POST" })
+export const connectPagarme = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => Account.parse(d))
+  .inputValidator((d) => z.object({ slug: Slug, secretKey: z.string().trim().regex(/^sk_(test_)?[A-Za-z0-9]{16,80}$/, "Chave secreta inválida. Ela começa com sk_") }).parse(d))
   .handler(async ({ data, context }) => {
     const r = await ownerRestaurant(context, data.slug);
     const { enforceRate, logSecurityEvent } = await import("./security.server");
-    await enforceRate(`payout:${r.id}`, 10, 3600, data.slug);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: prev } = await supabaseAdmin.from("restaurant_payout_accounts").select("pagarme_recipient_id").eq("restaurant_id", r.id).maybeSingle();
-
-    const row = {
-      restaurant_id: r.id, holder_name: data.holderName, holder_type: data.holderType, holder_document: data.holderDocument, email: data.email,
-      bank: data.bank, branch_number: data.branchNumber, branch_check_digit: data.branchCheckDigit || null, account_number: data.accountNumber,
-      account_check_digit: data.accountCheckDigit.toLowerCase(), account_type: data.accountType,
-    };
-    const bankAccount = {
-      holder_name: data.holderName, holder_type: data.holderType, holder_document: data.holderDocument, bank: data.bank,
-      branch_number: data.branchNumber, branch_check_digit: data.branchCheckDigit || undefined, account_number: data.accountNumber,
-      account_check_digit: data.accountCheckDigit, type: data.accountType,
-    };
-
-    let recipientId = prev?.pagarme_recipient_id ?? null;
-    let status: "pending" | "active" | "error" = "pending";
-    let detail: string | null = "Recebimento digital será ativado quando a conta Pagar.me da TIPE estiver configurada.";
-    const { pagarmeEnabled, pagarme } = await import("./pagarme.server");
-    if (pagarmeEnabled()) {
-      try {
-        if (recipientId) {
-          await pagarme(`/recipients/${recipientId}/default-bank-account`, { method: "PATCH", body: { bank_account: bankAccount } });
-        } else {
-          const rec = await pagarme<{ id: string }>("/recipients", {
-            method: "POST",
-            body: {
-              name: data.holderName, email: data.email, document: data.holderDocument, type: data.holderType,
-              default_bank_account: bankAccount,
-              transfer_settings: { transfer_enabled: true, transfer_interval: "Daily", transfer_day: 0 },
-              metadata: { restaurant_id: r.id },
-            },
-          });
-          recipientId = rec.id;
-        }
-        status = "active"; detail = null;
-      } catch (e) {
-        status = "error"; detail = "O Pagar.me recusou os dados. Confira banco, agência e conta.";
-        console.error("recipient", (e as Error).message);
-      }
+    await enforceRate(`pagarme-connect:${r.id}`, 10, 3600, data.slug);
+    const { pagarme, encryptSecret } = await import("./pagarme.server");
+    try {
+      await pagarme("/orders?page=1&size=1", { secretKey: data.secretKey });
+    } catch {
+      await logSecurityEvent({ action: "pagarme_connect_failed", result: "error", restaurantId: r.id, actorId: context.userId });
+      throw new Error("A Pagar.me não aceitou essa chave. Confira se copiou a chave secreta completa.");
     }
-    const { error } = await supabaseAdmin.from("restaurant_payout_accounts").upsert({ ...row, pagarme_recipient_id: recipientId, status, status_detail: detail });
-    if (error) throw new Error("Não foi possível salvar os dados de recebimento");
-    await logSecurityEvent({ action: "payout_account_saved", resource: "restaurant_payout_accounts", restaurantId: r.id, actorId: context.userId, result: status === "error" ? "error" : "ok" });
-    return { status, detail };
+    const token = Array.from(crypto.getRandomValues(new Uint8Array(24)), (b) => b.toString(16).padStart(2, "0")).join("");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.from("restaurant_pagarme_accounts").upsert({
+      restaurant_id: r.id,
+      secret_key_enc: await encryptSecret(data.secretKey),
+      key_prefix: data.secretKey.slice(0, data.secretKey.startsWith("sk_test_") ? 12 : 7),
+      key_mode: data.secretKey.startsWith("sk_test_") ? "test" : "live",
+      webhook_token: token,
+      status: "active",
+      connected_by: context.userId,
+      updated_at: new Date().toISOString(),
+    });
+    if (error) throw new Error("Não foi possível salvar a conexão");
+    await logSecurityEvent({ action: "pagarme_connected", resource: "restaurant_pagarme_accounts", restaurantId: r.id, actorId: context.userId });
+    return { ok: true };
+  });
+
+export const disconnectPagarme = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ slug: Slug }).parse(d))
+  .handler(async ({ data, context }) => {
+    const r = await ownerRestaurant(context, data.slug);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    await supabaseAdmin.from("restaurant_pagarme_accounts").update({ status: "disconnected", updated_at: new Date().toISOString() }).eq("restaurant_id", r.id);
+    const { logSecurityEvent } = await import("./security.server");
+    await logSecurityEvent({ action: "pagarme_disconnected", resource: "restaurant_pagarme_accounts", restaurantId: r.id, actorId: context.userId });
+    return { ok: true };
   });
