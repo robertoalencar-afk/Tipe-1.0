@@ -336,9 +336,9 @@ function MesaPage() {
               value={nome}
               onChange={(event) => setNome(event.target.value)}
               placeholder="Digite seu nome e sobrenome"
-              className="mt-2 h-12 rounded-lg bg-card px-4"
+              className="mt-2 h-12 rounded-full bg-card px-5"
             />
-            <Button type="submit" disabled={!hasFirstAndLastName(nome)} className="mt-5 h-12 w-full rounded-lg text-base font-bold">
+            <Button type="submit" disabled={!hasFirstAndLastName(nome)} className="mt-5 h-12 w-full rounded-full font-display text-base font-bold">
               Ver minha mesa <ChevronRight />
             </Button>
           </form>
@@ -675,11 +675,11 @@ function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, p
          })}
       </div>
        {metodo === "at_establishment" && permitirEstabelecimento && setMetodoEstabelecimento && (
-         <div className="mt-4 rounded-lg border border-border bg-muted/40 p-4">
+         <div className="mt-4 rounded-2xl border border-border bg-muted/40 p-4">
            <h3 className="text-sm font-semibold">Como você pagará no estabelecimento?</h3>
            <div className="mt-3 grid grid-cols-2 gap-2">
-             <Button type="button" variant={metodoEstabelecimento === "cash" ? "default" : "outline"} onClick={() => setMetodoEstabelecimento("cash")} className="h-11">Dinheiro</Button>
-             <Button type="button" variant={metodoEstabelecimento === "card_terminal" ? "default" : "outline"} onClick={() => setMetodoEstabelecimento("card_terminal")} className="h-11">Maquininha</Button>
+             <Button type="button" variant={metodoEstabelecimento === "cash" ? "default" : "outline"} onClick={() => setMetodoEstabelecimento("cash")} className="h-11 rounded-full">Dinheiro</Button>
+              <Button type="button" variant={metodoEstabelecimento === "card_terminal" ? "default" : "outline"} onClick={() => setMetodoEstabelecimento("card_terminal")} className="h-11 rounded-full">Maquininha</Button>
            </div>
            {metodoEstabelecimento === "cash" && setValorDinheiro && (
              <div className="mt-4">
