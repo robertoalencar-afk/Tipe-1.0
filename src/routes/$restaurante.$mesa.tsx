@@ -62,6 +62,7 @@ type Etapa =
   | "fim";
 type Aba = "conta" | "atividade";
 type Metodo = "pix" | "card" | "apple_pay" | "google_pay" | "at_establishment";
+type MetodoEstabelecimento = "cash" | "card_terminal";
 
 const money = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const metodos: Array<{ id: Metodo; label: string }> = [
@@ -116,6 +117,8 @@ function MesaPage() {
   );
   const [dividindo, setDividindo] = useState<string | null>(null);
   const [metodoConta, setMetodoConta] = useState<Metodo | null>(null);
+  const [metodoEstabelecimento, setMetodoEstabelecimento] = useState<MetodoEstabelecimento | null>(null);
+  const [valorDinheiro, setValorDinheiro] = useState("");
   const [metodoGorjeta, setMetodoGorjeta] = useState<Metodo | null>(null);
   const [estrelas, setEstrelas] = useState(0);
   const [comentario, setComentario] = useState("");
@@ -259,6 +262,8 @@ function MesaPage() {
           customerName: nome.trim(),
           itemQuantities: tipo === "conta" ? qtds : {},
           target: tipo === "conta" ? "restaurant" : "tipe",
+          establishmentMethod: tipo === "conta" && metodo === "at_establishment" ? metodoEstabelecimento ?? undefined : undefined,
+          cashReceived: tipo === "conta" && metodo === "at_establishment" && metodoEstabelecimento === "cash" ? Number(valorDinheiro.replace(",", ".")) : undefined,
         },
       });
       chavePagamento.current = null;
@@ -448,6 +453,7 @@ function MesaPage() {
                           <div>
                             <p className="font-semibold">{pagamento.customer_name}</p>
                             <p className="mt-0.5 text-xs text-muted-foreground">{formatPaymentDate(pagamento.created_at)}</p>
+                             {pagamento.establishment_method && <p className="mt-1 text-xs font-semibold text-foreground">{pagamento.establishment_method === "cash" ? `Dinheiro${pagamento.change_due ? ` · Troco ${money(pagamento.change_due)}` : " · Sem troco"}` : "Maquininha"}</p>}
                           </div>
                           <div className="text-right">
                             <p className="font-semibold">{money(pagamento.amount)}</p>
@@ -481,6 +487,10 @@ function MesaPage() {
           voltar={() => setEtapa("conta")}
           pagar={() => processarPagamento("conta")}
            permitirEstabelecimento
+          metodoEstabelecimento={metodoEstabelecimento}
+          setMetodoEstabelecimento={setMetodoEstabelecimento}
+          valorDinheiro={valorDinheiro}
+          setValorDinheiro={setValorDinheiro}
         />
       )}
 
@@ -608,7 +618,7 @@ function ResumoLinha({ label, valor, className = "" }: { label: string; valor: n
   return <div className={`flex justify-between gap-4 ${className}`}><span className="text-muted-foreground">{label}</span><span>{money(valor)}</span></div>;
 }
 
-function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, pagando, erro, voltar, pagar, permitirEstabelecimento = false, cartao, setCartao }: {
+function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, pagando, erro, voltar, pagar, permitirEstabelecimento = false, metodoEstabelecimento, setMetodoEstabelecimento, valorDinheiro = "", setValorDinheiro, cartao, setCartao }: {
   cartao?: CardInput | undefined;
   setCartao?: (c: CardInput) => void;
   titulo: string;
@@ -622,6 +632,10 @@ function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, p
   voltar: () => void;
   pagar: () => void;
   permitirEstabelecimento?: boolean;
+  metodoEstabelecimento?: MetodoEstabelecimento | null;
+  setMetodoEstabelecimento?: (metodo: MetodoEstabelecimento | null) => void;
+  valorDinheiro?: string;
+  setValorDinheiro?: (valor: string) => void;
 }) {
   const [aceitouTermos, setAceitouTermos] = useState(false);
   const opcoes = permitirEstabelecimento
@@ -645,7 +659,7 @@ function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, p
              <Button
                key={opcao.id}
                variant="outline"
-               onClick={() => setMetodo(opcao.id)}
+                onClick={() => { setMetodo(opcao.id); if (opcao.id !== "at_establishment") setMetodoEstabelecimento?.(null); }}
                className={`h-auto min-h-16 justify-start rounded-lg px-4 py-3 text-left shadow-none ${selecionado ? "border-primary bg-primary/10 ring-1 ring-primary" : "bg-card"}`}
              >
                <span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${selecionado ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}><Icone className="h-4 w-4" /></span>
@@ -658,6 +672,23 @@ function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, p
            );
          })}
       </div>
+       {metodo === "at_establishment" && permitirEstabelecimento && setMetodoEstabelecimento && (
+         <div className="mt-4 rounded-lg border border-border bg-muted/40 p-4">
+           <h3 className="text-sm font-semibold">Como você pagará no estabelecimento?</h3>
+           <div className="mt-3 grid grid-cols-2 gap-2">
+             <Button type="button" variant={metodoEstabelecimento === "cash" ? "default" : "outline"} onClick={() => setMetodoEstabelecimento("cash")} className="h-11">Dinheiro</Button>
+             <Button type="button" variant={metodoEstabelecimento === "card_terminal" ? "default" : "outline"} onClick={() => setMetodoEstabelecimento("card_terminal")} className="h-11">Maquininha</Button>
+           </div>
+           {metodoEstabelecimento === "cash" && setValorDinheiro && (
+             <div className="mt-4">
+               <label htmlFor="cash-received" className="text-sm font-semibold">Quanto você entregará em dinheiro?</label>
+               <Input id="cash-received" type="number" inputMode="decimal" min={valor} max={100000} step="0.01" value={valorDinheiro} onChange={(event) => setValorDinheiro(event.target.value)} placeholder={money(valor)} className="mt-2 h-12 bg-card" />
+               {Number(valorDinheiro.replace(",", ".")) >= valor && <p className="mt-2 text-sm font-semibold text-primary">Troco: {money(Math.round((Number(valorDinheiro.replace(",", ".")) - valor) * 100) / 100)}</p>}
+               {valorDinheiro && Number(valorDinheiro.replace(",", ".")) < valor && <p role="alert" className="mt-2 text-xs text-destructive">O valor precisa cobrir o total da conta.</p>}
+             </div>
+           )}
+         </div>
+       )}
        {permitirEstabelecimento && (
          <div className="mt-5 flex items-start gap-3 rounded-lg border border-border bg-card p-4">
            <Checkbox id="aceite-termos" checked={aceitouTermos} onCheckedChange={(checked) => setAceitouTermos(checked === true)} className="mt-0.5 h-5 w-5" />
@@ -683,8 +714,8 @@ function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, p
        )}
       {metodo === "card" && cartao && setCartao && <div className="mt-5"><CardFields value={cartao} onChange={setCartao} /></div>}
       {erro && <p role="alert" className="mt-4 text-sm text-destructive">{erro}</p>}
-       <Button disabled={!metodo || pagando || (permitirEstabelecimento && !aceitouTermos) || (metodo === "card" && !!cartao && !cardValid(cartao))} onClick={pagar} className="mt-6 h-12 rounded-lg text-base font-bold">{pagando ? "Processando…" : `Pagar ${money(valor)}`}</Button>
-        {metodo === "at_establishment" && <p className="mt-3 text-center text-xs text-muted-foreground">A confirmação será feita pelo estabelecimento.</p>}
+        <Button disabled={!metodo || pagando || (permitirEstabelecimento && !aceitouTermos) || (metodo === "at_establishment" && (!metodoEstabelecimento || (metodoEstabelecimento === "cash" && Number(valorDinheiro.replace(",", ".")) < valor))) || (metodo === "card" && !!cartao && !cardValid(cartao))} onClick={pagar} className="mt-6 h-12 rounded-lg text-base font-bold">{pagando ? "Processando…" : `Pagar ${money(valor)}`}</Button>
+         {metodo === "at_establishment" && metodoEstabelecimento && <p className="mt-3 text-center text-xs text-muted-foreground">O garçom verá {metodoEstabelecimento === "cash" ? "o valor entregue e o troco" : "que o pagamento será na maquininha"} antes de confirmar.</p>}
     </main>
   );
 }

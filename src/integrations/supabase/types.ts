@@ -18,8 +18,11 @@ export type Database = {
         Row: {
           amount: number
           archived_at: string
+          cash_received: number | null
+          change_due: number | null
           created_at: string
           customer_name: string
+          establishment_method: string | null
           id: string
           idempotency_key: string | null
           item_quantities: Json
@@ -33,8 +36,11 @@ export type Database = {
         Insert: {
           amount: number
           archived_at?: string
+          cash_received?: number | null
+          change_due?: number | null
           created_at: string
           customer_name: string
+          establishment_method?: string | null
           id: string
           idempotency_key?: string | null
           item_quantities?: Json
@@ -48,8 +54,11 @@ export type Database = {
         Update: {
           amount?: number
           archived_at?: string
+          cash_received?: number | null
+          change_due?: number | null
           created_at?: string
           customer_name?: string
+          establishment_method?: string | null
           id?: string
           idempotency_key?: string | null
           item_quantities?: Json
@@ -1004,8 +1013,11 @@ export type Database = {
       table_payment_requests: {
         Row: {
           amount: number
+          cash_received: number | null
+          change_due: number | null
           created_at: string
           customer_name: string
+          establishment_method: string | null
           id: string
           idempotency_key: string | null
           item_quantities: Json
@@ -1021,8 +1033,11 @@ export type Database = {
         }
         Insert: {
           amount: number
+          cash_received?: number | null
+          change_due?: number | null
           created_at?: string
           customer_name: string
+          establishment_method?: string | null
           id?: string
           idempotency_key?: string | null
           item_quantities?: Json
@@ -1038,8 +1053,11 @@ export type Database = {
         }
         Update: {
           amount?: number
+          cash_received?: number | null
+          change_due?: number | null
           created_at?: string
           customer_name?: string
+          establishment_method?: string | null
           id?: string
           idempotency_key?: string | null
           item_quantities?: Json

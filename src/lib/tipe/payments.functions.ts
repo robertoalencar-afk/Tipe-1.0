@@ -13,6 +13,21 @@ const Input = z.object({
   itemQuantities: z.record(z.string(), z.number().min(0).max(99).multipleOf(0.0001)),
   target: z.enum(["restaurant", "tipe"]),
   cardToken: z.string().min(8).max(120).regex(/^[A-Za-z0-9_-]+$/).optional(),
+  establishmentMethod: z.enum(["cash", "card_terminal"]).optional(),
+  cashReceived: z.number().min(0).max(100000).optional(),
+}).superRefine((data, ctx) => {
+  if (data.method === "at_establishment" && !data.establishmentMethod) {
+    ctx.addIssue({ code: "custom", path: ["establishmentMethod"], message: "Escolha dinheiro ou maquininha" });
+  }
+  if (data.method !== "at_establishment" && (data.establishmentMethod || data.cashReceived !== undefined)) {
+    ctx.addIssue({ code: "custom", path: ["establishmentMethod"], message: "Dados presenciais inválidos" });
+  }
+  if (data.establishmentMethod === "cash" && data.cashReceived === undefined) {
+    ctx.addIssue({ code: "custom", path: ["cashReceived"], message: "Informe o valor entregue em dinheiro" });
+  }
+  if (data.establishmentMethod === "card_terminal" && data.cashReceived !== undefined) {
+    ctx.addIssue({ code: "custom", path: ["cashReceived"], message: "Valor em dinheiro inválido" });
+  }
 });
 
 export type PaymentResult = {
@@ -93,7 +108,18 @@ export const createPayment = createServerFn({ method: "POST" })
     };
 
     if (data.method === "at_establishment") {
-      await register("pending");
+      if (data.establishmentMethod === "cash" && (data.cashReceived ?? 0) < amount) {
+        throw new Error("O valor em dinheiro precisa cobrir o total da conta");
+      }
+      const payId = await register("pending");
+      const cashReceived = data.establishmentMethod === "cash" ? Math.round((data.cashReceived ?? 0) * 100) / 100 : null;
+      const changeDue = cashReceived === null ? null : Math.round((cashReceived - amount) * 100) / 100;
+      const { error: detailError } = await supabaseAdmin.from("table_payment_requests").update({
+        establishment_method: data.establishmentMethod ?? null,
+        cash_received: cashReceived,
+        change_due: changeDue,
+      }).eq("id", payId);
+      if (detailError) throw new Error("Não foi possível registrar a forma de pagamento");
       return { id, status: "pending", provider: "estabelecimento" };
     }
 
@@ -177,6 +203,9 @@ export type SharedPayment = {
   amount: number;
   item_quantities: Record<string, number>;
   created_at: string;
+  establishment_method: string | null;
+  cash_received: number | null;
+  change_due: number | null;
 };
 
 export const getSharedTableState = createServerFn({ method: "GET" })
@@ -188,13 +217,13 @@ export const getSharedTableState = createServerFn({ method: "GET" })
     const [itemsResult, paymentsResult] = await Promise.all([
       supabaseAdmin.from("table_bill_items").select("item_code, ordered_quantity, reserved_portion, paid_portion")
         .eq("restaurant_slug", data.restaurantId).eq("table_number", data.tableId),
-      supabaseAdmin.from("table_payment_requests").select("id, customer_name, payment_method, status, amount, item_quantities, created_at")
+      supabaseAdmin.from("table_payment_requests").select("id, customer_name, payment_method, status, amount, item_quantities, created_at, establishment_method, cash_received, change_due")
         .eq("restaurant_slug", data.restaurantId).eq("table_number", data.tableId).eq("payment_target", "restaurant").order("created_at", { ascending: false }),
     ]);
     if (itemsResult.error || paymentsResult.error) throw new Error("Não foi possível atualizar a mesa");
     return {
       items: (itemsResult.data ?? []).map((item) => ({ ...item, ordered_quantity: Number(item.ordered_quantity), reserved_portion: Number(item.reserved_portion), paid_portion: Number(item.paid_portion) })),
-      payments: (paymentsResult.data ?? []).map((payment) => ({ ...payment, amount: Number(payment.amount) })) as SharedPayment[],
+      payments: (paymentsResult.data ?? []).map((payment) => ({ ...payment, amount: Number(payment.amount), cash_received: payment.cash_received === null ? null : Number(payment.cash_received), change_due: payment.change_due === null ? null : Number(payment.change_due) })) as SharedPayment[],
     };
   });
 

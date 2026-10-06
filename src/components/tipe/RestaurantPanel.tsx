@@ -29,7 +29,7 @@ import { LebreAssistant } from "@/components/tipe/LebreAssistant";
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const hora = (s: string) => new Date(s).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 const cargoLabel: Record<StaffRole, string> = { founder: "Fundador", owner: "Dono", cashier: "Caixa / gerente", waiter: "Garçom" };
-const metodoLabel: Record<string, string> = { pix: "Pix", card: "Cartão", apple_pay: "Apple Pay", google_pay: "Google Pay", at_establishment: "Dinheiro ou maquininha" };
+const metodoLabel: Record<string, string> = { pix: "Pix", card: "Cartão", apple_pay: "Apple Pay", google_pay: "Google Pay", at_establishment: "No estabelecimento" };
 const acaoLabel: Record<string, string> = { confirm: "Pagamento confirmado", cancel: "Pagamento cancelado", table_reopened: "Mesa encerrada e liberada" };
 const formatPortion = (value: number) => {
   const rounded = Math.round(value * 10000) / 10000;
@@ -140,6 +140,7 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
               <div>
                 <div className="font-semibold">Mesa {p.table_number} · {p.customer_name}</div>
                 <div className="text-xs text-muted-foreground">{metodoLabel[p.payment_method] ?? p.payment_method} · {hora(p.created_at)}</div>
+                {p.establishment_method && <div className="mt-1 text-xs font-semibold text-foreground">{p.establishment_method === "cash" ? `Dinheiro: cliente entregará ${brl(p.cash_received ?? p.amount)}${p.change_due ? ` · Troco ${brl(p.change_due)}` : " · Sem troco"}` : "Maquininha"}</div>}
               </div>
               <div className="font-display text-xl font-bold">{brl(p.amount)}</div>
             </div>

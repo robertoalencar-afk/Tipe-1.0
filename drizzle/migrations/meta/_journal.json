@@ -43,6 +43,13 @@
       "when": 1791230367759,
       "tag": "0005_waiter_area",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1791249206700,
+      "tag": "0006_add_cash_tender_details",
+      "breakpoints": true
     }
   ]
 }

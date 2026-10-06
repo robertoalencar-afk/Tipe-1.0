@@ -13,7 +13,7 @@ export type PublicTable = {
   waiterName: string;
   session: string;
   items: { item_code: string; item_name: string; unit_price: number; ordered_quantity: number; reserved_portion: number; paid_portion: number; ordered_at: string }[];
-  payments: { id: string; customer_name: string; payment_method: string; status: "pending" | "approved" | "cancelled" | "failed"; amount: number; item_quantities: Record<string, number>; created_at: string }[];
+  payments: { id: string; customer_name: string; payment_method: string; status: "pending" | "approved" | "cancelled" | "failed"; amount: number; item_quantities: Record<string, number>; created_at: string; establishment_method: string | null; cash_received: number | null; change_due: number | null }[];
 };
 
 // Leitura pública da mesa pelo cliente (link do QR). Nunca expõe dados da equipe.
@@ -39,7 +39,7 @@ export const getPublicTable = createServerFn({ method: "GET" })
     const [items, payments, waiter] = await Promise.all([
       supabaseAdmin.from("table_bill_items").select("item_code, item_name, unit_price, ordered_quantity, reserved_portion, paid_portion, ordered_at")
         .eq("restaurant_slug", data.slug).eq("table_number", t.number).order("ordered_at"),
-      supabaseAdmin.from("table_payment_requests").select("id, customer_name, payment_method, status, amount, item_quantities, created_at")
+      supabaseAdmin.from("table_payment_requests").select("id, customer_name, payment_method, status, amount, item_quantities, created_at, establishment_method, cash_received, change_due")
         .eq("restaurant_slug", data.slug).eq("table_number", t.number).eq("payment_target", "restaurant").order("created_at", { ascending: false }),
       t.waiter_id ? supabaseAdmin.from("pdv_waiters").select("name").eq("id", t.waiter_id).maybeSingle() : Promise.resolve({ data: null }),
     ]);
@@ -50,7 +50,7 @@ export const getPublicTable = createServerFn({ method: "GET" })
       session: t.session_token,
       waiterName: (waiter.data as { name: string } | null)?.name?.split(" ")[0] ?? "",
       items: (items.data ?? []).map((i) => ({ ...i, unit_price: Number(i.unit_price), ordered_quantity: Number(i.ordered_quantity), reserved_portion: Number(i.reserved_portion), paid_portion: Number(i.paid_portion) })),
-      payments: (payments.data ?? []).map((p) => ({ ...p, amount: Number(p.amount), item_quantities: (p.item_quantities ?? {}) as Record<string, number> })) as PublicTable["payments"],
+      payments: (payments.data ?? []).map((p) => ({ ...p, amount: Number(p.amount), cash_received: p.cash_received === null ? null : Number(p.cash_received), change_due: p.change_due === null ? null : Number(p.change_due), item_quantities: (p.item_quantities ?? {}) as Record<string, number> })) as PublicTable["payments"],
     };
   });
 
