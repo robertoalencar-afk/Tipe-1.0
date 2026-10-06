@@ -115,8 +115,18 @@ export function PaymentJourneyDemo() {
                   <span className="flex items-center gap-3"><span className="grid h-9 w-9 place-items-center rounded-xl bg-secondary text-secondary-foreground"><Wallet className="h-4 w-4" /></span><span><span className="block text-sm font-extrabold">Apple Pay</span><span className="block text-[10px] text-muted-foreground">Pague com a carteira do celular</span></span></span>
                   <span className="grid h-5 w-5 place-items-center rounded-full bg-primary"><Check className="h-3 w-3 text-primary-foreground" /></span>
                 </div>
-                <div className="flex items-center gap-3 rounded-2xl border bg-background p-4 opacity-65"><Smartphone className="h-5 w-5" /><span className="text-sm font-bold">Pix</span></div>
-                <div className="flex items-center gap-3 rounded-2xl border bg-background p-4 opacity-65"><CreditCard className="h-5 w-5" /><span><span className="block text-sm font-bold">No estabelecimento</span><span className="block text-[10px] text-muted-foreground">Dinheiro ou maquininha</span></span></div>
+                <div className="flex items-center gap-3 rounded-2xl border bg-background p-4 opacity-65">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-muted"><Wallet className="h-4 w-4" /></span>
+                  <span><span className="block text-sm font-bold">Google Pay</span><span className="block text-[10px] text-muted-foreground">Carteira do seu Android</span></span>
+                </div>
+                <div className="flex items-center gap-3 rounded-2xl border bg-background p-4 opacity-65">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-muted"><Smartphone className="h-4 w-4" /></span>
+                  <span className="text-sm font-bold">Pix</span>
+                </div>
+                <div className="flex items-center gap-3 rounded-2xl border bg-background p-4 opacity-65">
+                  <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-muted"><CreditCard className="h-4 w-4" /></span>
+                  <span><span className="block text-sm font-bold">No estabelecimento</span><span className="block text-[10px] text-muted-foreground">Dinheiro ou maquininha</span></span>
+                </div>
               </div>
               <div className="mt-5 rounded-2xl bg-secondary p-3 text-center text-secondary-foreground">
                 <p className="text-[10px] opacity-70">Confirme no seu celular</p>
