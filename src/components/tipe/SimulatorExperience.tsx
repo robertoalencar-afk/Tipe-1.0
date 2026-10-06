@@ -210,26 +210,26 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
           <p className="mt-3 text-sm leading-6 text-muted-foreground">Seu nome identifica os itens que você escolher pagar nesta simulação.</p>
           <form onSubmit={identify} className="mt-8">
             <label htmlFor="demo-name" className="text-sm font-semibold">Nome e sobrenome</label>
-            <Input id="demo-name" autoFocus autoComplete="name" maxLength={40} value={name} onChange={(event) => setName(event.target.value)} placeholder="Digite seu nome e sobrenome" className="mt-2 h-12 rounded-lg bg-card px-4" />
-            <Button type="submit" disabled={!fullName(name)} className="mt-5 h-12 w-full rounded-lg text-base font-bold">Ver minha mesa <ChevronRight /></Button>
+            <Input id="demo-name" autoFocus autoComplete="name" maxLength={40} value={name} onChange={(event) => setName(event.target.value)} placeholder="Digite seu nome e sobrenome" className="mt-2 h-12 rounded-full bg-card px-5" />
+            <Button type="submit" disabled={!fullName(name)} className="mt-5 h-12 w-full rounded-full font-display text-base font-bold">Ver minha mesa <ChevronRight /></Button>
           </form>
         </main>
       )}
 
       {stage === "bill" && (
         <main className="flex flex-1 flex-col px-5 pb-8">
-          <div className="mb-4 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3">
+          <div className="mb-4 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3">
             <p className="text-sm">Olá, <strong>{name.trim()}</strong>.</p>
             <p className="mt-1 text-sm text-muted-foreground">Você está sendo atendido por <strong className="text-foreground">Carlos</strong>.</p>
           </div>
-          <div className="mb-5 grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
-            <Button variant={tab === "bill" ? "outline" : "ghost"} onClick={() => setTab("bill")} className="h-10 rounded-md shadow-none"><ReceiptText /> Conta</Button>
-            <Button variant={tab === "activity" ? "outline" : "ghost"} onClick={() => setTab("activity")} className="h-10 rounded-md shadow-none"><ClipboardList /> Atividade</Button>
+          <div className="mb-5 grid grid-cols-2 gap-1 rounded-full bg-muted p-1">
+            <Button variant={tab === "bill" ? "outline" : "ghost"} onClick={() => setTab("bill")} className="h-10 rounded-full shadow-none"><ReceiptText /> Conta</Button>
+            <Button variant={tab === "activity" ? "outline" : "ghost"} onClick={() => setTab("activity")} className="h-10 rounded-full shadow-none"><ClipboardList /> Atividade</Button>
           </div>
           {tab === "bill" ? (
             <>
               {ITEMS.some((item) => available(item.id, item.qty) > 0) && (
-                <Button variant={allSelected ? "default" : "outline"} onClick={() => setQuantities(Object.fromEntries(ITEMS.map((item) => [item.id, allSelected ? 0 : available(item.id, item.qty)])))} className="mb-3 h-12 w-full rounded-lg text-base font-bold">
+                <Button variant={allSelected ? "default" : "outline"} onClick={() => setQuantities(Object.fromEntries(ITEMS.map((item) => [item.id, allSelected ? 0 : available(item.id, item.qty)])))} className="mb-3 h-12 w-full rounded-full font-display text-base font-bold">
                   <ReceiptText /> {allSelected ? "Limpar seleção" : "Pagar a conta inteira"}
                 </Button>
               )}
@@ -239,7 +239,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
                   const qty = quantities[item.id] ?? 0;
                   const max = available(item.id, item.qty);
                   return (
-                    <li key={item.id} className={`rounded-lg border bg-card p-4 transition ${qty > 0 ? "border-primary/60" : "border-border"}`}>
+                    <li key={item.id} className={`rounded-2xl border bg-card p-4 transition ${qty > 0 ? "border-2 border-primary bg-primary/5" : "border-border"}`}>
                       <div className="flex items-start justify-between gap-3">
                        <div className="min-w-0 flex-1"><p className="font-semibold">{item.name}</p><p className="mt-1 text-xs text-muted-foreground">{money(item.price)} cada · {formatPortion(max)} disponível</p></div>
                         <span className="shrink-0 text-sm font-bold">{money(item.price * qty)}</span>
@@ -261,12 +261,12 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
                   );
                 })}
               </ul>
-              <div className="mt-6 border-y border-border py-4 text-sm">
+              <div className="mt-6 rounded-2xl bg-muted/60 p-4 text-sm">
                 <Summary label="Subtotal selecionado" value={subtotal} />
                 <Summary label="Serviço do restaurante (10%)" value={service} className="mt-2" />
-                <Summary label="Total da conta" value={total} className="mt-3 border-t border-border pt-3 text-base font-bold" />
+                <Summary label="Total da conta" value={total} className="mt-3 border-t border-border pt-3 font-display text-base font-extrabold" />
               </div>
-              <Button disabled={subtotal <= 0} onClick={() => setStage("payment")} className="mt-6 h-12 w-full rounded-lg text-base font-bold">Continuar para pagamento <ChevronRight /></Button>
+              <Button disabled={subtotal <= 0} onClick={() => setStage("payment")} className="mt-5 h-12 w-full rounded-full font-display text-base font-bold">Continuar para pagamento <ChevronRight /></Button>
             </>
           ) : (
             <section aria-labelledby="demo-activity">
