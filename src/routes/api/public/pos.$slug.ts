@@ -50,10 +50,10 @@ export const Route = createFileRoute("/api/public/pos/$slug")({
         if (!a || a === "limited") return deny(a);
         const since = new URL(request.url).searchParams.get("since");
         const d = since && !Number.isNaN(Date.parse(since)) ? new Date(since).toISOString() : new Date(Date.now() - 86400000).toISOString();
-        const { data } = await a.admin.from("table_payment_requests").select("id, table_number, payment_method, status, amount, item_quantities, created_at")
+        const { data } = await a.admin.from("table_payment_requests").select("id, table_number, payment_method, status, amount, item_quantities, created_at, establishment_method, cash_received, change_due")
           .eq("restaurant_slug", a.slug).eq("payment_target", "restaurant").gte("updated_at", d).order("created_at").limit(500);
         await a.admin.from("pos_integrations").update({ last_sync_at: new Date().toISOString(), status: "connected" }).eq("restaurant_id", a.rid);
-        return json({ payments: (data ?? []).map((p) => ({ id: p.id, table: p.table_number, method: p.payment_method, status: p.status, amount: Number(p.amount), items: p.item_quantities, created_at: p.created_at })) });
+        return json({ payments: (data ?? []).map((p) => ({ id: p.id, table: p.table_number, method: p.payment_method, establishment_method: p.establishment_method, cash_received: p.cash_received === null ? null : Number(p.cash_received), change_due: p.change_due === null ? null : Number(p.change_due), status: p.status, amount: Number(p.amount), items: p.item_quantities, created_at: p.created_at })) });
       },
       POST: async ({ request, params }) => {
         const a = await auth(request, params.slug);
