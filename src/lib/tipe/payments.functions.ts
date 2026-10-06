@@ -108,11 +108,10 @@ export const createPayment = createServerFn({ method: "POST" })
     };
 
     if (data.method === "at_establishment") {
-      const payId = await register("pending");
       if (data.establishmentMethod === "cash" && (data.cashReceived ?? 0) < amount) {
-        await supabaseAdmin.rpc("provider_settle_payment" as never, { p_order_id: `unused_${payId}`, p_paid: false } as never);
         throw new Error("O valor em dinheiro precisa cobrir o total da conta");
       }
+      const payId = await register("pending");
       const cashReceived = data.establishmentMethod === "cash" ? Math.round((data.cashReceived ?? 0) * 100) / 100 : null;
       const changeDue = cashReceived === null ? null : Math.round((cashReceived - amount) * 100) / 100;
       const { error: detailError } = await supabaseAdmin.from("table_payment_requests").update({
