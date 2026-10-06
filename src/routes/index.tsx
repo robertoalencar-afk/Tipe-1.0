@@ -270,7 +270,7 @@ function Dinamica() {
            A conta chega no celular antes de o cliente pedir. O garçom não vive em idas e voltas com a maquininha.
           Quem coloca a nova tecnologia primeiro nas mesas gira mais salão.
         </p>
-        <a href="#fale-conosco" className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-display font-semibold text-primary-foreground shadow-lg transition-transform hover:-translate-y-0.5">
+        <a href="#fale-conosco" className="mt-6 inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-primary px-5 py-3 font-display text-sm font-semibold text-primary-foreground shadow-lg transition-transform hover:-translate-y-0.5 sm:px-6 sm:text-base">
           Colocar a TIPE nas minhas mesas <ChevronRight className="h-4 w-4" />
         </a>
       </div>
