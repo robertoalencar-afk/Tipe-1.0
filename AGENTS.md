@@ -9,8 +9,8 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 
-- Preserve a identificação do cliente localmente por restaurante e mesa, para que novas leituras do mesmo QR retomem a conta sem perguntar o nome novamente.
-- A atividade da mesa mostra somente pagamentos da conta; gorjetas extras ficam fora desse histórico por não integrarem a conta do restaurante.
+- Persist identity per restaurant/table. Why: QR rereads resume without asking the name.
+- Activity shows bill payments, not tips. Why: tips are separate.
 - Pagamentos digitais concluídos são registrados como aprovados; somente pagamentos no estabelecimento aguardam confirmação manual.
 - A identificação inicial solicita nome e sobrenome; os mascotes oficiais aparecem contextualizados nas telas de espera e agradecimento.
 - Na conta, não oferecer cartão direto; destacar pagamento no estabelecimento com dinheiro ou maquininha. Mascotes aparecem apenas em momentos contextuais.
@@ -37,3 +37,5 @@
 - Customer theme is CSS-scoped via the customer-theme marker and device preference, including portalled UI through body inheritance. Why: real and simulated bills share a flash-free palette without changing restaurant or landing themes.
 - Use the reusable HareOutline icon for the public assistant empty state. Why: lightweight currentColor line art preserves TIPE identity without replacing the official mascot.
 - Lebre audio is transcribed server-side into the editable composer (never auto-sent); attachments are images/PDF only, max 3 x 5 MB, validated on the server. Why: users review what was understood before anything runs.
+
+- Isolate landing motion and preview tokens from operational state. Why: animations must not change bills.
