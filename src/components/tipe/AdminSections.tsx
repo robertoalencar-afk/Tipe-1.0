@@ -1,3 +1,4 @@
+import { PDVS, pdvLabel, slugPdv } from "@/lib/tipe/pdvs";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
@@ -257,10 +258,7 @@ export function Relatorios({ slug }: { slug: string }) {
 }
 
 // ---------------- Integrações ----------------
-const provedores = [
-  ["saipos", "Saipos"], ["totvs", "TOTVS Food Service"], ["consumer", "Consumer"], ["goomer", "Goomer"],
-  ["anotaai", "Anota AI"], ["linx", "Linx"], ["colibri", "Colibri"], ["outro", "Outro PDV"],
-] as const;
+const provedores = PDVS.map((p) => [p.k, p.l] as const);
 export function Integracoes({ slug, podeDono }: { slug: string; podeDono: boolean }) {
   const ops = useOps(slug);
   const set = useServerFn(setIntegration);
@@ -283,26 +281,25 @@ export function Integracoes({ slug, podeDono }: { slug: string; podeDono: boolea
   const copiar = (t: string) => { void navigator.clipboard.writeText(t); toast.success("Copiado"); };
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 md:grid-cols-2">
-        <button onClick={() => externo && escolher("tipe", false)} className={`rounded-2xl border-2 p-5 text-left ${!externo ? "border-primary bg-primary/10" : "border-border bg-card hover:border-primary"}`}>
-          <div className="font-display text-lg font-bold">PDV TIPE</div>
-          <p className="text-sm text-muted-foreground">Use o sistema completo da TIPE: pedidos, salão, cozinha, caixa e relatórios.</p>
-          {!externo && <span className="mt-2 inline-block text-xs font-semibold text-primary">Em uso</span>}
-        </button>
+      <div className="grid gap-3">
         <div className={`rounded-2xl border-2 p-5 ${externo ? "border-primary bg-primary/10" : "border-border bg-card"}`}>
           <div className="flex items-center gap-2 font-display text-lg font-bold"><PlugZap className="h-5 w-5" />Conectar meu PDV</div>
-          <p className="text-sm text-muted-foreground">Já usa outro sistema? A TIPE recebe as mesas e os pedidos dele e devolve os pagamentos dos clientes.</p>
-          <div className="mt-3 grid grid-cols-2 gap-2">
+          <p className="text-sm text-muted-foreground">A TIPE recebe as mesas e os pedidos do seu PDV e devolve os pagamentos dos clientes. Aceitamos qualquer PDV do mercado.</p>
+          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
             {provedores.map(([k, l]) => (
               <Button key={k} size="sm" variant={externo && r.pos_provider === k ? "default" : "outline"} onClick={() => escolher(k, !integ)}>{l}</Button>
             ))}
           </div>
+          <form className="mt-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); const v = slugPdv(String(new FormData(e.currentTarget).get("outro") ?? "")); if (v.length >= 2) void escolher(v, true); }}>
+            <input name="outro" maxLength={40} placeholder="Outro PDV? Digite o nome" className="h-9 flex-1 rounded-md border border-input bg-background px-3 text-sm" />
+            <Button size="sm" type="submit" variant="outline">Conectar</Button>
+          </form>
         </div>
       </div>
       {externo && (
         <Card className="space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="font-semibold">Dados para o seu PDV ({provedores.find((p) => p[0] === r.pos_provider)?.[1] ?? r.pos_provider})</h3>
+            <h3 className="font-semibold">Dados para o seu PDV ({pdvLabel(r.pos_provider)})</h3>
             <span className={`rounded-full px-2 py-0.5 text-xs ${integ?.status === "connected" ? "bg-primary/20" : "bg-accent/30"}`}>
               {integ?.status === "connected" ? `Conectado · última sincronização ${integ.last_sync_at ? hora(integ.last_sync_at) : "-"}` : "Aguardando primeira sincronização"}
             </span>

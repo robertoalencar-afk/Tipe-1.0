@@ -22,12 +22,12 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Plataforma TIPE: o cliente paga a conta pelo QR Code da mesa e o restaurante acompanha tudo em tempo real. Conecte seu PDV ou use o PDV TIPE. Planos a partir de R$ 49,90/mês, com 30 dias grátis.",
+          "Plataforma TIPE: o cliente paga a conta pelo QR Code da mesa e o restaurante acompanha tudo em tempo real. Funciona com o PDV que você já usa. Planos a partir de R$ 49,90/mês, com 30 dias grátis.",
       },
       { property: "og:title", content: "TIPE | Pague. Sem esperar." },
       {
         property: "og:description",
-        content: "Pagamento na mesa por QR Code, gorjeta extra para o garçom, painel em tempo real e PDV próprio. Assinatura a partir de R$ 49,90/mês, 30 dias grátis.",
+        content: "Pagamento na mesa por QR Code, gorjeta extra para o garçom, painel em tempo real e integração com o seu PDV. Assinatura a partir de R$ 49,90/mês, 30 dias grátis.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://tipe.digital/" },
@@ -404,32 +404,29 @@ function Dashboard() {
 function PdvOptions() {
   return (
     <section id="pdv" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20">
-      <SectionTitle eyebrow="PDV" title="Use o seu PDV ou contrate o nosso" text="A TIPE se adapta ao seu restaurante. Você escolhe como os pedidos chegam à mesa." />
-      <div className="mt-10 grid gap-6 sm:mt-12 lg:grid-cols-2">
+      <SectionTitle eyebrow="Integração" title="A TIPE trabalha junto com o seu PDV" text="Você não troca de sistema. As mesas e os pedidos vêm do PDV que o restaurante já usa, e os pagamentos voltam para ele." />
+      <div className="mt-10 grid gap-6 sm:mt-12 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="min-w-0 rounded-3xl border bg-card p-6 shadow-sm sm:p-8">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent text-accent-foreground"><Plug className="h-7 w-7" /></div>
-          <h3 className="mt-5 font-display text-2xl font-bold">Conecte seu PDV atual</h3>
-           <p className="mt-2 text-muted-foreground">Já tem um sistema de caixa? Nossa equipe avalia a conexão e conduz a implantação sem prometer compatibilidade antes da homologação.</p>
-          <div className="mt-6 flex flex-wrap items-center gap-3">
-            {["Seu PDV", "API aberta", "Implantação assistida"].map((p) => (
-              <span key={p} className="rounded-xl border bg-background px-4 py-2 font-display text-sm font-bold">{p}</span>
+          <h3 className="mt-5 font-display text-2xl font-bold">Conecte o PDV que você já usa</h3>
+          <p className="mt-2 text-muted-foreground">Logo depois do cadastro, você escolhe o seu sistema e segue um passo a passo simples. Se ele não estiver na lista, tudo bem: aceitamos qualquer PDV do mercado e nossa equipe faz a conexão com você.</p>
+          <div className="mt-6 flex flex-wrap gap-2">
+            {["Saipos", "Consumer", "Goomer", "Anota AI", "TOTVS Chef", "Linx Degust", "Colibri", "Menew", "Teknisa", "+ o seu"].map((p) => (
+              <span key={p} className="rounded-xl border bg-background px-3 py-1.5 font-display text-sm font-bold">{p}</span>
             ))}
-            <Zap className="h-5 w-5 text-primary" />
-            <img src={logo.url} alt="TIPE" className="h-6 w-auto" />
           </div>
-          <ul className="mt-6 space-y-2 text-sm">
-            {["Conexão analisada por fornecedor", "Formato único para mesas e pedidos", "Acompanhamento da equipe TIPE"].map((t) => (
-              <li key={t} className="flex gap-2"><Check className="h-4 w-4 shrink-0 text-primary" />{t}</li>
-            ))}
-          </ul>
+          <p className="mt-4 text-xs text-muted-foreground">Nomes apenas ilustrativos. Cada conexão é validada com o restaurante na implantação.</p>
         </div>
         <div className="relative min-w-0 overflow-hidden rounded-3xl p-6 text-secondary-foreground shadow-xl sm:p-8" style={{ background: "var(--gradient-brand)" }}>
-          <span className="absolute right-6 top-6 rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground">Novo</span>
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground"><Store className="h-7 w-7" /></div>
-          <h3 className="mt-5 font-display text-2xl font-bold">PDV TIPE</h3>
-          <p className="mt-2 opacity-85">Não tem sistema ou quer trocar? Contrate o PDV da TIPE: cardápio, comandas, garçons e caixa, já integrados ao pagamento na mesa.</p>
-          <ul className="mt-6 grid gap-2 text-sm sm:grid-cols-2">
-            {["Cardápio e comandas", "Equipe e garçons", "Controle de caixa", "Relatórios", "Mesas e QR Codes", "Tudo em um só lugar"].map((t) => (
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground"><Zap className="h-7 w-7" /></div>
+          <h3 className="mt-5 font-display text-2xl font-bold">Como funciona</h3>
+          <ol className="mt-6 space-y-4 text-sm">
+            {["Escolha o seu PDV no painel", "Gere a chave TIPE e cole no seu sistema", "Lance um pedido de teste e pronto"].map((t, i) => (
+              <li key={t} className="flex items-center gap-3"><span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary font-display font-bold text-primary-foreground">{i + 1}</span>{t}</li>
+            ))}
+          </ol>
+          <ul className="mt-6 space-y-2 text-sm opacity-90">
+            {["Sem trocar de sistema", "Conta atualizada em tempo real", "Ajuda da equipe TIPE na implantação"].map((t) => (
               <li key={t} className="flex gap-2"><Check className="h-4 w-4 shrink-0 text-primary" />{t}</li>
             ))}
           </ul>
@@ -527,7 +524,7 @@ function Faq() {
       faqs: [
         ["O que o restaurante confirma no painel?", "Os pagamentos recebidos em dinheiro ou maquininha são confirmados com um toque. Pagamentos digitais concluídos são aprovados automaticamente."],
         ["E se um pagamento sair errado?", "O restaurante cancela pelo painel e os itens voltam a ficar disponíveis na conta. Tudo permanece registrado com data, horário e nome de quem pagou."],
-        ["Preciso trocar o meu sistema?", "Não necessariamente. A equipe TIPE avalia a integração com o PDV que você já usa. Se preferir, você pode usar o PDV TIPE."],
+        ["Preciso trocar o meu sistema?", "Não. A TIPE se conecta ao PDV que você já usa, seja ele qual for. Logo após o cadastro, o painel mostra o passo a passo e nossa equipe ajuda se precisar."],
         ["Quanto tempo leva para começar?", "A implantação é assistida: cadastramos as mesas, geramos os totens com QR Code e treinamos a equipe. Você pode começar por um salão e ir ampliando conforme o resultado."],
         ["Como é cobrada a assinatura?", "Mensalmente, de acordo com o número de mesas do seu restaurante, a partir de R$ 49,90/mês, com 30 dias grátis e sem cartão no teste. Sem fidelidade: você cancela quando quiser."],
       ],
@@ -604,7 +601,7 @@ function ContactSection() {
         <div aria-hidden className="absolute -left-20 -top-20 h-72 w-72 rounded-full bg-primary/25 blur-3xl" />
         <div className="relative">
           <h2 className="font-display text-3xl font-extrabold sm:text-4xl">Leve a TIPE para o seu restaurante</h2>
-          <p className="mt-4 opacity-85">Conte um pouco sobre o seu salão. Nossa equipe apresenta a plataforma, indica o plano ideal e ajuda na integração com o seu PDV ou na implantação do PDV TIPE.</p>
+          <p className="mt-4 opacity-85">Conte um pouco sobre o seu salão. Nossa equipe apresenta a plataforma, indica o plano ideal e ajuda na integração com o seu PDV.</p>
           <ul className="mt-6 space-y-2 text-sm">
             {["Demonstração gratuita", "Resposta em até 1 dia útil", "Implantação acompanhada"].map((t) => (
               <li key={t} className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-primary" />{t}</li>
@@ -646,12 +643,12 @@ function Footer() {
       <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 md:grid-cols-4">
         <div className="md:col-span-2">
           <img src={logo.url} alt="TIPE" className="h-9 w-auto" />
-          <p className="mt-3 max-w-sm text-sm text-muted-foreground">Pague. Sem esperar. Pagamento na mesa, gorjeta extra e PDV para restaurantes.</p>
+          <p className="mt-3 max-w-sm text-sm text-muted-foreground">Pague. Sem esperar. Pagamento na mesa e gorjeta extra, integrados ao seu PDV.</p>
         </div>
         <div className="space-y-2 text-sm">
           <p className="font-display font-bold">Produto</p>
           <a href="#como-funciona" className="block text-muted-foreground hover:text-foreground">Como funciona</a>
-          <a href="#pdv" className="block text-muted-foreground hover:text-foreground">PDV TIPE</a>
+          <a href="#pdv" className="block text-muted-foreground hover:text-foreground">Integração com PDV</a>
           <a href="#planos" className="block text-muted-foreground hover:text-foreground">Planos</a>
         </div>
         <div className="space-y-2 text-sm">

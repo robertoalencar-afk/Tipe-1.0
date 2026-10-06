@@ -20,7 +20,7 @@ A TIPE leva a conta para o celular pelo QR Code da mesa, sem aplicativo.
 O cliente vê os itens, escolhe o que deseja pagar e pode dividir um item por duas, três ou quatro pessoas.
 Pagamentos no estabelecimento podem ser feitos em dinheiro ou maquininha e aguardam confirmação do restaurante.
 A TIPE oferece 30 dias grátis, sem cartão e sem fidelidade. Os planos publicados começam em R$ 49,90 por mês.
-O restaurante pode usar o PDV TIPE ou solicitar uma integração assistida com o PDV que já usa.
+O restaurante conecta obrigatoriamente o PDV que já usa (qualquer PDV do mercado é aceito); a TIPE ainda não oferece PDV próprio.
 Não afirme que uma marca específica já está homologada. Diga que a equipe confirma a compatibilidade.
 Apple Pay e Google Pay dependem da habilitação comercial do provedor e ainda não devem ser apresentados como ativos.
 Para experimentar, indique /simulador. Para criar a conta, indique /cadastro. Para falar com a equipe, indique #fale-conosco.

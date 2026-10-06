@@ -116,11 +116,10 @@ export const cashAction = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-const PROVIDERS = ["tipe", "saipos", "totvs", "consumer", "goomer", "anotaai", "linx", "colibri", "outro"] as const;
 
 export const setIntegration = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ slug: Slug, provider: z.enum(PROVIDERS), newKey: z.boolean() }).parse(d))
+  .inputValidator((d) => z.object({ slug: Slug, provider: z.string().regex(/^[a-z0-9-]{2,40}$/), newKey: z.boolean() }).parse(d))
   .handler(async ({ data, context }) => {
     let key: string | null = null, hash: string | null = null, prefix: string | null = null;
     if (data.provider !== "tipe" && data.newKey) {
