@@ -24,3 +24,6 @@
 - [ ] Adicionais de produto, nota fiscal (NFC-e), estoque e delivery
 - [ ] Painel do garçom
 - [ ] Painel do fundador
+- [ ] Lebre IA pública para dúvidas e autenticada no restaurante, com ações seguras sempre confirmadas pelo usuário
+- [ ] Renovar a landing na direção fintech escolhida, com narrativa de venda, produto em destaque, um mascote principal e linguagem sem travessões
+- [ ] Criar central de integrações e homologar PDVs antes de publicar números ou marcas como compatíveis
