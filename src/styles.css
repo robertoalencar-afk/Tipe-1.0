@@ -516,5 +516,5 @@
  .mv-composition { padding-left: 20px; padding-right: 20px; }
 }
 @media (prefers-reduced-motion: reduce) {
- .mv-kinetic-orbit,.mv-account-scene .mv-product-phone { animation: none; }
+ .mv-kinetic-orbit,.mv-account-scene .mv-product-phone,.mv-official-logo { animation: none; }
 }
