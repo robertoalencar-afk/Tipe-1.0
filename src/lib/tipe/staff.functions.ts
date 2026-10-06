@@ -117,10 +117,12 @@ export const createRestaurant = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({
     name: z.string().trim().min(2).max(80),
     slug: z.string().trim().min(2).max(64).regex(/^[a-z0-9-]+$/),
-    pos: z.enum(["saipos", "totvs", "none"]),
-    tables: z.number().int().min(1).max(200),
+    pos: z.string().trim().min(2).max(80),
+    tables: z.number().int().min(1).max(1000),
   }).parse(d))
   .handler(async ({ data, context }) => {
+    const { data: isFounder } = await context.supabase.rpc("has_role", { _user_id: context.userId, _role: "founder" });
+    if (!isFounder) throw new Error("Somente o Backoffice TIPE pode cadastrar restaurantes");
     const { data: r, error } = await context.supabase.from("restaurants").insert({ name: data.name, slug: data.slug, pos_provider: data.pos }).select("id").single();
     if (error || !r) throw new Error(error?.code === "23505" ? "Esse endereço já está em uso" : "Somente o fundador pode cadastrar restaurantes");
     const rows = Array.from({ length: data.tables }, (_, i) => ({ restaurant_id: r.id, number: String(i + 1), code: `mesa${i + 1}` }));
