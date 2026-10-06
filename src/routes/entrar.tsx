@@ -1,5 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
+import { getMyAccess } from "@/lib/tipe/staff.functions";
 import { toast } from "sonner";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,7 +30,17 @@ type Modo = "entrar" | "criar" | "esqueci";
 function Entrar() {
   const navigate = useNavigate();
   const { r } = Route.useSearch();
-  const destino = () => (r ? navigate({ to: "/$restaurante", params: { restaurante: r.slice(1) } }) : navigate({ to: "/painel" }));
+  const fetchAccess = useServerFn(getMyAccess);
+  const destino = async () => {
+    if (r) return navigate({ to: "/$restaurante", params: { restaurante: r.slice(1) } });
+    try {
+      const a = await fetchAccess();
+      if (a.isFounder) return navigate({ to: "/fundador", replace: true });
+      if (a.roles.length > 0 && a.roles.every((x) => x.role === "waiter")) return navigate({ to: "/garcom", replace: true });
+      if (a.restaurants.length === 1) return navigate({ to: "/$restaurante", params: { restaurante: a.restaurants[0]!.slug }, replace: true });
+    } catch { /* fallback abaixo */ }
+    return navigate({ to: "/painel", replace: true });
+  };
   const [modo, setModo] = useState<Modo>("entrar");
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
