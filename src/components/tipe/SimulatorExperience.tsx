@@ -32,7 +32,7 @@ const ITEMS = [
 const EMPTY_STATE: DemoState = { paid: {}, reserved: {}, payments: [], closedAt: null };
 const STATE_KEY = "tipe:simulador:mesa12:state";
 const NAME_KEY = "tipe:simulador:mesa12:cliente";
-const REOPEN_MS = 8 * 1000;
+const REOPEN_MS = 5 * 1000;
 const money = (value: number) => value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const fullName = (value: string) => value.trim().split(/\s+/).length >= 2;
 const EPSILON = 0.0001;
