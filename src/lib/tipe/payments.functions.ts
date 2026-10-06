@@ -125,8 +125,17 @@ export const createPayment = createServerFn({ method: "POST" })
 
     const { pagarmeEnabled, pagarme, orderPaid, orderFailed } = await import("./pagarme.server");
 
+    const split: unknown[] | undefined = undefined;
+    let secretKey: string | undefined;
+    if (data.target === "restaurant") {
+      // A conta vai direto para a conta Pagar.me do próprio restaurante.
+      const { restaurantPagarmeKey } = await import("./pagarme.server");
+      const { data: rest } = await supabaseAdmin.from("restaurants").select("id").eq("slug", data.restaurantId).maybeSingle();
+      secretKey = (rest ? await restaurantPagarmeKey(rest.id) : null) ?? undefined;
+    }
+
     // Modo simulação: sem conta Pagar.me configurada, nada é cobrado de verdade.
-    if (!pagarmeEnabled()) {
+    if (data.target === "restaurant" ? !secretKey : !pagarmeEnabled()) {
       await register("pending");
       return data.method === "pix"
         ? { id, status: "pending", provider: "simulado", pixCode: `00020126TIPE${cents}BR.GOV.BCB.PIX5204000053039865802BR` }
@@ -137,17 +146,6 @@ export const createPayment = createServerFn({ method: "POST" })
       throw new Error("Apple Pay e Google Pay serão liberados em breve. Use Pix por enquanto.");
     }
     if (data.method === "card" && !data.cardToken) throw new Error("Informe os dados do cartão");
-
-    const split: unknown[] | undefined = undefined;
-    let secretKey: string | undefined;
-    if (data.target === "restaurant") {
-      // A conta vai direto para a conta Pagar.me do próprio restaurante.
-      const { restaurantPagarmeKey } = await import("./pagarme.server");
-      const { data: rest } = await supabaseAdmin.from("restaurants").select("id").eq("slug", data.restaurantId).maybeSingle();
-      const key = rest ? await restaurantPagarmeKey(rest.id) : null;
-      if (!key) throw new Error("Este restaurante ainda não ativou o recebimento digital. Escolha pagar no estabelecimento.");
-      secretKey = key;
-    }
 
     // Reserva os itens antes de cobrar; se a cobrança falhar, a reserva é liberada.
     const payId = await register("pending");
