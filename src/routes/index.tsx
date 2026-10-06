@@ -14,6 +14,7 @@ import mascotAssistant from "@/assets/lebre-ai-official.svg";
 import { LebreAssistant } from "@/components/tipe/LebreAssistant";
 import { PaymentJourneyDemo } from "@/components/tipe/PaymentJourneyDemo";
 import { Button } from "@/components/ui/button";
+import { COMPANY } from "@/lib/tipe/legal";
 
 export const Route = createFileRoute("/")({
   head: () => ({
