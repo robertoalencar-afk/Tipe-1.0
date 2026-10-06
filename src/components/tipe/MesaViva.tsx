@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { Check, ChevronRight, QrCode, Star, Utensils, Wine, Coffee, Pizza } from "lucide-react";
 
-type Scene = { words: string[]; accent: number[]; ms: number; visual: () => JSX.Element };
+type Scene = { words: string[]; accent: number[]; ms: number; visual: () => React.ReactNode };
 
 function Words({ words, accent }: { words: string[]; accent: number[] }) {
   return (
