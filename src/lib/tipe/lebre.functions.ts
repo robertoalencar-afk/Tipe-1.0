@@ -5,12 +5,19 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 const Question = z.string().trim().min(2).max(600);
 const Slug = z.string().min(1).max(64).regex(/^[a-z0-9-]+$/);
 
+export type LebreAction =
+  | { action: "add_table"; number: string }
+  | { action: "set_table_active"; number: string; active: boolean }
+  | { action: "add_waiter"; name: string; email?: string }
+  | { action: "invite_waiter"; name: string; email: string }
+  | { action: "set_item_available"; name: string; available: boolean };
+
 export type LebreProposal = {
   id: string;
-  action: "add_table";
+  action: LebreAction["action"];
   title: string;
   summary: string;
-  payload: { number: string };
+  payload: LebreAction;
 };
 
 export type LebreReply = { answer: string; proposal?: LebreProposal };
@@ -58,9 +65,39 @@ export const askPublicLebre = createServerFn({ method: "POST" })
     return { answer };
   });
 
+const ActionSchema = z.discriminatedUnion("action", [
+  z.object({ action: z.literal("add_table"), number: z.string().trim().min(1).max(8).regex(/^[0-9A-Za-z]+$/) }),
+  z.object({ action: z.literal("set_table_active"), number: z.string().trim().min(1).max(8).regex(/^[0-9A-Za-z]+$/), active: z.boolean() }),
+  z.object({ action: z.literal("add_waiter"), name: z.string().trim().min(2).max(80), email: z.string().trim().toLowerCase().email().max(200).optional() }),
+  z.object({ action: z.literal("invite_waiter"), name: z.string().trim().min(2).max(80), email: z.string().trim().toLowerCase().email().max(200) }),
+  z.object({ action: z.literal("set_item_available"), name: z.string().trim().min(2).max(120), available: z.boolean() }),
+]);
+
+const History = z.array(z.object({ role: z.enum(["user", "assistant"]), text: z.string().max(2000) })).max(12).optional();
+
+function describe(a: LebreAction, restaurant: string): { title: string; summary: string } {
+  switch (a.action) {
+    case "add_table": return { title: `Cadastrar mesa ${a.number}`, summary: `Vou cadastrar a mesa ${a.number} em ${restaurant}, já com QR Code pronto para imprimir.` };
+    case "set_table_active": return a.active
+      ? { title: `Abrir mesa ${a.number}`, summary: `Vou ativar a mesa ${a.number} para receber clientes pelo QR Code.` }
+      : { title: `Desativar mesa ${a.number}`, summary: `Vou desativar a mesa ${a.number}. O QR Code dela deixa de abrir a conta.` };
+    case "add_waiter": return { title: `Cadastrar garçom ${a.name}`, summary: a.email ? `Vou cadastrar ${a.name} na equipe e enviar o convite para ${a.email} criar a senha.` : `Vou cadastrar ${a.name} na equipe. Depois você pode me passar o e-mail para eu enviar o convite.` };
+    case "invite_waiter": return { title: `Convidar ${a.name}`, summary: `Vou ligar o e-mail ${a.email} ao garçom ${a.name} e enviar o convite para ele criar a senha.` };
+    case "set_item_available": return a.available
+      ? { title: `Voltar "${a.name}" ao cardápio`, summary: `Vou marcar "${a.name}" como disponível.` }
+      : { title: `Pausar "${a.name}"`, summary: `Vou marcar "${a.name}" como indisponível até você reativar.` };
+  }
+}
+
+function parseIntent(text: string): { reply?: string; action?: unknown } | null {
+  const match = text.match(/\{[\s\S]*\}/);
+  if (!match) return null;
+  try { return JSON.parse(match[0]); } catch { return null; }
+}
+
 export const askRestaurantLebre = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => z.object({ slug: Slug, question: Question }).parse(data))
+  .inputValidator((data) => z.object({ slug: Slug, question: Question, history: History }).parse(data))
   .handler(async ({ data, context }): Promise<LebreReply> => {
     const { enforceRate, logSecurityEvent } = await import("./security.server");
     await enforceRate(`lebre-panel:${context.userId}`, 20, 60, data.slug);
@@ -69,45 +106,98 @@ export const askRestaurantLebre = createServerFn({ method: "POST" })
     const { data: roles } = await context.supabase.from("user_roles").select("role").eq("restaurant_id", restaurant.id).eq("user_id", context.userId);
     if (!roles?.length) throw new Error("Você não tem acesso a este restaurante.");
     const roleNames = roles.map((row) => row.role);
-    const tableMatch = data.question.match(/(?:criar|cadastrar|adicionar|abrir)\s+(?:a\s+)?mesa\s+([0-9a-z]+)/i);
-    if (tableMatch?.[1] && (roleNames.includes("owner") || roleNames.includes("founder"))) {
-      const number = tableMatch[1].slice(0, 8);
-      const proposal: LebreProposal = {
-        id: crypto.randomUUID(), action: "add_table", title: `Cadastrar mesa ${number}`,
-        summary: `A Lebre vai cadastrar a mesa ${number} em ${restaurant.name}. Nenhum pedido ou pagamento será alterado.`, payload: { number },
-      };
-      await logSecurityEvent({ action: "lebre_proposal", resource: "restaurant_table", restaurantSlug: data.slug, restaurantId: restaurant.id, actorId: context.userId, detail: proposal.summary });
-      return { answer: "Posso preparar isso para você. Confira a ação antes de confirmar.", proposal };
-    }
-    const [tables, payments, items] = await Promise.all([
+    const canManage = roleNames.includes("owner") || roleNames.includes("founder");
+    const [tables, payments, items, waiters] = await Promise.all([
       context.supabase.from("restaurant_tables").select("number, active").eq("restaurant_id", restaurant.id),
       context.supabase.from("table_payment_requests").select("status, amount").eq("restaurant_slug", data.slug).eq("payment_target", "restaurant"),
       context.supabase.from("table_bill_items").select("ordered_quantity, paid_portion, unit_price").eq("restaurant_slug", data.slug),
+      context.supabase.from("pdv_waiters").select("name, active, email").eq("restaurant_id", restaurant.id),
     ]);
     const openValue = (items.data ?? []).reduce((sum, item) => sum + Math.max(0, Number(item.ordered_quantity) - Number(item.paid_portion)) * Number(item.unit_price), 0);
     const pending = (payments.data ?? []).filter((payment) => payment.status === "pending");
-    const contextText = `Restaurante: ${restaurant.name}. Cargo do usuário: ${roleNames.join(", ")}. Mesas ativas: ${(tables.data ?? []).filter((table) => table.active).length}. Pagamentos pendentes: ${pending.length}. Valor aproximado ainda aberto, sem taxa de serviço: R$ ${openValue.toFixed(2)}. PDV: ${restaurant.pos_mode === "external" ? `externo, fornecedor ${restaurant.pos_provider ?? "não informado"}` : "TIPE"}.`;
-    const answer = await askModel(
-      `Você é a Lebre, assistente operacional da TIPE. Responda em português brasileiro, de forma pessoal, objetiva e sem travessões. Use somente o contexto fornecido. Não revele dados pessoais, não invente números e não diga que executou ações. Explique o uso do painel e sugira o próximo passo. Para alterações, explique que a pessoa pode pedir à Lebre e confirmar a proposta.\n${contextText}`,
+    const tableList = (tables.data ?? []).map((t) => `${t.number}${t.active ? "" : " (inativa)"}`).join(", ") || "nenhuma";
+    const waiterList = (waiters.data ?? []).map((w) => `${w.name}${w.email ? " (com acesso)" : " (sem acesso)"}${w.active ? "" : " inativo"}`).join(", ") || "nenhum";
+    const contextText = `Restaurante: ${restaurant.name}. Cargo do usuário: ${roleNames.join(", ")}. Mesas: ${tableList}. Garçons: ${waiterList}. Pagamentos pendentes: ${pending.length}. Valor aproximado em aberto, sem taxa: R$ ${openValue.toFixed(2)}. PDV: ${restaurant.pos_mode === "external" ? `externo, ${restaurant.pos_provider ?? "não informado"}` : "TIPE"}.`;
+    const history = (data.history ?? []).map((m) => `${m.role === "user" ? "Usuário" : "Lebre"}: ${m.text}`).join("\n");
+    const raw = await askModel(
+      `Você é a Lebre, assistente operacional da TIPE. Fale em português brasileiro, pessoal, objetiva, sem travessões. Use só o contexto. Não revele dados pessoais nem invente números.
+Você pode PROPOR estas ações (o sistema mostra um botão para o usuário confirmar; você nunca diz que já executou):
+- add_table {number}: cadastrar mesa nova
+- set_table_active {number, active}: abrir/ativar (true) ou fechar/desativar (false) uma mesa existente
+- add_waiter {name, email?}: cadastrar garçom novo, com e-mail opcional para convite
+- invite_waiter {name, email}: enviar convite de acesso a garçom já cadastrado
+- set_item_available {name, available}: pausar ou reativar item do cardápio
+${canManage ? "" : "Este usuário NÃO pode alterar cadastros. Nunca proponha ações; explique que só o dono pode."}
+Se faltar dado obrigatório (ex.: número da mesa ou e-mail incompleto), pergunte em vez de propor.
+Responda SEMPRE apenas com JSON: {"reply": "texto curto", "action": null ou {"action": "...", ...campos}}.
+Contexto: ${contextText}
+${history ? `Conversa recente:\n${history}` : ""}`,
       data.question,
     );
-    return { answer };
+    const parsed = parseIntent(raw);
+    if (!parsed) return { answer: raw };
+    const answer = typeof parsed.reply === "string" && parsed.reply.trim() ? parsed.reply.trim() : "Certo.";
+    if (!parsed.action || !canManage) return { answer };
+    const action = ActionSchema.safeParse(parsed.action);
+    if (!action.success) return { answer };
+    const proposal: LebreProposal = { id: crypto.randomUUID(), action: action.data.action, payload: action.data as LebreAction, ...describe(action.data as LebreAction, restaurant.name) };
+    await logSecurityEvent({ action: "lebre_proposal", resource: action.data.action, restaurantSlug: data.slug, restaurantId: restaurant.id, actorId: context.userId, detail: proposal.summary });
+    return { answer, proposal };
   });
 
 export const executeLebreProposal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((data) => z.object({ slug: Slug, proposalId: z.string().uuid(), action: z.literal("add_table"), number: z.string().min(1).max(8).regex(/^[0-9A-Za-z]+$/) }).parse(data))
+  .inputValidator((data) => z.object({ slug: Slug, proposalId: z.string().uuid(), payload: ActionSchema }).parse(data))
   .handler(async ({ data, context }) => {
     const { logSecurityEvent } = await import("./security.server");
     const { data: restaurant } = await context.supabase.from("restaurants").select("id, name").eq("slug", data.slug).maybeSingle();
     if (!restaurant) throw new Error("Restaurante não encontrado.");
     const { data: allowed } = await context.supabase.rpc("has_restaurant_role", { _user_id: context.userId, _restaurant_id: restaurant.id, _roles: ["owner"] });
+    const a = data.payload;
     if (!allowed) {
-      await logSecurityEvent({ action: "lebre_execute_denied", resource: "restaurant_table", result: "denied", restaurantSlug: data.slug, restaurantId: restaurant.id, actorId: context.userId, detail: `proposal=${data.proposalId}` });
-      throw new Error("Seu cargo não permite cadastrar mesas.");
+      await logSecurityEvent({ action: "lebre_execute_denied", resource: a.action, result: "denied", restaurantSlug: data.slug, restaurantId: restaurant.id, actorId: context.userId, detail: `proposal=${data.proposalId}` });
+      throw new Error("Somente o dono do restaurante pode confirmar essa ação.");
     }
-    const { error } = await context.supabase.from("restaurant_tables").insert({ restaurant_id: restaurant.id, number: data.number, code: `mesa${data.number.toLowerCase()}` });
-    if (error) throw new Error(error.code === "23505" ? "Essa mesa já existe." : "Não foi possível cadastrar a mesa.");
-    await logSecurityEvent({ action: "lebre_execute", resource: "restaurant_table", restaurantSlug: data.slug, restaurantId: restaurant.id, actorId: context.userId, detail: `proposal=${data.proposalId}; mesa=${data.number}` });
-    return { ok: true, message: `Mesa ${data.number} cadastrada com sucesso.` };
+    const sb = context.supabase;
+    const rid = restaurant.id;
+    let message = "";
+    if (a.action === "add_table") {
+      const { error } = await sb.from("restaurant_tables").insert({ restaurant_id: rid, number: a.number, code: `mesa${a.number.toLowerCase()}` });
+      if (error) throw new Error(error.code === "23505" ? "Essa mesa já existe." : "Não foi possível cadastrar a mesa.");
+      message = `Mesa ${a.number} cadastrada. O QR Code já está em Mesas e QR Codes.`;
+    } else if (a.action === "set_table_active") {
+      const { data: rows, error } = await sb.from("restaurant_tables").update({ active: a.active }).eq("restaurant_id", rid).eq("number", a.number).select("id");
+      if (error) throw new Error("Não foi possível alterar a mesa.");
+      if (!rows?.length) throw new Error(`Não encontrei a mesa ${a.number}. Quer que eu cadastre?`);
+      message = a.active ? `Mesa ${a.number} aberta.` : `Mesa ${a.number} desativada.`;
+    } else if (a.action === "add_waiter") {
+      const { data: existing } = await sb.from("pdv_waiters").select("code").eq("restaurant_id", rid);
+      const used = new Set((existing ?? []).map((w) => w.code));
+      let n = (existing?.length ?? 0) + 1;
+      while (used.has(`G${n}`)) n++;
+      const { data: row, error } = await sb.from("pdv_waiters").insert({ restaurant_id: rid, code: `G${n}`, name: a.name, active: true }).select("id").single();
+      if (error || !row) throw new Error("Não foi possível cadastrar o garçom.");
+      message = `${a.name} cadastrado na equipe.`;
+      if (a.email) {
+        const { grantWaiterAccessCore } = await import("./waiter-access.server");
+        await grantWaiterAccessCore({ restaurantId: rid, slug: data.slug, waiterId: row.id, email: a.email, actorId: context.userId });
+        message += ` Convite enviado para ${a.email}.`;
+      }
+    } else if (a.action === "invite_waiter") {
+      const { data: found } = await sb.from("pdv_waiters").select("id, name").eq("restaurant_id", rid).ilike("name", `%${a.name}%`).limit(2);
+      if (!found?.length) throw new Error(`Não encontrei o garçom ${a.name}. Quer que eu cadastre?`);
+      if (found.length > 1) throw new Error(`Encontrei mais de um garçom com "${a.name}". Use o nome completo.`);
+      const { grantWaiterAccessCore } = await import("./waiter-access.server");
+      await grantWaiterAccessCore({ restaurantId: rid, slug: data.slug, waiterId: found[0]!.id, email: a.email, actorId: context.userId });
+      message = `Convite enviado para ${a.email}. ${found[0]!.name} vai receber o link para criar a senha.`;
+    } else {
+      const { data: found } = await sb.from("pdv_menu_items").select("id, name").eq("restaurant_id", rid).ilike("name", `%${a.name}%`).limit(2);
+      if (!found?.length) throw new Error(`Não encontrei "${a.name}" no cardápio.`);
+      if (found.length > 1) throw new Error(`Encontrei mais de um item com "${a.name}". Seja mais específico.`);
+      const { error } = await sb.from("pdv_menu_items").update({ available: a.available }).eq("id", found[0]!.id);
+      if (error) throw new Error("Não foi possível alterar o item.");
+      message = a.available ? `"${found[0]!.name}" voltou ao cardápio.` : `"${found[0]!.name}" pausado.`;
+    }
+    await logSecurityEvent({ action: "lebre_execute", resource: a.action, restaurantSlug: data.slug, restaurantId: rid, actorId: context.userId, detail: `proposal=${data.proposalId}` });
+    return { ok: true, message };
   });
