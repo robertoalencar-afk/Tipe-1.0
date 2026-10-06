@@ -36,5 +36,5 @@
 - [x] Reposicionar a Lebre no painel mobile para não cobrir a navegação inferior
 - [x] Otimizar carregamento dos mascotes mantendo qualidade
 - [x] Simplificar os totens para os modelos Clássico e Claro, com marca, frase e restaurante obrigatórios em todos os formatos
-- [ ] Testar Apple Pay (valor pago) e releitura do QR na conta real
-- [ ] Melhorar diagramação apontada na captura de 14:53
+- [x] Testar Apple Pay (valor pago) e releitura do QR na conta real
+- [x] Melhorar diagramação apontada na captura de 14:53
