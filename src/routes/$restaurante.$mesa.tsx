@@ -347,18 +347,18 @@ function MesaPage() {
 
       {etapaVisivel === "conta" && (
         <main className="flex flex-1 flex-col px-5 pb-8">
-          <div className="mb-4 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3">
+           <div className="mb-4 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3">
             <p className="text-sm">Olá, <strong>{nome.trim()}</strong>.</p>
             <p className="mt-1 text-sm text-muted-foreground">
               {dados.garcom ? <>Você está sendo atendido por <strong className="text-foreground">{dados.garcom}</strong>.</> : "Bem-vindo! Seus pedidos aparecem aqui assim que forem lançados."}
             </p>
           </div>
 
-          <div className="mb-5 grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
-            <Button variant={aba === "conta" ? "outline" : "ghost"} onClick={() => setAba("conta")} className="h-10 rounded-md shadow-none">
+          <div className="mb-5 grid grid-cols-2 gap-1 rounded-full bg-muted p-1">
+            <Button variant={aba === "conta" ? "outline" : "ghost"} onClick={() => setAba("conta")} className="h-10 rounded-full shadow-none">
               <ReceiptText /> Conta
-            </Button>
-            <Button variant={aba === "atividade" ? "outline" : "ghost"} onClick={() => setAba("atividade")} className="h-10 rounded-md shadow-none">
+             </Button>
+            <Button variant={aba === "atividade" ? "outline" : "ghost"} onClick={() => setAba("atividade")} className="h-10 rounded-full shadow-none">
               <ClipboardList /> Atividade
             </Button>
           </div>
@@ -371,7 +371,7 @@ function MesaPage() {
                   <Button
                     variant={tudoSelecionado ? "default" : "outline"}
                     onClick={() => setQtds(Object.fromEntries(dados.itens.map((item) => [item.id, tudoSelecionado ? 0 : Math.max(0, disponiveis[item.id] ?? item.qtd)])))}
-                    className="mb-3 h-12 w-full rounded-lg text-base font-bold"
+                    className="mb-3 h-12 w-full rounded-full font-display text-base font-bold"
                   >
                     <ReceiptText /> {tudoSelecionado ? "Limpar seleção" : "Pagar a conta inteira"}
                   </Button>
@@ -383,7 +383,7 @@ function MesaPage() {
                   const quantidade = qtds[item.id] ?? 0;
                   const disponivel = disponiveis[item.id] ?? item.qtd;
                   return (
-                    <li key={item.id} className={`rounded-lg border bg-card p-4 transition ${quantidade > 0 ? "border-primary/60" : "border-border"}`}>
+                    <li key={item.id} className={`rounded-2xl border bg-card p-4 transition ${quantidade > 0 ? "border-2 border-primary bg-primary/5" : "border-border"}`}>
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
                           <p className="font-semibold">{item.nome}</p>
@@ -419,12 +419,12 @@ function MesaPage() {
               </ul>
               {dados.itens.every((item) => (disponiveis[item.id] ?? item.qtd) <= 0) && <p className="py-10 text-center text-sm text-muted-foreground">{dados.itens.length === 0 ? "Nenhum pedido ainda. Chame o garçom para fazer seu pedido." : "Não há itens disponíveis para pagamento."}</p>}
 
-              <div className="mt-6 border-y border-border py-4 text-sm">
+              <div className="mt-6 rounded-2xl bg-muted/60 p-4 text-sm">
                 <ResumoLinha label="Subtotal selecionado" valor={subtotal} />
                 <ResumoLinha label="Serviço do restaurante (10%)" valor={servico} className="mt-2" />
-                <ResumoLinha label="Total da conta" valor={totalConta} className="mt-3 border-t border-border pt-3 text-base font-bold" />
+                <ResumoLinha label="Total da conta" valor={totalConta} className="mt-3 border-t border-border pt-3 font-display text-base font-extrabold" />
               </div>
-              <Button disabled={subtotal <= 0} onClick={() => setEtapa("pagamento-conta")} className="mt-6 h-12 w-full rounded-lg text-base font-bold">
+              <Button disabled={subtotal <= 0} onClick={() => setEtapa("pagamento-conta")} className="mt-5 h-12 w-full rounded-full font-display text-base font-bold">
                 Continuar para pagamento <ChevronRight />
               </Button>
             </>
@@ -716,7 +716,7 @@ function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, p
        )}
       {metodo === "card" && cartao && setCartao && <div className="mt-5"><CardFields value={cartao} onChange={setCartao} /></div>}
       {erro && <p role="alert" className="mt-4 text-sm text-destructive">{erro}</p>}
-        <Button disabled={!metodo || pagando || (permitirEstabelecimento && !aceitouTermos) || (metodo === "at_establishment" && (!metodoEstabelecimento || (metodoEstabelecimento === "cash" && Number(valorDinheiro.replace(",", ".")) < valor))) || (metodo === "card" && !!cartao && !cardValid(cartao))} onClick={pagar} className="mt-6 h-12 rounded-lg text-base font-bold">{pagando ? "Processando…" : `Pagar ${money(valor)}`}</Button>
+        <Button disabled={!metodo || pagando || (permitirEstabelecimento && !aceitouTermos) || (metodo === "at_establishment" && (!metodoEstabelecimento || (metodoEstabelecimento === "cash" && Number(valorDinheiro.replace(",", ".")) < valor))) || (metodo === "card" && !!cartao && !cardValid(cartao))} onClick={pagar} className="mt-6 h-12 rounded-full font-display text-base font-bold">{pagando ? "Processando…" : `Pagar ${money(valor)}`}</Button>
          {metodo === "at_establishment" && metodoEstabelecimento && <p className="mt-3 text-center text-xs text-muted-foreground">O garçom verá {metodoEstabelecimento === "cash" ? "o valor entregue e o troco" : "que o pagamento será na maquininha"} antes de confirmar.</p>}
     </main>
   );
