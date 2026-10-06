@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import {
   QrCode, Receipt, Smartphone, CheckCircle2, ChevronRight, MonitorSmartphone, History, Landmark,
   Plug, Store, Zap, ShieldCheck, Clock, Users, Check, Star, BarChart3, Wallet,
-  Hand, ClipboardList, Calculator, ArrowLeftRight, CreditCard, Bot, Headphones, Instagram,
+  Hand, ClipboardList, Calculator, ArrowLeftRight, CreditCard, Bot, Headphones, Instagram, Mic, Paperclip,
 } from "lucide-react";
 import { submitLead } from "@/lib/tipe/leads.functions";
 import { PLANS, TRIAL_DAYS, priceLabel, type PlanId } from "@/lib/tipe/plans";
@@ -440,27 +440,41 @@ function PdvOptions() {
 
 function LebreSection() {
   const features = [
-    ["Responde com clareza", "Tira dúvidas sobre implantação, planos, pagamentos e uso do sistema."],
-    ["Entende a operação", "Dentro do painel, consulta somente os dados do restaurante que a pessoa pode acessar."],
-    ["Prepara ações seguras", "Mostra exatamente o que será feito e só executa depois da confirmação do usuário."],
+    { icon: Mic, title: "Fala ou digita", text: "Fale direto pelo microfone ou escreva. Ela transcreve na hora e você revisa antes de enviar." },
+    { icon: Paperclip, title: "Lê arquivos e fotos", text: "Envie fotos de comandas, cardápios ou relatórios em PDF para ela analisar e resumir." },
+    { icon: Zap, title: "Executa ações", text: "Prepara tarefas reais, como abrir uma mesa, e só executa depois da sua confirmação." },
   ] as const;
+  const examples = ["Abrir a mesa 08", "Analisar foto do cardápio", "Resumir pagamentos do almoço"];
+  const openLebre = () => document.querySelector<HTMLButtonElement>('[aria-label="Conversar com a Lebre"]')?.click();
   return (
-    <section className="bg-secondary py-12 text-secondary-foreground sm:py-16">
+    <section className="relative overflow-hidden bg-secondary py-12 text-secondary-foreground sm:py-16">
       <div className="mx-auto grid max-w-7xl items-center gap-8 px-4 sm:px-6 lg:grid-cols-[0.85fr_1.15fr] lg:gap-12">
-        <div className="relative mx-auto h-[290px] w-full max-w-sm sm:h-[340px]">
-          <div className="absolute inset-x-10 bottom-0 h-40 rounded-full bg-primary/10" />
-          <img src={mascotAssistant} alt="Lebre, assistente da TIPE" loading="lazy" width={3584} height={4800} className="relative mx-auto h-full w-auto object-contain" />
+        <div className="relative mx-auto h-[300px] w-full max-w-sm sm:h-[360px]">
+          <div aria-hidden className="absolute left-1/2 top-1/2 h-72 w-72 -translate-x-1/2 -translate-y-1/2 rounded-full bg-primary/20 blur-3xl" />
+          <img src={mascotAssistant} alt="Lebre, assistente da TIPE" loading="lazy" width={3584} height={4800} className="relative mx-auto h-full w-auto object-contain drop-shadow-2xl" />
+          <div className="absolute right-0 top-10 flex items-center gap-2 rounded-full border border-primary/30 bg-background/10 px-3 py-1.5 text-xs font-semibold backdrop-blur-md sm:-right-4">
+            <span className="relative flex h-2 w-2"><span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" /><span className="relative inline-flex h-2 w-2 rounded-full bg-primary" /></span>
+            Abrindo mesa 12...
+          </div>
+          <div className="absolute bottom-12 left-0 flex items-center gap-2 rounded-full border border-primary/30 bg-background/10 px-3 py-1.5 text-xs font-semibold backdrop-blur-md sm:-left-2">
+            <Mic className="h-3.5 w-3.5 text-primary" />Ouvindo você
+          </div>
         </div>
         <div>
           <p className="font-display text-xs font-bold uppercase tracking-[0.2em] text-primary">Conheça a Lebre</p>
           <h2 className="mt-3 font-display text-3xl font-extrabold sm:text-4xl">Uma especialista TIPE sempre por perto</h2>
-          <p className="mt-4 max-w-2xl opacity-80">Na página, ela ajuda quem ainda está conhecendo a TIPE. No restaurante, explica o sistema, resume a operação e prepara tarefas com segurança.</p>
-          <div className="mt-8 grid gap-4 sm:grid-cols-3">
-            {features.map(([title, text], index) => (
-              <div key={title} className="border-l-2 border-primary pl-4"><span className="font-display text-xs font-bold text-primary">0{index + 1}</span><h3 className="mt-2 font-display font-bold">{title}</h3><p className="mt-1 text-sm opacity-70">{text}</p></div>
+          <p className="mt-4 max-w-2xl opacity-80">Entende voz, texto, fotos e PDFs. No restaurante, explica o sistema, resume a operação e prepara ações com segurança.</p>
+          <div className="mt-5 flex flex-wrap gap-2">
+            {examples.map((e) => (
+              <button key={e} type="button" onClick={openLebre} className="rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-medium transition-colors hover:bg-primary/20">“{e}”</button>
             ))}
           </div>
-          <div className="mt-8"><Button onClick={() => document.querySelector<HTMLButtonElement>('[aria-label="Conversar com a Lebre"]')?.click()}><Bot />Conversar com a Lebre</Button></div>
+          <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            {features.map(({ icon: Icon, title, text }) => (
+              <div key={title} className="border-l-2 border-primary pl-4"><Icon className="h-5 w-5 text-primary" /><h3 className="mt-2 font-display font-bold">{title}</h3><p className="mt-1 text-sm opacity-70">{text}</p></div>
+            ))}
+          </div>
+          <div className="mt-8"><Button onClick={openLebre}><Bot />Conversar com a Lebre</Button></div>
         </div>
       </div>
     </section>
