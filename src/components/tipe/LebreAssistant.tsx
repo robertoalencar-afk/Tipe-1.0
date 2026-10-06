@@ -7,7 +7,7 @@ import { Message, MessageContent, MessageResponse } from "@/components/ai-elemen
 import { PromptInput, PromptInputBody, PromptInputFooter, PromptInputSubmit, PromptInputTextarea } from "@/components/ai-elements/prompt-input";
 import { Tool, ToolContent, ToolHeader, ToolInput, ToolOutput } from "@/components/ai-elements/tool";
 import { askPublicLebre, askRestaurantLebre, executeLebreProposal, type LebreProposal } from "@/lib/tipe/lebre.functions";
-import lebre from "@/assets/lebre-ai.png";
+import lebre from "@/assets/mascot-waiting-filled.png";
 
 type ChatMessage = { id: string; role: "user" | "assistant"; text: string; proposal?: LebreProposal; result?: string; error?: string };
 
@@ -56,7 +56,7 @@ export function LebreAssistant({ slug }: { slug?: string }) {
       {open && (
         <section className="fixed inset-x-3 bottom-3 z-50 flex h-[min(720px,calc(100vh-1.5rem))] flex-col overflow-hidden rounded-lg border bg-card shadow-2xl sm:left-auto sm:right-5 sm:w-[420px]" aria-label="Conversa com a Lebre">
           <header className="flex items-center gap-3 bg-secondary px-4 py-3 text-secondary-foreground">
-            <div className="h-12 w-12 overflow-hidden rounded-full bg-background"><img src={lebre} alt="Lebre da TIPE" width={768} height={1024} className="h-full w-full object-cover object-top" /></div>
+            <div className="h-12 w-12 overflow-hidden rounded-full bg-background p-1"><img src={lebre} alt="Lebre da TIPE" width={768} height={768} className="h-full w-full object-contain" /></div>
             <div className="min-w-0 flex-1"><h2 className="font-display font-bold">Lebre</h2><p className="text-xs opacity-75">Especialista TIPE</p></div>
             <Button type="button" size="icon" variant="ghost" onClick={() => setOpen(false)} className="text-secondary-foreground" aria-label="Fechar conversa"><X /></Button>
           </header>

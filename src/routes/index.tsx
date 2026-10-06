@@ -4,15 +4,14 @@ import { useState } from "react";
 import { toast } from "sonner";
 import {
   QrCode, Receipt, Smartphone, CheckCircle2, ChevronRight, MonitorSmartphone, History, Landmark,
-  Plug, Store, Zap, ShieldCheck, TrendingUp, Clock, Users, Check, Star, BarChart3, Wallet,
-  Hand, ClipboardList, Calculator, ArrowLeftRight, CreditCard, Sparkles,
+  Plug, Store, Zap, ShieldCheck, Clock, Users, Check, Star, BarChart3, Wallet,
+  Hand, ClipboardList, Calculator, ArrowLeftRight, CreditCard, Bot, Headphones,
 } from "lucide-react";
 import { submitLead } from "@/lib/tipe/leads.functions";
 import { PLANS, TRIAL_DAYS, priceLabel, type PlanId } from "@/lib/tipe/plans";
 import logo from "@/assets/logo-dark.png.asset.json";
-import mascotThanks from "@/assets/mascot-thanks-filled.png";
 import mascotWaiting from "@/assets/mascot-waiting-filled.png";
-import mascotRating from "@/assets/mascot-rating-filled.png";
+import { LebreAssistant } from "@/components/tipe/LebreAssistant";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -48,11 +47,13 @@ function LandingPage() {
         <HowItWorks />
         <Dashboard />
         <PdvOptions />
+        <LebreSection />
         <Pricing />
         <Faq />
         <ContactSection />
       </main>
       <Footer />
+      <LebreAssistant />
     </div>
   );
 }
@@ -66,12 +67,9 @@ function Header() {
           {[["#dinamica", "O novo jeito"], ["#como-funciona", "Como funciona"], ["#painel", "Painel"], ["#pdv", "PDV"], ["#planos", "Planos"], ["#duvidas", "Dúvidas"]].map(([h, l]) => (
             <a key={h} href={h} className="hidden rounded-lg px-3 py-2 text-muted-foreground transition-colors hover:text-foreground lg:block">{l}</a>
           ))}
-          <Link to="/simulador" className="hidden rounded-full px-4 py-2 font-semibold text-muted-foreground transition-colors hover:text-foreground lg:block">Simular</Link>
           <Link to="/entrar" className="hidden rounded-full px-4 py-2 font-semibold text-foreground hover:bg-muted sm:block">Entrar</Link>
-          <Link to="/cadastro" className="rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground">Teste grátis</Link>
-          <a href="#fale-conosco" className="rounded-full bg-primary px-4 py-2 font-display text-sm font-semibold text-primary-foreground shadow-md transition-transform hover:-translate-y-0.5">
-            Quero a TIPE
-          </a>
+          <Link to="/simulador" className="hidden rounded-full border px-4 py-2 font-semibold text-foreground sm:block">Simular</Link>
+          <Link to="/cadastro" className="rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground">Testar grátis</Link>
         </nav>
       </div>
     </header>
@@ -81,8 +79,6 @@ function Header() {
 function Hero() {
   return (
     <section className="relative overflow-hidden text-secondary-foreground" style={{ background: "var(--gradient-brand)" }}>
-      <div aria-hidden className="pointer-events-none absolute -left-32 top-10 h-96 w-96 rounded-full bg-primary/30 blur-3xl" />
-      <div aria-hidden className="pointer-events-none absolute -right-20 bottom-0 h-80 w-80 rounded-full bg-primary/20 blur-3xl" />
       <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.07]" style={{ backgroundImage: "radial-gradient(currentColor 1px, transparent 1px)", backgroundSize: "22px 22px" }} />
       <div className="relative mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 lg:grid-cols-[1.1fr_1fr] lg:py-24">
         <div>
@@ -90,8 +86,7 @@ function Hero() {
             Pague. <span className="text-primary">Sem esperar.</span>
           </h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed opacity-85 sm:text-lg">
-            Seu cliente lê o QR Code da mesa, escolhe o que vai pagar, paga pelo celular e ainda
-            deixa a gorjeta. Seu restaurante gira mais mesas e acompanha tudo em tempo real.
+            A conta chega ao celular do cliente pelo QR Code da mesa. Ele confere, escolhe o que vai pagar e resolve tudo sem interromper o atendimento.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link to="/cadastro" className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-display font-semibold text-primary-foreground shadow-lg transition-transform hover:-translate-y-0.5">
@@ -100,12 +95,9 @@ function Hero() {
             <Link to="/simulador" className="inline-flex items-center gap-2 rounded-full border border-current/25 px-6 py-3 font-display font-semibold transition-colors hover:bg-primary/10">
               Simular experiência
             </Link>
-            <a href="#planos" className="inline-flex items-center gap-2 rounded-full border border-current/25 px-6 py-3 font-display font-semibold transition-colors hover:bg-primary/10">
-              Ver planos
-            </a>
           </div>
           <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm opacity-80">
-            {["Sem aplicativo para baixar", "Integra com seu PDV", "Gorjeta extra: quem atende bem, ganha mais"].map((t) => (
+            {["Sem aplicativo para baixar", "Feita para conversar com seu PDV", "30 dias grátis sem cartão"].map((t) => (
               <span key={t} className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-primary" />{t}</span>
             ))}
           </div>
@@ -120,7 +112,7 @@ function PhoneMockup() {
   const items = [["Moqueca de peixe", 1, "89,90"], ["Caipirinha", 2, "44,00"], ["Água com gás", 1, "7,50"]] as const;
   return (
     <div className="relative mx-auto w-full max-w-sm">
-      <img src={mascotThanks} alt="" aria-hidden className="absolute -left-16 bottom-4 z-20 hidden w-36 drop-shadow-2xl sm:block" />
+       <img src={mascotWaiting} alt="Lebre da TIPE" className="absolute -left-20 bottom-2 z-20 hidden w-40 drop-shadow-2xl sm:block" />
       <div className="relative z-10 mx-auto w-[290px] rounded-[2.6rem] border-[10px] border-foreground/90 bg-card p-4 text-card-foreground shadow-2xl">
         <div className="mx-auto mb-4 h-1.5 w-16 rounded-full bg-muted" />
         <div className="flex items-center justify-between">
@@ -154,10 +146,10 @@ function PhoneMockup() {
 
 function Stats() {
   const stats: { icon: any; v: string; l: string; small?: boolean }[] = [
-    { icon: Clock, v: "-15 min", l: "de espera pela conta por mesa" },
-    { icon: TrendingUp, v: "+20%", l: "de giro de mesas no horário de pico" },
-    { icon: Wallet, v: "+ Produtividade", l: "do time, com o incentivo da gorjeta extra", small: true },
-    { icon: Users, v: "0", l: "filas no caixa: o cliente paga na própria mesa" },
+    { icon: Clock, v: "Na hora", l: "a conta aparece no celular do cliente", small: true },
+    { icon: Wallet, v: "Na mesa", l: "cada pessoa escolhe o que deseja pagar", small: true },
+    { icon: Users, v: "Sem fila", l: "o cliente não precisa ir até o caixa", small: true },
+    { icon: ShieldCheck, v: "Ao vivo", l: "o restaurante acompanha cada pagamento", small: true },
   ];
   return (
     <section className="relative z-10 mx-auto -mt-10 max-w-6xl px-4 sm:px-6">
@@ -170,7 +162,6 @@ function Stats() {
           </div>
         ))}
       </div>
-      <p className="mt-2 text-center text-xs text-muted-foreground">Estimativas de referência para restaurantes com pagamento na mesa.</p>
     </section>
   );
 }
@@ -212,7 +203,7 @@ function Dinamica() {
     <section id="dinamica" className="mx-auto max-w-7xl px-4 py-20 sm:px-6 sm:py-28">
       <div className="mx-auto max-w-2xl text-center">
         <span className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-1.5 font-display text-xs font-bold uppercase tracking-wider text-primary-foreground shadow-md">
-          <Sparkles className="h-3.5 w-3.5" /> A nova era do pagamento em mesa
+          <Zap className="h-3.5 w-3.5" /> A nova era do pagamento em mesa
         </span>
         <h2 className="mt-4 font-display text-3xl font-extrabold sm:text-4xl">A conta virou tecnologia</h2>
         <p className="mt-4 text-muted-foreground">
@@ -224,7 +215,7 @@ function Dinamica() {
       <div className="mt-14 grid gap-6 lg:grid-cols-2">
         <div className="rounded-3xl border bg-card p-7 shadow-sm">
           <div className="flex items-center justify-between">
-            <h3 className="font-display text-lg font-bold text-muted-foreground">Sem TIPE — o jeito antigo</h3>
+            <h3 className="font-display text-lg font-bold text-muted-foreground">Sem TIPE, o jeito antigo</h3>
             <Clock className="h-5 w-5 text-muted-foreground" />
           </div>
           <ul className="mt-5 space-y-3">
@@ -306,7 +297,7 @@ function Dinamica() {
       <div className="mx-auto mt-12 max-w-3xl rounded-3xl border-2 border-primary/30 bg-secondary p-8 text-center text-secondary-foreground sm:p-10">
         <p className="font-display text-2xl font-extrabold leading-tight sm:text-3xl">O jeito de pagar a conta no restaurante mudou — e mudou para a mesa.</p>
         <p className="mt-4 opacity-80">
-          A conta chega no celular antes de o cliente pedir. O garçom não vive de ida e volta com a maquininha.
+           A conta chega no celular antes de o cliente pedir. O garçom não vive em idas e voltas com a maquininha.
           Quem coloca a nova tecnologia primeiro nas mesas gira mais salão.
         </p>
         <a href="#fale-conosco" className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-display font-semibold text-primary-foreground shadow-lg transition-transform hover:-translate-y-0.5">
@@ -321,7 +312,7 @@ function HowItWorks() {
   const steps = [
     { icon: QrCode, t: "Lê o QR Code", d: "Cada mesa tem um totem com QR Code exclusivo. O cliente aponta a câmera e entra na conta." },
     { icon: Receipt, t: "Escolhe os itens", d: "A conta chega do PDV em tempo real. Ele paga tudo ou só o que consumiu, item por item." },
-    { icon: Smartphone, t: "Paga como quiser", d: "Pix e carteira digital na hora, ou dinheiro e maquininha com confirmação do caixa." },
+    { icon: Smartphone, t: "Paga como preferir", d: "Pix quando habilitado, ou dinheiro e maquininha com confirmação do caixa." },
     { icon: Star, t: "Avalia e agradece", d: "Dá nota ao atendimento e, se quiser, uma gorjeta extra direto para o garçom." },
   ];
   return (
@@ -415,16 +406,16 @@ function PdvOptions() {
         <div className="rounded-3xl border bg-card p-8 shadow-sm">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent text-accent-foreground"><Plug className="h-7 w-7" /></div>
           <h3 className="mt-5 font-display text-2xl font-bold">Conecte seu PDV atual</h3>
-          <p className="mt-2 text-muted-foreground">Já tem um sistema de caixa? A TIPE sincroniza pedidos e pagamentos com ele, sem trocar nada na sua rotina.</p>
+           <p className="mt-2 text-muted-foreground">Já tem um sistema de caixa? Nossa equipe avalia a conexão e conduz a implantação sem prometer compatibilidade antes da homologação.</p>
           <div className="mt-6 flex items-center gap-3">
-            {["Saipos", "TOTVS", "Outros"].map((p) => (
+            {["Seu PDV", "API aberta", "Implantação assistida"].map((p) => (
               <span key={p} className="rounded-xl border bg-background px-4 py-2 font-display text-sm font-bold">{p}</span>
             ))}
             <Zap className="h-5 w-5 text-primary" />
             <img src={logo.url} alt="TIPE" className="h-6 w-auto" />
           </div>
           <ul className="mt-6 space-y-2 text-sm">
-            {["Sincronização em tempo real", "Pagamentos baixados automaticamente", "Implantação assistida pela equipe"].map((t) => (
+            {["Conexão analisada por fornecedor", "Formato único para mesas e pedidos", "Acompanhamento da equipe TIPE"].map((t) => (
               <li key={t} className="flex gap-2"><Check className="h-4 w-4 shrink-0 text-primary" />{t}</li>
             ))}
           </ul>
@@ -435,11 +426,39 @@ function PdvOptions() {
           <h3 className="mt-5 font-display text-2xl font-bold">PDV TIPE</h3>
           <p className="mt-2 opacity-85">Não tem sistema ou quer trocar? Contrate o PDV da TIPE: cardápio, comandas, garçons e caixa, já integrados ao pagamento na mesa.</p>
           <ul className="mt-6 grid gap-2 text-sm sm:grid-cols-2">
-            {["Cardápio e comandas", "App do garçom", "Controle de caixa", "Relatórios completos", "Mesas e QR Codes", "Tudo em um só lugar"].map((t) => (
+            {["Cardápio e comandas", "Equipe e garçons", "Controle de caixa", "Relatórios", "Mesas e QR Codes", "Tudo em um só lugar"].map((t) => (
               <li key={t} className="flex gap-2"><Check className="h-4 w-4 shrink-0 text-primary" />{t}</li>
             ))}
           </ul>
-          <img src={mascotWaiting} alt="Mascote garçom da TIPE" className="pointer-events-none absolute -bottom-4 right-2 hidden w-32 drop-shadow-2xl sm:block" />
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function LebreSection() {
+  const features = [
+    ["Responde com clareza", "Tira dúvidas sobre implantação, planos, pagamentos e uso do sistema."],
+    ["Entende a operação", "Dentro do painel, consulta somente os dados do restaurante que a pessoa pode acessar."],
+    ["Prepara ações seguras", "Mostra exatamente o que será feito e só executa depois da confirmação do usuário."],
+  ] as const;
+  return (
+    <section className="bg-secondary py-20 text-secondary-foreground sm:py-28">
+      <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[0.85fr_1.15fr]">
+        <div className="relative mx-auto h-[380px] w-full max-w-sm">
+          <div className="absolute inset-x-8 bottom-0 h-52 rounded-full bg-primary/10" />
+          <img src={mascotWaiting} alt="Lebre, assistente da TIPE" loading="lazy" width={768} height={768} className="relative mx-auto h-full w-auto object-contain" />
+        </div>
+        <div>
+          <p className="font-display text-xs font-bold uppercase tracking-[0.2em] text-primary">Conheça a Lebre</p>
+          <h2 className="mt-3 font-display text-3xl font-extrabold sm:text-4xl">Uma especialista TIPE sempre por perto</h2>
+          <p className="mt-4 max-w-2xl opacity-80">Na página, ela ajuda quem ainda está conhecendo a TIPE. No restaurante, explica o sistema, resume a operação e prepara tarefas com segurança.</p>
+          <div className="mt-8 grid gap-4 sm:grid-cols-3">
+            {features.map(([title, text], index) => (
+              <div key={title} className="border-l-2 border-primary pl-4"><span className="font-display text-xs font-bold text-primary">0{index + 1}</span><h3 className="mt-2 font-display font-bold">{title}</h3><p className="mt-1 text-sm opacity-70">{text}</p></div>
+            ))}
+          </div>
+          <div className="mt-8 flex flex-wrap gap-3"><Button onClick={() => document.querySelector<HTMLButtonElement>('[aria-label="Conversar com a Lebre"]')?.click()}><Bot />Conversar com a Lebre</Button><Link to="/cadastro" className="inline-flex items-center rounded-md border border-primary/40 px-4 text-sm font-semibold">Levar para meu restaurante</Link></div>
         </div>
       </div>
     </section>
@@ -492,20 +511,20 @@ function Faq() {
     {
       label: "No salão, na mesa",
       faqs: [
-        ["O cliente precisa baixar algum aplicativo?", "Não. Ele lê o QR Code do totem da mesa com a câmera do celular e já entra na conta. Nada para instalar, nada para cadastrar — só o nome, para identificar o pagamento dele."],
-        ["Como a conta chega no celular do cliente?", "Direto do sistema do restaurante. Quando o garçom lança um pedido, o item aparece na mesa em tempo real, com data e horário — exatamente como no caixa."],
+        ["O cliente precisa baixar algum aplicativo?", "Não. Ele lê o QR Code do totem da mesa com a câmera do celular e já entra na conta. Não precisa instalar nada. Ele informa apenas o nome para identificar o pagamento."],
+        ["Como a conta chega no celular do cliente?", "Direto do sistema do restaurante. Quando o garçom lança um pedido, o item aparece na mesa em tempo real, com data e horário, como no caixa."],
         ["O cliente pode pagar só uma parte da conta?", "Pode. Cada pessoa escolhe o que vai pagar, item por item, e esses itens saem da conta na hora. Quem terminar antes não precisa esperar os outros, e ninguém paga pelo que não consumiu."],
-        ["Quais formas de pagamento o cliente pode usar?", "Pix, Apple Pay e Google Pay, na hora, pelo próprio celular. Ele também pode pagar no caixa, em dinheiro ou na maquininha — nesses casos o pagamento fica pendente até o restaurante confirmar o recebimento."],
+        ["Quais formas de pagamento o cliente pode usar?", "Ele pode pagar no estabelecimento com dinheiro ou maquininha. O Pix e as carteiras digitais serão apresentados conforme a habilitação do provedor de pagamento."],
         ["E se o cliente quiser conferir a conta antes de pagar?", "A conta completa fica sempre visível, com todos os itens lançados. Se ele identificar algo errado, o recomendado é falar com o garçom ou o caixa antes de concluir o pagamento."],
-        ["Como funciona a gorjeta extra?", "A taxa de serviço entra na conta normalmente, como sempre foi. A diferença é a gorjeta extra, opcional: o cliente escolhe o valor ao pagar, e é ela que recompensa quem faz o atendimento valer a pena — a maior parte vai direto para o garçom que atendeu a mesa."],
+        ["Como funciona a gorjeta extra?", "A taxa de serviço entra na conta normalmente. A gorjeta extra é opcional e incentiva um atendimento ainda melhor. O cliente escolhe se quer agradecer depois da avaliação."],
       ],
     },
     {
       label: "Painel, implantação e planos",
       faqs: [
-        ["O que o restaurante confirma no painel?", "Os pagamentos recebidos no caixa — dinheiro e maquininha — são confirmados com um toque. Os pagamentos digitais são aprovados automaticamente, sem trabalho para a equipe."],
-        ["E se um pagamento sair errado?", "O restaurante cancela pelo painel e os itens pagos voltam a ficar disponíveis na conta. Tudo fica registrado com data, horário e nome de quem pagou — sem apagar o histórico."],
-        ["Preciso trocar o meu sistema?", "Não. A TIPE se conecta ao PDV que você já usa, como Saipos e TOTVS. Se preferir, você contrata o PDV TIPE, que já vem integrado ao pagamento na mesa."],
+        ["O que o restaurante confirma no painel?", "Os pagamentos recebidos em dinheiro ou maquininha são confirmados com um toque. Pagamentos digitais concluídos são aprovados automaticamente."],
+        ["E se um pagamento sair errado?", "O restaurante cancela pelo painel e os itens voltam a ficar disponíveis na conta. Tudo permanece registrado com data, horário e nome de quem pagou."],
+        ["Preciso trocar o meu sistema?", "Não necessariamente. A equipe TIPE avalia a integração com o PDV que você já usa. Se preferir, você pode usar o PDV TIPE."],
         ["Quanto tempo leva para começar?", "A implantação é assistida: cadastramos as mesas, geramos os totens com QR Code e treinamos a equipe. Você pode começar por um salão e ir ampliando conforme o resultado."],
         ["Como é cobrada a assinatura?", "Mensalmente, de acordo com o número de mesas do seu restaurante, a partir de R$ 49,90/mês, com 30 dias grátis e sem cartão no teste. Sem fidelidade: você cancela quando quiser."],
       ],
@@ -517,9 +536,9 @@ function Faq() {
         <p className="font-display text-xs font-bold uppercase tracking-[0.2em] text-primary">Dúvidas</p>
         <h2 className="mt-3 font-display text-3xl font-extrabold sm:text-4xl">Perguntas frequentes</h2>
         <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
-          Tudo que um restaurante precisa saber antes de colocar a TIPE na mesa — do atendimento ao caixa.
+          Tudo que um restaurante precisa saber antes de colocar a TIPE na mesa, do atendimento ao caixa.
         </p>
-        <img src={mascotRating} alt="Mascote da TIPE" className="mt-8 hidden w-44 lg:block" />
+        <div className="mt-8 flex items-center gap-3 rounded-lg border bg-card p-4"><Headphones className="h-6 w-6 text-primary" /><p className="text-sm">Prefere conversar? A Lebre responde agora e nossa equipe continua quando você quiser.</p></div>
       </div>
       <div className="space-y-6">
         {groups.map((group) => (
@@ -588,7 +607,6 @@ function ContactSection() {
               <li key={t} className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-primary" />{t}</li>
             ))}
           </ul>
-          <img src={mascotThanks} alt="" aria-hidden className="mt-8 hidden w-40 lg:block" />
         </div>
         <div className="relative rounded-3xl bg-card p-6 text-card-foreground shadow-xl">
           {sent ? (
@@ -607,9 +625,9 @@ function ContactSection() {
               </div>
               <textarea maxLength={1000} rows={3} placeholder="Quantas mesas? Já usa algum PDV?" className={input} value={form.message} onChange={set("message")} />
               {error && <p className="text-sm text-destructive">{error}</p>}
-              <button disabled={sending} className="w-full rounded-full bg-primary py-3 font-display font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60">
+              <Button disabled={sending} className="h-11 w-full rounded-full font-display font-semibold">
                 {sending ? "Enviando..." : "Quero conhecer a TIPE"}
-              </button>
+              </Button>
               <p className="text-center text-xs text-muted-foreground">Usaremos seus dados apenas para responder ao contato. Veja a <Link to="/privacidade" className="underline">Política de Privacidade</Link>.</p>
             </form>
           )}
