@@ -68,7 +68,7 @@ function Header() {
   return (
     <header className="sticky top-0 z-40 border-b border-border/60 bg-background/80 backdrop-blur-lg">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
-        <Link to="/"><img src={logo.url} alt="TIPE" className="h-9 w-auto object-contain" /></Link>
+        <Link to="/" aria-label="TIPE, página inicial"><img src={logo.url} alt="TIPE" className="h-9 w-auto object-contain" /></Link>
         <nav className="flex items-center gap-1 text-sm lg:gap-2">
           {[["#dinamica", "O novo jeito"], ["#como-funciona", "Como funciona"], ["#painel", "Painel"], ["#pdv", "PDV"], ["#planos", "Planos"], ["#duvidas", "Dúvidas"]].map(([h, l]) => (
             <a key={h} href={h} className="hidden rounded-lg px-3 py-2 text-muted-foreground transition-colors hover:text-foreground lg:block">{l}</a>
