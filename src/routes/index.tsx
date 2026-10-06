@@ -617,7 +617,10 @@ function ContactSection() {
                 <input required type="email" maxLength={255} placeholder="E-mail" className={input} value={form.email} onChange={set("email")} />
                 <input maxLength={30} placeholder="WhatsApp (opcional)" className={input} value={form.phone} onChange={set("phone")} />
               </div>
-              <textarea maxLength={1000} rows={3} placeholder="Quantas mesas? Já usa algum PDV? (opcional)" className={input} value={form.message} onChange={set("message")} />
+              <div className="grid gap-3 sm:grid-cols-2">
+                <input required type="number" min={1} max={999} placeholder="Quantas mesas?" className={input} value={form.tables} onChange={set("tables")} />
+                <input required maxLength={120} placeholder="Qual PDV você usa?" className={input} value={form.pdv} onChange={set("pdv")} />
+              </div>
               {error && <p className="text-sm text-destructive">{error}</p>}
               <Button disabled={sending} className="h-11 w-full rounded-full font-display font-semibold">
                 {sending ? "Enviando..." : "Entrar na lista de espera"}
