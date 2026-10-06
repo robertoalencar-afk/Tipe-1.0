@@ -3,7 +3,8 @@ import { createStart, createCsrfMiddleware, createMiddleware } from "@tanstack/r
 import { renderErrorPage } from "./lib/error-page";
 import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
 
-const errorMiddleware = createMiddleware().server(async ({ next }) => {
+const errorMiddleware = createMiddleware().server(async ({ next, request }) => {
+  if (new URL(request.url).pathname.startsWith("/lovable/")) return next();
   try {
     return await next();
   } catch (error) {
@@ -20,7 +21,8 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
 
 // Cabeçalhos de segurança. CSP limitada a diretivas que não quebram
 // Supabase/Google/Lovable (frame-ancestors permite apenas o editor Lovable).
-const securityHeadersMiddleware = createMiddleware().server(async ({ next }) => {
+const securityHeadersMiddleware = createMiddleware().server(async ({ next, request }) => {
+  if (new URL(request.url).pathname.startsWith("/lovable/")) return next();
   const result = await next();
   const h = result.response?.headers;
   if (h) {
@@ -37,7 +39,7 @@ const securityHeadersMiddleware = createMiddleware().server(async ({ next }) => 
 // file opts out, so re-add it explicitly to keep server functions protected
 // from cross-site requests.
 const csrfMiddleware = createCsrfMiddleware({
-  filter: (ctx) => ctx.handlerType === "serverFn",
+  filter: (ctx) => ctx.handlerType === "serverFn" && !new URL(ctx.request.url).pathname.startsWith("/lovable/"),
 });
 
 export const startInstance = createStart(() => ({
