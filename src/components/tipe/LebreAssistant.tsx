@@ -7,7 +7,7 @@ import { Message, MessageContent, MessageResponse } from "@/components/ai-elemen
 import { PromptInput, PromptInputBody, PromptInputFooter, PromptInputSubmit, PromptInputTextarea } from "@/components/ai-elements/prompt-input";
 import { Tool, ToolContent, ToolHeader, ToolInput, ToolOutput } from "@/components/ai-elements/tool";
 import { askPublicLebre, askRestaurantLebre, executeLebreProposal, type LebreProposal } from "@/lib/tipe/lebre.functions";
-import lebre from "@/assets/lebre-ai-official.png";
+import lebre from "@/assets/lebre-ai-official.svg";
 
 type ChatMessage = { id: string; role: "user" | "assistant"; text: string; proposal?: LebreProposal; result?: string; error?: string };
 

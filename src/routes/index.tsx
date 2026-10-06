@@ -10,7 +10,7 @@ import {
 import { submitLead } from "@/lib/tipe/leads.functions";
 import { PLANS, TRIAL_DAYS, priceLabel, type PlanId } from "@/lib/tipe/plans";
 import logo from "@/assets/logo-dark.png.asset.json";
-import mascotAssistant from "@/assets/lebre-ai-official.png";
+import mascotAssistant from "@/assets/lebre-ai-official.svg";
 import { LebreAssistant } from "@/components/tipe/LebreAssistant";
 import { PaymentJourneyDemo } from "@/components/tipe/PaymentJourneyDemo";
 import { Button } from "@/components/ui/button";
