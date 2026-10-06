@@ -453,3 +453,11 @@
  .mv-type-word,.mv-official-logo { opacity: 1; transform: none; }
  .mv-running { width: 100%; }
 }
+/* Keep the complete account preview inside its scene, including the CTA. */
+.mv-account-scene .mv-product-phone { zoom: .78; }
+@media (max-width: 639px) {
+ .mv-stage-1 .mv-composition { min-height: 720px; }
+ .mv-account-scene { height: 480px; align-items: flex-start; padding-top: 14px; }
+ .mv-account-scene .mv-product-phone { zoom: .76; }
+ .mv-account-scene>.mv-table { left: 0; width: 220px; top: 115px; }
+}
