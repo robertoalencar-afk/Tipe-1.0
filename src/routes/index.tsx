@@ -10,7 +10,7 @@ import {
 import { submitLead } from "@/lib/tipe/leads.functions";
 import { PLANS, TRIAL_DAYS, priceLabel, type PlanId } from "@/lib/tipe/plans";
 import logo from "@/assets/logo-dark.png.asset.json";
-import mascotAssistant from "@/assets/mascot-lebre-assistant.png";
+import mascotAssistant from "@/assets/lebre-ai-official.png";
 import { LebreAssistant } from "@/components/tipe/LebreAssistant";
 import { PaymentJourneyDemo } from "@/components/tipe/PaymentJourneyDemo";
 import { Button } from "@/components/ui/button";
@@ -222,7 +222,7 @@ function Dinamica() {
           </div>
           <ul className="relative mt-5 space-y-3">
             {newSteps.map((s) => (
-              <li key={s.t} className="flex items-center gap-3 rounded-xl bg-white/10 px-4 py-3 text-sm">
+              <li key={s.t} className="flex items-center gap-3 rounded-xl bg-secondary-foreground/10 px-4 py-3 text-sm">
                 <s.icon className="h-4 w-4 shrink-0 text-primary" />
                 {s.t}
               </li>
@@ -450,7 +450,7 @@ function LebreSection() {
       <div className="mx-auto grid max-w-7xl items-center gap-8 px-4 sm:px-6 lg:grid-cols-[0.85fr_1.15fr] lg:gap-12">
         <div className="relative mx-auto h-[290px] w-full max-w-sm sm:h-[340px]">
           <div className="absolute inset-x-10 bottom-0 h-40 rounded-full bg-primary/10" />
-          <img src={mascotAssistant} alt="Lebre, assistente da TIPE" loading="lazy" width={768} height={768} className="relative mx-auto h-full w-auto object-contain" />
+          <img src={mascotAssistant} alt="Lebre, assistente da TIPE" loading="lazy" width={1024} height={1024} className="relative mx-auto h-full w-auto object-contain drop-shadow-xl" />
         </div>
         <div>
           <p className="font-display text-xs font-bold uppercase tracking-[0.2em] text-primary">Conheça a Lebre</p>
