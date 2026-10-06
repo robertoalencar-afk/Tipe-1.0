@@ -40,10 +40,6 @@
 - [x] Melhorar diagramação apontada na captura de 14:53
 
 ## Novas tarefas
-- [x] Animar a logomarca oficial no encerramento, preservando desenho e lettering
-- [x] Aplicar Energia cinética escolhida após rejeição da Mesa Viva e testar as seis cenas
-- [x] Revisar as seis cenas da Mesa Viva, com ritmo mais próximo da referência Spotify, conta fiel e logomarca oficial
-- [x] Combinar composição 2 e fonte 1; incluir bolas girando na segunda cena da mesa
 - [x] Adaptar conta e simulador ao tema do aparelho e testar as duas aparências
 - [x] Substituir o robô verde da conversa por uma lebre em traços e conferir na tela
 - [x] Aviso de cookies: fundo transparente, texto curto ("Usamos cookies para o site funcionar e, com o seu aceite, para melhorar sua experiência. Saiba mais"), botões "Não aceitar" e "Aceitar todos"

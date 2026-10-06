@@ -35,7 +35,7 @@ export const Route = createFileRoute("/")({
       { property: "og:url", content: "https://tipe.digital/" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "https://tipe.digital/" }, { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Inter:wght@900&display=swap" }],
+    links: [{ rel: "canonical", href: "https://tipe.digital/" }],
   }),
   component: LandingPage,
 });
