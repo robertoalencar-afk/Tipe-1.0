@@ -55,7 +55,7 @@ export function LebreAssistant({ slug }: { slug?: string }) {
         <MessageCircle className="h-6 w-6" />
       </Button>
       {open && (
-        <section className={`fixed inset-x-3 z-50 flex flex-col overflow-hidden rounded-lg border bg-card shadow-2xl sm:left-auto sm:right-5 sm:w-[420px] ${slug ? "bottom-24 h-[min(680px,calc(100vh-7rem))] lg:bottom-3 lg:h-[min(720px,calc(100vh-1.5rem))]" : "bottom-3 h-[min(720px,calc(100vh-1.5rem))]"}`} aria-label="Conversa com a Lebre">
+        <section className={`fixed inset-x-3 z-50 flex flex-col overflow-hidden rounded-lg border bg-card shadow-2xl sm:left-auto sm:right-5 sm:w-[420px] ${slug ? "bottom-24 h-[min(680px,calc(100dvh-7rem))] lg:bottom-3 lg:h-[min(720px,calc(100dvh-1.5rem))]" : "bottom-3 h-[min(720px,calc(100dvh-1.5rem))]"}`} aria-label="Conversa com a Lebre">
           <header className="flex items-center gap-3 bg-secondary px-4 py-3 text-secondary-foreground">
             <div className="h-12 w-12 overflow-hidden rounded-full bg-background p-1"><img src={lebre} alt="Lebre da TIPE" width={3584} height={4800} className="h-full w-full object-contain" /></div>
             <div className="min-w-0 flex-1"><h2 className="font-display font-bold">Lebre</h2><p className="text-xs opacity-75">Especialista TIPE</p></div>
