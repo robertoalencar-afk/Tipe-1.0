@@ -1,4 +1,6 @@
 # Roadmap
 
-- [x] Animação de abertura estilo Spotify com GSAP no topo da landing
-- [x] Incluir logos oficiais (redonda e logomarca) na animação, com último quadro igual ao do Spotify
+- [x] Mascote da maquininha: olhos fechados iguais aos demais + limpar linhas vazando nas orelhas
+- [ ] Mascote da conta (rating): corrigir vazamento de tinta no fundo escuro
+- [ ] Mascote do OK (thanks): remover bolinha branca visível no fundo escuro
+- [ ] Testar todos os mascotes em fundo claro e escuro
