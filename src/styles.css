@@ -195,3 +195,81 @@
   opacity: 0;
   animation: tipe-check-pop 4.2s ease-in-out infinite;
 }
+
+@keyframes tipe-demo-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes tipe-demo-value {
+  0% {
+    transform: scale(0.94);
+    color: var(--color-muted-foreground);
+  }
+  100% {
+    transform: scale(1);
+    color: var(--color-foreground);
+  }
+}
+
+@keyframes tipe-wallet-select {
+  0%,
+  25% {
+    transform: scale(0.98);
+    box-shadow: none;
+  }
+  45%,
+  100% {
+    transform: scale(1);
+    box-shadow: var(--shadow-glow);
+  }
+}
+
+@keyframes tipe-approved-mark {
+  0% {
+    opacity: 0;
+    transform: scale(0.55) rotate(-12deg);
+  }
+  70% {
+    opacity: 1;
+    transform: scale(1.08) rotate(2deg);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+.tipe-demo-scene {
+  animation: tipe-demo-enter 360ms ease-out both;
+}
+
+.tipe-value-update {
+  display: inline-block;
+  animation: tipe-demo-value 280ms ease-out both;
+}
+
+.tipe-wallet-select {
+  animation: tipe-wallet-select 1.6s ease-in-out both;
+}
+
+.tipe-approved-mark {
+  animation: tipe-approved-mark 520ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tipe-pingpong,
+  .tipe-check,
+  .tipe-demo-scene,
+  .tipe-value-update,
+  .tipe-wallet-select,
+  .tipe-approved-mark {
+    animation: none;
+  }
+}
