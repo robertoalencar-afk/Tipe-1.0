@@ -139,10 +139,9 @@ export const createPayment = createServerFn({ method: "POST" })
 
     // Modo simulação: sem conta Pagar.me configurada, nada é cobrado de verdade.
     if (data.target === "restaurant" ? !secretKey : !pagarmeEnabled()) {
-      await register("pending");
-      return data.method === "pix"
-        ? { id, status: "pending", provider: "simulado", pixCode: `00020126TIPE${cents}BR.GOV.BCB.PIX5204000053039865802BR` }
-        : { id, status: "pending", provider: "simulado" };
+      // Em testes, pagamentos digitais são aprovados na hora.
+      const simId = await register("approved");
+      return { id: simId, status: "approved", provider: "simulado" };
     }
 
     if (data.method === "apple_pay" || data.method === "google_pay") {
