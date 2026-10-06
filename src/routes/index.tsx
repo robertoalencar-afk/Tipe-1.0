@@ -170,7 +170,7 @@ function Dinamica() {
     ["Água com gás", "R$ 7,50"],
   ] as const;
   return (
-    <section id="dinamica" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20">
+    <section id="dinamica" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16">
       <div className="mx-auto max-w-2xl text-center">
         <span className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-1.5 font-display text-xs font-bold uppercase tracking-wider text-primary-foreground shadow-md">
           <Zap className="h-3.5 w-3.5" /> A nova era do pagamento em mesa
@@ -270,7 +270,7 @@ function Dinamica() {
            A conta chega no celular antes de o cliente pedir. O garçom não vive em idas e voltas com a maquininha.
           Quem coloca a nova tecnologia primeiro nas mesas gira mais salão.
         </p>
-        <a href="#fale-conosco" className="mt-6 inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-display font-semibold text-primary-foreground shadow-lg transition-transform hover:-translate-y-0.5">
+        <a href="#fale-conosco" className="mt-6 inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-primary px-5 py-3 font-display text-sm font-semibold text-primary-foreground shadow-lg transition-transform hover:-translate-y-0.5 sm:px-6 sm:text-base">
           Colocar a TIPE nas minhas mesas <ChevronRight className="h-4 w-4" />
         </a>
       </div>
@@ -286,7 +286,7 @@ function HowItWorks() {
     { icon: Star, t: "Avalia e agradece", d: "Dá nota ao atendimento e, se quiser, uma gorjeta extra direto para o garçom." },
   ];
   return (
-    <section id="como-funciona" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20">
+    <section id="como-funciona" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16">
       <SectionTitle eyebrow="Como funciona" title="Da mesa ao pagamento em 4 toques" text="Um fluxo simples para o cliente: itens escolhidos, meio de pagamento, pronto." />
       <div className="relative mt-10 grid gap-8 sm:mt-12 md:grid-cols-4 md:gap-6">
         <div aria-hidden className="absolute left-0 right-0 top-8 hidden h-0.5 bg-gradient-to-r from-transparent via-primary/50 to-transparent md:block" />
@@ -314,7 +314,7 @@ function PaymentMethods() {
     { icon: Landmark, name: "Dinheiro", note: "Confirmação pelo caixa" },
   ];
   return (
-    <section className="bg-muted/50 py-16 sm:py-20">
+    <section className="bg-muted/50 py-12 sm:py-16">
       <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[0.9fr_1.1fr]">
         <div>
           <p className="font-display text-xs font-bold uppercase tracking-[0.2em] text-primary">Formas de pagamento</p>
@@ -349,7 +349,7 @@ function Dashboard() {
     { icon: BarChart3, t: "Relatórios e equipe", d: "Faturamento, gorjetas e produtividade por garçom." },
   ];
   return (
-    <section id="painel" className="relative overflow-hidden bg-secondary py-16 text-secondary-foreground sm:py-20">
+    <section id="painel" className="relative overflow-hidden bg-secondary py-12 text-secondary-foreground sm:py-16">
       <div aria-hidden className="absolute right-0 top-0 h-96 w-96 rounded-full bg-primary/20 blur-3xl" />
       <div className="relative mx-auto grid max-w-7xl items-center gap-14 px-4 sm:px-6 lg:grid-cols-[1fr_1.2fr]">
         <div>
@@ -403,7 +403,7 @@ function Dashboard() {
 
 function PdvOptions() {
   return (
-    <section id="pdv" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20">
+    <section id="pdv" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16">
       <SectionTitle eyebrow="Integração" title="A TIPE trabalha junto com o seu PDV" text="Você não troca de sistema. As mesas e os pedidos vêm do PDV que o restaurante já usa, e os pagamentos voltam para ele." />
       <div className="mt-10 grid gap-6 sm:mt-12 lg:grid-cols-[1.1fr_0.9fr]">
         <div className="min-w-0 rounded-3xl border bg-card p-6 shadow-sm sm:p-8">
@@ -443,7 +443,7 @@ function LebreSection() {
     ["Prepara ações seguras", "Mostra exatamente o que será feito e só executa depois da confirmação do usuário."],
   ] as const;
   return (
-    <section className="bg-secondary py-16 text-secondary-foreground sm:py-20">
+    <section className="bg-secondary py-12 text-secondary-foreground sm:py-16">
       <div className="mx-auto grid max-w-7xl items-center gap-8 px-4 sm:px-6 lg:grid-cols-[0.85fr_1.15fr] lg:gap-12">
         <div className="relative mx-auto h-[290px] w-full max-w-sm sm:h-[340px]">
           <div className="absolute inset-x-10 bottom-0 h-40 rounded-full bg-primary/10" />
@@ -472,7 +472,7 @@ const plans = [
 
 function Pricing() {
   return (
-    <section id="planos" className="bg-muted/50 py-16 sm:py-20">
+    <section id="planos" className="bg-muted/50 py-12 sm:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <SectionTitle eyebrow="Planos" title="Assinatura mensal, simples como streaming" text={`Teste grátis por ${TRIAL_DAYS} dias, sem cartão. Depois, escolha pelo número de mesas.`} />
         <div className="mt-10 grid gap-6 sm:mt-12 md:grid-cols-2 xl:grid-cols-4">
@@ -531,7 +531,7 @@ function Faq() {
     },
   ];
   return (
-    <section id="duvidas" className="mx-auto grid max-w-6xl gap-10 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[1fr_1.4fr] lg:gap-12">
+    <section id="duvidas" className="mx-auto grid max-w-6xl gap-10 px-4 py-12 sm:px-6 sm:py-16 lg:grid-cols-[1fr_1.4fr] lg:gap-12">
       <div>
         <p className="font-display text-xs font-bold uppercase tracking-[0.2em] text-primary">Dúvidas</p>
         <h2 className="mt-3 font-display text-3xl font-extrabold sm:text-4xl">Perguntas frequentes</h2>
