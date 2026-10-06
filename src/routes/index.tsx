@@ -314,7 +314,7 @@ function PaymentMethods() {
     { icon: Landmark, name: "Dinheiro", note: "Confirmação pelo caixa" },
   ];
   return (
-    <section className="bg-muted/50 py-16 sm:py-20">
+    <section className="bg-muted/50 py-12 sm:py-16">
       <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 sm:px-6 lg:grid-cols-[0.9fr_1.1fr]">
         <div>
           <p className="font-display text-xs font-bold uppercase tracking-[0.2em] text-primary">Formas de pagamento</p>
@@ -472,7 +472,7 @@ const plans = [
 
 function Pricing() {
   return (
-    <section id="planos" className="bg-muted/50 py-16 sm:py-20">
+    <section id="planos" className="bg-muted/50 py-12 sm:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <SectionTitle eyebrow="Planos" title="Assinatura mensal, simples como streaming" text={`Teste grátis por ${TRIAL_DAYS} dias, sem cartão. Depois, escolha pelo número de mesas.`} />
         <div className="mt-10 grid gap-6 sm:mt-12 md:grid-cols-2 xl:grid-cols-4">
