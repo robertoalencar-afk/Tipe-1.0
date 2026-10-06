@@ -230,6 +230,13 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
             <Button variant={tab === "activity" ? "outline" : "ghost"} onClick={() => setTab("activity")} className="h-10 rounded-full shadow-none"><ClipboardList /> Atividade</Button>
           </div>
           {tab === "bill" ? (
+            !ITEMS.some((item) => available(item.id, item.qty) > 0) && demo.payments.some((payment) => payment.status === "pending") ? (
+              <div className="mt-4 rounded-2xl border border-highlight/40 bg-highlight/10 p-5 text-center">
+                <p className="text-sm font-semibold text-highlight">Aguardando confirmação</p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">Seu pagamento no estabelecimento está pendente. Assim que o restaurante confirmar, os itens saem da conta.</p>
+                <Button onClick={() => setStage("pending")} className="mt-5 h-11 w-full rounded-full font-display text-base font-bold">Ver status do pagamento <ChevronRight /></Button>
+              </div>
+            ) : (
             <>
               {ITEMS.some((item) => available(item.id, item.qty) > 0) && (
                 <Button variant={allSelected ? "default" : "outline"} onClick={() => setQuantities(Object.fromEntries(ITEMS.map((item) => [item.id, allSelected ? 0 : available(item.id, item.qty)])))} className="mb-3 h-12 w-full rounded-full font-display text-base font-bold">
