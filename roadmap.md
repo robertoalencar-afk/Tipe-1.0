@@ -37,3 +37,4 @@
 - [x] Otimizar carregamento dos mascotes mantendo qualidade
 - [x] Simplificar os totens para os modelos Clássico e Claro, com marca, frase e restaurante obrigatórios em todos os formatos
 - [ ] Testar Apple Pay (valor pago) e releitura do QR na conta real
+- [ ] Melhorar diagramação apontada na captura de 14:53
