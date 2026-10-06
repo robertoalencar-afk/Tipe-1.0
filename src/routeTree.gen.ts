@@ -15,17 +15,20 @@ import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as FundadorRouteImport } from './routes/fundador'
+import { Route as McpRouteImport } from './routes/mcp'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SimuladorRouteImport } from './routes/simulador'
 import { Route as TermosRouteImport } from './routes/termos'
 import { Route as TermosParceirosRouteImport } from './routes/termos-parceiros'
 import { Route as RestauranteIndexRouteImport } from './routes/$restaurante.index'
 import { Route as RestauranteMesaRouteImport } from './routes/$restaurante.$mesa'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AuthenticatedBackofficeRouteImport } from './routes/_authenticated/backoffice'
 import { Route as AuthenticatedGarcomRouteImport } from './routes/_authenticated/garcom'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as PrivacidadeIndexRouteImport } from './routes/privacidade.index'
 import { Route as PrivacidadeSolicitacaoRouteImport } from './routes/privacidade.solicitacao'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as MesaRestauranteMesaRouteImport } from './routes/mesa.$restaurante.$mesa'
 import { Route as ApiPublicPagarmeWebhookRouteImport } from './routes/api/public/pagarme/webhook'
 import { Route as ApiPublicPosSlugRouteImport } from './routes/api/public/pos.$slug'
@@ -61,6 +64,11 @@ const FundadorRoute = FundadorRouteImport.update({
   path: '/fundador',
   getParentRoute: () => rootRouteImport,
 } as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
@@ -91,6 +99,12 @@ const RestauranteMesaRoute = RestauranteMesaRouteImport.update({
   path: '/$restaurante/$mesa',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedBackofficeRoute = AuthenticatedBackofficeRouteImport.update({
   id: '/backoffice',
   path: '/backoffice',
@@ -114,6 +128,11 @@ const PrivacidadeIndexRoute = PrivacidadeIndexRouteImport.update({
 const PrivacidadeSolicitacaoRoute = PrivacidadeSolicitacaoRouteImport.update({
   id: '/privacidade/solicitacao',
   path: '/privacidade/solicitacao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MesaRestauranteMesaRoute = MesaRestauranteMesaRouteImport.update({
@@ -150,17 +169,20 @@ export interface FileRoutesByFullPath {
   '/cookies': typeof CookiesRoute
   '/entrar': typeof EntrarRoute
   '/fundador': typeof FundadorRoute
+  '/mcp': typeof McpRoute
   '/reset-password': typeof ResetPasswordRoute
   '/simulador': typeof SimuladorRoute
   '/termos': typeof TermosRoute
   '/termos-parceiros': typeof TermosParceirosRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/backoffice': typeof AuthenticatedBackofficeRoute
   '/garcom': typeof AuthenticatedGarcomRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
   '/$restaurante/': typeof RestauranteIndexRoute
   '/privacidade/': typeof PrivacidadeIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
@@ -173,17 +195,20 @@ export interface FileRoutesByTo {
   '/cookies': typeof CookiesRoute
   '/entrar': typeof EntrarRoute
   '/fundador': typeof FundadorRoute
+  '/mcp': typeof McpRoute
   '/reset-password': typeof ResetPasswordRoute
   '/simulador': typeof SimuladorRoute
   '/termos': typeof TermosRoute
   '/termos-parceiros': typeof TermosParceirosRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/backoffice': typeof AuthenticatedBackofficeRoute
   '/garcom': typeof AuthenticatedGarcomRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
   '/$restaurante': typeof RestauranteIndexRoute
   '/privacidade': typeof PrivacidadeIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
@@ -198,17 +223,20 @@ export interface FileRoutesById {
   '/cookies': typeof CookiesRoute
   '/entrar': typeof EntrarRoute
   '/fundador': typeof FundadorRoute
+  '/mcp': typeof McpRoute
   '/reset-password': typeof ResetPasswordRoute
   '/simulador': typeof SimuladorRoute
   '/termos': typeof TermosRoute
   '/termos-parceiros': typeof TermosParceirosRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/backoffice': typeof AuthenticatedBackofficeRoute
   '/_authenticated/garcom': typeof AuthenticatedGarcomRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
   '/$restaurante/': typeof RestauranteIndexRoute
   '/privacidade/': typeof PrivacidadeIndexRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
@@ -223,17 +251,20 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/entrar'
     | '/fundador'
+    | '/mcp'
     | '/reset-password'
     | '/simulador'
     | '/termos'
     | '/termos-parceiros'
     | '/$restaurante/$mesa'
+    | '/.well-known/oauth-protected-resource'
     | '/backoffice'
     | '/garcom'
     | '/painel'
     | '/privacidade/solicitacao'
     | '/$restaurante/'
     | '/privacidade/'
+    | '/.lovable/oauth/consent'
     | '/mesa/$restaurante/$mesa'
     | '/api/public/pagarme/webhook'
     | '/api/public/pos/$slug'
@@ -246,17 +277,20 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/entrar'
     | '/fundador'
+    | '/mcp'
     | '/reset-password'
     | '/simulador'
     | '/termos'
     | '/termos-parceiros'
     | '/$restaurante/$mesa'
+    | '/.well-known/oauth-protected-resource'
     | '/backoffice'
     | '/garcom'
     | '/painel'
     | '/privacidade/solicitacao'
     | '/$restaurante'
     | '/privacidade'
+    | '/.lovable/oauth/consent'
     | '/mesa/$restaurante/$mesa'
     | '/api/public/pagarme/webhook'
     | '/api/public/pos/$slug'
@@ -270,17 +304,20 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/entrar'
     | '/fundador'
+    | '/mcp'
     | '/reset-password'
     | '/simulador'
     | '/termos'
     | '/termos-parceiros'
     | '/$restaurante/$mesa'
+    | '/.well-known/oauth-protected-resource'
     | '/_authenticated/backoffice'
     | '/_authenticated/garcom'
     | '/_authenticated/painel'
     | '/privacidade/solicitacao'
     | '/$restaurante/'
     | '/privacidade/'
+    | '/.lovable/oauth/consent'
     | '/mesa/$restaurante/$mesa'
     | '/api/public/pagarme/webhook'
     | '/api/public/pos/$slug'
@@ -295,14 +332,17 @@ export interface RootRouteChildren {
   CookiesRoute: typeof CookiesRoute
   EntrarRoute: typeof EntrarRoute
   FundadorRoute: typeof FundadorRoute
+  McpRoute: typeof McpRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SimuladorRoute: typeof SimuladorRoute
   TermosRoute: typeof TermosRoute
   TermosParceirosRoute: typeof TermosParceirosRoute
   RestauranteMesaRoute: typeof RestauranteMesaRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   PrivacidadeSolicitacaoRoute: typeof PrivacidadeSolicitacaoRoute
   RestauranteIndexRoute: typeof RestauranteIndexRoute
   PrivacidadeIndexRoute: typeof PrivacidadeIndexRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   MesaRestauranteMesaRoute: typeof MesaRestauranteMesaRoute
   ApiPublicPagarmeWebhookRoute: typeof ApiPublicPagarmeWebhookRoute
   ApiPublicPosSlugRoute: typeof ApiPublicPosSlugRoute
@@ -354,6 +394,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FundadorRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
@@ -396,6 +443,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RestauranteMesaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/backoffice': {
       id: '/_authenticated/backoffice'
       path: '/backoffice'
@@ -429,6 +483,13 @@ declare module '@tanstack/react-router' {
       path: '/privacidade/solicitacao'
       fullPath: '/privacidade/solicitacao'
       preLoaderRoute: typeof PrivacidadeSolicitacaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mesa/$restaurante/$mesa': {
@@ -491,14 +552,18 @@ const rootRouteChildren: RootRouteChildren = {
   CookiesRoute: CookiesRoute,
   EntrarRoute: EntrarRoute,
   FundadorRoute: FundadorRoute,
+  McpRoute: McpRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SimuladorRoute: SimuladorRoute,
   TermosRoute: TermosRoute,
   TermosParceirosRoute: TermosParceirosRoute,
   RestauranteMesaRoute: RestauranteMesaRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
   PrivacidadeSolicitacaoRoute: PrivacidadeSolicitacaoRoute,
   RestauranteIndexRoute: RestauranteIndexRoute,
   PrivacidadeIndexRoute: PrivacidadeIndexRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   MesaRestauranteMesaRoute: MesaRestauranteMesaRoute,
   ApiPublicPagarmeWebhookRoute: ApiPublicPagarmeWebhookRoute,
   ApiPublicPosSlugRoute: ApiPublicPosSlugRoute,
