@@ -71,7 +71,6 @@ function Header() {
           {[["#dinamica", "O novo jeito"], ["#como-funciona", "Como funciona"], ["#painel", "Painel"], ["#pdv", "PDV"], ["#planos", "Planos"], ["#duvidas", "Dúvidas"]].map(([h, l]) => (
             <a key={h} href={h} className="hidden rounded-lg px-3 py-2 text-muted-foreground transition-colors hover:text-foreground lg:block">{l}</a>
           ))}
-          <span className="hidden rounded-full px-3 py-2 font-semibold text-muted-foreground sm:block sm:px-4">Entrar · em breve</span>
           <Link to="/simulador" className="hidden rounded-full border px-4 py-2 font-semibold text-foreground sm:block">Simular</Link>
           <a href="#lista-de-espera" className="rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5">Lista de espera</a>
         </nav>
