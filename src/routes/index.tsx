@@ -579,7 +579,7 @@ function ContactSection() {
         },
       });
       setSent(true);
-      toast.success("Recebemos o seu contato!", { description: "A equipe TIPE responde em até 1 dia útil." });
+      toast.success("Você entrou na lista de espera!", { description: "A equipe TIPE vai falar com você antes do lançamento." });
     } catch {
       setError("Não foi possível enviar agora. Tente de novo em instantes.");
     } finally {
@@ -605,8 +605,8 @@ function ContactSection() {
           {sent ? (
             <div className="flex h-full flex-col items-center justify-center py-10 text-center">
               <CheckCircle2 className="h-12 w-12 text-primary" />
-              <p className="mt-4 font-display text-xl font-bold">Contato recebido!</p>
-              <p className="mt-2 text-sm text-muted-foreground">Em breve a equipe TIPE fala com você.</p>
+              <p className="mt-4 font-display text-xl font-bold">Você está na lista!</p>
+              <p className="mt-2 text-sm text-muted-foreground">A equipe TIPE vai falar com você antes do lançamento.</p>
             </div>
           ) : (
             <form onSubmit={submit} className="space-y-3">
@@ -616,12 +616,12 @@ function ContactSection() {
                 <input required type="email" maxLength={255} placeholder="E-mail" className={input} value={form.email} onChange={set("email")} />
                 <input maxLength={30} placeholder="WhatsApp (opcional)" className={input} value={form.phone} onChange={set("phone")} />
               </div>
-              <textarea maxLength={1000} rows={3} placeholder="Quantas mesas? Já usa algum PDV?" className={input} value={form.message} onChange={set("message")} />
+              <textarea maxLength={1000} rows={3} placeholder="Quantas mesas? Já usa algum PDV? (opcional)" className={input} value={form.message} onChange={set("message")} />
               {error && <p className="text-sm text-destructive">{error}</p>}
               <Button disabled={sending} className="h-11 w-full rounded-full font-display font-semibold">
-                {sending ? "Enviando..." : "Quero conhecer a TIPE"}
+                {sending ? "Enviando..." : "Entrar na lista de espera"}
               </Button>
-              <p className="text-center text-xs text-muted-foreground">Usaremos seus dados apenas para responder ao contato. Veja a <Link to="/privacidade" className="underline">Política de Privacidade</Link>.</p>
+              <p className="text-center text-xs text-muted-foreground">Usaremos seus dados apenas para avisar sobre o lançamento. Veja a <Link to="/privacidade" className="underline">Política de Privacidade</Link>.</p>
             </form>
           )}
         </div>
@@ -647,7 +647,7 @@ function Footer() {
         <div className="space-y-2 text-sm">
           <p className="font-display font-bold">Empresa</p>
           <span className="block text-muted-foreground">Área do restaurante · em breve</span>
-          <a href="#fale-conosco" className="block text-muted-foreground hover:text-foreground">Fale conosco</a>
+          <a href="#lista-de-espera" className="block text-muted-foreground hover:text-foreground">Lista de espera</a>
         </div>
       </div>
       <div className="mx-auto flex max-w-7xl flex-wrap gap-x-5 gap-y-2 border-t px-4 py-5 text-xs sm:px-6">
