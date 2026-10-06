@@ -881,6 +881,7 @@ export type Database = {
       restaurants: {
         Row: {
           address: string | null
+          bill_payment_methods: string[]
           cnpj: string | null
           created_at: string
           id: string
@@ -896,6 +897,7 @@ export type Database = {
         }
         Insert: {
           address?: string | null
+          bill_payment_methods?: string[]
           cnpj?: string | null
           created_at?: string
           id?: string
@@ -911,6 +913,7 @@ export type Database = {
         }
         Update: {
           address?: string | null
+          bill_payment_methods?: string[]
           cnpj?: string | null
           created_at?: string
           id?: string

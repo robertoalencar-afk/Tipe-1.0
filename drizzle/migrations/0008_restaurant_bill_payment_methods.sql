@@ -1,0 +1,2 @@
+ALTER TABLE public.restaurants ADD COLUMN IF NOT EXISTS bill_payment_methods text[] NOT NULL DEFAULT ARRAY['pix','apple_pay','google_pay','at_establishment']::text[];
+ALTER TABLE public.restaurants ADD CONSTRAINT restaurants_bill_payment_methods_check CHECK (cardinality(bill_payment_methods) >= 1 AND bill_payment_methods <@ ARRAY['pix','apple_pay','google_pay','at_establishment']::text[]);
