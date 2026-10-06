@@ -23,6 +23,7 @@ import { Recebimentos } from "@/components/tipe/Recebimentos";
 import { grantWaiterAccess } from "@/lib/tipe/waiter.functions";
 import { Landmark } from "lucide-react";
 import { OnboardingPdv } from "@/components/tipe/OnboardingPdv";
+import { LebreAssistant } from "@/components/tipe/LebreAssistant";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const hora = (s: string) => new Date(s).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
@@ -237,6 +238,7 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
           )}
         </DialogContent>
       </Dialog>
+      <LebreAssistant slug={slug} />
     </div>
   );
 }

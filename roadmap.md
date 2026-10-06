@@ -22,8 +22,9 @@
 - [x] PDV TIPE completo (salão, lançar pedido com observação, cozinha/bar, caixa, cardápio, mesas em lote, relatórios, configurações)
 - [x] Integração com qualquer PDV (endereço + chave por restaurante, histórico de sincronização)
 - [ ] Adicionais de produto, nota fiscal (NFC-e), estoque e delivery
-- [ ] Painel do garçom
-- [ ] Painel do fundador
-- [ ] Lebre IA pública para dúvidas e autenticada no restaurante, com ações seguras sempre confirmadas pelo usuário
-- [ ] Renovar a landing na direção fintech escolhida, com narrativa de venda, produto em destaque, um mascote principal e linguagem sem travessões
+- [x] Painel do garçom
+- [x] Painel do fundador
+- [x] Lebre IA pública para dúvidas e autenticada no restaurante, com primeira ação segura confirmada pelo usuário
+- [x] Renovar a landing na direção fintech escolhida, com narrativa de venda, produto em destaque, um mascote principal e linguagem sem travessões
+- [x] Substituir a Lebre gerada pelo mascote oficial da TIPE, preservando exatamente seu estilo visual
 - [ ] Criar central de integrações e homologar PDVs antes de publicar números ou marcas como compatíveis
