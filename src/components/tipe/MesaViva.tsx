@@ -59,6 +59,7 @@ export function MesaViva() {
     (async () => {
       const { gsap } = await import("gsap");
       if (cancelled || !root.current) return;
+      const lite = window.matchMedia("(max-width: 767px)").matches;
       const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       ctx = gsap.context(() => {
         const q = gsap.utils.selector(root);
@@ -74,18 +75,18 @@ export function MesaViva() {
         });
 
         const enter = (s: string, at: number) => {
-          tl.set(q(s), { autoAlpha: 1, y: 0, filter: "blur(0px)" }, at);
-          tl.from(q(`${s} > div > h2 > span:last-child .w`), { yPercent: 120, opacity: 0, filter: "blur(14px)", stagger: 0.11, duration: 0.8 }, at + 0.05);
+          tl.set(q(s), { autoAlpha: 1, y: 0, filter: lite ? "none" : "blur(0px)" }, at);
+          tl.from(q(`${s} > div > h2 > span:last-child .w`), { yPercent: 120, opacity: 0, filter: lite ? "none" : "blur(14px)", stagger: 0.11, duration: 0.8 }, at + 0.05);
           tl.fromTo(q(`${s} .e1`), { x: -26, opacity: 1 }, { x: 0, opacity: 0, duration: 1.1, ease: "power3.out" }, at + 0.15);
           tl.fromTo(q(`${s} .e2`), { x: -52, opacity: 1 }, { x: 0, opacity: 0, duration: 1.3, ease: "power3.out" }, at + 0.2);
           tl.from(q(`${s} .e .w`), { yPercent: 120, stagger: 0.11, duration: 0.8 }, at + 0.15);
         };
         const exit = (s: string, at: number) =>
-          tl.to(q(s), { autoAlpha: 0, y: -50, filter: "blur(12px)", duration: 0.45, ease: "power2.in" }, at);
+          tl.to(q(s), { autoAlpha: 0, y: -50, filter: lite ? "none" : "blur(12px)", duration: 0.45, ease: "power2.in" }, at);
 
         // 0 · logo opening
         tl.set(q(".s0"), { autoAlpha: 1 }, 0);
-        tl.fromTo(q(".s0 .wm"), { clipPath: "inset(0 100% 0 0)", scale: 0.92, filter: "blur(10px)" }, { clipPath: "inset(0 0% 0 0)", scale: 1, filter: "blur(0px)", duration: 1.4, ease: "expo.inOut" }, 0.2);
+        tl.fromTo(q(".s0 .wm"), { clipPath: "inset(0 100% 0 0)", scale: 0.92, filter: lite ? "none" : "blur(10px)" }, { clipPath: "inset(0 0% 0 0)", scale: 1, filter: lite ? "none" : "blur(0px)", duration: 1.4, ease: "expo.inOut" }, 0.2);
         tl.to(q(".s0 .wm"), { scale: 1.05, duration: 1.4, ease: "sine.inOut" }, 1.6);
         exit(".s0", 3.3);
 
@@ -147,8 +148,8 @@ export function MesaViva() {
         t = 26.8;
         tl.set(q(".s6"), { autoAlpha: 1 }, t);
         tl.fromTo(q(".s6 .aura"), { scale: 0.3, opacity: 0 }, { scale: 1, opacity: 1, duration: 2.2, ease: "power2.out" }, t);
-        tl.fromTo(q(".s6 .logo"), { scale: 1.15, opacity: 0, filter: "blur(18px)" }, { scale: 1, opacity: 1, filter: "blur(0px)", duration: 1.8, ease: "power3.out" }, t + 0.2);
-        tl.from(q(".s6 .w"), { yPercent: 110, opacity: 0, filter: "blur(10px)", stagger: 0.14, duration: 1 }, t + 1.1);
+        tl.fromTo(q(".s6 .logo"), { scale: 1.15, opacity: 0, filter: lite ? "none" : "blur(18px)" }, { scale: 1, opacity: 1, filter: lite ? "none" : "blur(0px)", duration: 1.8, ease: "power3.out" }, t + 0.2);
+        tl.from(q(".s6 .w"), { yPercent: 110, opacity: 0, filter: lite ? "none" : "blur(10px)", stagger: 0.14, duration: 1 }, t + 1.1);
         tl.fromTo(q(".s6 .beam"), { scaleX: 0, opacity: 0 }, { scaleX: 1, opacity: 1, duration: 1.4, ease: "power3.inOut" }, t + 1.8);
         tl.from(q(".s6 .cta"), { y: 16, opacity: 0, duration: 0.8 }, t + 2.4);
         tl.to(q(".s6"), { autoAlpha: 0, duration: 0.9, ease: "power2.inOut" }, t + 6.3);
