@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalPage } from "@/components/tipe/LegalPage";
-import { LEGAL } from "@/lib/tipe/legal";
+import { COMPANY, LEGAL } from "@/lib/tipe/legal";
 
 export const Route = createFileRoute("/termos")({
   head: () => ({
@@ -30,7 +30,7 @@ const sections: { title: string; paragraphs: string[]; bullets?: string[] }[] = 
     title: "1. O que é o TIPE",
     paragraphs: [
       "O TIPE é um aplicativo de pagamento na mesa para restaurantes. A partir do QR Code do totem da mesa, o cliente visualiza a conta lançada pelo estabelecimento, escolhe os itens que vai pagar, seleciona o meio de pagamento e, se quiser, deixa uma gorjeta extra para o atendimento.",
-      "O serviço é operado pela TIPE, com sede em Fortaleza, CE. Ao usar o aplicativo, você concorda com estes Termos de Uso e com a Política de Privacidade abaixo.",
+      `O serviço é operado por ${COMPANY.legalName}, inscrita no CNPJ ${COMPANY.cnpj}, com sede em ${COMPANY.city}. Ao usar o aplicativo, você concorda com estes Termos de Uso e com a Política de Privacidade abaixo.`,
     ],
   },
   {

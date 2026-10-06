@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LegalPage, type LegalSection } from "@/components/tipe/LegalPage";
-import { LEGAL, PENDING } from "@/lib/tipe/legal";
+import { COMPANY, LEGAL, PENDING } from "@/lib/tipe/legal";
 
 const COMERCIAL = "[CONDIÇÃO COMERCIAL PENDENTE]";
 
@@ -16,7 +16,7 @@ export const Route = createFileRoute("/termos-parceiros")({
     ],
     links: [{ rel: "canonical", href: "https://tipe.digital/termos-parceiros" }],
   }),
-  component: () => <LegalPage title="Termos para Parceiros" version={LEGAL.partner_terms.version} effective={LEGAL.partner_terms.effective} intro={`Estes termos regem a relação entre o restaurante (Parceiro) e o TIPE (${PENDING} — razão social e CNPJ).`} sections={sections} />,
+  component: () => <LegalPage title="Termos para Parceiros" version={LEGAL.partner_terms.version} effective={LEGAL.partner_terms.effective} intro={`Estes termos regem a relação entre o restaurante (Parceiro) e o TIPE, operado por ${COMPANY.legalName}, inscrita no CNPJ ${COMPANY.cnpj}, com sede em ${COMPANY.city}.`} sections={sections} />,
 });
 
 const sections: LegalSection[] = [
@@ -34,5 +34,5 @@ const sections: LegalSection[] = [
   { title: "9. Propriedade intelectual", paragraphs: ["O software, a marca e os mascotes do TIPE pertencem ao TIPE. O Parceiro mantém a titularidade sobre seus dados, cardápio e marca."] },
   { title: "10. Suspensão e encerramento", paragraphs: [`O TIPE pode suspender acessos em caso de fraude, uso indevido ou risco à segurança. O Parceiro pode encerrar a assinatura a qualquer momento. Exportação de dados e prazo de retenção após o encerramento: ${COMERCIAL}.`] },
   { title: "11. Responsabilidades", paragraphs: ["Cada parte responde pelos danos que causar, nos limites da lei. Nada nestes termos exclui responsabilidades que a legislação não permite afastar."] },
-  { title: "12. Alterações e legislação", paragraphs: ["Alterações relevantes geram nova versão e poderão exigir novo aceite. Aplica-se a legislação brasileira. Foro: " + PENDING + "."] },
+  { title: "12. Alterações e legislação", paragraphs: [`Alterações relevantes geram nova versão e poderão exigir novo aceite. Aplica-se a legislação brasileira. Fica eleito o foro da ${COMPANY.forum}.`] },
 ];

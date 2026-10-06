@@ -14,6 +14,7 @@ import mascotAssistant from "@/assets/lebre-ai-official.svg";
 import { LebreAssistant } from "@/components/tipe/LebreAssistant";
 import { PaymentJourneyDemo } from "@/components/tipe/PaymentJourneyDemo";
 import { Button } from "@/components/ui/button";
+import { COMPANY } from "@/lib/tipe/legal";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -665,7 +666,7 @@ function Footer() {
         <Link to="/termos-parceiros" className="text-muted-foreground hover:text-foreground">Termos para Parceiros</Link>
         <Link to="/privacidade/solicitacao" className="text-muted-foreground hover:text-foreground">Seus direitos (LGPD)</Link>
       </div>
-      <p className="border-t py-5 text-center text-xs text-muted-foreground">© {new Date().getFullYear()} TIPE · tipe.digital</p>
+      <p className="border-t px-4 py-5 text-center text-xs text-muted-foreground">© {new Date().getFullYear()} {COMPANY.legalName} · CNPJ {COMPANY.cnpj} · {COMPANY.city}</p>
     </footer>
   );
 }
