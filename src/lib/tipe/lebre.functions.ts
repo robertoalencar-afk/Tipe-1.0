@@ -158,10 +158,26 @@ Se houver anexos (foto, comprovante, cardápio ou PDF), leia com atenção, desc
       data.files,
     );
     const parsed = parseIntent(raw);
-    if (!parsed) return { answer: raw };
-    const answer = typeof parsed.reply === "string" && parsed.reply.trim() ? parsed.reply.trim() : "Certo.";
-    if (!parsed.action || !canManage) return { answer };
-    const action = ActionSchema.safeParse(parsed.action);
+    const answer = parsed && typeof parsed.reply === "string" && parsed.reply.trim() ? parsed.reply.trim() : parsed ? "Certo." : raw;
+    if (!canManage) return { answer };
+    const normalize = (value: unknown) => {
+      if (!value || typeof value !== "object") return value;
+      const obj = { ...(value as Record<string, unknown>) };
+      if (typeof obj["number"] === "number") obj["number"] = String(obj["number"]);
+      for (const key of ["active", "available"]) if (typeof obj[key] === "string") obj[key] = obj[key] === "true";
+      return obj;
+    };
+    let action = ActionSchema.safeParse(normalize(parsed?.action));
+    if (!action.success) {
+      // Fallback: the reply asks for confirmation without a valid action; infer table action from the conversation.
+      const transcript = [...(data.history ?? []).map((m) => m.text), data.question, answer].join("\n");
+      const mesa = [...transcript.matchAll(/mesa\s+(\d{1,4})/gi)].pop()?.[1];
+      if (mesa && /confirm|cadastr|abrir|ativar|fechar|desativar/i.test(answer + " " + data.question)) {
+        const exists = (tables.data ?? []).find((t) => String(t.number) === mesa);
+        const close = /fechar|desativar/i.test(transcript.split("\n").slice(-3).join(" "));
+        action = ActionSchema.safeParse(exists ? { action: "set_table_active", number: mesa, active: !close } : { action: "add_table", number: mesa });
+      }
+    }
     if (!action.success) return { answer };
     const proposal: LebreProposal = { id: crypto.randomUUID(), action: action.data.action, payload: action.data as LebreAction, ...describe(action.data as LebreAction, restaurant.name) };
     await logSecurityEvent({ action: "lebre_proposal", resource: action.data.action, restaurantSlug: data.slug, restaurantId: restaurant.id, actorId: context.userId, detail: proposal.summary });

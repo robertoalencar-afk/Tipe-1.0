@@ -301,7 +301,7 @@ export function MesaViva() {
                 <span key={v} className={`tip ${i === 1 ? "tip-on bg-primary text-primary-foreground" : "bg-secondary-foreground/10"} rounded-xl py-2.5 text-center text-sm font-bold`}>{v}</span>
               ))}
             </div>
-            <div className="sent mt-4 flex items-center gap-2 rounded-xl bg-primary/15 px-3 py-2 text-xs font-semibold text-primary"><Heart className="h-4 w-4 fill-primary" />R$ 10 enviados direto ao Rafael</div>
+            <div className="sent mt-4 flex items-center gap-2 rounded-xl bg-primary/15 px-3 py-2 text-xs font-semibold text-primary"><Heart className="h-4 w-4 fill-primary" />R$ 10 de gorjeta para o Rafael</div>
           </div>
         </div>
 
