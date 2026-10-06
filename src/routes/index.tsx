@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import {
   QrCode, Receipt, Smartphone, CheckCircle2, ChevronRight, MonitorSmartphone, History, Landmark,
   Plug, Store, Zap, ShieldCheck, Clock, Users, Check, Star, BarChart3, Wallet,
-  Hand, ClipboardList, Calculator, ArrowLeftRight, CreditCard, Bot, Headphones,
+  Hand, ClipboardList, Calculator, ArrowLeftRight, CreditCard, Bot, Headphones, Instagram,
 } from "lucide-react";
 import { submitLead } from "@/lib/tipe/leads.functions";
 import { PLANS, TRIAL_DAYS, priceLabel, type PlanId } from "@/lib/tipe/plans";
@@ -641,6 +641,16 @@ function Footer() {
         <div className="md:col-span-2">
           <img src={logo.url} alt="TIPE" className="h-9 w-auto" />
           <p className="mt-3 max-w-sm text-sm text-muted-foreground">Pague. Sem esperar. Pagamento na mesa e gorjeta extra, integrados ao seu PDV.</p>
+          <a
+            href="https://instagram.com/tipe.digital"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
+            aria-label="Instagram @tipe.digital"
+          >
+            <Instagram className="h-4 w-4" />
+            @tipe.digital
+          </a>
         </div>
         <div className="space-y-2 text-sm">
           <p className="font-display font-bold">Produto</p>
