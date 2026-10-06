@@ -27,10 +27,10 @@ import { getPublicTable } from "@/lib/tipe/pdv.functions";
 import { createPayment, getPaymentConfig, getPaymentStatus, reopenClosedTable, type SharedPayment } from "@/lib/tipe/payments.functions";
 import { CardFields } from "@/components/tipe/CardFields";
 import { cardValid, tokenizeCard, type CardInput } from "@/lib/tipe/pagarme-client";
-import mascotThanks from "@/assets/mascot-thanks.webp";
-import mascotRating from "@/assets/mascot-rating.webp";
-import mascotWaiting from "@/assets/mascot-waiting.webp";
-import mascotTableClosed from "@/assets/mascot-table-closed.webp";
+import mascotThanks from "@/assets/mascot-thanks-hd.png";
+import mascotRating from "@/assets/mascot-rating-hd.png";
+import mascotWaiting from "@/assets/mascot-waiting-hd.png";
+import mascotTableClosed from "@/assets/mascot-table-closed-hd.png";
 
 export const Route = createFileRoute("/$restaurante/$mesa")({
   validateSearch: z.object({ t: z.string().max(64).optional() }),
