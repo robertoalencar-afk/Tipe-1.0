@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
@@ -138,6 +138,7 @@ function MesaPage() {
   const [pix, setPix] = useState<{ id: string; code: string; qrUrl?: string | undefined; tipo: "conta" | "gorjeta" } | null>(null);
   useEffect(() => { getPaymentConfig().then((c) => setChavePublica(c.publicKey)).catch(() => undefined); }, []);
   const chavePagamento = useRef<string | null>(null);
+  const [valorPago, setValorPago] = useState(0);
 
   useEffect(() => {
     try {
@@ -273,6 +274,8 @@ function MesaPage() {
         },
       });
       chavePagamento.current = null;
+      if (tipo === "conta") setValorPago(totalConta);
+      setQtds({});
       await atualizarMesa();
       if (resultado.provider === "pagarme" && resultado.status === "pending" && resultado.pixCode) {
         setPix({ id: resultado.id, code: resultado.pixCode, qrUrl: resultado.pixQrUrl, tipo });
@@ -526,7 +529,7 @@ function MesaPage() {
           <IconeSucesso />
           <p className="text-sm font-semibold text-primary">Conta paga</p>
           <h1 className="mt-2 text-2xl font-bold">Pagamento confirmado!</h1>
-          <p className="mt-3 text-center text-sm leading-6 text-muted-foreground">{money(totalConta)} enviados ao {dados.restaurante}.</p>
+          <p className="mt-3 text-center text-sm leading-6 text-muted-foreground">{money(valorPago)} enviados ao {dados.restaurante}.</p>
           {mesaEncerrada && <p className="mt-2 text-center text-sm font-semibold text-primary">Este foi o último pagamento: a mesa está encerrada.</p>}
           <Button onClick={() => setEtapa("avaliacao")} className="mt-8 h-12 w-full rounded-lg text-base font-bold">Avaliar atendimento <ChevronRight /></Button>
           {mesaEncerrada && <Button variant="outline" onClick={() => setEtapa("mesa-encerrada")} className="mt-3 h-12 w-full rounded-lg text-base font-bold">Ver mesa encerrada</Button>}
@@ -597,7 +600,7 @@ function MesaPage() {
           <h1 className="mt-2 text-2xl font-bold">Mesa encerrada</h1>
           <p className="mt-3 text-center text-sm leading-6 text-muted-foreground">Todos os itens desta mesa foram pagos e não há pagamentos pendentes.</p>
           <p className="mt-2 text-center text-xs text-muted-foreground">Uma nova conta será aberta nesta mesa automaticamente em até 2 minutos.</p>
-          <Link to="/" className="mt-8 text-sm font-semibold text-primary">Voltar ao início</Link>
+          <Button variant="outline" onClick={() => { setEtapa("conta"); setAba("conta"); }} className="mt-6 h-12 w-full rounded-lg text-base font-bold">Voltar à mesa</Button>
         </TelaCentral>
       )}
 
@@ -611,7 +614,7 @@ function MesaPage() {
           {mesaEncerrada && (
             <Button onClick={() => setEtapa("mesa-encerrada")} className="mt-8 h-12 w-full rounded-lg text-base font-bold">Ver mesa encerrada <ChevronRight /></Button>
           )}
-          <Link to="/" className="mt-6 text-sm font-semibold text-primary">Voltar ao início</Link>
+          <Button variant="outline" onClick={() => { setEtapa("conta"); setAba("conta"); }} className="mt-6 h-12 w-full rounded-lg text-base font-bold">Voltar à mesa</Button>
         </TelaCentral>
       )}
     </div>
