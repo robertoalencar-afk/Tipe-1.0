@@ -81,13 +81,15 @@ function Backoffice() {
 
         <div className="min-w-0">
           <header className="border-b border-border bg-card">
-            <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-4 sm:px-6 lg:px-8">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 md:hidden"><TipeLogo variant="dark" className="h-8" /><span className="text-xs font-bold text-muted-foreground">BACKOFFICE</span></div>
-                <h1 className="mt-2 truncate font-display text-xl font-extrabold md:mt-0 md:text-2xl">Central de Operações TIPE</h1>
-                <p className="mt-1 hidden text-sm text-muted-foreground sm:block">Gestão administrativa, financeira e de suporte da TIPE.</p>
+            <div className="px-4 py-4 sm:px-6 lg:px-8">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 md:hidden">
+                <div className="flex min-w-0 items-center gap-2"><TipeLogo variant="dark" className="h-8 shrink-0" /><span className="truncate text-xs font-bold text-muted-foreground">BACKOFFICE</span></div>
+                <div className="flex shrink-0 items-center gap-1"><Button size="sm" onClick={() => setDialogOpen(true)}><Plus className="mr-1.5 h-4 w-4" />Cliente</Button><Button size="icon" variant="ghost" onClick={signOut} aria-label="Sair"><LogOut className="h-4 w-4" /></Button></div>
               </div>
-              <div className="flex shrink-0 items-center gap-2"><Button size="sm" onClick={() => setDialogOpen(true)}><Plus className="mr-1.5 h-4 w-4" />Cliente</Button><Button size="icon" variant="ghost" className="md:hidden" onClick={signOut} aria-label="Sair"><LogOut className="h-4 w-4" /></Button></div>
+              <div className="mt-4 md:mt-0 md:grid md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:gap-3">
+                <div className="min-w-0"><h1 className="font-display text-xl font-extrabold md:text-2xl">Central de Operações TIPE</h1><p className="mt-1 text-sm text-muted-foreground">Gestão administrativa, financeira e de suporte da TIPE.</p></div>
+                <Button className="hidden shrink-0 md:inline-flex" size="sm" onClick={() => setDialogOpen(true)}><Plus className="mr-1.5 h-4 w-4" />Novo cliente</Button>
+              </div>
             </div>
             <div className="overflow-x-auto px-4 pb-3 md:hidden"><TabsList className="h-10 w-max justify-start rounded-lg bg-muted p-1">{navigation.map((item) => <TabsTrigger key={item.value} value={item.value} className="shrink-0 gap-1.5 px-3"><item.icon className="h-4 w-4" />{item.label}</TabsTrigger>)}</TabsList></div>
           </header>
