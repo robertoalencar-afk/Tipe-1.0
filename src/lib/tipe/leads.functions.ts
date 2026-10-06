@@ -7,6 +7,8 @@ const leadSchema = z.object({
   contactName: z.string().trim().min(2).max(120),
   email: z.string().trim().email().max(200),
   phone: z.string().trim().max(40).optional(),
+  tables: z.coerce.number().int().min(1).max(999),
+  pdv: z.string().trim().min(2).max(120),
   message: z.string().trim().max(2000).optional(),
 });
 
@@ -27,7 +29,7 @@ export const submitLead = createServerFn({ method: "POST" })
       contact_name: data.contactName,
       email: data.email,
       phone: data.phone || null,
-      message: data.message || null,
+      message: `Mesas: ${data.tables} · PDV: ${data.pdv}${data.message ? ` · ${data.message}` : ""}`,
     });
 
     if (error) throw new Error("Falha ao registrar o contato");
