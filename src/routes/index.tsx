@@ -554,7 +554,7 @@ function Faq() {
   );
 }
 
-const emptyLead = { restaurantName: "", contactName: "", email: "", phone: "", message: "" };
+const emptyLead = { restaurantName: "", contactName: "", email: "", phone: "", tables: "", pdv: "", message: "" };
 
 function ContactSection() {
   const [form, setForm] = useState(emptyLead);
@@ -575,7 +575,8 @@ function ContactSection() {
           contactName: form.contactName.trim(),
           email: form.email.trim(),
           phone: form.phone.trim() || undefined,
-          message: form.message.trim() || undefined,
+          tables: Number(form.tables),
+          pdv: form.pdv.trim(),
         },
       });
       setSent(true);
