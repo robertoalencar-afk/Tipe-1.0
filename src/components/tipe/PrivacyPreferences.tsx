@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -12,14 +13,17 @@ const CATS: { id: ConsentCategory | "necessary"; name: string; desc: string; inU
   { id: "marketing", name: "Marketing", desc: "Publicidade e pixels. O TIPE não usa tecnologias de marketing hoje.", inUse: false },
 ];
 
-export function PrivacyPreferences({ triggerClassName }: { triggerClassName?: string }) {
-  const [open, setOpen] = useState(false);
-  const [c, setC] = useState({ functional: false, analytics: false, marketing: false });
+type Escolha = { functional: boolean; analytics: boolean; marketing: boolean };
+const NENHUM: Escolha = { functional: false, analytics: false, marketing: false };
+const TODOS: Escolha = { functional: true, analytics: true, marketing: true };
+
+function PreferencesDialog({ open, setOpen, trigger, onSaved }: { open: boolean; setOpen: (v: boolean) => void; trigger?: React.ReactNode; onSaved?: () => void }) {
+  const [c, setC] = useState<Escolha>(NENHUM);
   useEffect(() => { if (open) { const s = readConsent(); if (s) setC({ functional: s.functional, analytics: s.analytics, marketing: s.marketing }); } }, [open]);
-  const salvar = (v: typeof c) => { saveConsent(v); setC(v); setOpen(false); toast.success("Preferências de privacidade salvas."); };
+  const salvar = (v: Escolha) => { saveConsent(v); setC(v); setOpen(false); onSaved?.(); toast.success("Preferências de privacidade salvas."); };
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild><button type="button" className={triggerClassName}>Preferências de privacidade</button></DialogTrigger>
+      {trigger && <DialogTrigger asChild>{trigger}</DialogTrigger>}
       <DialogContent className="max-h-[85svh] max-w-[calc(100%-2rem)] overflow-y-auto rounded-2xl sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>Preferências de privacidade</DialogTitle>
@@ -39,11 +43,46 @@ export function PrivacyPreferences({ triggerClassName }: { triggerClassName?: st
           ))}
         </ul>
         <DialogFooter className="grid gap-2 sm:grid-cols-3">
-          <Button variant="outline" onClick={() => salvar({ functional: false, analytics: false, marketing: false })}>Rejeitar não essenciais</Button>
+          <Button variant="outline" onClick={() => salvar(NENHUM)}>Rejeitar não essenciais</Button>
           <Button variant="outline" onClick={() => salvar(c)}>Salvar preferências</Button>
-          <Button variant="outline" onClick={() => salvar({ functional: true, analytics: true, marketing: true })}>Aceitar todos</Button>
+          <Button variant="outline" onClick={() => salvar(TODOS)}>Aceitar todos</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+export function PrivacyPreferences({ triggerClassName }: { triggerClassName?: string }) {
+  const [open, setOpen] = useState(false);
+  return <PreferencesDialog open={open} setOpen={setOpen} trigger={<button type="button" className={triggerClassName}>Preferências de privacidade</button>} />;
+}
+
+/** Aviso exibido a quem ainda não registrou uma escolha (ou quando a versão do consentimento muda). */
+export function CookieBanner() {
+  const [visivel, setVisivel] = useState(false);
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    setVisivel(readConsent() === null);
+    const h = () => setVisivel(false);
+    window.addEventListener("tipe:consent", h);
+    return () => window.removeEventListener("tipe:consent", h);
+  }, []);
+  if (!visivel) return <PreferencesDialog open={open} setOpen={setOpen} />;
+  const decidir = (v: Escolha) => { saveConsent(v); setVisivel(false); };
+  return (
+    <>
+      <div role="dialog" aria-label="Aviso de cookies" className="fixed inset-x-3 bottom-3 z-50 mx-auto max-w-2xl rounded-2xl border bg-card p-4 text-card-foreground shadow-xl sm:inset-x-6 sm:bottom-6 sm:p-5">
+        <p className="text-sm font-semibold">Sua privacidade importa</p>
+        <p className="mt-1 text-xs leading-5 text-muted-foreground">
+          Usamos apenas o essencial para o TIPE funcionar, como manter seu acesso e sua identificação na mesa. Você escolhe sobre o restante. Saiba mais na <Link to="/cookies" className="font-medium text-primary underline-offset-2 hover:underline">Política de Cookies</Link>.
+        </p>
+        <div className="mt-3 grid grid-cols-1 gap-2 sm:grid-cols-3">
+          <Button size="sm" variant="ghost" onClick={() => setOpen(true)}>Gerenciar preferências</Button>
+          <Button size="sm" variant="outline" onClick={() => decidir(NENHUM)}>Rejeitar não essenciais</Button>
+          <Button size="sm" onClick={() => decidir(TODOS)}>Aceitar todos</Button>
+        </div>
+      </div>
+      <PreferencesDialog open={open} setOpen={setOpen} onSaved={() => setVisivel(false)} />
+    </>
   );
 }
