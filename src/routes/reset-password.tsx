@@ -14,6 +14,7 @@ export const Route = createFileRoute("/reset-password")({
       { property: "og:description", content: "Redefinição de senha da equipe TIPE." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
+      { name: "robots", content: "noindex" },
     ],
   }),
   component: ResetPassword,
