@@ -46,14 +46,6 @@ const orbit = [
   ["Casquinha", "R$ 32,00", "Ana"],
   ["Camarão", "R$ 64,00", "Bia"],
 ];
-const cards = [
-  ["Moqueca de peixe", "R$ 89,00", "radial-gradient(circle at 30% 30%, var(--primary), transparent 75%)"],
-  ["Camarão alho e óleo", "R$ 64,00", "radial-gradient(circle at 70% 30%, var(--primary), transparent 65%)"],
-  ["Caipirinha", "R$ 19,00", "radial-gradient(circle at 50% 80%, var(--primary), transparent 70%)"],
-  ["Casquinha de siri", "R$ 32,00", "radial-gradient(circle at 20% 70%, var(--primary), transparent 70%)"],
-  ["Pudim da casa", "R$ 18,00", "radial-gradient(circle at 80% 80%, var(--primary), transparent 70%)"],
-  ["Água com gás", "R$ 7,90", "radial-gradient(circle at 40% 20%, var(--primary), transparent 70%)"],
-];
 const group = [["Ana", "Moqueca ÷ 3"], ["Caio", "Moqueca ÷ 3 · Caipirinha"], ["Bia", "Moqueca ÷ 3 · Pudim"]];
 
 export function MesaViva() {
@@ -116,7 +108,8 @@ export function MesaViva() {
         tl.fromTo(q(".s2 .spin"), { rotate: -25 }, { rotate: 20, duration: 4.2, ease: "none" }, t + 0.2);
         tl.fromTo(q(".s2 .chip"), { rotate: 25 }, { rotate: -20, duration: 4.2, ease: "none" }, t + 0.2);
         tl.from(q(".s2 .chipin"), { scale: 0, opacity: 0, stagger: 0.12, duration: 0.6, ease: "back.out(2.4)" }, t + 0.7);
-        tl.fromTo(q(".s2 .total"), { textContent: 0 }, { textContent: 229.9, duration: 1.8, ease: "power2.out", snap: { textContent: 0.1 }, onUpdate() { const el = q(".s2 .total")[0]; if (el) el.textContent = Number(el.textContent).toFixed(2).replace(".", ","); } }, t + 0.8);
+        const money = { v: 0 };
+        tl.fromTo(money, { v: 0 }, { v: 229.9, duration: 1.8, ease: "power2.out", onUpdate: () => { const el = q(".s2 .total")[0]; if (el) el.textContent = money.v.toFixed(2).replace(".", ","); } }, t + 0.8);
         exit(".s2", t + 4.3);
 
         // 3 · split with the table
