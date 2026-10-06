@@ -17,13 +17,12 @@
 - O fluxo do cliente é sempre itens escolhidos → meio de pagamento → pagamento; pedidos não identificam a pessoa, mas pagamentos exibem cliente, itens, valor e horário.
 - Ao reabrir o QR da mesma mesa, recuperar a identificação antes de renderizar a etapa; quando não houver itens disponíveis nem pagamentos pendentes, mostrar a mesa encerrada.
 
-- Staff access: roles in public.user_roles (founder/owner/cashier/waiter, per restaurant); payment confirmation only via resolve_table_payment RPC — prevents privilege escalation.
+- Roles live in public.user_roles; payment confirmation only uses resolve_table_payment RPC.
 - Table reopen archives payments to archived_payments instead of deleting — keeps full history.
-- Restaurant area lives at /$restaurante (client-only, login required); customer table at /$restaurante/$mesa (code like mesa12, optional ?t= QR token). Why: each restaurant has its own address and table tokens.
-- Bill items come from the PDV TIPE (pdv_launch_order RPC) or from an external PDV via /api/public/pos/$slug (x-tipe-key, SHA-256 hash in pos_integrations); both write table_bill_items. Why: restaurants can use our PDV or keep any market PDV.
-- Restaurant area sections live in RestaurantPanel (shell/salão/PDV/cardápio) and AdminSections (início, cozinha, caixa, relatórios, integrações, config); cash/KDS/void/transfer changes only via SECURITY DEFINER RPCs. Why: role checks stay in the database.
+- Restaurant area: /$restaurante; customer table: /$restaurante/$mesa with optional QR token.
+- PDV items enter through protected RPCs or /api/public/pos/$slug; operational mutations use SECURITY DEFINER RPCs.
 - Public simulator `/simulador` uses browser-local demo state and fixed Mesa 12 data; it must never read or mutate restaurant PDV data. Why: the sales demo must remain repeatable and isolated from restaurant operations.
-- Customer table access: QR token (?t=) only opens the table; payments/reopen require restaurant_tables.session_token, rotated by archive_and_reopen_table. Why: an old session never authorizes a new bill.
+- QR tokens only open tables; payment/reopen uses a rotating session_token.
 - Server code using supabaseAdmin must authorize via src/lib/tipe/security.server.ts (verifyTableSession, enforceRate, logSecurityEvent). Why: admin client bypasses RLS.
 - register_table_payment requires p_idempotency_key (unique per restaurant) and is service_role-only. Why: retries/double-clicks never duplicate payments.
 - Shared item payments use decimal portions with row locking; integer quantity columns remain compatibility shadows. Why: diners can split one item safely without overselling it.
@@ -34,3 +33,4 @@
 - Lebre AI uses separate public and authenticated server functions; restaurant data is scoped by membership, and every mutation is an explicit typed proposal confirmed by the user and reauthorized at execution. Why: free text must never execute privileged database changes directly.
 - In-person bill payments store cash versus card-terminal details, including server-validated cash received and change due. Why: staff need the correct change before confirming receipt.
 - Restaurant bill payments charge the restaurant's own Pagar.me account (key AES-GCM encrypted in restaurant_pagarme_accounts, service_role only; per-restaurant webhook /api/public/pagarme/restaurante/$slug re-fetches the order). Why: TIPE never holds restaurant bank data or money.
+- Founder access is limited to TIPE backoffice aggregates; private restaurant operations require an explicit restaurant-scoped role. Why: support cannot impersonate clients.

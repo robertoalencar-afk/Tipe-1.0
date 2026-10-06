@@ -83,7 +83,7 @@ function Backoffice() {
           <header className="border-b border-border bg-card">
             <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-4 sm:px-6 lg:px-8">
               <div className="min-w-0">
-                <div className="flex items-center gap-2 md:hidden"><TipeLogo dark className="h-8" /><span className="text-xs font-bold text-muted-foreground">BACKOFFICE</span></div>
+                <div className="flex items-center gap-2 md:hidden"><TipeLogo variant="dark" className="h-8" /><span className="text-xs font-bold text-muted-foreground">BACKOFFICE</span></div>
                 <h1 className="mt-2 truncate font-display text-xl font-extrabold md:mt-0 md:text-2xl">Central de Operações TIPE</h1>
                 <p className="mt-1 hidden text-sm text-muted-foreground sm:block">Gestão administrativa, financeira e de suporte da TIPE.</p>
               </div>
