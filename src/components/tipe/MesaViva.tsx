@@ -1,179 +1,328 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef } from "react";
 import { Link } from "@tanstack/react-router";
-import { Check, ChevronRight, QrCode, Star, Utensils, Wine, Coffee, Pizza } from "lucide-react";
+import { Check, ChevronRight, QrCode, Star, Heart, Utensils, Wine, Coffee, Plus } from "lucide-react";
 
-type Scene = { words: string[]; accent: number[]; ms: number; visual: () => React.ReactNode };
+type Word = [string, boolean?];
 
-function Words({ words, accent }: { words: string[]; accent: number[] }) {
+/** Headline with two echo layers that trail behind the reveal, like the reference motion. */
+function Headline({ lines, className = "" }: { lines: Word[][]; className?: string }) {
+  const body = (echo?: string) =>
+    lines.map((line, li) => (
+      <span key={li} className="block">
+        {line.map(([w, accent], wi) => (
+          <span key={wi} className={`w inline-block will-change-transform ${accent && !echo ? "text-primary" : ""}`}>
+            {w}
+            {wi < line.length - 1 ? "\u00A0" : ""}
+          </span>
+        ))}
+      </span>
+    ));
   return (
-    <h2 className="font-display text-[2.6rem] font-extrabold leading-[0.98] tracking-tight sm:text-6xl lg:text-7xl">
-      {words.map((w, i) => (
-        <span key={i} className="mv-word relative block" style={{ animationDelay: `${120 + i * 160}ms` }}>
-          <span aria-hidden className="mv-echo absolute inset-0 text-primary/25" style={{ animationDelay: `${120 + i * 160}ms` }}>{w}</span>
-          <span className={accent.includes(i) ? "relative text-primary" : "relative"}>{w}</span>
-        </span>
-      ))}
+    <h2 className={`relative font-display text-[2.6rem] font-extrabold leading-[1] tracking-tight sm:text-6xl lg:text-[5.2rem] ${className}`}>
+      <span aria-hidden className="e e2 pointer-events-none absolute inset-0 text-primary/15">{body("e")}</span>
+      <span aria-hidden className="e e1 pointer-events-none absolute inset-0 text-secondary-foreground/30">{body("e")}</span>
+      <span className="relative">{body()}</span>
     </h2>
   );
 }
 
-function Ring({ size = 160 }: { size?: number }) {
+function Phone({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
-    <svg width={size} height={size} viewBox="0 0 100 100" className="mv-glow text-primary">
-      <circle cx="50" cy="50" r="44" fill="none" stroke="currentColor" strokeWidth="5" className="mv-draw" pathLength={1} />
-      <path d="M32 30 L50 52 L68 30 M50 52 L50 74" fill="none" stroke="currentColor" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" className="mv-draw" pathLength={1} style={{ animationDelay: "500ms" }} />
-    </svg>
-  );
-}
-
-function Phone({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="mv-rise relative mx-auto w-[210px] rounded-[2.2rem] border border-secondary-foreground/15 bg-secondary p-2.5 shadow-2xl sm:w-[240px]">
-      <div className="mx-auto mb-2 h-1.5 w-16 rounded-full bg-secondary-foreground/15" />
-      <div className="overflow-hidden rounded-[1.7rem] bg-secondary-foreground/[0.04] p-3.5">{children}</div>
+    <div className={`phone relative w-[205px] shrink-0 rounded-[2.2rem] border border-secondary-foreground/10 bg-mv-surface p-3 shadow-2xl sm:w-[240px] lg:w-[270px] ${className}`}>
+      <div className="mx-auto mb-3 h-1.5 w-14 rounded-full bg-secondary-foreground/15" />
+      {children}
     </div>
   );
 }
 
-const items = [["Moqueca de peixe", "89,00"], ["Caipirinha x2", "38,00"], ["Água com gás", "7,90"], ["Pudim", "18,00"]];
-const people = [["A", "Ana", "-left-2 top-6"], ["C", "Carlos", "right-0 top-2"], ["P", "Pedro", "-left-4 bottom-10"], ["J", "Júlia", "right-2 bottom-4"]];
+function Ring({ size }: { size: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" className="mv-glow text-primary">
+      <circle className="ring" cx="50" cy="50" r="44" fill="none" stroke="currentColor" strokeWidth="5" pathLength={1} strokeDasharray="1" strokeDashoffset="1" />
+      <path className="ypath" d="M32 30 L50 52 L68 30 M50 52 L50 74" fill="none" stroke="currentColor" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" pathLength={1} strokeDasharray="1" strokeDashoffset="1" />
+    </svg>
+  );
+}
 
-const scenes: Scene[] = [
-  {
-    words: ["A mesa", "ganhou", "vida."], accent: [2], ms: 4200,
-    visual: () => (
-      <div className="relative mx-auto aspect-square w-[280px] sm:w-[360px]">
-        <div className="mv-spin-slow absolute inset-0 rounded-full border border-dashed border-primary/30" />
-        <div className="mv-pop absolute inset-8 rounded-full bg-secondary-foreground/[0.06] shadow-inner" />
-        {[Utensils, Wine, Coffee, Pizza, Utensils, Wine].map((Icon, i) => {
-          const a = (i / 6) * Math.PI * 2;
-          return (
-            <div key={i} className="mv-pop absolute flex h-12 w-12 items-center justify-center rounded-full bg-secondary-foreground/10 text-primary" style={{ left: `calc(50% + ${Math.cos(a) * 38}% - 24px)`, top: `calc(50% + ${Math.sin(a) * 38}% - 24px)`, animationDelay: `${300 + i * 110}ms` }}>
-              <Icon className="h-5 w-5" />
-            </div>
-          );
-        })}
-        <div className="mv-pop absolute left-1/2 top-1/2 flex h-24 w-24 -translate-x-1/2 -translate-y-1/2 flex-col items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-xl" style={{ animationDelay: "900ms" }}>
-          <QrCode className="h-10 w-10" />
-          <span className="mt-1 text-[10px] font-bold">MESA 12</span>
-          <span className="mv-scan absolute inset-x-2 h-0.5 rounded bg-primary-foreground/70" />
-        </div>
-      </div>
-    ),
-  },
-  {
-    words: ["A conta", "chega no", "celular."], accent: [2], ms: 4600,
-    visual: () => (
-      <Phone>
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-primary">Mesa 12 · Maré Alta</p>
-        <p className="mt-1 font-display text-lg font-bold">Sua conta</p>
-        <div className="mt-3 space-y-2">
-          {items.map(([n, v], i) => (
-            <div key={n} className="mv-slide flex items-center justify-between rounded-xl bg-secondary-foreground/[0.07] px-3 py-2.5 text-xs" style={{ animationDelay: `${400 + i * 220}ms` }}>
-              <span>{n}</span><span className="font-semibold">R$ {v}</span>
-            </div>
-          ))}
-        </div>
-        <div className="mv-slide mt-3 flex justify-between border-t border-secondary-foreground/10 pt-3 text-sm font-bold" style={{ animationDelay: "1400ms" }}>
-          <span>Total</span><span className="text-primary">R$ 152,90</span>
-        </div>
-      </Phone>
-    ),
-  },
-  {
-    words: ["Divida", "do seu", "jeito."], accent: [2], ms: 4600,
-    visual: () => (
-      <div className="relative mx-auto h-[300px] w-[300px] sm:h-[360px] sm:w-[380px]">
-        <div className="mv-pop absolute left-1/2 top-1/2 w-48 -translate-x-1/2 -translate-y-1/2 rounded-3xl bg-secondary-foreground/[0.08] p-4 shadow-2xl sm:w-56" style={{ animationDelay: "250ms" }}>
-          <div className="h-24 rounded-2xl" style={{ background: "radial-gradient(circle at 30% 30%, var(--primary), transparent 70%)" }} />
-          <p className="mt-3 font-display font-bold">Moqueca de peixe</p>
-          <div className="mt-2 flex gap-1.5">
-            {[0, 1, 2].map((i) => <span key={i} className="mv-fill h-1.5 flex-1 rounded-full bg-primary" style={{ animationDelay: `${900 + i * 300}ms` }} />)}
-          </div>
-          <p className="mv-slide mt-2 text-xs text-primary" style={{ animationDelay: "1900ms" }}>÷ 3 pessoas · R$ 29,67 cada</p>
-        </div>
-        {people.map(([l, n, pos], i) => (
-          <div key={n} className={`mv-float absolute ${pos} flex flex-col items-center`} style={{ animationDelay: `${i * 400}ms` }}>
-            <span className="mv-pop flex h-14 w-14 items-center justify-center rounded-full bg-primary/20 font-display text-lg font-bold text-primary ring-2 ring-primary/40" style={{ animationDelay: `${500 + i * 180}ms` }}>{l}</span>
-            <span className="mt-1 text-[11px] opacity-70">{n}</span>
-          </div>
-        ))}
-      </div>
-    ),
-  },
-  {
-    words: ["Pague.", "Sem", "esperar."], accent: [1, 2], ms: 4600,
-    visual: () => (
-      <Phone>
-        <p className="font-display text-lg font-bold">Pagar R$ 29,67</p>
-        <div className="mt-3 space-y-2">
-          {["Pix", "Apple Pay", "Google Pay"].map((m, i) => (
-            <div key={m} className={`mv-slide rounded-xl px-3 py-3 text-sm font-semibold ${i === 0 ? "bg-primary text-primary-foreground" : "bg-secondary-foreground/[0.07]"}`} style={{ animationDelay: `${300 + i * 180}ms` }}>{m}</div>
-          ))}
-        </div>
-        <div className="relative mt-5 flex h-24 items-center justify-center">
-          <span className="mv-ripple absolute h-16 w-16 rounded-full border-2 border-primary" style={{ animationDelay: "1500ms" }} />
-          <span className="mv-ripple absolute h-16 w-16 rounded-full border-2 border-primary" style={{ animationDelay: "1900ms" }} />
-          <span className="mv-pop flex h-16 w-16 items-center justify-center rounded-full bg-primary text-primary-foreground" style={{ animationDelay: "1300ms" }}><Check className="h-8 w-8" /></span>
-        </div>
-        <p className="mv-slide text-center text-xs font-semibold text-primary" style={{ animationDelay: "1700ms" }}>Pagamento aprovado</p>
-      </Phone>
-    ),
-  },
-  {
-    words: ["O garçom", "sente o", "carinho."], accent: [2], ms: 4400,
-    visual: () => (
-      <div className="mv-rise mx-auto w-[260px] rounded-3xl bg-secondary-foreground/[0.07] p-5 shadow-2xl sm:w-[300px]">
-        <p className="text-xs uppercase tracking-widest opacity-60">Atendido por</p>
-        <p className="font-display text-xl font-bold">Rafael</p>
-        <div className="mt-4 flex gap-1.5">
-          {[0, 1, 2, 3, 4].map((i) => <Star key={i} className="mv-pop h-7 w-7 fill-primary text-primary" style={{ animationDelay: `${400 + i * 140}ms` }} />)}
-        </div>
-        <div className="mt-5 grid grid-cols-3 gap-2">
-          {["R$ 5", "R$ 10", "R$ 15"].map((v, i) => (
-            <span key={v} className={`mv-slide rounded-xl py-2.5 text-center text-sm font-bold ${i === 1 ? "bg-primary text-primary-foreground" : "bg-secondary-foreground/10"}`} style={{ animationDelay: `${1200 + i * 150}ms` }}>{v}</span>
-          ))}
-        </div>
-        <p className="mv-slide mt-4 text-sm text-primary" style={{ animationDelay: "1900ms" }}>Obrigado pela gorjeta extra!</p>
-      </div>
-    ),
-  },
-  {
-    words: ["TIPE.", "Pague.", "Sem esperar."], accent: [0, 2], ms: 5200,
-    visual: () => (
-      <div className="flex flex-col items-center">
-        <Ring size={200} />
-        <div className="mv-slide mt-6 flex flex-wrap justify-center gap-3" style={{ animationDelay: "1300ms" }}>
-          <a href="#lista-de-espera" className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-display font-semibold text-primary-foreground">Lista de espera <ChevronRight className="h-4 w-4" /></a>
-          <Link to="/simulador" className="inline-flex items-center rounded-full border border-secondary-foreground/25 px-6 py-3 font-display font-semibold">Simular</Link>
-        </div>
-      </div>
-    ),
-  },
+const bill = [["Moqueca de peixe", "89,00"], ["Caipirinha x2", "38,00"], ["Água com gás", "7,90"], ["Pudim", "18,00"]];
+const cards = [
+  ["Moqueca de peixe", "R$ 89,00", "radial-gradient(circle at 30% 30%, var(--primary), transparent 75%)"],
+  ["Camarão alho e óleo", "R$ 64,00", "radial-gradient(circle at 70% 30%, var(--primary), transparent 65%)"],
+  ["Caipirinha", "R$ 19,00", "radial-gradient(circle at 50% 80%, var(--primary), transparent 70%)"],
+  ["Casquinha de siri", "R$ 32,00", "radial-gradient(circle at 20% 70%, var(--primary), transparent 70%)"],
+  ["Pudim da casa", "R$ 18,00", "radial-gradient(circle at 80% 80%, var(--primary), transparent 70%)"],
+  ["Água com gás", "R$ 7,90", "radial-gradient(circle at 40% 20%, var(--primary), transparent 70%)"],
 ];
+const group = [["A", "Ana", "Moqueca ÷ 3"], ["C", "Carlos", "Moqueca ÷ 3 · Caipirinha"], ["P", "Pedro", "Moqueca ÷ 3 · Pudim"]];
 
 export function MesaViva() {
-  const [i, setI] = useState(0);
-  const [paused, setPaused] = useState(false);
+  const root = useRef<HTMLDivElement>(null);
+  const bar = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
-    if (paused) return;
-    const t = setTimeout(() => setI((v) => (v + 1) % scenes.length), scenes[i]!.ms);
-    return () => clearTimeout(t);
-  }, [i, paused]);
-  const s = scenes[i]!;
+    let ctx: { revert: () => void } | undefined;
+    let io: IntersectionObserver | undefined;
+    let cancelled = false;
+    (async () => {
+      const { gsap } = await import("gsap");
+      if (cancelled || !root.current) return;
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      ctx = gsap.context(() => {
+        const q = gsap.utils.selector(root);
+        gsap.set(q(".layer"), { autoAlpha: 0 });
+        if (reduce) {
+          gsap.set(q(".s6"), { autoAlpha: 1 });
+          gsap.set(q(".s6 .ring, .s6 .ypath"), { strokeDashoffset: 0 });
+          return;
+        }
+        const tl = gsap.timeline({
+          repeat: -1,
+          defaults: { ease: "expo.out" },
+          onUpdate() { if (bar.current) bar.current.style.transform = `scaleX(${this.progress()})`; },
+        });
+
+        const enter = (s: string, at: number) => {
+          tl.set(q(s), { autoAlpha: 1, y: 0, filter: "blur(0px)" }, at);
+          tl.from(q(`${s} > div > h2 > span:last-child .w`), { yPercent: 120, opacity: 0, filter: "blur(14px)", stagger: 0.11, duration: 0.8 }, at + 0.05);
+          tl.fromTo(q(`${s} .e1`), { x: -26, opacity: 1 }, { x: 0, opacity: 0, duration: 1.1, ease: "power3.out" }, at + 0.15);
+          tl.fromTo(q(`${s} .e2`), { x: -52, opacity: 1 }, { x: 0, opacity: 0, duration: 1.3, ease: "power3.out" }, at + 0.2);
+          tl.from(q(`${s} .e .w`), { yPercent: 120, stagger: 0.11, duration: 0.8 }, at + 0.15);
+        };
+        const exit = (s: string, at: number) =>
+          tl.to(q(s), { autoAlpha: 0, y: -50, filter: "blur(12px)", duration: 0.45, ease: "power2.in" }, at);
+
+        // 0 · logo opening
+        tl.set(q(".s0"), { autoAlpha: 1 }, 0);
+        tl.fromTo(q(".s0 .ring"), { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 1.2, ease: "power2.inOut" }, 0.1);
+        tl.fromTo(q(".s0 .ypath"), { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.9, ease: "power2.inOut" }, 0.7);
+        tl.from(q(".s0 .brand span"), { yPercent: 120, opacity: 0, filter: "blur(10px)", stagger: 0.08, duration: 0.7 }, 1.1);
+        tl.to(q(".s0 svg"), { scale: 1.08, duration: 1.2, ease: "sine.inOut", yoyo: true, repeat: 1 }, 1.2);
+        exit(".s0", 3.3);
+
+        // 1 · scan the table
+        let t = 3.6;
+        enter(".s1", t);
+        tl.from(q(".s1 .phone"), { x: 160, rotate: 10, opacity: 0, duration: 1 }, t + 0.2);
+        tl.from(q(".s1 .qr"), { scale: 0.3, opacity: 0, duration: 0.6, ease: "back.out(2)" }, t + 0.6);
+        tl.fromTo(q(".s1 .scan"), { top: "10%" }, { top: "85%", duration: 0.7, ease: "sine.inOut", yoyo: true, repeat: 1 }, t + 1);
+        tl.to(q(".s1 .qrbox"), { height: 0, opacity: 0, marginBottom: 0, duration: 0.5, ease: "power3.inOut" }, t + 2.4);
+        tl.from(q(".s1 .row"), { x: 40, opacity: 0, stagger: 0.12, duration: 0.5 }, t + 2.6);
+        exit(".s1", t + 4.4);
+
+        // 2 · live bill carousel
+        t = 8.3;
+        enter(".s2", t);
+        tl.from(q(".s2 .card"), { x: 260, opacity: 0, stagger: 0.09, duration: 0.9 }, t + 0.35);
+        tl.to(q(".s2 .track"), { xPercent: -18, duration: 4, ease: "none" }, t + 0.4);
+        tl.from(q(".s2 .play"), { scale: 0, duration: 0.5, ease: "back.out(3)" }, t + 1.6);
+        exit(".s2", t + 4.3);
+
+        // 3 · split with the table
+        t = 12.9;
+        enter(".s3", t);
+        tl.from(q(".s3 .phone"), { y: 180, opacity: 0, duration: 1 }, t + 0.1);
+        tl.from(q(".s3 .av"), { scale: 0, stagger: 0.1, duration: 0.5, ease: "back.out(2.5)" }, t + 0.6);
+        tl.from(q(".s3 .row"), { x: -30, opacity: 0, stagger: 0.14, duration: 0.5 }, t + 0.9);
+        tl.from(q(".s3 .side"), { scale: 0, opacity: 0, stagger: 0.08, duration: 0.4, ease: "back.out(3)" }, t + 1.1);
+        tl.from(q(".s3 .toast"), { y: 30, opacity: 0, duration: 0.5 }, t + 2.2);
+        exit(".s3", t + 4.4);
+
+        // 4 · pay in seconds
+        t = 17.6;
+        enter(".s4", t);
+        tl.from(q(".s4 .paycard"), { y: 90, opacity: 0, duration: 0.9 }, t + 0.2);
+        tl.from(q(".s4 .bub"), { x: 90, opacity: 0, stagger: 0.25, duration: 0.6 }, t + 0.5);
+        tl.from(q(".s4 .wb"), { scaleY: 0.1, stagger: { each: 0.015, from: "start" }, duration: 0.4 }, t + 0.7);
+        tl.to(q(".s4 .wb"), { opacity: 1, stagger: 0.02, duration: 0.1 }, t + 1.3);
+        tl.from(q(".s4 .ok"), { scale: 0, rotate: -90, duration: 0.6, ease: "back.out(2.5)" }, t + 2.4);
+        tl.from(q(".s4 .okt"), { opacity: 0, x: -10, duration: 0.4 }, t + 2.7);
+        exit(".s4", t + 4.4);
+
+        // 5 · waiter thanks
+        t = 22.3;
+        enter(".s5", t);
+        tl.from(q(".s5 .tipcard"), { x: 140, rotate: 6, opacity: 0, duration: 0.9 }, t + 0.2);
+        tl.from(q(".s5 .st"), { scale: 0, rotate: -120, stagger: 0.1, duration: 0.5, ease: "back.out(3)" }, t + 0.7);
+        tl.from(q(".s5 .tip"), { y: 20, opacity: 0, stagger: 0.1, duration: 0.4 }, t + 1.3);
+        tl.fromTo(q(".s5 .tip-on"), { scale: 1 }, { scale: 1.12, duration: 0.2, yoyo: true, repeat: 1, ease: "power2.out" }, t + 2);
+        tl.from(q(".s5 .heart"), { y: 0, opacity: 0, scale: 0.4, stagger: 0.15, duration: 0.6 }, t + 2.1);
+        tl.to(q(".s5 .heart"), { y: -90, opacity: 0, stagger: 0.15, duration: 1.4, ease: "power1.out" }, t + 2.5);
+        exit(".s5", t + 4.2);
+
+        // 6 · elements form the logo + tagline
+        t = 26.8;
+        tl.set(q(".s6"), { autoAlpha: 1 }, t);
+        tl.from(q(".s6 .pt"), {
+          x: () => gsap.utils.random(-520, 520), y: () => gsap.utils.random(-320, 320),
+          scale: () => gsap.utils.random(0.5, 2.2), opacity: 0, duration: 1, ease: "power3.in", stagger: 0.02,
+        }, t);
+        tl.to(q(".s6 .pt"), { scale: 0, opacity: 0, duration: 0.25 }, t + 1.15);
+        tl.fromTo(q(".s6 .ring"), { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.9, ease: "power2.out" }, t + 1.1);
+        tl.fromTo(q(".s6 .ypath"), { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.7, ease: "power2.out" }, t + 1.4);
+        tl.from(q(".s6 .w"), { yPercent: 120, opacity: 0, filter: "blur(12px)", stagger: 0.1, duration: 0.8 }, t + 1.6);
+        tl.from(q(".s6 .line"), { scaleX: 0, duration: 1.6, ease: "power2.inOut" }, t + 2.1);
+        tl.from(q(".s6 .cta"), { y: 20, opacity: 0, duration: 0.6 }, t + 2.6);
+        tl.to(q(".s6"), { autoAlpha: 0, filter: "blur(10px)", duration: 0.5, ease: "power2.in" }, t + 6.2);
+
+        io = new IntersectionObserver(([e]) => (e!.isIntersecting ? tl.play() : tl.pause()), { threshold: 0.05 });
+        io.observe(root.current!);
+      }, root);
+    })();
+    return () => { cancelled = true; io?.disconnect(); ctx?.revert(); };
+  }, []);
+
+  const split = "layer absolute inset-0 flex flex-col items-center justify-center gap-8 px-6 pb-10 lg:flex-row lg:gap-20 lg:px-16";
+
   return (
-    <section aria-label="Como a TIPE funciona" className="relative overflow-hidden bg-secondary text-secondary-foreground" onMouseEnter={() => setPaused(true)} onMouseLeave={() => setPaused(false)}>
-      <div aria-hidden key={`g${i}`} className="mv-aura pointer-events-none absolute -right-32 top-1/2 h-[520px] w-[520px] -translate-y-1/2 rounded-full bg-primary/20 blur-3xl" />
-      <div key={i} className="relative mx-auto grid min-h-[640px] max-w-7xl items-center gap-8 px-5 py-12 sm:px-6 lg:min-h-[600px] lg:grid-cols-[1fr_1fr] lg:py-16">
-        <div className="min-h-[170px] sm:min-h-[220px]"><Words words={s.words} accent={s.accent} /></div>
-        <div className="flex min-h-[340px] items-center justify-center">{s.visual()}</div>
-      </div>
-      <div className="absolute inset-x-0 bottom-5 mx-auto flex max-w-7xl gap-1.5 px-5 sm:px-6">
-        {scenes.map((sc, n) => (
-          <button key={n} aria-label={`Cena ${n + 1}`} onClick={() => setI(n)} className="h-1 flex-1 overflow-hidden rounded-full bg-secondary-foreground/15">
-            <span className={`block h-full bg-primary ${n < i ? "w-full" : n === i ? "mv-progress" : "w-0"}`} style={n === i ? { animationDuration: `${sc.ms}ms`, animationPlayState: paused ? "paused" : "running" } : undefined} />
-          </button>
-        ))}
+    <section aria-label="Como a TIPE funciona" className="relative overflow-hidden bg-mv-stage text-secondary-foreground">
+      <div aria-hidden className="pointer-events-none absolute -right-40 -top-40 h-[560px] w-[560px] rounded-full bg-primary/10 blur-3xl" />
+      <div ref={root} className="relative mx-auto h-[660px] max-w-7xl sm:h-[700px] lg:h-[min(84vh,720px)]">
+        {/* 0 */}
+        <div className="layer s0 absolute inset-0 flex flex-col items-center justify-center gap-6">
+          <Ring size={150} />
+          <p className="brand overflow-hidden font-display text-5xl font-extrabold tracking-[0.2em] sm:text-6xl">
+            {"TIPE".split("").map((c, i) => <span key={i} className="inline-block">{c}</span>)}
+          </p>
+        </div>
+
+        {/* 1 */}
+        <div className={`${split} s1`}>
+          <div className="lg:w-[48%]"><Headline lines={[[["A"], ["mesa"]], [["chama"], ["a"]], [["conta.", true]]]} /></div>
+          <Phone>
+            <p className="text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">Mesa 12 · Maré Alta</p>
+            <div className="qrbox relative mx-auto my-4 flex h-40 w-40 items-center justify-center overflow-hidden rounded-2xl bg-primary/10">
+              <QrCode className="qr h-24 w-24 text-primary" />
+              <span className="scan absolute inset-x-3 h-0.5 rounded bg-primary shadow-[0_0_12px_var(--primary)]" />
+            </div>
+            <div className="space-y-2">
+              {bill.map(([n, v]) => (
+                <div key={n} className="row flex justify-between rounded-xl bg-secondary-foreground/[0.06] px-3 py-2.5 text-xs"><span>{n}</span><span className="font-semibold">R$ {v}</span></div>
+              ))}
+              <div className="row flex justify-between px-1 pt-1 text-sm font-bold"><span>Total</span><span className="text-primary">R$ 152,90</span></div>
+            </div>
+          </Phone>
+        </div>
+
+        {/* 2 */}
+        <div className="layer s2 absolute inset-0 flex flex-col justify-center gap-10 px-6 pb-10 lg:px-16">
+          <div><Headline lines={[[["Sua"], ["conta,"]], [["ao", true], ["vivo.", true]]]} /></div>
+          <div>
+            <div className="mb-3 flex items-center justify-between text-sm font-semibold"><span>Na sua mesa agora</span><span className="text-xs opacity-50">Mesa 12</span></div>
+            <div className="track flex gap-4">
+              {cards.map(([n, p, g], i) => (
+                <div key={n} className="card w-[150px] shrink-0 rounded-2xl bg-mv-surface p-3 sm:w-[190px]">
+                  <div className="relative aspect-square rounded-xl" style={{ background: g }}>
+                    {i === 0 && <span className="play absolute bottom-2 right-2 flex h-9 w-9 items-center justify-center rounded-full bg-primary text-primary-foreground shadow-lg"><Plus className="h-5 w-5" /></span>}
+                  </div>
+                  <p className="mt-3 truncate text-sm font-semibold">{n}</p>
+                  <p className="text-xs opacity-55">{p}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* 3 */}
+        <div className={`${split} s3 lg:flex-row-reverse`}>
+          <div className="lg:w-[46%]"><Headline lines={[[["Divida"]], [["o"], ["momento.", true]]]} /></div>
+          <div className="flex items-center gap-4">
+            <Phone>
+              <p className="font-display text-base font-bold">Mesa 12</p>
+              <p className="text-[10px] opacity-50">3 pessoas pagando juntas</p>
+              <div className="mt-3 flex -space-x-2">
+                {group.map(([l]) => <span key={l} className="av flex h-9 w-9 items-center justify-center rounded-full bg-primary/25 text-sm font-bold text-primary ring-2 ring-mv-surface">{l}</span>)}
+              </div>
+              <div className="mt-4 space-y-2">
+                {group.map(([l, n, d]) => (
+                  <div key={n} className="row flex items-center gap-3 rounded-xl bg-secondary-foreground/[0.06] p-2.5">
+                    <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/20 text-xs font-bold text-primary">{l}</span>
+                    <div className="min-w-0 flex-1"><p className="text-xs font-semibold">{n}</p><p className="truncate text-[10px] opacity-55">{d}</p></div>
+                  </div>
+                ))}
+              </div>
+              <div className="toast mt-3 rounded-xl bg-secondary-foreground/[0.08] px-3 py-2 text-[11px]">Júlia entrou na mesa</div>
+              <div className="mt-3 rounded-full bg-primary py-2.5 text-center text-xs font-bold text-primary-foreground">+ Escolher meus itens</div>
+            </Phone>
+            <div className="hidden flex-col gap-3 sm:flex">
+              {[Utensils, Wine, Star, Coffee, Heart].map((I, i) => <span key={i} className="side flex h-10 w-10 items-center justify-center rounded-full bg-mv-surface text-primary"><I className="h-4 w-4" /></span>)}
+            </div>
+          </div>
+        </div>
+
+        {/* 4 */}
+        <div className="layer s4 absolute inset-0 flex flex-col justify-center gap-8 px-6 pb-10 lg:px-16">
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+            <Headline lines={[[["Pague"], ["em"]], [["segundos.", true]]]} />
+            <div className="hidden w-[340px] flex-col gap-3 sm:flex">
+              <div className="bub ml-auto flex w-[300px] items-center gap-3 rounded-2xl bg-mv-surface p-3 text-sm"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/25 text-xs font-bold text-primary">A</span><span>Paguei minha parte!</span></div>
+              <div className="bub ml-auto flex w-[280px] items-center gap-3 rounded-2xl bg-mv-surface p-3 text-sm"><span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/25 text-xs font-bold text-primary">C</span><span>Já foi também, fácil demais.</span></div>
+            </div>
+          </div>
+          <div className="paycard flex flex-col gap-5 rounded-3xl bg-mv-surface p-5 sm:flex-row sm:items-center">
+            <div className="flex h-28 w-full shrink-0 flex-col justify-end rounded-2xl p-4 sm:h-36 sm:w-44" style={{ background: "radial-gradient(circle at 25% 20%, var(--primary), transparent 80%)" }}>
+              <p className="font-display text-lg font-extrabold leading-tight">MESA 12</p>
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[11px] opacity-55">Sua parte · Moqueca ÷ 3 + Caipirinha</p>
+              <p className="font-display text-2xl font-bold">R$ 48,67</p>
+              <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold">
+                <span className="rounded-full bg-primary px-3 py-1.5 text-primary-foreground">Pix</span>
+                <span className="rounded-full bg-secondary-foreground/10 px-3 py-1.5">Apple Pay</span>
+                <span className="rounded-full bg-secondary-foreground/10 px-3 py-1.5">Google Pay</span>
+              </div>
+              <div className="mt-4 flex h-8 items-center gap-[3px]">
+                {Array.from({ length: 48 }, (_, i) => (
+                  <span key={i} className="wb w-[3px] flex-1 origin-center rounded-full bg-primary opacity-40" style={{ height: `${20 + Math.abs(Math.sin(i * 1.7)) * 80}%` }} />
+                ))}
+              </div>
+              <div className="mt-3 flex items-center gap-2">
+                <span className="ok flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground"><Check className="h-5 w-5" /></span>
+                <span className="okt text-sm font-semibold text-primary">Pagamento aprovado</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* 5 */}
+        <div className={`${split} s5`}>
+          <div className="lg:w-[48%]"><Headline lines={[[["O"], ["garçom"]], [["agradece.", true]]]} /></div>
+          <div className="tipcard relative w-[270px] rounded-3xl bg-mv-surface p-5 shadow-2xl sm:w-[320px]">
+            <p className="text-[11px] uppercase tracking-[0.2em] opacity-55">Atendido por</p>
+            <p className="font-display text-xl font-bold">Rafael</p>
+            <div className="mt-4 flex gap-1.5">{[0, 1, 2, 3, 4].map((i) => <Star key={i} className="st h-7 w-7 fill-primary text-primary" />)}</div>
+            <p className="mt-5 text-xs opacity-60">Gorjeta extra (opcional)</p>
+            <div className="mt-2 grid grid-cols-3 gap-2">
+              {["R$ 5", "R$ 10", "R$ 15"].map((v, i) => (
+                <span key={v} className={`tip ${i === 1 ? "tip-on bg-primary text-primary-foreground" : "bg-secondary-foreground/10"} rounded-xl py-2.5 text-center text-sm font-bold`}>{v}</span>
+              ))}
+            </div>
+            {[18, 50, 78].map((l, i) => <Heart key={i} className="heart absolute bottom-16 h-5 w-5 fill-primary text-primary" style={{ left: `${l}%` }} />)}
+          </div>
+        </div>
+
+        {/* 6 */}
+        <div className="layer s6 absolute inset-0 flex flex-col items-center justify-center gap-6 px-6 pb-10 text-center">
+          <div className="relative flex items-center justify-center">
+            {Array.from({ length: 22 }, (_, i) => <span key={i} className="pt absolute h-2.5 w-2.5 rounded-full bg-primary" />)}
+            <Ring size={170} />
+          </div>
+          <div>
+            <h2 className="font-display text-4xl font-extrabold leading-tight sm:text-6xl">
+              <span className="w inline-block">Pague.</span>{" "}
+              <span className="w inline-block text-primary">Sem</span>{" "}
+              <span className="w inline-block text-primary">esperar.</span>
+            </h2>
+            <div className="line mx-auto mt-5 h-[3px] w-56 origin-left rounded-full bg-gradient-to-r from-primary/30 to-primary" />
+          </div>
+          <div className="cta flex flex-wrap justify-center gap-3">
+            <a href="#lista-de-espera" className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-display font-semibold text-primary-foreground">Entrar na lista de espera <ChevronRight className="h-4 w-4" /></a>
+            <Link to="/simulador" className="inline-flex items-center rounded-full border border-secondary-foreground/25 px-6 py-3 font-display font-semibold">Simular</Link>
+          </div>
+        </div>
+
+        <div className="absolute inset-x-6 bottom-5 h-[3px] overflow-hidden rounded-full bg-secondary-foreground/10 lg:inset-x-16">
+          <div ref={bar} className="h-full origin-left scale-x-0 bg-primary" />
+        </div>
       </div>
     </section>
   );
