@@ -278,6 +278,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
               </div>
               <Button disabled={subtotal <= 0} onClick={() => setStage("payment")} className="mt-5 h-12 w-full rounded-full font-display text-base font-bold">Continuar para pagamento <ChevronRight /></Button>
             </>
+            )}
           ) : (
             <section aria-labelledby="demo-activity">
               <h2 id="demo-activity" className="mb-3 flex items-center gap-2 text-sm font-semibold"><Users className="h-4 w-4 text-primary" /> Registro dos pedidos</h2>
