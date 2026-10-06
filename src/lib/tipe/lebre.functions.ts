@@ -5,12 +5,19 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 const Question = z.string().trim().min(2).max(600);
 const Slug = z.string().min(1).max(64).regex(/^[a-z0-9-]+$/);
 
+export type LebreAction =
+  | { action: "add_table"; number: string }
+  | { action: "set_table_active"; number: string; active: boolean }
+  | { action: "add_waiter"; name: string; email?: string }
+  | { action: "invite_waiter"; name: string; email: string }
+  | { action: "set_item_available"; name: string; available: boolean };
+
 export type LebreProposal = {
   id: string;
-  action: "add_table";
+  action: LebreAction["action"];
   title: string;
   summary: string;
-  payload: { number: string };
+  payload: LebreAction;
 };
 
 export type LebreReply = { answer: string; proposal?: LebreProposal };
