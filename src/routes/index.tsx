@@ -406,11 +406,11 @@ function PdvOptions() {
     <section id="pdv" className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20">
       <SectionTitle eyebrow="PDV" title="Use o seu PDV ou contrate o nosso" text="A TIPE se adapta ao seu restaurante. Você escolhe como os pedidos chegam à mesa." />
       <div className="mt-10 grid gap-6 sm:mt-12 lg:grid-cols-2">
-        <div className="rounded-3xl border bg-card p-8 shadow-sm">
+        <div className="min-w-0 rounded-3xl border bg-card p-6 shadow-sm sm:p-8">
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-accent text-accent-foreground"><Plug className="h-7 w-7" /></div>
           <h3 className="mt-5 font-display text-2xl font-bold">Conecte seu PDV atual</h3>
            <p className="mt-2 text-muted-foreground">Já tem um sistema de caixa? Nossa equipe avalia a conexão e conduz a implantação sem prometer compatibilidade antes da homologação.</p>
-          <div className="mt-6 flex items-center gap-3">
+          <div className="mt-6 flex flex-wrap items-center gap-3">
             {["Seu PDV", "API aberta", "Implantação assistida"].map((p) => (
               <span key={p} className="rounded-xl border bg-background px-4 py-2 font-display text-sm font-bold">{p}</span>
             ))}
@@ -423,7 +423,7 @@ function PdvOptions() {
             ))}
           </ul>
         </div>
-        <div className="relative overflow-hidden rounded-3xl p-8 text-secondary-foreground shadow-xl" style={{ background: "var(--gradient-brand)" }}>
+        <div className="relative min-w-0 overflow-hidden rounded-3xl p-6 text-secondary-foreground shadow-xl sm:p-8" style={{ background: "var(--gradient-brand)" }}>
           <span className="absolute right-6 top-6 rounded-full bg-primary px-3 py-1 text-xs font-bold text-primary-foreground">Novo</span>
           <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground"><Store className="h-7 w-7" /></div>
           <h3 className="mt-5 font-display text-2xl font-bold">PDV TIPE</h3>
