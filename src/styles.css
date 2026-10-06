@@ -159,10 +159,10 @@
   }
 }
 
-/* Only the customer journey follows the device theme. :has keeps portalled
-   dialogs and the surrounding page on the same palette without JS flashes. */
+/* Scope device theme at the token root so derived theme aliases, portalled
+   dialogs and the surrounding page resolve together without JS flashes. */
 @media (prefers-color-scheme: dark) {
-  body:has(.customer-theme) {
+  :root:has(.customer-theme) {
     color-scheme: dark;
     --background: oklch(0.17 0.018 240);
     --foreground: oklch(0.96 0.005 240);
