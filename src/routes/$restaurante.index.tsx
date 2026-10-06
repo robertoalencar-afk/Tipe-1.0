@@ -41,13 +41,14 @@ function AreaRestaurante() {
     navigate({ to: "/entrar", search: { r: `/${restaurante}` }, replace: true });
   }
 
-  const r = access.data?.restaurants.find((x) => x.slug === restaurante);
-  const myRoles = access.data?.roles.filter((x) => x.restaurantId === r?.id).map((x) => x.role) ?? [];
+  const visibleRestaurant = access.data?.restaurants.find((x) => x.slug === restaurante);
+  const myRoles = access.data?.roles.filter((x) => x.restaurantId === visibleRestaurant?.id && x.role !== "founder").map((x) => x.role) ?? [];
+  const r = myRoles.length > 0 ? visibleRestaurant : undefined;
 
   return (
     <AreaShell eyebrow="Área do restaurante"
       actions={<>
-        {access.data?.isFounder && <Link to="/painel" className="px-2 text-sm underline opacity-80">Todos os restaurantes</Link>}
+        {access.data?.isFounder && <Link to="/fundador" className="px-2 text-sm underline opacity-80">Voltar ao Backoffice</Link>}
         <Button size="sm" variant="ghost" onClick={sair} className="text-secondary-foreground hover:bg-secondary-foreground/10 hover:text-secondary-foreground"><LogOut className="mr-1 h-4 w-4" />Sair</Button>
       </>}>
       <div>
@@ -60,7 +61,7 @@ function AreaRestaurante() {
             <Link to="/painel" className="mt-4 inline-block text-sm underline">Ir para meus restaurantes</Link>
           </div>
         )}
-        {r && access.data && <RestaurantPanel key={restaurante} slug={restaurante} myRoles={myRoles} isFounder={access.data.isFounder} />}
+        {r && access.data && <RestaurantPanel key={restaurante} slug={restaurante} myRoles={myRoles} isFounder={false} />}
       </div>
     </AreaShell>
   );
