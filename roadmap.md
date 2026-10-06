@@ -1,45 +1,4 @@
-# TIPE 1.0 — Roadmap
-- [x] Base visual TIPE + regras (10% serviço, gorjeta 30/70)
-- [x] Área do cliente via QR (/mesa/:restaurante/:mesa) — PDV Saipos e pagamento simulados
-- [x] Ativar Lovable Cloud e sincronizar conta da mesa em tempo real
-- [ ] Chaves reais: Saipos, Pagar.me (Pix), Stripe (cartão/Apple/Google Pay)
-- [x] Cadastro self-service (CNPJ, endereço, conta com senha forte, confirmação de e-mail), 30 dias grátis sem limite de mesas
-- [x] Primeira tela após cadastro: integração do PDV com vídeo explicativo animado
-- [ ] Cobrança recorrente Pagar.me (aguarda chave PAGARME_SECRET_KEY)
-- [x] Logomarca oficial TIPE como destaque nas etapas do cliente
-- [x] Cliente: sem divisão igual, log do pedido, seletor de quantidade
-- [x] Cliente: identificação por nome, garçom responsável e pagamentos separados (conta / gorjeta)
-- [x] Cliente: reserva de itens e pagamento pendente no estabelecimento
-- [x] Cliente: retorno à mesa sem nova identificação e atividade restrita aos pagamentos da conta
-- [x] Cliente: totem simplificado, nome completo e mascotes oficiais nas telas de espera e agradecimento
-- [x] Cliente: pagamento da conta sem cartão, opção presencial destacada e mascote na avaliação
-- [x] Cliente: manter fluxo itens → meio → pagamento, remover autor dos pedidos e detalhar pagamentos na atividade
-- [x] Cliente: divisão simples de um item por metade, 1/3 ou 1/4, com proteção contra pagamentos simultâneos
-- [x] Cliente: retorno direto à conta e tela automática de mesa encerrada após todas as confirmações
-- [x] Painel do restaurante (login, cargos, mesas em tempo real, confirmação presencial, equipe, auditoria)
-- [x] Endereço próprio do restaurante (tipe.digital/marealta), PDV simulado, QR por mesa (tipe.digital/marealta/mesa12)
-- [x] Simulador público independente em /simulador, com totem/QR, itens fixos da Mesa 12 e reinício em 2 minutos
-- [x] PDV TIPE completo (salão, lançar pedido com observação, cozinha/bar, caixa, cardápio, mesas em lote, relatórios, configurações)
-- [x] Integração com qualquer PDV (endereço + chave por restaurante, histórico de sincronização)
-- [ ] Adicionais de produto, nota fiscal (NFC-e), estoque e delivery
-- [x] Painel do garçom
-- [x] Reestruturar o painel do fundador como backoffice administrativo e financeiro da TIPE, sem acesso direto às áreas privadas dos restaurantes
-- [x] Lebre IA pública para dúvidas e autenticada no restaurante, com primeira ação segura confirmada pelo usuário
-- [x] Renovar a landing na direção fintech escolhida, com narrativa de venda, produto em destaque, um mascote principal e linguagem sem travessões
-- [x] Substituir a Lebre gerada pelo mascote oficial da TIPE, preservando exatamente seu estilo visual
-- [ ] Criar central de integrações e homologar PDVs antes de publicar números ou marcas como compatíveis
-- [x] Landing: demonstração animada da conta, escolha de itens, valor atualizado e Apple Pay; seção visual de meios de pagamento
-- [x] Landing: padronização completa de espaçamentos e adoção da Lebre profissional com tablet
-- [x] Restaurar exatamente a segunda Lebre aprovada anteriormente, sem gerar outra variação
-- [x] Usar a segunda Lebre em PNG transparente de alta qualidade, legível em fundos claros e escuros no celular e desktop
-- [x] Pagamento presencial separado em dinheiro ou maquininha, com valor entregue, troco e aviso ao restaurante
-- [x] Reposicionar a Lebre no painel mobile para não cobrir a navegação inferior
-- [x] Otimizar carregamento dos mascotes mantendo qualidade
-- [x] Simplificar os totens para os modelos Clássico e Claro, com marca, frase e restaurante obrigatórios em todos os formatos
-- [x] Testar Apple Pay (valor pago) e releitura do QR na conta real
-- [x] Melhorar diagramação apontada na captura de 14:53
+# Roadmap
 
-## Novas tarefas
-- [x] Adaptar conta e simulador ao tema do aparelho e testar as duas aparências
-- [x] Substituir o robô verde da conversa por uma lebre em traços e conferir na tela
-- [x] Aviso de cookies: fundo transparente, texto curto ("Usamos cookies para o site funcionar e, com o seu aceite, para melhorar sua experiência. Saiba mais"), botões "Não aceitar" e "Aceitar todos"
+- [x] Animação de abertura estilo Spotify com GSAP no topo da landing
+- [x] Incluir logos oficiais (redonda e logomarca) na animação, com último quadro igual ao do Spotify
