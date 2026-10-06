@@ -14,40 +14,8 @@ export const grantWaiterAccess = createServerFn({ method: "POST" })
     if (!r) throw new Error("Restaurante não encontrado");
     const { data: ok } = await context.supabase.rpc("has_restaurant_role", { _user_id: context.userId, _restaurant_id: r.id, _roles: ["owner"] });
     if (!ok) throw new Error("Somente o dono pode liberar o acesso de garçons");
-    const { enforceRate, logSecurityEvent } = await import("./security.server");
-    await enforceRate(`waiter-invite:${r.id}`, 20, 3600, data.slug);
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: w } = await supabaseAdmin.from("pdv_waiters").select("id, name, user_id, active").eq("id", data.waiterId).eq("restaurant_id", r.id).maybeSingle();
-    if (!w || !w.active) throw new Error("Garçom não encontrado ou inativo");
-
-    const { getRequestHeader } = await import("@tanstack/react-start/server");
-    const origin = /^https:\/\/([a-z0-9-]+\.)*(tipe\.digital|lovable\.app)$/.test(getRequestHeader("origin") ?? "") ? getRequestHeader("origin")! : "https://tipe.digital";
-
-    let userId: string | undefined;
-    let invited = false;
-    const inv = await supabaseAdmin.auth.admin.inviteUserByEmail(data.email, { redirectTo: `${origin}/reset-password?garcom=1`, data: { name: w.name } });
-    if (inv.data?.user) { userId = inv.data.user.id; invited = true; }
-    else {
-      for (let page = 1; page <= 10 && !userId; page++) {
-        const { data: list } = await supabaseAdmin.auth.admin.listUsers({ page, perPage: 200 });
-        userId = list?.users.find((u) => u.email?.toLowerCase() === data.email)?.id;
-        if (!list || list.users.length < 200) break;
-      }
-    }
-    if (!userId) throw new Error("Não foi possível enviar o convite para esse e-mail");
-    // Conta já existente: envia o link para definir/redefinir a senha e entrar na área do garçom.
-    if (!invited) {
-      const { error: rErr } = await supabaseAdmin.auth.resetPasswordForEmail(data.email, { redirectTo: `${origin}/reset-password?garcom=1` });
-      if (rErr) console.error("waiter reset email", rErr.message);
-    }
-    const { data: other } = await supabaseAdmin.from("pdv_waiters").select("id").eq("user_id", userId).neq("id", w.id).maybeSingle();
-    if (other) throw new Error("Esse e-mail já está ligado a outro garçom");
-
-    await supabaseAdmin.from("pdv_waiters").update({ user_id: userId, email: data.email }).eq("id", w.id);
-    await supabaseAdmin.from("staff_members").upsert({ user_id: userId, restaurant_id: r.id, display_name: w.name, email: data.email }, { onConflict: "user_id,restaurant_id" });
-    await supabaseAdmin.from("user_roles").upsert({ user_id: userId, restaurant_id: r.id, role: "waiter" }, { onConflict: "user_id,role,restaurant_id", ignoreDuplicates: true });
-    await logSecurityEvent({ action: "waiter_access_granted", resource: `pdv_waiters:${w.id}`, restaurantId: r.id, actorId: context.userId });
-    return { invited };
+    const { grantWaiterAccessCore } = await import("./waiter-access.server");
+    return grantWaiterAccessCore({ restaurantId: r.id, slug: data.slug, waiterId: data.waiterId, email: data.email, actorId: context.userId });
   });
 
 async function myWaiter(userId: string) {
