@@ -11,6 +11,8 @@ export type LegalDoc = keyof typeof LEGAL;
 
 export const PENDING = "[INFORMAÇÃO PENDENTE]";
 export const PRIVACY_EMAIL = "contato@tipe.digital";
+export const DPO = "Roberto Augusto Freitas Alencar Filho";
+export const PAYMENT_PROVIDER = "Pagar.me";
 
 export const COMPANY = {
   legalName: "Tipe Tecnologia de Integração para Pagamento Eletrônico LTDA",
