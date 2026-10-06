@@ -14,13 +14,14 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as EntrarRouteImport } from './routes/entrar'
+import { Route as FundadorRouteImport } from './routes/fundador'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SimuladorRouteImport } from './routes/simulador'
 import { Route as TermosRouteImport } from './routes/termos'
 import { Route as TermosParceirosRouteImport } from './routes/termos-parceiros'
 import { Route as RestauranteIndexRouteImport } from './routes/$restaurante.index'
 import { Route as RestauranteMesaRouteImport } from './routes/$restaurante.$mesa'
-import { Route as AuthenticatedFundadorRouteImport } from './routes/_authenticated/fundador'
+import { Route as AuthenticatedBackofficeRouteImport } from './routes/_authenticated/backoffice'
 import { Route as AuthenticatedGarcomRouteImport } from './routes/_authenticated/garcom'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as PrivacidadeIndexRouteImport } from './routes/privacidade.index'
@@ -54,6 +55,11 @@ const EntrarRoute = EntrarRouteImport.update({
   path: '/entrar',
   getParentRoute: () => rootRouteImport,
 } as any)
+const FundadorRoute = FundadorRouteImport.update({
+  id: '/fundador',
+  path: '/fundador',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
@@ -84,9 +90,9 @@ const RestauranteMesaRoute = RestauranteMesaRouteImport.update({
   path: '/$restaurante/$mesa',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedFundadorRoute = AuthenticatedFundadorRouteImport.update({
-  id: '/fundador',
-  path: '/fundador',
+const AuthenticatedBackofficeRoute = AuthenticatedBackofficeRouteImport.update({
+  id: '/backoffice',
+  path: '/backoffice',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedGarcomRoute = AuthenticatedGarcomRouteImport.update({
@@ -136,12 +142,13 @@ export interface FileRoutesByFullPath {
   '/cadastro': typeof CadastroRoute
   '/cookies': typeof CookiesRoute
   '/entrar': typeof EntrarRoute
+  '/fundador': typeof FundadorRoute
   '/reset-password': typeof ResetPasswordRoute
   '/simulador': typeof SimuladorRoute
   '/termos': typeof TermosRoute
   '/termos-parceiros': typeof TermosParceirosRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
-  '/fundador': typeof AuthenticatedFundadorRoute
+  '/backoffice': typeof AuthenticatedBackofficeRoute
   '/garcom': typeof AuthenticatedGarcomRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
@@ -157,12 +164,13 @@ export interface FileRoutesByTo {
   '/cadastro': typeof CadastroRoute
   '/cookies': typeof CookiesRoute
   '/entrar': typeof EntrarRoute
+  '/fundador': typeof FundadorRoute
   '/reset-password': typeof ResetPasswordRoute
   '/simulador': typeof SimuladorRoute
   '/termos': typeof TermosRoute
   '/termos-parceiros': typeof TermosParceirosRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
-  '/fundador': typeof AuthenticatedFundadorRoute
+  '/backoffice': typeof AuthenticatedBackofficeRoute
   '/garcom': typeof AuthenticatedGarcomRoute
   '/painel': typeof AuthenticatedPainelRoute
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
@@ -180,12 +188,13 @@ export interface FileRoutesById {
   '/cadastro': typeof CadastroRoute
   '/cookies': typeof CookiesRoute
   '/entrar': typeof EntrarRoute
+  '/fundador': typeof FundadorRoute
   '/reset-password': typeof ResetPasswordRoute
   '/simulador': typeof SimuladorRoute
   '/termos': typeof TermosRoute
   '/termos-parceiros': typeof TermosParceirosRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
-  '/_authenticated/fundador': typeof AuthenticatedFundadorRoute
+  '/_authenticated/backoffice': typeof AuthenticatedBackofficeRoute
   '/_authenticated/garcom': typeof AuthenticatedGarcomRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
@@ -203,12 +212,13 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/cookies'
     | '/entrar'
+    | '/fundador'
     | '/reset-password'
     | '/simulador'
     | '/termos'
     | '/termos-parceiros'
     | '/$restaurante/$mesa'
-    | '/fundador'
+    | '/backoffice'
     | '/garcom'
     | '/painel'
     | '/privacidade/solicitacao'
@@ -224,12 +234,13 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/cookies'
     | '/entrar'
+    | '/fundador'
     | '/reset-password'
     | '/simulador'
     | '/termos'
     | '/termos-parceiros'
     | '/$restaurante/$mesa'
-    | '/fundador'
+    | '/backoffice'
     | '/garcom'
     | '/painel'
     | '/privacidade/solicitacao'
@@ -246,12 +257,13 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/cookies'
     | '/entrar'
+    | '/fundador'
     | '/reset-password'
     | '/simulador'
     | '/termos'
     | '/termos-parceiros'
     | '/$restaurante/$mesa'
-    | '/_authenticated/fundador'
+    | '/_authenticated/backoffice'
     | '/_authenticated/garcom'
     | '/_authenticated/painel'
     | '/privacidade/solicitacao'
@@ -269,6 +281,7 @@ export interface RootRouteChildren {
   CadastroRoute: typeof CadastroRoute
   CookiesRoute: typeof CookiesRoute
   EntrarRoute: typeof EntrarRoute
+  FundadorRoute: typeof FundadorRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SimuladorRoute: typeof SimuladorRoute
   TermosRoute: typeof TermosRoute
@@ -320,6 +333,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EntrarRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/fundador': {
+      id: '/fundador'
+      path: '/fundador'
+      fullPath: '/fundador'
+      preLoaderRoute: typeof FundadorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
@@ -362,11 +382,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RestauranteMesaRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated/fundador': {
-      id: '/_authenticated/fundador'
-      path: '/fundador'
-      fullPath: '/fundador'
-      preLoaderRoute: typeof AuthenticatedFundadorRouteImport
+    '/_authenticated/backoffice': {
+      id: '/_authenticated/backoffice'
+      path: '/backoffice'
+      fullPath: '/backoffice'
+      preLoaderRoute: typeof AuthenticatedBackofficeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/garcom': {
@@ -429,13 +449,13 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedFundadorRoute: typeof AuthenticatedFundadorRoute
+  AuthenticatedBackofficeRoute: typeof AuthenticatedBackofficeRoute
   AuthenticatedGarcomRoute: typeof AuthenticatedGarcomRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedFundadorRoute: AuthenticatedFundadorRoute,
+  AuthenticatedBackofficeRoute: AuthenticatedBackofficeRoute,
   AuthenticatedGarcomRoute: AuthenticatedGarcomRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
 }
@@ -449,6 +469,7 @@ const rootRouteChildren: RootRouteChildren = {
   CadastroRoute: CadastroRoute,
   CookiesRoute: CookiesRoute,
   EntrarRoute: EntrarRoute,
+  FundadorRoute: FundadorRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SimuladorRoute: SimuladorRoute,
   TermosRoute: TermosRoute,

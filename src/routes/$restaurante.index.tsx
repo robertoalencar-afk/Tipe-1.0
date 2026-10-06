@@ -48,7 +48,7 @@ function AreaRestaurante() {
   return (
     <AreaShell eyebrow="Área do restaurante"
       actions={<>
-        {access.data?.isFounder && <Link to="/fundador" className="px-2 text-sm underline opacity-80">Voltar ao Backoffice</Link>}
+        {access.data?.isFounder && <Link to="/backoffice" className="px-2 text-sm underline opacity-80">Voltar ao Backoffice</Link>}
         <Button size="sm" variant="ghost" onClick={sair} className="text-secondary-foreground hover:bg-secondary-foreground/10 hover:text-secondary-foreground"><LogOut className="mr-1 h-4 w-4" />Sair</Button>
       </>}>
       <div>
