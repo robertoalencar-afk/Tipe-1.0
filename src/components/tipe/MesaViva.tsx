@@ -1,5 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Link } from "@tanstack/react-router";
+import wordmark from "@/assets/tipe-wordmark-light.png.asset.json";
+import roundLogo from "@/assets/tipe-logo-redondo.png.asset.json";
 import { Check, ChevronRight, QrCode, Star, Heart, Utensils, Wine, Coffee, Plus } from "lucide-react";
 
 type Word = [string, boolean?];
@@ -35,15 +37,6 @@ function Phone({ children, className = "" }: { children: React.ReactNode; classN
   );
 }
 
-function Ring({ size }: { size: number }) {
-  return (
-    <svg width={size} height={size} viewBox="0 0 100 100" className="mv-glow text-primary">
-      <circle className="ring" cx="50" cy="50" r="44" fill="none" stroke="currentColor" strokeWidth="5" pathLength={1} strokeDasharray="1" strokeDashoffset="1" />
-      <path className="ypath" d="M32 30 L50 52 L68 30 M50 52 L50 74" fill="none" stroke="currentColor" strokeWidth="7" strokeLinecap="round" strokeLinejoin="round" pathLength={1} strokeDasharray="1" strokeDashoffset="1" />
-    </svg>
-  );
-}
-
 const bill = [["Moqueca de peixe", "89,00"], ["Caipirinha x2", "38,00"], ["Água com gás", "7,90"], ["Pudim", "18,00"]];
 const cards = [
   ["Moqueca de peixe", "R$ 89,00", "radial-gradient(circle at 30% 30%, var(--primary), transparent 75%)"],
@@ -72,7 +65,6 @@ export function MesaViva() {
         gsap.set(q(".layer"), { autoAlpha: 0 });
         if (reduce) {
           gsap.set(q(".s6"), { autoAlpha: 1 });
-          gsap.set(q(".s6 .ring, .s6 .ypath"), { strokeDashoffset: 0 });
           return;
         }
         const tl = gsap.timeline({
@@ -93,10 +85,8 @@ export function MesaViva() {
 
         // 0 · logo opening
         tl.set(q(".s0"), { autoAlpha: 1 }, 0);
-        tl.fromTo(q(".s0 .ring"), { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 1.2, ease: "power2.inOut" }, 0.1);
-        tl.fromTo(q(".s0 .ypath"), { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.9, ease: "power2.inOut" }, 0.7);
-        tl.from(q(".s0 .brand span"), { yPercent: 120, opacity: 0, filter: "blur(10px)", stagger: 0.08, duration: 0.7 }, 1.1);
-        tl.to(q(".s0 svg"), { scale: 1.08, duration: 1.2, ease: "sine.inOut", yoyo: true, repeat: 1 }, 1.2);
+        tl.fromTo(q(".s0 .wm"), { clipPath: "inset(0 100% 0 0)", scale: 0.92, filter: "blur(10px)" }, { clipPath: "inset(0 0% 0 0)", scale: 1, filter: "blur(0px)", duration: 1.4, ease: "expo.inOut" }, 0.2);
+        tl.to(q(".s0 .wm"), { scale: 1.05, duration: 1.4, ease: "sine.inOut" }, 1.6);
         exit(".s0", 3.3);
 
         // 1 · scan the table
@@ -157,10 +147,10 @@ export function MesaViva() {
           scale: () => gsap.utils.random(0.5, 2.2), opacity: 0, duration: 1, ease: "power3.in", stagger: 0.02,
         }, t);
         tl.to(q(".s6 .pt"), { scale: 0, opacity: 0, duration: 0.25 }, t + 1.15);
-        tl.fromTo(q(".s6 .ring"), { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.9, ease: "power2.out" }, t + 1.1);
-        tl.fromTo(q(".s6 .ypath"), { strokeDashoffset: 1 }, { strokeDashoffset: 0, duration: 0.7, ease: "power2.out" }, t + 1.4);
+        tl.from(q(".s6 .logo"), { scale: 0, rotate: -180, opacity: 0, duration: 1, ease: "back.out(1.6)" }, t + 1.05);
         tl.from(q(".s6 .w"), { yPercent: 120, opacity: 0, filter: "blur(12px)", stagger: 0.1, duration: 0.8 }, t + 1.6);
         tl.from(q(".s6 .line"), { scaleX: 0, duration: 1.6, ease: "power2.inOut" }, t + 2.1);
+        tl.from(q(".s6 .dot"), { left: "-5px", duration: 1.6, ease: "power2.inOut" }, t + 2.1);
         tl.from(q(".s6 .cta"), { y: 20, opacity: 0, duration: 0.6 }, t + 2.6);
         tl.to(q(".s6"), { autoAlpha: 0, filter: "blur(10px)", duration: 0.5, ease: "power2.in" }, t + 6.2);
 
@@ -178,11 +168,8 @@ export function MesaViva() {
       <div aria-hidden className="pointer-events-none absolute -right-40 -top-40 h-[560px] w-[560px] rounded-full bg-primary/10 blur-3xl" />
       <div ref={root} className="relative mx-auto h-[660px] max-w-7xl sm:h-[700px] lg:h-[min(84vh,720px)]">
         {/* 0 */}
-        <div className="layer s0 absolute inset-0 flex flex-col items-center justify-center gap-6">
-          <Ring size={150} />
-          <p className="brand overflow-hidden font-display text-5xl font-extrabold tracking-[0.2em] sm:text-6xl">
-            {"TIPE".split("").map((c, i) => <span key={i} className="inline-block">{c}</span>)}
-          </p>
+        <div className="layer s0 absolute inset-0 flex items-center justify-center px-8">
+          <img src={wordmark.url} alt="TIPE" className="wm w-[min(70vw,460px)]" />
         </div>
 
         {/* 1 */}
@@ -301,22 +288,25 @@ export function MesaViva() {
         </div>
 
         {/* 6 */}
-        <div className="layer s6 absolute inset-0 flex flex-col items-center justify-center gap-6 px-6 pb-10 text-center">
+        <div className="layer s6 absolute inset-0 flex flex-col items-center justify-center gap-8 px-6 pb-10 sm:flex-row sm:gap-12">
           <div className="relative flex items-center justify-center">
             {Array.from({ length: 22 }, (_, i) => <span key={i} className="pt absolute h-2.5 w-2.5 rounded-full bg-primary" />)}
-            <Ring size={170} />
+            <img src={roundLogo.url} alt="TIPE" className="logo mv-glow h-36 w-36 sm:h-48 sm:w-48 lg:h-56 lg:w-56" />
           </div>
-          <div>
-            <h2 className="font-display text-4xl font-extrabold leading-tight sm:text-6xl">
-              <span className="w inline-block">Pague.</span>{" "}
-              <span className="w inline-block text-primary">Sem</span>{" "}
-              <span className="w inline-block text-primary">esperar.</span>
+          <div className="text-center sm:text-left">
+            <h2 className="font-display text-[2.6rem] font-extrabold leading-[1.02] tracking-tight sm:text-6xl lg:text-7xl">
+              <span className="block"><span className="w inline-block">Pague.</span></span>
+              <span className="block"><span className="w inline-block">Sem</span></span>
+              <span className="block"><span className="w inline-block text-primary">esperar.</span></span>
             </h2>
-            <div className="line mx-auto mt-5 h-[3px] w-56 origin-left rounded-full bg-gradient-to-r from-primary/30 to-primary" />
-          </div>
-          <div className="cta flex flex-wrap justify-center gap-3">
-            <a href="#lista-de-espera" className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-display font-semibold text-primary-foreground">Entrar na lista de espera <ChevronRight className="h-4 w-4" /></a>
-            <Link to="/simulador" className="inline-flex items-center rounded-full border border-secondary-foreground/25 px-6 py-3 font-display font-semibold">Simular</Link>
+            <div className="relative mt-6 h-[3px] w-full max-w-[420px] rounded-full bg-secondary-foreground/10">
+              <div className="line h-full w-[78%] origin-left rounded-full bg-primary" />
+              <span className="dot absolute top-1/2 h-2.5 w-2.5 -translate-y-1/2 rounded-full bg-secondary-foreground" style={{ left: "calc(78% - 5px)" }} />
+            </div>
+            <div className="cta mt-7 flex flex-wrap justify-center gap-3 sm:justify-start">
+              <a href="#lista-de-espera" className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-display font-semibold text-primary-foreground">Entrar na lista de espera <ChevronRight className="h-4 w-4" /></a>
+              <Link to="/simulador" className="inline-flex items-center rounded-full border border-secondary-foreground/25 px-6 py-3 font-display font-semibold">Simular</Link>
+            </div>
           </div>
         </div>
 
