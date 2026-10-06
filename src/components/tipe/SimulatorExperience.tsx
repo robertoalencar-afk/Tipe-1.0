@@ -210,26 +210,26 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
           <p className="mt-3 text-sm leading-6 text-muted-foreground">Seu nome identifica os itens que você escolher pagar nesta simulação.</p>
           <form onSubmit={identify} className="mt-8">
             <label htmlFor="demo-name" className="text-sm font-semibold">Nome e sobrenome</label>
-            <Input id="demo-name" autoFocus autoComplete="name" maxLength={40} value={name} onChange={(event) => setName(event.target.value)} placeholder="Digite seu nome e sobrenome" className="mt-2 h-12 rounded-lg bg-card px-4" />
-            <Button type="submit" disabled={!fullName(name)} className="mt-5 h-12 w-full rounded-lg text-base font-bold">Ver minha mesa <ChevronRight /></Button>
+            <Input id="demo-name" autoFocus autoComplete="name" maxLength={40} value={name} onChange={(event) => setName(event.target.value)} placeholder="Digite seu nome e sobrenome" className="mt-2 h-12 rounded-full bg-card px-5" />
+            <Button type="submit" disabled={!fullName(name)} className="mt-5 h-12 w-full rounded-full font-display text-base font-bold">Ver minha mesa <ChevronRight /></Button>
           </form>
         </main>
       )}
 
       {stage === "bill" && (
         <main className="flex flex-1 flex-col px-5 pb-8">
-          <div className="mb-4 rounded-lg border border-primary/30 bg-primary/10 px-4 py-3">
+          <div className="mb-4 rounded-2xl border border-primary/30 bg-primary/10 px-4 py-3">
             <p className="text-sm">Olá, <strong>{name.trim()}</strong>.</p>
             <p className="mt-1 text-sm text-muted-foreground">Você está sendo atendido por <strong className="text-foreground">Carlos</strong>.</p>
           </div>
-          <div className="mb-5 grid grid-cols-2 gap-1 rounded-lg bg-muted p-1">
-            <Button variant={tab === "bill" ? "outline" : "ghost"} onClick={() => setTab("bill")} className="h-10 rounded-md shadow-none"><ReceiptText /> Conta</Button>
-            <Button variant={tab === "activity" ? "outline" : "ghost"} onClick={() => setTab("activity")} className="h-10 rounded-md shadow-none"><ClipboardList /> Atividade</Button>
+          <div className="mb-5 grid grid-cols-2 gap-1 rounded-full bg-muted p-1">
+            <Button variant={tab === "bill" ? "outline" : "ghost"} onClick={() => setTab("bill")} className="h-10 rounded-full shadow-none"><ReceiptText /> Conta</Button>
+            <Button variant={tab === "activity" ? "outline" : "ghost"} onClick={() => setTab("activity")} className="h-10 rounded-full shadow-none"><ClipboardList /> Atividade</Button>
           </div>
           {tab === "bill" ? (
             <>
               {ITEMS.some((item) => available(item.id, item.qty) > 0) && (
-                <Button variant={allSelected ? "default" : "outline"} onClick={() => setQuantities(Object.fromEntries(ITEMS.map((item) => [item.id, allSelected ? 0 : available(item.id, item.qty)])))} className="mb-3 h-12 w-full rounded-lg text-base font-bold">
+                <Button variant={allSelected ? "default" : "outline"} onClick={() => setQuantities(Object.fromEntries(ITEMS.map((item) => [item.id, allSelected ? 0 : available(item.id, item.qty)])))} className="mb-3 h-12 w-full rounded-full font-display text-base font-bold">
                   <ReceiptText /> {allSelected ? "Limpar seleção" : "Pagar a conta inteira"}
                 </Button>
               )}
@@ -239,7 +239,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
                   const qty = quantities[item.id] ?? 0;
                   const max = available(item.id, item.qty);
                   return (
-                    <li key={item.id} className={`rounded-lg border bg-card p-4 transition ${qty > 0 ? "border-primary/60" : "border-border"}`}>
+                    <li key={item.id} className={`rounded-2xl border bg-card p-4 transition ${qty > 0 ? "border-2 border-primary bg-primary/5" : "border-border"}`}>
                       <div className="flex items-start justify-between gap-3">
                        <div className="min-w-0 flex-1"><p className="font-semibold">{item.name}</p><p className="mt-1 text-xs text-muted-foreground">{money(item.price)} cada · {formatPortion(max)} disponível</p></div>
                         <span className="shrink-0 text-sm font-bold">{money(item.price * qty)}</span>
@@ -261,12 +261,12 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
                   );
                 })}
               </ul>
-              <div className="mt-6 border-y border-border py-4 text-sm">
+              <div className="mt-6 rounded-2xl bg-muted/60 p-4 text-sm">
                 <Summary label="Subtotal selecionado" value={subtotal} />
                 <Summary label="Serviço do restaurante (10%)" value={service} className="mt-2" />
-                <Summary label="Total da conta" value={total} className="mt-3 border-t border-border pt-3 text-base font-bold" />
+                <Summary label="Total da conta" value={total} className="mt-3 border-t border-border pt-3 font-display text-base font-extrabold" />
               </div>
-              <Button disabled={subtotal <= 0} onClick={() => setStage("payment")} className="mt-6 h-12 w-full rounded-lg text-base font-bold">Continuar para pagamento <ChevronRight /></Button>
+              <Button disabled={subtotal <= 0} onClick={() => setStage("payment")} className="mt-5 h-12 w-full rounded-full font-display text-base font-bold">Continuar para pagamento <ChevronRight /></Button>
             </>
           ) : (
             <section aria-labelledby="demo-activity">
@@ -301,7 +301,7 @@ function PaymentScreen<M extends Method | Exclude<Method, "at_establishment">>({
   const methods = (Object.keys(METHOD_DETAILS) as Method[]).filter((item) => allowEstablishment || item !== "at_establishment") as M[];
   const cash = Number(cashReceived.replace(",", "."));
   const establishmentInvalid = method === "at_establishment" && (!establishmentMethod || (establishmentMethod === "cash" && cash < value));
-  return <main className="flex flex-1 flex-col px-5 pb-8"><Button variant="ghost" onClick={back} className="mb-4 w-fit px-2 text-muted-foreground"><ArrowLeft /> Voltar</Button><h1 className="text-2xl font-bold">{title}</h1><p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p><div className="my-6 border-y border-border py-5 text-center"><p className="text-xs text-muted-foreground">Total</p><p className="mt-1 font-display text-3xl font-bold">{money(value)}</p></div><h2 className="text-sm font-semibold">Como deseja pagar?</h2><div className="mt-3 flex flex-col gap-2">{methods.map((item) => { const detail = METHOD_DETAILS[item]; const selected = method === item; return <Button key={item} variant="outline" onClick={() => { setMethod(item); if (item !== "at_establishment") setEstablishmentMethod?.(null); }} className={`h-auto min-h-16 justify-start rounded-lg px-4 py-3 text-left shadow-none ${selected ? "border-primary bg-primary/10 ring-1 ring-primary" : "bg-card"}`}><span className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-md ${selected ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"}`}><detail.Icon className="h-4 w-4" /></span><span className="min-w-0 flex-1"><span className="block font-semibold">{detail.label}</span><span className="block text-xs font-normal text-muted-foreground">{detail.description}</span></span></Button>; })}</div>{method === "at_establishment" && allowEstablishment && setEstablishmentMethod && <div className="mt-4 rounded-lg border border-border bg-muted/40 p-4"><h3 className="text-sm font-semibold">Como você pagará?</h3><div className="mt-3 grid grid-cols-2 gap-2"><Button type="button" variant={establishmentMethod === "cash" ? "default" : "outline"} onClick={() => setEstablishmentMethod("cash")}>Dinheiro</Button><Button type="button" variant={establishmentMethod === "card_terminal" ? "default" : "outline"} onClick={() => setEstablishmentMethod("card_terminal")}>Maquininha</Button></div>{establishmentMethod === "cash" && setCashReceived && <div className="mt-4"><label htmlFor="demo-cash" className="text-sm font-semibold">Quanto você entregará?</label><Input id="demo-cash" type="number" inputMode="decimal" min={value} step="0.01" value={cashReceived} onChange={(event) => setCashReceived(event.target.value)} placeholder={money(value)} className="mt-2 h-12 bg-card" />{cash >= value && <p className="mt-2 text-sm font-semibold text-primary">Troco: {money(Math.round((cash - value) * 100) / 100)}</p>}</div>}</div>}{allowEstablishment && <div className="mt-5 flex items-start gap-3 rounded-lg border border-border bg-card p-4"><Checkbox id="demo-terms" checked={terms} onCheckedChange={(checked) => setTerms(checked === true)} className="mt-0.5 h-5 w-5" /><label htmlFor="demo-terms" className="text-xs leading-5 text-muted-foreground">Confirmo que revisei os itens selecionados e entendo que este é um pagamento simulado.</label></div>}<Button disabled={!method || !terms || establishmentInvalid} onClick={pay} className="mt-6 h-12 rounded-lg text-base font-bold">Simular pagamento de {money(value)}</Button></main>;
+  return <main className="flex flex-1 flex-col px-5 pb-8"><Button variant="ghost" onClick={back} className="mb-4 w-fit px-2 text-muted-foreground"><ArrowLeft /> Voltar</Button><h1 className="font-display text-2xl font-extrabold">{title}</h1><p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p><div className="my-6 rounded-2xl bg-muted/60 p-5 text-center"><p className="text-xs text-muted-foreground">Total</p><p className="mt-1 font-display text-3xl font-extrabold">{money(value)}</p></div><h2 className="text-sm font-semibold">Como deseja pagar?</h2><div className="mt-3 flex flex-col gap-2">{methods.map((item) => { const detail = METHOD_DETAILS[item]; const selected = method === item; return <Button key={item} variant="outline" onClick={() => { setMethod(item); if (item !== "at_establishment") setEstablishmentMethod?.(null); }} className={`h-auto min-h-16 justify-start rounded-2xl px-4 py-3.5 text-left shadow-none transition-all ${selected ? "border-2 border-primary bg-primary/10" : "bg-card"}`}><span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${selected ? "bg-secondary text-secondary-foreground" : "bg-muted text-foreground"}`}><detail.Icon className="h-4 w-4" /></span><span className="min-w-0 flex-1"><span className="block font-semibold">{detail.label}</span><span className="block text-xs font-normal text-muted-foreground">{detail.description}</span></span>{selected ? <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary" aria-hidden="true"><Check className="h-3 w-3 text-primary-foreground" /></span> : <span className="h-5 w-5 shrink-0 rounded-full border-2 border-input" aria-hidden="true" />}</Button>; })}</div>{method === "at_establishment" && allowEstablishment && setEstablishmentMethod && <div className="mt-4 rounded-2xl border border-border bg-muted/40 p-4"><h3 className="text-sm font-semibold">Como você pagará?</h3><div className="mt-3 grid grid-cols-2 gap-2"><Button type="button" variant={establishmentMethod === "cash" ? "default" : "outline"} onClick={() => setEstablishmentMethod("cash")} className="h-11 rounded-full">Dinheiro</Button><Button type="button" variant={establishmentMethod === "card_terminal" ? "default" : "outline"} onClick={() => setEstablishmentMethod("card_terminal")} className="h-11 rounded-full">Maquininha</Button></div>{establishmentMethod === "cash" && setCashReceived && <div className="mt-4"><label htmlFor="demo-cash" className="text-sm font-semibold">Quanto você entregará?</label><Input id="demo-cash" type="number" inputMode="decimal" min={value} step="0.01" value={cashReceived} onChange={(event) => setCashReceived(event.target.value)} placeholder={money(value)} className="mt-2 h-12 bg-card" />{cash >= value && <p className="mt-2 text-sm font-semibold text-primary">Troco: {money(Math.round((cash - value) * 100) / 100)}</p>}</div>}</div>}{allowEstablishment && <div className="mt-5 flex items-start gap-3 rounded-lg border border-border bg-card p-4"><Checkbox id="demo-terms" checked={terms} onCheckedChange={(checked) => setTerms(checked === true)} className="mt-0.5 h-5 w-5" /><label htmlFor="demo-terms" className="text-xs leading-5 text-muted-foreground">Confirmo que revisei os itens selecionados e entendo que este é um pagamento simulado.</label></div>}<Button disabled={!method || !terms || establishmentInvalid} onClick={pay} className="mt-6 h-12 rounded-full font-display text-base font-bold">Simular pagamento de {money(value)}</Button></main>;
 }
 
 function Centered({ children }: { children: React.ReactNode }) {
