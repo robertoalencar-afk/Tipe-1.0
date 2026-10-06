@@ -7,22 +7,13 @@ import { Button } from "@/components/ui/button";
 import { setIntegration } from "@/lib/tipe/admin.functions";
 import { finishOnboarding } from "@/lib/tipe/subscription.functions";
 
-const PDVS = [
-  { k: "saipos", l: "Saipos", menu: "Configurações → Integrações → Parceiros" },
-  { k: "totvs", l: "TOTVS Food Service", menu: "Administração → Integrações → Webhooks" },
-  { k: "consumer", l: "Consumer", menu: "Configurações → Integrações" },
-  { k: "goomer", l: "Goomer", menu: "Painel → Integrações → API" },
-  { k: "anotaai", l: "Anota AI", menu: "Configurações → Integrações" },
-  { k: "linx", l: "Linx", menu: "Configurações → Integrações externas" },
-  { k: "colibri", l: "Colibri", menu: "Retaguarda → Integrações" },
-  { k: "outro", l: "Outro PDV", menu: "a área de integrações / API do seu sistema" },
-] as const;
-type PdvKey = (typeof PDVS)[number]["k"];
+import { PDVS, pdvGeneric, type PdvInfo } from "@/lib/tipe/pdvs";
+import { Input } from "@/components/ui/input";
 
-function cenas(pdv: (typeof PDVS)[number]) {
+function cenas(pdv: PdvInfo) {
   return [
     { icon: Store, t: `Integrando ${pdv.l} com a TIPE`, d: "Em poucos minutos, as mesas e os pedidos do seu PDV aparecem na TIPE em tempo real." },
-    { icon: KeyRound, t: "1. Gere sua chave TIPE", d: "Clique em “Gerar chave de integração” aqui embaixo. Copie o endereço e a chave — a chave aparece uma única vez." },
+    { icon: KeyRound, t: "1. Gere sua chave TIPE", d: "Clique em “Gerar chave de integração” aqui embaixo. Copie o endereço e a chave. A chave aparece uma única vez." },
     { icon: Plug, t: `2. Abra o ${pdv.l}`, d: `No seu sistema, vá em ${pdv.menu} e escolha adicionar a TIPE (ou um webhook/API personalizado).` },
     { icon: Copy, t: "3. Cole os dados", d: "Cole o endereço de integração e a chave TIPE nos campos do PDV e salve. Se o PDV pedir, ative o envio de mesas e pedidos." },
     { icon: Wifi, t: "4. Lance um pedido de teste", d: "Abra uma mesa no PDV e lance um item. Ele aparece aqui na TIPE e a integração fica “Conectada”." },
@@ -30,7 +21,7 @@ function cenas(pdv: (typeof PDVS)[number]) {
   ];
 }
 
-function VideoExplicativo({ pdv }: { pdv: (typeof PDVS)[number] }) {
+function VideoExplicativo({ pdv }: { pdv: PdvInfo }) {
   const lista = cenas(pdv);
   const DUR = 5000;
   const [i, setI] = useState(0);
@@ -75,23 +66,23 @@ export function OnboardingPdv({ slug, nome, onDone }: { slug: string; nome: stri
   const set = useServerFn(setIntegration);
   const finish = useServerFn(finishOnboarding);
   const qc = useQueryClient();
-  const [pdv, setPdv] = useState<PdvKey | null>(null);
+  const [pdv, setPdv] = useState<string | null>(null);
+  const [outroNome, setOutroNome] = useState("");
   const [chave, setChave] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const endpoint = `https://tipe.digital/api/public/pos/${slug}`;
-  const sel = PDVS.find((p) => p.k === pdv);
+  const sel = pdv === "outro" ? (outroNome.trim().length >= 2 ? pdvGeneric(outroNome.trim()) : null) : PDVS.find((p) => p.k === pdv);
   const copiar = (v: string) => { void navigator.clipboard.writeText(v); toast.success("Copiado"); };
 
   async function gerar() {
-    if (!pdv) return;
+    if (!sel) return;
     setBusy(true);
-    try { const r = await set({ data: { slug, provider: pdv, newKey: true } }); setChave(r.key); toast.success("Chave gerada"); }
+    try { const r = await set({ data: { slug, provider: sel!.k, newKey: true } }); setChave(r.key); toast.success("Chave gerada"); }
     catch (e) { toast.error((e as Error).message); } finally { setBusy(false); }
   }
-  async function concluir(usarTipe = false) {
+  async function concluir() {
     setBusy(true);
     try {
-      if (usarTipe) await set({ data: { slug, provider: "tipe", newKey: false } });
       await finish({ data: { slug } });
       qc.invalidateQueries({ queryKey: ["ops", slug] });
       onDone();
@@ -103,13 +94,20 @@ export function OnboardingPdv({ slug, nome, onDone }: { slug: string; nome: stri
       <div>
         <p className="text-sm font-semibold text-primary">Bem-vindo à TIPE, {nome}!</p>
         <h1 className="font-display text-2xl font-extrabold sm:text-3xl">Vamos conectar o seu PDV</h1>
-        <p className="mt-1 text-muted-foreground">A TIPE recebe as mesas e os pedidos do sistema que você já usa. Qual PDV o restaurante usa hoje?</p>
+        <p className="mt-1 text-muted-foreground">A TIPE funciona junto com o sistema que você já usa: as mesas e os pedidos chegam do seu PDV e os pagamentos voltam para ele. Essa conexão é obrigatória para começar. Qual PDV o restaurante usa hoje?</p>
       </div>
       <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-        {PDVS.map((p) => (
+        {[...PDVS, { k: "outro", l: "Outro PDV", menu: "" }].map((p) => (
           <button key={p.k} type="button" onClick={() => { setPdv(p.k); setChave(null); }} className={`rounded-xl border-2 p-3 text-left text-sm font-semibold transition ${pdv === p.k ? "border-primary bg-primary/10" : "border-border bg-card hover:border-primary/50"}`}>{p.l}</button>
         ))}
       </div>
+      {pdv === "outro" && (
+        <div className="rounded-2xl border border-border bg-card p-4">
+          <label className="text-sm font-semibold" htmlFor="outro-pdv">Qual é o nome do seu PDV?</label>
+          <Input id="outro-pdv" className="mt-2" maxLength={40} placeholder="Ex.: Sistema do Zé" value={outroNome} onChange={(e) => { setOutroNome(e.target.value); setChave(null); }} />
+          <p className="mt-2 text-xs text-muted-foreground">Aceitamos qualquer PDV do mercado. Se ele tiver API ou webhook, a conexão é feita pela chave abaixo, e nossa equipe ajuda se precisar.</p>
+        </div>
+      )}
       {sel && (
         <>
           <VideoExplicativo pdv={sel} />
@@ -133,7 +131,7 @@ export function OnboardingPdv({ slug, nome, onDone }: { slug: string; nome: stri
           </div>
         </>
       )}
-      <button type="button" onClick={() => concluir(true)} disabled={busy} className="block w-full text-center text-sm text-muted-foreground underline">Não uso PDV — quero usar o PDV TIPE</button>
+      <p className="text-center text-sm text-muted-foreground">Não encontrou o seu sistema ou precisa de ajuda? Fale com a gente em <a className="underline" href="mailto:contato@tipe.digital">contato@tipe.digital</a> que fazemos a conexão junto com você.</p>
     </div>
   );
 }
