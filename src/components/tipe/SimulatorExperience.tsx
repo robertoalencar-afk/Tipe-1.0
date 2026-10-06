@@ -90,11 +90,14 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
     const current = readState();
     setDemo(current);
     const savedName = window.localStorage.getItem(NAME_KEY)?.trim() ?? "";
+    const hasPending = !current.closedAt && current.payments.some((payment) => payment.status === "pending");
     if (enterDirectly && fullName(savedName)) {
       setName(savedName);
-      setStage(current.closedAt ? "closed" : "bill");
+      setStage(current.closedAt ? "closed" : hasPending ? "pending" : "bill");
     } else if (current.closedAt) {
       setStage("closed");
+    } else if (hasPending) {
+      setStage("pending");
     }
   }, [enterDirectly]);
 
