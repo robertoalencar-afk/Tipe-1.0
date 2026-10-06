@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { CheckCircle2, ShieldCheck, Zap } from "lucide-react";
 
 export const Route = createFileRoute("/entrar")({
-  validateSearch: z.object({ r: z.string().regex(/^\/[a-z0-9-]+$/).optional().catch(undefined) }),
+  validateSearch: z.object({ r: z.string().regex(/^\/[a-z0-9-]+$/).optional().catch(undefined), next: z.string().regex(/^\/\.lovable\/oauth\/consent\?[\w=&%.-]*$/).optional().catch(undefined) }),
   head: () => ({
     meta: [
       { title: "Entrar — Área do restaurante TIPE" },
@@ -31,9 +31,10 @@ type Modo = "entrar" | "criar" | "esqueci";
 
 function Entrar() {
   const navigate = useNavigate();
-  const { r } = Route.useSearch();
+  const { r, next } = Route.useSearch();
   const fetchAccess = useServerFn(getMyAccess);
   const destino = async () => {
+    if (next) { window.location.href = next; return; }
     if (r) return navigate({ to: "/$restaurante", params: { restaurante: r.slice(1) } });
     try {
       const a = await fetchAccess();
@@ -52,7 +53,7 @@ function Entrar() {
     supabase.auth.getSession().then(({ data }) => { if (data.session) destino(); });
     const { data } = supabase.auth.onAuthStateChange((e, s) => { if (e === "SIGNED_IN" && s) destino(); });
     return () => data.subscription.unsubscribe();
-  }, [navigate, r]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [navigate, r, next]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
@@ -62,7 +63,7 @@ function Entrar() {
         const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
         if (error) throw new Error("E-mail ou senha incorretos");
       } else if (modo === "criar") {
-        const { error } = await supabase.auth.signUp({ email, password: senha, options: { emailRedirectTo: `${window.location.origin}${r ?? "/painel"}` } });
+        const { error } = await supabase.auth.signUp({ email, password: senha, options: { emailRedirectTo: `${window.location.origin}${next ?? r ?? "/painel"}` } });
         if (error) throw new Error(error.message.includes("pwned") || error.message.toLowerCase().includes("weak") ? "Essa senha é fraca ou já vazou. Escolha outra." : "Não foi possível criar a conta");
         toast.success("Conta criada! Confirme pelo link enviado ao seu e-mail.");
         setModo("entrar");
@@ -80,7 +81,7 @@ function Entrar() {
   }
 
   async function google() {
-    const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/entrar${r ? `?r=${encodeURIComponent(r)}` : ""}` });
+    const res = await lovable.auth.signInWithOAuth("google", { redirect_uri: `${window.location.origin}/entrar${next ? `?next=${encodeURIComponent(next)}` : r ? `?r=${encodeURIComponent(r)}` : ""}` });
     if (res.error) toast.error("Não foi possível entrar com Google");
   }
 
