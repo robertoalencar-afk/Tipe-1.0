@@ -58,6 +58,9 @@ export const createPayment = createServerFn({ method: "POST" })
     let amount = 0;
     let itemQuantities: Record<string, number> = {};
     if (data.target === "restaurant") {
+      const { data: rest } = await supabaseAdmin.from("restaurants").select("bill_payment_methods").eq("slug", data.restaurantId).maybeSingle();
+      const allowed = (rest as { bill_payment_methods?: string[] } | null)?.bill_payment_methods ?? ["pix", "apple_pay", "google_pay", "at_establishment"];
+      if (!allowed.includes(data.method)) throw new Error("Este meio de pagamento não é aceito por este restaurante.");
       const { data: billItems, error } = await supabaseAdmin
         .from("table_bill_items")
         .select("item_code, unit_price, ordered_quantity, reserved_portion, paid_portion")

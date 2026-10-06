@@ -110,6 +110,7 @@ function MesaPage() {
   const { restaurante, mesa: codigoMesa } = Route.useParams();
   const { t: tokenMesa } = Route.useSearch();
   type ItemMesa = { id: string; nome: string; qtd: number; preco: number; data: string; hora: string };
+  const [metodosAceitos, setMetodosAceitos] = useState<Metodo[] | null>(null);
   const [dados, setDados] = useState<{ restaurante: string; mesa: string; garcom: string; itens: ItemMesa[] }>({ restaurante: "", mesa: "", garcom: "", itens: [] });
   const [erroMesa, setErroMesa] = useState<string | null>(null);
   const [etapa, setEtapa] = useState<Etapa>("carregando");
@@ -163,6 +164,7 @@ function MesaPage() {
         const d = new Date(i.ordered_at);
         return { id: i.item_code, nome: i.item_name, qtd: i.ordered_quantity, preco: i.unit_price, data: d.toLocaleDateString("pt-BR"), hora: d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) };
       });
+      setMetodosAceitos(estado.billMethods as Metodo[]);
       setDados({ restaurante: estado.restaurantName, mesa: estado.tableNumber, garcom: estado.waiterName, itens: itensMesa });
       setDisponiveis(Object.fromEntries(estado.items.map((item) => [item.item_code, roundPortion(Math.max(0, item.ordered_quantity - item.reserved_portion - item.paid_portion))])));
       setPagamentos(estado.payments);
@@ -488,6 +490,7 @@ function MesaPage() {
           voltar={() => setEtapa("conta")}
           pagar={() => processarPagamento("conta")}
            permitirEstabelecimento
+          metodosAceitos={metodosAceitos ?? undefined}
           metodoEstabelecimento={metodoEstabelecimento}
           setMetodoEstabelecimento={setMetodoEstabelecimento}
           valorDinheiro={valorDinheiro}
@@ -619,7 +622,7 @@ function ResumoLinha({ label, valor, className = "" }: { label: string; valor: n
   return <div className={`flex justify-between gap-4 ${className}`}><span className="text-muted-foreground">{label}</span><span>{money(valor)}</span></div>;
 }
 
-function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, pagando, erro, voltar, pagar, permitirEstabelecimento = false, metodoEstabelecimento, setMetodoEstabelecimento, valorDinheiro = "", setValorDinheiro, cartao, setCartao }: {
+function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, pagando, erro, voltar, pagar, permitirEstabelecimento = false, metodosAceitos, metodoEstabelecimento, setMetodoEstabelecimento, valorDinheiro = "", setValorDinheiro, cartao, setCartao }: {
   cartao?: CardInput | undefined;
   setCartao?: (c: CardInput) => void;
   titulo: string;
@@ -633,6 +636,7 @@ function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, p
   voltar: () => void;
   pagar: () => void;
   permitirEstabelecimento?: boolean;
+  metodosAceitos?: Metodo[] | undefined;
   metodoEstabelecimento?: MetodoEstabelecimento | null;
   setMetodoEstabelecimento?: (metodo: MetodoEstabelecimento | null) => void;
   valorDinheiro?: string;
@@ -640,7 +644,7 @@ function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, p
 }) {
   const [aceitouTermos, setAceitouTermos] = useState(false);
   const opcoes = permitirEstabelecimento
-    ? metodos.filter((opcao) => opcao.id !== "card")
+    ? metodos.filter((opcao) => opcao.id !== "card" && (!metodosAceitos || metodosAceitos.includes(opcao.id)))
     : metodos.filter((opcao) => opcao.id !== "at_establishment");
   return (
     <main className="flex flex-1 flex-col px-5 pb-8">
