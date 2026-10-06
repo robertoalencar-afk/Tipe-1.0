@@ -271,7 +271,7 @@ export function Integracoes({ slug, podeDono }: { slug: string; podeDono: boolea
     try {
       const res = await set({ data: { slug, provider: provider as any, newKey } });
       setChave(res.key);
-      toast.success(provider === "tipe" ? "Usando o PDV TIPE" : "Integração salva");
+      toast.success("Integração salva");
       qc.invalidateQueries({ queryKey: ["ops", slug] }); qc.invalidateQueries({ queryKey: ["access"] });
     } catch (e) { toast.error((e as Error).message); }
   }

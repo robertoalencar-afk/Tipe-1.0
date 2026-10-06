@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { CalendarClock, HandCoins, LogOut, ReceiptText, Utensils, Wallet } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { TipeLogo } from "@/components/tipe/Logo";
+import { AreaShell } from "@/components/tipe/AreaShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getWaiterDashboard, requestWithdrawal, saveWaiterPix } from "@/lib/tipe/waiter.functions";
@@ -58,22 +58,14 @@ function AreaGarcom() {
 
   const d = q.data;
   return (
-    <div className="min-h-screen bg-background">
-      <header className="flex items-center justify-between bg-secondary px-4 py-3 text-secondary-foreground">
-        <TipeLogo className="h-9" />
-        <Button size="sm" variant="ghost" onClick={sair} className="text-secondary-foreground"><LogOut className="mr-1 h-4 w-4" />Sair</Button>
-      </header>
-      <main className="mx-auto max-w-3xl space-y-4 p-4">
+    <AreaShell wide={false} eyebrow="Área do garçom" title={d ? `Olá, ${d.waiter.name.split(" ")[0]}!` : "Área do garçom"} subtitle={d ? `${d.waiter.restaurant} · código ${d.waiter.code}` : undefined}
+      actions={<Button size="sm" variant="ghost" onClick={sair} className="text-secondary-foreground hover:bg-secondary-foreground/10 hover:text-secondary-foreground"><LogOut className="mr-1 h-4 w-4" />Sair</Button>}>
+      <div className="space-y-4">
         {q.isLoading && <p className="text-muted-foreground">Carregando…</p>}
         {q.error && <p className="rounded-2xl border border-border bg-card p-5 text-sm">{(q.error as Error).message}</p>}
         {d && (
           <>
-            <div>
-              <p className="text-sm text-muted-foreground">{d.waiter.restaurant} · {d.waiter.code}</p>
-              <h1 className="font-display text-2xl font-bold">Olá, {d.waiter.name.split(" ")[0]}!</h1>
-            </div>
-
-            <div className="rounded-2xl bg-secondary p-5 text-secondary-foreground">
+            <div className="rounded-3xl p-6 text-secondary-foreground shadow-xl" style={{ background: "var(--gradient-brand)" }}>
               <p className="text-sm text-secondary-foreground/70">Disponível para saque</p>
               <p className="font-display text-3xl font-extrabold">{brl(d.balance.available)}</p>
               <p className="mt-1 text-xs text-secondary-foreground/70">Nesta quinzena: {brl(d.balance.currentCycle)} · libera em {proximoPagamento().toLocaleDateString("pt-BR")}</p>
@@ -92,7 +84,7 @@ function AreaGarcom() {
                   <Kpi icon={ReceiptText} label="Mesas hoje" value={String(d.today.tables)} sub="atendidas" />
                   <Kpi icon={Wallet} label="Já recebido" value={brl(d.balance.withdrawn)} sub="em saques pagos" />
                 </div>
-                <section className="rounded-2xl border border-border bg-card p-4">
+                <section className="rounded-3xl border border-border bg-card p-5 shadow-sm">
                   <h2 className="font-display font-bold">Gorjetas extras — últimos 14 dias</h2>
                   <div className="mt-3 h-56">
                     <ResponsiveContainer width="100%" height="100%">
@@ -106,7 +98,7 @@ function AreaGarcom() {
                     </ResponsiveContainer>
                   </div>
                 </section>
-                <section className="rounded-2xl border border-border bg-card p-4">
+                <section className="rounded-3xl border border-border bg-card p-5 shadow-sm">
                   <h2 className="font-display font-bold">Últimas gorjetas</h2>
                   {d.tips.length === 0 ? <p className="mt-2 text-sm text-muted-foreground">Nenhuma gorjeta extra nos últimos 30 dias.</p> : (
                     <ul className="mt-2 divide-y divide-border text-sm">
@@ -122,7 +114,7 @@ function AreaGarcom() {
 
             {aba === "saque" && (
               <>
-                <section className="rounded-2xl border border-border bg-card p-4">
+                <section className="rounded-3xl border border-border bg-card p-5 shadow-sm">
                   <h2 className="flex items-center gap-2 font-display font-bold"><CalendarClock className="h-5 w-5 text-primary" />Como funciona</h2>
                   <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
                     <li>• As gorjetas são somadas por quinzena: do dia 1 ao 15 e do dia 16 ao fim do mês.</li>
@@ -137,7 +129,7 @@ function AreaGarcom() {
                   }}>{d.pix ? `Sacar ${brl(d.balance.available)}` : "Cadastre sua chave Pix para sacar"}</Button>
                 </section>
                 <ChavePix atual={d.pix} />
-                <section className="rounded-2xl border border-border bg-card p-4">
+                <section className="rounded-3xl border border-border bg-card p-5 shadow-sm">
                   <h2 className="font-display font-bold">Histórico de saques</h2>
                   {d.withdrawals.length === 0 ? <p className="mt-2 text-sm text-muted-foreground">Nenhum saque ainda.</p> : (
                     <ul className="mt-2 divide-y divide-border text-sm">
@@ -154,14 +146,14 @@ function AreaGarcom() {
             )}
           </>
         )}
-      </main>
-    </div>
+      </div>
+    </AreaShell>
   );
 }
 
 function Kpi({ icon: Icon, label, value, sub }: { icon: typeof Wallet; label: string; value: string; sub: string }) {
   return (
-    <div className="rounded-2xl border border-border bg-card p-3">
+    <div className="rounded-2xl border border-border bg-card p-4 shadow-sm">
       <Icon className="h-4 w-4 text-primary" />
       <p className="mt-2 text-xs text-muted-foreground">{label}</p>
       <p className="font-display text-lg font-bold">{value}</p>

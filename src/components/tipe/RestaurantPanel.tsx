@@ -160,9 +160,9 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
 
   return (
     <div className="pb-20 lg:grid lg:grid-cols-[220px_1fr] lg:gap-6 lg:pb-0">
-      <nav className="hidden h-fit space-y-1 rounded-2xl border border-border bg-card p-2 lg:sticky lg:top-4 lg:block print:hidden">
+      <nav className="hidden h-fit space-y-1 rounded-3xl border border-border bg-card p-2 shadow-sm lg:sticky lg:top-4 lg:block print:hidden">
         {visiveis.map(({ k, l, i: Icon }) => (
-          <button key={k} onClick={() => setAba(k)} className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm ${aba === k ? "bg-primary text-primary-foreground" : "hover:bg-muted"}`}>
+          <button key={k} onClick={() => setAba(k)} className={`flex w-full items-center gap-2 rounded-xl px-3 py-2 text-left text-sm ${aba === k ? "bg-primary font-semibold text-primary-foreground shadow-[var(--shadow-glow)]" : "hover:bg-muted"}`}>
             <Icon className="h-4 w-4" />{l}
             {k === "caixa" && pendentes.length > 0 && <span className="ml-auto rounded-full bg-accent px-1.5 text-xs text-accent-foreground">{pendentes.length}</span>}
           </button>
@@ -176,9 +176,13 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
         ))}
       </nav>
       <div className="min-w-0">
-        <div className="mb-4 flex flex-wrap items-baseline justify-between gap-2 print:hidden">
-          <h1 className="font-display text-2xl font-bold">{d.restaurant.name} <span className="text-base font-normal text-muted-foreground">· {visiveis.find((x) => x.k === aba)?.l}</span></h1>
-          <span className="text-sm text-muted-foreground">{pdvLabel}</span>
+        <div className="relative mb-6 overflow-hidden rounded-3xl p-6 text-secondary-foreground shadow-xl print:hidden" style={{ background: "var(--gradient-brand)" }}>
+          <div className="pointer-events-none absolute -right-16 -top-16 h-48 w-48 rounded-full bg-primary/25 blur-3xl" />
+          <p className="relative font-display text-xs font-bold uppercase tracking-[0.2em] text-primary">{visiveis.find((x) => x.k === aba)?.l}</p>
+          <div className="relative mt-1 flex flex-wrap items-end justify-between gap-3">
+            <h1 className="font-display text-2xl font-extrabold sm:text-3xl">{d.restaurant.name}</h1>
+            <span className="rounded-full bg-secondary-foreground/10 px-3 py-1 text-xs font-semibold">{pdvLabel}</span>
+          </div>
         </div>
 
         {aba === "inicio" && <Inicio slug={slug} mesasAbertas={abertas.length} emAberto={abertas.reduce((s, m) => s + m.total - m.pago, 0)} pendentes={pendentes.length} onGo={setAba} />}
