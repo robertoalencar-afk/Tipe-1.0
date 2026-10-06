@@ -1,6 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { createClient } from "@supabase/supabase-js";
 
 const leadSchema = z.object({
   restaurantName: z.string().trim().min(2).max(120),
@@ -17,21 +16,20 @@ export const submitLead = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { enforceRate, clientIp } = await import("./security.server");
     await enforceRate(`lead:${clientIp()}`, 5, 600);
-    // Cliente público somente leitura/gravação via RLS: apenas insere o contato.
-    const db = createClient(
-      process.env['VITE_SUPABASE_URL']!,
-      process.env['VITE_SUPABASE_PUBLISHABLE_KEY']!,
-      { auth: { persistSession: false } },
-    );
+    // Entrada já validada e limitada por IP acima; gravação apenas nesta tabela.
+    const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
 
     const { error } = await db.from("restaurant_leads").insert({
       restaurant_name: data.restaurantName,
       contact_name: data.contactName,
       email: data.email,
-      phone: data.phone || null,
+      phone: data.phone ? data.phone.slice(0, 30) : null,
       message: `Mesas: ${data.tables} · PDV: ${data.pdv}${data.message ? ` · ${data.message}` : ""}`,
     });
 
-    if (error) throw new Error("Falha ao registrar o contato");
+    if (error) {
+      console.error("lead_insert", error.message);
+      throw new Error("Falha ao registrar o contato");
+    }
     return { ok: true as const };
   });
