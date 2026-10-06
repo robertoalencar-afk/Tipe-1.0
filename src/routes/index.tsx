@@ -23,12 +23,12 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Plataforma TIPE: o cliente paga a conta pelo QR Code da mesa e o restaurante acompanha tudo em tempo real. Funciona com o PDV que você já usa. Lançamento em breve.",
+          "Plataforma TIPE: o cliente paga a conta pelo QR Code da mesa e o restaurante acompanha tudo em tempo real. Funciona com o PDV que você já usa. Entre na lista de espera para o lançamento.",
       },
       { property: "og:title", content: "TIPE | Pague. Sem esperar." },
       {
         property: "og:description",
-        content: "Pagamento na mesa por QR Code, gorjeta extra para o garçom, painel em tempo real e integração com o seu PDV. Lançamento em breve.",
+        content: "Pagamento na mesa por QR Code, gorjeta extra para o garçom, painel em tempo real e integração com o seu PDV. Entre na lista de espera para o lançamento.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://tipe.digital/" },
@@ -73,7 +73,7 @@ function Header() {
           ))}
           <span className="hidden rounded-full px-3 py-2 font-semibold text-muted-foreground sm:block sm:px-4">Entrar · em breve</span>
           <Link to="/simulador" className="hidden rounded-full border px-4 py-2 font-semibold text-foreground sm:block">Simular</Link>
-          <span className="rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground">Em breve</span>
+          <a href="#lista-de-espera" className="rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5">Lista de espera</a>
         </nav>
       </div>
     </header>
@@ -93,8 +93,8 @@ function Hero() {
             A conta chega ao celular do cliente pelo QR Code da mesa. Ele confere, escolhe o que vai pagar e resolve tudo sem interromper o atendimento.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <a href="#fale-conosco" className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-display font-semibold text-primary-foreground shadow-lg transition-transform hover:-translate-y-0.5">
-              Em breve · quero saber mais <ChevronRight className="h-4 w-4" />
+            <a href="#lista-de-espera" className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-display font-semibold text-primary-foreground shadow-lg transition-transform hover:-translate-y-0.5">
+              Entrar na lista de espera <ChevronRight className="h-4 w-4" />
             </a>
             <Link to="/simulador" className="inline-flex items-center gap-2 rounded-full border border-current/25 px-6 py-3 font-display font-semibold transition-colors hover:bg-primary/10">
               Simular experiência
@@ -271,8 +271,8 @@ function Dinamica() {
            A conta chega no celular antes de o cliente pedir. O garçom não vive em idas e voltas com a maquininha.
           Quem coloca a nova tecnologia primeiro nas mesas gira mais salão.
         </p>
-        <a href="#fale-conosco" className="mt-6 inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-primary px-5 py-3 font-display text-sm font-semibold text-primary-foreground shadow-lg transition-transform hover:-translate-y-0.5 sm:px-6 sm:text-base">
-          Colocar a TIPE nas minhas mesas <ChevronRight className="h-4 w-4" />
+        <a href="#lista-de-espera" className="mt-6 inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-primary px-5 py-3 font-display text-sm font-semibold text-primary-foreground shadow-lg transition-transform hover:-translate-y-0.5 sm:px-6 sm:text-base">
+          Entrar na lista de espera <ChevronRight className="h-4 w-4" />
         </a>
       </div>
     </section>
@@ -475,7 +475,7 @@ function Pricing() {
   return (
     <section id="planos" className="bg-muted/50 py-12 sm:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <SectionTitle eyebrow="Planos" title="Assinatura mensal, simples como streaming" text="Lançamento em breve. Os planos serão por número de mesas." />
+        <SectionTitle eyebrow="Planos" title="Assinatura mensal, simples como streaming" text="Quem entra na lista de espera começa primeiro. Os planos serão por número de mesas." />
         <div className="mt-10 grid gap-6 sm:mt-12 md:grid-cols-2 xl:grid-cols-4">
           {plans.map((p) => (
             <div key={p.name} className={`relative flex flex-col rounded-3xl border p-7 ${p.popular ? "border-primary bg-secondary text-secondary-foreground shadow-2xl xl:-translate-y-4" : "bg-card shadow-sm"}`}>
@@ -489,7 +489,7 @@ function Pricing() {
               <ul className="mt-6 flex-1 space-y-2.5 text-sm">
                 {p.features.map((f) => <li key={f} className="flex gap-2"><Check className="h-4 w-4 shrink-0 text-primary" />{f}</li>)}
               </ul>
-              <a href="#fale-conosco" className={`mt-8 rounded-full py-3 text-center font-display font-semibold transition-transform hover:-translate-y-0.5 ${p.popular ? "bg-primary text-primary-foreground" : "border border-border hover:bg-muted"}`}>Quero ser avisado</a>
+              <a href="#lista-de-espera" className={`mt-8 rounded-full py-3 text-center font-display font-semibold transition-transform hover:-translate-y-0.5 ${p.popular ? "bg-primary text-primary-foreground" : "border border-border hover:bg-muted"}`}>Entrar na lista de espera</a>
             </div>
           ))}
         </div>
@@ -579,7 +579,7 @@ function ContactSection() {
         },
       });
       setSent(true);
-      toast.success("Recebemos o seu contato!", { description: "A equipe TIPE responde em até 1 dia útil." });
+      toast.success("Você entrou na lista de espera!", { description: "A equipe TIPE vai falar com você antes do lançamento." });
     } catch {
       setError("Não foi possível enviar agora. Tente de novo em instantes.");
     } finally {
@@ -589,14 +589,14 @@ function ContactSection() {
 
   const input = "w-full rounded-xl border bg-background px-4 py-3 text-sm text-foreground outline-none focus:border-primary focus:ring-2 focus:ring-primary/30";
   return (
-    <section id="fale-conosco" className="px-4 pb-16 sm:px-6 sm:pb-20">
+    <section id="lista-de-espera" className="scroll-mt-20 px-4 pb-16 sm:px-6 sm:pb-20">
       <div className="relative mx-auto grid max-w-6xl gap-10 overflow-hidden rounded-[2rem] p-8 text-secondary-foreground shadow-2xl sm:p-12 lg:grid-cols-2" style={{ background: "var(--gradient-brand)" }}>
         <div aria-hidden className="absolute -left-20 -top-20 h-72 w-72 rounded-full bg-primary/25 blur-3xl" />
         <div className="relative">
-          <h2 className="font-display text-3xl font-extrabold sm:text-4xl">Leve a TIPE para o seu restaurante</h2>
-          <p className="mt-4 opacity-85">Conte um pouco sobre o seu salão. Nossa equipe apresenta a plataforma, indica o plano ideal e ajuda na integração com o seu PDV.</p>
+          <h2 className="font-display text-3xl font-extrabold sm:text-4xl">Entre na lista de espera</h2>
+          <p className="mt-4 opacity-85">Reserve o lugar do seu restaurante para o lançamento. Quem está na lista recebe a demonstração primeiro e começa a usar a TIPE antes de todo mundo.</p>
           <ul className="mt-6 space-y-2 text-sm">
-            {["Demonstração gratuita", "Resposta em até 1 dia útil", "Implantação acompanhada"].map((t) => (
+            {["Vagas na ordem de chegada", "Demonstração gratuita", "Implantação acompanhada"].map((t) => (
               <li key={t} className="flex gap-2"><CheckCircle2 className="h-4 w-4 text-primary" />{t}</li>
             ))}
           </ul>
@@ -605,8 +605,8 @@ function ContactSection() {
           {sent ? (
             <div className="flex h-full flex-col items-center justify-center py-10 text-center">
               <CheckCircle2 className="h-12 w-12 text-primary" />
-              <p className="mt-4 font-display text-xl font-bold">Contato recebido!</p>
-              <p className="mt-2 text-sm text-muted-foreground">Em breve a equipe TIPE fala com você.</p>
+              <p className="mt-4 font-display text-xl font-bold">Você está na lista!</p>
+              <p className="mt-2 text-sm text-muted-foreground">A equipe TIPE vai falar com você antes do lançamento.</p>
             </div>
           ) : (
             <form onSubmit={submit} className="space-y-3">
@@ -616,12 +616,12 @@ function ContactSection() {
                 <input required type="email" maxLength={255} placeholder="E-mail" className={input} value={form.email} onChange={set("email")} />
                 <input maxLength={30} placeholder="WhatsApp (opcional)" className={input} value={form.phone} onChange={set("phone")} />
               </div>
-              <textarea maxLength={1000} rows={3} placeholder="Quantas mesas? Já usa algum PDV?" className={input} value={form.message} onChange={set("message")} />
+              <textarea maxLength={1000} rows={3} placeholder="Quantas mesas? Já usa algum PDV? (opcional)" className={input} value={form.message} onChange={set("message")} />
               {error && <p className="text-sm text-destructive">{error}</p>}
               <Button disabled={sending} className="h-11 w-full rounded-full font-display font-semibold">
-                {sending ? "Enviando..." : "Quero conhecer a TIPE"}
+                {sending ? "Enviando..." : "Entrar na lista de espera"}
               </Button>
-              <p className="text-center text-xs text-muted-foreground">Usaremos seus dados apenas para responder ao contato. Veja a <Link to="/privacidade" className="underline">Política de Privacidade</Link>.</p>
+              <p className="text-center text-xs text-muted-foreground">Usaremos seus dados apenas para avisar sobre o lançamento. Veja a <Link to="/privacidade" className="underline">Política de Privacidade</Link>.</p>
             </form>
           )}
         </div>
@@ -647,7 +647,7 @@ function Footer() {
         <div className="space-y-2 text-sm">
           <p className="font-display font-bold">Empresa</p>
           <span className="block text-muted-foreground">Área do restaurante · em breve</span>
-          <a href="#fale-conosco" className="block text-muted-foreground hover:text-foreground">Fale conosco</a>
+          <a href="#lista-de-espera" className="block text-muted-foreground hover:text-foreground">Lista de espera</a>
         </div>
       </div>
       <div className="mx-auto flex max-w-7xl flex-wrap gap-x-5 gap-y-2 border-t px-4 py-5 text-xs sm:px-6">
