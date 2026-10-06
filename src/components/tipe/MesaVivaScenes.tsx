@@ -3,6 +3,10 @@ import { TipeLogo } from './Logo';
 import table from '@/assets/mesa-viva-table.jpg';
 import thanks from '@/assets/mascot-thanks.webp';
 
+export function AccountOrbit() {
+ return <div className="mv-account-scene"><div className="mv-kinetic-orbits" aria-hidden="true"><div className="mv-kinetic-orbit mv-kinetic-orbit-outer"><span className="mv-kinetic-node"><Check /></span><span className="mv-kinetic-node mv-kinetic-node-opposite"><QrCode /></span></div><div className="mv-kinetic-orbit mv-kinetic-orbit-inner"><span className="mv-kinetic-node"><ReceiptText /></span><span className="mv-kinetic-node mv-kinetic-node-opposite"><Smartphone /></span></div></div><ProductPhone /></div>;
+}
+
 export function LivingTable({ orbit = false }: { orbit?: boolean }) {
   return <div className={`mv-table ${orbit ? 'mv-table-orbit' : ''}`}>
     <img src={table} alt="Mesa posta para quatro pessoas" width={1024} height={1024} className="mv-table-photo" />

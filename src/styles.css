@@ -453,11 +453,68 @@
  .mv-type-word,.mv-official-logo { opacity: 1; transform: none; }
  .mv-running { width: 100%; }
 }
-/* Keep the complete account preview inside its scene, including the CTA. */
-.mv-account-scene .mv-product-phone { zoom: .78; }
+/* Selected kinetic direction: the account is the subject, not a miniature prop. */
+.mv-headline { text-transform: uppercase; font-size: 60px; line-height: .98; }
+.mv-type-accent { font-style: italic; padding-right: 8px; }
+.mv-stage-4 .mv-headline { font-size: 37px; }
+.mv-account-scene { height: 590px; justify-content: center; }
+.mv-account-scene .mv-product-phone { width: 280px; margin: 0; zoom: 1; animation: mv-phone-float 6s ease-in-out infinite; }
+.mv-account-scene .mv-phone-content { padding: 14px 12px; }
+.mv-account-scene .mv-phone-screen { min-height: 0; }
+.mv-account-scene .mv-bill-item { padding: 8px; }
+.mv-account-scene .mv-bill-item:not(.mv-bill-selected)>div:nth-child(2),
+.mv-account-scene .mv-bill-item:not(.mv-bill-selected)>p { display: none; }
+.mv-account-scene .mv-phone-content [class~="text-[8px]"] { font-size: 10px; }
+.mv-account-scene .mv-phone-content [class~="text-[9px]"] { font-size: 11px; }
+.mv-account-scene .mv-phone-content [class~="text-[10px]"] { font-size: 12px; }
+.mv-account-scene .mv-phone-content h3 { font-size: 22px; }
+.mv-account-scene .mv-phone-content h4 { font-size: 13px; }
+.mv-account-scene .mv-phone-content>div:last-child { border-radius: 8px; padding: 12px 4px; font-size: 11px; }
+.mv-kinetic-orbits { position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; }
+.mv-kinetic-orbit { position: absolute; width: 440px; aspect-ratio: 1; border: 1px solid color-mix(in oklab,var(--secondary-foreground) 12%,transparent); border-radius: 50%; animation: mv-spin 16s linear infinite; }
+.mv-kinetic-orbit-inner { width: 350px; animation-direction: reverse; animation-duration: 12s; }
+.mv-kinetic-node { width: 58px; height: 58px; border-radius: 50%; background: var(--primary); color: var(--primary-foreground); position: absolute; left: 50%; top: -29px; display: grid; place-items: center; box-shadow: var(--shadow-glow); }
+.mv-kinetic-node svg { width: 24px; height: 24px; }
+.mv-kinetic-node-opposite { top: auto; bottom: -29px; left: 22%; background: var(--secondary-foreground); }
+.mv-kinetic-orbit-inner .mv-kinetic-node { width: 42px; height: 42px; top: -21px; }
+.mv-kinetic-orbit-inner .mv-kinetic-node-opposite { top: auto; bottom: -21px; }
+.mv-stage-1 .mv-composition { min-height: 760px; }
+.mv-controls { z-index: 5; }
+.mv-official-logo { animation: mv-logo-kinetic 5.5s cubic-bezier(.22,1,.36,1) infinite; transform-origin: center; }
+@keyframes mv-logo-kinetic {
+ 0% { opacity: 0; transform: translateY(30px) rotate(-9deg) scale(.65); clip-path: inset(0 100% 0 0); }
+ 18% { opacity: 1; transform: translateY(-8px) rotate(4deg) scale(1.08); clip-path: inset(0 0 0 0); }
+ 32% { transform: translateY(0) rotate(-2deg) scale(.98); }
+ 52% { transform: translateY(-10px) rotate(2deg) scale(1.04); }
+ 74% { transform: translateY(4px) rotate(-2deg) scale(1); }
+ 90%,100% { opacity: 1; transform: translateY(0) rotate(0) scale(1); clip-path: inset(0 0 0 0); }
+}
+@keyframes mv-phone-float { 0%,100% { transform: translateY(4px) rotate(-1deg); } 50% { transform: translateY(-6px) rotate(1deg); } }
+@media (min-width: 640px) and (max-width: 1023px) {
+ .mv-headline { font-size: 42px; }
+ .mv-stage-4 .mv-headline { font-size: 27px; }
+ .mv-kinetic-orbit { width: 350px; }
+ .mv-kinetic-orbit-inner { width: 300px; }
+}
 @media (max-width: 639px) {
- .mv-stage-1 .mv-composition { min-height: 720px; }
- .mv-account-scene { height: 480px; align-items: flex-start; padding-top: 14px; }
- .mv-account-scene .mv-product-phone { zoom: .76; }
- .mv-account-scene>.mv-table { left: 0; width: 220px; top: 115px; }
+ .mv-headline { font-size: 40px; line-height: .98; }
+ .mv-stage-4 .mv-headline { font-size: 25px; }
+ .mv-scene-number { margin-bottom: 20px; }
+ .mv-type { min-height: 0; }
+ .mv-composition { padding: 28px 24px 60px; gap: 24px; }
+ .mv-stage-1 .mv-composition { min-height: 880px; }
+ .mv-stage-1 .mv-visual { min-height: 630px; flex: 0 0 630px; }
+ .mv-account-scene { height: 630px; align-items: center; padding: 0; }
+ .mv-account-scene .mv-product-phone { width: 280px; zoom: 1; }
+ .mv-kinetic-orbit { width: 360px; }
+ .mv-kinetic-orbit-inner { width: 304px; }
+ .mv-controls { left: 24px; right: 24px; bottom: 14px; }
+}
+@media (max-width: 374px) {
+ .mv-headline { font-size: 34px; }
+ .mv-stage-4 .mv-headline { font-size: 22px; }
+ .mv-composition { padding-left: 20px; padding-right: 20px; }
+}
+@media (prefers-reduced-motion: reduce) {
+ .mv-kinetic-orbit,.mv-account-scene .mv-product-phone,.mv-official-logo { animation: none; }
 }
