@@ -30,3 +30,4 @@
 - [ ] Criar central de integrações e homologar PDVs antes de publicar números ou marcas como compatíveis
 - [x] Landing: demonstração animada da conta, escolha de itens, valor atualizado e Apple Pay; seção visual de meios de pagamento
 - [x] Landing: padronização completa de espaçamentos e adoção da Lebre profissional com tablet
+- [x] Restaurar exatamente a segunda Lebre aprovada anteriormente, sem gerar outra variação
