@@ -163,7 +163,7 @@ Se houver anexos (foto, comprovante, cardápio ou PDF), leia com atenção, desc
     const normalize = (value: unknown) => {
       if (!value || typeof value !== "object") return value;
       const obj = { ...(value as Record<string, unknown>) };
-      if (typeof obj.number === "number") obj.number = String(obj.number);
+      if (typeof obj["number"] === "number") obj["number"] = String(obj["number"]);
       for (const key of ["active", "available"]) if (typeof obj[key] === "string") obj[key] = obj[key] === "true";
       return obj;
     };
