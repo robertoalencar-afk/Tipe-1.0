@@ -31,7 +31,8 @@ export function LebreAssistant({ slug }: { slug?: string }) {
     setBusy(true);
     try {
       const reply = slug ? await askRestaurant({ data: { slug, question } }) : await askPublic({ data: { question } });
-      setMessages((current) => [...current, { id: crypto.randomUUID(), role: "assistant", text: reply.answer, proposal: reply.proposal }]);
+      const assistant: ChatMessage = { id: crypto.randomUUID(), role: "assistant", text: reply.answer, ...(reply.proposal ? { proposal: reply.proposal } : {}) };
+      setMessages((current) => [...current, assistant]);
     } catch (error) {
       setMessages((current) => [...current, { id: crypto.randomUUID(), role: "assistant", text: (error as Error).message }]);
     } finally { setBusy(false); }

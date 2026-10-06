@@ -12,17 +12,18 @@ import { PLANS, TRIAL_DAYS, priceLabel, type PlanId } from "@/lib/tipe/plans";
 import logo from "@/assets/logo-dark.png.asset.json";
 import mascotWaiting from "@/assets/mascot-waiting-filled.png";
 import { LebreAssistant } from "@/components/tipe/LebreAssistant";
+import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "TIPE — Pague. Sem esperar. | Pagamento na mesa e PDV para restaurantes" },
+      { title: "TIPE | Pague. Sem esperar. | Pagamento na mesa e PDV para restaurantes" },
       {
         name: "description",
         content:
           "Plataforma TIPE: o cliente paga a conta pelo QR Code da mesa e o restaurante acompanha tudo em tempo real. Conecte seu PDV ou use o PDV TIPE. Planos a partir de R$ 49,90/mês, com 30 dias grátis.",
       },
-      { property: "og:title", content: "TIPE — Pague. Sem esperar." },
+      { property: "og:title", content: "TIPE | Pague. Sem esperar." },
       {
         property: "og:description",
         content: "Pagamento na mesa por QR Code, gorjeta extra para o garçom, painel em tempo real e PDV próprio. Assinatura a partir de R$ 49,90/mês, 30 dias grátis.",
@@ -190,7 +191,7 @@ function Dinamica() {
   ];
   const chips = [
     { icon: Plug, t: "Tempo real com o seu PDV" },
-    { icon: Wallet, t: "Pix, Apple Pay e Google Pay" },
+    { icon: Wallet, t: "Pagamento direto na mesa" },
     { icon: Check, t: "Cada um paga só o que consumiu" },
     { icon: Users, t: "Zero fila no caixa" },
   ];
@@ -295,7 +296,7 @@ function Dinamica() {
       </div>
 
       <div className="mx-auto mt-12 max-w-3xl rounded-3xl border-2 border-primary/30 bg-secondary p-8 text-center text-secondary-foreground sm:p-10">
-        <p className="font-display text-2xl font-extrabold leading-tight sm:text-3xl">O jeito de pagar a conta no restaurante mudou — e mudou para a mesa.</p>
+        <p className="font-display text-2xl font-extrabold leading-tight sm:text-3xl">O jeito de pagar a conta no restaurante mudou. Agora, tudo acontece na mesa.</p>
         <p className="mt-4 opacity-80">
            A conta chega no celular antes de o cliente pedir. O garçom não vive em idas e voltas com a maquininha.
           Quem coloca a nova tecnologia primeiro nas mesas gira mais salão.
