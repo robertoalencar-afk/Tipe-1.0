@@ -23,12 +23,12 @@ export const Route = createFileRoute("/")({
       {
         name: "description",
         content:
-          "Plataforma TIPE: o cliente paga a conta pelo QR Code da mesa e o restaurante acompanha tudo em tempo real. Funciona com o PDV que você já usa. Planos a partir de R$ 49,90/mês, com 30 dias grátis.",
+          "Plataforma TIPE: o cliente paga a conta pelo QR Code da mesa e o restaurante acompanha tudo em tempo real. Funciona com o PDV que você já usa. Lançamento em breve.",
       },
       { property: "og:title", content: "TIPE | Pague. Sem esperar." },
       {
         property: "og:description",
-        content: "Pagamento na mesa por QR Code, gorjeta extra para o garçom, painel em tempo real e integração com o seu PDV. Assinatura a partir de R$ 49,90/mês, 30 dias grátis.",
+        content: "Pagamento na mesa por QR Code, gorjeta extra para o garçom, painel em tempo real e integração com o seu PDV. Lançamento em breve.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://tipe.digital/" },
@@ -71,9 +71,9 @@ function Header() {
           {[["#dinamica", "O novo jeito"], ["#como-funciona", "Como funciona"], ["#painel", "Painel"], ["#pdv", "PDV"], ["#planos", "Planos"], ["#duvidas", "Dúvidas"]].map(([h, l]) => (
             <a key={h} href={h} className="hidden rounded-lg px-3 py-2 text-muted-foreground transition-colors hover:text-foreground lg:block">{l}</a>
           ))}
-          <Link to="/entrar" className="rounded-full px-3 py-2 font-semibold text-foreground hover:bg-muted sm:px-4">Entrar</Link>
+          <span className="hidden rounded-full px-3 py-2 font-semibold text-muted-foreground sm:block sm:px-4">Entrar · em breve</span>
           <Link to="/simulador" className="hidden rounded-full border px-4 py-2 font-semibold text-foreground sm:block">Simular</Link>
-          <Link to="/cadastro" className="rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground">Testar grátis</Link>
+          <span className="rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground">Em breve</span>
         </nav>
       </div>
     </header>
@@ -93,15 +93,15 @@ function Hero() {
             A conta chega ao celular do cliente pelo QR Code da mesa. Ele confere, escolhe o que vai pagar e resolve tudo sem interromper o atendimento.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link to="/cadastro" className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-display font-semibold text-primary-foreground shadow-lg transition-transform hover:-translate-y-0.5">
-              Testar 30 dias grátis <ChevronRight className="h-4 w-4" />
-            </Link>
+            <a href="#fale-conosco" className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-display font-semibold text-primary-foreground shadow-lg transition-transform hover:-translate-y-0.5">
+              Em breve · quero saber mais <ChevronRight className="h-4 w-4" />
+            </a>
             <Link to="/simulador" className="inline-flex items-center gap-2 rounded-full border border-current/25 px-6 py-3 font-display font-semibold transition-colors hover:bg-primary/10">
               Simular experiência
             </Link>
           </div>
           <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm opacity-80">
-            {["Sem aplicativo para baixar", "Feita para conversar com seu PDV", "30 dias grátis sem cartão"].map((t) => (
+            {["Sem aplicativo para baixar", "Feita para conversar com seu PDV", "Lançamento em breve"].map((t) => (
               <span key={t} className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-primary" />{t}</span>
             ))}
           </div>
@@ -475,7 +475,7 @@ function Pricing() {
   return (
     <section id="planos" className="bg-muted/50 py-12 sm:py-16">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <SectionTitle eyebrow="Planos" title="Assinatura mensal, simples como streaming" text={`Teste grátis por ${TRIAL_DAYS} dias, sem cartão. Depois, escolha pelo número de mesas.`} />
+        <SectionTitle eyebrow="Planos" title="Assinatura mensal, simples como streaming" text="Lançamento em breve. Os planos serão por número de mesas." />
         <div className="mt-10 grid gap-6 sm:mt-12 md:grid-cols-2 xl:grid-cols-4">
           {plans.map((p) => (
             <div key={p.name} className={`relative flex flex-col rounded-3xl border p-7 ${p.popular ? "border-primary bg-secondary text-secondary-foreground shadow-2xl xl:-translate-y-4" : "bg-card shadow-sm"}`}>
@@ -483,25 +483,17 @@ function Pricing() {
               <h3 className="font-display text-xl font-bold">{p.name}</h3>
               <p className={`text-sm ${p.popular ? "opacity-75" : "text-muted-foreground"}`}>{p.tables}</p>
               <div className="mt-5">
-                {p.price ? (
-                  <p className="font-display"><span className="text-sm">R$</span> <span className="text-4xl font-extrabold">{p.price}</span><span className="text-sm opacity-70">/mês</span></p>
-                ) : (
-                  <p className="font-display text-3xl font-extrabold">Sob consulta</p>
-                )}
-                {p.price && <p className="mt-1 text-xs font-semibold text-primary">{TRIAL_DAYS} dias grátis</p>}
+                <p className="font-display text-3xl font-extrabold">Em breve</p>
+                <p className="mt-1 text-xs font-semibold text-primary">Valores no lançamento</p>
               </div>
               <ul className="mt-6 flex-1 space-y-2.5 text-sm">
                 {p.features.map((f) => <li key={f} className="flex gap-2"><Check className="h-4 w-4 shrink-0 text-primary" />{f}</li>)}
               </ul>
-              {p.id ? (
-                <Link to="/cadastro" search={{ plano: p.id as PlanId }} className={`mt-8 rounded-full py-3 text-center font-display font-semibold transition-transform hover:-translate-y-0.5 ${p.popular ? "bg-primary text-primary-foreground" : "border border-border hover:bg-muted"}`}>Testar grátis</Link>
-              ) : (
-                <a href="#fale-conosco" className="mt-8 rounded-full border border-border py-3 text-center font-display font-semibold transition-transform hover:-translate-y-0.5 hover:bg-muted">Falar com vendas</a>
-              )}
+              <a href="#fale-conosco" className={`mt-8 rounded-full py-3 text-center font-display font-semibold transition-transform hover:-translate-y-0.5 ${p.popular ? "bg-primary text-primary-foreground" : "border border-border hover:bg-muted"}`}>Quero ser avisado</a>
             </div>
           ))}
         </div>
-        <p className="mt-8 flex items-center justify-center gap-2 text-center text-sm text-muted-foreground"><ShieldCheck className="h-4 w-4 text-primary" />Sem cartão no teste. Sem fidelidade. Cancele quando quiser.</p>
+        <p className="mt-8 flex items-center justify-center gap-2 text-center text-sm text-muted-foreground"><ShieldCheck className="h-4 w-4 text-primary" />Sem fidelidade. Cancele quando quiser.</p>
       </div>
     </section>
   );
@@ -527,7 +519,7 @@ function Faq() {
         ["E se um pagamento sair errado?", "O restaurante cancela pelo painel e os itens voltam a ficar disponíveis na conta. Tudo permanece registrado com data, horário e nome de quem pagou."],
         ["Preciso trocar o meu sistema?", "Não. A TIPE se conecta ao PDV que você já usa, seja ele qual for. Logo após o cadastro, o painel mostra o passo a passo e nossa equipe ajuda se precisar."],
         ["Quanto tempo leva para começar?", "A implantação é assistida: cadastramos as mesas, geramos os totens com QR Code e treinamos a equipe. Você pode começar por um salão e ir ampliando conforme o resultado."],
-        ["Como é cobrada a assinatura?", "Mensalmente, de acordo com o número de mesas do seu restaurante, a partir de R$ 49,90/mês, com 30 dias grátis e sem cartão no teste. Sem fidelidade: você cancela quando quiser."],
+        ["Como é cobrada a assinatura?", "Mensalmente, de acordo com o número de mesas do seu restaurante. Os valores serão divulgados no lançamento. Sem fidelidade: você cancela quando quiser."],
       ],
     },
   ];
@@ -654,7 +646,7 @@ function Footer() {
         </div>
         <div className="space-y-2 text-sm">
           <p className="font-display font-bold">Empresa</p>
-          <Link to="/entrar" className="block text-muted-foreground hover:text-foreground">Área do restaurante</Link>
+          <span className="block text-muted-foreground">Área do restaurante · em breve</span>
           <a href="#fale-conosco" className="block text-muted-foreground hover:text-foreground">Fale conosco</a>
         </div>
       </div>
