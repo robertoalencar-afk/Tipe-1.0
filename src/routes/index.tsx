@@ -20,16 +20,16 @@ import { COMPANY } from "@/lib/tipe/legal";
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "TIPE | Pague. Sem esperar. | Pagamento na mesa e PDV para restaurantes" },
+      { title: "TIPE | Pague. Sem esperar. | Pagamento na mesa por QR Code" },
       {
         name: "description",
         content:
           "Plataforma TIPE: o cliente paga a conta pelo QR Code da mesa e o restaurante acompanha tudo em tempo real. Funciona com o PDV que você já usa. Entre na lista de espera para o lançamento.",
       },
-      { property: "og:title", content: "TIPE | Pague. Sem esperar." },
+      { property: "og:title", content: "TIPE | Pague. Sem esperar. | Pagamento na mesa por QR Code" },
       {
         property: "og:description",
-        content: "Pagamento na mesa por QR Code, gorjeta extra para o garçom, painel em tempo real e integração com o seu PDV. Entre na lista de espera para o lançamento.",
+        content: "Plataforma TIPE: o cliente paga a conta pelo QR Code da mesa e o restaurante acompanha tudo em tempo real. Funciona com o PDV que você já usa. Entre na lista de espera para o lançamento.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://tipe.digital/" },
