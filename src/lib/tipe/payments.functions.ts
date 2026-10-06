@@ -123,7 +123,7 @@ export const createPayment = createServerFn({ method: "POST" })
       return { id, status: "pending", provider: "estabelecimento" };
     }
 
-    const { pagarmeEnabled, pagarme, restaurantSplit, orderPaid, orderFailed } = await import("./pagarme.server");
+    const { pagarmeEnabled, pagarme, orderPaid, orderFailed } = await import("./pagarme.server");
 
     // Modo simulação: sem conta Pagar.me configurada, nada é cobrado de verdade.
     if (!pagarmeEnabled()) {
@@ -138,12 +138,15 @@ export const createPayment = createServerFn({ method: "POST" })
     }
     if (data.method === "card" && !data.cardToken) throw new Error("Informe os dados do cartão");
 
-    let split: unknown[] | undefined;
+    const split: unknown[] | undefined = undefined;
+    let secretKey: string | undefined;
     if (data.target === "restaurant") {
+      // A conta vai direto para a conta Pagar.me do próprio restaurante.
+      const { restaurantPagarmeKey } = await import("./pagarme.server");
       const { data: rest } = await supabaseAdmin.from("restaurants").select("id").eq("slug", data.restaurantId).maybeSingle();
-      const { data: acc } = rest ? await supabaseAdmin.from("restaurant_payout_accounts").select("pagarme_recipient_id, status").eq("restaurant_id", rest.id).maybeSingle() : { data: null };
-      if (!acc?.pagarme_recipient_id || acc.status !== "active") throw new Error("Este restaurante ainda não ativou o recebimento digital. Escolha pagar no estabelecimento.");
-      split = restaurantSplit(acc.pagarme_recipient_id);
+      const key = rest ? await restaurantPagarmeKey(rest.id) : null;
+      if (!key) throw new Error("Este restaurante ainda não ativou o recebimento digital. Escolha pagar no estabelecimento.");
+      secretKey = key;
     }
 
     // Reserva os itens antes de cobrar; se a cobrança falhar, a reserva é liberada.
@@ -160,6 +163,7 @@ export const createPayment = createServerFn({ method: "POST" })
       order = await pagarme<import("./pagarme.server").PagarmeOrder>("/orders", {
         method: "POST",
         idempotencyKey: data.idempotencyKey,
+        ...(secretKey ? { secretKey } : {}),
         body: {
           code: payId,
           customer: { name: data.customerName, type: "individual" },
