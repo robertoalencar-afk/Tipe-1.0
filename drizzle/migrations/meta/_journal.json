@@ -57,6 +57,13 @@
       "when": 1791277407917,
       "tag": "0007_restaurant_pagarme_accounts",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1791300368222,
+      "tag": "0008_restaurant_bill_payment_methods",
+      "breakpoints": true
     }
   ]
 }

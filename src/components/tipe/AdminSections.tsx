@@ -351,14 +351,14 @@ export function Configuracoes({ slug, podeDono }: { slug: string; podeDono: bool
   const save = useServerFn(saveSettings);
   const qc = useQueryClient();
   const r = ops.data?.restaurant;
-  const [f, setF] = useState<null | { name: string; rate: string; phone: string; address: string; hours: string }>(null);
+  const [f, setF] = useState<null | { name: string; rate: string; phone: string; address: string; hours: string; methods: string[] }>(null);
   if (!r) return <p className="text-muted-foreground">Carregando…</p>;
-  const v = f ?? { name: r.name, rate: String(Math.round(r.service_rate * 100)), phone: r.phone ?? "", address: r.address ?? "", hours: r.opening_hours ?? "" };
+  const v = f ?? { name: r.name, rate: String(Math.round(r.service_rate * 100)), phone: r.phone ?? "", address: r.address ?? "", hours: r.opening_hours ?? "", methods: r.bill_payment_methods ?? ["pix", "apple_pay", "google_pay", "at_establishment"] };
   return (
     <form className="max-w-xl space-y-3" onSubmit={async (e) => {
       e.preventDefault();
       try {
-        await save({ data: { slug, name: v.name, serviceRate: Number(v.rate) / 100, phone: v.phone, address: v.address, openingHours: v.hours } });
+        await save({ data: { slug, name: v.name, serviceRate: Number(v.rate) / 100, phone: v.phone, address: v.address, openingHours: v.hours, billMethods: v.methods as ("pix" | "apple_pay" | "google_pay" | "at_establishment")[] } });
         toast.success("Configurações salvas"); setF(null);
         qc.invalidateQueries({ queryKey: ["ops", slug] }); qc.invalidateQueries({ queryKey: ["panel", slug] });
       } catch (err) { toast.error((err as Error).message); }
@@ -370,6 +370,23 @@ export function Configuracoes({ slug, podeDono }: { slug: string; podeDono: bool
         <label className="block text-sm">Telefone<Input disabled={!podeDono} value={v.phone} onChange={(e) => setF({ ...v, phone: e.target.value })} /></label>
         <label className="block text-sm">Endereço<Input disabled={!podeDono} value={v.address} onChange={(e) => setF({ ...v, address: e.target.value })} /></label>
         <label className="block text-sm">Horário de funcionamento<Input disabled={!podeDono} value={v.hours} onChange={(e) => setF({ ...v, hours: e.target.value })} /></label>
+      </Card>
+      <Card className="space-y-3">
+        <div>
+          <h3 className="font-display font-bold">Meios de pagamento da conta</h3>
+          <p className="text-sm text-muted-foreground">Escolha o que o cliente pode usar para pagar a conta. A gorjeta extra não muda.</p>
+        </div>
+        {([["pix", "Pix"], ["apple_pay", "Apple Pay"], ["google_pay", "Google Pay"], ["at_establishment", "Pagamento no estabelecimento (dinheiro ou maquininha)"]] as const).map(([id, label]) => {
+          const on = v.methods.includes(id);
+          return (
+            <label key={id} className="flex items-center gap-3 text-sm">
+              <input type="checkbox" className="h-4 w-4 accent-primary" disabled={!podeDono || (on && v.methods.length === 1)} checked={on}
+                onChange={() => setF({ ...v, methods: on ? v.methods.filter((m) => m !== id) : [...v.methods, id] })} />
+              {label}
+            </label>
+          );
+        })}
+        <p className="text-xs text-muted-foreground">Pelo menos uma opção precisa ficar ativa.</p>
       </Card>
       {podeDono && <Button type="submit">Salvar</Button>}
     </form>
