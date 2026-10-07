@@ -142,7 +142,6 @@ export function WaitlistForm({ origin = "home" }: { origin?: "home" | "simulador
         <Q label="Tem fila de espera por mesa nos horários de pico?"><Chips options={QUEUES} value={d.peakQueue} onChange={set("peakQueue")} /></Q>
         <Q label="Maior dor hoje"><Chips multi options={PAINS} value={d.pains} onChange={set("pains")} /></Q>
         <Q label="Qual sistema (PDV) você usa hoje?"><ChoiceOther options={PDV_OPTIONS} value={d.pdvSystem} onChange={(v) => setD({ ...d, pdvSystem: v })} placeholder="Qual sistema?" /></Q>
-        <Q label="Qual maquininha você usa hoje?"><ChoiceOther options={MAQUININHA_OPTIONS} value={d.acquirer} onChange={(v) => setD({ ...d, acquirer: v })} placeholder="Qual maquininha?" /></Q>
         <Q label="Já tem conta no Pagar.me?"><Chips options={PAGARME} value={d.hasPagarme} onChange={set("hasPagarme")} /></Q>
         <Q label="Como conheceu a TIPE?"><Chips options={SOURCES} value={d.discoverySource} onChange={set("discoverySource")} /></Q>
         {d.discoverySource[0] === "indicacao" && <input maxLength={120} placeholder="Quem indicou?" className={input} value={d.referrerName} onChange={(e) => setD({ ...d, referrerName: e.target.value })} />}
