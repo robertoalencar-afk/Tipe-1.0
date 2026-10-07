@@ -2,12 +2,12 @@ import * as React from "react";
 import { Body, Container, Head, Heading, Html, Preview, Section, Text } from "@react-email/components";
 import type { TemplateEntry } from "./registry";
 
-interface Props { restaurantName?: string; contactName?: string; email?: string; phone?: string; tables?: number; pdv?: string }
+interface Props { restaurantName?: string; contactName?: string; email?: string; phone?: string; city?: string }
 
-function LeadNotification({ restaurantName = "Restaurante", contactName = "-", email = "-", phone, tables, pdv = "-" }: Props) {
+function LeadNotification({ restaurantName = "Restaurante", contactName = "-", email = "-", phone, city = "-" }: Props) {
   const rows: [string, string][] = [
     ["Restaurante", restaurantName], ["Contato", contactName], ["E-mail", email],
-    ["WhatsApp", phone || "Não informado"], ["Mesas", tables ? String(tables) : "-"], ["PDV", pdv],
+    ["WhatsApp", phone || "Não informado"], ["Cidade", city],
   ];
   return (
     <Html lang="pt-BR"><Head /><Preview>Novo cadastro na lista de espera: {restaurantName}</Preview>
@@ -31,5 +31,5 @@ export const template = {
   subject: (d: Record<string, any>) => `Lista de espera: ${d["restaurantName"] ?? "novo restaurante"}`,
   displayName: "Aviso interno de lista de espera",
   to: "roberto@tipe.digital",
-  previewData: { restaurantName: "Maré Alta", contactName: "Ana Souza", email: "ana@marealta.com", phone: "(85) 99999-0000", tables: 20, pdv: "Sistema próprio" },
+  previewData: { restaurantName: "Maré Alta", contactName: "Ana Souza", email: "ana@marealta.com", phone: "(85) 99999-0000", city: "Fortaleza/CE" },
 } satisfies TemplateEntry;
