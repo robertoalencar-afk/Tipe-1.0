@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { ArrowLeft, Check, ChevronRight, ClipboardList, HandCoins, Heart, QrCode, ReceiptText, Smartphone, Star, Users, WalletCards } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { TipeLogo } from "@/components/tipe/Logo";
+import { markSimulatorUsed } from "@/lib/tipe/tracking";
 import { SplitPicker } from "@/components/tipe/SplitPicker";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -13,7 +14,7 @@ import mascotRating from "@/assets/mascot-rating-hd.webp";
 import mascotWaiting from "@/assets/mascot-waiting-hd.webp";
 import mascotTableClosed from "@/assets/mascot-table-closed-hd.webp";
 
-type Stage = "totem" | "identification" | "bill" | "payment" | "approved" | "pending" | "rating" | "tip" | "tip-payment" | "closed" | "done";
+type Stage = "totem" | "identification" | "bill" | "payment" | "approved" | "pitch" | "pending" | "rating" | "tip" | "tip-payment" | "closed" | "done";
 type Tab = "bill" | "activity";
 type Method = "pix" | "apple_pay" | "google_pay" | "at_establishment";
 type EstablishmentMethod = "cash" | "card_terminal";
@@ -177,8 +178,9 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
   };
 
   const continueAfterApproved = () => {
-    setStage("rating");
+    setStage("pitch");
   };
+  useEffect(() => { markSimulatorUsed(); }, []);
 
   if (stage === "totem") {
     return (
@@ -304,6 +306,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
       {stage === "rating" && <main className="flex flex-1 flex-col px-6 pb-10"><img src={mascotRating} alt="Mascote TIPE com uma estrela" className="mx-auto mb-3 h-28 w-28 object-contain" /><h1 className="text-center text-2xl font-bold">Como foi seu atendimento?</h1><p className="mt-2 text-center text-sm text-muted-foreground">Sua avaliação ajuda o Carlos e o restaurante.</p><div className="mt-8 flex justify-center gap-2">{[1,2,3,4,5].map((number) => <Button key={number} variant="ghost" size="icon" onClick={() => setStars(number)} aria-label={`${number} estrelas`} className="h-11 w-11"><Star className={`h-8 w-8 ${number <= stars ? "fill-highlight text-highlight" : "text-border"}`} /></Button>)}</div><label htmlFor="demo-comment" className="mt-8 text-sm font-semibold">Comentário <span className="font-normal text-muted-foreground">(opcional)</span></label><Textarea id="demo-comment" value={comment} onChange={(event) => setComment(event.target.value)} placeholder="Conte como foi sua experiência" maxLength={400} className="mt-2 min-h-28 rounded-lg bg-card" /><Button onClick={() => setStage("tip")} className="mt-6 h-12 rounded-lg text-base font-bold">Continuar <ChevronRight /></Button></main>}
       {stage === "tip" && <main className="flex flex-1 flex-col px-6 pb-10"><div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/15"><Heart className="h-7 w-7 text-primary" /></div><h1 className="mt-5 text-center text-2xl font-bold">Quer deixar uma gorjeta extra?</h1><p className="mt-2 text-center text-sm leading-6 text-muted-foreground">Uma forma opcional de agradecer pelo atendimento.</p><div className="mt-7 grid grid-cols-2 gap-3">{[5,10,15,20].map((value) => <Button key={value} variant={tip === value ? "default" : "outline"} onClick={() => setTip(value)} className="h-14 rounded-lg text-base font-bold">{money(value)}</Button>)}</div><Button disabled={tip <= 0} onClick={() => setStage("tip-payment")} className="mt-6 h-12 rounded-lg text-base font-bold">Continuar com gorjeta <ChevronRight /></Button><Button variant="ghost" onClick={() => setStage("done")} className="mt-2 h-11">Agora não, obrigado</Button></main>}
       {stage === "tip-payment" && <PaymentScreen title="Pagamento da gorjeta" description="Cobrança opcional e separada da conta." value={tip} method={tipMethod} setMethod={setTipMethod} terms={true} setTerms={() => undefined} back={() => setStage("tip")} pay={() => setStage("done")} />}
+      {stage === "pitch" && <Centered><p className="text-sm font-semibold text-primary">Gostou?</p><h1 className="mt-2 text-2xl font-bold">Imagine isso em todas as mesas do seu restaurante.</h1><a href="/#lista-de-espera" className="mt-8 flex h-12 w-full items-center justify-center rounded-lg bg-primary text-base font-bold text-primary-foreground">Garantir meus 30 dias grátis</a><Link to="/" className="mt-5 block text-sm font-semibold text-primary">Voltar ao site</Link><button type="button" onClick={() => setStage("rating")} className="mt-4 text-xs text-muted-foreground underline">Continuar a demonstração</button></Centered>}
       {stage === "closed" && <Centered><img src={mascotTableClosed} alt="Mascote TIPE ao lado da conta encerrada" className="mx-auto h-52 w-52 object-contain" /><p className="mt-4 text-sm font-semibold text-primary">Tudo confirmado</p><h1 className="mt-2 text-2xl font-bold">Mesa encerrada</h1><p className="mt-3 text-sm leading-6 text-muted-foreground">Todos os itens desta mesa foram pagos e não há pagamentos pendentes.</p><p className="mt-2 text-xs text-muted-foreground">A demonstração recomeça automaticamente em instantes.</p><Link to="/" className="mt-8 text-sm font-semibold text-primary">Voltar ao site</Link></Centered>}
       {stage === "done" && <Centered><img src={mascotThanks} alt="Mascote TIPE agradecendo" className="mx-auto h-48 w-48 object-contain" /><p className="mt-5 text-sm font-semibold text-primary">Tudo certo, {name.trim()}!</p><h1 className="mt-2 text-2xl font-bold">Obrigado pela sua visita.</h1><p className="mt-3 text-sm leading-6 text-muted-foreground">Sua conta foi paga e sua avaliação foi registrada nesta simulação.</p>{tip > 0 && <p className="mt-2 text-sm font-semibold">Gorjeta extra de {money(tip)} simulada.</p>}{demo.closedAt ? <Button onClick={() => setStage("closed")} className="mt-8 h-12 w-full rounded-lg text-base font-bold">Ver mesa encerrada <ChevronRight /></Button> : <Button onClick={() => setStage("bill")} className="mt-8 h-12 w-full rounded-lg text-base font-bold">Voltar à mesa</Button>}</Centered>}
     </div>
