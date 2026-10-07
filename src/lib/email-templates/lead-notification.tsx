@@ -31,5 +31,5 @@ export const template = {
   subject: (d: Record<string, any>) => `Lista de espera: ${d["restaurantName"] ?? "novo restaurante"}`,
   displayName: "Aviso interno de lista de espera",
   to: "roberto@tipe.digital",
-  previewData: { restaurantName: "Maré Alta", contactName: "Ana Souza", email: "ana@marealta.com", phone: "(85) 99999-0000", tables: 20, pdv: "Saipos" },
+  previewData: { restaurantName: "Maré Alta", contactName: "Ana Souza", email: "ana@marealta.com", phone: "(85) 99999-0000", tables: 20, pdv: "Sistema próprio" },
 } satisfies TemplateEntry;

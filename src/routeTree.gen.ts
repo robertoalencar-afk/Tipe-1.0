@@ -32,9 +32,11 @@ import { Route as PrivacidadeSolicitacaoRouteImport } from './routes/privacidade
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as MesaRestauranteMesaRouteImport } from './routes/mesa.$restaurante.$mesa'
 import { Route as ApiPublicPagarmeWebhookRouteImport } from './routes/api/public/pagarme/webhook'
+import { Route as ApiPublicPdvSyncRouteImport } from './routes/api/public/pdv.sync'
 import { Route as ApiPublicPosSlugRouteImport } from './routes/api/public/pos.$slug'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as ApiPublicPagarmeRestauranteSlugRouteImport } from './routes/api/public/pagarme/restaurante.$slug'
+import { Route as ApiPublicPdvAdapterWebhookRouteImport } from './routes/api/public/pdv.$adapter.webhook'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -151,6 +153,11 @@ const ApiPublicPagarmeWebhookRoute = ApiPublicPagarmeWebhookRouteImport.update({
   path: '/api/public/pagarme/webhook',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPdvSyncRoute = ApiPublicPdvSyncRouteImport.update({
+  id: '/api/public/pdv/sync',
+  path: '/api/public/pdv/sync',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPosSlugRoute = ApiPublicPosSlugRouteImport.update({
   id: '/api/public/pos/$slug',
   path: '/api/public/pos/$slug',
@@ -166,6 +173,12 @@ const ApiPublicPagarmeRestauranteSlugRoute =
   ApiPublicPagarmeRestauranteSlugRouteImport.update({
     id: '/api/public/pagarme/restaurante/$slug',
     path: '/api/public/pagarme/restaurante/$slug',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicPdvAdapterWebhookRoute =
+  ApiPublicPdvAdapterWebhookRouteImport.update({
+    id: '/api/public/pdv/$adapter/webhook',
+    path: '/api/public/pdv/$adapter/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
 
@@ -192,9 +205,11 @@ export interface FileRoutesByFullPath {
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
+  '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/api/public/pagarme/restaurante/$slug': typeof ApiPublicPagarmeRestauranteSlugRoute
+  '/api/public/pdv/$adapter/webhook': typeof ApiPublicPdvAdapterWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -219,9 +234,11 @@ export interface FileRoutesByTo {
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
+  '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/api/public/pagarme/restaurante/$slug': typeof ApiPublicPagarmeRestauranteSlugRoute
+  '/api/public/pdv/$adapter/webhook': typeof ApiPublicPdvAdapterWebhookRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -248,9 +265,11 @@ export interface FileRoutesById {
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
+  '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/api/public/pagarme/restaurante/$slug': typeof ApiPublicPagarmeRestauranteSlugRoute
+  '/api/public/pdv/$adapter/webhook': typeof ApiPublicPdvAdapterWebhookRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -277,9 +296,11 @@ export interface FileRouteTypes {
     | '/.lovable/oauth/consent'
     | '/mesa/$restaurante/$mesa'
     | '/api/public/pagarme/webhook'
+    | '/api/public/pdv/sync'
     | '/api/public/pos/$slug'
     | '/lovable/email/transactional/preview'
     | '/api/public/pagarme/restaurante/$slug'
+    | '/api/public/pdv/$adapter/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -304,9 +325,11 @@ export interface FileRouteTypes {
     | '/.lovable/oauth/consent'
     | '/mesa/$restaurante/$mesa'
     | '/api/public/pagarme/webhook'
+    | '/api/public/pdv/sync'
     | '/api/public/pos/$slug'
     | '/lovable/email/transactional/preview'
     | '/api/public/pagarme/restaurante/$slug'
+    | '/api/public/pdv/$adapter/webhook'
   id:
     | '__root__'
     | '/'
@@ -332,9 +355,11 @@ export interface FileRouteTypes {
     | '/.lovable/oauth/consent'
     | '/mesa/$restaurante/$mesa'
     | '/api/public/pagarme/webhook'
+    | '/api/public/pdv/sync'
     | '/api/public/pos/$slug'
     | '/lovable/email/transactional/preview'
     | '/api/public/pagarme/restaurante/$slug'
+    | '/api/public/pdv/$adapter/webhook'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -358,9 +383,11 @@ export interface RootRouteChildren {
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   MesaRestauranteMesaRoute: typeof MesaRestauranteMesaRoute
   ApiPublicPagarmeWebhookRoute: typeof ApiPublicPagarmeWebhookRoute
+  ApiPublicPdvSyncRoute: typeof ApiPublicPdvSyncRoute
   ApiPublicPosSlugRoute: typeof ApiPublicPosSlugRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
   ApiPublicPagarmeRestauranteSlugRoute: typeof ApiPublicPagarmeRestauranteSlugRoute
+  ApiPublicPdvAdapterWebhookRoute: typeof ApiPublicPdvAdapterWebhookRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -526,6 +553,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPagarmeWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/pdv/sync': {
+      id: '/api/public/pdv/sync'
+      path: '/api/public/pdv/sync'
+      fullPath: '/api/public/pdv/sync'
+      preLoaderRoute: typeof ApiPublicPdvSyncRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/pos/$slug': {
       id: '/api/public/pos/$slug'
       path: '/api/public/pos/$slug'
@@ -545,6 +579,13 @@ declare module '@tanstack/react-router' {
       path: '/api/public/pagarme/restaurante/$slug'
       fullPath: '/api/public/pagarme/restaurante/$slug'
       preLoaderRoute: typeof ApiPublicPagarmeRestauranteSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/pdv/$adapter/webhook': {
+      id: '/api/public/pdv/$adapter/webhook'
+      path: '/api/public/pdv/$adapter/webhook'
+      fullPath: '/api/public/pdv/$adapter/webhook'
+      preLoaderRoute: typeof ApiPublicPdvAdapterWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -587,9 +628,11 @@ const rootRouteChildren: RootRouteChildren = {
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   MesaRestauranteMesaRoute: MesaRestauranteMesaRoute,
   ApiPublicPagarmeWebhookRoute: ApiPublicPagarmeWebhookRoute,
+  ApiPublicPdvSyncRoute: ApiPublicPdvSyncRoute,
   ApiPublicPosSlugRoute: ApiPublicPosSlugRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
   ApiPublicPagarmeRestauranteSlugRoute: ApiPublicPagarmeRestauranteSlugRoute,
+  ApiPublicPdvAdapterWebhookRoute: ApiPublicPdvAdapterWebhookRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,12 +1,13 @@
-import { PDVS, pdvLabel, slugPdv } from "@/lib/tipe/pdvs";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Copy, Download, KeyRound, PlugZap } from "lucide-react";
+import { Copy, Download, KeyRound, MessageCircle, PlugZap } from "lucide-react";
+import { getPdvEvents, getPdvIntegration, setPdvAdapter, testPdvConnection } from "@/lib/tipe/pdv-integrations.functions";
+import { whatsappLink } from "@/lib/tipe/contact";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cashAction, getOpsData, getReports, saveSettings, setIntegration, setItemStatus } from "@/lib/tipe/admin.functions";
+import { cashAction, getOpsData, getReports, saveSettings, setItemStatus } from "@/lib/tipe/admin.functions";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const hora = (s: string) => new Date(s).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
@@ -258,87 +259,90 @@ export function Relatorios({ slug }: { slug: string }) {
 }
 
 // ---------------- Integrações ----------------
-const provedores = PDVS.map((p) => [p.k, p.l] as const);
 export function Integracoes({ slug, podeDono }: { slug: string; podeDono: boolean }) {
-  const ops = useOps(slug);
-  const set = useServerFn(setIntegration);
+  const fetchInteg = useServerFn(getPdvIntegration);
+  const testar = useServerFn(testPdvConnection);
+  const trocar = useServerFn(setPdvAdapter);
+  const fetchEvents = useServerFn(getPdvEvents);
   const qc = useQueryClient();
-  const [chave, setChave] = useState<string | null>(null);
-  const r = ops.data?.restaurant;
-  const integ = ops.data?.integration;
-  const endpoint = `https://tipe.digital/api/public/pos/${slug}`;
-  async function escolher(provider: string, newKey: boolean) {
+  const q = useQuery({ queryKey: ["pdv-integ", slug], queryFn: () => fetchInteg({ data: { slug } }), refetchInterval: 20000 });
+  const ev = useQuery({ queryKey: ["pdv-events", slug], queryFn: () => fetchEvents({ data: { slug } }), enabled: !!q.data?.isFounder });
+  const [segredo, setSegredo] = useState<{ secret: string; url: string } | null>(null);
+  const [testando, setTestando] = useState(false);
+  if (!podeDono) return <p className="text-muted-foreground">Somente o dono configura integrações.</p>;
+  if (!q.data) return <p className="text-muted-foreground">Carregando…</p>;
+  const d = q.data;
+  const manual = d.adapter === "lancamento_tipe";
+  const copiar = (t: string) => { void navigator.clipboard.writeText(t); toast.success("Copiado"); };
+  async function testarConexao() {
+    setTestando(true);
+    try { const r = await testar({ data: { slug } }); r.ok ? toast.success("Conexão funcionando") : toast.error(r.erro); qc.invalidateQueries({ queryKey: ["pdv-integ", slug] }); }
+    catch (e) { toast.error((e as Error).message); } finally { setTestando(false); }
+  }
+  async function definir(adapter: string) {
     try {
-      const res = await set({ data: { slug, provider: provider as any, newKey } });
-      setChave(res.key);
-      toast.success("Integração salva");
-      qc.invalidateQueries({ queryKey: ["ops", slug] }); qc.invalidateQueries({ queryKey: ["access"] });
+      const r = await trocar({ data: { slug, adapter } });
+      setSegredo(r.secret && r.webhookUrl ? { secret: r.secret, url: `${window.location.origin}${r.webhookUrl}` } : null);
+      toast.success("Integração principal atualizada");
+      qc.invalidateQueries({ queryKey: ["pdv-integ", slug] });
     } catch (e) { toast.error((e as Error).message); }
   }
-  if (!podeDono) return <p className="text-muted-foreground">Somente o dono configura integrações.</p>;
-  if (!r) return <p className="text-muted-foreground">Carregando…</p>;
-  const externo = r.pos_mode === "external";
-  const copiar = (t: string) => { void navigator.clipboard.writeText(t); toast.success("Copiado"); };
   return (
     <div className="space-y-4">
-      <div className="grid gap-3">
-        <div className={`rounded-2xl border-2 p-5 ${externo ? "border-primary bg-primary/10" : "border-border bg-card"}`}>
-          <div className="flex items-center gap-2 font-display text-lg font-bold"><PlugZap className="h-5 w-5" />Conectar meu PDV</div>
-          <p className="text-sm text-muted-foreground">A TIPE recebe as mesas e os pedidos do seu PDV e devolve os pagamentos dos clientes. Aceitamos qualquer PDV do mercado.</p>
-          <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
-            {provedores.map(([k, l]) => (
-              <Button key={k} size="sm" variant={externo && r.pos_provider === k ? "default" : "outline"} onClick={() => escolher(k, !integ)}>{l}</Button>
-            ))}
-          </div>
-          <form className="mt-3 flex gap-2" onSubmit={(e) => { e.preventDefault(); const v = slugPdv(String(new FormData(e.currentTarget).get("outro") ?? "")); if (v.length >= 2) void escolher(v, true); }}>
-            <input name="outro" maxLength={40} placeholder="Outro PDV? Digite o nome" className="h-9 flex-1 rounded-md border border-input bg-background px-3 text-sm" />
-            <Button size="sm" type="submit" variant="outline">Conectar</Button>
-          </form>
+      <Card className="border-2 border-primary bg-primary/5">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-center gap-2 font-display text-lg font-bold"><PlugZap className="h-5 w-5" />Modo atual: {d.adapterName}</div>
+          <span className={`rounded-full px-2.5 py-0.5 text-xs font-semibold ${d.status === "error" ? "bg-destructive/15 text-destructive" : "bg-primary/20"}`}>
+            {manual ? "Ativo" : d.status === "connected" ? "Conectado" : d.status === "error" ? "Com erro" : "Não conectado"}
+          </span>
         </div>
-      </div>
-      {externo && (
-        <Card className="space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <h3 className="font-semibold">Dados para o seu PDV ({pdvLabel(r.pos_provider)})</h3>
-            <span className={`rounded-full px-2 py-0.5 text-xs ${integ?.status === "connected" ? "bg-primary/20" : "bg-accent/30"}`}>
-              {integ?.status === "connected" ? `Conectado · última sincronização ${integ.last_sync_at ? hora(integ.last_sync_at) : "-"}` : "Aguardando primeira sincronização"}
-            </span>
+        {manual ? (
+          <p className="mt-2 text-sm text-muted-foreground">O Lançamento TIPE é o jeito rápido de colocar os pedidos na conta da mesa: escolha a mesa, toque nos itens e confirme. Os itens aparecem na hora no celular do cliente.</p>
+        ) : (
+          <div className="mt-2 space-y-2 text-sm">
+            <p className="text-muted-foreground">Última sincronização: {d.lastSyncAt ? hora(d.lastSyncAt) : "ainda não houve"}</p>
+            {d.status === "error" && d.lastError && <p className="text-destructive">Último erro: {d.lastError}</p>}
+            <Button size="sm" variant="outline" disabled={testando} onClick={testarConexao}>Testar conexão</Button>
+            <p className="text-xs text-muted-foreground">O Lançamento TIPE continua disponível como reserva se a integração cair.</p>
           </div>
-          <div>
-            <div className="text-xs text-muted-foreground">Endereço de integração</div>
-            <div className="flex gap-2"><code className="flex-1 break-all rounded bg-muted p-2 text-xs">{endpoint}</code><Button size="icon" variant="outline" onClick={() => copiar(endpoint)}><Copy className="h-4 w-4" /></Button></div>
+        )}
+      </Card>
+      <Card>
+        <h3 className="font-semibold">Integrações diretas disponíveis</h3>
+        {d.disponiveis.length === 0 ? (
+          <div className="mt-2 space-y-3">
+            <p className="text-sm text-muted-foreground">A integração direta com o seu sistema é feita pela equipe TIPE. Fale com a gente.</p>
+            <a href={whatsappLink("Olá! Quero integrar o sistema do meu restaurante com a TIPE.")} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
+              <MessageCircle className="h-4 w-4" />Falar no WhatsApp
+            </a>
           </div>
+        ) : (
+          <ul className="mt-2 space-y-1 text-sm">{d.disponiveis.map((a) => <li key={a.id}>{a.nome}</li>)}</ul>
+        )}
+      </Card>
+      {d.isFounder && (
+        <Card className="space-y-3 border-dashed">
+          <h3 className="font-semibold">Administração TIPE</h3>
+          <p className="text-xs text-muted-foreground">Somente administradores TIPE veem esta área. Um restaurante usa um adaptador principal por vez.</p>
+          <div className="flex flex-wrap gap-2">
+            <Button size="sm" variant={manual ? "default" : "outline"} onClick={() => definir("lancamento_tipe")}>Lançamento TIPE</Button>
+            <Button size="sm" variant={d.adapter === "api_tipe" ? "default" : "outline"} onClick={() => { if (window.confirm("Ativar a API padrão TIPE? Um novo segredo será gerado.")) void definir("api_tipe"); }}><KeyRound className="mr-1 h-4 w-4" />API padrão TIPE</Button>
+          </div>
+          {segredo && (
+            <div className="space-y-2 text-xs">
+              <div className="flex gap-2"><code className="flex-1 break-all rounded bg-muted p-2">{segredo.url}</code><Button size="icon" variant="outline" onClick={() => copiar(segredo.url)}><Copy className="h-4 w-4" /></Button></div>
+              <div className="flex gap-2"><code className="flex-1 break-all rounded bg-accent/20 p-2">{segredo.secret}</code><Button size="icon" variant="outline" onClick={() => copiar(segredo.secret)}><Copy className="h-4 w-4" /></Button></div>
+              <p className="text-destructive">Copie agora: o segredo não será mostrado novamente. Envie nos cabeçalhos x-tipe-restaurant: {slug} e x-tipe-secret.</p>
+            </div>
+          )}
           <div>
-            <div className="text-xs text-muted-foreground">Chave de acesso</div>
-            {chave ? (
-              <div className="space-y-1">
-                <div className="flex gap-2"><code className="flex-1 break-all rounded bg-accent/20 p-2 text-xs">{chave}</code><Button size="icon" variant="outline" onClick={() => copiar(chave)}><Copy className="h-4 w-4" /></Button></div>
-                <p className="text-xs text-destructive">Copie agora: por segurança, ela não será mostrada novamente.</p>
-              </div>
-            ) : (
-              <div className="flex items-center gap-2"><code className="rounded bg-muted p-2 text-xs">{integ?.key_prefix ?? "tipe_"}••••••••</code>
-                <Button size="sm" variant="outline" onClick={() => { if (window.confirm("Gerar nova chave? A chave atual deixará de funcionar.")) void escolher(r.pos_provider, true); }}><KeyRound className="mr-1 h-4 w-4" />Gerar nova chave</Button>
-              </div>
+            <h4 className="mb-1 text-sm font-semibold">Eventos recebidos e enviados</h4>
+            {!ev.data?.length ? <p className="text-sm text-muted-foreground">Nenhum evento ainda.</p> : (
+              <ul className="space-y-1 text-xs">{ev.data.map((e) => (
+                <li key={e.id} className="flex justify-between gap-2"><span className={e.status === "ok" ? "" : "text-destructive"}>{e.direction === "in" ? "Recebido" : "Enviado"} · {e.event_type} · {e.detail ?? e.external_event_id}</span><span className="shrink-0 text-muted-foreground">{hora(e.created_at)}</span></li>
+              ))}</ul>
             )}
           </div>
-          <details className="text-sm">
-            <summary className="cursor-pointer font-semibold">Instruções para o técnico do PDV</summary>
-            <div className="mt-2 space-y-2 text-xs text-muted-foreground">
-              <p>Envie o cabeçalho <code>x-tipe-key</code> com a chave em todas as chamadas.</p>
-              <p><strong>Lançar itens na mesa</strong> (POST):</p>
-              <pre className="overflow-x-auto rounded bg-muted p-2">{`{"event":"order","table":"12","waiter":"Carlos",\n "items":[{"code":"P01","name":"Peixada","price":89.9,"qty":1}]}`}</pre>
-              <p><strong>Fechar mesa</strong> (POST): <code>{`{"event":"close_table","table":"12"}`}</code></p>
-              <p><strong>Buscar pagamentos dos clientes</strong> (GET): <code>?since=2026-01-01T00:00:00Z</code></p>
-            </div>
-          </details>
-        </Card>
-      )}
-      {externo && (
-        <Card>
-          <h3 className="mb-2 font-semibold">Últimas sincronizações</h3>
-          {!ops.data?.syncLog.length ? <p className="text-sm text-muted-foreground">Nenhuma sincronização ainda.</p> : (
-            <ul className="space-y-1 text-sm">{ops.data.syncLog.map((l) => <li key={l.id} className="flex justify-between gap-2"><span className={l.status === "ok" ? "" : "text-destructive"}>{l.detail ?? l.event}</span><span className="text-muted-foreground">{hora(l.created_at)}</span></li>)}</ul>
-          )}
         </Card>
       )}
     </div>

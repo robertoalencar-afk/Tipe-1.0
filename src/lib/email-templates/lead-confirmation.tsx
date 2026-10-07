@@ -60,5 +60,5 @@ export const template = {
   component: LeadConfirmation,
   subject: (d: Record<string, any>) => `${d["restaurantName"] ?? "Seu restaurante"} está na lista de espera da TIPE`,
   displayName: "Confirmação de lista de espera",
-  previewData: { restaurantName: "Maré Alta", contactName: "Ana Souza", tables: 20, pdv: "Saipos" },
+  previewData: { restaurantName: "Maré Alta", contactName: "Ana Souza", tables: 20, pdv: "Sistema próprio" },
 } satisfies TemplateEntry;

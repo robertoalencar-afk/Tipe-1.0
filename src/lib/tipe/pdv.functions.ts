@@ -2,8 +2,8 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-// PDV simulado (formato Saipos/TOTVS). Quando houver chaves reais, este módulo
-// passa a sincronizar table_bill_items a partir da API do PDV.
+// Lançamento TIPE (adaptador manual). Integrações externas entram pelos
+// adaptadores em src/lib/tipe/pdv e escrevem no mesmo modelo canônico.
 
 const Slug = z.string().min(1).max(64).regex(/^[a-z0-9-]+$/);
 
