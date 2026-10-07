@@ -1,4 +1,3 @@
-import { pdvLabel as nomePdv } from "@/lib/tipe/pdvs";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useState } from "react";
@@ -17,6 +16,7 @@ import {
   addTable, addTablesBulk, closeTable, getPdvData, launchOrder, saveCategory, saveMenuItem, saveWaiter, updateTable, voidItem,
 } from "@/lib/tipe/pdv.functions";
 import { transferTable } from "@/lib/tipe/admin.functions";
+import { getPdvIntegration, getTopItems, importMenuCsv } from "@/lib/tipe/pdv-integrations.functions";
 import { Caixa, Configuracoes, Cozinha, Inicio, Integracoes, Relatorios } from "@/components/tipe/AdminSections";
 import { TotemStudio } from "@/components/tipe/TotemStudio";
 import { Assinatura } from "@/components/tipe/Assinatura";
@@ -53,7 +53,7 @@ const statusInfo: Record<Status, { label: string; cls: string }> = {
 const secoes = [
   { k: "inicio", l: "Início", i: Home },
   { k: "salao", l: "Salão", i: LayoutGrid },
-  { k: "pdv", l: "Lançar pedido", i: ShoppingCart },
+  { k: "pdv", l: "Lançamento TIPE", i: ShoppingCart },
   { k: "cozinha", l: "Cozinha e bar", i: ChefHat },
   { k: "caixa", l: "Caixa", i: Wallet },
   { k: "cardapio", l: "Cardápio", i: UtensilsCrossed, dono: true },
@@ -62,7 +62,7 @@ const secoes = [
   { k: "garcons", l: "Garçons: avaliações", i: Star, dono: true },
   { k: "relatorios", l: "Relatórios", i: BarChart3 },
   { k: "historico", l: "Histórico", i: History },
-  { k: "integracoes", l: "Integrações (PDV)", i: Plug, dono: true },
+  { k: "integracoes", l: "Integrações", i: Plug, dono: true },
   { k: "config", l: "Configurações", i: Settings },
   { k: "recebimentos", l: "Recebimentos", i: Landmark, dono: true },
   { k: "assinatura", l: "Assinatura", i: CreditCard, dono: true },
@@ -75,6 +75,8 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["panel", slug], queryFn: () => fetchPanel({ data: { slug } }), refetchInterval: 15000 });
   const pdv = useQuery({ queryKey: ["pdv", slug], queryFn: () => fetchPdv({ data: { slug } }) });
+  const fetchInteg = useServerFn(getPdvIntegration);
+  const integ = useQuery({ queryKey: ["pdv-integ", slug], queryFn: () => fetchInteg({ data: { slug } }), refetchInterval: 30000 });
   const [mesaAberta, setMesaAberta] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState<string | null>(null);
   const [aba, setAba] = useState("inicio");
@@ -128,9 +130,10 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
   const itemNome = (mesa: string, code: string) => d.items.find((i) => i.table_number === mesa && i.item_code === code)?.item_name ?? code;
   const mesaSel = mesas.find((m) => m.number === mesaAberta);
   const abertas = mesas.filter((m) => m.status === "ocupada" || m.status === "aguardando");
-  const externo = d.restaurant.pos_mode === "external";
-  const visiveis = secoes.filter((x) => (!("dono" in x) || podeDono) && !(externo && ["pdv", "cardapio", "cozinha"].includes(x.k)));
-  const pdvLabel = d.restaurant.pos_mode === "external" ? `PDV conectado: ${nomePdv(d.restaurant.pos_provider)}` : "Modo demonstração";
+  // O Lançamento TIPE fica sempre disponível, inclusive como reserva de uma integração.
+  const visiveis = secoes.filter((x) => !("dono" in x) || podeDono);
+  const pdvLabel = !integ.data || integ.data.adapter === "lancamento_tipe" ? "Lançamento TIPE" : `Integração: ${integ.data.adapterName}`;
+  const syncErro = integ.data && integ.data.adapter !== "lancamento_tipe" && integ.data.status === "error";
 
   const confirmacoes = (
     <>
@@ -188,6 +191,12 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
           </div>
         </div>
 
+        {syncErro && (
+          <div role="alert" className="mb-4 rounded-2xl border-2 border-destructive/40 bg-destructive/10 p-4 text-sm">
+            Sincronização com o seu sistema com problema. Os pedidos podem ser lançados pelo Lançamento TIPE enquanto isso.
+            <button className="ml-2 font-semibold underline" onClick={() => setAba("pdv")}>Abrir Lançamento TIPE</button>
+          </div>
+        )}
         {aba === "inicio" && <Inicio slug={slug} mesasAbertas={abertas.length} emAberto={abertas.reduce((s, m) => s + m.total - m.pago, 0)} pendentes={pendentes.length} onGo={setAba} />}
 
         {aba === "salao" && (
@@ -354,6 +363,8 @@ function MesaDetalhe({ slug, mesa, outras, payments, podeConfirmar, onLancar, on
 
 function LancarPedido({ slug, pdv, mesa, setMesa, onDone }: { slug: string; pdv: PdvData; mesa: string; setMesa: (m: string) => void; onDone: () => void }) {
   const launch = useServerFn(launchOrder);
+  const fetchTop = useServerFn(getTopItems);
+  const top = useQuery({ queryKey: ["top-items", slug], queryFn: () => fetchTop({ data: { slug } }), staleTime: 300000 });
   const [garcom, setGarcom] = useState("");
   const [carrinho, setCarrinho] = useState<Record<string, number>>({});
   const [busca, setBusca] = useState("");
@@ -392,6 +403,19 @@ function LancarPedido({ slug, pdv, mesa, setMesa, onDone }: { slug: string; pdv:
           <Button size="sm" variant={!cat ? "default" : "outline"} onClick={() => setCat("")}>Todos</Button>
           {pdv.categories.map((c) => <Button key={c.id} size="sm" variant={cat === c.id ? "default" : "outline"} onClick={() => setCat(c.id)}>{c.name}</Button>)}
         </div>
+        {!busca && !cat && (top.data?.length ?? 0) > 0 && (
+          <section className="mb-4">
+            <h3 className="mb-2 text-sm font-semibold text-primary">Mais vendidos</h3>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {top.data!.map((code) => pdv.items.find((i) => i.code === code && i.available)).filter(Boolean).map((i) => (
+                <button key={`top-${i!.id}`} onClick={() => add(i!.code, 1)} className="flex items-center justify-between rounded-xl border-2 border-primary/40 bg-card p-3 text-left text-sm hover:border-primary">
+                  <span>{i!.name}{carrinho[i!.code] ? <span className="ml-2 rounded-full bg-primary px-1.5 text-xs text-primary-foreground">{carrinho[i!.code]}</span> : null}</span>
+                  <span className="font-semibold">{brl(i!.price)}</span>
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
         {pdv.categories.map((cat) => {
           const lista = itens.filter((i) => i.category_id === cat.id);
           if (!lista.length) return null;
@@ -508,6 +532,17 @@ function MesasQr({ slug, restaurante, tables, podeDono, onDone }: { slug: string
 function Cardapio({ slug, pdv, onDone }: { slug: string; pdv: PdvData; onDone: () => void }) {
   const saveItem = useServerFn(saveMenuItem);
   const saveCat = useServerFn(saveCategory);
+  const importCsv = useServerFn(importMenuCsv);
+  async function importar(file: File) {
+    const texto = await file.text();
+    const linhas = texto.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    const sep = (linhas[0] ?? "").includes(";") ? ";" : ",";
+    const rows = linhas.filter((l, i) => !(i === 0 && /categoria/i.test(l))).map((l) => {
+      const [category = "", code = "", name = "", price = "0", ativo = "sim"] = l.split(sep).map((x) => x.trim().replace(/^"|"$/g, ""));
+      return { category, code, name, price: Number(price.replace(/\./g, "").replace(",", ".")) || Number(price) || 0, available: !/^(n|nao|não|0|false|inativo)$/i.test(ativo) };
+    });
+    await run(async () => { const r = await importCsv({ data: { slug, rows } }); toast.message(`${r.imported} itens importados`); }, "Cardápio importado");
+  }
   const vazio = { id: undefined as string | undefined, categoryId: pdv.categories[0]?.id ?? null, code: "", name: "", price: 0, available: true, sector: "kitchen" as "kitchen" | "bar", description: "" };
   const [f, setF] = useState(vazio);
   const [novaCat, setNovaCat] = useState("");
@@ -562,6 +597,11 @@ function Cardapio({ slug, pdv, onDone }: { slug: string; pdv: PdvData; onDone: (
             {f.id && <Button type="button" variant="outline" onClick={() => setF(vazio)}>Novo</Button>}
           </div>
         </form>
+        <div className="space-y-2 rounded-2xl border border-border bg-card p-4">
+          <h3 className="font-semibold">Importar planilha CSV</h3>
+          <p className="text-xs text-muted-foreground">Colunas: categoria; código; item; preço; ativo (sim/não). Itens com o mesmo código são atualizados.</p>
+          <Input type="file" accept=".csv,text/csv" onChange={(e) => { const f = e.target.files?.[0]; if (f) void importar(f); e.currentTarget.value = ""; }} />
+        </div>
         <form className="flex gap-2 rounded-2xl border border-border bg-card p-4" onSubmit={async (e) => {
           e.preventDefault();
           if (await run(() => saveCat({ data: { slug, name: novaCat } }), "Categoria criada")) setNovaCat("");
