@@ -202,7 +202,7 @@ export function MesaViva() {
               </div>
               {/* dobra do L e base apoiada na mesa */}
               <div
-                className="mx-auto h-5 w-[104%] -translate-x-[2%] rounded-b-md border border-t-0 border-secondary-foreground/30 bg-gradient-to-b from-secondary-foreground/25 to-secondary-foreground/[0.06]"
+                className="qrfold mx-auto h-5 w-[104%] -translate-x-[2%] rounded-b-md border border-t-0 border-secondary-foreground/30 bg-gradient-to-b from-secondary-foreground/25 to-secondary-foreground/[0.06]"
                 style={{ transform: "translateX(-2%) rotateX(68deg)", transformOrigin: "top center" }}
               />
               <div className="mx-auto -mt-2 h-2 w-36 rounded-full bg-mv-stage blur-[3px]" />
