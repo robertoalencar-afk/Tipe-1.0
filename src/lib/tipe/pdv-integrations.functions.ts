@@ -87,7 +87,7 @@ export const setPdvAdapter = createServerFn({ method: "POST" })
     } as never, { onConflict: "restaurant_id" });
     if (error) throw new Error("Não foi possível salvar a integração");
     const { logSecurityEvent } = await import("./security.server");
-    await logSecurityEvent({ action: "pdv_adapter_changed", resource: `pdv:${ad.id}`, result: "allowed", restaurantId: r.id, restaurantSlug: r.slug, actorId: (context as Ctx).userId } as never);
+    await logSecurityEvent({ action: "pdv_adapter_changed", resource: `pdv:${ad.id}`, result: "ok", restaurantId: r.id, restaurantSlug: r.slug, actorId: (context as Ctx).userId });
     // O segredo é mostrado uma única vez ao administrador.
     return { secret, webhookUrl: ad.capacidades().webhook ? `/api/public/pdv/${ad.id}/webhook` : null };
   });
