@@ -24,7 +24,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getPublicTable } from "@/lib/tipe/pdv.functions";
-import { createPayment, getPaymentConfig, getPaymentStatus, reopenClosedTable, type SharedPayment } from "@/lib/tipe/payments.functions";
+import { createPayment, getPaymentConfig, getPaymentStatus, reopenClosedTable, submitRating, type SharedPayment } from "@/lib/tipe/payments.functions";
 import { CardFields } from "@/components/tipe/CardFields";
 import { cardValid, tokenizeCard, type CardInput } from "@/lib/tipe/pagarme-client";
 import mascotThanks from "@/assets/mascot-thanks-hd.png";
@@ -554,7 +554,7 @@ function MesaPage() {
           </div>
           <label htmlFor="comentario" className="mt-8 text-sm font-semibold">Comentário <span className="font-normal text-muted-foreground">(opcional)</span></label>
           <Textarea id="comentario" value={comentario} onChange={(event) => setComentario(event.target.value)} placeholder="Conte como foi sua experiência" maxLength={400} className="mt-2 min-h-28 rounded-lg bg-card" />
-          <Button onClick={() => setEtapa("gorjeta")} className="mt-6 h-12 rounded-lg text-base font-bold">Continuar <ChevronRight /></Button>
+          <Button onClick={() => { if (estrelas > 0) void submitRating({ data: { restaurantId: restaurante, tableId: String(dados.mesa), session: sessaoMesa, stars: estrelas, comment: comentario.trim() || undefined } }).catch(() => undefined); setEtapa("gorjeta"); }} className="mt-6 h-12 rounded-lg text-base font-bold">Continuar <ChevronRight /></Button>
         </main>
       )}
 

@@ -1195,6 +1195,51 @@ export type Database = {
           },
         ]
       }
+      waiter_ratings: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          restaurant_id: string
+          stars: number
+          table_number: string
+          waiter_id: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          restaurant_id: string
+          stars: number
+          table_number: string
+          waiter_id?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          restaurant_id?: string
+          stars?: number
+          table_number?: string
+          waiter_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "waiter_ratings_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "waiter_ratings_waiter_id_fkey"
+            columns: ["waiter_id"]
+            isOneToOne: false
+            referencedRelation: "pdv_waiters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       waiter_withdrawals: {
         Row: {
           amount: number

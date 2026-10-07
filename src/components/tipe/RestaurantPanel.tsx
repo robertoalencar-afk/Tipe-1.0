@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
 import {
   ArrowRightLeft, BarChart3, ChefHat, Check, History, Home, LayoutGrid, Minus, Plug, Plus, Printer, QrCode, RefreshCw,
-  CreditCard, Settings, ShoppingCart, UtensilsCrossed, Users, Wallet, X,
+  CreditCard, Settings, Star, ShoppingCart, UtensilsCrossed, Users, Wallet, X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -23,6 +23,7 @@ import { Assinatura } from "@/components/tipe/Assinatura";
 import { Recebimentos } from "@/components/tipe/Recebimentos";
 import { grantWaiterAccess } from "@/lib/tipe/waiter.functions";
 import { Landmark } from "lucide-react";
+import { DesempenhoGarcons } from "@/components/tipe/DesempenhoGarcons";
 import { OnboardingPdv } from "@/components/tipe/OnboardingPdv";
 import { LebreAssistant } from "@/components/tipe/LebreAssistant";
 
@@ -58,6 +59,7 @@ const secoes = [
   { k: "cardapio", l: "Cardápio", i: UtensilsCrossed, dono: true },
   { k: "qr", l: "Mesas e QR Codes", i: QrCode },
   { k: "equipe", l: "Equipe e garçons", i: Users, dono: true },
+  { k: "garcons", l: "Garçons: avaliações", i: Star, dono: true },
   { k: "relatorios", l: "Relatórios", i: BarChart3 },
   { k: "historico", l: "Histórico", i: History },
   { k: "integracoes", l: "Integrações (PDV)", i: Plug, dono: true },
@@ -236,6 +238,7 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
           </ul>
         )}
 
+        {aba === "garcons" && <DesempenhoGarcons slug={slug} />}
         {aba === "qr" && <MesasQr slug={slug} restaurante={d.restaurant.name} tables={pdv.data.tables} podeDono={podeDono} onDone={refresh} />}
         {aba === "cardapio" && podeDono && <Cardapio slug={slug} pdv={pdv.data} onDone={refresh} />}
         {aba === "equipe" && podeDono && (
