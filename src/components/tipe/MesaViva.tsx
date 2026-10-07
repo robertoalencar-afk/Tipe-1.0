@@ -205,7 +205,7 @@ export function MesaViva() {
                 className="mx-auto h-5 w-[104%] -translate-x-[2%] rounded-b-md border border-t-0 border-secondary-foreground/30 bg-gradient-to-b from-secondary-foreground/25 to-secondary-foreground/[0.06]"
                 style={{ transform: "translateX(-2%) rotateX(68deg)", transformOrigin: "top center" }}
               />
-              <div className="mx-auto -mt-2 h-2 w-36 rounded-full bg-black/40 blur-[3px]" />
+              <div className="mx-auto -mt-2 h-2 w-36 rounded-full bg-mv-stage blur-[3px]" />
             </div>
             <div className="space-y-2">
               {bill.map(([n, v]) => (
@@ -218,7 +218,7 @@ export function MesaViva() {
 
         {/* 2 */}
         <div className="layer invisible s2 absolute inset-0 flex flex-col items-center justify-center gap-6 px-6 pb-10 lg:flex-row lg:gap-16 lg:px-16">
-          <div className="lg:w-[44%]"><Headline lines={[[["Sua"], ["conta,"]], [["ao", true], ["vivo.", true]]]} /></div>
+          <div className="lg:w-[44%]"><Headline lines={[[["Consumo"]], [["ao", true], ["vivo.", true]]]} /></div>
           <div className="relative h-[300px] w-[300px] shrink-0 sm:h-[400px] sm:w-[400px] lg:h-[460px] lg:w-[460px]">
             {[100, 74, 48].map((size) => (
               <span key={size} className="ring absolute rounded-full border border-primary/25" style={{ inset: `${(100 - size) / 2}%` }} />
@@ -249,7 +249,7 @@ export function MesaViva() {
 
         {/* 3 */}
         <div className={`${split} s3 lg:flex-row-reverse`}>
-          <div className="lg:w-[46%]"><Headline lines={[[["Compartilhe"]], [["a"], ["conta.", true]]]} /></div>
+          <div className="lg:w-[46%]"><Headline lines={[[["Divisão"]], [["sem"], ["calculadora.", true]]]} /></div>
           <div className="flex items-center gap-4">
             <Phone>
               <p className="font-display text-base font-bold">Mesa 12</p>
