@@ -20,7 +20,8 @@
 - Roles live in public.user_roles; payment confirmation only uses resolve_table_payment RPC.
 - Table reopen archives payments to archived_payments instead of deleting — keeps full history.
 - Restaurant area: /$restaurante; customer table: /$restaurante/$mesa with optional QR token.
-- PDV items enter through protected RPCs or /api/public/pos/$slug; operational mutations use SECURITY DEFINER RPCs.
+- PDV items enter through adapters in src/lib/tipe/pdv (registry.server.ts) that call pdv_ingest_event with idempotent external event ids; legacy /api/public/pos/$slug stays compatible and UI never shows third-party PDV names. Why: new PDVs plug in without touching the payment flow.
+- Waitlist leads are written only server-side (no anon access) and read/edited only by founders at /admin/leads. Why: lead data is private commercial information.
 - Public simulator `/simulador` uses browser-local demo state and fixed Mesa 12 data; it must never read or mutate restaurant PDV data. Why: the sales demo must remain repeatable and isolated from restaurant operations.
 - QR tokens only open tables; payment/reopen uses a rotating session_token.
 - Server code using supabaseAdmin must authorize via src/lib/tipe/security.server.ts (verifyTableSession, enforceRate, logSecurityEvent). Why: admin client bypasses RLS.
@@ -34,6 +35,3 @@
 - In-person bill payments store cash versus card-terminal details, including server-validated cash received and change due. Why: staff need the correct change before confirming receipt.
 - Restaurant bill payments charge the restaurant's own Pagar.me account (key AES-GCM encrypted in restaurant_pagarme_accounts, service_role only; per-restaurant webhook /api/public/pagarme/restaurante/$slug re-fetches the order). Why: TIPE never holds restaurant bank data or money.
 - Founder access is limited to TIPE backoffice aggregates; private restaurant operations require an explicit restaurant-scoped role. Why: support cannot impersonate clients.
-- Customer theme is CSS-scoped via the customer-theme marker and device preference, including portalled UI through body inheritance. Why: real and simulated bills share a flash-free palette without changing restaurant or landing themes.
-- Use the reusable HareOutline icon for the public assistant empty state. Why: lightweight currentColor line art preserves TIPE identity without replacing the official mascot.
-- Lebre audio is transcribed server-side into the editable composer (never auto-sent); attachments are images/PDF only, max 3 x 5 MB, validated on the server. Why: users review what was understood before anything runs.
