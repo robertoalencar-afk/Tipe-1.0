@@ -5,3 +5,4 @@
 - [x] Mascote do OK (thanks): remover bolinha branca visível no fundo escuro
 - [x] Testar todos os mascotes em fundo claro e escuro
 - [x] Mascotes redesenhados em alta definição com bordas nítidas e testados em fundo claro e escuro
+- [x] Lista de certinhos da abertura: adicionar "Pagamento por carteiras digitais" acima de "Lançamento em breve" (pedido 10h29)
