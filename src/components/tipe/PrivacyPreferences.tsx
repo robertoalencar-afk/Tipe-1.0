@@ -43,7 +43,7 @@ function PreferencesDialog({ open, setOpen, trigger, onSaved }: { open: boolean;
           ))}
         </ul>
         <DialogFooter className="grid gap-2 sm:grid-cols-3">
-          <Button variant="outline" onClick={() => salvar(NENHUM)}>Rejeitar não essenciais</Button>
+          <Button variant="outline" onClick={() => salvar(NENHUM)}>Recusar opcionais</Button>
           <Button variant="outline" onClick={() => salvar(c)}>Salvar preferências</Button>
           <Button variant="outline" onClick={() => salvar(TODOS)}>Aceitar todos</Button>
         </DialogFooter>
@@ -75,9 +75,10 @@ export function CookieBanner() {
         <p className="text-xs leading-5 text-muted-foreground">
           Usamos cookies para o site funcionar e, com o seu aceite, para melhorar sua experiência. <Link to="/cookies" className="font-medium text-primary underline-offset-2 hover:underline">Saiba mais</Link>
         </p>
-        <div className="mt-3 grid grid-cols-2 gap-2">
-          <Button size="sm" variant="outline" onClick={() => decidir(NENHUM)}>Não aceitar</Button>
-          <Button size="sm" onClick={() => decidir(TODOS)}>Aceitar todos</Button>
+        <div className="mt-3 grid grid-cols-3 gap-2">
+          <Button size="sm" variant="outline" onClick={() => decidir(TODOS)}>Aceitar tudo</Button>
+          <Button size="sm" variant="outline" onClick={() => decidir(NENHUM)}>Recusar opcionais</Button>
+          <Button size="sm" variant="outline" onClick={() => setOpen(true)}>Escolher</Button>
         </div>
       </div>
       <PreferencesDialog open={open} setOpen={setOpen} onSaved={() => setVisivel(false)} />

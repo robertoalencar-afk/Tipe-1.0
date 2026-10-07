@@ -47,6 +47,14 @@ export const getPanelData = createServerFn({ method: "GET" })
       supabase.from("user_roles").select("user_id, role").eq("restaurant_id", restaurant.id),
       supabase.from("payment_audit_log").select("id, table_number, action, amount, created_at").eq("restaurant_slug", data.slug).order("created_at", { ascending: false }).limit(30),
     ]);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: pdvAlerts } = await supabaseAdmin.from("pdv_events" as never)
+      .select("id, detail, created_at" as never)
+      .eq("restaurant_id", restaurant.id)
+      .eq("event_type", "item_cancelled")
+      .eq("status", "error")
+      .order("created_at", { ascending: false })
+      .limit(20) as unknown as { data: { id: string; detail: string | null; created_at: string }[] | null };
     return {
       restaurant,
       tables: (tables.data ?? []).sort((a, b) => Number(a.number) - Number(b.number) || a.number.localeCompare(b.number)),
@@ -54,6 +62,7 @@ export const getPanelData = createServerFn({ method: "GET" })
       payments: (payments.data ?? []).map((p) => ({ ...p, amount: Number(p.amount), cash_received: p.cash_received === null ? null : Number(p.cash_received), change_due: p.change_due === null ? null : Number(p.change_due), item_quantities: (p.item_quantities ?? {}) as Record<string, number> })),
       staff: (staff.data ?? []).map((s) => ({ ...s, roles: (roles.data ?? []).filter((r) => r.user_id === s.user_id).map((r) => r.role as StaffRole) })),
       audit: (audit.data ?? []).map((a) => ({ ...a, amount: Number(a.amount) })),
+      pdvAlerts: pdvAlerts ?? [],
     };
   });
 

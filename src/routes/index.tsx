@@ -3,9 +3,9 @@ import { PrivacyPreferences } from "@/components/tipe/PrivacyPreferences";
 import {
   QrCode, Receipt, Smartphone, CheckCircle2, ChevronRight, MonitorSmartphone, History, Landmark,
   Plug, Store, Zap, ShieldCheck, Clock, Users, Check, Star, BarChart3, Wallet,
-  Hand, ClipboardList, Calculator, ArrowLeftRight, CreditCard, Bot, Headphones, Instagram, Mic, Paperclip, MessageCircle, RefreshCcw, UserRound, Sparkles,
+  Hand, ClipboardList, Calculator, ArrowLeftRight, CreditCard, Bot, Headphones, Instagram, Mic, Paperclip, MessageCircle, RefreshCcw, Sparkles,
 } from "lucide-react";
-import { PLANS, priceLabel } from "@/lib/tipe/plans";
+import { PLANS, SHOW_PLAN_PRICES, priceLabel } from "@/lib/tipe/plans";
 import { WaitlistForm } from "@/components/tipe/WaitlistForm";
 import { LandingCalculator } from "@/components/tipe/LandingCalculator";
 import { WHATSAPP_SITE_MESSAGE, whatsappLink } from "@/lib/tipe/contact";
@@ -23,16 +23,18 @@ export const Route = createFileRoute("/")({
       { title: "TIPE | Pague. Sem esperar. | Pagamento na mesa por QR Code" },
       {
         name: "description",
-        content: "TIPE: pagamento na mesa por QR Code. O cliente divide e paga a conta pelo celular em menos de 30 segundos, sem baixar app. Pré-lançamento com 30 dias grátis para restaurantes.",
+        content: "TIPE: pagamento na mesa por QR Code. O cliente divide e paga a conta pelo celular em menos de 30 segundos, sem precisar instalar nada. Pré-lançamento com 30 dias grátis para restaurantes.",
       },
       { property: "og:title", content: "TIPE | Pague. Sem esperar. | Pagamento na mesa por QR Code" },
       {
         property: "og:description",
-        content: "TIPE: pagamento na mesa por QR Code. O cliente divide e paga a conta pelo celular em menos de 30 segundos, sem baixar app. Pré-lançamento com 30 dias grátis para restaurantes.",
+        content: "TIPE: pagamento na mesa por QR Code. O cliente divide e paga a conta pelo celular em menos de 30 segundos, sem precisar instalar nada. Pré-lançamento com 30 dias grátis para restaurantes.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://tipe.digital/" },
+      { property: "og:image", content: "https://tipe.digital/__l5e/assets-v1/702edacf-4438-4472-9693-7bb419095c42/tipe-logo-redondo.png" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:image", content: "https://tipe.digital/__l5e/assets-v1/702edacf-4438-4472-9693-7bb419095c42/tipe-logo-redondo.png" },
     ],
     links: [{ rel: "canonical", href: "https://tipe.digital/" }],
   }),
@@ -44,8 +46,8 @@ function LandingPage() {
     <div className="min-h-screen bg-background text-foreground">
       <Header />
       <main>
-        <Hero />
         <MesaViva />
+        <Hero />
         <Stats />
         <Dinamica />
         <HowItWorks />
@@ -56,7 +58,6 @@ function LandingPage() {
         <LebreSection />
         <LandingCalculator />
         <Pricing />
-        <Founders />
         <SocialProof />
         <Faq />
         <ContactSection />
@@ -77,7 +78,7 @@ function Header() {
             <a key={h} href={h} className="hidden rounded-lg px-3 py-2 text-muted-foreground transition-colors hover:text-foreground lg:block">{l}</a>
           ))}
           <Link to="/simulador" className="hidden rounded-full border px-4 py-2 font-semibold text-foreground sm:block">Testar o simulador</Link>
-          <a href="#lista-de-espera" className="rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5"><span className="hidden md:inline">Garantir meus </span>30 dias grátis</a>
+          <a href="#lista-de-espera" className="rounded-full bg-primary px-4 py-2 font-semibold text-primary-foreground transition-transform hover:-translate-y-0.5">Quero conhecer</a>
         </nav>
       </div>
     </header>
@@ -86,7 +87,7 @@ function Header() {
 
 function Hero() {
   return (
-    <section className="relative overflow-hidden text-secondary-foreground" style={{ background: "var(--gradient-brand)" }}>
+    <section id="principal" className="relative scroll-mt-16 overflow-hidden text-secondary-foreground" style={{ background: "var(--gradient-brand)" }}>
       <div aria-hidden className="pointer-events-none absolute inset-0 opacity-[0.07]" style={{ backgroundImage: "radial-gradient(currentColor 1px, transparent 1px)", backgroundSize: "22px 22px" }} />
       <div className="relative mx-auto grid max-w-7xl items-center gap-10 px-4 py-10 sm:px-6 sm:py-14 lg:grid-cols-[1.1fr_1fr] lg:py-20">
         <div>
@@ -97,7 +98,7 @@ function Hero() {
             Pague. <span className="text-primary">Sem esperar.</span>
           </h1>
           <p className="mt-5 max-w-xl text-base leading-relaxed opacity-85 sm:text-lg">
-            Pagamento na mesa por QR Code para restaurantes, bares e cafeterias. O cliente confere a conta, divide o que consumiu e paga pelo celular em menos de 30 segundos. Sem baixar aplicativo.
+            Pagamento na mesa por QR Code para restaurantes, bares e cafeterias. O cliente confere a conta, divide o que consumiu e paga pelo celular em menos de 30 segundos. Sem precisar baixar nada.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <a href="#lista-de-espera" className="inline-flex items-center gap-2 rounded-full bg-primary px-6 py-3 font-display font-semibold text-primary-foreground shadow-lg transition-transform hover:-translate-y-0.5">
@@ -108,7 +109,7 @@ function Hero() {
             </Link>
           </div>
           <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm opacity-80">
-            {["Sem aplicativo para baixar", "Pagamento por carteiras digitais", "Sem cartão de crédito no teste"].map((t) => (
+            {["Sem instalação", "Pagamento por carteiras digitais", "Sem cartão de crédito no teste"].map((t) => (
               <span key={t} className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-primary" />{t}</span>
             ))}
           </div>
@@ -290,7 +291,7 @@ function HowItWorks() {
     { icon: QrCode, t: "Lê o QR Code", d: "Cada mesa tem um totem com QR Code exclusivo. O cliente aponta a câmera e entra na conta." },
     { icon: Receipt, t: "Escolhe os itens", d: "Os pedidos lançados aparecem em tempo real. Ele paga tudo ou só o que consumiu, item por item." },
     { icon: Smartphone, t: "Paga como preferir", d: "Pix, Apple Pay, Google Pay e cartão, ou dinheiro e maquininha no estabelecimento." },
-    { icon: Star, t: "Avalia e agradece", d: "Dá nota ao atendimento e, se quiser, uma gorjeta extra direto para o garçom." },
+    { icon: Star, t: "Avalia e agradece", d: "Dá nota ao atendimento e, se quiser, uma gorjeta extra para a equipe." },
   ];
   return (
     <section id="como-funciona" className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16">
@@ -511,7 +512,7 @@ function LebreSection() {
 }
 
 const plans = [
-  ...PLANS.map((p) => ({ id: p.id as string | null, name: p.name, price: priceLabel(p.price) as string | null, tables: `Até ${p.maxTables} mesas`, popular: "popular" in p ? p.popular : false, features: [...p.features] as string[] })),
+  ...PLANS.map((p) => ({ id: p.id as string | null, name: p.name, price: SHOW_PLAN_PRICES ? priceLabel(p.price) : null, tables: `Até ${p.maxTables} mesas`, popular: "popular" in p ? p.popular : false, features: [...p.features] as string[] })),
   { id: null, name: "Personalizado", price: null, tables: "Acima de 40 mesas ou redes", popular: false, features: ["Várias unidades", "Painel consolidado", "Integrações sob medida", "Condições negociadas"] },
 ];
 
@@ -527,7 +528,7 @@ function Pricing() {
               <h3 className="font-display text-xl font-bold">{p.name}</h3>
               <p className={`text-sm ${p.popular ? "opacity-75" : "text-muted-foreground"}`}>{p.tables}</p>
               <div className="mt-5">
-                {p.price ? <p className="font-display text-3xl font-extrabold">R$ {p.price}<span className="text-sm font-semibold opacity-70">/mês</span></p> : <p className="font-display text-3xl font-extrabold">Sob consulta</p>}
+                {p.price ? <p className="font-display text-3xl font-extrabold">R$ {p.price}<span className="text-sm font-semibold opacity-70">/mês</span></p> : <p className="font-display text-xl font-extrabold">Valores no lançamento</p>}
                 <p className="mt-1 text-xs font-semibold text-primary">30 dias grátis, sem cartão</p>
               </div>
               <ul className="mt-6 flex-1 space-y-2.5 text-sm">
@@ -537,30 +538,8 @@ function Pricing() {
             </div>
           ))}
         </div>
-        <p className="mt-8 text-center text-sm text-muted-foreground">As taxas das transações digitais são as do Pagar.me, cobradas diretamente na conta do restaurante.</p>
-        <p className="mt-3 flex items-center justify-center gap-2 text-center text-sm text-muted-foreground"><ShieldCheck className="h-4 w-4 text-primary" />Sem fidelidade. Cancele quando quiser.</p>
-      </div>
-    </section>
-  );
-}
-
-// [PREENCHER] Fundadores: foto (URL), nome, cargo e uma frase de cada um.
-const FUNDADORES: { foto: string | null; nome: string; cargo: string; frase: string }[] = [
-  { foto: null, nome: "[PREENCHER: nome do fundador]", cargo: "[PREENCHER: cargo]", frase: "[PREENCHER: frase do fundador]" },
-  { foto: null, nome: "[PREENCHER: nome do fundador]", cargo: "[PREENCHER: cargo]", frase: "[PREENCHER: frase do fundador]" },
-];
-
-function Founders() {
-  return (
-    <section className="mx-auto max-w-6xl px-4 py-12 sm:px-6 sm:py-16">
-      <SectionTitle eyebrow="Quem está por trás da TIPE" title="Feita em Fortaleza, para quem vive o salão." text="A TIPE nasceu em Fortaleza, de quem já esperou a maquininha vezes demais." />
-      <div className="mt-10 grid gap-6 sm:grid-cols-2">
-        {FUNDADORES.map((f, i) => (
-          <figure key={i} className="flex gap-4 rounded-3xl border bg-card p-6 shadow-sm">
-            {f.foto ? <img src={f.foto} alt={f.nome} loading="lazy" className="h-16 w-16 shrink-0 rounded-full object-cover" /> : <span className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-muted text-muted-foreground"><UserRound className="h-7 w-7" /></span>}
-            <div><figcaption className="font-display font-bold">{f.nome}</figcaption><p className="text-xs text-muted-foreground">{f.cargo}</p><blockquote className="mt-2 text-sm">“{f.frase}”</blockquote></div>
-          </figure>
-        ))}
+        <p className="mt-8 text-center text-sm text-muted-foreground">Restaurantes fundadores terão condições especiais. Os primeiros ganham 30 dias grátis, sem cartão de crédito.</p>
+        <p className="mt-3 flex items-center justify-center gap-2 text-center text-sm text-muted-foreground"><ShieldCheck className="h-4 w-4 text-primary" />Planos mensais sem fidelidade: cancele quando quiser. No plano anual, os totens com QR Code estão incluídos.</p>
       </div>
     </section>
   );
@@ -595,12 +574,12 @@ function Faq() {
     {
       label: "No salão, na mesa",
       faqs: [
-        ["O cliente precisa baixar algum aplicativo?", "Não. Ele lê o QR Code do totem da mesa com a câmera do celular e já entra na conta. Não precisa instalar nada. Ele informa nome e sobrenome só na primeira vez; o celular guarda isso para as próximas visitas."],
+        ["O cliente precisa instalar alguma coisa?", "Não. Ele lê o QR Code do totem da mesa com a câmera do celular e já entra na conta. Ele informa nome e sobrenome só na primeira vez; o celular guarda isso para as próximas visitas."],
         ["Como a conta chega no celular do cliente?", "Quando o garçom lança um pedido, o item aparece na mesa em tempo real, com data e horário, como no caixa."],
         ["O cliente pode pagar só uma parte da conta?", "Pode. Cada pessoa escolhe o que vai pagar, item por item, e esses itens saem da conta na hora. Quem terminar antes não precisa esperar os outros, e ninguém paga pelo que não consumiu."],
         ["Quais formas de pagamento o cliente pode usar?", "Pagamentos digitais (Pix, Apple Pay, Google Pay e cartão) são processados pelo Pagar.me e aprovados na hora, e o dinheiro cai direto na conta bancária escolhida pelo restaurante. A TIPE não retém nenhum valor. Maquininha e dinheiro no estabelecimento também são aceitos e confirmados pelo caixa no painel. Você escolhe no painel quais formas de pagamento quer oferecer: só digitais, só tradicionais, ou as duas."],
         ["E se o cliente quiser conferir a conta antes de pagar?", "A conta completa fica sempre visível, com todos os itens lançados. Se ele identificar algo errado, o recomendado é falar com o garçom ou o caixa antes de concluir o pagamento."],
-        ["Como funciona a gorjeta extra?", "A taxa de serviço continua como hoje. A gorjeta extra é 100% opcional, escolhida pelo cliente depois da avaliação. Destino da gorjeta: [PREENCHER: direto para o garçom que atendeu ou rateio da casa, conforme definido pelo restaurante]."],
+        ["Como funciona a gorjeta extra?", "A taxa de serviço continua funcionando como hoje. A gorjeta extra é opcional e aparece depois da avaliação do atendimento. A TIPE recebe o valor e separa 70% para a equipe do restaurante e 30% como taxa da plataforma. O cliente vê os valores antes de confirmar."],
       ],
     },
     {
@@ -610,7 +589,7 @@ function Faq() {
         ["E se um pagamento sair errado?", "O restaurante cancela pelo painel e os itens voltam a ficar disponíveis na conta. Tudo permanece registrado com data, horário e nome de quem pagou."],
         ["Preciso trocar o meu sistema?", "Não. A TIPE não substitui o seu sistema. Ela cuida só do fechamento da conta. A integração direta com o seu PDV é feita pela nossa equipe, junto com você. Enquanto isso, ou se você não usa PDV, os pedidos podem ser lançados pelo painel TIPE em segundos."],
         ["Quanto tempo leva para começar?", "A implantação é assistida: cadastramos as mesas, geramos os totens com QR Code e treinamos a equipe. Você pode começar por um salão e ir ampliando conforme o resultado."],
-        ["Como é cobrada a assinatura?", "Os primeiros restaurantes ganham 30 dias grátis, sem cartão de crédito. Depois, a assinatura é mensal, de acordo com o número de mesas: Essencial R$ 49,90, Profissional R$ 79,90, Premium R$ 99,90 ou Personalizado sob consulta. Sem fidelidade: você cancela quando quiser."],
+        ["Como é cobrada a assinatura?", "Mensalmente ou no plano anual, de acordo com o número de mesas. Os planos mensais não têm fidelidade, e no plano anual os totens estão incluídos. Os valores serão divulgados no lançamento, e os restaurantes da lista de espera terão condições especiais. A TIPE não cobra tarifa por transação sobre as contas; o restaurante paga apenas as tarifas do Pagar.me."],
       ],
     },
   ];

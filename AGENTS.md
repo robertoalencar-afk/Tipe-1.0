@@ -9,18 +9,21 @@
 > the editor, so keep the branch in a working state.
 <!-- LOVABLE:END -->
 
-- Preserve a identificação do cliente localmente por restaurante e mesa, para que novas leituras do mesmo QR retomem a conta sem perguntar o nome novamente.
-- A atividade da mesa mostra somente pagamentos da conta; gorjetas extras ficam fora desse histórico por não integrarem a conta do restaurante.
-- Pagamentos digitais concluídos são registrados como aprovados; somente pagamentos no estabelecimento aguardam confirmação manual.
-- A identificação inicial solicita nome e sobrenome; os mascotes oficiais aparecem contextualizados nas telas de espera e agradecimento.
-- Na conta, não oferecer cartão direto; destacar pagamento no estabelecimento com dinheiro ou maquininha. Mascotes aparecem apenas em momentos contextuais.
-- O fluxo do cliente é sempre itens escolhidos → meio de pagamento → pagamento; pedidos não identificam a pessoa, mas pagamentos exibem cliente, itens, valor e horário.
-- Ao reabrir o QR da mesma mesa, recuperar a identificação antes de renderizar a etapa; quando não houver itens disponíveis nem pagamentos pendentes, mostrar a mesa encerrada.
+- Keep the Lovable-connected Git branch in a working state and never rewrite published history.
+
+- Preserve customer identity locally per restaurant/table so repeat QR scans resume the account.
+- Table activity shows bill payments only; extra tips stay outside restaurant bill history.
+- Completed digital payments are approved; only in-person payments await manual confirmation.
+- Initial identification asks first and last name; mascots appear contextually while waiting and thanking.
+- Do not offer direct card entry on the bill; emphasize cash or card terminal at the venue.
+- Customer flow is selected items → payment method → payment; payments show customer, items, amount and time.
+- Restore identity before rendering a reopened QR; show table closed when nothing is available or pending.
 
 - Roles live in public.user_roles; payment confirmation only uses resolve_table_payment RPC.
 - Table reopen archives payments to archived_payments instead of deleting — keeps full history.
 - Restaurant area: /$restaurante; customer table: /$restaurante/$mesa with optional QR token.
 - PDV items enter through adapters in src/lib/tipe/pdv (registry.server.ts) that call pdv_ingest_event with idempotent external event ids; legacy /api/public/pos/$slug stays compatible and UI never shows third-party PDV names. Why: new PDVs plug in without touching the payment flow.
+- Block failed PDV cancellation of paid items and show it in the restaurant panel/history.
 - Waitlist leads are written only server-side (no anon access) and read/edited only by founders at /admin/leads. Why: lead data is private commercial information.
 - Public simulator `/simulador` uses browser-local demo state and fixed Mesa 12 data; it must never read or mutate restaurant PDV data. Why: the sales demo must remain repeatable and isolated from restaurant operations.
 - QR tokens only open tables; payment/reopen uses a rotating session_token.

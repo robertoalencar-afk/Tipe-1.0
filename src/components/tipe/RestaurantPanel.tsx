@@ -197,6 +197,11 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
             <button className="ml-2 font-semibold underline" onClick={() => setAba("pdv")}>Abrir Lançamento TIPE</button>
           </div>
         )}
+        {d.pdvAlerts[0] && (
+          <div role="alert" className="mb-4 rounded-2xl border-2 border-warning/50 bg-warning/10 p-4 text-sm">
+            <strong>Atenção no cancelamento:</strong> {d.pdvAlerts[0].detail}
+          </div>
+        )}
         {aba === "inicio" && <Inicio slug={slug} mesasAbertas={abertas.length} emAberto={abertas.reduce((s, m) => s + m.total - m.pago, 0)} pendentes={pendentes.length} onGo={setAba} />}
 
         {aba === "salao" && (
@@ -236,6 +241,8 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
         {aba === "caixa" && <Caixa slug={slug} podeCaixa={podeConfirmar} confirmacoes={confirmacoes} />}
 
         {aba === "historico" && (
+          <div className="space-y-4">
+          {d.pdvAlerts.length > 0 && <ul className="divide-y divide-border rounded-2xl border border-warning/40 bg-warning/10">{d.pdvAlerts.map((a) => <li key={a.id} className="flex justify-between gap-3 p-3 text-sm"><span>{a.detail}</span><span className="shrink-0 text-muted-foreground">{hora(a.created_at)}</span></li>)}</ul>}
           <ul className="divide-y divide-border rounded-2xl border border-border bg-card">
             {d.audit.length === 0 && <li className="p-4 text-center text-muted-foreground">Sem registros ainda.</li>}
             {d.audit.map((a) => (
@@ -245,6 +252,7 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
               </li>
             ))}
           </ul>
+          </div>
         )}
 
         {aba === "garcons" && <DesempenhoGarcons slug={slug} />}

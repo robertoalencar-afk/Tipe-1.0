@@ -7,7 +7,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { getSubscription, startSubscription } from "@/lib/tipe/subscription.functions";
-import { planById, priceLabel } from "@/lib/tipe/plans";
+import { planById, priceLabel, SHOW_PLAN_PRICES } from "@/lib/tipe/plans";
 
 const STATUS: Record<string, string> = { trialing: "Teste grátis", active: "Ativa", past_due: "Pagamento atrasado", canceled: "Cancelada", expired: "Teste encerrado" };
 
@@ -28,7 +28,7 @@ export function Assinatura({ slug }: { slug: string }) {
     <div className="max-w-xl rounded-2xl border border-border bg-card p-6">
       <h2 className="font-display text-xl font-bold">Assinatura</h2>
       <div className="mt-4 flex items-baseline justify-between">
-        <div><p className="font-display text-2xl font-extrabold">{plan?.name ?? "Personalizado"}</p><p className="text-sm text-muted-foreground">{plan ? `R$ ${priceLabel(plan.price)}/mês · até ${plan.maxTables} mesas` : "Condições negociadas"}</p></div>
+        <div><p className="font-display text-2xl font-extrabold">{plan?.name ?? "Personalizado"}</p><p className="text-sm text-muted-foreground">{plan ? `${SHOW_PLAN_PRICES ? `R$ ${priceLabel(plan.price)}/mês · ` : "Valores no lançamento · "}até ${plan.maxTables} mesas` : "Condições negociadas"}</p></div>
         <span className="rounded-full bg-primary/15 px-3 py-1 text-sm font-bold text-primary">{STATUS[s.status] ?? s.status}</span>
       </div>
       {s.status === "trialing" && (

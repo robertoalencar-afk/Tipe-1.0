@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { TipeLogo } from "@/components/tipe/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PLANS, TRIAL_DAYS, priceLabel, type PlanId } from "@/lib/tipe/plans";
+import { PLANS, SHOW_PLAN_PRICES, TRIAL_DAYS, priceLabel, type PlanId } from "@/lib/tipe/plans";
 import { signupRestaurant } from "@/lib/tipe/subscription.functions";
 import { recordLegalAcceptance } from "@/lib/tipe/legal.functions";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -132,7 +132,7 @@ function Cadastro() {
               {PLANS.map((p) => (
                 <button key={p.id} type="button" onClick={() => setF({ ...f, plan: p.id })} className={`rounded-2xl border p-4 text-left transition ${f.plan === p.id ? "border-primary bg-primary/10 ring-1 ring-primary" : "border-border bg-card hover:border-primary/50"}`}>
                   <div className="flex items-center justify-between"><span className="font-display font-bold">{p.name}</span>{f.plan === p.id && <Check className="h-4 w-4 text-primary" />}</div>
-                  <p className="mt-1 font-display"><span className="text-xs">R$</span> <span className="text-2xl font-extrabold">{priceLabel(p.price)}</span><span className="text-xs text-muted-foreground">/mês</span></p>
+                  {SHOW_PLAN_PRICES ? <p className="mt-1 font-display"><span className="text-xs">R$</span> <span className="text-2xl font-extrabold">{priceLabel(p.price)}</span><span className="text-xs text-muted-foreground">/mês</span></p> : <p className="mt-2 text-sm font-semibold text-primary">Valores no lançamento</p>}
                 </button>
               ))}
             </div>
