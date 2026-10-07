@@ -46,7 +46,7 @@ export function DesempenhoGarcons({ slug }: { slug: string }) {
               <div className="mt-3 h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={grafico}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" vertical={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
                     <XAxis dataKey="nome" tick={{ fontSize: 12, fill: "currentColor" }} />
                     <YAxis tick={{ fontSize: 12, fill: "currentColor" }} tickFormatter={(v: number) => `R$${v}`} width={56} />
                     <Tooltip formatter={(v: number) => brl(v)} cursor={{ fill: "var(--muted)" }} contentStyle={{ background: "var(--card)", border: "1px solid var(--border)", borderRadius: 8 }} />
