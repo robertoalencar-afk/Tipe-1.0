@@ -1,10 +1,11 @@
+// Versões vigentes (devem bater com os metadados de src/content/legal).
 // Versões dos documentos legais. Ao alterar materialmente um documento,
 // crie uma nova versão (não sobrescreva) para que novo aceite possa ser exigido.
 export const LEGAL = {
-  consumer_terms: { version: "2.0", effective: "05/10/2026" },
-  privacy_policy: { version: "1.1", effective: "07/10/2026" },
-  cookie_policy: { version: "1.0", effective: "05/10/2026" },
-  partner_terms: { version: "1.0", effective: "05/10/2026" },
+  consumer_terms: { version: "3.0", effective: "07/10/2026" },
+  privacy_policy: { version: "2.0", effective: "07/10/2026" },
+  cookie_policy: { version: "2.0", effective: "07/10/2026" },
+  partner_terms: { version: "2.0", effective: "07/10/2026" },
 } as const;
 
 export type LegalDoc = keyof typeof LEGAL;

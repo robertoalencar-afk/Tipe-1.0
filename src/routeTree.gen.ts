@@ -36,7 +36,7 @@ import { Route as PrivacidadeIndexRouteImport } from './routes/privacidade.index
 import { Route as PrivacidadeSolicitacaoRouteImport } from './routes/privacidade.solicitacao'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin.leads'
-import { Route as LegalVersoesArquivoRouteImport } from './routes/legal.versoes.$arquivo'
+import { Route as LegalVersoesArquivoRouteImport } from './routes/legal.versoes_.$arquivo'
 import { Route as MesaRestauranteMesaRouteImport } from './routes/mesa.$restaurante.$mesa'
 import { Route as ApiPublicPagarmeWebhookRouteImport } from './routes/api/public/pagarme/webhook'
 import { Route as ApiPublicPdvSyncRouteImport } from './routes/api/public/pdv.sync'
@@ -181,9 +181,9 @@ const AuthenticatedAdminLeadsRoute = AuthenticatedAdminLeadsRouteImport.update({
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const LegalVersoesArquivoRoute = LegalVersoesArquivoRouteImport.update({
-  id: '/$arquivo',
-  path: '/$arquivo',
-  getParentRoute: () => LegalVersoesRoute,
+  id: '/legal/versoes_/$arquivo',
+  path: '/legal/versoes/$arquivo',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const MesaRestauranteMesaRoute = MesaRestauranteMesaRouteImport.update({
   id: '/mesa/$restaurante/$mesa',
@@ -244,7 +244,7 @@ export interface FileRoutesByFullPath {
   '/legal/$livro': typeof LegalLivroRoute
   '/legal/completa': typeof LegalCompletaRoute
   '/legal/glossario': typeof LegalGlossarioRoute
-  '/legal/versoes': typeof LegalVersoesRouteWithChildren
+  '/legal/versoes': typeof LegalVersoesRoute
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
   '/$restaurante/': typeof RestauranteIndexRoute
   '/legal/': typeof LegalIndexRoute
@@ -280,7 +280,7 @@ export interface FileRoutesByTo {
   '/legal/$livro': typeof LegalLivroRoute
   '/legal/completa': typeof LegalCompletaRoute
   '/legal/glossario': typeof LegalGlossarioRoute
-  '/legal/versoes': typeof LegalVersoesRouteWithChildren
+  '/legal/versoes': typeof LegalVersoesRoute
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
   '/$restaurante': typeof RestauranteIndexRoute
   '/legal': typeof LegalIndexRoute
@@ -318,14 +318,14 @@ export interface FileRoutesById {
   '/legal/$livro': typeof LegalLivroRoute
   '/legal/completa': typeof LegalCompletaRoute
   '/legal/glossario': typeof LegalGlossarioRoute
-  '/legal/versoes': typeof LegalVersoesRouteWithChildren
+  '/legal/versoes': typeof LegalVersoesRoute
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
   '/$restaurante/': typeof RestauranteIndexRoute
   '/legal/': typeof LegalIndexRoute
   '/privacidade/': typeof PrivacidadeIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
-  '/legal/versoes/$arquivo': typeof LegalVersoesArquivoRoute
+  '/legal/versoes_/$arquivo': typeof LegalVersoesArquivoRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
@@ -436,7 +436,7 @@ export interface FileRouteTypes {
     | '/privacidade/'
     | '/.lovable/oauth/consent'
     | '/_authenticated/admin/leads'
-    | '/legal/versoes/$arquivo'
+    | '/legal/versoes_/$arquivo'
     | '/mesa/$restaurante/$mesa'
     | '/api/public/pagarme/webhook'
     | '/api/public/pdv/sync'
@@ -464,12 +464,13 @@ export interface RootRouteChildren {
   LegalLivroRoute: typeof LegalLivroRoute
   LegalCompletaRoute: typeof LegalCompletaRoute
   LegalGlossarioRoute: typeof LegalGlossarioRoute
-  LegalVersoesRoute: typeof LegalVersoesRouteWithChildren
+  LegalVersoesRoute: typeof LegalVersoesRoute
   PrivacidadeSolicitacaoRoute: typeof PrivacidadeSolicitacaoRoute
   RestauranteIndexRoute: typeof RestauranteIndexRoute
   LegalIndexRoute: typeof LegalIndexRoute
   PrivacidadeIndexRoute: typeof PrivacidadeIndexRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
+  LegalVersoesArquivoRoute: typeof LegalVersoesArquivoRoute
   MesaRestauranteMesaRoute: typeof MesaRestauranteMesaRoute
   ApiPublicPagarmeWebhookRoute: typeof ApiPublicPagarmeWebhookRoute
   ApiPublicPdvSyncRoute: typeof ApiPublicPdvSyncRoute
@@ -670,12 +671,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminLeadsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/legal/versoes/$arquivo': {
-      id: '/legal/versoes/$arquivo'
-      path: '/$arquivo'
+    '/legal/versoes_/$arquivo': {
+      id: '/legal/versoes_/$arquivo'
+      path: '/legal/versoes/$arquivo'
       fullPath: '/legal/versoes/$arquivo'
       preLoaderRoute: typeof LegalVersoesArquivoRouteImport
-      parentRoute: typeof LegalVersoesRoute
+      parentRoute: typeof rootRouteImport
     }
     '/mesa/$restaurante/$mesa': {
       id: '/mesa/$restaurante/$mesa'
@@ -746,18 +747,6 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
-interface LegalVersoesRouteChildren {
-  LegalVersoesArquivoRoute: typeof LegalVersoesArquivoRoute
-}
-
-const LegalVersoesRouteChildren: LegalVersoesRouteChildren = {
-  LegalVersoesArquivoRoute: LegalVersoesArquivoRoute,
-}
-
-const LegalVersoesRouteWithChildren = LegalVersoesRoute._addFileChildren(
-  LegalVersoesRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -777,12 +766,13 @@ const rootRouteChildren: RootRouteChildren = {
   LegalLivroRoute: LegalLivroRoute,
   LegalCompletaRoute: LegalCompletaRoute,
   LegalGlossarioRoute: LegalGlossarioRoute,
-  LegalVersoesRoute: LegalVersoesRouteWithChildren,
+  LegalVersoesRoute: LegalVersoesRoute,
   PrivacidadeSolicitacaoRoute: PrivacidadeSolicitacaoRoute,
   RestauranteIndexRoute: RestauranteIndexRoute,
   LegalIndexRoute: LegalIndexRoute,
   PrivacidadeIndexRoute: PrivacidadeIndexRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
+  LegalVersoesArquivoRoute: LegalVersoesArquivoRoute,
   MesaRestauranteMesaRoute: MesaRestauranteMesaRoute,
   ApiPublicPagarmeWebhookRoute: ApiPublicPagarmeWebhookRoute,
   ApiPublicPdvSyncRoute: ApiPublicPdvSyncRoute,
