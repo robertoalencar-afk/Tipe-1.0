@@ -31,6 +31,27 @@ function Chips({ options, value, onChange, multi }: { options: Record<string, st
     </div>
   );
 }
+const PDV_OPTIONS = ["Saipos", "Consumer", "Goomer", "Colibri", "Linx", "TOTVS Chef", "iFood PDV", "Anota AI", "Não uso PDV"];
+const MAQUININHA_OPTIONS = ["Stone", "Cielo", "Rede", "Getnet", "PagBank", "Mercado Pago", "SumUp", "InfinitePay", "Ton", "Safrapay"];
+
+function ChoiceOther({ options, value, onChange, placeholder }: { options: string[]; value: string; onChange: (v: string) => void; placeholder: string }) {
+  const [other, setOther] = useState(value !== "" && !options.includes(value));
+  return (
+    <div className="space-y-2">
+      <div className="flex flex-wrap gap-2">
+        {[...options, "Outro"].map((o) => {
+          const on = o === "Outro" ? other : !other && value === o;
+          return (
+            <button key={o} type="button" aria-pressed={on} onClick={() => { if (o === "Outro") { setOther(!on); onChange(""); } else { setOther(false); onChange(on ? "" : o); } }}
+              className={`rounded-full border px-3 py-1.5 text-xs font-medium transition ${on ? "border-primary bg-primary text-primary-foreground" : "bg-background hover:border-primary"}`}>{o}</button>
+          );
+        })}
+      </div>
+      {other && <input autoFocus maxLength={80} placeholder={placeholder} className={input} value={value} onChange={(e) => onChange(e.target.value)} />}
+    </div>
+  );
+}
+
 const Q = ({ label, children }: { label: string; children: React.ReactNode }) => (
   <div className="space-y-2"><p className="text-sm font-semibold">{label}</p>{children}</div>
 );
@@ -120,11 +141,8 @@ export function WaitlistForm({ origin = "home" }: { origin?: "home" | "simulador
         <Q label="Hoje, quanto tempo leva entre o cliente pedir a conta e liberar a mesa?"><Chips options={CLOSE_TIMES} value={d.closeTime} onChange={set("closeTime")} /></Q>
         <Q label="Tem fila de espera por mesa nos horários de pico?"><Chips options={QUEUES} value={d.peakQueue} onChange={set("peakQueue")} /></Q>
         <Q label="Maior dor hoje"><Chips multi options={PAINS} value={d.pains} onChange={set("pains")} /></Q>
-        <Q label="Qual sistema (PDV) você usa hoje?">
-          <input list="tipe-pdv-opcoes" maxLength={80} placeholder="Digite o nome do sistema" className={input} value={d.pdvSystem} onChange={(e) => setD({ ...d, pdvSystem: e.target.value })} />
-          <datalist id="tipe-pdv-opcoes"><option value="Não uso PDV" /><option value="Uso o sistema da TIPE" /></datalist>
-        </Q>
-        <input maxLength={80} placeholder="Qual maquininha/adquirente usa hoje?" className={input} value={d.acquirer} onChange={(e) => setD({ ...d, acquirer: e.target.value })} />
+        <Q label="Qual sistema (PDV) você usa hoje?"><ChoiceOther options={PDV_OPTIONS} value={d.pdvSystem} onChange={(v) => setD({ ...d, pdvSystem: v })} placeholder="Qual sistema?" /></Q>
+        <Q label="Qual maquininha você usa hoje?"><ChoiceOther options={MAQUININHA_OPTIONS} value={d.acquirer} onChange={(v) => setD({ ...d, acquirer: v })} placeholder="Qual maquininha?" /></Q>
         <Q label="Já tem conta no Pagar.me?"><Chips options={PAGARME} value={d.hasPagarme} onChange={set("hasPagarme")} /></Q>
         <Q label="Como conheceu a TIPE?"><Chips options={SOURCES} value={d.discoverySource} onChange={set("discoverySource")} /></Q>
         {d.discoverySource[0] === "indicacao" && <input maxLength={120} placeholder="Quem indicou?" className={input} value={d.referrerName} onChange={(e) => setD({ ...d, referrerName: e.target.value })} />}
