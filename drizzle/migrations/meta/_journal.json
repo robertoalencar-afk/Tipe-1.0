@@ -71,13 +71,6 @@
       "when": 1791331272278,
       "tag": "0009_waiter_ratings",
       "breakpoints": true
-    },
-    {
-      "idx": 10,
-      "version": "7",
-      "when": 1791376807087,
-      "tag": "0010_pdv_adapters_and_leads",
-      "breakpoints": true
     }
   ]
 }
