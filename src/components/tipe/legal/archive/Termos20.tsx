@@ -71,5 +71,5 @@ const sections: { title: string; paragraphs: string[]; bullets?: string[] }[] = 
 ];
 
 export function Termos20() {
-  return <LegalPage title="Termos de Uso" version={LEGAL.consumer_terms.version} effective={LEGAL.consumer_terms.effective} sections={sections} />;
+  return <LegalPage title="Termos de Uso" version="2.0" effective="05/10/2026" sections={sections} />;
 }
