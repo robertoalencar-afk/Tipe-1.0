@@ -86,7 +86,9 @@ export function MesaViva() {
 
         // 0 · logo opening
         tl.set(q(".s0"), { autoAlpha: 1 }, 0);
-        tl.fromTo(q(".s0 .wm"), { clipPath: "inset(0 100% 0 0)", scale: 0.92, filter: lite ? "none" : "blur(10px)" }, { clipPath: "inset(0 0% 0 0)", scale: 1, filter: lite ? "none" : "blur(0px)", duration: 1.4, ease: "expo.inOut" }, 0.2);
+        // Light follows the transparent silhouette, never a rectangular reveal.
+        tl.fromTo(q(".s0 .wm"), { opacity: 0, scale: 0.94, filter: "brightness(1.8) drop-shadow(0 0 18px var(--primary))" }, { opacity: 1, scale: 1, filter: "brightness(1.25) drop-shadow(0 0 12px var(--primary))", duration: 1.1, ease: "sine.out" }, 0.2);
+        tl.to(q(".s0 .wm"), { filter: "brightness(1) drop-shadow(0 0 0px var(--primary))", duration: 1.1, ease: "sine.inOut" }, 1.3);
         tl.to(q(".s0 .wm"), { scale: 1.05, duration: 1.4, ease: "sine.inOut" }, 1.6);
         exit(".s0", 3.3);
 
