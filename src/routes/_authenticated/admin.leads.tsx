@@ -83,7 +83,7 @@ function LeadsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="flex items-center justify-between border-b px-6 py-3"><TipeLogo /><Link to="/backoffice" className="text-sm text-muted-foreground hover:text-foreground">Backoffice</Link></header>
+      <header className="flex items-center justify-between border-b px-6 py-3"><TipeLogo variant="dark" className="h-9" /><Link to="/backoffice" className="text-sm text-muted-foreground hover:text-foreground">Backoffice</Link></header>
       <main className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6">
         <h1 className="font-display text-2xl font-extrabold">Leads da lista de espera</h1>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
