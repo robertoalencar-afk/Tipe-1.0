@@ -10,15 +10,16 @@ type Table = { id: string; number: string; code: string; access_token: string; a
 
 // Paletas fixas do material impresso (independem do tema da tela).
 const MODELOS = {
-  classico: { nome: "Clássico", desc: "Azul-marinho com destaque turquesa", bg: "#0b1f3a", fg: "#ffffff", accent: "#2dd4bf", qrBg: "#ffffff", logo: "light" },
-  claro: { nome: "Claro", desc: "Fundo branco, ideal para mesas escuras", bg: "#ffffff", fg: "#0b1f3a", accent: "#14b8a6", qrBg: "#ffffff", logo: "dark" },
+  classico: { nome: "Clássico", desc: "Corpo azul-noite, adesivo branco com QR", bg: "#0b1f3a", fg: "#ffffff", accent: "#2dd4bf", stickerBg: "#ffffff", stickerFg: "#0b1f3a", logo: "light" },
+  claro: { nome: "Claro", desc: "Corpo branco, ideal para mesas escuras", bg: "#ffffff", fg: "#0b1f3a", accent: "#14b8a6", stickerBg: "#0b1f3a", stickerFg: "#ffffff", logo: "dark" },
 } as const;
 
+// Sugestões de uso: cada tamanho indica onde o material funciona melhor.
 const TAMANHOS = {
-  display: { nome: "Display de mesa", medida: "10 × 15 cm", w: 100, h: 150, qr: 0.62, desc: "Para acrílico de mesa (A6)" },
-  grande: { nome: "Display grande", medida: "15 × 21 cm", w: 148, h: 210, qr: 0.6, desc: "Balcão e entrada (A5)" },
-  tenda: { nome: "Tenda dobrável", medida: "10 × 20 cm", w: 100, h: 200, qr: 0.55, desc: "Dobre ao meio: dois lados iguais" },
-  adesivo: { nome: "Adesivo quadrado", medida: "8 × 8 cm", w: 80, h: 80, qr: 0.42, desc: "Cola direto no tampo da mesa" },
+  adesivo: { nome: "Adesivo na mesa", medida: "8 × 8 cm", w: 80, h: 80, qr: 0.5, desc: "Cola direto no tampo da mesa" },
+  comanda: { nome: "Comanda individual", medida: "6 × 9 cm", w: 60, h: 90, qr: 0.52, desc: "Vai junto da comanda de cada cliente" },
+  guardanapo: { nome: "Porta guardanapo", medida: "5 × 15 cm", w: 50, h: 150, qr: 0.62, desc: "Encaixa no porta guardanapo inox" },
+  acrilico: { nome: "Suporte acrílico", medida: "10 × 15 cm", w: 100, h: 150, qr: 0.56, desc: "Display de mesa em acrílico (A6)" },
 } as const;
 
 type ModeloKey = keyof typeof MODELOS;
@@ -27,23 +28,57 @@ type TamanhoKey = keyof typeof TAMANHOS;
 function Totem({ modelo, tamanho, mesa, link, restaurante }: { modelo: ModeloKey; tamanho: TamanhoKey; mesa: string; link: string; restaurante: string }) {
   const m = MODELOS[modelo];
   const t = TAMANHOS[tamanho];
-  const qrMm = Math.min(t.w, tamanho === "tenda" ? t.h / 2 : t.h) * t.qr;
-  const lado = (rotate = false) => (
-    <div style={{ height: tamanho === "tenda" ? "50%" : "100%", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "space-between", padding: tamanho === "adesivo" ? "3.5mm" : "7mm 6mm", boxSizing: "border-box", transform: rotate ? "rotate(180deg)" : undefined }}>
-      <img src={m.logo === "light" ? logo.url : logoDark.url} alt="TIPE" style={{ height: tamanho === "grande" ? "16mm" : tamanho === "adesivo" ? "6mm" : "10mm", maxWidth: tamanho === "adesivo" ? "26mm" : undefined, objectFit: "contain" }} />
-      <div style={{ background: m.qrBg, padding: tamanho === "adesivo" ? "1.5mm" : "2.5mm", borderRadius: tamanho === "adesivo" ? "2mm" : "3mm", lineHeight: 0 }}>
+  const compacto = tamanho === "adesivo" || tamanho === "comanda";
+  const estreito = tamanho === "guardanapo";
+  const qrMm = Math.min(t.w, t.h) * t.qr;
+  const pad = compacto ? "3mm" : estreito ? "4mm 3mm" : "6mm 5mm";
+  const logoH = compacto ? "5.5mm" : estreito ? "5mm" : "9mm";
+  const fraseFs = compacto ? "2.9mm" : estreito ? "2.7mm" : "4mm";
+  const mesaFs = compacto ? "2.6mm" : estreito ? "2.5mm" : "3.4mm";
+  const restFs = compacto ? "2.1mm" : estreito ? "2mm" : "2.6mm";
+
+  return (
+    <div
+      className="totem"
+      style={{
+        width: `${t.w}mm`,
+        height: `${t.h}mm`,
+        background: m.bg,
+        color: m.fg,
+        borderRadius: compacto ? "4mm" : "3mm",
+        overflow: "hidden",
+        border: m.bg === "#ffffff" ? "0.3mm dashed #cbd5e1" : undefined,
+        boxSizing: "border-box",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "space-between",
+        padding: pad,
+        fontFamily: "Sora, Manrope, sans-serif",
+      }}
+    >
+      <img src={m.logo === "light" ? logo.url : logoDark.url} alt="TIPE" style={{ height: logoH, maxWidth: "70%", objectFit: "contain" }} />
+
+      {/* Adesivo com o QR, como no suporte de plástico da referência */}
+      <div
+        style={{
+          background: m.stickerBg,
+          color: m.stickerFg,
+          padding: compacto ? "2mm" : "3mm",
+          borderRadius: compacto ? "2.5mm" : "3.5mm",
+          lineHeight: 0,
+          boxShadow: "0 1mm 2.5mm rgba(0,0,0,0.28)",
+          border: `0.25mm solid ${m.accent}`,
+        }}
+      >
         <QRCodeSVG value={link} size={512} style={{ width: `${qrMm}mm`, height: `${qrMm}mm` }} level="M" />
       </div>
-      <div style={{ textAlign: "center", fontFamily: "Sora, Manrope, sans-serif" }}>
-        <div style={{ fontSize: tamanho === "grande" ? "6mm" : tamanho === "adesivo" ? "3.2mm" : "4.2mm", fontWeight: 800 }}>Pague. Sem esperar.</div>
-        <div style={{ marginTop: tamanho === "adesivo" ? "0.6mm" : "1.5mm", fontSize: tamanho === "adesivo" ? "2.8mm" : "3.4mm", fontWeight: 700, color: m.accent }}>Mesa {mesa}</div>
-        <div style={{ marginTop: tamanho === "adesivo" ? "0.4mm" : "1mm", maxWidth: tamanho === "adesivo" ? "68mm" : undefined, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: tamanho === "adesivo" ? "2.3mm" : "2.8mm", opacity: 0.75 }}>{restaurante}</div>
+
+      <div style={{ textAlign: "center" }}>
+        <div style={{ fontSize: fraseFs, fontWeight: 800, letterSpacing: "0.01em" }}>Pague. Sem esperar.</div>
+        <div style={{ marginTop: compacto ? "0.6mm" : "1.2mm", fontSize: mesaFs, fontWeight: 700, color: m.accent }}>Mesa {mesa}</div>
+        <div style={{ marginTop: "0.4mm", maxWidth: `${t.w - 10}mm`, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: restFs, opacity: 0.75 }}>{restaurante}</div>
       </div>
-    </div>
-  );
-  return (
-    <div className="totem" style={{ width: `${t.w}mm`, height: `${t.h}mm`, background: m.bg, color: m.fg, borderRadius: tamanho === "adesivo" ? "4mm" : "2mm", overflow: "hidden", border: m.bg === "#ffffff" ? "0.3mm dashed #cbd5e1" : undefined, boxSizing: "border-box", display: "flex", flexDirection: "column" }}>
-      {tamanho === "tenda" ? (<>{lado(true)}<div style={{ borderTop: `0.3mm dashed ${m.fg}`, opacity: 0.4 }} />{lado()}</>) : lado()}
     </div>
   );
 }
@@ -51,7 +86,7 @@ function Totem({ modelo, tamanho, mesa, link, restaurante }: { modelo: ModeloKey
 export function TotemStudio({ tables, link, restaurante }: { tables: Table[]; link: (t: Table) => string; restaurante: string }) {
   const ativas = useMemo(() => tables.filter((t) => t.active), [tables]);
   const [modelo, setModelo] = useState<ModeloKey>("classico");
-  const [tamanho, setTamanho] = useState<TamanhoKey>("display");
+  const [tamanho, setTamanho] = useState<TamanhoKey>("acrilico");
   const [selecionadas, setSelecionadas] = useState<string[] | null>(null);
   const escolhidas = ativas.filter((t) => !selecionadas || selecionadas.includes(t.id));
   const printRef = useRef<HTMLDivElement>(null);
@@ -71,7 +106,7 @@ export function TotemStudio({ tables, link, restaurante }: { tables: Table[]; li
       <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
         <div>
           <h3 className="font-display text-xl font-bold">Impressão de totens</h3>
-          <p className="text-sm text-muted-foreground">Escolha modelo e tamanho. A impressão sai em folha A4, pronta para recortar.</p>
+          <p className="text-sm text-muted-foreground">Escolha o modelo e onde vai usar. A impressão sai em folha A4, pronta para recortar.</p>
         </div>
         <Button onClick={imprimir}><Printer className="mr-1 h-4 w-4" />Imprimir {escolhidas.length} totem(ns)</Button>
       </div>
@@ -82,7 +117,7 @@ export function TotemStudio({ tables, link, restaurante }: { tables: Table[]; li
             <div className="grid grid-cols-2 gap-2">
               {(Object.keys(MODELOS) as ModeloKey[]).map((k) => (
                 <button key={k} type="button" onClick={() => setModelo(k)} className={opt(modelo === k)}>
-                  <span className="mb-2 flex gap-1">{[MODELOS[k].bg, MODELOS[k].accent, MODELOS[k].fg].map((c) => <span key={c} className="h-4 w-4 rounded-full border border-border" style={{ background: c }} />)}</span>
+                  <span className="mb-2 flex gap-1">{[MODELOS[k].bg, MODELOS[k].stickerBg, MODELOS[k].accent].map((c) => <span key={c} className="h-4 w-4 rounded-full border border-border" style={{ background: c }} />)}</span>
                   <span className="block text-sm font-bold">{MODELOS[k].nome}</span>
                   <span className="block text-xs text-muted-foreground">{MODELOS[k].desc}</span>
                 </button>
@@ -90,7 +125,7 @@ export function TotemStudio({ tables, link, restaurante }: { tables: Table[]; li
             </div>
           </section>
           <section>
-            <p className="mb-2 text-sm font-semibold">Tamanho</p>
+            <p className="mb-2 text-sm font-semibold">Onde vai usar</p>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               {(Object.keys(TAMANHOS) as TamanhoKey[]).map((k) => (
                 <button key={k} type="button" onClick={() => setTamanho(k)} className={opt(tamanho === k)}>
@@ -118,7 +153,7 @@ export function TotemStudio({ tables, link, restaurante }: { tables: Table[]; li
         </div>
         <div className="flex flex-col items-center gap-2">
           <p className="text-xs text-muted-foreground">Prévia {escolhidas[0] ? `· Mesa ${escolhidas[0].number}` : ""}</p>
-          <div className="rounded-xl bg-muted p-4" style={{ zoom: tamanho === "grande" ? 0.6 : tamanho === "tenda" ? 0.7 : 0.85 }}>
+          <div className="rounded-xl bg-muted p-4" style={{ zoom: tamanho === "acrilico" ? 0.85 : tamanho === "guardanapo" ? 0.7 : 1 }}>
             {escolhidas[0] ? <Totem modelo={modelo} tamanho={tamanho} mesa={escolhidas[0].number} link={link(escolhidas[0])} restaurante={restaurante} /> : <p className="p-8 text-sm text-muted-foreground">Nenhuma mesa</p>}
           </div>
         </div>
