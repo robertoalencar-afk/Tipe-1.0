@@ -70,13 +70,16 @@ export function WaitlistForm({ origin = "home" }: { origin?: "home" | "simulador
     if (f.contactName.trim().split(/\s+/).length < 2) return setError("Informe nome e sobrenome.");
     if (!/^\(\d{2}\) 9\d{4}-\d{4}$/.test(f.phone)) return setError("Confira o WhatsApp: (DD) 9XXXX-XXXX.");
     if (!f.role) return setError("Escolha o seu cargo.");
+    if (!d.tablesRange[0]) return setError("Informe o número de mesas.");
+    if (d.pdvSystem.trim().length < 2) return setError("Informe qual PDV você usa.");
+    if (d.acquirer.trim().length < 2) return setError("Informe qual maquininha você usa.");
     setSending(true);
     try {
       const a = getAttribution();
       const calc = a.calculator;
       const res = await submitLead({ data: {
         contactName: f.contactName.trim(), phone: f.phone, email: f.email.trim(), restaurantName: f.restaurantName.trim(), city: f.city.trim(), state: f.state,
-        role: f.role as "dono", privacyAccepted: true, marketingOptIn: f.marketing,
+        role: f.role as "dono", tablesRange: d.tablesRange[0] as "ate_10", pdvSystem: d.pdvSystem.trim(), acquirer: d.acquirer.trim(), privacyAccepted: true, marketingOptIn: f.marketing,
         utm_source: a.utm_source, utm_medium: a.utm_medium, utm_campaign: a.utm_campaign, utm_content: a.utm_content, utm_term: a.utm_term,
         ...(a.ref ? { ref: a.ref } : {}), originPage: calc && origin === "home" ? "calculadora" : origin, usedSimulator: !!a.usedSimulator, ...(calc ? { calculator: calc } : {}),
       } });
@@ -134,15 +137,12 @@ export function WaitlistForm({ origin = "home" }: { origin?: "home" | "simulador
           <input maxLength={60} placeholder="Instagram do restaurante (@)" className={input} value={d.instagram} onChange={(e) => setD({ ...d, instagram: e.target.value })} />
         </div>
         <Q label="Tipo"><Chips options={VENUE} value={d.venueType} onChange={set("venueType")} /></Q>
-        <Q label="Número de mesas"><Chips options={TABLES} value={d.tablesRange} onChange={set("tablesRange")} /></Q>
         <Q label="Número de garçons"><Chips options={WAITERS} value={d.waitersRange} onChange={set("waitersRange")} /></Q>
         <Q label="Horários de maior movimento"><Chips multi options={PEAKS} value={d.peakTimes} onChange={set("peakTimes")} /></Q>
         <Q label="Ticket médio por pessoa"><Chips options={TICKETS} value={d.ticketRange} onChange={set("ticketRange")} /></Q>
         <Q label="Hoje, quanto tempo leva entre o cliente pedir a conta e liberar a mesa?"><Chips options={CLOSE_TIMES} value={d.closeTime} onChange={set("closeTime")} /></Q>
         <Q label="Tem fila de espera por mesa nos horários de pico?"><Chips options={QUEUES} value={d.peakQueue} onChange={set("peakQueue")} /></Q>
         <Q label="Maior dor hoje"><Chips multi options={PAINS} value={d.pains} onChange={set("pains")} /></Q>
-        <Q label="Qual sistema (PDV) você usa hoje?"><ChoiceOther options={PDV_OPTIONS} value={d.pdvSystem} onChange={(v) => setD({ ...d, pdvSystem: v })} placeholder="Qual sistema?" /></Q>
-        <Q label="Qual maquininha você usa hoje?"><ChoiceOther options={MAQUININHA_OPTIONS} value={d.acquirer} onChange={(v) => setD({ ...d, acquirer: v })} placeholder="Qual maquininha?" /></Q>
         <Q label="Já tem conta no Pagar.me?"><Chips options={PAGARME} value={d.hasPagarme} onChange={set("hasPagarme")} /></Q>
         <Q label="Como conheceu a TIPE?"><Chips options={SOURCES} value={d.discoverySource} onChange={set("discoverySource")} /></Q>
         {d.discoverySource[0] === "indicacao" && <input maxLength={120} placeholder="Quem indicou?" className={input} value={d.referrerName} onChange={(e) => setD({ ...d, referrerName: e.target.value })} />}
@@ -168,8 +168,11 @@ export function WaitlistForm({ origin = "home" }: { origin?: "home" | "simulador
         <select aria-label="Estado" className={input} value={f.state} onChange={(e) => setF({ ...f, state: e.target.value })}>{UFS.map((u) => <option key={u}>{u}</option>)}</select>
       </div>
       <select required aria-label="Cargo" className={input} value={f.role} onChange={(e) => setF({ ...f, role: e.target.value })}>
-        <option value="">Seu cargo</option><option value="dono">Dono/sócio</option><option value="gerente">Gerente</option><option value="outro">Outro</option>
+        <option value="">Seu cargo</option><option value="dono">Proprietário</option><option value="gerente">Gerente</option><option value="outro">Outro</option>
       </select>
+      <Q label="Número de mesas *"><Chips options={TABLES} value={d.tablesRange} onChange={(v) => setD((p) => ({ ...p, tablesRange: v }))} /></Q>
+      <Q label="Qual sistema (PDV) você usa hoje? *"><ChoiceOther options={PDV_OPTIONS} value={d.pdvSystem} onChange={(v) => setD((p) => ({ ...p, pdvSystem: v }))} placeholder="Qual sistema?" /></Q>
+      <Q label="Qual maquininha você usa hoje? *"><ChoiceOther options={MAQUININHA_OPTIONS} value={d.acquirer} onChange={(v) => setD((p) => ({ ...p, acquirer: v }))} placeholder="Qual maquininha?" /></Q>
       <label className="flex items-start gap-2 text-xs"><input required type="checkbox" className="mt-0.5" checked={f.privacy} onChange={(e) => setF({ ...f, privacy: e.target.checked })} /><span>Li e aceito a <Link to="/privacidade" className="underline">Política de Privacidade</Link></span></label>
       <label className="flex items-start gap-2 text-xs"><input type="checkbox" className="mt-0.5" checked={f.marketing} onChange={(e) => setF({ ...f, marketing: e.target.checked })} /><span>Quero receber novidades da TIPE pelo WhatsApp e e-mail</span></label>
       {error && <p className="text-sm text-destructive">{error}</p>}
