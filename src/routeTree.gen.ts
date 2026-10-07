@@ -30,6 +30,7 @@ import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated
 import { Route as PrivacidadeIndexRouteImport } from './routes/privacidade.index'
 import { Route as PrivacidadeSolicitacaoRouteImport } from './routes/privacidade.solicitacao'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
+import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin.leads'
 import { Route as MesaRestauranteMesaRouteImport } from './routes/mesa.$restaurante.$mesa'
 import { Route as ApiPublicPagarmeWebhookRouteImport } from './routes/api/public/pagarme/webhook'
 import { Route as ApiPublicPdvSyncRouteImport } from './routes/api/public/pdv.sync'
@@ -143,6 +144,11 @@ const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
   path: '/.lovable/oauth/consent',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAdminLeadsRoute = AuthenticatedAdminLeadsRouteImport.update({
+  id: '/admin/leads',
+  path: '/admin/leads',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const MesaRestauranteMesaRoute = MesaRestauranteMesaRouteImport.update({
   id: '/mesa/$restaurante/$mesa',
   path: '/mesa/$restaurante/$mesa',
@@ -203,6 +209,7 @@ export interface FileRoutesByFullPath {
   '/$restaurante/': typeof RestauranteIndexRoute
   '/privacidade/': typeof PrivacidadeIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
@@ -232,6 +239,7 @@ export interface FileRoutesByTo {
   '/$restaurante': typeof RestauranteIndexRoute
   '/privacidade': typeof PrivacidadeIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
@@ -263,6 +271,7 @@ export interface FileRoutesById {
   '/$restaurante/': typeof RestauranteIndexRoute
   '/privacidade/': typeof PrivacidadeIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
@@ -294,6 +303,7 @@ export interface FileRouteTypes {
     | '/$restaurante/'
     | '/privacidade/'
     | '/.lovable/oauth/consent'
+    | '/admin/leads'
     | '/mesa/$restaurante/$mesa'
     | '/api/public/pagarme/webhook'
     | '/api/public/pdv/sync'
@@ -323,6 +333,7 @@ export interface FileRouteTypes {
     | '/$restaurante'
     | '/privacidade'
     | '/.lovable/oauth/consent'
+    | '/admin/leads'
     | '/mesa/$restaurante/$mesa'
     | '/api/public/pagarme/webhook'
     | '/api/public/pdv/sync'
@@ -353,6 +364,7 @@ export interface FileRouteTypes {
     | '/$restaurante/'
     | '/privacidade/'
     | '/.lovable/oauth/consent'
+    | '/_authenticated/admin/leads'
     | '/mesa/$restaurante/$mesa'
     | '/api/public/pagarme/webhook'
     | '/api/public/pdv/sync'
@@ -539,6 +551,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DotlovableOauthConsentRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/admin/leads': {
+      id: '/_authenticated/admin/leads'
+      path: '/admin/leads'
+      fullPath: '/admin/leads'
+      preLoaderRoute: typeof AuthenticatedAdminLeadsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/mesa/$restaurante/$mesa': {
       id: '/mesa/$restaurante/$mesa'
       path: '/mesa/$restaurante/$mesa'
@@ -595,12 +614,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedBackofficeRoute: typeof AuthenticatedBackofficeRoute
   AuthenticatedGarcomRoute: typeof AuthenticatedGarcomRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
+  AuthenticatedAdminLeadsRoute: typeof AuthenticatedAdminLeadsRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBackofficeRoute: AuthenticatedBackofficeRoute,
   AuthenticatedGarcomRoute: AuthenticatedGarcomRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
+  AuthenticatedAdminLeadsRoute: AuthenticatedAdminLeadsRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =

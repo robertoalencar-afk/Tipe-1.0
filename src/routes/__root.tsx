@@ -13,6 +13,8 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
 import { CookieBanner } from "@/components/tipe/PrivacyPreferences";
+import { WhatsAppFloat } from "@/components/tipe/WhatsAppFloat";
+import { captureAttribution, loadMeasurement } from "@/lib/tipe/tracking";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -129,6 +131,15 @@ function RootComponent() {
     return () => data.subscription.unsubscribe();
   }, [router, queryClient]);
 
+  // Atribuição (UTM/indicação) e medição só após consentimento.
+  useEffect(() => {
+    captureAttribution();
+    loadMeasurement();
+    const on = () => loadMeasurement();
+    window.addEventListener("tipe:consent", on);
+    return () => window.removeEventListener("tipe:consent", on);
+  }, []);
+
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -136,6 +147,7 @@ function RootComponent() {
       <Outlet />
       <Toaster position="top-center" />
       <CookieBanner />
+      <WhatsAppFloat />
     </QueryClientProvider>
   );
 }

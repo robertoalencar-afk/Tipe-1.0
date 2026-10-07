@@ -35,7 +35,7 @@ const sections: LegalSection[] = [
     "Nome do responsável, e-mail e senha (armazenada de forma criptografada pelo serviço de autenticação) ou login com Google (nome, e-mail e foto de perfil básicos).",
     "Dados do restaurante: nome, CNPJ, endereço, telefone, horário, mesas, cardápio, plano e status da assinatura.",
     "Registros operacionais: pedidos, cancelamentos, caixa e confirmações de pagamento, com o usuário que executou a ação.",
-    "Contato comercial pelo site: nome do restaurante, seu nome, e-mail, WhatsApp e mensagem.",
+    "Lista de espera pelo site: seu nome, cargo, WhatsApp, e-mail, nome do restaurante, cidade e, se você quiser responder, dados de operação (tipo de casa, mesas, garçons, horários de pico, ticket médio, sistema de PDV, dificuldades no pagamento e como conheceu a TIPE). Também guardamos a origem da visita (parâmetros UTM e página), código de indicação, se você usou o simulador e os números simulados na calculadora. Usamos esses dados apenas para contato comercial, priorizar o lançamento e decidir integrações. Novidades por e-mail ou WhatsApp só com seu aceite opcional.",
   ] },
   { title: "5. Garçons e colaboradores", bullets: [
     "Usuários da equipe: nome de exibição, e-mail e cargo no restaurante.",
@@ -43,13 +43,13 @@ const sections: LegalSection[] = [
     "Ações no sistema ficam registradas para auditoria e segurança.",
   ] },
   { title: "6. Dados técnicos", paragraphs: [
-    "Para segurança, registramos eventos como tentativas negadas e excesso de requisições, incluindo o endereço IP. Contadores temporários por IP são usados para limitar abusos. Não usamos ferramentas de analytics, publicidade ou gravação de sessão.",
+    "Para segurança, registramos eventos como tentativas negadas e excesso de requisições, incluindo o endereço IP. Contadores temporários por IP são usados para limitar abusos. Ferramentas de medição e publicidade (como Meta Pixel e Google Analytics) só são carregadas depois que você aceita os cookies opcionais e enquanto mantiver esse aceite. Não usamos gravação de sessão.",
   ] },
   { title: "7. Finalidades e bases legais", bullets: [
     "Exibir a conta, registrar pagamentos e operar o PDV — execução de contrato e procedimentos relacionados (art. 7º, V).",
     "Registros financeiros, fiscais e de auditoria — cumprimento de obrigação legal e exercício regular de direitos (art. 7º, II e VI).",
     "Segurança, prevenção a fraudes e limitação de abusos — legítimo interesse (art. 7º, IX).",
-    "Responder contatos comerciais — procedimentos preliminares a contrato, a pedido do titular (art. 7º, V).",
+    "Responder contatos comerciais e gerir a lista de espera — procedimentos preliminares a contrato, a pedido do titular (art. 7º, V). Envio de novidades — consentimento (art. 7º, I).",
     "Consentimento é usado somente quando necessário (por exemplo, futuras tecnologias opcionais de cookies), podendo ser revogado a qualquer momento.",
   ] },
   { title: "8. Compartilhamento e prestadores de serviço", paragraphs: [
