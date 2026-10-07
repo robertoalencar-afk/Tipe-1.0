@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, FileText, Loader2, MessageCircle, Mic, Paperclip, Square, X } from "lucide-react";
+import { VoiceWave } from "@/components/tipe/VoiceWave";
 import { HareOutline } from "@/components/tipe/HareOutline";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -64,6 +65,7 @@ export function LebreAssistant({ slug }: { slug?: string }) {
   const transcribe = useServerFn(transcribeLebreAudio);
   const [draft, setDraft] = useState("");
   const [recording, setRecording] = useState(false);
+  const [micStream, setMicStream] = useState<MediaStream | null>(null);
   const [transcribing, setTranscribing] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
@@ -80,6 +82,7 @@ export function LebreAssistant({ slug }: { slug?: string }) {
       recorder.ondataavailable = (event) => { if (event.data.size) chunks.push(event.data); };
       recorder.onstop = async () => {
         stream.getTracks().forEach((track) => track.stop());
+        setMicStream(null);
         if (timerRef.current) window.clearTimeout(timerRef.current);
         setRecording(false);
         const blob = new Blob(chunks, { type: recorder.mimeType || mimeType || "audio/webm" });
@@ -93,6 +96,7 @@ export function LebreAssistant({ slug }: { slug?: string }) {
       };
       recorderRef.current = recorder;
       recorder.start();
+      setMicStream(stream);
       setRecording(true);
       timerRef.current = window.setTimeout(() => recorder.state === "recording" && recorder.stop(), MAX_AUDIO_MS);
     } catch { setNotice("Permita o uso do microfone para falar com a Lebre."); }
@@ -199,12 +203,12 @@ export function LebreAssistant({ slug }: { slug?: string }) {
             <AttachmentChips />
             <PromptInputBody><PromptInputTextarea value={draft} onChange={(event) => setDraft(event.currentTarget.value)} disabled={busy || transcribing} placeholder={recording ? "Ouvindo... toque no quadrado para parar" : transcribing ? "Transcrevendo seu áudio..." : "Pergunte, fale ou anexe"} /></PromptInputBody>
             <PromptInputFooter>
-              <PromptInputTools>
+              <PromptInputTools className="min-w-0 flex-1">
                 <AttachButton disabled={busy || recording} />
-                <PromptInputButton disabled={busy || transcribing} onClick={recording ? stopRecording : () => void startRecording()} aria-label={recording ? "Parar gravação" : "Falar com a Lebre"} tooltip={recording ? "Parar gravação" : "Falar"} className={recording ? "animate-pulse text-destructive" : ""}>
+                <PromptInputButton disabled={busy || transcribing} onClick={recording ? stopRecording : () => void startRecording()} aria-label={recording ? "Parar gravação" : "Falar com a Lebre"} tooltip={recording ? "Parar gravação" : "Falar"} className={recording ? "text-destructive" : ""}>
                   {transcribing ? <Loader2 className="animate-spin" /> : recording ? <Square className="fill-current" /> : <Mic />}
                 </PromptInputButton>
-                <span className="hidden text-xs text-muted-foreground sm:inline">Ações pedem confirmação</span>
+                {recording && micStream ? <VoiceWave stream={micStream} /> : <span className="hidden text-xs text-muted-foreground sm:inline">Ações pedem confirmação</span>}
               </PromptInputTools>
               <PromptInputSubmit disabled={busy || recording || transcribing} status={busy ? "submitted" : "ready"} />
             </PromptInputFooter>

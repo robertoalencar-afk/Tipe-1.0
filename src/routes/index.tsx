@@ -267,10 +267,9 @@ function Dinamica() {
       </div>
 
       <div className="mx-auto mt-10 max-w-3xl rounded-3xl border-2 border-primary/30 bg-secondary p-7 text-center text-secondary-foreground sm:p-9">
-        <p className="font-display text-2xl font-extrabold leading-tight sm:text-3xl">O jeito de pagar a conta no restaurante mudou. Agora, tudo acontece na mesa.</p>
+        <p className="font-display text-2xl font-extrabold leading-tight sm:text-3xl">Zero mudança na sua rotina.</p>
         <p className="mt-4 opacity-80">
-           A conta chega no celular antes de o cliente pedir. O garçom não vive em idas e voltas com a maquininha.
-          Quem coloca a nova tecnologia primeiro nas mesas gira mais salão.
+          O mesmo atendimento, o mesmo PDV, só que sem fila e sem maquininha rodando de mesa em mesa.
         </p>
         <a href="#lista-de-espera" className="mt-6 inline-flex items-center gap-2 whitespace-nowrap rounded-full bg-primary px-5 py-3 font-display text-sm font-semibold text-primary-foreground shadow-lg transition-transform hover:-translate-y-0.5 sm:px-6 sm:text-base">
           Entrar na lista de espera <ChevronRight className="h-4 w-4" />
