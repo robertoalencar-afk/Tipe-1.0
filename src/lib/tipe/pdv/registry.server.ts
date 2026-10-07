@@ -22,7 +22,7 @@ export async function aplicarEventos(admin: Admin, restaurantId: string, adapter
     const result = error ? "error:falha interna" : String(data);
     resultados.push({ eventId: e.eventId, result });
     if (result.includes("já pago ou reservado") && e.evento.type === "item_cancelled") {
-      const item = e.evento.item.name || e.evento.item.code || "Item";
+      const item = e.evento.item.code || "Item";
       await admin.from("pdv_events" as never).update({
         detail: `O item ${item} foi cancelado no seu sistema, mas já foi pago pela TIPE. Verifique com o cliente.`,
       } as never).eq("restaurant_id", restaurantId).eq("adapter", adapter).eq("external_event_id", e.eventId);

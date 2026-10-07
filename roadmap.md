@@ -11,6 +11,7 @@
 - [x] Revisar Mesa Viva, acessibilidade e eventos com consentimento
 - [x] Validar status Piloto no CRM
 - [x] Auditar segurança de pagamentos, PDV e gorjeta 70/30 sem alterar o fluxo bloqueado
+- [ ] Aplicar a regra 70% equipe / 30% TIPE após o recebimento integral da gorjeta na conta Pagar.me da TIPE, sem mudar a forma de pagamento
 - [x] Exibir no painel e no histórico tentativas do PDV de cancelar itens já pagos
 - [ ] Importar o DOCX integral e implementar a Central Jurídica após validação dos [DEFINIR] e data real de publicação
 - [x] Testar celular, desktop, links, HTML do servidor e fluxos afetados
