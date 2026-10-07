@@ -97,6 +97,7 @@ export function MesaViva() {
         tl.from(q(".s1 .qr"), { scale: 0.3, opacity: 0, duration: 0.6, ease: "back.out(2)" }, t + 0.6);
         tl.fromTo(q(".s1 .scan"), { top: "10%" }, { top: "85%", duration: 0.7, ease: "sine.inOut", yoyo: true, repeat: 3 }, t + 0.9);
         tl.to(q(".s1 .qrbox"), { height: 0, opacity: 0, marginBottom: 0, duration: 0.5, ease: "power3.inOut" }, t + 2.4);
+        tl.to(q(".s1 .qrfold"), { height: 0, opacity: 0, duration: 0.5, ease: "power3.inOut" }, t + 2.4);
         tl.from(q(".s1 .row"), { x: 40, opacity: 0, stagger: 0.12, duration: 0.5 }, t + 2.6);
         exit(".s1", t + 4.4);
 
