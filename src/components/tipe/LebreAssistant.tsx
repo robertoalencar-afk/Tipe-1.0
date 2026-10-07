@@ -146,9 +146,10 @@ export function LebreAssistant({ slug }: { slug?: string }) {
 
   return (
     <>
-      <Button type="button" size="icon" onClick={() => setOpen(true)} className={`fixed right-3 z-40 rounded-full shadow-xl print:hidden sm:right-5 ${slug ? "bottom-24 h-12 w-12 lg:bottom-5 lg:h-14 lg:w-14" : "bottom-5 h-14 w-14"}`} aria-label="Conversar com a Lebre">
-        <MessageCircle className="h-6 w-6" />
-      </Button>
+      <button type="button" onClick={() => setOpen(true)} className={`group fixed right-3 z-40 grid place-items-center rounded-full bg-primary text-primary-foreground shadow-xl transition-transform hover:-translate-y-0.5 print:hidden ${slug ? "bottom-24 h-12 w-12 sm:right-5 lg:bottom-5 lg:h-14 lg:w-14" : "bottom-4 h-11 w-11 sm:bottom-6 sm:right-6 sm:h-12 sm:w-12"}`} aria-label="Pergunte à Lebre">
+        <HareOutline className="h-7 w-6" />
+        <span className="pointer-events-none absolute right-full mr-3 hidden whitespace-nowrap rounded-full bg-foreground px-3 py-1.5 text-xs font-semibold text-background opacity-0 shadow-md transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 sm:block">Pergunte à Lebre</span>
+      </button>
       {open && (
         <section className={`fixed inset-x-3 z-50 flex flex-col overflow-hidden rounded-lg border bg-card shadow-2xl sm:left-auto sm:right-5 sm:w-[420px] ${slug ? "bottom-24 h-[min(680px,calc(100dvh-7rem))] lg:bottom-3 lg:h-[min(720px,calc(100dvh-1.5rem))]" : "bottom-3 h-[min(720px,calc(100dvh-1.5rem))]"}`} aria-label="Conversa com a Lebre">
           <header className="flex items-center gap-3 bg-secondary px-4 py-3 text-secondary-foreground">

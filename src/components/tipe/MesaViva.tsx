@@ -357,7 +357,7 @@ export function MesaViva() {
           </div>
         </div>
 
-        <div className="absolute inset-x-6 bottom-9 flex items-center justify-between text-xs text-secondary-foreground/65 lg:inset-x-16">
+        <div className="absolute inset-x-6 bottom-9 flex items-center justify-between pr-14 text-xs text-secondary-foreground/65 lg:inset-x-16 lg:pr-0">
           <span>Role para ver</span>
           <a href="#principal" onClick={() => trackMesaViva("skip")} className="font-semibold text-primary hover:underline">Pular</a>
         </div>
