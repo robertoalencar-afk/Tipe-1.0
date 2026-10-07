@@ -60,7 +60,7 @@ function Toc({ book, active, onPick }: { book: Book; active: string; onPick?: ()
   );
 }
 
-export function BookReader({ book, destaque }: { book: Book; destaque?: string }) {
+export function BookReader({ book, destaque }: { book: Book; destaque?: string | undefined }) {
   const navigate = useNavigate();
   const [active, setActive] = useState(book.chapters[0]?.id ?? "");
   const [drawer, setDrawer] = useState(false);

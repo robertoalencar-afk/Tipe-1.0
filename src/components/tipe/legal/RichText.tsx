@@ -39,7 +39,7 @@ function highlight(text: string, q: string | undefined, key: string): ReactNode[
 }
 
 /** Texto com termos do glossário (1ª ocorrência por capítulo) e destaque opcional da busca. */
-export function Rich({ text, seen, q }: { text: string; seen: Set<string>; q?: string }) {
+export function Rich({ text, seen, q }: { text: string; seen: Set<string>; q?: string | undefined }) {
   if (!TERM_RE) return <>{highlight(text, q, "t")}</>;
   const parts: ReactNode[] = []; let last = 0; let k = 0;
   for (const m of text.matchAll(TERM_RE)) {
@@ -54,7 +54,7 @@ export function Rich({ text, seen, q }: { text: string; seen: Set<string>; q?: s
   return <>{parts}</>;
 }
 
-export function Blocks({ blocks, q }: { blocks: Block[]; q?: string }) {
+export function Blocks({ blocks, q }: { blocks: Block[]; q?: string | undefined }) {
   const seen = new Set<string>();
   return (
     <>

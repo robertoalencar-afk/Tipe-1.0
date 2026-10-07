@@ -51,10 +51,10 @@ function parseChapters(body: string): { lead: Block[]; chapters: Chapter[] } {
 
 function parseBook(raw: string): Book {
   const m = raw.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
-  const meta: Record<string, string> = {};
+  const meta = {} as Record<"number" | "slug" | "title" | "fullTitle" | "description" | "version" | "effective" | "audience" | "icon" | "readingMinutes" | "summary", string>;
   for (const line of (m?.[1] ?? "").split("\n")) {
     const k = line.indexOf(": ");
-    if (k > 0) meta[line.slice(0, k)] = line.slice(k + 2).replace(/^"|"$/g, "");
+    if (k > 0) (meta as Record<string, string>)[line.slice(0, k)] = line.slice(k + 2).replace(/^"|"$/g, "");
   }
   return {
     number: Number(meta.number), slug: meta.slug!, title: meta.title!, fullTitle: meta.fullTitle!, description: meta.description!,
