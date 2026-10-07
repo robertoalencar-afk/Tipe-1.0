@@ -36,6 +36,7 @@ function Totem({ modelo, tamanho, mesa, link, restaurante }: { modelo: ModeloKey
   const fraseFs = compacto ? "2.9mm" : estreito ? "2.7mm" : "4mm";
   const mesaFs = compacto ? "2.6mm" : estreito ? "2.5mm" : "3.4mm";
   const restFs = compacto ? "2.1mm" : estreito ? "2mm" : "2.6mm";
+  const scanFs = compacto ? "2.4mm" : estreito ? "2.3mm" : "3.2mm";
 
   return (
     <div
@@ -73,6 +74,8 @@ function Totem({ modelo, tamanho, mesa, link, restaurante }: { modelo: ModeloKey
       >
         <QRCodeSVG value={link} size={512} style={{ width: `${qrMm}mm`, height: `${qrMm}mm` }} level="M" />
       </div>
+
+      <div style={{ fontSize: scanFs, fontWeight: 700, letterSpacing: "0.02em", color: m.accent }}>Escanear para pagar</div>
 
       <div style={{ textAlign: "center" }}>
         <div style={{ fontSize: fraseFs, fontWeight: 800, letterSpacing: "0.01em" }}>Pague. Sem esperar.</div>
