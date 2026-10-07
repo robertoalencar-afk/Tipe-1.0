@@ -579,7 +579,7 @@ function Faq() {
         ["O cliente pode pagar só uma parte da conta?", "Pode. Cada pessoa escolhe o que vai pagar, item por item, e esses itens saem da conta na hora. Quem terminar antes não precisa esperar os outros, e ninguém paga pelo que não consumiu."],
         ["Quais formas de pagamento o cliente pode usar?", "Pagamentos digitais (Pix, Apple Pay, Google Pay e cartão) são processados pelo Pagar.me e aprovados na hora, e o dinheiro cai direto na conta bancária escolhida pelo restaurante. A TIPE não retém nenhum valor. Maquininha e dinheiro no estabelecimento também são aceitos e confirmados pelo caixa no painel. Você escolhe no painel quais formas de pagamento quer oferecer: só digitais, só tradicionais, ou as duas."],
         ["E se o cliente quiser conferir a conta antes de pagar?", "A conta completa fica sempre visível, com todos os itens lançados. Se ele identificar algo errado, o recomendado é falar com o garçom ou o caixa antes de concluir o pagamento."],
-        ["Como funciona a gorjeta extra?", "A taxa de serviço continua funcionando como hoje. A gorjeta extra é opcional e aparece depois da avaliação do atendimento. A divisão 70% equipe e 30% TIPE está em validação técnica com o Pagar.me antes do lançamento."],
+        ["Como funciona a gorjeta extra?", "A taxa de serviço continua funcionando como hoje. A gorjeta extra é opcional e aparece depois da avaliação do atendimento. A TIPE recebe o valor e separa 70% para a equipe do restaurante e 30% como taxa da plataforma. O cliente vê os valores antes de confirmar."],
       ],
     },
     {

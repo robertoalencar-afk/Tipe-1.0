@@ -80,10 +80,11 @@ export function DesempenhoGarcons({ slug }: { slug: string }) {
                   <span className="flex items-center gap-1 text-sm font-semibold tabular-nums"><Star className="h-4 w-4 fill-highlight text-highlight" />{w.ratingAvg ? w.ratingAvg.toFixed(1) : "–"}</span>
                 </div>
                 <div className="mt-3 grid grid-cols-3 gap-2 text-xs text-muted-foreground">
-                  <div><div className="text-base font-semibold text-foreground tabular-nums">{brl(w.tips)}</div>gorjetas</div>
+                  <div><div className="text-base font-semibold text-foreground tabular-nums">{brl(w.tips)}</div>bruto</div>
                   <div><div className="text-base font-semibold text-foreground tabular-nums">{w.ratingCount}</div>avaliações</div>
                   <div><div className="text-base font-semibold text-foreground tabular-nums">{w.comments.length}</div>comentários</div>
                 </div>
+                <div className="mt-3 border-t border-border pt-3 text-xs text-muted-foreground"><span className="font-semibold text-foreground">Equipe {brl(w.teamTips)}</span> · Taxa TIPE {brl(w.tipeFee)}</div>
               </button>
             ))}
           </div>

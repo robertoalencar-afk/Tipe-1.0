@@ -4,7 +4,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 export type WaiterInsight = {
   id: string; name: string; active: boolean;
-  tips: number; tipCount: number; ratingAvg: number | null; ratingCount: number;
+  tips: number; teamTips: number; tipeFee: number; tipCount: number; ratingAvg: number | null; ratingCount: number;
   comments: { stars: number; comment: string; table: string; at: string }[];
 };
 
@@ -29,7 +29,10 @@ export const getWaiterInsights = createServerFn({ method: "GET" })
       const ts = [...(live.data ?? []), ...(arch.data ?? [])].filter((p) => p.waiter_id === w.id);
       return {
         id: w.id, name: w.name, active: w.active,
-        tips: ts.reduce((s, p) => s + Number(p.amount), 0), tipCount: ts.length,
+        tips: ts.reduce((s, p) => s + Number(p.amount), 0),
+        teamTips: ts.reduce((s, p) => s + Number(p.amount) * 0.7, 0),
+        tipeFee: ts.reduce((s, p) => s + Number(p.amount) * 0.3, 0),
+        tipCount: ts.length,
         ratingAvg: rs.length ? rs.reduce((s, x) => s + x.stars, 0) / rs.length : null, ratingCount: rs.length,
         comments: rs.filter((x) => x.comment).map((x) => ({ stars: x.stars, comment: x.comment as string, table: x.table_number, at: x.created_at })),
       };

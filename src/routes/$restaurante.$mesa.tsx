@@ -27,6 +27,7 @@ import { getPublicTable } from "@/lib/tipe/pdv.functions";
 import { createPayment, getPaymentConfig, getPaymentStatus, reopenClosedTable, submitRating, type SharedPayment } from "@/lib/tipe/payments.functions";
 import { CardFields } from "@/components/tipe/CardFields";
 import { cardValid, tokenizeCard, type CardInput } from "@/lib/tipe/pagarme-client";
+import { splitTip } from "@/lib/tipe/rules";
 import mascotThanks from "@/assets/mascot-thanks-hd.webp";
 import mascotRating from "@/assets/mascot-rating-hd.webp";
 import mascotWaiting from "@/assets/mascot-waiting-hd.webp";
@@ -568,6 +569,7 @@ function MesaPage() {
               <Button key={valor} variant={gorjetaExtra === valor ? "default" : "outline"} onClick={() => setGorjetaExtra(valor)} className="h-14 rounded-lg text-base font-bold">{money(valor)}</Button>
             ))}
           </div>
+          {gorjetaExtra > 0 && <div className="mt-4 rounded-lg border border-border bg-card p-4 text-sm"><p className="font-semibold">Gorjeta: {money(gorjetaExtra)}</p><p className="mt-1 text-muted-foreground">Equipe recebe {money(splitTip(gorjetaExtra).waiter)} · Taxa da plataforma TIPE {money(splitTip(gorjetaExtra).tipe)}</p></div>}
           <Button disabled={gorjetaExtra <= 0} onClick={() => setEtapa("pagamento-gorjeta")} className="mt-6 h-12 rounded-lg text-base font-bold">Continuar com gorjeta <ChevronRight /></Button>
           <Button variant="ghost" onClick={() => setEtapa("fim")} className="mt-2 h-11">Agora não, obrigado</Button>
         </main>
@@ -614,7 +616,7 @@ function MesaPage() {
           <p className="mt-5 text-sm font-semibold text-primary">Tudo certo, {nome.trim()}!</p>
           <h1 className="mt-2 text-2xl font-bold">Obrigado pela sua visita.</h1>
           <p className="mt-3 text-center text-sm leading-6 text-muted-foreground">Sua conta foi paga e sua avaliação foi registrada.</p>
-          {gorjetaExtra > 0 && <p className="mt-2 text-center text-sm font-semibold">Gorjeta de {money(gorjetaExtra)} enviada pela TIPE.</p>}
+          {gorjetaExtra > 0 && <div className="mt-3 rounded-lg border border-border bg-card p-3 text-center text-sm"><p className="font-semibold">Gorjeta de {money(gorjetaExtra)} recebida.</p><p className="mt-1 text-xs text-muted-foreground">Equipe: {money(splitTip(gorjetaExtra).waiter)} · Taxa TIPE: {money(splitTip(gorjetaExtra).tipe)}</p></div>}
           {mesaEncerrada && (
             <Button onClick={() => setEtapa("mesa-encerrada")} className="mt-8 h-12 w-full rounded-lg text-base font-bold">Ver mesa encerrada <ChevronRight /></Button>
           )}

@@ -1,6 +1,6 @@
 // Regras de negócio TIPE (centralizadas para todos os painéis)
 export const SERVICE_FEE = 0.1; // taxa de serviço 10%
-export const TIP_SPLIT = { tipe: 0.3, waiter: 0.7 }; // gorjeta extra: 30% TIPE / 70% garçom
+export const TIP_SPLIT = { tipe: 0.3, waiter: 0.7 }; // gorjeta extra recebida pela TIPE: 70% equipe / 30% plataforma
 
 export type BillItem = { id: string; name: string; qty: number; unitPrice: number; orderedBy: string; orderedAt: string };
 export type TableBill = {
@@ -43,7 +43,7 @@ export type Mesa = {
   itens: ItemConta[];
 };
 
-// Gorjeta extra: 70% garçom, 30% TIPE (restaurante fica com a taxa de serviço)
+// Gorjeta extra: a TIPE recebe e separa 70% para a equipe e 30% para a plataforma.
 export function splitGorjeta(extra: number) {
   const garcom = +(extra * TIP_SPLIT.waiter).toFixed(2);
   const tipe = +(extra * TIP_SPLIT.tipe).toFixed(2);
