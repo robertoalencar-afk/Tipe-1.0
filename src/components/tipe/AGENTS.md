@@ -1,0 +1,3 @@
+- Customer theme is CSS-scoped via the customer-theme marker and device preference, including portalled UI through body inheritance. Why: real and simulated bills share a flash-free palette without changing restaurant or landing themes.
+- Use the reusable HareOutline icon for the public assistant empty state. Why: lightweight currentColor line art preserves TIPE identity without replacing the official mascot.
+- Lebre audio is transcribed server-side into the editable composer (never auto-sent); attachments are images/PDF only, max 3 x 5 MB, validated on the server. Why: users review what was understood before anything runs.

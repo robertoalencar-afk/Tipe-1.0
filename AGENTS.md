@@ -35,6 +35,3 @@
 - In-person bill payments store cash versus card-terminal details, including server-validated cash received and change due. Why: staff need the correct change before confirming receipt.
 - Restaurant bill payments charge the restaurant's own Pagar.me account (key AES-GCM encrypted in restaurant_pagarme_accounts, service_role only; per-restaurant webhook /api/public/pagarme/restaurante/$slug re-fetches the order). Why: TIPE never holds restaurant bank data or money.
 - Founder access is limited to TIPE backoffice aggregates; private restaurant operations require an explicit restaurant-scoped role. Why: support cannot impersonate clients.
-- Customer theme is CSS-scoped via the customer-theme marker and device preference, including portalled UI through body inheritance. Why: real and simulated bills share a flash-free palette without changing restaurant or landing themes.
-- Use the reusable HareOutline icon for the public assistant empty state. Why: lightweight currentColor line art preserves TIPE identity without replacing the official mascot.
-- Lebre audio is transcribed server-side into the editable composer (never auto-sent); attachments are images/PDF only, max 3 x 5 MB, validated on the server. Why: users review what was understood before anything runs.
