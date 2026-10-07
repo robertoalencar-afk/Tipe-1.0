@@ -279,3 +279,21 @@ export const getPaymentStatus = createServerFn({ method: "GET" })
       .eq("id", data.paymentId).eq("restaurant_slug", data.restaurantId).eq("table_number", data.tableId).maybeSingle();
     return { status: (p?.status ?? "failed") as "pending" | "approved" | "cancelled" | "failed" };
   });
+
+// Avaliação do atendimento: vinculada ao garçom atual da mesa (definido pelo servidor).
+export const submitRating = createServerFn({ method: "POST" })
+  .inputValidator((d) => TableInput.extend({ stars: z.number().int().min(1).max(5), comment: z.string().trim().max(400).optional() }).parse(d))
+  .handler(async ({ data }) => {
+    const { verifyTableSession, enforceRate } = await import("./security.server");
+    const ok = await verifyTableSession(data.restaurantId, data.tableId, data.session);
+    if (!ok) throw new Error("Sessão da mesa expirada");
+    await enforceRate(`rating:${data.restaurantId}:${data.tableId}:${data.session.slice(0, 12)}`, 5, 600, data.restaurantId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: t } = await supabaseAdmin.from("restaurant_tables").select("waiter_id").eq("restaurant_id", ok.restaurantId).eq("number", data.tableId).maybeSingle();
+    const { error } = await supabaseAdmin.from("waiter_ratings").insert({
+      restaurant_id: ok.restaurantId, waiter_id: t?.waiter_id ?? null, table_number: data.tableId,
+      stars: data.stars, comment: data.comment ? data.comment : null,
+    });
+    if (error) throw new Error("Não foi possível registrar a avaliação");
+    return { ok: true };
+  });
