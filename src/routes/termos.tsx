@@ -56,7 +56,7 @@ const sections: { title: string; paragraphs: string[]; bullets?: string[] }[] = 
     title: "4. Gorjetas",
     paragraphs: [
       "A gorjeta extra é opcional e voluntária. Ela é paga obrigatoriamente por meio digital, é confirmada automaticamente e não entra na conta do restaurante.",
-      "A TIPE recebe o valor da gorjeta e separa 70% para a equipe do restaurante e 30% como taxa da plataforma. Os valores são informados antes da confirmação.",
+      "A divisão automática da gorjeta está em validação técnica com o Pagar.me e será informada antes do lançamento.",
     ],
   },
   {
