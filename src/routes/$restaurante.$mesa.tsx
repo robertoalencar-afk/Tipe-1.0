@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { z } from "zod";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
@@ -571,6 +571,7 @@ function MesaPage() {
           {gorjetaExtra > 0 && <div className="mt-4 rounded-lg border border-border bg-card p-4 text-sm"><p className="font-semibold">Gorjeta: {money(gorjetaExtra)}</p></div>}
           <Button disabled={gorjetaExtra <= 0} onClick={() => setEtapa("pagamento-gorjeta")} className="mt-6 h-12 rounded-lg text-base font-bold">Continuar com gorjeta <ChevronRight /></Button>
           <Button variant="ghost" onClick={() => setEtapa("fim")} className="mt-2 h-11">Agora não, obrigado</Button>
+          <Link to="/legal/$livro" params={{ livro: "termos-de-uso" }} hash="gorjeta-extra" target="_blank" className="mt-3 block text-center text-sm font-semibold text-primary underline-offset-2 hover:underline">Como funciona a gorjeta?</Link>
         </main>
       )}
 
@@ -731,6 +732,7 @@ function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, p
       {metodo === "card" && cartao && setCartao && <div className="mt-5"><CardFields value={cartao} onChange={setCartao} /></div>}
       {erro && <p role="alert" className="mt-4 text-sm text-destructive">{erro}</p>}
         <Button disabled={!metodo || pagando || (permitirEstabelecimento && !aceitouTermos) || (metodo === "at_establishment" && (!metodoEstabelecimento || (metodoEstabelecimento === "cash" && Number(valorDinheiro.replace(",", ".")) < valor))) || (metodo === "card" && !!cartao && !cardValid(cartao))} onClick={pagar} className="mt-6 h-12 rounded-full font-display text-base font-bold">{pagando ? "Processando…" : `Pagar ${money(valor)}`}</Button>
+        <p className="mt-3 text-center text-xs leading-5 text-muted-foreground">Ao continuar, você concorda com os <Link to="/legal/$livro" params={{ livro: "termos-de-uso" }} target="_blank" className="underline underline-offset-2">Termos de Uso</Link> e a <Link to="/legal/$livro" params={{ livro: "privacidade" }} target="_blank" className="underline underline-offset-2">Política de Privacidade</Link>.</p>
          {metodo === "at_establishment" && metodoEstabelecimento && <p className="mt-3 text-center text-xs text-muted-foreground">O garçom verá {metodoEstabelecimento === "cash" ? "o valor entregue e o troco" : "que o pagamento será na maquininha"} antes de confirmar.</p>}
     </main>
   );
