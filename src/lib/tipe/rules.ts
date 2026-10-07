@@ -26,7 +26,7 @@ export function splitTip(tip: number) {
   return { waiter, tipe: +(tip - waiter).toFixed(2) };
 }
 
-// ---- Dados da mesa (exemplo; virão da Saipos) ----
+// ---- Dados da mesa (exemplo; virão do sistema do restaurante) ----
 export type ItemConta = {
   id: string;
   nome: string;
