@@ -102,7 +102,7 @@ function Hero() {
             </Link>
           </div>
           <div className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm opacity-80">
-            {["Sem aplicativo para baixar", "Feita para conversar com seu PDV", "Lançamento em breve"].map((t) => (
+            {["Sem aplicativo para baixar", "Feita para conversar com seu PDV", "Pagamento por carteiras digitais", "Lançamento em breve"].map((t) => (
               <span key={t} className="flex items-center gap-1.5"><CheckCircle2 className="h-4 w-4 text-primary" />{t}</span>
             ))}
           </div>
