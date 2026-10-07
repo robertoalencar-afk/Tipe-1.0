@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, CheckCircle2, CreditCard, RotateCcw, Smartphone, Wallet } from "lucide-react";
 import logo from "@/assets/logo-dark.png.asset.json";
 import { Button } from "@/components/ui/button";

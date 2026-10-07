@@ -10,6 +10,7 @@ export function LazyLebreAssistant() {
     const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number };
     if (w.requestIdleCallback) {
       w.requestIdleCallback(start, { timeout: 3500 });
+      return undefined;
     } else {
       const t = window.setTimeout(start, 2500);
       return () => window.clearTimeout(t);
