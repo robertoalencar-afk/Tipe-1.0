@@ -32,11 +32,7 @@ export function LegalPage({ title, version, effective, intro, sections, children
           </div>
           {children}
           <nav aria-label="Documentos legais" className="mt-10 flex flex-wrap gap-x-4 gap-y-2 border-t pt-6 text-sm">
-            <Link to="/termos" className="text-muted-foreground underline hover:text-foreground">Termos de Uso</Link>
-            <Link to="/privacidade" className="text-muted-foreground underline hover:text-foreground">Privacidade</Link>
-            <Link to="/cookies" className="text-muted-foreground underline hover:text-foreground">Cookies</Link>
-            <Link to="/termos-parceiros" className="text-muted-foreground underline hover:text-foreground">Termos para Parceiros</Link>
-            <Link to="/privacidade/solicitacao" className="text-muted-foreground underline hover:text-foreground">Solicitação de privacidade</Link>
+            <Link to="/legal" className="text-muted-foreground underline hover:text-foreground">Central Jurídica (versão vigente)</Link>
           </nav>
         </article>
       </div>
