@@ -67,3 +67,8 @@ export function trackLead() {
   if (hasConsent("marketing")) window.fbq?.("track", "Lead");
   if (hasConsent("analytics")) window.gtag?.("event", "generate_lead");
 }
+
+export function trackMesaViva(action: "passed" | "skip") {
+  if (typeof window === "undefined" || !hasConsent("analytics")) return;
+  window.gtag?.("event", action === "skip" ? "mesa_viva_skip" : "mesa_viva_passed");
+}

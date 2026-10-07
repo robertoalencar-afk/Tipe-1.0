@@ -1,6 +1,4 @@
-// [PREENCHER] número oficial do WhatsApp da TIPE, só dígitos com DDI e DDD (ex.: "5585999999999").
-// Enquanto estiver vazio, os botões de WhatsApp aparecem como "em breve".
-export const WHATSAPP_NUMBER = "";
+export const WHATSAPP_NUMBER = "5585985591062";
 
 export const WHATSAPP_SITE_MESSAGE = "Olá! Vim pelo site e quero saber mais sobre a TIPE para o meu restaurante.";
 

@@ -23,14 +23,14 @@ export type LebreProposal = {
 export type LebreReply = { answer: string; proposal?: LebreProposal };
 
 const publicFacts = `
-A TIPE leva a conta para o celular pelo QR Code da mesa, sem aplicativo.
+A TIPE leva a conta para o celular pelo QR Code da mesa, sem precisar baixar nada.
 O cliente vê os itens, escolhe o que deseja pagar e pode dividir um item por duas, três ou quatro pessoas.
 Pagamentos no estabelecimento podem ser feitos em dinheiro ou maquininha e aguardam confirmação do restaurante.
-A TIPE oferece 30 dias grátis, sem cartão e sem fidelidade. Os planos publicados começam em R$ 49,90 por mês.
+A TIPE oferece 30 dias grátis, sem cartão. Os valores dos planos serão divulgados no lançamento.
 O restaurante conecta obrigatoriamente o PDV que já usa (qualquer PDV do mercado é aceito); a TIPE ainda não oferece PDV próprio.
 Não afirme que uma marca específica já está homologada. Diga que a equipe confirma a compatibilidade.
 Apple Pay e Google Pay dependem da habilitação comercial do provedor e ainda não devem ser apresentados como ativos.
-Para experimentar, indique /simulador. Para criar a conta, indique /cadastro. Para falar com a equipe, indique #fale-conosco.
+Para experimentar, indique /simulador. Para criar a conta, indique /cadastro. Para falar com a equipe, indique o WhatsApp oficial no site.
 `;
 
 function readOutput(body: unknown): string {

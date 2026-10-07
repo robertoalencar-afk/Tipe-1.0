@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import wordmark from "@/assets/tipe-wordmark-light.png.asset.json";
 import roundLogo from "@/assets/tipe-logo-redondo.png.asset.json";
 import { Check, ChevronRight, QrCode, Star, Utensils, Wine, Coffee, Heart, ShieldCheck, Zap } from "lucide-react";
+import { trackMesaViva } from "@/lib/tipe/tracking";
 
 type Word = [string, boolean?];
 
@@ -51,6 +52,7 @@ const group = [["Ana", "Moqueca ÷ 3"], ["Caio", "Moqueca ÷ 3 · Caipirinha"], 
 export function MesaViva() {
   const root = useRef<HTMLDivElement>(null);
   const bar = useRef<HTMLDivElement>(null);
+  const passed = useRef(false);
 
   useEffect(() => {
     let ctx: { revert: () => void } | undefined;
@@ -71,7 +73,10 @@ export function MesaViva() {
         const tl = gsap.timeline({
           repeat: -1,
           defaults: { ease: "expo.out" },
-          onUpdate: () => { if (bar.current) bar.current.style.transform = `scaleX(${tl.progress()})`; },
+          onUpdate: () => {
+            if (bar.current) bar.current.style.transform = `scaleX(${tl.progress()})`;
+            if (!passed.current && tl.time() >= 3.6) { passed.current = true; trackMesaViva("passed"); }
+          },
         });
 
         const enter = (s: string, at: number) => {
@@ -177,8 +182,9 @@ export function MesaViva() {
       <div aria-hidden className="pointer-events-none absolute -right-40 -top-40 h-[560px] w-[560px] rounded-full bg-primary/10 blur-3xl" />
       <div ref={root} className="relative mx-auto h-[660px] max-w-7xl sm:h-[700px] lg:h-[min(84vh,720px)]">
         {/* 0 */}
-        <div className="layer invisible s0 absolute inset-0 flex items-center justify-center px-8">
+        <div className="layer invisible s0 absolute inset-0 flex flex-col items-center justify-center px-8 text-center">
           <img src={wordmark.url} alt="TIPE" className="wm w-[min(70vw,460px)]" />
+          <p className="mt-8 max-w-xl text-sm font-medium leading-6 text-secondary-foreground/80 sm:text-base">Pagamento na mesa por QR Code. Sem app, sem fila, sem maquininha rodando.</p>
         </div>
 
         {/* 1 */}
@@ -351,6 +357,10 @@ export function MesaViva() {
           </div>
         </div>
 
+        <div className="absolute inset-x-6 bottom-9 flex items-center justify-between text-xs text-secondary-foreground/65 lg:inset-x-16">
+          <span>Role para ver</span>
+          <a href="#principal" onClick={() => trackMesaViva("skip")} className="font-semibold text-primary hover:underline">Pular</a>
+        </div>
         <div className="absolute inset-x-6 bottom-5 h-[3px] overflow-hidden rounded-full bg-secondary-foreground/10 lg:inset-x-16">
           <div ref={bar} className="h-full origin-left scale-x-0 bg-primary" />
         </div>

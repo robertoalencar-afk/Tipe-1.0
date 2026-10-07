@@ -62,7 +62,7 @@ export function PaymentJourneyDemo() {
   };
 
   return (
-    <div ref={rootRef} className="relative mx-auto w-full max-w-[390px]" aria-label="Demonstração do pagamento pelo aplicativo TIPE">
+    <div ref={rootRef} className="relative mx-auto w-full max-w-[390px]" aria-label="Demonstração do pagamento pela plataforma TIPE">
       <div className="absolute inset-x-8 bottom-[-1.25rem] h-16 rounded-full bg-primary/20 blur-2xl" />
       <div className="relative overflow-hidden rounded-[2.75rem] border-[8px] border-secondary bg-card text-card-foreground shadow-2xl">
         <div className="relative min-h-[590px] p-5 pb-6">
