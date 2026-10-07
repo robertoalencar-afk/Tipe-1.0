@@ -1,5 +1,6 @@
 import { template as leadNotification } from './lead-notification'
 import { template as leadConfirmation } from './lead-confirmation'
+import { template as privacyRequestNotification } from './privacy-request-notification'
 import type { ComponentType } from 'react'
 
 export interface TemplateEntry {
@@ -22,6 +23,7 @@ export interface TemplateEntry {
 export const TEMPLATES: Record<string, TemplateEntry> = {
   'lead-notification': leadNotification,
   'lead-confirmation': leadConfirmation,
+  'privacy-request-notification': privacyRequestNotification,
   // Add templates here as they are created, e.g.:
   // 'welcome': welcomeTemplate,
 }

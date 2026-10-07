@@ -7,7 +7,7 @@ export type ConsentCategory = "functional" | "analytics" | "marketing";
 export type ConsentState = Record<ConsentCategory, boolean> & { consent_version: string; policy_version: string; timestamp: string };
 
 const KEY = "tipe:privacy-consent";
-export const CONSENT_VERSION = "1";
+export const CONSENT_VERSION = "2";
 
 export function readConsent(): ConsentState | null {
   if (typeof window === "undefined") return null;

@@ -174,7 +174,7 @@ function Cadastro() {
 
           <div className="flex items-start gap-3">
             <Checkbox id="aceite-parceiro" checked={aceite} onCheckedChange={(v) => setAceite(v === true)} className="mt-0.5" />
-            <label htmlFor="aceite-parceiro" className="text-sm text-muted-foreground">Li e aceito os <Link to="/termos-parceiros" target="_blank" className="underline">Termos para Parceiros</Link> e a <Link to="/privacidade" target="_blank" className="underline">Política de Privacidade</Link>. Nenhuma cobrança durante o teste.</label>
+            <label htmlFor="aceite-parceiro" className="text-sm text-muted-foreground">Li e aceito os <Link to="/legal/$livro" params={{ livro: "parceiros" }} target="_blank" className="underline">Termos para Parceiros</Link> e a <Link to="/legal/$livro" params={{ livro: "privacidade" }} target="_blank" className="underline">Política de Privacidade</Link>. Nenhuma cobrança durante o teste.</label>
           </div>
           <Button type="submit" className="w-full" size="lg" disabled={enviando || logado === null}>{enviando ? "Cadastrando…" : `Começar ${TRIAL_DAYS} dias grátis`}</Button>
         </form>

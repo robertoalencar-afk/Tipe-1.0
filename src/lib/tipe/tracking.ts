@@ -7,6 +7,7 @@ export const META_PIXEL_ID = "";
 export const GA4_ID = "";
 
 const KEY = "tipe:attribution";
+const TTL = 30 * 24 * 60 * 60 * 1000; // 30 dias, conforme Livro 4, seção 4.3
 const UTM = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term"] as const;
 
 export type Attribution = Partial<Record<(typeof UTM)[number] | "ref", string>> & {
@@ -16,10 +17,14 @@ export type Attribution = Partial<Record<(typeof UTM)[number] | "ref", string>> 
 
 function read(): Attribution {
   if (typeof window === "undefined") return {};
-  try { return JSON.parse(window.localStorage.getItem(KEY) ?? "{}") as Attribution; } catch { return {}; }
+  try {
+    const a = JSON.parse(window.localStorage.getItem(KEY) ?? "{}") as Attribution & { savedAt?: number };
+    if (a.savedAt && Date.now() - a.savedAt > TTL) { window.localStorage.removeItem(KEY); return {}; }
+    return a;
+  } catch { return {}; }
 }
 function write(a: Attribution) {
-  try { window.localStorage.setItem(KEY, JSON.stringify(a)); } catch { /* armazenamento indisponível */ }
+  try { window.localStorage.setItem(KEY, JSON.stringify({ ...a, savedAt: (a as { savedAt?: number }).savedAt ?? Date.now() })); } catch { /* armazenamento indisponível */ }
 }
 
 /** Chamado ao chegar no site: guarda UTM e ?ref= para não perder na navegação. */

@@ -681,12 +681,12 @@ function Footer() {
         </div>
       </div>
       <div className="mx-auto flex max-w-7xl flex-wrap gap-x-5 gap-y-2 border-t px-4 py-5 text-xs sm:px-6">
-        <Link to="/termos" className="text-muted-foreground hover:text-foreground">Termos de Uso</Link>
-        <Link to="/privacidade" className="text-muted-foreground hover:text-foreground">Privacidade</Link>
-        <Link to="/cookies" className="text-muted-foreground hover:text-foreground">Cookies</Link>
+        <Link to="/legal/$livro" params={{ livro: "termos-de-uso" }} className="text-muted-foreground hover:text-foreground">Termos de Uso</Link>
+        <Link to="/legal/$livro" params={{ livro: "privacidade" }} className="text-muted-foreground hover:text-foreground">Privacidade</Link>
+        <Link to="/legal/$livro" params={{ livro: "cookies" }} className="text-muted-foreground hover:text-foreground">Cookies</Link>
         <PrivacyPreferences triggerClassName="text-muted-foreground hover:text-foreground" />
-        <Link to="/termos-parceiros" className="text-muted-foreground hover:text-foreground">Termos para Parceiros</Link>
-        <Link to="/privacidade/solicitacao" className="text-muted-foreground hover:text-foreground">Seus direitos (LGPD)</Link>
+        <Link to="/legal/$livro" params={{ livro: "parceiros" }} className="text-muted-foreground hover:text-foreground">Termos para Parceiros</Link>
+        <Link to="/legal/$livro" params={{ livro: "seus-direitos" }} hash="solicitacao" className="text-muted-foreground hover:text-foreground">Seus direitos (LGPD)</Link>
       </div>
       <p className="border-t px-4 py-5 text-center text-xs text-muted-foreground">© {new Date().getFullYear()} {COMPANY.legalName} · CNPJ {COMPANY.cnpj} · {COMPANY.city}</p>
     </footer>

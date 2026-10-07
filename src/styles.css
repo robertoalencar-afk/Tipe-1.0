@@ -309,3 +309,16 @@
 .bg-mv-stage { background-color: var(--mv-stage); }
 .bg-mv-surface { background-color: var(--mv-surface); }
 .mv-glow { filter: drop-shadow(0 0 22px color-mix(in oklab, var(--primary) 65%, transparent)); }
+
+/* Central Jurídica: virar de página e impressão limpa */
+@keyframes legal-turn { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
+.legal-turn { animation: legal-turn 240ms ease-out; }
+@media (prefers-reduced-motion: reduce) { .legal-turn { animation: none; } }
+@media print {
+  @page { margin: 18mm 16mm; @bottom-right { content: "Página " counter(page); font-size: 9pt; } }
+  [data-noprint], [aria-label="Aviso de cookies"], a[href*="wa.me"], a[href*="whatsapp"], [data-sonner-toaster] { display: none !important; }
+  .legal-central .print-header { display: block !important; font: 600 9pt var(--font-sans); border-bottom: 1px solid #ccc; padding-bottom: 6px; margin: 0 16px 12px; }
+  .legal-central { background: #fff !important; color: #000 !important; }
+  .legal-print-book { break-before: page; }
+  .legal-chapter { break-inside: auto; }
+}

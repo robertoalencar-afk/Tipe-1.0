@@ -1,0 +1,84 @@
+{
+ "glossary": [
+  [
+   "ANPD",
+   "Autoridade Nacional de Proteção de Dados, órgão que fiscaliza a LGPD"
+  ],
+  [
+   "Controlador",
+   "Quem decide como e por que os dados pessoais são tratados"
+  ],
+  [
+   "Encarregado (DPO)",
+   "Pessoa de contato entre a TIPE, os titulares e a ANPD"
+  ],
+  [
+   "Gorjeta extra",
+   "Valor voluntário pago pelo cliente via plataforma digital, além da taxa de serviço da conta, com destinação de 70% para a equipe de atendimento e 30% para a TIPE a título de taxa da plataforma."
+  ],
+  [
+   "Lançamento TIPE",
+   "Recurso do painel para lançar itens na conta sem integração com PDV"
+  ],
+  [
+   "LGPD",
+   "Lei Geral de Proteção de Dados, Lei 13.709/2018"
+  ],
+  [
+   "Operador",
+   "Quem trata dados pessoais em nome do controlador"
+  ],
+  [
+   "Pagar.me",
+   "Provedor que processa os pagamentos digitais na conta do restaurante"
+  ],
+  [
+   "Parceiro",
+   "Restaurante, bar, cafeteria ou quiosque que contrata a TIPE"
+  ],
+  [
+   "PDV",
+   "Ponto de venda: sistema em que o restaurante registra pedidos e vendas"
+  ],
+  [
+   "Taxa de serviço",
+   "Valor cobrado pelo restaurante na conta, normalmente 10%, sob regras dele"
+  ],
+  [
+   "Titular",
+   "A pessoa a quem os dados pessoais se referem"
+  ]
+ ],
+ "versions": [
+  [
+   "Central Jurídica (todos os livros)",
+   "2.0 / 3.0",
+   "07/10/2026",
+   "Reunião em formato de livro com sumário; resumos em linguagem simples; Livro de IA; tabela de retenção; inventário de cookies com medição sob consentimento; gorjeta, pagamentos digitais e PDV alinhados ao produto"
+  ],
+  [
+   "Política de Privacidade",
+   "1.1",
+   "07/10/2026",
+   "Lista de espera em 2 etapas e cookies opcionais"
+  ],
+  [
+   "Termos de Uso",
+   "2.0",
+   "05/10/2026",
+   "Versão anterior"
+  ],
+  [
+   "Termos para Parceiros",
+   "1.0",
+   "05/10/2026",
+   "Primeira versão"
+  ],
+  [
+   "Política de Cookies",
+   "1.0",
+   "05/10/2026",
+   "Primeira versão"
+  ]
+ ]
+}
