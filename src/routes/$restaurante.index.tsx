@@ -6,6 +6,7 @@ import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { RestaurantPanel } from "@/components/tipe/RestaurantPanel";
+import { PartnerTermsNotice } from "@/components/tipe/legal/PartnerTermsNotice";
 import { getMyAccess } from "@/lib/tipe/staff.functions";
 
 export const Route = createFileRoute("/$restaurante/")({
@@ -61,6 +62,7 @@ function AreaRestaurante() {
             <Link to="/painel" className="mt-4 inline-block text-sm underline">Ir para meus restaurantes</Link>
           </div>
         )}
+        {r && access.data && <PartnerTermsNotice />}
         {r && access.data && <RestaurantPanel key={restaurante} slug={restaurante} myRoles={myRoles} isFounder={false} />}
       </div>
     </AreaShell>
