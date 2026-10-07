@@ -1,5 +1,5 @@
 import { LegalPage, type LegalSection } from "@/components/tipe/LegalPage";
-import { COMPANY, DPO, LEGAL, PAYMENT_PROVIDER, PRIVACY_EMAIL } from "@/lib/tipe/legal";
+import { COMPANY, DPO, PAYMENT_PROVIDER, PRIVACY_EMAIL } from "@/lib/tipe/legal";
 
 
 const sections: LegalSection[] = [

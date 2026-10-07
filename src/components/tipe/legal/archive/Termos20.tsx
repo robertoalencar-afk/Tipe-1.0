@@ -1,5 +1,5 @@
 import { LegalPage } from "@/components/tipe/LegalPage";
-import { COMPANY, LEGAL } from "@/lib/tipe/legal";
+import { COMPANY } from "@/lib/tipe/legal";
 
 
 const sections: { title: string; paragraphs: string[]; bullets?: string[] }[] = [

@@ -1,6 +1,5 @@
 import { LegalPage, type LegalSection } from "@/components/tipe/LegalPage";
 import { PrivacyPreferences } from "@/components/tipe/PrivacyPreferences";
-import { LEGAL } from "@/lib/tipe/legal";
 
 
 const ITENS = [
