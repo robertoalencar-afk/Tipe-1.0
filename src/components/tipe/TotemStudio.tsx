@@ -36,6 +36,7 @@ function Totem({ modelo, tamanho, mesa, link, restaurante }: { modelo: ModeloKey
   const fraseFs = compacto ? "2.9mm" : estreito ? "2.7mm" : "4mm";
   const mesaFs = compacto ? "2.6mm" : estreito ? "2.5mm" : "3.4mm";
   const restFs = compacto ? "2.1mm" : estreito ? "2mm" : "2.6mm";
+  const scanFs = compacto ? "2.4mm" : estreito ? "2.3mm" : "3.2mm";
 
   return (
     <div
