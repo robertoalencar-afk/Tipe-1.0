@@ -23,12 +23,12 @@ export const Route = createFileRoute("/")({
       { title: "TIPE | Pague. Sem esperar. | Pagamento na mesa por QR Code" },
       {
         name: "description",
-        content: "TIPE: pagamento na mesa por QR Code. O cliente divide e paga a conta pelo celular em menos de 30 segundos, sem baixar app. Pré-lançamento com 30 dias grátis para restaurantes.",
+        content: "TIPE: pagamento na mesa por QR Code. O cliente divide e paga a conta pelo celular em menos de 30 segundos, sem precisar instalar nada. Pré-lançamento com 30 dias grátis para restaurantes.",
       },
       { property: "og:title", content: "TIPE | Pague. Sem esperar. | Pagamento na mesa por QR Code" },
       {
         property: "og:description",
-        content: "TIPE: pagamento na mesa por QR Code. O cliente divide e paga a conta pelo celular em menos de 30 segundos, sem baixar app. Pré-lançamento com 30 dias grátis para restaurantes.",
+        content: "TIPE: pagamento na mesa por QR Code. O cliente divide e paga a conta pelo celular em menos de 30 segundos, sem precisar instalar nada. Pré-lançamento com 30 dias grátis para restaurantes.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: "https://tipe.digital/" },

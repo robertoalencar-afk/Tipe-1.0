@@ -21,7 +21,7 @@ function Headline({ lines, className = "" }: { lines: Word[][]; className?: stri
       </span>
     ));
   return (
-    <h2 className={`relative font-display text-[2.6rem] font-extrabold leading-[1] tracking-tight sm:text-6xl lg:text-[5.2rem] ${className}`}>
+    <h2 className={`relative font-display text-[2.6rem] font-extrabold leading-[1] tracking-normal sm:text-6xl lg:text-[5.2rem] ${className}`}>
       <span aria-hidden className="e e2 pointer-events-none absolute inset-0 text-primary/15">{body("e")}</span>
       <span aria-hidden className="e e1 pointer-events-none absolute inset-0 text-secondary-foreground/30">{body("e")}</span>
       <span className="relative">{body()}</span>
@@ -344,7 +344,7 @@ export function MesaViva() {
             </div>
           </div>
           <div className="text-center sm:text-left">
-            <h2 className="font-display text-[2.6rem] font-extrabold leading-[1.02] tracking-tight sm:text-6xl lg:text-7xl">
+            <h2 className="font-display text-[2.6rem] font-extrabold leading-[1.02] tracking-normal sm:text-6xl lg:text-7xl">
               <span className="block"><span className="w inline-block">Pague.</span></span>
               <span className="block"><span className="w inline-block">Sem</span></span>
               <span className="block"><span className="w inline-block text-primary">esperar.</span></span>

@@ -7,10 +7,11 @@
 - [x] Mascotes redesenhados em alta definição com bordas nítidas e testados em fundo claro e escuro
 - [x] Lista de certinhos da abertura: adicionar "Pagamento por carteiras digitais" acima de "Lançamento em breve" (pedido 10h29)
 ## Revisão geral e Central Jurídica
-- [ ] Corrigir e validar a home atual, preços ocultos, seção pública e textos gerais, incluindo planos mensal/anual e WhatsApp +5585985591062
-- [ ] Revisar Mesa Viva, acessibilidade, eventos e desempenho móvel
-- [ ] Implementar status Piloto no CRM
-- [ ] Auditar segurança de pagamentos, PDV e gorjeta 70/30 antes de alterar o fluxo
+- [x] Corrigir e validar a home atual, preços ocultos, seção pública e textos gerais, incluindo planos mensal/anual e WhatsApp +5585985591062
+- [x] Revisar Mesa Viva, acessibilidade e eventos com consentimento
+- [x] Validar status Piloto no CRM
+- [x] Auditar segurança de pagamentos, PDV e gorjeta 70/30 sem alterar o fluxo bloqueado
+- [x] Exibir no painel e no histórico tentativas do PDV de cancelar itens já pagos
 - [ ] Importar o DOCX integral e implementar a Central Jurídica após validação dos [DEFINIR] e data real de publicação
-- [ ] Testar celular, desktop, links, HTML do servidor e fluxos afetados
+- [x] Testar celular, desktop, links, HTML do servidor e fluxos afetados
 

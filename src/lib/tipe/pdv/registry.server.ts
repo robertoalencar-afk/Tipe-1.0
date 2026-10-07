@@ -19,7 +19,14 @@ export async function aplicarEventos(admin: Admin, restaurantId: string, adapter
   const resultados: { eventId: string; result: string }[] = [];
   for (const e of eventos) {
     const { data, error } = await admin.rpc("pdv_ingest_event" as never, { p_restaurant: restaurantId, p_adapter: adapter, p_event_id: e.eventId, p_event: e.evento } as never);
-    resultados.push({ eventId: e.eventId, result: error ? "error:falha interna" : String(data) });
+    const result = error ? "error:falha interna" : String(data);
+    resultados.push({ eventId: e.eventId, result });
+    if (result.includes("já pago ou reservado") && e.evento.type === "item_cancelled") {
+      const item = e.evento.item.name || e.evento.item.code || "Item";
+      await admin.from("pdv_events" as never).update({
+        detail: `O item ${item} foi cancelado no seu sistema, mas já foi pago pela TIPE. Verifique com o cliente.`,
+      } as never).eq("restaurant_id", restaurantId).eq("adapter", adapter).eq("external_event_id", e.eventId);
+    }
   }
   const erro = resultados.find((r) => r.result.startsWith("error:"));
   await admin.from("pdv_connections" as never).update((erro
