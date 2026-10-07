@@ -180,21 +180,32 @@ export function MesaViva() {
 
         {/* 1 */}
         <div className={`${split} s1`}>
-          <div className="lg:w-[48%]"><Headline lines={[[["Acompanhe"]], [["a"], ["conta.", true]]]} /></div>
+          <div className="lg:w-[48%]"><Headline lines={[[["Tudo"], ["na"], ["mesa"]], [["em"], ["um", true], ["toque.", true]]]} /></div>
           <Phone>
             <p className="text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">Mesa 12 · Maré Alta</p>
-            {/* Totem de mesa */}
-            <div className="mx-auto my-4 w-40">
-              <div className="qrbox relative overflow-hidden rounded-2xl border border-primary/25 bg-gradient-to-b from-primary/15 to-primary/5 px-3 pb-3 pt-2.5 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.6)]">
-                <p className="text-center font-display text-[11px] font-extrabold tracking-wide text-primary">TIPE</p>
-                <p className="mt-0.5 text-center text-[8px] font-medium uppercase tracking-[0.14em] text-secondary-foreground/60">Pague. Sem esperar.</p>
-                <div className="relative mx-auto my-2.5 flex h-24 w-24 items-center justify-center overflow-hidden rounded-xl bg-mv-stage">
-                  <QrCode className="qr h-16 w-16 text-primary" />
-                  <span className="scan absolute inset-x-2 h-0.5 rounded bg-primary shadow-[0_0_12px_var(--primary)]" />
+            {/* Totem de mesa em acrílico (formato L) */}
+            <div className="mx-auto my-3 w-40" style={{ perspective: "520px" }}>
+              <div
+                className="qrbox relative overflow-hidden rounded-t-xl rounded-b-sm border border-secondary-foreground/30 bg-secondary-foreground/[0.07] p-2 shadow-[0_14px_24px_-12px_rgba(0,0,0,0.7)] backdrop-blur-sm"
+                style={{ transform: "rotateX(12deg)", transformOrigin: "bottom center" }}
+              >
+                <span className="pointer-events-none absolute -left-6 top-0 h-full w-8 rotate-12 bg-secondary-foreground/20 blur-md" />
+                <div className="rounded-lg border border-primary/20 bg-mv-surface px-2 pb-2 pt-2">
+                  <p className="text-center font-display text-[11px] font-extrabold tracking-wide text-primary">TIPE</p>
+                  <p className="mt-0.5 text-center text-[7px] font-medium uppercase tracking-[0.14em] text-secondary-foreground/60">Pague. Sem esperar.</p>
+                  <div className="relative mx-auto my-2 flex h-20 w-20 items-center justify-center overflow-hidden rounded-lg bg-mv-stage">
+                    <QrCode className="qr h-14 w-14 text-primary" />
+                    <span className="scan absolute inset-x-2 h-0.5 rounded bg-primary shadow-[0_0_12px_var(--primary)]" />
+                  </div>
+                  <p className="text-center text-[9px] font-bold uppercase tracking-[0.18em] text-secondary-foreground/80">Mesa 12</p>
                 </div>
-                <p className="text-center text-[9px] font-bold uppercase tracking-[0.18em] text-secondary-foreground/80">Mesa 12</p>
               </div>
-              <div className="mx-auto h-1.5 w-24 rounded-b-lg bg-secondary-foreground/15" />
+              {/* dobra do L e base apoiada na mesa */}
+              <div
+                className="mx-auto h-5 w-[104%] -translate-x-[2%] rounded-b-md border border-t-0 border-secondary-foreground/30 bg-gradient-to-b from-secondary-foreground/25 to-secondary-foreground/[0.06]"
+                style={{ transform: "translateX(-2%) rotateX(68deg)", transformOrigin: "top center" }}
+              />
+              <div className="mx-auto -mt-2 h-2 w-36 rounded-full bg-black/40 blur-[3px]" />
             </div>
             <div className="space-y-2">
               {bill.map(([n, v]) => (
