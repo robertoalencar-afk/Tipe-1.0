@@ -38,20 +38,24 @@ function highlight(text: string, q: string | undefined, key: string): ReactNode[
   return out;
 }
 
-/** Texto com termos do glossário (1ª ocorrência por capítulo) e destaque opcional da busca. */
-export function Rich({ text, seen, q }: { text: string; seen: Set<string>; q?: string | undefined }) {
-  if (!TERM_RE) return <>{highlight(text, q, "t")}</>;
-  const parts: ReactNode[] = []; let last = 0; let k = 0;
+type Seg = string | { term: string; id: string; definition: string };
+/** Divide o texto marcando a 1ª ocorrência de cada termo do glossário no capítulo (cálculo puro, sem efeitos). */
+function segment(text: string, seen: Set<string>): Seg[] {
+  if (!TERM_RE) return [text];
+  const out: Seg[] = []; let last = 0;
   for (const m of text.matchAll(TERM_RE)) {
     const t = TERMS.find((x) => x.term.toLowerCase() === m[0].toLowerCase());
     if (!t || seen.has(t.id)) continue;
     seen.add(t.id);
-    parts.push(...highlight(text.slice(last, m.index), q, `a${k}`));
-    parts.push(<GlossaryTerm key={`g${k++}`} text={m[0]} id={t.id} definition={t.definition} />);
+    out.push(text.slice(last, m.index), { term: m[0], id: t.id, definition: t.definition });
     last = m.index! + m[0].length;
   }
-  parts.push(...highlight(text.slice(last), q, "z"));
-  return <>{parts}</>;
+  out.push(text.slice(last));
+  return out;
+}
+
+function Rich({ segs, q }: { segs: Seg[]; q?: string | undefined }) {
+  return <>{segs.map((x, i) => typeof x === "string" ? <span key={i}>{highlight(x, q, `s${i}`)}</span> : <GlossaryTerm key={i} text={x.term} id={x.id} definition={x.definition} />)}</>;
 }
 
 export function Blocks({ blocks, q }: { blocks: Block[]; q?: string | undefined }) {
@@ -59,17 +63,17 @@ export function Blocks({ blocks, q }: { blocks: Block[]; q?: string | undefined 
   return (
     <>
       {blocks.map((b, i) => {
-        if (b.type === "p") return <p key={i} className="mt-4 leading-7 text-foreground/90"><Rich text={b.text} seen={seen} q={q} /></p>;
+        if (b.type === "p") return <p key={i} className="mt-4 leading-7 text-foreground/90"><Rich segs={segment(b.text, seen)} q={q} /></p>;
         if (b.type === "ul") return (
           <ul key={i} className="mt-4 space-y-2.5 leading-7 text-foreground/90">
-            {b.items.map((it, j) => <li key={j} className="flex gap-3"><span aria-hidden className="mt-3 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" /><span><Rich text={it} seen={seen} q={q} /></span></li>)}
+            {b.items.map((it, j) => <li key={j} className="flex gap-3"><span aria-hidden className="mt-3 h-1.5 w-1.5 shrink-0 rounded-full bg-primary" /><span><Rich segs={segment(it, seen)} q={q} /></span></li>)}
           </ul>
         );
         return (
           <div key={i} className="mt-5 overflow-x-auto rounded-xl border border-border" role="region" aria-label="Tabela" tabIndex={0}>
             <table className="w-full min-w-[520px] border-collapse text-left text-sm">
               <thead className="bg-muted"><tr>{b.head.map((h, j) => <th key={j} scope="col" className="px-3 py-2.5 font-semibold">{h}</th>)}</tr></thead>
-              <tbody>{b.rows.map((r, j) => <tr key={j} className="border-t border-border align-top">{r.map((c, x) => <td key={x} className="px-3 py-2.5 leading-6 text-foreground/90"><Rich text={c} seen={seen} q={q} /></td>)}</tr>)}</tbody>
+              <tbody>{b.rows.map((r, j) => <tr key={j} className="border-t border-border align-top">{r.map((c, x) => <td key={x} className="px-3 py-2.5 leading-6 text-foreground/90"><Rich segs={segment(c, seen)} q={q} /></td>)}</tr>)}</tbody>
             </table>
           </div>
         );
