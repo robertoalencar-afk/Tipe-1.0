@@ -180,12 +180,21 @@ export function MesaViva() {
 
         {/* 1 */}
         <div className={`${split} s1`}>
-          <div className="lg:w-[48%]"><Headline lines={[[["A"], ["mesa"]], [["chama"], ["a"]], [["conta.", true]]]} /></div>
+          <div className="lg:w-[48%]"><Headline lines={[[["Acompanhe"]], [["a"], ["conta.", true]]]} /></div>
           <Phone>
             <p className="text-center text-[10px] font-semibold uppercase tracking-[0.2em] text-primary">Mesa 12 · Maré Alta</p>
-            <div className="qrbox relative mx-auto my-4 flex h-40 w-40 items-center justify-center overflow-hidden rounded-2xl bg-primary/10">
-              <QrCode className="qr h-24 w-24 text-primary" />
-              <span className="scan absolute inset-x-3 h-0.5 rounded bg-primary shadow-[0_0_12px_var(--primary)]" />
+            {/* Totem de mesa */}
+            <div className="mx-auto my-4 w-40">
+              <div className="qrbox relative overflow-hidden rounded-2xl border border-primary/25 bg-gradient-to-b from-primary/15 to-primary/5 px-3 pb-3 pt-2.5 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.6)]">
+                <p className="text-center font-display text-[11px] font-extrabold tracking-wide text-primary">TIPE</p>
+                <p className="mt-0.5 text-center text-[8px] font-medium uppercase tracking-[0.14em] text-secondary-foreground/60">Pague. Sem esperar.</p>
+                <div className="relative mx-auto my-2.5 flex h-24 w-24 items-center justify-center overflow-hidden rounded-xl bg-mv-stage">
+                  <QrCode className="qr h-16 w-16 text-primary" />
+                  <span className="scan absolute inset-x-2 h-0.5 rounded bg-primary shadow-[0_0_12px_var(--primary)]" />
+                </div>
+                <p className="text-center text-[9px] font-bold uppercase tracking-[0.18em] text-secondary-foreground/80">Mesa 12</p>
+              </div>
+              <div className="mx-auto h-1.5 w-24 rounded-b-lg bg-secondary-foreground/15" />
             </div>
             <div className="space-y-2">
               {bill.map(([n, v]) => (
@@ -229,7 +238,7 @@ export function MesaViva() {
 
         {/* 3 */}
         <div className={`${split} s3 lg:flex-row-reverse`}>
-          <div className="lg:w-[46%]"><Headline lines={[[["Divida"]], [["o"], ["momento.", true]]]} /></div>
+          <div className="lg:w-[46%]"><Headline lines={[[["Compartilhe"]], [["a"], ["conta.", true]]]} /></div>
           <div className="flex items-center gap-4">
             <Phone>
               <p className="font-display text-base font-bold">Mesa 12</p>
@@ -301,7 +310,7 @@ export function MesaViva() {
                 <span key={v} className={`tip ${i === 1 ? "tip-on bg-primary text-primary-foreground" : "bg-secondary-foreground/10"} rounded-xl py-2.5 text-center text-sm font-bold`}>{v}</span>
               ))}
             </div>
-            <div className="sent mt-4 flex items-center gap-2 rounded-xl bg-primary/15 px-3 py-2 text-xs font-semibold text-primary"><Heart className="h-4 w-4 fill-primary" />R$ 10 de gorjeta para o Rafael</div>
+            <div className="sent mt-4 flex items-center gap-2 rounded-xl bg-primary/15 px-3 py-2 text-xs font-semibold text-primary"><Heart className="h-4 w-4 fill-primary" />R$ 10 de gorjeta extra</div>
           </div>
         </div>
 
