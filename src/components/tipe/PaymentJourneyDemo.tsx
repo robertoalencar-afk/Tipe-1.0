@@ -25,8 +25,18 @@ export function PaymentJourneyDemo() {
   );
   const total = subtotal * 1.1;
 
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
   useEffect(() => {
-    if (!autoplay) return;
+    const el = rootRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(([e]) => setVisible(!!e?.isIntersecting), { threshold: 0.1 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!autoplay || !visible) return;
     const sequence = [
       window.setTimeout(() => setSelected(["moqueca"]), 500),
       window.setTimeout(() => setSelected(["moqueca", "caipirinha"]), 1100),
@@ -38,7 +48,7 @@ export function PaymentJourneyDemo() {
       }, 6200),
     ];
     return () => sequence.forEach(window.clearTimeout);
-  }, [autoplay, step === "items" && selected.length === 0]);
+  }, [autoplay, visible, step === "items" && selected.length === 0]);
 
   const toggleItem = (id: string) => {
     setAutoplay(false);
