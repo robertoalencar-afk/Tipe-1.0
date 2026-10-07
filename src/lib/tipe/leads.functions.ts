@@ -13,6 +13,9 @@ const step1Schema = z.object({
   city: z.string().trim().min(2).max(80),
   state: z.string().trim().regex(/^[A-Za-z]{2}$/).transform((v) => v.toUpperCase()),
   role: z.enum(["dono", "gerente", "outro"]),
+  tablesRange: z.enum(["ate_10", "11_20", "21_40", "40_mais"]),
+  pdvSystem: z.string().trim().min(2).max(80),
+  acquirer: z.string().trim().min(2).max(80),
   privacyAccepted: z.literal(true),
   marketingOptIn: z.boolean(),
   // Capturados automaticamente
@@ -32,7 +35,7 @@ export const submitLead = createServerFn({ method: "POST" })
     const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
     const { data: row, error } = await db.from("restaurant_leads").insert({
       restaurant_name: data.restaurantName, contact_name: data.contactName, email: data.email, phone: data.phone,
-      city: data.city, state: data.state, contact_role: data.role, privacy_accepted_at: new Date().toISOString(), marketing_opt_in: data.marketingOptIn,
+      city: data.city, state: data.state, contact_role: data.role, tables_range: data.tablesRange, pdv_system: data.pdvSystem, acquirer: data.acquirer, privacy_accepted_at: new Date().toISOString(), marketing_opt_in: data.marketingOptIn,
       utm_source: data.utm_source, utm_medium: data.utm_medium, utm_campaign: data.utm_campaign, utm_content: data.utm_content, utm_term: data.utm_term,
       referred_by_code: data.ref?.toLowerCase() ?? null, origin_page: data.originPage, used_simulator: data.usedSimulator, calculator: data.calculator ?? null,
     } as never).select("id, ref_code, update_token").single() as unknown as { data: { id: string; ref_code: string; update_token: string } | null; error: { message: string } | null };

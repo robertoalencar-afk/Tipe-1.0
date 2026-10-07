@@ -34,7 +34,7 @@ export const LEAD_STATUS: Record<string, string> = {
 export const LOST_REASONS: Record<string, string> = {
   preco: "Preço", sem_valor: "Não viu valor", pdv_nao_integra: "PDV não integra", concorrente: "Já usa concorrente", sem_resposta: "Sem resposta", outro: "Outro",
 };
-export const ROLE_LABEL: Record<string, string> = { dono: "Dono/sócio", gerente: "Gerente", outro: "Outro" };
+export const ROLE_LABEL: Record<string, string> = { dono: "Proprietário", gerente: "Gerente", outro: "Outro" };
 export const VENUE: Record<string, string> = { restaurante: "Restaurante", bar: "Bar", cafeteria: "Cafeteria", quiosque: "Quiosque ou barraca de praia", food_park: "Food park", outro: "Outro" };
 export const TABLES: Record<string, string> = { ate_10: "Até 10", "11_20": "11 a 20", "21_40": "21 a 40", "40_mais": "Mais de 40" };
 export const WAITERS: Record<string, string> = { "1_3": "1 a 3", "4_8": "4 a 8", "9_15": "9 a 15", "15_mais": "Mais de 15" };
