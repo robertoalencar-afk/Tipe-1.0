@@ -8,7 +8,7 @@ import { ARCHIVED } from "@/lib/tipe/legal-content";
 
 const PAGES = { "termos-2-0": Termos20, "privacidade-1-1": Privacidade11, "cookies-1-0": Cookies10, "parceiros-1-0": Parceiros10 } as const;
 
-export const Route = createFileRoute("/legal/versoes/$arquivo")({
+export const Route = createFileRoute("/legal/versoes_/$arquivo")({
   loader: ({ params }) => { const a = ARCHIVED.find((x) => x.id === params.arquivo); if (!a) throw notFound(); return { id: a.id }; },
   head: ({ params }) => {
     const a = ARCHIVED.find((x) => x.id === params.arquivo);

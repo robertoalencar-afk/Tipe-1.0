@@ -27,10 +27,16 @@ import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } fr
 import { Route as AuthenticatedBackofficeRouteImport } from './routes/_authenticated/backoffice'
 import { Route as AuthenticatedGarcomRouteImport } from './routes/_authenticated/garcom'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
+import { Route as LegalIndexRouteImport } from './routes/legal.index'
+import { Route as LegalLivroRouteImport } from './routes/legal.$livro'
+import { Route as LegalCompletaRouteImport } from './routes/legal.completa'
+import { Route as LegalGlossarioRouteImport } from './routes/legal.glossario'
+import { Route as LegalVersoesRouteImport } from './routes/legal.versoes'
 import { Route as PrivacidadeIndexRouteImport } from './routes/privacidade.index'
 import { Route as PrivacidadeSolicitacaoRouteImport } from './routes/privacidade.solicitacao'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin.leads'
+import { Route as LegalVersoesArquivoRouteImport } from './routes/legal.versoes.$arquivo'
 import { Route as MesaRestauranteMesaRouteImport } from './routes/mesa.$restaurante.$mesa'
 import { Route as ApiPublicPagarmeWebhookRouteImport } from './routes/api/public/pagarme/webhook'
 import { Route as ApiPublicPdvSyncRouteImport } from './routes/api/public/pdv.sync'
@@ -129,6 +135,31 @@ const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
   path: '/painel',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const LegalIndexRoute = LegalIndexRouteImport.update({
+  id: '/legal/',
+  path: '/legal/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalLivroRoute = LegalLivroRouteImport.update({
+  id: '/legal/$livro',
+  path: '/legal/$livro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalCompletaRoute = LegalCompletaRouteImport.update({
+  id: '/legal/completa',
+  path: '/legal/completa',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalGlossarioRoute = LegalGlossarioRouteImport.update({
+  id: '/legal/glossario',
+  path: '/legal/glossario',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LegalVersoesRoute = LegalVersoesRouteImport.update({
+  id: '/legal/versoes',
+  path: '/legal/versoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const PrivacidadeIndexRoute = PrivacidadeIndexRouteImport.update({
   id: '/privacidade/',
   path: '/privacidade/',
@@ -148,6 +179,11 @@ const AuthenticatedAdminLeadsRoute = AuthenticatedAdminLeadsRouteImport.update({
   id: '/admin/leads',
   path: '/admin/leads',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const LegalVersoesArquivoRoute = LegalVersoesArquivoRouteImport.update({
+  id: '/$arquivo',
+  path: '/$arquivo',
+  getParentRoute: () => LegalVersoesRoute,
 } as any)
 const MesaRestauranteMesaRoute = MesaRestauranteMesaRouteImport.update({
   id: '/mesa/$restaurante/$mesa',
@@ -205,11 +241,17 @@ export interface FileRoutesByFullPath {
   '/backoffice': typeof AuthenticatedBackofficeRoute
   '/garcom': typeof AuthenticatedGarcomRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/legal/$livro': typeof LegalLivroRoute
+  '/legal/completa': typeof LegalCompletaRoute
+  '/legal/glossario': typeof LegalGlossarioRoute
+  '/legal/versoes': typeof LegalVersoesRouteWithChildren
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
   '/$restaurante/': typeof RestauranteIndexRoute
+  '/legal/': typeof LegalIndexRoute
   '/privacidade/': typeof PrivacidadeIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
+  '/legal/versoes/$arquivo': typeof LegalVersoesArquivoRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
@@ -235,11 +277,17 @@ export interface FileRoutesByTo {
   '/backoffice': typeof AuthenticatedBackofficeRoute
   '/garcom': typeof AuthenticatedGarcomRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/legal/$livro': typeof LegalLivroRoute
+  '/legal/completa': typeof LegalCompletaRoute
+  '/legal/glossario': typeof LegalGlossarioRoute
+  '/legal/versoes': typeof LegalVersoesRouteWithChildren
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
   '/$restaurante': typeof RestauranteIndexRoute
+  '/legal': typeof LegalIndexRoute
   '/privacidade': typeof PrivacidadeIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
+  '/legal/versoes/$arquivo': typeof LegalVersoesArquivoRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
@@ -267,11 +315,17 @@ export interface FileRoutesById {
   '/_authenticated/backoffice': typeof AuthenticatedBackofficeRoute
   '/_authenticated/garcom': typeof AuthenticatedGarcomRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
+  '/legal/$livro': typeof LegalLivroRoute
+  '/legal/completa': typeof LegalCompletaRoute
+  '/legal/glossario': typeof LegalGlossarioRoute
+  '/legal/versoes': typeof LegalVersoesRouteWithChildren
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
   '/$restaurante/': typeof RestauranteIndexRoute
+  '/legal/': typeof LegalIndexRoute
   '/privacidade/': typeof PrivacidadeIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
+  '/legal/versoes/$arquivo': typeof LegalVersoesArquivoRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
@@ -299,11 +353,17 @@ export interface FileRouteTypes {
     | '/backoffice'
     | '/garcom'
     | '/painel'
+    | '/legal/$livro'
+    | '/legal/completa'
+    | '/legal/glossario'
+    | '/legal/versoes'
     | '/privacidade/solicitacao'
     | '/$restaurante/'
+    | '/legal/'
     | '/privacidade/'
     | '/.lovable/oauth/consent'
     | '/admin/leads'
+    | '/legal/versoes/$arquivo'
     | '/mesa/$restaurante/$mesa'
     | '/api/public/pagarme/webhook'
     | '/api/public/pdv/sync'
@@ -329,11 +389,17 @@ export interface FileRouteTypes {
     | '/backoffice'
     | '/garcom'
     | '/painel'
+    | '/legal/$livro'
+    | '/legal/completa'
+    | '/legal/glossario'
+    | '/legal/versoes'
     | '/privacidade/solicitacao'
     | '/$restaurante'
+    | '/legal'
     | '/privacidade'
     | '/.lovable/oauth/consent'
     | '/admin/leads'
+    | '/legal/versoes/$arquivo'
     | '/mesa/$restaurante/$mesa'
     | '/api/public/pagarme/webhook'
     | '/api/public/pdv/sync'
@@ -360,11 +426,17 @@ export interface FileRouteTypes {
     | '/_authenticated/backoffice'
     | '/_authenticated/garcom'
     | '/_authenticated/painel'
+    | '/legal/$livro'
+    | '/legal/completa'
+    | '/legal/glossario'
+    | '/legal/versoes'
     | '/privacidade/solicitacao'
     | '/$restaurante/'
+    | '/legal/'
     | '/privacidade/'
     | '/.lovable/oauth/consent'
     | '/_authenticated/admin/leads'
+    | '/legal/versoes/$arquivo'
     | '/mesa/$restaurante/$mesa'
     | '/api/public/pagarme/webhook'
     | '/api/public/pdv/sync'
@@ -389,8 +461,13 @@ export interface RootRouteChildren {
   TermosParceirosRoute: typeof TermosParceirosRoute
   RestauranteMesaRoute: typeof RestauranteMesaRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  LegalLivroRoute: typeof LegalLivroRoute
+  LegalCompletaRoute: typeof LegalCompletaRoute
+  LegalGlossarioRoute: typeof LegalGlossarioRoute
+  LegalVersoesRoute: typeof LegalVersoesRouteWithChildren
   PrivacidadeSolicitacaoRoute: typeof PrivacidadeSolicitacaoRoute
   RestauranteIndexRoute: typeof RestauranteIndexRoute
+  LegalIndexRoute: typeof LegalIndexRoute
   PrivacidadeIndexRoute: typeof PrivacidadeIndexRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   MesaRestauranteMesaRoute: typeof MesaRestauranteMesaRoute
@@ -530,6 +607,41 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPainelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/legal/': {
+      id: '/legal/'
+      path: '/legal'
+      fullPath: '/legal/'
+      preLoaderRoute: typeof LegalIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/$livro': {
+      id: '/legal/$livro'
+      path: '/legal/$livro'
+      fullPath: '/legal/$livro'
+      preLoaderRoute: typeof LegalLivroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/completa': {
+      id: '/legal/completa'
+      path: '/legal/completa'
+      fullPath: '/legal/completa'
+      preLoaderRoute: typeof LegalCompletaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/glossario': {
+      id: '/legal/glossario'
+      path: '/legal/glossario'
+      fullPath: '/legal/glossario'
+      preLoaderRoute: typeof LegalGlossarioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/legal/versoes': {
+      id: '/legal/versoes'
+      path: '/legal/versoes'
+      fullPath: '/legal/versoes'
+      preLoaderRoute: typeof LegalVersoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/privacidade/': {
       id: '/privacidade/'
       path: '/privacidade'
@@ -557,6 +669,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/leads'
       preLoaderRoute: typeof AuthenticatedAdminLeadsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/legal/versoes/$arquivo': {
+      id: '/legal/versoes/$arquivo'
+      path: '/$arquivo'
+      fullPath: '/legal/versoes/$arquivo'
+      preLoaderRoute: typeof LegalVersoesArquivoRouteImport
+      parentRoute: typeof LegalVersoesRoute
     }
     '/mesa/$restaurante/$mesa': {
       id: '/mesa/$restaurante/$mesa'
@@ -627,6 +746,18 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface LegalVersoesRouteChildren {
+  LegalVersoesArquivoRoute: typeof LegalVersoesArquivoRoute
+}
+
+const LegalVersoesRouteChildren: LegalVersoesRouteChildren = {
+  LegalVersoesArquivoRoute: LegalVersoesArquivoRoute,
+}
+
+const LegalVersoesRouteWithChildren = LegalVersoesRoute._addFileChildren(
+  LegalVersoesRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
@@ -643,8 +774,13 @@ const rootRouteChildren: RootRouteChildren = {
   RestauranteMesaRoute: RestauranteMesaRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  LegalLivroRoute: LegalLivroRoute,
+  LegalCompletaRoute: LegalCompletaRoute,
+  LegalGlossarioRoute: LegalGlossarioRoute,
+  LegalVersoesRoute: LegalVersoesRouteWithChildren,
   PrivacidadeSolicitacaoRoute: PrivacidadeSolicitacaoRoute,
   RestauranteIndexRoute: RestauranteIndexRoute,
+  LegalIndexRoute: LegalIndexRoute,
   PrivacidadeIndexRoute: PrivacidadeIndexRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   MesaRestauranteMesaRoute: MesaRestauranteMesaRoute,

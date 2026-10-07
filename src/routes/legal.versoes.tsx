@@ -1,4 +1,4 @@
-import { createFileRoute, Link, Outlet, useMatches } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { LegalShell } from "@/components/tipe/legal/LegalShell";
 import { ARCHIVED, BOOKS, VERSIONS } from "@/lib/tipe/legal-content";
 
@@ -18,8 +18,6 @@ export const Route = createFileRoute("/legal/versoes")({
 });
 
 function Versoes() {
-  const child = useMatches({ select: (m) => m.some((x) => x.routeId === "/legal/versoes/$arquivo") });
-  if (child) return <Outlet />;
   return (
     <LegalShell>
       <main className="mx-auto max-w-4xl px-4 py-10">
