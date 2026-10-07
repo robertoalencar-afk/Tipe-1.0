@@ -223,6 +223,97 @@ export type Database = {
         }
         Relationships: []
       }
+      pdv_connections: {
+        Row: {
+          adapter: string
+          created_at: string
+          credentials_encrypted: string | null
+          last_error: string | null
+          last_error_at: string | null
+          last_sync_at: string | null
+          restaurant_id: string
+          status: string
+          updated_at: string
+          webhook_secret_hash: string | null
+        }
+        Insert: {
+          adapter?: string
+          created_at?: string
+          credentials_encrypted?: string | null
+          last_error?: string | null
+          last_error_at?: string | null
+          last_sync_at?: string | null
+          restaurant_id: string
+          status?: string
+          updated_at?: string
+          webhook_secret_hash?: string | null
+        }
+        Update: {
+          adapter?: string
+          created_at?: string
+          credentials_encrypted?: string | null
+          last_error?: string | null
+          last_error_at?: string | null
+          last_sync_at?: string | null
+          restaurant_id?: string
+          status?: string
+          updated_at?: string
+          webhook_secret_hash?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pdv_connections_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: true
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pdv_events: {
+        Row: {
+          adapter: string
+          created_at: string
+          detail: string | null
+          direction: string
+          event_type: string
+          external_event_id: string
+          id: string
+          restaurant_id: string
+          status: string
+        }
+        Insert: {
+          adapter: string
+          created_at?: string
+          detail?: string | null
+          direction: string
+          event_type: string
+          external_event_id: string
+          id?: string
+          restaurant_id: string
+          status?: string
+        }
+        Update: {
+          adapter?: string
+          created_at?: string
+          detail?: string | null
+          direction?: string
+          event_type?: string
+          external_event_id?: string
+          id?: string
+          restaurant_id?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pdv_events_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pdv_menu_categories: {
         Row: {
           created_at: string
@@ -470,9 +561,11 @@ export type Database = {
           code: string
           created_at: string
           email: string | null
+          external_id: string | null
           id: string
           name: string
           restaurant_id: string
+          source_adapter: string
           user_id: string | null
         }
         Insert: {
@@ -480,9 +573,11 @@ export type Database = {
           code: string
           created_at?: string
           email?: string | null
+          external_id?: string | null
           id?: string
           name: string
           restaurant_id: string
+          source_adapter?: string
           user_id?: string | null
         }
         Update: {
@@ -490,9 +585,11 @@ export type Database = {
           code?: string
           created_at?: string
           email?: string | null
+          external_id?: string | null
           id?: string
           name?: string
           restaurant_id?: string
+          source_adapter?: string
           user_id?: string | null
         }
         Relationships: [
@@ -640,31 +737,142 @@ export type Database = {
       }
       restaurant_leads: {
         Row: {
+          acquirer: string | null
+          calculator: Json | null
+          city: string | null
+          close_time: string | null
           contact_name: string
+          contact_role: string | null
           created_at: string
+          discovery_source: string | null
           email: string
+          has_pagarme: string | null
           id: string
+          instagram: string | null
+          lost_reason: string | null
+          marketing_opt_in: boolean
           message: string | null
+          neighborhood: string | null
+          next_contact_at: string | null
+          notes: string | null
+          origin_page: string | null
+          pains: string[] | null
+          pdv_system: string | null
+          peak_queue: string | null
+          peak_times: string[] | null
           phone: string | null
+          privacy_accepted_at: string | null
+          ref_code: string | null
+          referred_by_code: string | null
+          referrer_name: string | null
           restaurant_name: string
+          stage2_completed_at: string | null
+          state: string | null
+          status: string
+          tables_range: string | null
+          ticket_range: string | null
+          update_token: string | null
+          updated_at: string
+          used_simulator: boolean
+          utm_campaign: string | null
+          utm_content: string | null
+          utm_medium: string | null
+          utm_source: string | null
+          utm_term: string | null
+          venue_type: string | null
+          waiters_range: string | null
         }
         Insert: {
+          acquirer?: string | null
+          calculator?: Json | null
+          city?: string | null
+          close_time?: string | null
           contact_name: string
+          contact_role?: string | null
           created_at?: string
+          discovery_source?: string | null
           email: string
+          has_pagarme?: string | null
           id?: string
+          instagram?: string | null
+          lost_reason?: string | null
+          marketing_opt_in?: boolean
           message?: string | null
+          neighborhood?: string | null
+          next_contact_at?: string | null
+          notes?: string | null
+          origin_page?: string | null
+          pains?: string[] | null
+          pdv_system?: string | null
+          peak_queue?: string | null
+          peak_times?: string[] | null
           phone?: string | null
+          privacy_accepted_at?: string | null
+          ref_code?: string | null
+          referred_by_code?: string | null
+          referrer_name?: string | null
           restaurant_name: string
+          stage2_completed_at?: string | null
+          state?: string | null
+          status?: string
+          tables_range?: string | null
+          ticket_range?: string | null
+          update_token?: string | null
+          updated_at?: string
+          used_simulator?: boolean
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          venue_type?: string | null
+          waiters_range?: string | null
         }
         Update: {
+          acquirer?: string | null
+          calculator?: Json | null
+          city?: string | null
+          close_time?: string | null
           contact_name?: string
+          contact_role?: string | null
           created_at?: string
+          discovery_source?: string | null
           email?: string
+          has_pagarme?: string | null
           id?: string
+          instagram?: string | null
+          lost_reason?: string | null
+          marketing_opt_in?: boolean
           message?: string | null
+          neighborhood?: string | null
+          next_contact_at?: string | null
+          notes?: string | null
+          origin_page?: string | null
+          pains?: string[] | null
+          pdv_system?: string | null
+          peak_queue?: string | null
+          peak_times?: string[] | null
           phone?: string | null
+          privacy_accepted_at?: string | null
+          ref_code?: string | null
+          referred_by_code?: string | null
+          referrer_name?: string | null
           restaurant_name?: string
+          stage2_completed_at?: string | null
+          state?: string | null
+          status?: string
+          tables_range?: string | null
+          ticket_range?: string | null
+          update_token?: string | null
+          updated_at?: string
+          used_simulator?: boolean
+          utm_campaign?: string | null
+          utm_content?: string | null
+          utm_medium?: string | null
+          utm_source?: string | null
+          utm_term?: string | null
+          venue_type?: string | null
+          waiters_range?: string | null
         }
         Relationships: []
       }
@@ -830,10 +1038,12 @@ export type Database = {
           active: boolean
           code: string
           created_at: string
+          external_id: string | null
           id: string
           number: string
           restaurant_id: string
           session_token: string
+          source_adapter: string
           updated_at: string
           waiter_id: string | null
         }
@@ -842,10 +1052,12 @@ export type Database = {
           active?: boolean
           code: string
           created_at?: string
+          external_id?: string | null
           id?: string
           number: string
           restaurant_id: string
           session_token?: string
+          source_adapter?: string
           updated_at?: string
           waiter_id?: string | null
         }
@@ -854,10 +1066,12 @@ export type Database = {
           active?: boolean
           code?: string
           created_at?: string
+          external_id?: string | null
           id?: string
           number?: string
           restaurant_id?: string
           session_token?: string
+          source_adapter?: string
           updated_at?: string
           waiter_id?: string | null
         }
@@ -1006,9 +1220,11 @@ export type Database = {
       table_bill_items: {
         Row: {
           created_at: string
+          external_id: string | null
           id: string
           item_code: string
           item_name: string
+          notes: string | null
           ordered_at: string
           ordered_by: string
           ordered_quantity: number
@@ -1017,15 +1233,18 @@ export type Database = {
           reserved_portion: number
           reserved_quantity: number
           restaurant_slug: string
+          source_adapter: string
           table_number: string
           unit_price: number
           updated_at: string
         }
         Insert: {
           created_at?: string
+          external_id?: string | null
           id?: string
           item_code: string
           item_name: string
+          notes?: string | null
           ordered_at: string
           ordered_by: string
           ordered_quantity: number
@@ -1034,15 +1253,18 @@ export type Database = {
           reserved_portion?: number
           reserved_quantity?: number
           restaurant_slug: string
+          source_adapter?: string
           table_number: string
           unit_price: number
           updated_at?: string
         }
         Update: {
           created_at?: string
+          external_id?: string | null
           id?: string
           item_code?: string
           item_name?: string
+          notes?: string | null
           ordered_at?: string
           ordered_by?: string
           ordered_quantity?: number
@@ -1051,6 +1273,7 @@ export type Database = {
           reserved_portion?: number
           reserved_quantity?: number
           restaurant_slug?: string
+          source_adapter?: string
           table_number?: string
           unit_price?: number
           updated_at?: string
@@ -1362,6 +1585,15 @@ export type Database = {
       pdv_close_table: {
         Args: { p_slug: string; p_table: string }
         Returns: undefined
+      }
+      pdv_ingest_event: {
+        Args: {
+          p_adapter: string
+          p_event: Json
+          p_event_id: string
+          p_restaurant: string
+        }
+        Returns: string
       }
       pdv_launch_order: {
         Args: {
