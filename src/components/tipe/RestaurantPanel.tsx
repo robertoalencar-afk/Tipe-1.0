@@ -17,6 +17,7 @@ import {
 } from "@/lib/tipe/pdv.functions";
 import { transferTable } from "@/lib/tipe/admin.functions";
 import { getPdvIntegration, getTopItems, importMenuCsv } from "@/lib/tipe/pdv-integrations.functions";
+import { PixGarcons } from "@/components/tipe/PixGarcons";
 import { Caixa, Configuracoes, Cozinha, Inicio, Integracoes, Relatorios } from "@/components/tipe/AdminSections";
 import { TotemStudio } from "@/components/tipe/TotemStudio";
 import { Assinatura } from "@/components/tipe/Assinatura";
@@ -259,7 +260,7 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
         {aba === "qr" && <MesasQr slug={slug} restaurante={d.restaurant.name} tables={pdv.data.tables} podeDono={podeDono} onDone={refresh} />}
         {aba === "cardapio" && podeDono && <Cardapio slug={slug} pdv={pdv.data} onDone={refresh} />}
         {aba === "equipe" && podeDono && (
-          <div className="space-y-6"><Garcons slug={slug} pdv={pdv.data} onDone={refresh} /><Equipe slug={slug} staff={d.staff} /></div>
+          <div className="space-y-6"><Garcons slug={slug} pdv={pdv.data} onDone={refresh} /><PixGarcons slug={slug} /><Equipe slug={slug} staff={d.staff} /></div>
         )}
         {aba === "relatorios" && <Relatorios slug={slug} />}
         {aba === "integracoes" && <Integracoes slug={slug} podeDono={podeDono} />}
