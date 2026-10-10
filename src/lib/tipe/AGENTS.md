@@ -1,0 +1,16 @@
+# src/lib/tipe rules
+
+- PDV items enter through adapters in src/lib/tipe/pdv (registry.server.ts) that call pdv_ingest_event with idempotent external event ids; legacy /api/public/pos/$slug stays compatible and UI never shows third-party PDV names. Why: new PDVs plug in without touching the payment flow.
+- Server code using supabaseAdmin must authorize via src/lib/tipe/security.server.ts (verifyTableSession, enforceRate, logSecurityEvent). Why: admin client bypasses RLS.
+- register_table_payment requires p_idempotency_key (unique per restaurant) and is service_role-only. Why: retries/double-clicks never duplicate payments.
+- Shared item payments use decimal portions with row locking; integer quantity columns remain compatibility shadows. Why: diners can split one item safely without overselling it.
+- Legal docs are versioned in src/lib/tipe/legal.ts; acceptances go to legal_acceptances with server-chosen version, and optional scripts must check hasConsent() from src/lib/tipe/consent.ts. Why: provable acceptance and no tracker before consent.
+- Payments go through Pagar.me v5 (src/lib/tipe/pagarme.server.ts): bill items reserved via register_table_payment before charging, settled only by provider_settle_payment (service_role) after re-fetching the order. Without a key everything runs in simulation. Why: money never moves on client-provided status.
+- Lebre AI uses separate public and authenticated server functions; restaurant data is scoped by membership, and every mutation is an explicit typed proposal confirmed by the user and reauthorized at execution. Why: free text must never execute privileged database changes directly.
+- In-person bill payments store cash versus card-terminal details, including server-validated cash received and change due. Why: staff need the correct change before confirming receipt.
+- Restaurant bill payments charge the restaurant's own Pagar.me account (key AES-GCM encrypted in restaurant_pagarme_accounts, service_role only; per-restaurant webhook /api/public/pagarme/restaurante/$slug re-fetches the order). Why: TIPE never holds restaurant bank data or money.
+- Founder checks go through src/lib/tipe/founder-guard.ts (role founder AND session aal2); founder pages wrap FounderMfaGate. Why: founder access requires TOTP 2FA.
+- New waiter Pix keys are written to pending_* columns and activate only via promote_pending_pix (48h or owner approval); withdrawals are blocked while pending. Why: stops payout hijacking through a swapped key.
+- Payout CPF/Pix/bank data are stored AES-GCM encrypted in *_enc columns; plaintext columns hold only masked values, and full reveals are logged. Why: sensitive data never sits readable in the database.
+- Security alerts are sent from logSecurityEvent via sendSecurityAlert (security_alert_state throttles to one email per type every 15 min). Why: one place to raise and group alerts.
+- The service fee rate comes only from restaurants.service_rate (0 to 20%) and is recomputed on the server; any fee choice sent by the browser is rejected. Why: the restaurant sets the fee, not the customer.

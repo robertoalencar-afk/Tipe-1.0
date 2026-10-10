@@ -3,9 +3,9 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { PLANS } from "./plans";
 import { TIP_SPLIT } from "./rules";
 
-async function requireFounder(ctx: { supabase: any; userId: string }) {
-  const { data } = await ctx.supabase.rpc("has_role", { _user_id: ctx.userId, _role: "founder" });
-  if (!data) throw new Error("Somente o fundador TIPE");
+async function requireFounder(ctx: { supabase: any; userId: string; claims?: any }) {
+  const { requireFounder2fa } = await import("./founder-guard");
+  await requireFounder2fa(ctx);
 }
 
 const planPrice = (plan: string) => {

@@ -178,6 +178,27 @@ export type Database = {
           },
         ]
       }
+      founder_devices: {
+        Row: {
+          device_hash: string
+          first_seen_at: string
+          last_seen_at: string
+          user_id: string
+        }
+        Insert: {
+          device_hash: string
+          first_seen_at?: string
+          last_seen_at?: string
+          user_id: string
+        }
+        Update: {
+          device_hash?: string
+          first_seen_at?: string
+          last_seen_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       legal_acceptances: {
         Row: {
           accepted_at: string
@@ -199,6 +220,30 @@ export type Database = {
           id?: string
           user_id?: string
           version?: string
+        }
+        Relationships: []
+      }
+      mfa_recovery_codes: {
+        Row: {
+          code_hash: string
+          created_at: string
+          id: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          code_hash: string
+          created_at?: string
+          id?: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          code_hash?: string
+          created_at?: string
+          id?: string
+          used_at?: string | null
+          user_id?: string
         }
         Relationships: []
       }
@@ -1161,6 +1206,24 @@ export type Database = {
         }
         Relationships: []
       }
+      security_alert_state: {
+        Row: {
+          alert_type: string
+          last_sent_at: string | null
+          suppressed_count: number
+        }
+        Insert: {
+          alert_type: string
+          last_sent_at?: string | null
+          suppressed_count?: number
+        }
+        Update: {
+          alert_type?: string
+          last_sent_at?: string | null
+          suppressed_count?: number
+        }
+        Relationships: []
+      }
       security_events: {
         Row: {
           action: string
@@ -1418,6 +1481,13 @@ export type Database = {
           holder_document: string
           holder_document_enc: string | null
           holder_name: string
+          pending_holder_document: string | null
+          pending_holder_document_enc: string | null
+          pending_holder_name: string | null
+          pending_pix_key: string | null
+          pending_pix_key_enc: string | null
+          pending_pix_key_type: string | null
+          pending_since: string | null
           pix_key: string
           pix_key_enc: string | null
           pix_key_type: string
@@ -1428,6 +1498,13 @@ export type Database = {
           holder_document: string
           holder_document_enc?: string | null
           holder_name: string
+          pending_holder_document?: string | null
+          pending_holder_document_enc?: string | null
+          pending_holder_name?: string | null
+          pending_pix_key?: string | null
+          pending_pix_key_enc?: string | null
+          pending_pix_key_type?: string | null
+          pending_since?: string | null
           pix_key: string
           pix_key_enc?: string | null
           pix_key_type: string
@@ -1438,6 +1515,13 @@ export type Database = {
           holder_document?: string
           holder_document_enc?: string | null
           holder_name?: string
+          pending_holder_document?: string | null
+          pending_holder_document_enc?: string | null
+          pending_holder_name?: string | null
+          pending_pix_key?: string | null
+          pending_pix_key_enc?: string | null
+          pending_pix_key_type?: string | null
+          pending_since?: string | null
           pix_key?: string
           pix_key_enc?: string | null
           pix_key_type?: string
@@ -1669,6 +1753,10 @@ export type Database = {
           p_slug: string
         }
         Returns: undefined
+      }
+      promote_pending_pix: {
+        Args: { p_force?: boolean; p_waiter: string }
+        Returns: boolean
       }
       provider_settle_payment: {
         Args: { p_order_id: string; p_paid: boolean }

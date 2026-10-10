@@ -45,6 +45,52 @@ export async function logSecurityEvent(e: { action: string; resource?: string | 
   } catch (err) {
     console.error("security_event", err);
   }
+  try { await maybeAlert(e); } catch (err) { console.error("security_alert", err); }
+}
+
+const ALERT_TITLES: Record<string, string> = {
+  pix_change: "Troca de chave Pix",
+  role_change: "Mudança de papel de acesso",
+  webhooks_denied: "Webhooks recusados em sequência",
+  payment_limit: "Limite de pagamentos estourado",
+  lebre_abuse: "Uso anormal da Lebre",
+  founder_new_device: "Login de founder em dispositivo novo",
+  login_failures: "Pico de falhas de login",
+};
+
+async function maybeAlert(e: { action: string; resource?: string | undefined; restaurantSlug?: string | undefined; detail?: string | undefined }) {
+  let type: string | null = null;
+  if (e.action === "waiter_pix_saved") type = "pix_change";
+  else if (e.action.startsWith("role_")) type = "role_change";
+  else if (e.action === "founder_new_device") type = "founder_new_device";
+  else if (e.action === "login_failed_spike") type = "login_failures";
+  else if (e.action === "rate_limited" && e.resource === "pay") type = "payment_limit";
+  else if (e.action === "rate_limited" && e.resource?.startsWith("lebre")) type = "lebre_abuse";
+  else if (e.action.endsWith("webhook_denied")) {
+    const db = await admin();
+    const since = new Date(Date.now() - 10 * 60_000).toISOString();
+    const { count } = await db.from("security_events").select("id", { count: "exact", head: true }).like("action", "%webhook_denied").gte("created_at", since);
+    if ((count ?? 0) >= 5) type = "webhooks_denied";
+  }
+  if (!type) return;
+  await sendSecurityAlert(type, `${ALERT_TITLES[type]}${e.restaurantSlug ? ` em ${e.restaurantSlug}` : ""}.${e.resource ? `\nRecurso: ${e.resource}` : ""}${e.detail ? `\n${e.detail}` : ""}`);
+}
+
+/** No máximo 1 e-mail por tipo a cada 15 minutos; os demais são contados e entram no próximo. */
+export async function sendSecurityAlert(type: string, detail: string) {
+  const db = await admin();
+  const { data: st } = await db.from("security_alert_state").select("last_sent_at, suppressed_count").eq("alert_type", type).maybeSingle();
+  const recent = st?.last_sent_at && Date.now() - new Date(st.last_sent_at).getTime() < 15 * 60_000;
+  if (recent) {
+    await db.from("security_alert_state").update({ suppressed_count: (st?.suppressed_count ?? 0) + 1 }).eq("alert_type", type);
+    return;
+  }
+  const count = (st?.suppressed_count ?? 0) + 1;
+  await db.from("security_alert_state").upsert({ alert_type: type, last_sent_at: new Date().toISOString(), suppressed_count: 0 });
+  const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
+  await sendTemplateEmail("security-alert", "robertoalencar@live.com", {
+    templateData: { title: ALERT_TITLES[type] ?? "Alerta de segurança", detail, count, at: new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }) },
+  });
 }
 
 /**

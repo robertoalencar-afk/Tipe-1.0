@@ -20,8 +20,10 @@
 - [x] claim_founder bloqueada; cabeçalhos de segurança (CSP em modo de teste)
 - [x] CPF/Pix cifrados e mascarados
 - [x] Taxa de serviço definida pelo restaurante (cliente não altera)
-- [ ] Relatório da taxa por período e garçom
-- [ ] Quarentena de 48h na troca de Pix + e-mails + tela do dono
-- [ ] 2FA obrigatório para founders + códigos de recuperação
-- [ ] Alertas de segurança por e-mail agrupados
-- [ ] Registro de violações da CSP
+- [x] Relatório da taxa por período e garçom
+- [x] Quarentena de 48h na troca de Pix + e-mails + tela do dono
+- [x] 2FA obrigatório para founders + códigos de recuperação
+- [x] Alertas de segurança por e-mail agrupados
+- [x] Registro de violações da CSP
+- [ ] Trocar CSP para modo obrigatório após 7 dias sem violações legítimas (aguarda prazo)
+- [ ] Alerta de pico de falhas de login (login acontece direto no serviço de autenticação; precisa de outra abordagem)

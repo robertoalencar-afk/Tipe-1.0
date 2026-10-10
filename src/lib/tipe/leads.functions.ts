@@ -96,9 +96,9 @@ export const submitLeadDetails = createServerFn({ method: "POST" })
   });
 
 // ---------------- Mini-CRM (somente administradores TIPE) ----------------
-async function requireAdmin(ctx: { supabase: any; userId: string }) {
-  const { data } = await ctx.supabase.rpc("has_role", { _user_id: ctx.userId, _role: "founder" });
-  if (!data) throw new Error("Acesso restrito aos administradores TIPE");
+async function requireAdmin(ctx: { supabase: any; userId: string; claims?: any }) {
+  const { requireFounder2fa } = await import("./founder-guard");
+  await requireFounder2fa(ctx, "Acesso restrito aos administradores TIPE, com verificação em duas etapas");
 }
 
 export const listLeads = createServerFn({ method: "GET" })

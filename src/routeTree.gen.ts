@@ -36,6 +36,7 @@ import { Route as PrivacidadeIndexRouteImport } from './routes/privacidade.index
 import { Route as PrivacidadeSolicitacaoRouteImport } from './routes/privacidade.solicitacao'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin.leads'
+import { Route as ApiPublicCspReportRouteImport } from './routes/api/public/csp-report'
 import { Route as LegalVersoesArquivoRouteImport } from './routes/legal.versoes_.$arquivo'
 import { Route as MesaRestauranteMesaRouteImport } from './routes/mesa.$restaurante.$mesa'
 import { Route as ApiPublicPagarmeWebhookRouteImport } from './routes/api/public/pagarme/webhook'
@@ -180,6 +181,11 @@ const AuthenticatedAdminLeadsRoute = AuthenticatedAdminLeadsRouteImport.update({
   path: '/admin/leads',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const ApiPublicCspReportRoute = ApiPublicCspReportRouteImport.update({
+  id: '/api/public/csp-report',
+  path: '/api/public/csp-report',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LegalVersoesArquivoRoute = LegalVersoesArquivoRouteImport.update({
   id: '/legal/versoes_/$arquivo',
   path: '/legal/versoes/$arquivo',
@@ -251,6 +257,7 @@ export interface FileRoutesByFullPath {
   '/privacidade/': typeof PrivacidadeIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
+  '/api/public/csp-report': typeof ApiPublicCspReportRoute
   '/legal/versoes/$arquivo': typeof LegalVersoesArquivoRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
@@ -287,6 +294,7 @@ export interface FileRoutesByTo {
   '/privacidade': typeof PrivacidadeIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
+  '/api/public/csp-report': typeof ApiPublicCspReportRoute
   '/legal/versoes/$arquivo': typeof LegalVersoesArquivoRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
@@ -325,6 +333,7 @@ export interface FileRoutesById {
   '/privacidade/': typeof PrivacidadeIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
+  '/api/public/csp-report': typeof ApiPublicCspReportRoute
   '/legal/versoes_/$arquivo': typeof LegalVersoesArquivoRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
@@ -363,6 +372,7 @@ export interface FileRouteTypes {
     | '/privacidade/'
     | '/.lovable/oauth/consent'
     | '/admin/leads'
+    | '/api/public/csp-report'
     | '/legal/versoes/$arquivo'
     | '/mesa/$restaurante/$mesa'
     | '/api/public/pagarme/webhook'
@@ -399,6 +409,7 @@ export interface FileRouteTypes {
     | '/privacidade'
     | '/.lovable/oauth/consent'
     | '/admin/leads'
+    | '/api/public/csp-report'
     | '/legal/versoes/$arquivo'
     | '/mesa/$restaurante/$mesa'
     | '/api/public/pagarme/webhook'
@@ -436,6 +447,7 @@ export interface FileRouteTypes {
     | '/privacidade/'
     | '/.lovable/oauth/consent'
     | '/_authenticated/admin/leads'
+    | '/api/public/csp-report'
     | '/legal/versoes_/$arquivo'
     | '/mesa/$restaurante/$mesa'
     | '/api/public/pagarme/webhook'
@@ -470,6 +482,7 @@ export interface RootRouteChildren {
   LegalIndexRoute: typeof LegalIndexRoute
   PrivacidadeIndexRoute: typeof PrivacidadeIndexRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
+  ApiPublicCspReportRoute: typeof ApiPublicCspReportRoute
   LegalVersoesArquivoRoute: typeof LegalVersoesArquivoRoute
   MesaRestauranteMesaRoute: typeof MesaRestauranteMesaRoute
   ApiPublicPagarmeWebhookRoute: typeof ApiPublicPagarmeWebhookRoute
@@ -671,6 +684,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminLeadsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/csp-report': {
+      id: '/api/public/csp-report'
+      path: '/api/public/csp-report'
+      fullPath: '/api/public/csp-report'
+      preLoaderRoute: typeof ApiPublicCspReportRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/legal/versoes_/$arquivo': {
       id: '/legal/versoes_/$arquivo'
       path: '/legal/versoes/$arquivo'
@@ -772,6 +792,7 @@ const rootRouteChildren: RootRouteChildren = {
   LegalIndexRoute: LegalIndexRoute,
   PrivacidadeIndexRoute: PrivacidadeIndexRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
+  ApiPublicCspReportRoute: ApiPublicCspReportRoute,
   LegalVersoesArquivoRoute: LegalVersoesArquivoRoute,
   MesaRestauranteMesaRoute: MesaRestauranteMesaRoute,
   ApiPublicPagarmeWebhookRoute: ApiPublicPagarmeWebhookRoute,
