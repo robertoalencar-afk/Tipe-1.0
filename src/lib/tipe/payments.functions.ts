@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { SERVICE_FEE } from "./rules";
+import { SERVICE_FEE, resolveServiceFee, type ServiceFeeChoice } from "./rules";
 
 const Input = z.object({
   method: z.enum(["pix", "card", "apple_pay", "google_pay", "at_establishment"]),
@@ -15,6 +15,8 @@ const Input = z.object({
   cardToken: z.string().min(8).max(120).regex(/^[A-Za-z0-9_-]+$/).optional(),
   establishmentMethod: z.enum(["cash", "card_terminal"]).optional(),
   cashReceived: z.number().min(0).max(100000).optional(),
+  // Só a escolha da taxa vem do navegador; o servidor valida e recalcula.
+  serviceFee: z.object({ kind: z.enum(["suggested", "percent", "amount"]), value: z.unknown().optional() }).optional(),
 }).superRefine((data, ctx) => {
   if (data.method === "at_establishment" && !data.establishmentMethod) {
     ctx.addIssue({ code: "custom", path: ["establishmentMethod"], message: "Escolha dinheiro ou maquininha" });
@@ -57,8 +59,9 @@ export const createPayment = createServerFn({ method: "POST" })
     // + taxa de serviço; para gorjeta, apenas o valor da gorjeta.
     let amount = 0;
     let itemQuantities: Record<string, number> = {};
+    let feeRecord: { service_rate_suggested: number; service_fee_suggested: number; service_fee_amount: number; service_fee_changed: boolean } | null = null;
     if (data.target === "restaurant") {
-      const { data: rest } = await supabaseAdmin.from("restaurants").select("bill_payment_methods").eq("slug", data.restaurantId).maybeSingle();
+      const { data: rest } = await supabaseAdmin.from("restaurants").select("id, bill_payment_methods, service_rate").eq("slug", data.restaurantId).maybeSingle();
       const allowed = (rest as { bill_payment_methods?: string[] } | null)?.bill_payment_methods ?? ["pix", "apple_pay", "google_pay", "at_establishment"];
       if (!allowed.includes(data.method)) throw new Error("Este meio de pagamento não é aceito por este restaurante.");
       const { data: billItems, error } = await supabaseAdmin
@@ -78,7 +81,18 @@ export const createPayment = createServerFn({ method: "POST" })
         itemQuantities[item.item_code] = qty;
       }
       if (subtotal <= 0) throw new Error("Nenhum item disponível para pagamento");
-      amount = +(subtotal * (1 + SERVICE_FEE)).toFixed(2);
+      const suggestedRate = Number((rest as { service_rate?: number } | null)?.service_rate ?? SERVICE_FEE);
+      const raw = data.serviceFee ?? { kind: "suggested" as const };
+      const choice = (raw.kind === "suggested" ? { kind: "suggested" } : { kind: raw.kind, value: typeof raw.value === "number" ? raw.value : NaN }) as ServiceFeeChoice;
+      const fee = resolveServiceFee(subtotal, suggestedRate, choice);
+      if (!fee) {
+        const { logSecurityEvent } = await import("./security.server");
+        await logSecurityEvent({ action: "service_fee_rejected", resource: `mesa:${data.tableId}`, result: "denied", restaurantSlug: data.restaurantId, restaurantId: (rest as { id?: string } | null)?.id, detail: `kind=${raw.kind} value=${String(raw.value).slice(0, 30)} ip=${clientIp()}` });
+        throw new Error("Valor da taxa de serviço inválido. Escolha entre 0% e 20%.");
+      }
+      const suggestedFee = resolveServiceFee(subtotal, suggestedRate, { kind: "suggested" })!.amount;
+      feeRecord = { service_rate_suggested: suggestedRate, service_fee_suggested: suggestedFee, service_fee_amount: fee.amount, service_fee_changed: fee.changed };
+      amount = +(subtotal + fee.amount).toFixed(2);
     } else {
       if (data.tip <= 0) throw new Error("Informe o valor da gorjeta");
       amount = Math.round(data.tip * 100) / 100;
@@ -107,6 +121,7 @@ export const createPayment = createServerFn({ method: "POST" })
         const { data: t } = await supabaseAdmin.from("restaurant_tables").select("waiter_id").eq("restaurant_id", rest.id).eq("number", data.tableId).maybeSingle();
         if (t?.waiter_id) await supabaseAdmin.from("table_payment_requests").update({ waiter_id: t.waiter_id }).eq("id", payId as unknown as string);
       }
+      if (feeRecord) await supabaseAdmin.from("table_payment_requests").update(feeRecord).eq("id", payId as unknown as string);
       return payId as unknown as string;
     };
 
