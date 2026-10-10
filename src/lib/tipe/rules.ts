@@ -1,5 +1,28 @@
 // Regras de negócio TIPE (centralizadas para todos os painéis)
-export const SERVICE_FEE = 0.1; // taxa de serviço 10%
+export const SERVICE_FEE = 0.1; // taxa de serviço sugerida padrão (o restaurante pode mudar)
+export const SERVICE_FEE_MAX = 0.2; // teto: 20% da parte paga
+export const SERVICE_FEE_QUICK = [0, 5, 10, 12, 15];
+
+/** Escolha do cliente sobre a taxa da própria parte. */
+export type ServiceFeeChoice = { kind: "suggested" } | { kind: "percent"; value: number } | { kind: "amount"; value: number };
+
+const r2 = (n: number) => Math.round(n * 100) / 100;
+
+/**
+ * Calcula a taxa de serviço sobre a parte paga. Retorna null se a escolha for
+ * inválida (negativa, não numérica ou acima de 20% da parte).
+ */
+export function resolveServiceFee(subtotal: number, suggestedRate: number, choice: ServiceFeeChoice): { amount: number; changed: boolean } | null {
+  const rate = Math.min(Math.max(Number.isFinite(suggestedRate) ? suggestedRate : SERVICE_FEE, 0), SERVICE_FEE_MAX);
+  const suggested = r2(subtotal * rate);
+  const max = r2(subtotal * SERVICE_FEE_MAX);
+  if (choice.kind === "suggested") return { amount: suggested, changed: false };
+  const v = Number(choice.value);
+  if (!Number.isFinite(v) || v < 0) return null;
+  const amount = choice.kind === "percent" ? (v > SERVICE_FEE_MAX * 100 ? NaN : r2(subtotal * v / 100)) : r2(v);
+  if (!Number.isFinite(amount) || amount > max) return null;
+  return { amount, changed: amount !== suggested };
+}
 export const TIP_SPLIT = { tipe: 0.3, waiter: 0.7 }; // gorjeta extra recebida pela TIPE: 70% equipe / 30% plataforma
 
 export type BillItem = { id: string; name: string; qty: number; unitPrice: number; orderedBy: string; orderedAt: string };
