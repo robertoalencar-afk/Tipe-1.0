@@ -16,3 +16,12 @@
 - [ ] Importar o DOCX integral e implementar a Central Jurídica após validação dos [DEFINIR] e data real de publicação
 - [x] Testar celular, desktop, links, HTML do servidor e fluxos afetados
 
+## Segurança Fase A
+- [x] claim_founder bloqueada; cabeçalhos de segurança (CSP em modo de teste)
+- [x] CPF/Pix cifrados e mascarados
+- [x] Taxa de serviço definida pelo restaurante (cliente não altera)
+- [ ] Relatório da taxa por período e garçom
+- [ ] Quarentena de 48h na troca de Pix + e-mails + tela do dono
+- [ ] 2FA obrigatório para founders + códigos de recuperação
+- [ ] Alertas de segurança por e-mail agrupados
+- [ ] Registro de violações da CSP

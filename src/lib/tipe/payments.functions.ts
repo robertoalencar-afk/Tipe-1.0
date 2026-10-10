@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { SERVICE_FEE, resolveServiceFee, type ServiceFeeChoice } from "./rules";
+import { SERVICE_FEE, resolveServiceFee } from "./rules";
 
 const Input = z.object({
   method: z.enum(["pix", "card", "apple_pay", "google_pay", "at_establishment"]),
@@ -82,13 +82,13 @@ export const createPayment = createServerFn({ method: "POST" })
       }
       if (subtotal <= 0) throw new Error("Nenhum item disponível para pagamento");
       const suggestedRate = Number((rest as { service_rate?: number } | null)?.service_rate ?? SERVICE_FEE);
+      // A taxa é definida pelo restaurante; qualquer escolha vinda do navegador é recusada.
       const raw = data.serviceFee ?? { kind: "suggested" as const };
-      const choice = (raw.kind === "suggested" ? { kind: "suggested" } : { kind: raw.kind, value: typeof raw.value === "number" ? raw.value : NaN }) as ServiceFeeChoice;
-      const fee = resolveServiceFee(subtotal, suggestedRate, choice);
+      const fee = raw.kind === "suggested" ? resolveServiceFee(subtotal, suggestedRate, { kind: "suggested" }) : null;
       if (!fee) {
         const { logSecurityEvent } = await import("./security.server");
         await logSecurityEvent({ action: "service_fee_rejected", resource: `mesa:${data.tableId}`, result: "denied", restaurantSlug: data.restaurantId, restaurantId: (rest as { id?: string } | null)?.id, detail: `kind=${raw.kind} value=${String(raw.value).slice(0, 30)} ip=${clientIp()}` });
-        throw new Error("Valor da taxa de serviço inválido. Escolha entre 0% e 20%.");
+        throw new Error("A taxa de serviço é definida pelo restaurante.");
       }
       const suggestedFee = resolveServiceFee(subtotal, suggestedRate, { kind: "suggested" })!.amount;
       feeRecord = { service_rate_suggested: suggestedRate, service_fee_suggested: suggestedFee, service_fee_amount: fee.amount, service_fee_changed: fee.changed };

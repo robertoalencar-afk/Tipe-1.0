@@ -5,8 +5,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { TipeLogo } from "@/components/tipe/Logo";
 import { markSimulatorUsed } from "@/lib/tipe/tracking";
 import { SplitPicker } from "@/components/tipe/SplitPicker";
-import { ServiceFeeEditor } from "@/components/tipe/ServiceFeeEditor";
-import { resolveServiceFee, type ServiceFeeChoice } from "@/lib/tipe/rules";
+import { resolveServiceFee } from "@/lib/tipe/rules";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -124,8 +123,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
 
   const available = (id: string, qty: number) => roundPortion(Math.max(0, qty - (demo.paid[id] ?? 0) - (demo.reserved[id] ?? 0)));
   const subtotal = useMemo(() => ITEMS.reduce((sum, item) => sum + item.price * (quantities[item.id] ?? 0), 0), [quantities]);
-  const [feeChoice, setFeeChoice] = useState<ServiceFeeChoice>({ kind: "suggested" });
-  const service = (resolveServiceFee(subtotal, 0.1, feeChoice) ?? { amount: +(subtotal * 0.1).toFixed(2) }).amount;
+  const service = resolveServiceFee(subtotal, 0.1, { kind: "suggested" })!.amount;
   const total = +(subtotal + service).toFixed(2);
   const allSelected = ITEMS.every((item) => Math.abs((quantities[item.id] ?? 0) - available(item.id, item.qty)) < EPSILON);
   const pendingEstablishmentPayment = demo.payments.find((payment) => payment.status === "pending" && payment.establishmentMethod);
@@ -284,7 +282,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
               </ul>
               <div className="mt-6 rounded-2xl border border-border bg-card p-5 text-sm shadow-sm">
                 <Summary label="Subtotal selecionado" value={subtotal} />
-                <Summary label="Taxa de serviço (opcional)" value={service} className="mt-2" />
+                <Summary label="Taxa de serviço (10%)" value={service} className="mt-2" />
                 <Summary label="Total da conta" value={total} className="mt-3 border-t border-border pt-3 font-display text-base font-extrabold" />
               </div>
               <Button disabled={subtotal <= 0} onClick={() => setStage("payment")} className="mt-5 h-12 w-full rounded-full font-display text-base font-bold">Continuar para pagamento <ChevronRight /></Button>
@@ -302,7 +300,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
         </main>
       )}
 
-      {stage === "payment" && <PaymentScreen title="Pagamento da conta" description="Este pagamento corresponde apenas aos itens escolhidos. Após a confirmação, a conta da mesa será atualizada automaticamente." value={total} method={method} setMethod={setMethod} terms={terms} setTerms={setTerms} back={() => setStage("bill")} pay={payBill} extra={<ServiceFeeEditor subtotal={subtotal} suggestedRate={0.1} choice={feeChoice} onChange={setFeeChoice} />} allowEstablishment establishmentMethod={establishmentMethod} setEstablishmentMethod={setEstablishmentMethod} cashReceived={cashReceived} setCashReceived={setCashReceived} />}
+      {stage === "payment" && <PaymentScreen title="Pagamento da conta" description="Este pagamento corresponde apenas aos itens escolhidos. Após a confirmação, a conta da mesa será atualizada automaticamente." value={total} method={method} setMethod={setMethod} terms={terms} setTerms={setTerms} back={() => setStage("bill")} pay={payBill} allowEstablishment establishmentMethod={establishmentMethod} setEstablishmentMethod={setEstablishmentMethod} cashReceived={cashReceived} setCashReceived={setCashReceived} />}
 
       {stage === "pending" && <Centered><img src={mascotWaiting} alt="Mascote TIPE aguardando" className="mx-auto mb-3 h-44 w-44 object-contain" /><p className="text-sm font-semibold text-highlight">Pendente de confirmação</p><h1 className="mt-2 text-2xl font-bold">Pagamento no estabelecimento</h1><p className="mt-3 text-sm leading-6 text-muted-foreground">{pendingEstablishmentPayment?.establishmentMethod === "cash" ? `Prepare o dinheiro. O garçom tratará do seu troco${pendingEstablishmentPayment.changeDue !== undefined ? ` de ${money(pendingEstablishmentPayment.changeDue)}` : ""} em breve.` : "O garçom irá em instantes até sua mesa com a maquininha."}</p><p className="mt-2 text-xs leading-5 text-muted-foreground">Seu pagamento só aparece como confirmado depois que o restaurante confirmar o recebimento.</p><Button onClick={() => { setTab("activity"); setStage("bill"); }} className="mt-8 h-12 w-full rounded-lg text-base font-bold">Ver minha conta <ChevronRight /></Button><div className="mt-8 rounded-lg border border-dashed border-border p-4 text-left"><p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Demonstração · visão do caixa</p><p className="mt-1 text-xs leading-5 text-muted-foreground">Na vida real, este passo é feito pelo garçom ou caixa no painel do restaurante, não pelo cliente.</p><Button variant="outline" onClick={confirmEstablishment} className="mt-3 h-10 w-full rounded-lg text-sm font-semibold">Confirmar recebimento como restaurante</Button></div></Centered>}
       {stage === "approved" && <Centered><img src={mascotThanks} alt="Mascote TIPE comemorando o pagamento aprovado" className="mx-auto mb-3 h-44 w-44 object-contain" /><p className="text-sm font-semibold text-primary">Conta paga</p><h1 className="mt-2 text-2xl font-bold">Pagamento confirmado!</h1><p className="mt-3 text-sm leading-6 text-muted-foreground">{money(paidAmount)} enviados ao Maré Alta.</p><Button onClick={continueAfterApproved} className="mt-8 h-12 w-full rounded-lg text-base font-bold">Avaliar atendimento <ChevronRight /></Button></Centered>}
