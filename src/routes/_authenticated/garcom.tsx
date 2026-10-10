@@ -122,7 +122,7 @@ function AreaGarcom() {
                     <li>• Solicite o saque e o Pix cai na sua chave no próximo dia de pagamento (dia 1 ou 16).</li>
                     <li>• Saque mínimo de R$ 10,00, um pedido por vez.</li>
                   </ul>
-                  <Button className="mt-4 w-full" disabled={busy || d.balance.available < 10 || !d.pix} onClick={async () => {
+                  <Button className="mt-4 w-full" disabled={busy || d.balance.available < 10 || !d.pix?.keyMasked || !!d.pix?.pendingKeyMasked} onClick={async () => {
                     setBusy(true);
                     try { await pedir(); toast.success("Saque solicitado! O Pix será feito no próximo dia de pagamento."); qc.invalidateQueries({ queryKey: ["waiter"] }); }
                     catch (e) { toast.error((e as Error).message); } finally { setBusy(false); }
@@ -162,7 +162,7 @@ function Kpi({ icon: Icon, label, value, sub }: { icon: typeof Wallet; label: st
   );
 }
 
-function ChavePix({ atual }: { atual: { holderName: string; keyType: string; keyMasked: string } | null }) {
+function ChavePix({ atual }: { atual: { holderName: string; keyType: string; keyMasked: string | null; pendingKeyMasked: string | null; pendingUntil: string | null } | null }) {
   const save = useServerFn(saveWaiterPix);
   const qc = useQueryClient();
   const [edit, setEdit] = useState(!atual);
@@ -171,7 +171,8 @@ function ChavePix({ atual }: { atual: { holderName: string; keyType: string; key
     <section className="rounded-2xl border border-border bg-card p-4 text-sm">
       <h2 className="font-display font-bold">Sua chave Pix</h2>
       <p className="mt-2">{atual.holderName}</p>
-      <p className="text-muted-foreground">{KEY[atual.keyType]}: {atual.keyMasked}</p>
+      {atual.keyMasked && <p className="text-muted-foreground">{KEY[atual.keyType]}: {atual.keyMasked}</p>}
+      {atual.pendingKeyMasked && atual.pendingUntil && <p className="mt-1 text-xs font-semibold text-highlight">Nova chave {atual.pendingKeyMasked} em verificação até {new Date(atual.pendingUntil).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}. Saques pausados até lá, a menos que o restaurante aprove antes.</p>}
       <Button variant="outline" className="mt-3" onClick={() => setEdit(true)}>Alterar chave</Button>
     </section>
   );
