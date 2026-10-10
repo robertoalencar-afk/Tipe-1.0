@@ -73,7 +73,7 @@ export const getReports = createServerFn({ method: "GET" })
 export const saveSettings = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({
-    slug: Slug, name: z.string().trim().min(2).max(80), serviceRate: z.number().min(0).max(0.3),
+    slug: Slug, name: z.string().trim().min(2).max(80), serviceRate: z.number().min(0).max(0.2),
     phone: z.string().trim().max(30), address: z.string().trim().max(160), openingHours: z.string().trim().max(120),
     billMethods: z.array(z.enum(["pix", "apple_pay", "google_pay", "at_establishment"])).min(1, "Escolha ao menos um meio de pagamento").max(4),
   }).parse(d))
