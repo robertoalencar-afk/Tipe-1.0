@@ -370,7 +370,7 @@ export function Configuracoes({ slug, podeDono }: { slug: string; podeDono: bool
       <Card className="space-y-3">
         <label className="block text-sm">Nome do restaurante<Input disabled={!podeDono} value={v.name} onChange={(e) => setF({ ...v, name: e.target.value })} /></label>
         <label className="block text-sm">Endereço na TIPE<Input disabled value={`tipe.digital/${slug}`} /></label>
-        <label className="block text-sm">Taxa de serviço sugerida (%)<Input disabled={!podeDono} type="number" min={0} max={20} value={v.rate} onChange={(e) => setF({ ...v, rate: e.target.value })} /><span className="mt-1 block text-xs text-muted-foreground">De 0% a 20%. Use 0 para desativar. O cliente pode alterar a taxa da própria parte.</span></label>
+        <label className="block text-sm">Taxa de serviço sugerida (%)<Input disabled={!podeDono} type="number" min={0} max={20} value={v.rate} onChange={(e) => setF({ ...v, rate: e.target.value })} /><span className="mt-1 block text-xs text-muted-foreground">De 0% a 20%. Use 0 para desativar. O percentual entra automaticamente na conta de cada cliente.</span></label>
         <label className="block text-sm">Telefone<Input disabled={!podeDono} value={v.phone} onChange={(e) => setF({ ...v, phone: e.target.value })} /></label>
         <label className="block text-sm">Endereço<Input disabled={!podeDono} value={v.address} onChange={(e) => setF({ ...v, address: e.target.value })} /></label>
         <label className="block text-sm">Horário de funcionamento<Input disabled={!podeDono} value={v.hours} onChange={(e) => setF({ ...v, hours: e.target.value })} /></label>

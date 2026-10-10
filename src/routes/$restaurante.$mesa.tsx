@@ -26,8 +26,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { getPublicTable } from "@/lib/tipe/pdv.functions";
 import { createPayment, getPaymentConfig, getPaymentStatus, reopenClosedTable, submitRating, type SharedPayment } from "@/lib/tipe/payments.functions";
 import { CardFields } from "@/components/tipe/CardFields";
-import { ServiceFeeEditor } from "@/components/tipe/ServiceFeeEditor";
-import { resolveServiceFee, type ServiceFeeChoice } from "@/lib/tipe/rules";
+import { resolveServiceFee } from "@/lib/tipe/rules";
 import { cardValid, tokenizeCard, type CardInput } from "@/lib/tipe/pagarme-client";
 import mascotThanks from "@/assets/mascot-thanks-hd.webp";
 import mascotRating from "@/assets/mascot-rating-hd.webp";
@@ -195,8 +194,7 @@ function MesaPage() {
     [dados.itens, qtds],
   );
   const [taxaSugerida, setTaxaSugerida] = useState(0.1);
-  const [escolhaTaxa, setEscolhaTaxa] = useState<ServiceFeeChoice>({ kind: "suggested" });
-  const servico = (resolveServiceFee(subtotal, taxaSugerida, escolhaTaxa) ?? resolveServiceFee(subtotal, taxaSugerida, { kind: "suggested" })!).amount;
+  const servico = resolveServiceFee(subtotal, taxaSugerida, { kind: "suggested" })!.amount;
   const totalConta = +(subtotal + servico).toFixed(2);
   const mesaEncerrada = mesaSincronizada
     && dados.itens.length > 0
@@ -279,7 +277,6 @@ function MesaPage() {
           itemQuantities: tipo === "conta" ? qtds : {},
           target: tipo === "conta" ? "restaurant" : "tipe",
           establishmentMethod: tipo === "conta" && metodo === "at_establishment" ? metodoEstabelecimento ?? undefined : undefined,
-          serviceFee: tipo === "conta" ? escolhaTaxa : undefined,
           cashReceived: tipo === "conta" && metodo === "at_establishment" && metodoEstabelecimento === "cash" ? Number(valorDinheiro.replace(",", ".")) : undefined,
         },
       });
@@ -437,7 +434,7 @@ function MesaPage() {
 
               <div className="mt-6 rounded-2xl border border-border bg-card p-5 text-sm shadow-sm">
                 <ResumoLinha label="Subtotal selecionado" valor={subtotal} />
-                <ResumoLinha label="Taxa de serviço (opcional)" valor={servico} className="mt-2" />
+                <ResumoLinha label={`Taxa de serviço (${Math.round(taxaSugerida * 1000) / 10}%)`} valor={servico} className="mt-2" />
                 <ResumoLinha label="Total da conta" valor={totalConta} className="mt-3 border-t border-border pt-3 font-display text-base font-extrabold" />
               </div>
               <Button disabled={subtotal <= 0} onClick={() => setEtapa("pagamento-conta")} className="mt-5 h-12 w-full rounded-full font-display text-base font-bold">
@@ -502,7 +499,6 @@ function MesaPage() {
           erro={erroPagamento}
           voltar={() => setEtapa("conta")}
           pagar={() => processarPagamento("conta")}
-          extra={<ServiceFeeEditor subtotal={subtotal} suggestedRate={taxaSugerida} choice={escolhaTaxa} onChange={setEscolhaTaxa} />}
            permitirEstabelecimento
           metodosAceitos={metodosAceitos ?? undefined}
           metodoEstabelecimento={metodoEstabelecimento}
