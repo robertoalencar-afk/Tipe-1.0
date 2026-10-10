@@ -111,9 +111,9 @@ export const requestWithdrawal = createServerFn({ method: "POST" })
   });
 
 // ---- Fundador TIPE: fila de Pix para garçons ----
-async function requireFounder(ctx: { supabase: any; userId: string }) {
-  const { data } = await ctx.supabase.rpc("has_role", { _user_id: ctx.userId, _role: "founder" });
-  if (!data) throw new Error("Somente a equipe TIPE");
+async function requireFounder(ctx: { supabase: any; userId: string; claims?: any }) {
+  const { requireFounder2fa } = await import("./founder-guard");
+  await requireFounder2fa(ctx);
 }
 
 export const listWithdrawals = createServerFn({ method: "GET" })

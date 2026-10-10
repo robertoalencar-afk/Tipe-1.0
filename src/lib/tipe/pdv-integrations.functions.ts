@@ -3,11 +3,11 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const Slug = z.string().min(1).max(64).regex(/^[a-z0-9-]+$/);
-type Ctx = { supabase: any; userId: string };
+type Ctx = { supabase: any; userId: string; claims?: any };
 
 async function isFounder(ctx: Ctx) {
-  const { data } = await ctx.supabase.rpc("has_role", { _user_id: ctx.userId, _role: "founder" });
-  return data === true;
+  const { isFounderWith2fa } = await import("./founder-guard");
+  return isFounderWith2fa(ctx);
 }
 // Autoriza pelo papel do usuário no restaurante (consulta com RLS do próprio usuário).
 async function authorize(ctx: Ctx, slug: string, roles: string[]) {
