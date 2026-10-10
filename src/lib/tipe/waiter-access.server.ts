@@ -32,6 +32,7 @@ export async function grantWaiterAccessCore(input: { restaurantId: string; slug:
   await supabaseAdmin.from("pdv_waiters").update({ user_id: userId, email }).eq("id", w.id);
   await supabaseAdmin.from("staff_members").upsert({ user_id: userId, restaurant_id: input.restaurantId, display_name: w.name, email }, { onConflict: "user_id,restaurant_id" });
   await supabaseAdmin.from("user_roles").upsert({ user_id: userId, restaurant_id: input.restaurantId, role: "waiter" }, { onConflict: "user_id,role,restaurant_id", ignoreDuplicates: true });
+  { const { logSecurityEvent } = await import("./security.server"); await logSecurityEvent({ action: "role_granted", resource: "user_roles:waiter", restaurantId: input.restaurantId, detail: `usuário ${userId}` }); }
   await logSecurityEvent({ action: "waiter_access_granted", resource: `pdv_waiters:${w.id}`, restaurantId: input.restaurantId, actorId: input.actorId });
   return { invited };
 }

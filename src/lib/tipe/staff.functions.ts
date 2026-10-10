@@ -103,6 +103,7 @@ export const inviteStaff = createServerFn({ method: "POST" })
     const { error: staffErr } = await supabaseAdmin.from("staff_members").upsert({ user_id: userId, restaurant_id: restaurant.id, display_name: data.name, email }, { onConflict: "user_id,restaurant_id" });
     const { error: roleErr } = await supabaseAdmin.from("user_roles").upsert({ user_id: userId, restaurant_id: restaurant.id, role: data.role }, { onConflict: "user_id,role,restaurant_id", ignoreDuplicates: true });
     if (staffErr || roleErr) throw new Error("Não foi possível adicionar à equipe");
+    { const { logSecurityEvent } = await import("./security.server"); await logSecurityEvent({ action: "role_granted", resource: `user_roles:${data.role}`, restaurantId: restaurant.id, restaurantSlug: data.slug, actorId: context.userId, detail: `usuário ${userId}` }); }
     return { ok: true };
   });
 
@@ -118,6 +119,7 @@ export const removeStaff = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await supabaseAdmin.from("user_roles").delete().eq("user_id", data.userId).eq("restaurant_id", restaurant.id);
     await supabaseAdmin.from("staff_members").delete().eq("user_id", data.userId).eq("restaurant_id", restaurant.id);
+    { const { logSecurityEvent } = await import("./security.server"); await logSecurityEvent({ action: "role_removed", resource: "user_roles", restaurantId: restaurant.id, restaurantSlug: data.slug, actorId: context.userId, detail: `usuário ${data.userId}` }); }
     return { ok: true };
   });
 
