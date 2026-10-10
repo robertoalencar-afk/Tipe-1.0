@@ -1,8 +1,9 @@
+import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { listWithdrawals, resolveWithdrawal } from "@/lib/tipe/waiter.functions";
+import { listWithdrawals, resolveWithdrawal, revealWithdrawalPix } from "@/lib/tipe/waiter.functions";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -10,6 +11,12 @@ const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", curren
 export function SaquesGarcons() {
   const list = useServerFn(listWithdrawals);
   const resolve = useServerFn(resolveWithdrawal);
+  const reveal = useServerFn(revealWithdrawalPix);
+  const [shown, setShown] = useState<Record<string, string>>({});
+  async function show(id: string) {
+    try { const r = await reveal({ data: { id } }); setShown((s) => ({ ...s, [id]: r.pixKey })); }
+    catch (e) { toast.error((e as Error).message); }
+  }
   const q = useQuery({ queryKey: ["withdrawals"], queryFn: () => list() });
   const pend = (q.data ?? []).filter((w) => w.status === "requested");
   async function act(id: string, action: "paid" | "rejected") {
@@ -27,7 +34,7 @@ export function SaquesGarcons() {
             <li key={w.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
               <div>
                 <p className="font-semibold">{brl(w.amount)} · {w.waiter} ({w.restaurant})</p>
-                <p className="text-xs text-muted-foreground">Pix {w.pixKeyType}: <span className="select-all font-mono">{w.pixKey}</span> · {w.holderName} · previsto {new Date(w.scheduledFor + "T12:00:00").toLocaleDateString("pt-BR")}</p>
+                <p className="text-xs text-muted-foreground">Pix {w.pixKeyType}: <span className="select-all font-mono">{shown[w.id] ?? w.pixKeyMasked}</span>{!shown[w.id] && <button type="button" className="ml-1 underline" onClick={() => show(w.id)}>revelar</button>} · {w.holderName} · previsto {new Date(w.scheduledFor + "T12:00:00").toLocaleDateString("pt-BR")}</p>
               </div>
               <div className="flex gap-2">
                 <Button size="sm" onClick={() => act(w.id, "paid")}>Pix feito</Button>

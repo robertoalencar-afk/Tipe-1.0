@@ -58,7 +58,7 @@ export const getWaiterDashboard = createServerFn({ method: "GET" })
         billsPaid: (bills.data ?? []).reduce((s, x) => s + Number(x.amount), 0),
       },
       tips: tips.slice(0, 50),
-      pix: a ? { holderName: a.holder_name, keyType: a.pix_key_type, keyMasked: a.pix_key.length > 6 ? `${a.pix_key.slice(0, 3)}•••${a.pix_key.slice(-3)}` : "•••" } : null,
+      pix: a ? { holderName: a.holder_name, keyType: a.pix_key_type, keyMasked: a.pix_key } : null,
       withdrawals: (wd.data ?? []).map((x) => ({ ...x, amount: Number(x.amount) })),
     };
   });
@@ -77,7 +77,14 @@ export const saveWaiterPix = createServerFn({ method: "POST" })
     const { db, w } = await myWaiter(context.userId);
     const { enforceRate, logSecurityEvent } = await import("./security.server");
     await enforceRate(`waiter-pix:${w.id}`, 10, 3600);
-    const { error } = await db.from("waiter_payout_accounts").upsert({ waiter_id: w.id, holder_name: data.holderName, holder_document: data.holderDocument, pix_key_type: data.keyType, pix_key: data.key, updated_at: new Date().toISOString() });
+    const { encryptSecret } = await import("./pagarme.server");
+    const { maskCpf, maskPix } = await import("./mask");
+    const { error } = await db.from("waiter_payout_accounts").upsert({
+      waiter_id: w.id, holder_name: data.holderName,
+      holder_document: maskCpf(data.holderDocument), holder_document_enc: await encryptSecret(data.holderDocument),
+      pix_key_type: data.keyType, pix_key: maskPix(data.keyType, data.key), pix_key_enc: await encryptSecret(data.key),
+      updated_at: new Date().toISOString(),
+    });
     if (error) throw new Error("Não foi possível salvar sua chave Pix");
     await logSecurityEvent({ action: "waiter_pix_saved", resource: `pdv_waiters:${w.id}`, restaurantId: w.restaurant_id, actorId: context.userId });
     return { ok: true };
@@ -107,7 +114,7 @@ export const listWithdrawals = createServerFn({ method: "GET" })
     await requireFounder(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data } = await supabaseAdmin.from("waiter_withdrawals").select("id, amount, status, scheduled_for, requested_at, pix_key_type, pix_key, holder_name, pdv_waiters(name), restaurants(name)").order("requested_at", { ascending: false }).limit(100);
-    return (data ?? []).map((x: any) => ({ id: x.id as string, amount: Number(x.amount), status: x.status as string, scheduledFor: x.scheduled_for as string, requestedAt: x.requested_at as string, pixKeyType: x.pix_key_type as string, pixKey: x.pix_key as string, holderName: x.holder_name as string, waiter: x.pdv_waiters?.name as string, restaurant: x.restaurants?.name as string }));
+    return (data ?? []).map((x: any) => ({ id: x.id as string, amount: Number(x.amount), status: x.status as string, scheduledFor: x.scheduled_for as string, requestedAt: x.requested_at as string, pixKeyType: x.pix_key_type as string, pixKeyMasked: x.pix_key as string, holderName: x.holder_name as string, waiter: x.pdv_waiters?.name as string, restaurant: x.restaurants?.name as string }));
   });
 
 export const resolveWithdrawal = createServerFn({ method: "POST" })
@@ -123,4 +130,19 @@ export const resolveWithdrawal = createServerFn({ method: "POST" })
     const { logSecurityEvent } = await import("./security.server");
     await logSecurityEvent({ action: `withdrawal_${data.action}`, resource: `waiter_withdrawals:${data.id}`, actorId: context.userId });
     return { ok: true };
+  });
+
+/** Founder revela a chave Pix completa de um saque para pagar; cada visualização fica registrada. */
+export const revealWithdrawalPix = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    await requireFounder(context);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: row } = await supabaseAdmin.from("waiter_withdrawals").select("pix_key_enc, restaurant_id").eq("id", data.id).maybeSingle();
+    if (!row?.pix_key_enc) throw new Error("Chave indisponível");
+    const { decryptSecret } = await import("./pagarme.server");
+    const { logSecurityEvent } = await import("./security.server");
+    await logSecurityEvent({ action: "pix_key_revealed", resource: `waiter_withdrawals:${data.id}`, restaurantId: row.restaurant_id, actorId: context.userId });
+    return { pixKey: await decryptSecret(row.pix_key_enc) };
   });

@@ -924,6 +924,7 @@ export type Database = {
         Row: {
           account_check_digit: string
           account_number: string
+          account_number_enc: string | null
           account_type: string
           bank: string
           branch_check_digit: string | null
@@ -931,6 +932,7 @@ export type Database = {
           created_at: string
           email: string
           holder_document: string
+          holder_document_enc: string | null
           holder_name: string
           holder_type: string
           pagarme_recipient_id: string | null
@@ -942,6 +944,7 @@ export type Database = {
         Insert: {
           account_check_digit: string
           account_number: string
+          account_number_enc?: string | null
           account_type: string
           bank: string
           branch_check_digit?: string | null
@@ -949,6 +952,7 @@ export type Database = {
           created_at?: string
           email: string
           holder_document: string
+          holder_document_enc?: string | null
           holder_name: string
           holder_type: string
           pagarme_recipient_id?: string | null
@@ -960,6 +964,7 @@ export type Database = {
         Update: {
           account_check_digit?: string
           account_number?: string
+          account_number_enc?: string | null
           account_type?: string
           bank?: string
           branch_check_digit?: string | null
@@ -967,6 +972,7 @@ export type Database = {
           created_at?: string
           email?: string
           holder_document?: string
+          holder_document_enc?: string | null
           holder_name?: string
           holder_type?: string
           pagarme_recipient_id?: string | null
@@ -1386,24 +1392,30 @@ export type Database = {
       waiter_payout_accounts: {
         Row: {
           holder_document: string
+          holder_document_enc: string | null
           holder_name: string
           pix_key: string
+          pix_key_enc: string | null
           pix_key_type: string
           updated_at: string
           waiter_id: string
         }
         Insert: {
           holder_document: string
+          holder_document_enc?: string | null
           holder_name: string
           pix_key: string
+          pix_key_enc?: string | null
           pix_key_type: string
           updated_at?: string
           waiter_id: string
         }
         Update: {
           holder_document?: string
+          holder_document_enc?: string | null
           holder_name?: string
           pix_key?: string
+          pix_key_enc?: string | null
           pix_key_type?: string
           updated_at?: string
           waiter_id?: string
@@ -1471,6 +1483,7 @@ export type Database = {
           id: string
           note: string | null
           pix_key: string
+          pix_key_enc: string | null
           pix_key_type: string
           requested_at: string
           resolved_at: string | null
@@ -1487,6 +1500,7 @@ export type Database = {
           id?: string
           note?: string | null
           pix_key: string
+          pix_key_enc?: string | null
           pix_key_type: string
           requested_at?: string
           resolved_at?: string | null
@@ -1503,6 +1517,7 @@ export type Database = {
           id?: string
           note?: string | null
           pix_key?: string
+          pix_key_enc?: string | null
           pix_key_type?: string
           requested_at?: string
           resolved_at?: string | null
