@@ -29,6 +29,10 @@ export type Database = {
           payment_method: string
           payment_target: string
           restaurant_slug: string
+          service_fee_amount: number | null
+          service_fee_changed: boolean | null
+          service_fee_suggested: number | null
+          service_rate_suggested: number | null
           status: string
           table_number: string
           waiter_id: string | null
@@ -47,6 +51,10 @@ export type Database = {
           payment_method: string
           payment_target: string
           restaurant_slug: string
+          service_fee_amount?: number | null
+          service_fee_changed?: boolean | null
+          service_fee_suggested?: number | null
+          service_rate_suggested?: number | null
           status: string
           table_number: string
           waiter_id?: string | null
@@ -65,6 +73,10 @@ export type Database = {
           payment_method?: string
           payment_target?: string
           restaurant_slug?: string
+          service_fee_amount?: number | null
+          service_fee_changed?: boolean | null
+          service_fee_suggested?: number | null
+          service_rate_suggested?: number | null
           status?: string
           table_number?: string
           waiter_id?: string | null
@@ -1302,6 +1314,10 @@ export type Database = {
           provider: string | null
           provider_order_id: string | null
           restaurant_slug: string
+          service_fee_amount: number | null
+          service_fee_changed: boolean | null
+          service_fee_suggested: number | null
+          service_rate_suggested: number | null
           status: string
           table_number: string
           updated_at: string
@@ -1322,6 +1338,10 @@ export type Database = {
           provider?: string | null
           provider_order_id?: string | null
           restaurant_slug: string
+          service_fee_amount?: number | null
+          service_fee_changed?: boolean | null
+          service_fee_suggested?: number | null
+          service_rate_suggested?: number | null
           status?: string
           table_number: string
           updated_at?: string
@@ -1342,6 +1362,10 @@ export type Database = {
           provider?: string | null
           provider_order_id?: string | null
           restaurant_slug?: string
+          service_fee_amount?: number | null
+          service_fee_changed?: boolean | null
+          service_fee_suggested?: number | null
+          service_rate_suggested?: number | null
           status?: string
           table_number?: string
           updated_at?: string

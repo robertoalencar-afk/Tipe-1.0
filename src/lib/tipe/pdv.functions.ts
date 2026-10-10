@@ -13,6 +13,7 @@ export type PublicTable = {
   waiterName: string;
   session: string;
   billMethods: string[];
+  serviceRate: number;
   items: { item_code: string; item_name: string; unit_price: number; ordered_quantity: number; reserved_portion: number; paid_portion: number; ordered_at: string }[];
   payments: { id: string; customer_name: string; payment_method: string; status: "pending" | "approved" | "cancelled" | "failed"; amount: number; item_quantities: Record<string, number>; created_at: string; establishment_method: string | null; cash_received: number | null; change_due: number | null }[];
 };
@@ -25,7 +26,7 @@ export const getPublicTable = createServerFn({ method: "GET" })
     // Limite generoso: vários clientes podem compartilhar o Wi-Fi do restaurante (mesmo IP).
     await enforceRate(`qr:${data.slug}:${data.code}:${clientIp()}`, 90, 60, data.slug);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: r } = await supabaseAdmin.from("restaurants").select("id, name, bill_payment_methods").eq("slug", data.slug).maybeSingle();
+    const { data: r } = await supabaseAdmin.from("restaurants").select("id, name, bill_payment_methods, service_rate").eq("slug", data.slug).maybeSingle();
     if (!r) return { error: "not_found" };
     const { data: t } = await supabaseAdmin.from("restaurant_tables").select("number, active, access_token, waiter_id, session_token" as never).eq("restaurant_id", r.id).eq("code", data.code.toLowerCase()).maybeSingle() as unknown as { data: { number: string; active: boolean; access_token: string; waiter_id: string | null; session_token: string } | null };
     if (!t) return { error: "not_found" };
@@ -50,6 +51,7 @@ export const getPublicTable = createServerFn({ method: "GET" })
       tableNumber: t.number,
       session: t.session_token,
       billMethods: (r as { bill_payment_methods?: string[] }).bill_payment_methods ?? ["pix", "apple_pay", "google_pay", "at_establishment"],
+      serviceRate: Number((r as { service_rate?: number }).service_rate ?? 0.1),
       waiterName: (waiter.data as { name: string } | null)?.name?.split(" ")[0] ?? "",
       items: (items.data ?? []).map((i) => ({ ...i, unit_price: Number(i.unit_price), ordered_quantity: Number(i.ordered_quantity), reserved_portion: Number(i.reserved_portion), paid_portion: Number(i.paid_portion) })),
       payments: (payments.data ?? []).map((p) => ({ ...p, amount: Number(p.amount), cash_received: p.cash_received === null ? null : Number(p.cash_received), change_due: p.change_due === null ? null : Number(p.change_due), item_quantities: (p.item_quantities ?? {}) as Record<string, number> })) as PublicTable["payments"],

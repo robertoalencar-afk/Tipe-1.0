@@ -26,6 +26,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { getPublicTable } from "@/lib/tipe/pdv.functions";
 import { createPayment, getPaymentConfig, getPaymentStatus, reopenClosedTable, submitRating, type SharedPayment } from "@/lib/tipe/payments.functions";
 import { CardFields } from "@/components/tipe/CardFields";
+import { ServiceFeeEditor } from "@/components/tipe/ServiceFeeEditor";
+import { resolveServiceFee, type ServiceFeeChoice } from "@/lib/tipe/rules";
 import { cardValid, tokenizeCard, type CardInput } from "@/lib/tipe/pagarme-client";
 import mascotThanks from "@/assets/mascot-thanks-hd.webp";
 import mascotRating from "@/assets/mascot-rating-hd.webp";
@@ -166,6 +168,7 @@ function MesaPage() {
         return { id: i.item_code, nome: i.item_name, qtd: i.ordered_quantity, preco: i.unit_price, data: d.toLocaleDateString("pt-BR"), hora: d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) };
       });
       setMetodosAceitos(estado.billMethods as Metodo[]);
+      setTaxaSugerida(estado.serviceRate);
       setDados({ restaurante: estado.restaurantName, mesa: estado.tableNumber, garcom: estado.waiterName, itens: itensMesa });
       setDisponiveis(Object.fromEntries(estado.items.map((item) => [item.item_code, roundPortion(Math.max(0, item.ordered_quantity - item.reserved_portion - item.paid_portion))])));
       setPagamentos(estado.payments);
@@ -191,7 +194,9 @@ function MesaPage() {
     () => dados.itens.reduce((soma, item) => soma + item.preco * (qtds[item.id] ?? 0), 0),
     [dados.itens, qtds],
   );
-  const servico = +(subtotal * 0.1).toFixed(2);
+  const [taxaSugerida, setTaxaSugerida] = useState(0.1);
+  const [escolhaTaxa, setEscolhaTaxa] = useState<ServiceFeeChoice>({ kind: "suggested" });
+  const servico = (resolveServiceFee(subtotal, taxaSugerida, escolhaTaxa) ?? resolveServiceFee(subtotal, taxaSugerida, { kind: "suggested" })!).amount;
   const totalConta = +(subtotal + servico).toFixed(2);
   const mesaEncerrada = mesaSincronizada
     && dados.itens.length > 0
@@ -274,6 +279,7 @@ function MesaPage() {
           itemQuantities: tipo === "conta" ? qtds : {},
           target: tipo === "conta" ? "restaurant" : "tipe",
           establishmentMethod: tipo === "conta" && metodo === "at_establishment" ? metodoEstabelecimento ?? undefined : undefined,
+          serviceFee: tipo === "conta" ? escolhaTaxa : undefined,
           cashReceived: tipo === "conta" && metodo === "at_establishment" && metodoEstabelecimento === "cash" ? Number(valorDinheiro.replace(",", ".")) : undefined,
         },
       });
@@ -431,7 +437,7 @@ function MesaPage() {
 
               <div className="mt-6 rounded-2xl border border-border bg-card p-5 text-sm shadow-sm">
                 <ResumoLinha label="Subtotal selecionado" valor={subtotal} />
-                <ResumoLinha label="Serviço do restaurante (10%)" valor={servico} className="mt-2" />
+                <ResumoLinha label="Taxa de serviço (opcional)" valor={servico} className="mt-2" />
                 <ResumoLinha label="Total da conta" valor={totalConta} className="mt-3 border-t border-border pt-3 font-display text-base font-extrabold" />
               </div>
               <Button disabled={subtotal <= 0} onClick={() => setEtapa("pagamento-conta")} className="mt-5 h-12 w-full rounded-full font-display text-base font-bold">
@@ -496,6 +502,7 @@ function MesaPage() {
           erro={erroPagamento}
           voltar={() => setEtapa("conta")}
           pagar={() => processarPagamento("conta")}
+          extra={<ServiceFeeEditor subtotal={subtotal} suggestedRate={taxaSugerida} choice={escolhaTaxa} onChange={setEscolhaTaxa} />}
            permitirEstabelecimento
           metodosAceitos={metodosAceitos ?? undefined}
           metodoEstabelecimento={metodoEstabelecimento}
@@ -631,7 +638,8 @@ function ResumoLinha({ label, valor, className = "" }: { label: string; valor: n
   return <div className={`flex justify-between gap-4 ${className}`}><span className="text-muted-foreground">{label}</span><span>{money(valor)}</span></div>;
 }
 
-function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, pagando, erro, voltar, pagar, permitirEstabelecimento = false, metodosAceitos, metodoEstabelecimento, setMetodoEstabelecimento, valorDinheiro = "", setValorDinheiro, cartao, setCartao }: {
+function Pagamento({ extra, titulo, descricao, rotuloValor, valor, metodo, setMetodo, pagando, erro, voltar, pagar, permitirEstabelecimento = false, metodosAceitos, metodoEstabelecimento, setMetodoEstabelecimento, valorDinheiro = "", setValorDinheiro, cartao, setCartao }: {
+  extra?: React.ReactNode;
   cartao?: CardInput | undefined;
   setCartao?: (c: CardInput) => void;
   titulo: string;
@@ -663,6 +671,7 @@ function Pagamento({ titulo, descricao, rotuloValor, valor, metodo, setMetodo, p
       <div className="my-6 rounded-2xl bg-muted/60 p-5 text-center">
          <p className="text-xs text-muted-foreground">{rotuloValor}</p>
         <p className="mt-1 font-display text-3xl font-extrabold">{money(valor)}</p>
+        {extra}
       </div>
        <h2 className="text-sm font-semibold">Como deseja pagar?</h2>
        <div className="mt-3 flex flex-col gap-2.5">
