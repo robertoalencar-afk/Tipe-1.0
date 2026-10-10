@@ -203,6 +203,9 @@ export function Relatorios({ slug }: { slug: string }) {
   };
   const porProduto = d ? agrupa(d.items, (i) => i.name, (i) => i.price * i.qty).slice(0, 15) : [];
   const porGarcom = d ? agrupa(d.items, (i) => d.waiters.find((w) => w.id === i.waiter)?.name ?? "Sem garçom", (i) => i.price * i.qty) : [];
+  const contas = d?.payments.filter((p) => p.target === "restaurant") ?? [];
+  const taxaTotal = contas.reduce((s, p) => s + p.serviceFee, 0);
+  const taxaPorGarcom = d ? agrupa(contas.filter((p) => p.serviceFee > 0), (p) => d.waiters.find((w) => w.id === p.waiter)?.name ?? "Sem garçom", (p) => p.serviceFee) : [];
   const porMetodo = d ? agrupa(d.payments.filter((p) => p.target === "restaurant"), (p) => metodoLabel[p.method] ?? p.method, (p) => p.amount) : [];
   const porDia = d ? agrupa(d.items, (i) => new Date(i.at).toLocaleDateString("pt-BR"), (i) => i.price * i.qty).sort((a, b) => a[0].split("/").reverse().join().localeCompare(b[0].split("/").reverse().join())) : [];
   const maxDia = Math.max(1, ...porDia.map((x) => x[1]));
@@ -245,6 +248,7 @@ export function Relatorios({ slug }: { slug: string }) {
             <Lista t="Por produto" rows={porProduto} />
             <Lista t="Por garçom" rows={porGarcom} />
             <Lista t="Por forma de pagamento" rows={porMetodo} />
+            <Lista t={`Taxa de serviço recebida: ${brl(taxaTotal)}`} rows={taxaPorGarcom} />
           </div>
           <Card>
             <h3 className="mb-2 font-semibold">Estornos</h3>
