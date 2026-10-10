@@ -71,6 +71,13 @@
       "when": 1791331272278,
       "tag": "0009_waiter_ratings",
       "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1791626784625,
+      "tag": "0010_revoke_claim_founder",
+      "breakpoints": true
     }
   ]
 }
