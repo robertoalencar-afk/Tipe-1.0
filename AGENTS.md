@@ -39,3 +39,8 @@
 - Restaurant bill payments charge the restaurant's own Pagar.me account (key AES-GCM encrypted in restaurant_pagarme_accounts, service_role only; per-restaurant webhook /api/public/pagarme/restaurante/$slug re-fetches the order). Why: TIPE never holds restaurant bank data or money.
 - Founder access is limited to TIPE backoffice aggregates; private restaurant operations require an explicit restaurant-scoped role. Why: support cannot impersonate clients.
 - Central Jurídica lives at /legal; book text is content data in src/content/legal (Markdown with metadata) parsed by src/lib/tipe/legal-content.ts, and LEGAL versions in legal.ts must match it; old legal URLs 301-redirect and archived versions render read-only. Why: one source of truth for index, search, SSR text and versioned acceptance.
+- Founder checks go through src/lib/tipe/founder-guard.ts (role founder AND session aal2); founder pages wrap FounderMfaGate. Why: founder access requires TOTP 2FA.
+- New waiter Pix keys are written to pending_* columns and activate only via promote_pending_pix (48h or owner approval); withdrawals are blocked while pending. Why: stops payout hijacking through a swapped key.
+- Payout CPF/Pix/bank data are stored AES-GCM encrypted in *_enc columns; plaintext columns hold only masked values, and full reveals are logged. Why: sensitive data never sits readable in the database.
+- Security alerts are sent from logSecurityEvent via sendSecurityAlert (security_alert_state throttles to one email per type every 15 min). Why: one place to raise and group alerts.
+- The service fee rate comes only from restaurants.service_rate (0 to 20%) and is recomputed on the server; any fee choice sent by the browser is rejected. Why: the restaurant sets the fee, not the customer.
