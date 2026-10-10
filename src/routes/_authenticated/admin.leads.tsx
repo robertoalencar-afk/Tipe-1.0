@@ -1,3 +1,4 @@
+import { FounderMfaGate } from "@/components/tipe/FounderMfaGate";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -20,7 +21,7 @@ export const Route = createFileRoute("/_authenticated/admin/leads")({
     { name: "twitter:card", content: "summary" },
     { name: "robots", content: "noindex" },
   ] }),
-  component: LeadsPage,
+  component: () => <FounderMfaGate><LeadsPage /></FounderMfaGate>,
 });
 
 const dt = (s: string) => new Date(s).toLocaleDateString("pt-BR");
