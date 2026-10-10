@@ -88,7 +88,7 @@ export async function sendSecurityAlert(type: string, detail: string) {
   const count = (st?.suppressed_count ?? 0) + 1;
   await db.from("security_alert_state").upsert({ alert_type: type, last_sent_at: new Date().toISOString(), suppressed_count: 0 });
   const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
-  await sendTemplateEmail("security-alert", "robertoalencar@live.com", {
+  await sendTemplateEmail("security-alert", "roberto@tipe.digital", {
     templateData: { title: ALERT_TITLES[type] ?? "Alerta de segurança", detail, count, at: new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }) },
   });
 }

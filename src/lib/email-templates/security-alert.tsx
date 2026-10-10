@@ -27,6 +27,6 @@ export const template = {
   component: SecurityAlert,
   subject: (d: Record<string, any>) => `[TIPE] ${d["title"] ?? "Alerta de segurança"}`,
   displayName: "Alerta de segurança para o founder",
-  to: "robertoalencar@live.com",
+  to: "roberto@tipe.digital",
   previewData: { title: "Troca de chave Pix", detail: "Um garçom do Restaurante X cadastrou nova chave.", count: 3, at: "10/10/2026 10:00" },
 } satisfies TemplateEntry;
