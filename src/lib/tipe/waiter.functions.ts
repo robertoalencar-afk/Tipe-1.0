@@ -40,7 +40,7 @@ export const getWaiterDashboard = createServerFn({ method: "GET" })
       db.from("pdv_orders").select("table_number, pdv_order_items(unit_price, quantity)").eq("waiter_id", w.id).gte("created_at", dayStart),
       db.from("table_payment_requests").select("amount").eq("waiter_id", w.id).eq("payment_target", "restaurant").eq("status", "approved").gte("created_at", dayStart),
       db.from("waiter_payout_accounts").select("holder_name, pix_key_type, pix_key, pix_key_enc, pending_pix_key, pending_since").eq("waiter_id", w.id).maybeSingle(),
-      db.from("waiter_withdrawals").select("id, amount, status, scheduled_for, requested_at, resolved_at, note").eq("waiter_id", w.id).order("requested_at", { ascending: false }).limit(20),
+      db.from("waiter_withdrawals").select("id, amount, status, scheduled_for, blocked_until, requested_at, resolved_at, note").eq("waiter_id", w.id).order("requested_at", { ascending: false }).limit(20),
     ]);
     const tips = [...(tipsA.data ?? []), ...(tipsB.data ?? [])].map((t) => ({ amount: +(Number(t.amount) * TIP_SPLIT.waiter).toFixed(2), at: t.created_at, table: t.table_number }));
     tips.sort((a, b) => b.at.localeCompare(a.at));
@@ -98,15 +98,32 @@ export const saveWaiterPix = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/** Só registra o pedido. O Pix é feito pela TIPE no ciclo quinzenal seguinte; nada é pago na hora. */
 export const requestWithdrawal = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { db, w } = await myWaiter(context.userId);
-    const { error } = await db.rpc("waiter_request_withdrawal", { p_waiter: w.id });
+    const { enforceRate } = await import("./security.server");
+    await enforceRate(`withdraw:${w.id}`, 5, 3600);
+    const { data: id, error } = await db.rpc("waiter_request_withdrawal", { p_waiter: w.id });
     if (error) {
-      for (const k of ["em verificação", "Cadastre sua chave", "já tem um saque", "Saldo disponível mínimo", "inativo"]) if (error.message.includes(k)) throw new Error(error.message);
+      for (const k of ["Cadastre sua chave", "já tem um saque", "Saldo disponível mínimo", "inativo"]) if (error.message.includes(k)) throw new Error(error.message);
       throw new Error("Não foi possível solicitar o saque");
     }
+    const { data: row } = await db.from("waiter_withdrawals").select("scheduled_for, blocked_until").eq("id", id as string).maybeSingle();
+    return { ok: true, scheduledFor: row?.scheduled_for ?? null, blockedUntil: row?.blocked_until ?? null };
+  });
+
+export const cancelWithdrawal = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: z.string().uuid() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { db, w } = await myWaiter(context.userId);
+    const { data: rows } = await db.from("waiter_withdrawals").update({ status: "cancelled", resolved_at: new Date().toISOString(), resolved_by: context.userId })
+      .eq("id", data.id).eq("waiter_id", w.id).eq("status", "requested").select("id, amount, pix_key");
+    const r = rows?.[0];
+    if (!r) throw new Error("Pedido já processado ou inexistente");
+    await db.from("waiter_withdrawal_events").insert({ withdrawal_id: r.id, waiter_id: w.id, action: "cancelled", amount: r.amount, pix_key_masked: r.pix_key, actor_id: context.userId });
     return { ok: true };
   });
 
@@ -121,8 +138,8 @@ export const listWithdrawals = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     await requireFounder(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data } = await supabaseAdmin.from("waiter_withdrawals").select("id, amount, status, scheduled_for, requested_at, pix_key_type, pix_key, holder_name, pdv_waiters(name), restaurants(name)").order("requested_at", { ascending: false }).limit(100);
-    return (data ?? []).map((x: any) => ({ id: x.id as string, amount: Number(x.amount), status: x.status as string, scheduledFor: x.scheduled_for as string, requestedAt: x.requested_at as string, pixKeyType: x.pix_key_type as string, pixKeyMasked: x.pix_key as string, holderName: x.holder_name as string, waiter: x.pdv_waiters?.name as string, restaurant: x.restaurants?.name as string }));
+    const { data } = await supabaseAdmin.from("waiter_withdrawals").select("id, amount, status, scheduled_for, blocked_until, requested_at, pix_key_type, pix_key, holder_name, pdv_waiters(name), restaurants(name)").order("scheduled_for", { ascending: true }).limit(200);
+    return (data ?? []).map((x: any) => ({ id: x.id as string, amount: Number(x.amount), status: x.status as string, scheduledFor: x.scheduled_for as string, blockedUntil: (x.blocked_until as string | null) ?? null, requestedAt: x.requested_at as string, pixKeyType: x.pix_key_type as string, pixKeyMasked: x.pix_key as string, holderName: x.holder_name as string, waiter: x.pdv_waiters?.name as string, restaurant: x.restaurants?.name as string }));
   });
 
 export const resolveWithdrawal = createServerFn({ method: "POST" })
@@ -131,10 +148,20 @@ export const resolveWithdrawal = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requireFounder(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: cur } = await supabaseAdmin.from("waiter_withdrawals").select("waiter_id, blocked_until, scheduled_for").eq("id", data.id).maybeSingle();
+    if (!cur) throw new Error("Saque inexistente");
+    if (data.action === "paid") {
+      await supabaseAdmin.rpc("promote_pending_pix", { p_waiter: cur.waiter_id, p_force: false });
+      const { data: acc } = await supabaseAdmin.from("waiter_payout_accounts").select("pending_since").eq("waiter_id", cur.waiter_id).maybeSingle();
+      if (cur.blocked_until && (new Date(cur.blocked_until).getTime() > Date.now() || acc?.pending_since)) throw new Error("Chave Pix ainda em verificação. Esse pedido não entra no repasse antes do fim da quarentena.");
+      const today = new Date(Date.now() - 3 * 3600_000).toISOString().slice(0, 10);
+      if (cur.scheduled_for > today) throw new Error(`Esse pedido é do repasse de ${cur.scheduled_for.split("-").reverse().join("/")}`);
+    }
     const { data: rows, error } = await supabaseAdmin.from("waiter_withdrawals")
       .update({ status: data.action, note: data.note ?? null, resolved_at: new Date().toISOString(), resolved_by: context.userId })
-      .eq("id", data.id).eq("status", "requested").select("id");
+      .eq("id", data.id).eq("status", "requested").select("id, amount, pix_key");
     if (error || !rows?.length) throw new Error("Saque já resolvido ou inexistente");
+    await supabaseAdmin.from("waiter_withdrawal_events").insert({ withdrawal_id: data.id, waiter_id: cur.waiter_id, action: data.action, amount: rows[0]!.amount, pix_key_masked: rows[0]!.pix_key, actor_id: context.userId });
     const { logSecurityEvent } = await import("./security.server");
     await logSecurityEvent({ action: `withdrawal_${data.action}`, resource: `waiter_withdrawals:${data.id}`, actorId: context.userId });
     return { ok: true };
