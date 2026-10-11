@@ -118,15 +118,19 @@ function AreaGarcom() {
                   <h2 className="flex items-center gap-2 font-display font-bold"><CalendarClock className="h-5 w-5 text-primary" />Como funciona</h2>
                   <ul className="mt-2 space-y-1 text-sm text-muted-foreground">
                     <li>• As gorjetas são somadas por quinzena: do dia 1 ao 15 e do dia 16 ao fim do mês.</li>
-                    <li>• Quando a quinzena fecha, o valor fica disponível para saque.</li>
-                    <li>• Solicite o saque e o Pix cai na sua chave no próximo dia de pagamento (dia 1 ou 16).</li>
+                    <li>• Você pode pedir o saque a qualquer momento. O pedido só fica registrado.</li>
+                    <li>• O Pix é feito pela TIPE no próximo dia de repasse (dia 1 ou 16). Nenhum saque é pago na hora.</li>
                     <li>• Saque mínimo de R$ 10,00, um pedido por vez.</li>
                   </ul>
-                  <Button className="mt-4 w-full" disabled={busy || d.balance.available < 10 || !d.pix?.keyMasked || !!d.pix?.pendingKeyMasked} onClick={async () => {
+                  <Button className="mt-4 w-full" disabled={busy || d.balance.available < 10 || (!d.pix?.keyMasked && !d.pix?.pendingKeyMasked) || d.withdrawals.some((w) => w.status === "requested")} onClick={async () => {
                     setBusy(true);
-                    try { await pedir(); toast.success("Saque solicitado! O Pix será feito no próximo dia de pagamento."); qc.invalidateQueries({ queryKey: ["waiter"] }); }
+                    try {
+                      const r = await pedir();
+                      toast.success(r.blockedUntil ? `Pedido registrado. Bloqueado até ${new Date(r.blockedUntil).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })} pela verificação da chave Pix.` : `Pedido registrado. Aguardando repasse do dia ${r.scheduledFor ? data(r.scheduledFor) : ""}.`);
+                      qc.invalidateQueries({ queryKey: ["waiter"] });
+                    }
                     catch (e) { toast.error((e as Error).message); } finally { setBusy(false); }
-                  }}>{d.pix ? `Sacar ${brl(d.balance.available)}` : "Cadastre sua chave Pix para sacar"}</Button>
+                  }}>{d.pix ? `Solicitar saque de ${brl(d.balance.available)}` : "Cadastre sua chave Pix para sacar"}</Button>
                 </section>
                 <ChavePix atual={d.pix} />
                 <section className="rounded-3xl border border-border bg-card p-5 shadow-sm">
@@ -134,9 +138,12 @@ function AreaGarcom() {
                   {d.withdrawals.length === 0 ? <p className="mt-2 text-sm text-muted-foreground">Nenhum saque ainda.</p> : (
                     <ul className="mt-2 divide-y divide-border text-sm">
                       {d.withdrawals.map((w) => (
-                        <li key={w.id} className="flex items-center justify-between py-2">
-                          <span>{brl(w.amount)}<span className="block text-xs text-muted-foreground">{w.status === "paid" && w.resolved_at ? `Pago em ${new Date(w.resolved_at).toLocaleDateString("pt-BR")}` : `Previsto para ${data(w.scheduled_for)}`}{w.note ? ` · ${w.note}` : ""}</span></span>
-                          <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${w.status === "paid" ? "bg-primary/15 text-primary" : w.status === "rejected" ? "bg-destructive/15 text-destructive" : "bg-muted"}`}>{STATUS[w.status]}</span>
+                        <li key={w.id} className="flex items-center justify-between gap-2 py-2">
+                          <span>{brl(w.amount)}<span className="block text-xs text-muted-foreground">{w.status === "paid" && w.resolved_at ? `Pago em ${new Date(w.resolved_at).toLocaleDateString("pt-BR")}` : w.status === "requested" ? (w.blocked_until && new Date(w.blocked_until).getTime() > Date.now() ? `Bloqueado até ${new Date(w.blocked_until).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}, depois aguarda o repasse de ${data(w.scheduled_for)}` : `Aguardando repasse do dia ${data(w.scheduled_for)}`) : ""}{w.note ? ` · ${w.note}` : ""}</span></span>
+                          <span className="flex items-center gap-2">
+                            {w.status === "requested" && <button type="button" className="text-xs underline text-muted-foreground" onClick={async () => { try { await cancelar({ data: { id: w.id } }); toast.success("Pedido cancelado"); qc.invalidateQueries({ queryKey: ["waiter"] }); } catch (e) { toast.error((e as Error).message); } }}>Cancelar</button>}
+                            <span className={`rounded-full px-2 py-0.5 text-xs font-semibold ${w.status === "paid" ? "bg-primary/15 text-primary" : w.status === "rejected" ? "bg-destructive/15 text-destructive" : "bg-muted"}`}>{STATUS[w.status]}</span>
+                          </span>
                         </li>
                       ))}
                     </ul>
