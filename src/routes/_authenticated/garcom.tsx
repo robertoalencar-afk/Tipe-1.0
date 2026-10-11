@@ -9,7 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { AreaShell } from "@/components/tipe/AreaShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getWaiterDashboard, requestWithdrawal, saveWaiterPix } from "@/lib/tipe/waiter.functions";
+import { cancelWithdrawal, getWaiterDashboard, requestWithdrawal, saveWaiterPix } from "@/lib/tipe/waiter.functions";
 
 export const Route = createFileRoute("/_authenticated/garcom")({
   head: () => ({
@@ -27,7 +27,7 @@ export const Route = createFileRoute("/_authenticated/garcom")({
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const data = (s: string) => new Date(s + (s.length === 10 ? "T12:00:00" : "")).toLocaleDateString("pt-BR");
-const STATUS: Record<string, string> = { requested: "Agendado", paid: "Pago", rejected: "Recusado" };
+const STATUS: Record<string, string> = { requested: "Aguardando repasse", paid: "Pago", rejected: "Recusado", cancelled: "Cancelado" };
 const KEY: Record<string, string> = { cpf: "CPF", email: "E-mail", phone: "Telefone", random: "Aleatória" };
 
 function proximoPagamento() {
@@ -40,6 +40,7 @@ function AreaGarcom() {
   const qc = useQueryClient();
   const fetchDash = useServerFn(getWaiterDashboard);
   const pedir = useServerFn(requestWithdrawal);
+  const cancelar = useServerFn(cancelWithdrawal);
   const cancelar = useServerFn(cancelWithdrawal);
   const q = useQuery({ queryKey: ["waiter"], queryFn: () => fetchDash(), refetchInterval: 30000 });
   const [aba, setAba] = useState<"inicio" | "saque">("inicio");
