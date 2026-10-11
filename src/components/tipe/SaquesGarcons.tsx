@@ -43,7 +43,8 @@ export function SaquesGarcons() {
                 <Button size="sm" variant="ghost" onClick={() => act(w.id, "rejected")}>Recusar</Button>
               </div>
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
     </section>
