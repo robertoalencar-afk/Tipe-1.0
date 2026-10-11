@@ -40,6 +40,7 @@ function AreaGarcom() {
   const qc = useQueryClient();
   const fetchDash = useServerFn(getWaiterDashboard);
   const pedir = useServerFn(requestWithdrawal);
+  const cancelar = useServerFn(cancelWithdrawal);
   const q = useQuery({ queryKey: ["waiter"], queryFn: () => fetchDash(), refetchInterval: 30000 });
   const [aba, setAba] = useState<"inicio" | "saque">("inicio");
   const [busy, setBusy] = useState(false);
