@@ -71,7 +71,7 @@ export function FounderMfaGate({ children }: { children: ReactNode }) {
   if (state === "ok") return <>{children}</>;
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6 py-10">
-      <TipeLogo className="mb-8 h-8 w-auto" />
+      <TipeLogo variant="dark" className="mb-8 h-8 w-auto" />
       <div className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-primary/15"><ShieldCheck className="h-6 w-6 text-primary" /></div>
       {state === "loading" && <p className="text-sm text-muted-foreground">Verificando sua segurança…</p>}
 
