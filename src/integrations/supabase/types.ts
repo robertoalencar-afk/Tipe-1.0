@@ -1583,9 +1583,43 @@ export type Database = {
           },
         ]
       }
+      waiter_withdrawal_events: {
+        Row: {
+          action: string
+          actor_id: string | null
+          amount: number
+          created_at: string
+          id: string
+          pix_key_masked: string | null
+          waiter_id: string
+          withdrawal_id: string
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          amount: number
+          created_at?: string
+          id?: string
+          pix_key_masked?: string | null
+          waiter_id: string
+          withdrawal_id: string
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          amount?: number
+          created_at?: string
+          id?: string
+          pix_key_masked?: string | null
+          waiter_id?: string
+          withdrawal_id?: string
+        }
+        Relationships: []
+      }
       waiter_withdrawals: {
         Row: {
           amount: number
+          blocked_until: string | null
           cycle_end: string
           holder_name: string
           id: string
@@ -1603,6 +1637,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          blocked_until?: string | null
           cycle_end: string
           holder_name: string
           id?: string
@@ -1620,6 +1655,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          blocked_until?: string | null
           cycle_end?: string
           holder_name?: string
           id?: string
@@ -1705,6 +1741,7 @@ export type Database = {
         Args: { _restaurant_id: string; _user_id: string }
         Returns: boolean
       }
+      next_payout_date: { Args: { p_after: string }; Returns: string }
       pdv_close_table: {
         Args: { p_slug: string; p_table: string }
         Returns: undefined
