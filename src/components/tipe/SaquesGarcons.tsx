@@ -27,21 +27,24 @@ export function SaquesGarcons() {
   return (
     <section className="mb-6 rounded-2xl border border-border bg-card p-5">
       <h2 className="font-display text-lg font-bold">Saques de garçons</h2>
-      <p className="text-sm text-muted-foreground">Faça o Pix pelo banco da TIPE e marque como pago. Pagamentos nos dias 1 e 16.</p>
+      <p className="text-sm text-muted-foreground">Lista do repasse quinzenal (dias 1 e 16). Faça o Pix pelo banco da TIPE e marque como pago. Pedidos com chave em verificação só liberam depois da quarentena.</p>
       {pend.length === 0 ? <p className="mt-3 text-sm text-muted-foreground">Nenhum saque aguardando.</p> : (
         <ul className="mt-3 divide-y divide-border text-sm">
-          {pend.map((w) => (
+          {pend.map((w) => {
+            const blocked = !!w.blockedUntil && new Date(w.blockedUntil).getTime() > Date.now();
+            return (
             <li key={w.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
               <div>
                 <p className="font-semibold">{brl(w.amount)} · {w.waiter} ({w.restaurant})</p>
-                <p className="text-xs text-muted-foreground">Pix {w.pixKeyType}: <span className="select-all font-mono">{shown[w.id] ?? w.pixKeyMasked}</span>{!shown[w.id] && <button type="button" className="ml-1 underline" onClick={() => show(w.id)}>revelar</button>} · {w.holderName} · previsto {new Date(w.scheduledFor + "T12:00:00").toLocaleDateString("pt-BR")}</p>
+                <p className="text-xs text-muted-foreground">Pix {w.pixKeyType}: <span className="select-all font-mono">{shown[w.id] ?? w.pixKeyMasked}</span>{!shown[w.id] && <button type="button" className="ml-1 underline" onClick={() => show(w.id)}>revelar</button>} · {w.holderName} · repasse {new Date(w.scheduledFor + "T12:00:00").toLocaleDateString("pt-BR")}{blocked ? ` · bloqueado até ${new Date(w.blockedUntil!).toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" })}` : ""}</p>
               </div>
               <div className="flex gap-2">
-                <Button size="sm" onClick={() => act(w.id, "paid")}>Pix feito</Button>
+                <Button size="sm" disabled={blocked} onClick={() => act(w.id, "paid")}>Pix feito</Button>
                 <Button size="sm" variant="ghost" onClick={() => act(w.id, "rejected")}>Recusar</Button>
               </div>
             </li>
-          ))}
+            );
+          })}
         </ul>
       )}
     </section>
