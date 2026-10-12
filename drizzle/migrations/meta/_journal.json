@@ -120,6 +120,13 @@
       "when": 1791801922237,
       "tag": "0016_lebre_limits_and_fee_waivers",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1791802512662,
+      "tag": "0017_plan_table_limits",
+      "breakpoints": true
     }
   ]
 }
