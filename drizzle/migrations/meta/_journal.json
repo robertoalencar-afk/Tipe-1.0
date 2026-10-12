@@ -141,6 +141,13 @@
       "when": 1791805274518,
       "tag": "0019_counter_sales_kds_ticket_board",
       "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1791827086849,
+      "tag": "0020_customer_self_order",
+      "breakpoints": true
     }
   ]
 }

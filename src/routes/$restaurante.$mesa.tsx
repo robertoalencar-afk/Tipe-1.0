@@ -14,11 +14,13 @@ import {
   Smartphone,
   Star,
   Users,
+  UtensilsCrossed,
   WalletCards,
   WifiOff,
 } from "lucide-react";
 import { TipeLogo } from "@/components/tipe/Logo";
 import { SplitPicker } from "@/components/tipe/SplitPicker";
+import { MesaPedido } from "@/components/tipe/MesaPedido";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -62,7 +64,7 @@ type Etapa =
   | "pagamento-gorjeta"
   | "mesa-encerrada"
   | "fim";
-type Aba = "conta" | "atividade";
+type Aba = "conta" | "atividade" | "cardapio";
 type Metodo = "pix" | "card" | "apple_pay" | "google_pay" | "at_establishment";
 type MetodoEstabelecimento = "cash" | "card_terminal";
 
@@ -132,6 +134,7 @@ function MesaPage() {
   const [pagamentos, setPagamentos] = useState<SharedPayment[]>([]);
   const [mesaSincronizada, setMesaSincronizada] = useState(false);
   const [sessaoMesa, setSessaoMesa] = useState("");
+  const [selfOrder, setSelfOrder] = useState(false);
   const [cartao, setCartao] = useState<CardInput>({ number: "", holder: "", exp: "", cvv: "" });
   const [chavePublica, setChavePublica] = useState<string | null>(null);
   const [pix, setPix] = useState<{ id: string; code: string; qrUrl?: string | undefined; tipo: "conta" | "gorjeta" } | null>(null);
@@ -171,6 +174,7 @@ function MesaPage() {
       setDisponiveis(Object.fromEntries(estado.items.map((item) => [item.item_code, roundPortion(Math.max(0, item.ordered_quantity - item.reserved_portion - item.paid_portion))])));
       setPagamentos(estado.payments);
       setSessaoMesa(estado.session);
+      setSelfOrder(estado.selfOrder);
       setQtds((atuais) => Object.fromEntries(itensMesa.map((item) => {
         const shared = estado.items.find((candidate) => candidate.item_code === item.id);
         const available = roundPortion(Math.max(0, (shared?.ordered_quantity ?? item.qtd) - (shared?.reserved_portion ?? 0) - (shared?.paid_portion ?? 0)));
@@ -428,7 +432,12 @@ function MesaPage() {
               {dados.garcom ? <>Você está sendo atendido por <strong className="text-foreground">{dados.garcom}</strong>.</> : "Bem-vindo! Seus pedidos aparecem aqui assim que forem lançados."}
             </p>
 
-          <div className="mb-6 mt-5 grid grid-cols-2 gap-1 rounded-full bg-muted p-1">
+          <div className={`mb-6 mt-5 grid gap-1 rounded-full bg-muted p-1 ${selfOrder ? "grid-cols-3" : "grid-cols-2"}`}>
+            {selfOrder && (
+              <Button variant={aba === "cardapio" ? "outline" : "ghost"} onClick={() => setAba("cardapio")} className="h-10 rounded-full shadow-none">
+                <UtensilsCrossed /> Cardápio
+              </Button>
+            )}
             <Button variant={aba === "conta" ? "outline" : "ghost"} onClick={() => setAba("conta")} className="h-10 rounded-full shadow-none">
               <ReceiptText /> Conta
              </Button>
@@ -436,6 +445,10 @@ function MesaPage() {
               <ClipboardList /> Atividade
             </Button>
           </div>
+
+          {aba === "cardapio" && selfOrder && (
+            <MesaPedido slug={restaurante} code={codigoMesa} session={sessaoMesa} nome={nome} onPlaced={atualizarMesa} />
+          )}
 
           {aba === "conta" && (
             <>

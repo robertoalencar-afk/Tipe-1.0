@@ -5,9 +5,9 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 const Slug = z.string().min(1).max(64).regex(/^[a-z0-9-]+$/);
 
 async function rest(supabase: any, slug: string) {
-  const { data } = await supabase.from("restaurants").select("id, slug, name, pos_provider, pos_mode, service_rate, phone, address, opening_hours, bill_payment_methods").eq("slug", slug).maybeSingle();
+  const { data } = await supabase.from("restaurants").select("id, slug, name, pos_provider, pos_mode, service_rate, phone, address, opening_hours, bill_payment_methods, self_order_enabled").eq("slug", slug).maybeSingle();
   if (!data) throw new Error("Restaurante não encontrado ou sem acesso");
-  return data as { id: string; slug: string; name: string; pos_provider: string; pos_mode: string; service_rate: number; phone: string | null; address: string | null; opening_hours: string | null; bill_payment_methods: string[] };
+  return data as { id: string; slug: string; name: string; pos_provider: string; pos_mode: string; service_rate: number; phone: string | null; address: string | null; opening_hours: string | null; bill_payment_methods: string[]; self_order_enabled: boolean };
 }
 const err = (m: string, fb: string) => {
   for (const k of ["Sem permissão", "Já existe", "Abra o caixa", "Nenhum caixa", "Valor inválido", "Escolha outra", "Há pagamentos", "Mesa inativa", "Informe o motivo", "Quantidade"]) if (m.includes(k)) return m;
@@ -95,9 +95,10 @@ export const saveSettings = createServerFn({ method: "POST" })
     slug: Slug, name: z.string().trim().min(2).max(80), serviceRate: z.number().min(0).max(0.2),
     phone: z.string().trim().max(30), address: z.string().trim().max(160), openingHours: z.string().trim().max(120),
     billMethods: z.array(z.enum(["pix", "apple_pay", "google_pay", "at_establishment"])).min(1, "Escolha ao menos um meio de pagamento").max(4),
+    selfOrder: z.boolean().optional(),
   }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: rows, error } = await context.supabase.from("restaurants").update({ name: data.name, service_rate: data.serviceRate, phone: data.phone || null, address: data.address || null, opening_hours: data.openingHours || null, bill_payment_methods: Array.from(new Set(data.billMethods)) }).eq("slug", data.slug).select("id");
+    const { data: rows, error } = await context.supabase.from("restaurants").update({ name: data.name, service_rate: data.serviceRate, phone: data.phone || null, address: data.address || null, opening_hours: data.openingHours || null, bill_payment_methods: Array.from(new Set(data.billMethods)), ...(data.selfOrder !== undefined ? { self_order_enabled: data.selfOrder } : {}) }).eq("slug", data.slug).select("id");
     if (error || !rows?.length) throw new Error("Somente o dono pode alterar as configurações");
     return { ok: true };
   });

@@ -331,14 +331,14 @@ export function Configuracoes({ slug, podeDono }: { slug: string; podeDono: bool
   const save = useServerFn(saveSettings);
   const qc = useQueryClient();
   const r = ops.data?.restaurant;
-  const [f, setF] = useState<null | { name: string; rate: string; phone: string; address: string; hours: string; methods: string[] }>(null);
+  const [f, setF] = useState<null | { name: string; rate: string; phone: string; address: string; hours: string; methods: string[]; selfOrder: boolean }>(null);
   if (!r) return <p className="text-muted-foreground">Carregando…</p>;
-  const v = f ?? { name: r.name, rate: String(Math.round(r.service_rate * 100)), phone: r.phone ?? "", address: r.address ?? "", hours: r.opening_hours ?? "", methods: r.bill_payment_methods ?? ["pix", "apple_pay", "google_pay", "at_establishment"] };
+  const v = f ?? { name: r.name, rate: String(Math.round(r.service_rate * 100)), phone: r.phone ?? "", address: r.address ?? "", hours: r.opening_hours ?? "", methods: r.bill_payment_methods ?? ["pix", "apple_pay", "google_pay", "at_establishment"], selfOrder: r.self_order_enabled ?? false };
   return (
     <form className="max-w-xl space-y-3" onSubmit={async (e) => {
       e.preventDefault();
       try {
-        await save({ data: { slug, name: v.name, serviceRate: Number(v.rate) / 100, phone: v.phone, address: v.address, openingHours: v.hours, billMethods: v.methods as ("pix" | "apple_pay" | "google_pay" | "at_establishment")[] } });
+        await save({ data: { slug, name: v.name, serviceRate: Number(v.rate) / 100, phone: v.phone, address: v.address, openingHours: v.hours, billMethods: v.methods as ("pix" | "apple_pay" | "google_pay" | "at_establishment")[], selfOrder: v.selfOrder } });
         toast.success("Configurações salvas"); setF(null);
         qc.invalidateQueries({ queryKey: ["ops", slug] }); qc.invalidateQueries({ queryKey: ["panel", slug] });
       } catch (err) { toast.error((err as Error).message); }
@@ -367,6 +367,17 @@ export function Configuracoes({ slug, podeDono }: { slug: string; podeDono: bool
           );
         })}
         <p className="text-xs text-muted-foreground">Pelo menos uma opção precisa ficar ativa.</p>
+      </Card>
+      <Card className="space-y-3">
+        <div>
+          <h3 className="font-display font-bold">Pedido pela mesa (cardápio digital)</h3>
+          <p className="text-sm text-muted-foreground">Quando ligado, o cliente pode pedir pelo cardápio no próprio celular, lendo o QR da mesa. O pedido vai direto para a cozinha e entra na conta.</p>
+        </div>
+        <label className="flex items-center gap-3 text-sm">
+          <input type="checkbox" className="h-4 w-4 accent-primary" disabled={!podeDono} checked={v.selfOrder} onChange={() => setF({ ...v, selfOrder: !v.selfOrder })} />
+          Permitir que o cliente faça o pedido pela mesa
+        </label>
+        <p className="text-xs text-muted-foreground">O pagamento da conta continua igual: o cliente paga pelo QR quando quiser.</p>
       </Card>
       {podeDono && <Button type="submit">Salvar</Button>}
     </form>
