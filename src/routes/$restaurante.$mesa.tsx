@@ -159,7 +159,7 @@ function MesaPage() {
     try {
       const estado = await getPublicTable({ data: { slug: restaurante, code: codigoMesa, token: tokenMesa } });
       if ("error" in estado) {
-        setErroMesa(estado.error === "invalid_token" ? "Este QR Code foi atualizado pelo restaurante. Leia o código que está na mesa agora." : estado.error === "inactive" ? "Esta mesa está desativada no momento. Chame o garçom." : "Mesa não encontrada. Confira o QR Code da mesa.");
+        setErroMesa(estado.error === "invalid_token" ? "Este QR Code foi atualizado pelo restaurante. Leia o código que está na mesa agora." : estado.error === "inactive" ? "Esta mesa não está disponível no momento. Chame o garçom." : "Mesa não encontrada. Confira o QR Code da mesa.");
         return;
       }
       const itensMesa: ItemMesa[] = estado.items.map((i) => {

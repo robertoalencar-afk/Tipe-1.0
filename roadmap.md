@@ -33,6 +33,6 @@
 
 ## Pacote consolidado (out/2026)
 - [x] Parte 1: segurança (frame-ancestors, isolamento, teto da Lebre, .gitignore, backups, login, remover taxa, saque mínimo)
-- [ ] Parte 2: limite de mesas por plano (aguarda confirmação do Roberto)
+- [x] Parte 2: limite de mesas por plano
 - [ ] Parte 3: desempenho, região e GitHub
 - [ ] Partes 4 e 5: logo de e-mail e Central Jurídica (anexos recebidos, aguardam a vez)

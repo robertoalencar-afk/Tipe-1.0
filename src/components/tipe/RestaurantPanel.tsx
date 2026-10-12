@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { getPanelData, inviteStaff, removeStaff, resolvePayment, type StaffRole } from "@/lib/tipe/staff.functions";
 import {
-  addTable, addTablesBulk, closeTable, waiveServiceFee, getPdvData, launchOrder, saveCategory, saveMenuItem, saveWaiter, updateTable, voidItem,
+  addTable, addTablesBulk, closeTable, waiveServiceFee, getTablePlan, getPdvData, launchOrder, saveCategory, saveMenuItem, saveWaiter, updateTable, voidItem,
 } from "@/lib/tipe/pdv.functions";
 import { transferTable } from "@/lib/tipe/admin.functions";
 import { getPdvIntegration, getTopItems, importMenuCsv } from "@/lib/tipe/pdv-integrations.functions";
@@ -488,12 +488,39 @@ function LancarPedido({ slug, pdv, mesa, setMesa, onDone }: { slug: string; pdv:
   );
 }
 
+function UsoMesas({ active, limit, plan, upgradeUrl, pdvTotal }: { active: number; limit: number; plan: string | null; upgradeUrl: string | null; pdvTotal: number | null }) {
+  const pct = Math.min(100, Math.round((active / Math.max(1, limit)) * 100));
+  const cheio = active >= limit;
+  return (
+    <section aria-label="Uso de mesas do plano" className="mb-4 rounded-2xl border border-border bg-card p-4 print:hidden">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <p className="font-display font-bold">{active} de {limit} mesas do seu plano</p>
+        {plan && <span className="text-xs text-muted-foreground">Plano {plan}</span>}
+      </div>
+      <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted" role="progressbar" aria-valuenow={active} aria-valuemin={0} aria-valuemax={limit}>
+        <div className={`h-full rounded-full ${cheio ? "bg-destructive" : pct >= 80 ? "bg-highlight" : "bg-primary"}`} style={{ width: `${pct}%` }} />
+      </div>
+      {active > limit && <p className="mt-2 text-sm">Há {active - limit} mesa(s) ativa(s) acima do plano. Desative as que não vai usar. Até lá, essas mesas não abrem contas novas, mas as contas já abertas podem ser pagas normalmente.</p>}
+      {cheio ? <p className="mt-2 text-sm font-semibold">Você atingiu o limite de mesas do seu plano. Fale com a TIPE para fazer upgrade.</p>
+        : pct >= 80 && <p className="mt-2 text-xs text-muted-foreground">Você está perto do limite de mesas do seu plano.</p>}
+      {pdvTotal && <p className="mt-2 text-sm">Seu sistema tem {pdvTotal} mesas, mas seu plano permite {limit}. Fale com a TIPE para ativar as demais.</p>}
+      {upgradeUrl && (cheio || pct >= 80 || pdvTotal) && (
+        <Button asChild size="sm" className="mt-3"><a href={upgradeUrl} target="_blank" rel="noreferrer">Falar com a TIPE no WhatsApp</a></Button>
+      )}
+    </section>
+  );
+}
+
 function MesasQr({ slug, restaurante, tables, podeDono, onDone }: { slug: string; restaurante: string; tables: PdvData["tables"]; podeDono: boolean; onDone: () => void }) {
   const add = useServerFn(addTable);
   const upd = useServerFn(updateTable);
   const bulk = useServerFn(addTablesBulk);
   const [nova, setNova] = useState("");
   const [lote, setLote] = useState({ from: "", to: "" });
+  const fetchPlan = useServerFn(getTablePlan);
+  const ativas = tables.filter((t) => t.active).length;
+  const plano = useQuery({ queryKey: ["table-plan", slug, ativas, tables.length], queryFn: () => fetchPlan({ data: { slug } }) });
+  const noLimite = !!plano.data && plano.data.active >= plano.data.limit;
   const base = typeof window !== "undefined" && !window.location.hostname.includes("lovable") && !window.location.hostname.includes("localhost") ? window.location.origin : "https://tipe.digital";
   const link = (t: PdvData["tables"][number]) => `${base}/${slug}/${t.code}?t=${t.access_token}`;
   async function run(fn: () => Promise<unknown>, ok: string) {
@@ -501,22 +528,23 @@ function MesasQr({ slug, restaurante, tables, podeDono, onDone }: { slug: string
   }
   return (
     <div>
+      {plano.data && <UsoMesas {...plano.data} />}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2 print:hidden">
         {podeDono && (
           <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); if (nova.trim()) void run(() => add({ data: { slug, number: nova.trim() } }), "Mesa cadastrada").then(() => setNova("")); }}>
             <Input className="w-32" placeholder="Nº da mesa" value={nova} onChange={(e) => setNova(e.target.value)} />
-            <Button type="submit" variant="outline">Cadastrar mesa</Button>
+            <Button type="submit" variant="outline" disabled={noLimite}>Nova mesa</Button>
           </form>
         )}
         {podeDono && (
           <form className="flex items-center gap-2" onSubmit={(e) => {
             e.preventDefault();
-            void run(async () => { const r = await bulk({ data: { slug, from: Number(lote.from), to: Number(lote.to) } }); toast.info(`${r.created} mesa(s) nova(s)`); }, "Mesas cadastradas").then(() => setLote({ from: "", to: "" }));
+            void run(async () => { const r = await bulk({ data: { slug, from: Number(lote.from), to: Number(lote.to) } }); if (r.limited) toast.warning(r.limited); else toast.info(`${r.created} mesa(s) nova(s)`); }, "Mesas cadastradas").then(() => setLote({ from: "", to: "" }));
           }}>
             <span className="text-sm text-muted-foreground">Em lote:</span>
             <Input required type="number" min={1} className="w-20" placeholder="de" value={lote.from} onChange={(e) => setLote({ ...lote, from: e.target.value })} />
             <Input required type="number" min={1} className="w-20" placeholder="até" value={lote.to} onChange={(e) => setLote({ ...lote, to: e.target.value })} />
-            <Button type="submit" variant="outline">Criar</Button>
+            <Button type="submit" variant="outline" disabled={noLimite}>Criar</Button>
           </form>
         )}
         <Button variant="outline" onClick={() => window.print()}><Printer className="mr-1 h-4 w-4" />Imprimir QR Codes</Button>

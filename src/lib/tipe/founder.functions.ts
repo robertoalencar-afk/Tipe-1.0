@@ -129,3 +129,73 @@ export const setLebreLimits = createServerFn({ method: "POST" })
     await logSecurityEvent({ action: "lebre_limits_changed", resource: "lebre_limits", actorId: context.userId, detail: `painel=${data.panelDaily} publica=${data.publicDaily}` });
     return { ok: true };
   });
+
+/** Planos e limites de mesas (somente founder com 2FA). */
+export const getPlansAdmin = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await requireFounder(context);
+    const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
+    const [cat, rest, subs, tables] = await Promise.all([
+      db.from("plan_catalog").select("id, name, max_tables, founder_price, full_price").order("position"),
+      db.from("restaurants").select("id, slug, name").order("name"),
+      db.from("restaurant_subscriptions").select("restaurant_id, plan, status, trial_ends_at, custom_table_limit, founder_price, founder_price_until, billing_period"),
+      db.from("restaurant_tables").select("restaurant_id").eq("active", true),
+    ]);
+    const catalog = cat.data ?? [];
+    const active = new Map<string, number>();
+    (tables.data ?? []).forEach((t) => active.set(t.restaurant_id, (active.get(t.restaurant_id) ?? 0) + 1));
+    const restaurants = (rest.data ?? []).map((r) => {
+      const s = (subs.data ?? []).find((x) => x.restaurant_id === r.id);
+      const plan = s?.plan ?? "profissional";
+      const limit = s?.custom_table_limit ?? catalog.find((c) => c.id === plan)?.max_tables ?? 20;
+      return { id: r.id, slug: r.slug, name: r.name, plan, status: s?.status ?? "trialing", trialEndsAt: s?.trial_ends_at ?? null, customLimit: s?.custom_table_limit ?? null,
+        founderPrice: s?.founder_price ?? false, founderUntil: s?.founder_price_until ?? null, billing: s?.billing_period ?? "monthly", active: active.get(r.id) ?? 0, limit };
+    });
+    return { catalog: catalog.map((c) => ({ ...c, founder_price: c.founder_price === null ? null : Number(c.founder_price), full_price: c.full_price === null ? null : Number(c.full_price) })), restaurants };
+  });
+
+export const savePlanCatalog = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { id: string; maxTables: number | null; founderPrice: number | null; fullPrice: number | null }) => {
+    if (!["essencial", "profissional", "premium", "personalizado"].includes(d.id)) throw new Error("Plano inválido");
+    const okN = (n: number | null, max: number) => n === null || (Number.isFinite(n) && n >= 0 && n <= max);
+    if (!okN(d.maxTables, 5000) || !okN(d.founderPrice, 100000) || !okN(d.fullPrice, 100000) || d.maxTables === 0) throw new Error("Valor inválido");
+    return d;
+  })
+  .handler(async ({ data, context }) => {
+    await requireFounder(context);
+    const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
+    const { error } = await db.from("plan_catalog").update({ max_tables: data.maxTables, founder_price: data.founderPrice, full_price: data.fullPrice, updated_at: new Date().toISOString(), updated_by: context.userId }).eq("id", data.id);
+    if (error) throw new Error("Não foi possível salvar o plano");
+    const { logSecurityEvent } = await import("./security.server");
+    await logSecurityEvent({ action: "plan_catalog_changed", resource: `plano:${data.id}`, actorId: context.userId, detail: `mesas=${data.maxTables} fundador=${data.founderPrice} cheio=${data.fullPrice}` });
+    return { ok: true };
+  });
+
+export const saveRestaurantPlan = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { restaurantId: string; plan: string; customLimit: number | null; founderPrice: boolean; billing: string; status: string }) => {
+    if (!/^[0-9a-f-]{36}$/.test(d.restaurantId)) throw new Error("Restaurante inválido");
+    if (!["essencial", "profissional", "premium", "personalizado"].includes(d.plan)) throw new Error("Plano inválido");
+    if (!["monthly", "annual"].includes(d.billing)) throw new Error("Periodicidade inválida");
+    if (!["trialing", "active", "suspended", "canceled"].includes(d.status)) throw new Error("Status inválido");
+    if (d.customLimit !== null && (!Number.isInteger(d.customLimit) || d.customLimit < 1 || d.customLimit > 5000)) throw new Error("Limite inválido");
+    if (d.plan === "personalizado" && d.customLimit === null) throw new Error("Defina o limite de mesas do plano Personalizado");
+    return d;
+  })
+  .handler(async ({ data, context }) => {
+    await requireFounder(context);
+    const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
+    const { data: before } = await db.from("restaurant_subscriptions").select("plan, founder_price, founder_price_until").eq("restaurant_id", data.restaurantId).maybeSingle();
+    const { data: oldLimit } = await db.rpc("restaurant_table_limit", { p_rid: data.restaurantId });
+    const founderUntil = data.founderPrice ? (before?.founder_price && before.founder_price_until ? before.founder_price_until : new Date(Date.now() + 365 * 864e5).toISOString().slice(0, 10)) : null;
+    const row = { restaurant_id: data.restaurantId, plan: data.plan, custom_table_limit: data.customLimit, founder_price: data.founderPrice, founder_price_until: founderUntil, billing_period: data.billing, status: data.status };
+    const { error } = await db.from("restaurant_subscriptions").upsert(row, { onConflict: "restaurant_id" });
+    if (error) throw new Error("Não foi possível salvar o plano do restaurante");
+    const { data: newLimit } = await db.rpc("restaurant_table_limit", { p_rid: data.restaurantId });
+    await db.from("plan_changes").insert({ restaurant_id: data.restaurantId, actor_id: context.userId, old_plan: before?.plan ?? null, new_plan: data.plan, old_limit: oldLimit ?? null, new_limit: newLimit ?? null, detail: `status=${data.status} periodicidade=${data.billing} fundador=${data.founderPrice}` });
+    const { logSecurityEvent } = await import("./security.server");
+    await logSecurityEvent({ action: "plan_changed", resource: `restaurante:${data.restaurantId}`, restaurantId: data.restaurantId, actorId: context.userId, detail: `${before?.plan ?? "-"} -> ${data.plan}, limite ${oldLimit} -> ${newLimit}` });
+    return { ok: true, limit: Number(newLimit ?? 0) };
+  });

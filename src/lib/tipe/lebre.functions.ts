@@ -191,6 +191,16 @@ Se houver anexos (foto, comprovante, cardápio ou PDF), leia com atenção, desc
       }
     }
     if (!action.success) return { answer };
+    const ad = action.data;
+    if (ad.action === "add_table" || (ad.action === "set_table_active" && ad.active)) {
+      const { tableLimitInfo, LIMIT_MESSAGE } = await import("./table-limit.server");
+      const info = await tableLimitInfo(restaurant.id);
+      const exists = ad.action === "set_table_active" && (tables.data ?? []).some((t) => t.number === ad.number && t.active);
+      if (!exists && info.active >= info.limit) {
+        await logSecurityEvent({ action: "table_limit_blocked", resource: `lebre:mesa:${ad.number}`, result: "denied", restaurantSlug: data.slug, restaurantId: restaurant.id, actorId: context.userId, detail: `limite=${info.limit} ativas=${info.active}` });
+        return { answer: `${LIMIT_MESSAGE} Hoje vocês usam ${info.active} de ${info.limit} mesas do plano. ${canManage ? "Se quiser mais mesas, toque em \"Falar com a TIPE\" na tela de Mesas e QR Codes que a equipe ativa o upgrade na hora." : "Peça ao dono do restaurante para falar com a TIPE."}` };
+      }
+    }
     const proposal: LebreProposal = { id: crypto.randomUUID(), action: action.data.action, payload: action.data as LebreAction, ...describe(action.data as LebreAction, restaurant.name) };
     await logSecurityEvent({ action: "lebre_proposal", resource: action.data.action, restaurantSlug: data.slug, restaurantId: restaurant.id, actorId: context.userId, detail: proposal.summary });
     return { answer, proposal };
@@ -213,8 +223,9 @@ export const executeLebreProposal = createServerFn({ method: "POST" })
     const rid = restaurant.id;
     let message = "";
     if (a.action === "add_table") {
-      const { error } = await sb.from("restaurant_tables").insert({ restaurant_id: rid, number: a.number, code: `mesa${a.number.toLowerCase()}` });
+      const { data: ins, error } = await sb.from("restaurant_tables").insert({ restaurant_id: rid, number: a.number, code: `mesa${a.number.toLowerCase()}` }).select("id");
       if (error) throw new Error(error.code === "23505" ? "Essa mesa já existe." : "Não foi possível cadastrar a mesa.");
+      if (!ins?.length) { const { LIMIT_MESSAGE } = await import("./table-limit.server"); throw new Error(LIMIT_MESSAGE); }
       message = `Mesa ${a.number} cadastrada. O QR Code já está em Mesas e QR Codes.`;
     } else if (a.action === "close_table") {
       const { error } = await sb.rpc("pdv_close_table", { p_slug: data.slug, p_table: a.number });
@@ -223,7 +234,11 @@ export const executeLebreProposal = createServerFn({ method: "POST" })
     } else if (a.action === "set_table_active") {
       const { data: rows, error } = await sb.from("restaurant_tables").update({ active: a.active }).eq("restaurant_id", rid).eq("number", a.number).select("id");
       if (error) throw new Error("Não foi possível alterar a mesa.");
-      if (!rows?.length) throw new Error(`Não encontrei a mesa ${a.number}. Quer que eu cadastre?`);
+      if (!rows?.length) {
+        const { data: seen } = await sb.from("restaurant_tables").select("id").eq("restaurant_id", rid).eq("number", a.number).maybeSingle();
+        if (seen && a.active) { const { LIMIT_MESSAGE } = await import("./table-limit.server"); throw new Error(LIMIT_MESSAGE); }
+        throw new Error(`Não encontrei a mesa ${a.number}. Quer que eu cadastre?`);
+      }
       message = a.active ? `Mesa ${a.number} aberta.` : `Mesa ${a.number} desativada.`;
     } else if (a.action === "add_waiter") {
       const { data: existing } = await sb.from("pdv_waiters").select("code").eq("restaurant_id", rid);

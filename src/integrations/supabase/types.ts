@@ -704,6 +704,83 @@ export type Database = {
           },
         ]
       }
+      plan_catalog: {
+        Row: {
+          founder_price: number | null
+          full_price: number | null
+          id: string
+          max_tables: number | null
+          name: string
+          position: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          founder_price?: number | null
+          full_price?: number | null
+          id: string
+          max_tables?: number | null
+          name: string
+          position?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          founder_price?: number | null
+          full_price?: number | null
+          id?: string
+          max_tables?: number | null
+          name?: string
+          position?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      plan_changes: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          detail: string | null
+          id: string
+          new_limit: number | null
+          new_plan: string | null
+          old_limit: number | null
+          old_plan: string | null
+          restaurant_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          detail?: string | null
+          id?: string
+          new_limit?: number | null
+          new_plan?: string | null
+          old_limit?: number | null
+          old_plan?: string | null
+          restaurant_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          detail?: string | null
+          id?: string
+          new_limit?: number | null
+          new_plan?: string | null
+          old_limit?: number | null
+          old_plan?: string | null
+          restaurant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plan_changes_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pos_integrations: {
         Row: {
           created_at: string
@@ -1095,8 +1172,12 @@ export type Database = {
       }
       restaurant_subscriptions: {
         Row: {
+          billing_period: string
           created_at: string
           current_period_end: string | null
+          custom_table_limit: number | null
+          founder_price: boolean
+          founder_price_until: string | null
           plan: string
           provider: string
           provider_customer_id: string | null
@@ -1107,8 +1188,12 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          billing_period?: string
           created_at?: string
           current_period_end?: string | null
+          custom_table_limit?: number | null
+          founder_price?: boolean
+          founder_price_until?: string | null
           plan?: string
           provider?: string
           provider_customer_id?: string | null
@@ -1119,8 +1204,12 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          billing_period?: string
           created_at?: string
           current_period_end?: string | null
+          custom_table_limit?: number | null
+          founder_price?: boolean
+          founder_price_until?: string | null
           plan?: string
           provider?: string
           provider_customer_id?: string | null
@@ -1449,6 +1538,38 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      table_limit_blocks: {
+        Row: {
+          created_at: string
+          id: string
+          restaurant_id: string
+          source: string
+          table_number: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          restaurant_id: string
+          source: string
+          table_number: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          restaurant_id?: string
+          source?: string
+          table_number?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "table_limit_blocks_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       table_payment_requests: {
         Row: {
@@ -1914,6 +2035,7 @@ export type Database = {
         Args: { p_action: string; p_payment_id: string }
         Returns: undefined
       }
+      restaurant_table_limit: { Args: { p_rid: string }; Returns: number }
       signup_restaurant: {
         Args: {
           p_address: string
@@ -1930,6 +2052,10 @@ export type Database = {
       sync_bill_item_quantity_shadows: {
         Args: { p_item_id: string }
         Returns: undefined
+      }
+      table_is_over_limit: {
+        Args: { p_number: string; p_rid: string }
+        Returns: boolean
       }
       tipe_cycle_start: { Args: { p_at?: string }; Returns: string }
       waiter_balance: {
