@@ -48,6 +48,10 @@ export const getPublicTable = createServerFn({ method: "GET" })
       supabaseAdmin.from("service_fee_waivers").select("id").eq("restaurant_id", r.id).eq("table_number", t.number).eq("session_token", t.session_token).limit(1),
     ]);
     if (items.error || payments.error) throw new Error("Não foi possível atualizar a mesa");
+    if (!(items.data ?? []).length) {
+      const { data: over } = await supabaseAdmin.rpc("table_is_over_limit", { p_rid: r.id, p_number: t.number });
+      if (over) return { error: "inactive" };
+    }
     return {
       restaurantName: r.name,
       tableNumber: t.number,
@@ -121,6 +125,36 @@ export const closeTable = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/** Uso de mesas do plano. Plano e upgrade só para o dono; demais veem só o limite. */
+export const getTablePlan = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ slug: Slug }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { data: r } = await context.supabase.from("restaurants").select("id, name").eq("slug", data.slug).maybeSingle();
+    if (!r) throw new Error("Restaurante não encontrado");
+    const { data: roles } = await context.supabase.from("user_roles").select("role").eq("restaurant_id", r.id).eq("user_id", context.userId);
+    const isOwner = (roles ?? []).some((x) => x.role === "owner");
+    const { tableLimitInfo, upgradeLink } = await import("./table-limit.server");
+    const info = await tableLimitInfo(r.id);
+    const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
+    // Mesas que o PDV tentou criar acima do limite (últimos 30 dias) e que ainda não existem.
+    const since = new Date(Date.now() - 30 * 864e5).toISOString();
+    const [{ data: blocks }, { data: all }, { data: plan }] = await Promise.all([
+      db.from("table_limit_blocks").select("table_number, source").eq("restaurant_id", r.id).gte("created_at", since),
+      db.from("restaurant_tables").select("number").eq("restaurant_id", r.id),
+      db.from("plan_catalog").select("name").eq("id", info.plan).maybeSingle(),
+    ]);
+    const existing = new Set((all ?? []).map((t) => t.number));
+    const pdvMissing = new Set((blocks ?? []).filter((b) => !b.source.startsWith("lancamento_tipe") && !existing.has(b.table_number)).map((b) => b.table_number));
+    const planName = plan?.name ?? info.plan;
+    return {
+      active: info.active, limit: info.limit, isOwner,
+      plan: isOwner ? planName : null,
+      upgradeUrl: isOwner ? upgradeLink(r.name, planName) : null,
+      pdvTotal: pdvMissing.size ? info.active + pdvMissing.size : null,
+    };
+  });
+
 /** Dono ou caixa remove a taxa de serviço da conta aberta da mesa (motivo obrigatório). */
 export const waiveServiceFee = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -136,8 +170,9 @@ export const addTable = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ slug: Slug, number: z.string().trim().min(1).max(8).regex(/^[0-9A-Za-z]+$/) }).parse(d))
   .handler(async ({ data, context }) => {
     const rid = await restaurantId(context.supabase, data.slug);
-    const { error } = await context.supabase.from("restaurant_tables").insert({ restaurant_id: rid, number: data.number, code: `mesa${data.number.toLowerCase()}` });
+    const { data: rows, error } = await context.supabase.from("restaurant_tables").insert({ restaurant_id: rid, number: data.number, code: `mesa${data.number.toLowerCase()}` }).select("id");
     if (error) throw new Error(error.code === "23505" ? "Essa mesa já existe" : "Somente o dono pode cadastrar mesas");
+    if (!rows?.length) { const { LIMIT_MESSAGE } = await import("./table-limit.server"); throw new Error(LIMIT_MESSAGE); }
     return { ok: true };
   });
 
@@ -149,6 +184,11 @@ export const updateTable = createServerFn({ method: "POST" })
     if (data.active !== undefined) patch.active = data.active;
     if (data.regenerate) patch.access_token = crypto.randomUUID().replace(/-/g, "").slice(0, 16);
     const { data: rows, error } = await context.supabase.from("restaurant_tables").update(patch).eq("id", data.id).select("id");
+    if (!error && !rows?.length && data.active) {
+      // A mesa existe e é visível, mas o banco recusou a reativação: limite do plano.
+      const { data: seen } = await context.supabase.from("restaurant_tables").select("id").eq("id", data.id).maybeSingle();
+      if (seen) { const { LIMIT_MESSAGE } = await import("./table-limit.server"); throw new Error(LIMIT_MESSAGE); }
+    }
     if (error || !rows?.length) throw new Error("Somente o dono pode alterar mesas");
     return { ok: true };
   });
@@ -195,9 +235,15 @@ export const addTablesBulk = createServerFn({ method: "POST" })
     const rows = [];
     for (let n = data.from; n <= data.to; n++) if (!have.has(String(n))) rows.push({ restaurant_id: rid, number: String(n), code: `mesa${n}` });
     if (!rows.length) return { created: 0 };
-    const { error } = await context.supabase.from("restaurant_tables").insert(rows);
+    const { data: inserted, error } = await context.supabase.from("restaurant_tables").insert(rows).select("id");
     if (error) throw new Error("Somente o dono pode cadastrar mesas");
-    return { created: rows.length };
+    const created = inserted?.length ?? 0;
+    if (created < rows.length) {
+      const { LIMIT_MESSAGE } = await import("./table-limit.server");
+      if (created === 0) throw new Error(LIMIT_MESSAGE);
+      return { created, limited: `${created} mesa(s) criada(s). ${LIMIT_MESSAGE}` };
+    }
+    return { created };
   });
 
 export const saveCategory = createServerFn({ method: "POST" })
