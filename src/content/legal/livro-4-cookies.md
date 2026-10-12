@@ -29,12 +29,12 @@ Cookies e tecnologias semelhantes, como o armazenamento local do navegador (loca
 
 | Nome | Fornecedor | Categoria | Finalidade | Tipo | Duração |
 | --- | --- | --- | --- | --- | --- |
-| tipe:mesa:… | TIPE | Necessário | Lembrar o seu nome na mesa | localStorage | Até a mesa reabrir ou você limpar os dados |
+| tipe:cliente:… | TIPE | Necessário | Lembrar o seu nome na mesa | localStorage | Até a mesa reabrir ou você limpar os dados |
 | sb-…-auth-token | TIPE / autenticação | Necessário | Manter o login do restaurante | localStorage | Até sair ou a sessão expirar |
 | tipe:cadastro-pendente | TIPE | Necessário | Concluir o cadastro após confirmar o e-mail | localStorage | Até concluir |
 | tipe:privacy-consent | TIPE | Necessário | Guardar suas escolhas de cookies | localStorage | Até você alterar ou limpar |
 | Estado do simulador | TIPE | Necessário | Guardar a demonstração em /simulador | localStorage | Reinicia 2 min após encerrar |
-| tipe:origem (UTM e indicação) | TIPE | Funcional | Guardar UTM e código de indicação até o cadastro | localStorage | 30 dias |
+| tipe:attribution (UTM e indicação) | TIPE | Funcional | Guardar UTM e código de indicação até o cadastro | localStorage | 30 dias |
 | Login com Google | Google | Necessário, só se você usar | Autenticar | Cookies do Google | Definida pelo Google |
 | \_ga, *ga*… | Google Analytics 4 | Medição | Contar visitas e uso de páginas | Cookie | Até 2 anos |
 | \_fbp | Meta Pixel | Marketing | Medir resultado de anúncios | Cookie | 90 dias |
