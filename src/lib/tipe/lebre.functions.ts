@@ -77,8 +77,10 @@ async function askModel(instructions: string, question: string, files?: LebreFil
 export const askPublicLebre = createServerFn({ method: "POST" })
   .inputValidator((data) => z.object({ question: Question, files: Files }).parse(data))
   .handler(async ({ data }): Promise<LebreReply> => {
-    const { enforceRate, clientIp } = await import("./security.server");
+    const { enforceRate, clientIp, consumeLebreQuota } = await import("./security.server");
     await enforceRate(`lebre-public:${clientIp()}`, 12, 60);
+    const limitMsg = await consumeLebreQuota("public");
+    if (limitMsg) return { answer: limitMsg };
     const answer = await askModel(
       `Você é a Lebre, especialista oficial da TIPE. Responda em português brasileiro, com tom pessoal, claro e breve. Nunca use travessões. Use somente os fatos abaixo. Se não souber, diga que a equipe confirma. Se receber anexos, descreva com precisão apenas o que aparece neles. Não invente integrações, taxas, resultados ou funcionalidades.\n${publicFacts}`,
       data.question,
@@ -123,12 +125,14 @@ export const askRestaurantLebre = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data) => z.object({ slug: Slug, question: Question, history: History, files: Files }).parse(data))
   .handler(async ({ data, context }): Promise<LebreReply> => {
-    const { enforceRate, logSecurityEvent } = await import("./security.server");
+    const { enforceRate, logSecurityEvent, consumeLebreQuota } = await import("./security.server");
     await enforceRate(`lebre-panel:${context.userId}`, 20, 60, data.slug);
     const { data: restaurant } = await context.supabase.from("restaurants").select("id, name, pos_mode, pos_provider").eq("slug", data.slug).maybeSingle();
     if (!restaurant) throw new Error("Restaurante não encontrado ou sem acesso.");
     const { data: roles } = await context.supabase.from("user_roles").select("role").eq("restaurant_id", restaurant.id).eq("user_id", context.userId);
     if (!roles?.length) throw new Error("Você não tem acesso a este restaurante.");
+    const limitMsg = await consumeLebreQuota("panel", data.slug);
+    if (limitMsg) return { answer: limitMsg };
     const roleNames = roles.map((row) => row.role);
     const canManage = roleNames.includes("owner") || roleNames.includes("founder");
     const [tables, payments, items, waiters] = await Promise.all([
