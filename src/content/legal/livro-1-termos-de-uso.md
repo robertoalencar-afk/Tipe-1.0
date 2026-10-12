@@ -22,9 +22,9 @@ Ao acessar uma mesa pelo QR Code e usar a plataforma, você concorda com estes T
 
 ## 1.3 Quem é responsável pelo quê {#quem-e-responsavel-pelo-que}
 
-- **O restaurante** é o fornecedor dos produtos e serviços que você consumiu. Ele responde pelos itens lançados, pelos preços, pela taxa de serviço, pela qualidade do que foi servido e pela emissão do documento fiscal.
-- **A TIPE** fornece a tecnologia que exibe a conta, registra os pagamentos e conecta você ao provedor de pagamento escolhido pelo restaurante.
-- **O provedor de pagamento** (Pagar.me) processa os pagamentos digitais, de acordo com as regras dele e do seu banco ou carteira digital.
+- O restaurante é o fornecedor dos produtos e serviços que você consumiu. Ele responde pelos itens lançados, pelos preços, pela taxa de serviço, pela qualidade do que foi servido e pela emissão do documento fiscal.
+- A TIPE fornece a tecnologia que exibe a conta, registra os pagamentos e conecta você ao provedor de pagamento escolhido pelo restaurante.
+- O provedor de pagamento (Pagar.me) processa os pagamentos digitais, de acordo com as regras dele e do seu banco ou carteira digital.
 
 Nada nesta divisão limita os direitos que o Código de Defesa do Consumidor garante a você.
 
@@ -42,8 +42,8 @@ A conta exibida é a lançada pelo restaurante. Confira os itens, quantidades e 
 
 Os meios disponíveis são escolhidos por cada restaurante e podem incluir:
 
-- **Pagamentos digitais** (Pix, Apple Pay, Google Pay e cartão, conforme habilitados): processados pelo Pagar.me. O valor vai diretamente para a conta do restaurante. O pagamento só é considerado concluído quando o provedor confirma a aprovação. No Pix, a tela mostra "aguardando confirmação" até essa confirmação chegar.
-- **Pagamentos no estabelecimento** (dinheiro ou maquininha): você informa na tela e paga ao restaurante. O pagamento fica "pendente de confirmação" até o restaurante confirmar o recebimento.
+- Pagamentos digitais (Pix, Apple Pay, Google Pay e cartão, conforme habilitados): processados pelo Pagar.me. O valor vai diretamente para a conta do restaurante. O pagamento só é considerado concluído quando o provedor confirma a aprovação. No Pix, a tela mostra "aguardando confirmação" até essa confirmação chegar.
+- Pagamentos no estabelecimento (dinheiro ou maquininha): você informa na tela e paga ao restaurante. O pagamento fica "pendente de confirmação" até o restaurante confirmar o recebimento.
 
 Ao confirmar um pagamento, você declara que está pagando o valor exibido, referente aos itens selecionados. Os itens pagos saem da conta e não podem ser pagos de novo por outra pessoa.
 
@@ -55,8 +55,8 @@ A gorjeta extra é opcional e voluntária, e aparece depois da avaliação do at
 
 A gorjeta extra é paga apenas por meio digital. A TIPE recebe o valor e faz a divisão:
 
-- **70% para o garçom e o restaurante**, repassados quinzenalmente pela TIPE ao garçom que realizou o atendimento e ao restaurante, conforme a divisão configurada pelo restaurante;
-- **30% para a TIPE**, como taxa da plataforma, para cobrir os custos de processamento e operação da gorjeta.
+- 70% para o garçom e o restaurante, repassados quinzenalmente pela TIPE ao garçom que realizou o atendimento e ao restaurante, conforme a divisão configurada pelo restaurante;
+- 30% para a TIPE, como taxa da plataforma, para cobrir os custos de processamento e operação da gorjeta.
 
 Na tela da gorjeta, o link "Como funciona a gorjeta?" traz esta explicação antes de você confirmar. As tarifas do meio de pagamento e os tributos sobre a parte da TIPE são pagos pela TIPE e não reduzem a parte da equipe. Se preferir que 100% chegue à equipe, você pode dar a gorjeta diretamente ao garçom, fora da plataforma.
 

@@ -33,11 +33,11 @@ Ao site tipe.digital, à página da mesa acessada por QR Code, ao simulador, à 
 
 ## 3.4 Dados de clientes na mesa {#dados-de-clientes-na-mesa}
 
-- **Nome e sobrenome:** guardados no seu aparelho para retomar a conta. Vão ao servidor apenas quando você registra um pagamento.
-- **Pagamentos:** nome informado, itens pagos, valor, meio, status, data e horário.
-- **Avaliação e gorjeta extra:** nota dada ao atendimento e valor da gorjeta, quando houver.
-- **Não coletamos** CPF, telefone, e-mail, endereço ou senha de clientes na mesa.
-- **Dados de cartão e carteiras digitais** são tratados diretamente pelo Pagar.me e pelas carteiras (Apple Pay, Google Pay). A TIPE não tem acesso a eles.
+- Nome e sobrenome: guardados no seu aparelho para retomar a conta. Vão ao servidor apenas quando você registra um pagamento.
+- Pagamentos: nome informado, itens pagos, valor, meio, status, data e horário.
+- Avaliação e gorjeta extra: nota dada ao atendimento e valor da gorjeta, quando houver.
+- Não coletamos CPF, telefone, e-mail, endereço ou senha de clientes na mesa.
+- Dados de cartão e carteiras digitais são tratados diretamente pelo Pagar.me e pelas carteiras (Apple Pay, Google Pay). A TIPE não tem acesso a eles.
 
 ## 3.5 Dados de restaurantes e responsáveis {#dados-de-restaurantes-e-responsaveis}
 
@@ -48,9 +48,9 @@ Ao site tipe.digital, à página da mesa acessada por QR Code, ao simulador, à 
 
 ## 3.6 Dados da lista de espera {#dados-da-lista-de-espera}
 
-- **Etapa 1:** nome, cargo, WhatsApp, e-mail, nome do restaurante e cidade.
-- **Etapa 2, opcional:** bairro, Instagram do restaurante, tipo de casa, mesas, garçons, horários de pico, ticket médio, tempo de fechamento da conta, fila no pico, principais dificuldades, PDV e adquirente usados, conta no Pagar.me e como conheceu a TIPE.
-- **Origem da visita:** parâmetros UTM, página de origem, código de indicação, uso do simulador e números usados na calculadora.
+- Etapa 1: nome, cargo, WhatsApp, e-mail, nome do restaurante e cidade.
+- Etapa 2, opcional: bairro, Instagram do restaurante, tipo de casa, mesas, garçons, horários de pico, ticket médio, tempo de fechamento da conta, fila no pico, principais dificuldades, PDV e adquirente usados, conta no Pagar.me e como conheceu a TIPE.
+- Origem da visita: parâmetros UTM, página de origem, código de indicação, uso do simulador e números usados na calculadora.
 
 Usamos esses dados para contato comercial, demonstrações, priorizar o lançamento e decidir quais integrações construir primeiro. Novidades por WhatsApp e e-mail só com o seu aceite opcional, que pode ser retirado a qualquer momento.
 
