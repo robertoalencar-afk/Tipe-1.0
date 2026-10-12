@@ -15,6 +15,7 @@ summary: Você pode saber quais dados temos sobre você, corrigi-los, pedir a ex
 ## 6.1 Seus direitos pela LGPD {#seus-direitos-pela-lgpd}
 
 | Direito | O que significa |
+| --- | --- |
 | Confirmação e acesso | Saber se tratamos seus dados e receber uma cópia |
 | Correção | Corrigir dados incompletos, errados ou desatualizados |
 | Anonimização, bloqueio ou eliminação | Para dados desnecessários, excessivos ou tratados em desacordo com a lei |
@@ -28,10 +29,10 @@ summary: Você pode saber quais dados temos sobre você, corrigi-los, pedir a ex
 
 ## 6.2 Como fazer uma solicitação {#como-fazer-uma-solicitacao}
 
-- Acesse a página de solicitação de privacidade ou escreva para contato@tipe.digital.
-- Diga o que deseja e se você é cliente de restaurante, restaurante, colaborador ou outro.
-- Para clientes na mesa, informe também o restaurante, a data e o valor aproximado do pagamento. Como não pedimos e-mail na mesa, esses dados nos ajudam a localizar o registro.
-- Podemos pedir uma confirmação de identidade antes de responder, para proteger seus dados. Nunca pedimos senha.
+1. Acesse a página de solicitação de privacidade ou escreva para contato@tipe.digital.
+2. Diga o que deseja e se você é cliente de restaurante, restaurante, colaborador ou outro.
+3. Para clientes na mesa, informe também o restaurante, a data e o valor aproximado do pagamento. Como não pedimos e-mail na mesa, esses dados nos ajudam a localizar o registro.
+4. Podemos pedir uma confirmação de identidade antes de responder, para proteger seus dados. Nunca pedimos senha.
 
 O atendimento é gratuito.
 

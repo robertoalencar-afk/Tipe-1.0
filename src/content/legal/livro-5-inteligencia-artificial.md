@@ -15,6 +15,7 @@ summary: A TIPE usa IA em dois lugares: na Lebre, assistente do painel do restau
 ## 5.1 Onde usamos IA {#onde-usamos-ia}
 
 | Recurso | Quem usa | O que faz |
+| --- | --- | --- |
 | Lebre AI | Equipe do restaurante, no painel | Responde dúvidas, resume a operação, analisa fotos e PDFs e prepara ações |
 | Sugestão de divisão | Clientes na mesa | Sugere frações de um item a partir de um texto digitado, por exemplo "dividir a pizza entre 3" |
 

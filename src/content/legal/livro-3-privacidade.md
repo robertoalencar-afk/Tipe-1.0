@@ -23,6 +23,7 @@ Ao site tipe.digital, à página da mesa acessada por QR Code, ao simulador, à 
 ## 3.3 Papéis: controlador e operador {#papeis-controlador-e-operador}
 
 | Situação | Quem decide sobre os dados (controlador) | Papel da TIPE |
+| --- | --- | --- |
 | Conta da mesa, pedidos e pagamentos | O restaurante | Operadora: trata em nome do restaurante |
 | Cadastro e assinatura do restaurante | TIPE | Controladora |
 | Lista de espera e contato comercial | TIPE | Controladora |
@@ -32,11 +33,11 @@ Ao site tipe.digital, à página da mesa acessada por QR Code, ao simulador, à 
 
 ## 3.4 Dados de clientes na mesa {#dados-de-clientes-na-mesa}
 
-- Nome e sobrenome: guardados no seu aparelho para retomar a conta. Vão ao servidor apenas quando você registra um pagamento.
-- Pagamentos: nome informado, itens pagos, valor, meio, status, data e horário.
-- Avaliação e gorjeta extra: nota dada ao atendimento e valor da gorjeta, quando houver.
-- Não coletamos CPF, telefone, e-mail, endereço ou senha de clientes na mesa.
-- Dados de cartão e carteiras digitais são tratados diretamente pelo Pagar.me e pelas carteiras (Apple Pay, Google Pay). A TIPE não tem acesso a eles.
+- **Nome e sobrenome:** guardados no seu aparelho para retomar a conta. Vão ao servidor apenas quando você registra um pagamento.
+- **Pagamentos:** nome informado, itens pagos, valor, meio, status, data e horário.
+- **Avaliação e gorjeta extra:** nota dada ao atendimento e valor da gorjeta, quando houver.
+- **Não coletamos** CPF, telefone, e-mail, endereço ou senha de clientes na mesa.
+- **Dados de cartão e carteiras digitais** são tratados diretamente pelo Pagar.me e pelas carteiras (Apple Pay, Google Pay). A TIPE não tem acesso a eles.
 
 ## 3.5 Dados de restaurantes e responsáveis {#dados-de-restaurantes-e-responsaveis}
 
@@ -47,15 +48,15 @@ Ao site tipe.digital, à página da mesa acessada por QR Code, ao simulador, à 
 
 ## 3.6 Dados da lista de espera {#dados-da-lista-de-espera}
 
-- Etapa 1: nome, cargo, WhatsApp, e-mail, nome do restaurante e cidade.
-- Etapa 2, opcional: bairro, Instagram do restaurante, tipo de casa, mesas, garçons, horários de pico, ticket médio, tempo de fechamento da conta, fila no pico, principais dificuldades, PDV e adquirente usados, conta no Pagar.me e como conheceu a TIPE.
-- Origem da visita: parâmetros UTM, página de origem, código de indicação, uso do simulador e números usados na calculadora.
+- **Etapa 1:** nome, cargo, WhatsApp, e-mail, nome do restaurante e cidade.
+- **Etapa 2, opcional:** bairro, Instagram do restaurante, tipo de casa, mesas, garçons, horários de pico, ticket médio, tempo de fechamento da conta, fila no pico, principais dificuldades, PDV e adquirente usados, conta no Pagar.me e como conheceu a TIPE.
+- **Origem da visita:** parâmetros UTM, página de origem, código de indicação, uso do simulador e números usados na calculadora.
 
 Usamos esses dados para contato comercial, demonstrações, priorizar o lançamento e decidir quais integrações construir primeiro. Novidades por WhatsApp e e-mail só com o seu aceite opcional, que pode ser retirado a qualquer momento.
 
 ## 3.7 Dados de garçons e equipe {#dados-de-garcons-e-equipe}
 
-Nome de exibição, e-mail e perfil de acesso dos usuários da equipe; código e nome dos garçons vinculados a pedidos, mesas, avaliações e gorjetas; registro das ações feitas no sistema. Esses dados são usados para a operação, relatórios de desempenho do restaurante e auditoria.
+Nome de exibição, e-mail e perfil de acesso dos usuários da equipe; código e nome dos garçons vinculados a pedidos, mesas, avaliações e gorjetas; registro das ações feitas no sistema. Esses dados são usados para a operação, relatórios de desempenho do restaurante e auditoria. Para o repasse da gorjeta extra, a TIPE também trata o nome completo, o CPF e a chave Pix ou os dados bancários de cada garçom, informados pelo restaurante.
 
 ## 3.8 Dados técnicos e de segurança {#dados-tecnicos-e-de-seguranca}
 
@@ -64,6 +65,7 @@ Endereço IP, data e hora de acesso, tipo de navegador, tentativas negadas e exc
 ## 3.9 Finalidades e bases legais {#finalidades-e-bases-legais}
 
 | Finalidade | Base legal (LGPD) |
+| --- | --- |
 | Exibir a conta, registrar pagamentos e operar o painel | Execução de contrato (art. 7º, V) |
 | Registros financeiros, fiscais e de auditoria | Obrigação legal e exercício regular de direitos (art. 7º, II e VI) |
 | Guarda de registros de acesso | Obrigação legal (Marco Civil, art. 15) |
@@ -80,9 +82,10 @@ Endereço IP, data e hora de acesso, tipo de navegador, tentativas negadas e exc
 Não vendemos dados. Compartilhamos apenas o necessário com:
 
 | Destinatário | O que recebe | Por quê |
+| --- | --- | --- |
 | O restaurante onde você está | Pagamentos da mesa, avaliações | Operação da conta |
 | Pagar.me | Valor e dados da transação | Processar pagamentos digitais |
-| Provedor de nuvem: Lovable Cloud (infraestrutura Supabase) | Todos os dados da plataforma, armazenados | Hospedagem, banco de dados e autenticação |
+| Provedor de nuvem: Lovable Cloud (infraestrutura Supabase, servidores no Canadá) | Todos os dados da plataforma, armazenados | Hospedagem, banco de dados e autenticação |
 | Google | Dados de login, se você escolher entrar com Google; IP, ao carregar fontes | Autenticação e fontes do site |
 | Provedor de IA: Lovable AI (modelos Google Gemini e OpenAI) | Textos, áudios, imagens e arquivos enviados à Lebre; texto da sugestão de divisão | Recursos de IA (Livro 5) |
 | Meta e Google (medição) | Dados de navegação, só com consentimento | Medição e anúncios |
@@ -90,7 +93,7 @@ Não vendemos dados. Compartilhamos apenas o necessário com:
 
 ## 3.11 Transferência internacional {#transferencia-internacional}
 
-Alguns prestadores (nuvem, Google, Meta e IA) podem processar dados fora do Brasil. Essas transferências seguem o art. 33 da LGPD e a regulamentação da ANPD, com cláusulas contratuais adequadas. A lista de fornecedores e países pode ser solicitada ao encarregado (Livro 6).
+Alguns prestadores podem processar dados fora do Brasil: o banco de dados da TIPE fica hoje no Canadá, e Google, Meta e os provedores de IA podem operar em outros países. Essas transferências seguem o art. 33 da LGPD e a regulamentação da ANPD, com cláusulas contratuais adequadas. A lista de fornecedores e países pode ser solicitada ao encarregado (Livro 6).
 
 ## 3.12 Segurança {#seguranca}
 
@@ -99,6 +102,7 @@ Conexão criptografada (HTTPS); controle de acesso por restaurante e por perfil;
 ## 3.13 Retenção {#retencao}
 
 | Dado | Por quanto tempo | Motivo |
+| --- | --- | --- |
 | Nome na mesa, no seu aparelho | Até a mesa reabrir ou você limpar os dados do navegador | Retomar a conta |
 | Pagamentos, pedidos e registros financeiros | 5 anos após o fechamento da conta | Obrigações fiscais e defesa em processos |
 | Registros de acesso | 6 meses | Marco Civil, art. 15 |
