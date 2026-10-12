@@ -24,7 +24,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getPublicTable } from "@/lib/tipe/pdv.functions";
-import { createPayment, getPaymentConfig, getPaymentStatus, reopenClosedTable, submitRating, type SharedPayment } from "@/lib/tipe/payments.functions";
+import { createPayment, getPaymentByKey, getPaymentConfig, getPaymentStatus, reopenClosedTable, submitRating, type SharedPayment } from "@/lib/tipe/payments.functions";
 import { CardFields } from "@/components/tipe/CardFields";
 import { resolveServiceFee } from "@/lib/tipe/rules";
 import { cardValid, tokenizeCard, type CardInput } from "@/lib/tipe/pagarme-client";
@@ -294,12 +294,54 @@ function MesaPage() {
       setEtapa(tipo === "conta" ? (resultado.status === "approved" ? "conta-confirmada" : "conta-pendente") : "fim");
     } catch (error) {
       const msg = error instanceof Error ? error.message : "";
+      if (!navigator.onLine || error instanceof TypeError || /fetch|network|rede/i.test(msg)) {
+        // Queda de conexão: mantém a mesma chave e só libera nova tentativa após consultar o servidor.
+        tentativaOffline.current = tipo;
+        setSemConexao("offline");
+        return;
+      }
       if (/não está mais disponível|acabou de ser pago|foi atualizada/.test(msg)) chavePagamento.current = null;
       setErroPagamento(msg || "Não foi possível concluir o pagamento");
     } finally {
       setPagando(false);
     }
   }
+
+  const [semConexao, setSemConexao] = useState<"offline" | "verificando" | null>(null);
+  const tentativaOffline = useRef<"conta" | "gorjeta" | null>(null);
+  useEffect(() => {
+    const aoCair = () => { if (pagando || tentativaOffline.current) setSemConexao("offline"); };
+    const aoVoltar = async () => {
+      const tipo = tentativaOffline.current;
+      const chave = chavePagamento.current;
+      if (!tipo || !chave) { setSemConexao(null); return; }
+      setSemConexao("verificando");
+      for (let tentativa = 0; tentativa < 5; tentativa++) {
+        try {
+          const r = await getPaymentByKey({ data: { restaurantId: restaurante, tableId: String(dados.mesa), session: sessaoMesa, idempotencyKey: chave } });
+          await atualizarMesa();
+          tentativaOffline.current = null;
+          setSemConexao(null);
+          if (!r.found || r.status === "failed" || r.status === "cancelled") {
+            // Nada foi cobrado: pode tentar de novo. Se não chegou, a mesma chave segue protegendo contra duplicidade.
+            if (r.found) chavePagamento.current = null;
+            setErroPagamento("Seu pagamento não foi concluído. Nenhum valor foi cobrado. Você pode tentar de novo.");
+            return;
+          }
+          chavePagamento.current = null;
+          if (tipo === "conta") setValorPago(totalConta);
+          setQtds({});
+          setEtapa(tipo === "conta" ? (r.status === "approved" ? "conta-confirmada" : "conta-pendente") : "fim");
+          return;
+        } catch { await new Promise((ok) => window.setTimeout(ok, 2000)); }
+      }
+      setSemConexao("offline");
+    };
+    window.addEventListener("offline", aoCair);
+    window.addEventListener("online", aoVoltar);
+    if (semConexao === "offline" && navigator.onLine) void aoVoltar();
+    return () => { window.removeEventListener("offline", aoCair); window.removeEventListener("online", aoVoltar); };
+  }, [pagando, semConexao, restaurante, dados.mesa, sessaoMesa, atualizarMesa, totalConta]);
 
   useEffect(() => {
     if (etapa !== "pix" || !pix) return;
