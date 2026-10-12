@@ -18,7 +18,8 @@ import {
 import { transferTable } from "@/lib/tipe/admin.functions";
 import { getPdvIntegration, getTopItems, importMenuCsv } from "@/lib/tipe/pdv-integrations.functions";
 import { PixGarcons } from "@/components/tipe/PixGarcons";
-import { Caixa, Configuracoes, Cozinha, Inicio, Integracoes, Relatorios } from "@/components/tipe/AdminSections";
+import { Caixa, Configuracoes, Inicio, Integracoes, Relatorios } from "@/components/tipe/AdminSections";
+import { Cozinha } from "@/components/tipe/Kds";
 import { TotemStudio } from "@/components/tipe/TotemStudio";
 import { Assinatura } from "@/components/tipe/Assinatura";
 import { Recebimentos } from "@/components/tipe/Recebimentos";
@@ -27,6 +28,7 @@ import { Landmark } from "lucide-react";
 import { DesempenhoGarcons } from "@/components/tipe/DesempenhoGarcons";
 import { OnboardingPdv } from "@/components/tipe/OnboardingPdv";
 import { LebreAssistant } from "@/components/tipe/LebreAssistant";
+import { BalcaoCheckout, VendasBalcao } from "@/components/tipe/Balcao";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const hora = (s: string) => new Date(s).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
@@ -54,7 +56,7 @@ const statusInfo: Record<Status, { label: string; cls: string }> = {
 const secoes = [
   { k: "inicio", l: "Início", i: Home },
   { k: "salao", l: "Salão", i: LayoutGrid },
-  { k: "pdv", l: "Lançamento TIPE", i: ShoppingCart },
+  { k: "pdv", l: "Lançamento e balcão", i: ShoppingCart },
   { k: "cozinha", l: "Cozinha e bar", i: ChefHat },
   { k: "caixa", l: "Caixa", i: Wallet },
   { k: "cardapio", l: "Cardápio", i: UtensilsCrossed, dono: true },
@@ -237,8 +239,8 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
           </>
         )}
 
-        {aba === "pdv" && <LancarPedido slug={slug} pdv={pdv.data} mesa={mesaPedido} setMesa={setMesaPedido} onDone={refresh} />}
-        {aba === "cozinha" && <Cozinha slug={slug} />}
+        {aba === "pdv" && <LancarPedido slug={slug} pdv={pdv.data} mesa={mesaPedido} setMesa={setMesaPedido} podeBalcao={podeConfirmar} onDone={refresh} />}
+        {aba === "cozinha" && <Cozinha slug={slug} podePainel={podeConfirmar} />}
         {aba === "caixa" && <Caixa slug={slug} podeCaixa={podeConfirmar} confirmacoes={confirmacoes} />}
 
         {aba === "historico" && (
@@ -378,7 +380,7 @@ function MesaDetalhe({ slug, mesa, outras, payments, podeConfirmar, onLancar, on
   );
 }
 
-function LancarPedido({ slug, pdv, mesa, setMesa, onDone }: { slug: string; pdv: PdvData; mesa: string; setMesa: (m: string) => void; onDone: () => void }) {
+function LancarPedido({ slug, pdv, mesa, setMesa, podeBalcao, onDone }: { slug: string; pdv: PdvData; mesa: string; setMesa: (m: string) => void; podeBalcao: boolean; onDone: () => void }) {
   const launch = useServerFn(launchOrder);
   const fetchTop = useServerFn(getTopItems);
   const top = useQuery({ queryKey: ["top-items", slug], queryFn: () => fetchTop({ data: { slug } }), staleTime: 300000 });
@@ -388,6 +390,9 @@ function LancarPedido({ slug, pdv, mesa, setMesa, onDone }: { slug: string; pdv:
   const [obs, setObs] = useState<Record<string, string>>({});
   const [cat, setCat] = useState<string>("");
   const [enviando, setEnviando] = useState(false);
+  // Mesa: lança na conta da mesa. Balcão: cobra na hora e gera senha (fast-food, retirada).
+  const [modo, setModo] = useState<"mesa" | "balcao">("mesa");
+  const balcao = modo === "balcao" && podeBalcao;
   const ativos = pdv.waiters.filter((w) => w.active);
   const mesasAtivas = pdv.tables.filter((t) => t.active);
 
@@ -452,15 +457,25 @@ function LancarPedido({ slug, pdv, mesa, setMesa, onDone }: { slug: string; pdv:
         })}
       </div>
       <aside className="h-fit space-y-3 rounded-2xl border border-border bg-card p-4 lg:sticky lg:top-4">
-        <h3 className="font-semibold">Comanda</h3>
-        <select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={mesa} onChange={(e) => setMesa(e.target.value)}>
-          <option value="">Escolha a mesa</option>
-          {mesasAtivas.map((t) => <option key={t.id} value={t.number}>Mesa {t.number}</option>)}
-        </select>
-        <select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={garcom} onChange={(e) => setGarcom(e.target.value)}>
-          <option value="">Escolha o garçom</option>
-          {ativos.map((w) => <option key={w.id} value={w.id}>{w.code} · {w.name}</option>)}
-        </select>
+        {podeBalcao ? (
+          <div className="grid grid-cols-2 gap-1 rounded-xl bg-muted p-1" role="tablist" aria-label="Tipo de venda">
+            {([["mesa", "Mesa"], ["balcao", "Balcão / senha"]] as const).map(([k, l]) => (
+              <button key={k} role="tab" aria-selected={modo === k} onClick={() => setModo(k)} className={`rounded-lg px-2 py-1.5 text-sm ${modo === k ? "bg-card font-semibold shadow-sm" : "text-muted-foreground"}`}>{l}</button>
+            ))}
+          </div>
+        ) : <h3 className="font-semibold">Comanda</h3>}
+        {!balcao && (
+          <>
+            <select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={mesa} onChange={(e) => setMesa(e.target.value)}>
+              <option value="">Escolha a mesa</option>
+              {mesasAtivas.map((t) => <option key={t.id} value={t.number}>Mesa {t.number}</option>)}
+            </select>
+            <select className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm" value={garcom} onChange={(e) => setGarcom(e.target.value)}>
+              <option value="">Escolha o garçom</option>
+              {ativos.map((w) => <option key={w.id} value={w.id}>{w.code} · {w.name}</option>)}
+            </select>
+          </>
+        )}
         {linhas.length === 0 ? <p className="text-sm text-muted-foreground">Toque nos itens do cardápio para adicionar.</p> : (
           <ul className="space-y-2 text-sm">
             {linhas.map(([code, n]) => {
@@ -482,8 +497,15 @@ function LancarPedido({ slug, pdv, mesa, setMesa, onDone }: { slug: string; pdv:
           </ul>
         )}
         <div className="flex justify-between border-t border-border pt-2 font-semibold"><span>Total</span><span>{brl(total)}</span></div>
-        <Button className="w-full" disabled={!mesa || !garcom || !linhas.length || enviando} onClick={enviar}>Enviar pedido</Button>
+        {balcao ? (
+          <BalcaoCheckout slug={slug} total={total}
+            linhas={linhas.map(([code, qty]) => ({ code, qty, ...(obs[code]?.trim() ? { notes: obs[code]!.trim() } : {}) }))}
+            onSold={() => { setCarrinho({}); setObs({}); onDone(); }} />
+        ) : (
+          <Button className="w-full" disabled={!mesa || !garcom || !linhas.length || enviando} onClick={enviar}>Enviar pedido</Button>
+        )}
       </aside>
+      {balcao && <div className="lg:col-span-2"><VendasBalcao slug={slug} podeCancelar={podeBalcao} /></div>}
     </div>
   );
 }

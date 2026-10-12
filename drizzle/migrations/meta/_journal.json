@@ -134,6 +134,13 @@
       "when": 1791802722307,
       "tag": "0018_subscription_owner_only",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1791805274518,
+      "tag": "0019_counter_sales_kds_ticket_board",
+      "breakpoints": true
     }
   ]
 }
