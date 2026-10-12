@@ -29,4 +29,4 @@
 - [ ] Alerta de pico de falhas de login (login acontece direto no serviço de autenticação; precisa de outra abordagem)
 
 ## Lebre no painel
-- [ ] Lebre deve conseguir fechar e liberar mesa (com confirmação) e explicar quando uma gorjeta pendente trava a mesa
+- [x] Lebre deve conseguir fechar e liberar mesa (com confirmação) e explicar quando uma gorjeta pendente trava a mesa

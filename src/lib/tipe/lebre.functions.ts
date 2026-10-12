@@ -180,8 +180,10 @@ Se houver anexos (foto, comprovante, cardápio ou PDF), leia com atenção, desc
       const mesa = [...transcript.matchAll(/mesa\s+(\d{1,4})/gi)].pop()?.[1];
       if (mesa && /confirm|cadastr|abrir|ativar|fechar|desativar/i.test(answer + " " + data.question)) {
         const exists = (tables.data ?? []).find((t) => String(t.number) === mesa);
-        const close = /fechar|desativar/i.test(transcript.split("\n").slice(-3).join(" "));
-        action = ActionSchema.safeParse(exists ? { action: "set_table_active", number: mesa, active: !close } : { action: "add_table", number: mesa });
+        const recent = transcript.split("\n").slice(-3).join(" ");
+        const release = /liberar|encerrar|zerar|fechar (a )?conta|fechar e/i.test(recent);
+        const close = /fechar|desativar/i.test(recent);
+        action = ActionSchema.safeParse(!exists ? { action: "add_table", number: mesa } : release ? { action: "close_table", number: mesa } : { action: "set_table_active", number: mesa, active: !close });
       }
     }
     if (!action.success) return { answer };
@@ -210,6 +212,10 @@ export const executeLebreProposal = createServerFn({ method: "POST" })
       const { error } = await sb.from("restaurant_tables").insert({ restaurant_id: rid, number: a.number, code: `mesa${a.number.toLowerCase()}` });
       if (error) throw new Error(error.code === "23505" ? "Essa mesa já existe." : "Não foi possível cadastrar a mesa.");
       message = `Mesa ${a.number} cadastrada. O QR Code já está em Mesas e QR Codes.`;
+    } else if (a.action === "close_table") {
+      const { error } = await sb.rpc("pdv_close_table", { p_slug: data.slug, p_table: a.number });
+      if (error) throw new Error(error.message.includes("aguardando") ? `A mesa ${a.number} tem um pagamento presencial aguardando confirmação. Confirme ou recuse no painel e eu fecho em seguida.` : `Não foi possível fechar a mesa ${a.number}.`);
+      message = `Mesa ${a.number} fechada e liberada. Os pagamentos ficaram guardados no histórico.`;
     } else if (a.action === "set_table_active") {
       const { data: rows, error } = await sb.from("restaurant_tables").update({ active: a.active }).eq("restaurant_id", rid).eq("number", a.number).select("id");
       if (error) throw new Error("Não foi possível alterar a mesa.");
