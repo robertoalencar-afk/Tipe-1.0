@@ -15,6 +15,7 @@ import {
   Star,
   Users,
   WalletCards,
+  WifiOff,
 } from "lucide-react";
 import { TipeLogo } from "@/components/tipe/Logo";
 import { SplitPicker } from "@/components/tipe/SplitPicker";
@@ -362,6 +363,17 @@ function MesaPage() {
         {etapaVisivel !== "identificacao" && etapaVisivel !== "carregando" && <p className="mt-4 text-sm text-secondary-foreground/70">{dados.restaurante}</p>}
         {etapaVisivel !== "identificacao" && etapaVisivel !== "carregando" && <div className="mt-4 flex gap-2" aria-hidden>{["conta", "pagamento-conta", "fim"].map((passo, indice) => <span key={passo} className={`h-1.5 flex-1 rounded-full ${(["conta", "pagamento-conta", "pix", "conta-pendente", "conta-confirmada", "avaliacao", "gorjeta", "pagamento-gorjeta", "fim"].indexOf(etapaVisivel) >= indice) ? "bg-primary" : "bg-secondary-foreground/20"}`} />)}</div>}
       </header>
+
+      {semConexao && (
+        <div role="alertdialog" aria-live="assertive" aria-label="Sem conexão" className="fixed inset-0 z-50 flex items-end justify-center bg-background/80 p-4 backdrop-blur-sm sm:items-center">
+          <div className="w-full max-w-md rounded-3xl border border-border bg-card p-6 text-center shadow-lg">
+            <WifiOff className="mx-auto h-10 w-10 text-primary" aria-hidden />
+            <h2 className="mt-3 font-display text-xl font-bold">Sem conexão</h2>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">Seu pagamento não foi concluído ou está sendo confirmado. Não pague de novo.</p>
+            <p className="mt-4 text-xs font-semibold text-primary">{semConexao === "verificando" ? "Conexão de volta. Conferindo seu pagamento…" : "Assim que a internet voltar, vamos conferir o pagamento para você."}</p>
+          </div>
+        </div>
+      )}
 
       {erroMesa && (
         <main className="flex flex-1 flex-col items-center justify-center px-6 pb-24 text-center">
