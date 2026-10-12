@@ -300,6 +300,18 @@ export const getPaymentStatus = createServerFn({ method: "GET" })
     return { status: (p?.status ?? "failed") as "pending" | "approved" | "cancelled" | "failed" };
   });
 
+// Depois de uma queda de conexão: descobre se o pagamento daquela tentativa chegou ao servidor.
+export const getPaymentByKey = createServerFn({ method: "POST" })
+  .inputValidator((d) => TableInput.extend({ idempotencyKey: z.string().min(8).max(80).regex(/^[A-Za-z0-9_-]+$/) }).parse(d))
+  .handler(async ({ data }) => {
+    const { verifyTableSession } = await import("./security.server");
+    if (!(await verifyTableSession(data.restaurantId, data.tableId, data.session))) throw new Error("Sessão da mesa expirada");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: p } = await supabaseAdmin.from("table_payment_requests").select("id, status")
+      .eq("idempotency_key", data.idempotencyKey).eq("restaurant_slug", data.restaurantId).eq("table_number", data.tableId).maybeSingle();
+    return p ? { found: true as const, id: p.id as string, status: p.status as "pending" | "approved" | "cancelled" | "failed" } : { found: false as const };
+  });
+
 // Avaliação do atendimento: vinculada ao garçom atual da mesa (definido pelo servidor).
 export const submitRating = createServerFn({ method: "POST" })
   .inputValidator((d) => TableInput.extend({ stars: z.number().int().min(1).max(5), comment: z.string().trim().max(400).optional() }).parse(d))
