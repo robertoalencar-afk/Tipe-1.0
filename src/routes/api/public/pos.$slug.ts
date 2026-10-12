@@ -73,8 +73,10 @@ export const Route = createFileRoute("/api/public/pos/$slug")({
             }
             await log("ok", `Mesa ${body.table}: ${body.items.length} item(ns)`);
           } else {
-            const { count } = await a.admin.from("table_payment_requests").select("id", { count: "exact", head: true }).eq("restaurant_slug", a.slug).eq("table_number", body.table).eq("status", "pending");
+            const { count } = await a.admin.from("table_payment_requests").select("id", { count: "exact", head: true }).eq("restaurant_slug", a.slug).eq("table_number", body.table).eq("status", "pending").eq("payment_target", "restaurant");
             if (count) { await log("error", `Mesa ${body.table} com pagamento pendente`); return json({ error: "pending_payments" }, 409); }
+            // Gorjeta extra pendente não trava a conta do restaurante.
+            await a.admin.from("table_payment_requests").update({ status: "failed" }).eq("restaurant_slug", a.slug).eq("table_number", body.table).eq("status", "pending").eq("payment_target", "tipe");
             const { error: closeErr } = await a.admin.rpc("archive_and_reopen_table", { p_slug: a.slug, p_table: body.table });
             if (closeErr) { await log("error", `Mesa ${body.table} não encontrada`); return json({ error: "table_not_found" }, 404); }
             await log("ok", `Mesa ${body.table} fechada`);
