@@ -191,12 +191,13 @@ Se houver anexos (foto, comprovante, cardápio ou PDF), leia com atenção, desc
       }
     }
     if (!action.success) return { answer };
-    if (action.data.action === "add_table" || (action.data.action === "set_table_active" && action.data.active)) {
+    const ad = action.data;
+    if (ad.action === "add_table" || (ad.action === "set_table_active" && ad.active)) {
       const { tableLimitInfo, LIMIT_MESSAGE } = await import("./table-limit.server");
       const info = await tableLimitInfo(restaurant.id);
-      const exists = action.data.action === "set_table_active" && (tables.data ?? []).some((t) => t.number === action.data.number && t.active);
+      const exists = ad.action === "set_table_active" && (tables.data ?? []).some((t) => t.number === ad.number && t.active);
       if (!exists && info.active >= info.limit) {
-        await logSecurityEvent({ action: "table_limit_blocked", resource: `lebre:mesa:${action.data.number}`, result: "denied", restaurantSlug: data.slug, restaurantId: restaurant.id, actorId: context.userId, detail: `limite=${info.limit} ativas=${info.active}` });
+        await logSecurityEvent({ action: "table_limit_blocked", resource: `lebre:mesa:${ad.number}`, result: "denied", restaurantSlug: data.slug, restaurantId: restaurant.id, actorId: context.userId, detail: `limite=${info.limit} ativas=${info.active}` });
         return { answer: `${LIMIT_MESSAGE} Hoje vocês usam ${info.active} de ${info.limit} mesas do plano. ${canManage ? "Se quiser mais mesas, toque em \"Falar com a TIPE\" na tela de Mesas e QR Codes que a equipe ativa o upgrade na hora." : "Peça ao dono do restaurante para falar com a TIPE."}` };
       }
     }
