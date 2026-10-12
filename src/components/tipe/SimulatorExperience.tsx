@@ -123,7 +123,8 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
 
   const available = (id: string, qty: number) => roundPortion(Math.max(0, qty - (demo.paid[id] ?? 0) - (demo.reserved[id] ?? 0)));
   const subtotal = useMemo(() => ITEMS.reduce((sum, item) => sum + item.price * (quantities[item.id] ?? 0), 0), [quantities]);
-  const service = resolveServiceFee(subtotal, 0.1, { kind: "suggested" })!.amount;
+  const [feeWaived, setFeeWaived] = useState(false);
+  const service = resolveServiceFee(subtotal, feeWaived ? 0 : 0.1, { kind: "suggested" })!.amount;
   const total = +(subtotal + service).toFixed(2);
   const allSelected = ITEMS.every((item) => Math.abs((quantities[item.id] ?? 0) - available(item.id, item.qty)) < EPSILON);
   const pendingEstablishmentPayment = demo.payments.find((payment) => payment.status === "pending" && payment.establishmentMethod);
@@ -282,9 +283,12 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
               </ul>
               <div className="mt-6 rounded-2xl border border-border bg-card p-5 text-sm shadow-sm">
                 <Summary label="Subtotal selecionado" value={subtotal} />
-                <Summary label="Taxa de serviço (10%)" value={service} className="mt-2" />
+                <Summary label={feeWaived ? "Taxa de serviço removida pelo restaurante" : "Taxa de serviço (10%)"} value={service} className="mt-2" />
                 <Summary label="Total da conta" value={total} className="mt-3 border-t border-border pt-3 font-display text-base font-extrabold" />
               </div>
+              <button type="button" onClick={() => setFeeWaived((v) => !v)} className="mt-3 w-full text-center text-xs font-semibold text-muted-foreground underline underline-offset-4">
+                {feeWaived ? "Demonstração: voltar a taxa de serviço" : "Demonstração: restaurante remove a taxa desta mesa"}
+              </button>
               <Button disabled={subtotal <= 0} onClick={() => setStage("payment")} className="mt-5 h-12 w-full rounded-full font-display text-base font-bold">Continuar para pagamento <ChevronRight /></Button>
             </>
             )
