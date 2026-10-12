@@ -106,9 +106,6 @@ const formatPortion = (value: number) => {
 };
 
 function MesaPage() {
-  useEffect(() => {
-    for (const src of [mascotWaiting, mascotThanks, mascotRating, mascotTableClosed]) { const img = new Image(); img.src = src; }
-  }, []);
   const { restaurante, mesa: codigoMesa } = Route.useParams();
   const { t: tokenMesa } = Route.useSearch();
   type ItemMesa = { id: string; nome: string; qtd: number; preco: number; data: string; hora: string };
@@ -190,6 +187,15 @@ function MesaPage() {
     const intervalo = window.setInterval(() => void atualizarMesa(), 5000);
     return () => window.clearInterval(intervalo);
   }, [atualizarMesa]);
+
+  // Mascotes só depois que a conta aparece e o celular fica ocioso, para não disputar o 4G fraco.
+  useEffect(() => {
+    if (!mesaSincronizada) return;
+    const carregar = () => { for (const src of [mascotWaiting, mascotThanks, mascotRating, mascotTableClosed]) { const img = new Image(); img.src = src; } };
+    const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number };
+    const id = w.requestIdleCallback ? w.requestIdleCallback(carregar, { timeout: 8000 }) : window.setTimeout(carregar, 3000);
+    return () => { if (!w.requestIdleCallback) window.clearTimeout(id); };
+  }, [mesaSincronizada]);
 
   const subtotal = useMemo(
     () => dados.itens.reduce((soma, item) => soma + item.preco * (qtds[item.id] ?? 0), 0),

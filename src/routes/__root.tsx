@@ -134,6 +134,8 @@ function RootComponent() {
   // Atribuição (UTM/indicação) e medição só após consentimento.
   useEffect(() => {
     captureAttribution();
+    // Página da mesa do cliente fica sem scripts de medição para carregar rápido no 4G fraco.
+    if (/^\/(mesa\/)?[^/]+\/[^/]+$/.test(window.location.pathname) && !/^\/(legal|privacidade|_authenticated)\//.test(window.location.pathname)) return;
     loadMeasurement();
     const on = () => loadMeasurement();
     window.addEventListener("tipe:consent", on);
