@@ -199,6 +199,51 @@ export type Database = {
         }
         Relationships: []
       }
+      lebre_limits: {
+        Row: {
+          id: string
+          panel_daily: number
+          public_daily: number
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          id?: string
+          panel_daily?: number
+          public_daily?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          id?: string
+          panel_daily?: number
+          public_daily?: number
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      lebre_usage: {
+        Row: {
+          alerted80: boolean
+          day: string
+          hits: number
+          scope: string
+        }
+        Insert: {
+          alerted80?: boolean
+          day: string
+          hits?: number
+          scope: string
+        }
+        Update: {
+          alerted80?: boolean
+          day?: string
+          hits?: number
+          scope?: string
+        }
+        Relationships: []
+      }
       legal_acceptances: {
         Row: {
           accepted_at: string
@@ -1260,6 +1305,50 @@ export type Database = {
         }
         Relationships: []
       }
+      service_fee_waivers: {
+        Row: {
+          actor_id: string | null
+          actor_name: string | null
+          created_at: string
+          id: string
+          reason: string
+          restaurant_id: string
+          session_token: string
+          table_number: string
+          waived_amount: number
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_name?: string | null
+          created_at?: string
+          id?: string
+          reason: string
+          restaurant_id: string
+          session_token: string
+          table_number: string
+          waived_amount?: number
+        }
+        Update: {
+          actor_id?: string | null
+          actor_name?: string | null
+          created_at?: string
+          id?: string
+          reason?: string
+          restaurant_id?: string
+          session_token?: string
+          table_number?: string
+          waived_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_fee_waivers_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       staff_members: {
         Row: {
           created_at: string
@@ -1741,6 +1830,10 @@ export type Database = {
         Args: { _restaurant_id: string; _user_id: string }
         Returns: boolean
       }
+      lebre_consume: {
+        Args: { p_kind: string; p_scope: string }
+        Returns: Json
+      }
       next_payout_date: { Args: { p_after: string }; Returns: string }
       pdv_close_table: {
         Args: { p_slug: string; p_table: string }
@@ -1848,6 +1941,10 @@ export type Database = {
         }[]
       }
       waiter_request_withdrawal: { Args: { p_waiter: string }; Returns: string }
+      waive_service_fee: {
+        Args: { p_reason: string; p_slug: string; p_table: string }
+        Returns: number
+      }
     }
     Enums: {
       app_role: "founder" | "owner" | "cashier" | "waiter"

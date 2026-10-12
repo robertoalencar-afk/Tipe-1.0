@@ -113,6 +113,13 @@
       "when": 1791768395332,
       "tag": "0015_close_table_ignore_tip_pending",
       "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1791801922237,
+      "tag": "0016_lebre_limits_and_fee_waivers",
+      "breakpoints": true
     }
   ]
 }
