@@ -9,7 +9,7 @@ effective: 07/10/2026
 audience: cliente
 icon: receipt
 readingMinutes: 6
-summary: Você lê o QR Code, confere a conta, escolhe o que vai pagar e paga. O restaurante é responsável pela comida, pelos preços e pela nota fiscal. A TIPE é a tecnologia que leva a conta até o seu celular. Confira a conta antes de pagar e, se algo estiver errado, fale com o garçom. A gorjeta extra é sempre opcional e voluntária. O valor é recebido integralmente pela TIPE e distribuído posteriormente: 70% para a equipe e 30% para a TIPE como taxa de serviço da plataforma. A tela de pagamento mostra o valor total que você escolheu enviar.
+summary: Você lê o QR Code, confere a conta, escolhe o que vai pagar e paga. O restaurante é responsável pela comida, pelos preços e pela nota fiscal. A TIPE é a tecnologia que leva a conta até o seu celular. Confira a conta antes de pagar e, se algo estiver errado, fale com o garçom. A gorjeta extra é sempre opcional: 70% vai para o garçom e o restaurante e 30% fica com a TIPE como taxa da plataforma.
 ---
 
 ## 1.1 O que é a TIPE {#o-que-e-a-tipe}
@@ -51,13 +51,14 @@ A TIPE não cobra nenhuma tarifa do cliente pelo pagamento da conta. A TIPE não
 
 ## 1.7 Gorjeta extra {#gorjeta-extra}
 
-A gorjeta extra é opcional e voluntária, e aparece depois da avaliação do atendimento. Ela é diferente da taxa de serviço, que é lançada pelo restaurante na conta e segue as regras dele.
+A gorjeta extra é opcional e voluntária, e aparece depois da avaliação do atendimento. Ela é diferente da taxa de serviço, que é definida pelo restaurante e aparece na conta no percentual configurado por ele. Dúvidas sobre a taxa de serviço devem ser tratadas com o restaurante.
 
-A gorjeta extra é paga exclusivamente por meio digital e processada pela TIPE. Do valor total escolhido pelo cliente, 70% são destinados à equipe do restaurante e 30% ficam com a TIPE como taxa da plataforma, cobrindo custos operacionais, tecnológicos e de processamento.
+A gorjeta extra é paga apenas por meio digital. A TIPE recebe o valor e faz a divisão:
 
-O repasse da parcela da equipe é realizado periodicamente pela TIPE conforme as regras operacionais da plataforma e os registros do atendimento.
+- 70% para o garçom e o restaurante, repassados quinzenalmente pela TIPE ao garçom que realizou o atendimento e ao restaurante, conforme a divisão configurada pelo restaurante;
+- 30% para a TIPE, como taxa da plataforma, para cobrir os custos de processamento e operação da gorjeta.
 
-Antes da confirmação, a tela exibe o valor total da gorjeta selecionada. As tarifas do meio de pagamento e os tributos incidentes sobre a remuneração da plataforma são suportados pela TIPE. Caso prefira que o valor chegue integralmente e de forma imediata à equipe, você pode entregar a gorjeta física diretamente ao garçom, fora do sistema.
+Na tela da gorjeta, o link "Como funciona a gorjeta?" traz esta explicação antes de você confirmar. As tarifas do meio de pagamento e os tributos sobre a parte da TIPE são pagos pela TIPE e não reduzem a parte da equipe. Se preferir que 100% chegue à equipe, você pode dar a gorjeta diretamente ao garçom, fora da plataforma.
 
 ## 1.8 Erros, cancelamentos e estornos {#erros-cancelamentos-e-estornos}
 

@@ -19,6 +19,7 @@ Cookies e tecnologias semelhantes, como o armazenamento local do navegador (loca
 ## 4.2 Categorias {#categorias}
 
 | Categoria | Para quê | Precisa do seu aceite? |
+| --- | --- | --- |
 | Necessários | Funcionamento da mesa, login, segurança e registro das suas escolhas de privacidade | Não. Ficam sempre ativos |
 | Funcionais | Lembrar a origem da visita e a indicação até você se cadastrar | Não. Baseados em legítimo interesse, sem rastreamento entre sites |
 | Medição | Entender quantas pessoas visitam o site e quais páginas usam | Sim |
@@ -27,15 +28,16 @@ Cookies e tecnologias semelhantes, como o armazenamento local do navegador (loca
 ## 4.3 Inventário {#inventario}
 
 | Nome | Fornecedor | Categoria | Finalidade | Tipo | Duração |
-| tipe:mesa:… | TIPE | Necessário | Lembrar o seu nome na mesa | localStorage | Até a mesa reabrir ou você limpar os dados |
+| --- | --- | --- | --- | --- | --- |
+| tipe:cliente:… | TIPE | Necessário | Lembrar o seu nome na mesa | localStorage | Até a mesa reabrir ou você limpar os dados |
 | sb-…-auth-token | TIPE / autenticação | Necessário | Manter o login do restaurante | localStorage | Até sair ou a sessão expirar |
 | tipe:cadastro-pendente | TIPE | Necessário | Concluir o cadastro após confirmar o e-mail | localStorage | Até concluir |
 | tipe:privacy-consent | TIPE | Necessário | Guardar suas escolhas de cookies | localStorage | Até você alterar ou limpar |
-| tipe:simulador:mesa | TIPE | Necessário | Guardar a demonstração em /simulador | localStorage | Reinicia 2 min após encerrar |
+| Estado do simulador | TIPE | Necessário | Guardar a demonstração em /simulador | localStorage | Reinicia 2 min após encerrar |
 | tipe:attribution (UTM e indicação) | TIPE | Funcional | Guardar UTM e código de indicação até o cadastro | localStorage | 30 dias |
 | Login com Google | Google | Necessário, só se você usar | Autenticar | Cookies do Google | Definida pelo Google |
-| _ga, ga… | Google Analytics 4 | Medição | Contar visitas e uso de páginas | Cookie | Até 2 anos |
-| _fbp | Meta Pixel | Marketing | Medir resultado de anúncios | Cookie | 90 dias |
+| \_ga, *ga*… | Google Analytics 4 | Medição | Contar visitas e uso de páginas | Cookie | Até 2 anos |
+| \_fbp | Meta Pixel | Marketing | Medir resultado de anúncios | Cookie | 90 dias |
 
 Esta lista é revisada sempre que o site passa a gravar algo novo no seu navegador.
 

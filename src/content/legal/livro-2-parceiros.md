@@ -41,7 +41,7 @@ O Parceiro define quem acessa o painel e com qual perfil (dono, caixa ou garçom
 
 ## 2.7 Pagamentos digitais (Pagar.me) {#pagamentos-digitais-pagar-me}
 
-Os pagamentos digitais são processados pelo Pagar.me, na conta de pagamento do próprio Parceiro, contratada diretamente com o Pagar.me. Taxas, prazos de recebimento, antecipação, chargebacks e estornos seguem o contrato do Parceiro com o Pagar.me. A TIPE não recebe, não guarda e não repassa os valores das contas. As chaves de acesso do Parceiro ao Pagar.me são armazenadas de forma cifrada e usadas apenas para processar e consultar os pagamentos feitos pela TIPE. A cobrança da conta do estabelecimento é liquidada diretamente na conta do Parceiro no Pagar.me. A gorjeta extra, por sua vez, é transacionada pela conta de pagamentos da TIPE, que faz a apuração e o repasse dos 70% destinados à equipe segundo os ciclos informados no painel (seção 2.9).
+Os pagamentos digitais são processados pelo Pagar.me, na conta de pagamento do próprio Parceiro, contratada diretamente com o Pagar.me. Taxas, prazos de recebimento, antecipação, chargebacks e estornos seguem o contrato do Parceiro com o Pagar.me. A TIPE não recebe, não guarda e não repassa os valores das contas. As chaves de acesso do Parceiro ao Pagar.me são armazenadas de forma cifrada e usadas apenas para processar e consultar os pagamentos feitos pela TIPE. A única exceção é a gorjeta extra, que é recebida pela TIPE e repassada conforme a seção 2.9.
 
 ## 2.8 Pagamentos no estabelecimento {#pagamentos-no-estabelecimento}
 
@@ -49,11 +49,7 @@ Quando o cliente escolhe dinheiro ou maquininha, o pagamento fica pendente até 
 
 ## 2.9 Gorjeta extra {#gorjeta-extra}
 
-O Parceiro decide se habilita a opção de gorjeta extra aos clientes. Quando ativada, os valores de gorjeta são recebidos na conta de pagamentos da TIPE. Do total arrecadado, 70% são destinados aos profissionais que atenderam a mesa e 30% são retidos pela TIPE a título de remuneração da plataforma.
-
-Os repasses dos 70% da equipe ocorrem em ciclos quinzenais definidos pela plataforma, com base no relatório consolidado do painel. A TIPE arca com os custos dos meios de pagamento e tributos sobre a sua própria receita.
-
-O Parceiro acompanha em tempo real no painel as gorjetas atribuídas a cada colaborador ou equipe, cabendo ao estabelecimento a gestão e conformidade trabalhista local aplicável ao rateio de gorjetas. A taxa de serviço da conta continua sob gestão exclusiva do Parceiro.
+O Parceiro decide se oferece a gorjeta extra aos clientes. Quando ativada, a gorjeta extra é recebida pela TIPE, que retém 30% como taxa da plataforma e repassa os outros 70%, quinzenalmente, diretamente ao garçom que realizou o atendimento e ao Parceiro, conforme a divisão configurada pelo Parceiro no painel. O garçom pode acompanhar o seu saldo e solicitar o saque pelo painel a qualquer momento, mas o pagamento é feito sempre no ciclo de repasse quinzenal seguinte. As tarifas do meio de pagamento sobre a gorjeta e os tributos sobre a parte da TIPE são de responsabilidade da TIPE. O painel mostra as gorjetas por garçom e por período. A cada repasse, a TIPE envia ao Parceiro um relatório com os valores pagos a cada garçom. O Parceiro é responsável por manter atualizados no painel os dados de repasse de cada garçom, por lançar esses valores na folha de pagamento e pelo tratamento trabalhista e fiscal das gorjetas, conforme a Lei 13.419/2017 e a convenção coletiva aplicável. A taxa de serviço continua sob responsabilidade do Parceiro.
 
 ## 2.10 Responsabilidades do Parceiro {#responsabilidades-do-parceiro}
 
@@ -83,13 +79,13 @@ No plano anual, os totens com QR Code estão incluídos, sem custo adicional. No
 
 Para os dados dos clientes na mesa, dos pedidos e dos pagamentos, o Parceiro é o controlador e a TIPE é a operadora. Nessa condição, a TIPE se compromete a:
 
-- tratar os dados apenas para prestar o serviço e conforme as instruções do Parceiro dadas pela plataforma;
-- manter sigilo e exigir sigilo de quem tiver acesso;
-- adotar medidas de segurança técnicas e administrativas adequadas;
-- usar suboperadores (infraestrutura, autenticação, IA, pagamento) apenas na medida necessária, com obrigações equivalentes, e manter a lista atualizada no Livro 3, seção 3.10;
-- ajudar o Parceiro a atender pedidos de titulares;
-- comunicar ao Parceiro, sem demora injustificada, qualquer incidente de segurança que envolva esses dados;
-- ao fim do contrato, eliminar ou devolver os dados, salvo os que a lei obrigue a manter.
+1. tratar os dados apenas para prestar o serviço e conforme as instruções do Parceiro dadas pela plataforma;
+2. manter sigilo e exigir sigilo de quem tiver acesso;
+3. adotar medidas de segurança técnicas e administrativas adequadas;
+4. usar suboperadores (infraestrutura, autenticação, IA, pagamento) apenas na medida necessária, com obrigações equivalentes, e manter a lista atualizada no Livro 3, seção 3.10;
+5. ajudar o Parceiro a atender pedidos de titulares;
+6. comunicar ao Parceiro, sem demora injustificada, qualquer incidente de segurança que envolva esses dados;
+7. ao fim do contrato, eliminar ou devolver os dados, salvo os que a lei obrigue a manter.
 
 Para cadastro, assinatura, segurança, prevenção a fraudes e relacionamento comercial, a TIPE é controladora. A TIPE pode usar dados agregados e anonimizados para melhorar o serviço e produzir estatísticas, sem identificar o Parceiro ou os clientes.
 
