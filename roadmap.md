@@ -27,3 +27,6 @@
 - [x] Registro de violações da CSP
 - [ ] Trocar CSP para modo obrigatório após 7 dias sem violações legítimas (aguarda prazo)
 - [ ] Alerta de pico de falhas de login (login acontece direto no serviço de autenticação; precisa de outra abordagem)
+
+## Lebre no painel
+- [ ] Lebre deve conseguir fechar e liberar mesa (com confirmação) e explicar quando uma gorjeta pendente trava a mesa
