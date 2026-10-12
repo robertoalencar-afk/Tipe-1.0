@@ -106,6 +106,13 @@
       "when": 1791682506923,
       "tag": "0014_withdrawal_cycle_rules",
       "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1791768395332,
+      "tag": "0015_close_table_ignore_tip_pending",
+      "breakpoints": true
     }
   ]
 }

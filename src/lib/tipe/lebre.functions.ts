@@ -8,6 +8,7 @@ const Slug = z.string().min(1).max(64).regex(/^[a-z0-9-]+$/);
 export type LebreAction =
   | { action: "add_table"; number: string }
   | { action: "set_table_active"; number: string; active: boolean }
+  | { action: "close_table"; number: string }
   | { action: "add_waiter"; name: string; email?: string }
   | { action: "invite_waiter"; name: string; email: string }
   | { action: "set_item_available"; name: string; available: boolean };
@@ -89,6 +90,7 @@ export const askPublicLebre = createServerFn({ method: "POST" })
 const ActionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("add_table"), number: z.string().trim().min(1).max(8).regex(/^[0-9A-Za-z]+$/) }),
   z.object({ action: z.literal("set_table_active"), number: z.string().trim().min(1).max(8).regex(/^[0-9A-Za-z]+$/), active: z.boolean() }),
+  z.object({ action: z.literal("close_table"), number: z.string().trim().min(1).max(8).regex(/^[0-9A-Za-z]+$/) }),
   z.object({ action: z.literal("add_waiter"), name: z.string().trim().min(2).max(80), email: z.string().trim().toLowerCase().email().max(200).optional() }),
   z.object({ action: z.literal("invite_waiter"), name: z.string().trim().min(2).max(80), email: z.string().trim().toLowerCase().email().max(200) }),
   z.object({ action: z.literal("set_item_available"), name: z.string().trim().min(2).max(120), available: z.boolean() }),
@@ -102,6 +104,7 @@ function describe(a: LebreAction, restaurant: string): { title: string; summary:
     case "set_table_active": return a.active
       ? { title: `Abrir mesa ${a.number}`, summary: `Vou ativar a mesa ${a.number} para receber clientes pelo QR Code.` }
       : { title: `Desativar mesa ${a.number}`, summary: `Vou desativar a mesa ${a.number}. O QR Code dela deixa de abrir a conta.` };
+    case "close_table": return { title: `Fechar e liberar mesa ${a.number}`, summary: `Vou fechar a conta da mesa ${a.number}, guardar os pagamentos no histórico e deixar a mesa livre para novos clientes.` };
     case "add_waiter": return { title: `Cadastrar garçom ${a.name}`, summary: a.email ? `Vou cadastrar ${a.name} na equipe e enviar o convite para ${a.email} criar a senha.` : `Vou cadastrar ${a.name} na equipe. Depois você pode me passar o e-mail para eu enviar o convite.` };
     case "invite_waiter": return { title: `Convidar ${a.name}`, summary: `Vou ligar o e-mail ${a.email} ao garçom ${a.name} e enviar o convite para ele criar a senha.` };
     case "set_item_available": return a.available
@@ -130,21 +133,24 @@ export const askRestaurantLebre = createServerFn({ method: "POST" })
     const canManage = roleNames.includes("owner") || roleNames.includes("founder");
     const [tables, payments, items, waiters] = await Promise.all([
       context.supabase.from("restaurant_tables").select("number, active").eq("restaurant_id", restaurant.id),
-      context.supabase.from("table_payment_requests").select("status, amount").eq("restaurant_slug", data.slug).eq("payment_target", "restaurant"),
-      context.supabase.from("table_bill_items").select("ordered_quantity, paid_portion, unit_price").eq("restaurant_slug", data.slug),
+      context.supabase.from("table_payment_requests").select("status, amount, table_number").eq("restaurant_slug", data.slug).eq("payment_target", "restaurant"),
+      context.supabase.from("table_bill_items").select("table_number, ordered_quantity, paid_portion, unit_price").eq("restaurant_slug", data.slug),
       context.supabase.from("pdv_waiters").select("name, active, email").eq("restaurant_id", restaurant.id),
     ]);
     const openValue = (items.data ?? []).reduce((sum, item) => sum + Math.max(0, Number(item.ordered_quantity) - Number(item.paid_portion)) * Number(item.unit_price), 0);
     const pending = (payments.data ?? []).filter((payment) => payment.status === "pending");
+    const pendingTables = [...new Set(pending.map((p) => p.table_number))].join(", ") || "nenhuma";
+    const busyTables = [...new Set((items.data ?? []).map((i) => i.table_number))].join(", ") || "nenhuma";
     const tableList = (tables.data ?? []).map((t) => `${t.number}${t.active ? "" : " (inativa)"}`).join(", ") || "nenhuma";
     const waiterList = (waiters.data ?? []).map((w) => `${w.name}${w.email ? " (com acesso)" : " (sem acesso)"}${w.active ? "" : " inativo"}`).join(", ") || "nenhum";
-    const contextText = `Restaurante: ${restaurant.name}. Cargo do usuário: ${roleNames.join(", ")}. Mesas: ${tableList}. Garçons: ${waiterList}. Pagamentos pendentes: ${pending.length}. Valor aproximado em aberto, sem taxa: R$ ${openValue.toFixed(2)}. PDV: ${restaurant.pos_mode === "external" ? `externo, ${restaurant.pos_provider ?? "não informado"}` : "TIPE"}.`;
+    const contextText = `Restaurante: ${restaurant.name}. Cargo do usuário: ${roleNames.join(", ")}. Mesas: ${tableList}. Mesas com conta aberta: ${busyTables}. Mesas com pagamento presencial aguardando confirmação: ${pendingTables}. Garçons: ${waiterList}. Pagamentos pendentes: ${pending.length}. Valor aproximado em aberto, sem taxa: R$ ${openValue.toFixed(2)}. PDV: ${restaurant.pos_mode === "external" ? `externo, ${restaurant.pos_provider ?? "não informado"}` : "TIPE"}.`;
     const history = (data.history ?? []).map((m) => `${m.role === "user" ? "Usuário" : "Lebre"}: ${m.text}`).join("\n");
     const raw = await askModel(
       `Você é a Lebre, assistente operacional da TIPE. Fale em português brasileiro, pessoal, objetiva, sem travessões. Use só o contexto. Não revele dados pessoais nem invente números.
 Você pode PROPOR estas ações (o sistema mostra um botão para o usuário confirmar; você nunca diz que já executou):
 - add_table {number}: cadastrar mesa nova
-- set_table_active {number, active}: abrir/ativar (true) ou fechar/desativar (false) uma mesa existente
+- set_table_active {number, active}: ativar (true) ou desativar (false) o QR Code de uma mesa existente
+- close_table {number}: fechar a conta e liberar a mesa para novos clientes. Use quando pedirem "fechar e liberar", "encerrar a conta" ou "zerar a mesa". Se a mesa tiver pagamento presencial aguardando confirmação, explique que primeiro é preciso confirmar ou recusar esse pagamento no painel
 - add_waiter {name, email?}: cadastrar garçom novo, com e-mail opcional para convite
 - invite_waiter {name, email}: enviar convite de acesso a garçom já cadastrado
 - set_item_available {name, available}: pausar ou reativar item do cardápio
@@ -174,8 +180,10 @@ Se houver anexos (foto, comprovante, cardápio ou PDF), leia com atenção, desc
       const mesa = [...transcript.matchAll(/mesa\s+(\d{1,4})/gi)].pop()?.[1];
       if (mesa && /confirm|cadastr|abrir|ativar|fechar|desativar/i.test(answer + " " + data.question)) {
         const exists = (tables.data ?? []).find((t) => String(t.number) === mesa);
-        const close = /fechar|desativar/i.test(transcript.split("\n").slice(-3).join(" "));
-        action = ActionSchema.safeParse(exists ? { action: "set_table_active", number: mesa, active: !close } : { action: "add_table", number: mesa });
+        const recent = transcript.split("\n").slice(-3).join(" ");
+        const release = /liberar|encerrar|zerar|fechar (a )?conta|fechar e/i.test(recent);
+        const close = /fechar|desativar/i.test(recent);
+        action = ActionSchema.safeParse(!exists ? { action: "add_table", number: mesa } : release ? { action: "close_table", number: mesa } : { action: "set_table_active", number: mesa, active: !close });
       }
     }
     if (!action.success) return { answer };
@@ -204,6 +212,10 @@ export const executeLebreProposal = createServerFn({ method: "POST" })
       const { error } = await sb.from("restaurant_tables").insert({ restaurant_id: rid, number: a.number, code: `mesa${a.number.toLowerCase()}` });
       if (error) throw new Error(error.code === "23505" ? "Essa mesa já existe." : "Não foi possível cadastrar a mesa.");
       message = `Mesa ${a.number} cadastrada. O QR Code já está em Mesas e QR Codes.`;
+    } else if (a.action === "close_table") {
+      const { error } = await sb.rpc("pdv_close_table", { p_slug: data.slug, p_table: a.number });
+      if (error) throw new Error(error.message.includes("aguardando") ? `A mesa ${a.number} tem um pagamento presencial aguardando confirmação. Confirme ou recuse no painel e eu fecho em seguida.` : `Não foi possível fechar a mesa ${a.number}.`);
+      message = `Mesa ${a.number} fechada e liberada. Os pagamentos ficaram guardados no histórico.`;
     } else if (a.action === "set_table_active") {
       const { data: rows, error } = await sb.from("restaurant_tables").update({ active: a.active }).eq("restaurant_id", rid).eq("number", a.number).select("id");
       if (error) throw new Error("Não foi possível alterar a mesa.");
@@ -229,7 +241,7 @@ export const executeLebreProposal = createServerFn({ method: "POST" })
       const { grantWaiterAccessCore } = await import("./waiter-access.server");
       await grantWaiterAccessCore({ restaurantId: rid, slug: data.slug, waiterId: found[0]!.id, email: a.email, actorId: context.userId });
       message = `Convite enviado para ${a.email}. ${found[0]!.name} vai receber o link para criar a senha.`;
-    } else {
+    } else if (a.action === "set_item_available") {
       const { data: found } = await sb.from("pdv_menu_items").select("id, name").eq("restaurant_id", rid).ilike("name", `%${a.name}%`).limit(2);
       if (!found?.length) throw new Error(`Não encontrei "${a.name}" no cardápio.`);
       if (found.length > 1) throw new Error(`Encontrei mais de um item com "${a.name}". Seja mais específico.`);
