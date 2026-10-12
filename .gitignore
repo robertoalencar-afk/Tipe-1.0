@@ -33,3 +33,21 @@ dist-ssr
 
 # Metadados internos do editor
 .lovable/
+
+# Ambiente e credenciais (nunca versionar valores)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*.json
+service-account*.json
+*secret*.json
+# Backups e exportações de banco
+*.sql.gz
+*.dump
+*.backup
+*.bak
+backups/

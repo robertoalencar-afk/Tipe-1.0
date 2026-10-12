@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { getPanelData, inviteStaff, removeStaff, resolvePayment, type StaffRole } from "@/lib/tipe/staff.functions";
 import {
-  addTable, addTablesBulk, closeTable, getPdvData, launchOrder, saveCategory, saveMenuItem, saveWaiter, updateTable, voidItem,
+  addTable, addTablesBulk, closeTable, waiveServiceFee, getPdvData, launchOrder, saveCategory, saveMenuItem, saveWaiter, updateTable, voidItem,
 } from "@/lib/tipe/pdv.functions";
 import { transferTable } from "@/lib/tipe/admin.functions";
 import { getPdvIntegration, getTopItems, importMenuCsv } from "@/lib/tipe/pdv-integrations.functions";
@@ -295,6 +295,7 @@ function MesaDetalhe({ slug, mesa, outras, payments, podeConfirmar, onLancar, on
   const estornar = useServerFn(voidItem);
   const fechar = useServerFn(closeTable);
   const transferir = useServerFn(transferTable);
+  const removerTaxa = useServerFn(waiveServiceFee);
   const [ocupado, setOcupado] = useState(false);
   const [destino, setDestino] = useState("");
   async function run(fn: () => Promise<unknown>, ok: string) {
@@ -351,6 +352,13 @@ function MesaDetalhe({ slug, mesa, outras, payments, podeConfirmar, onLancar, on
             if (!window.confirm(`Fechar a mesa ${mesa.number}? Os pagamentos serão arquivados e a mesa ficará livre para uma nova conta.`)) return;
             void run(() => fechar({ data: { slug, table: mesa.number } }), "Mesa fechada e liberada");
           }}>Fechar e liberar mesa</Button>
+        )}
+        {podeConfirmar && mesa.itens.length > 0 && (
+          <Button size="sm" variant="outline" disabled={ocupado} onClick={() => {
+            const reason = window.prompt(`Motivo para remover a taxa de serviço da mesa ${mesa.number}:`);
+            if (!reason || reason.trim().length < 3) { if (reason !== null) toast.error("Informe o motivo (mín. 3 letras)"); return; }
+            void run(() => removerTaxa({ data: { slug, table: mesa.number, reason } }), "Taxa de serviço removida desta mesa");
+          }}>Remover taxa desta mesa</Button>
         )}
         {mesa.itens.length > 0 && payments.length === 0 && mesa.status !== "inativa" && (
           <div className="flex w-full items-center gap-2 border-t border-border pt-3">

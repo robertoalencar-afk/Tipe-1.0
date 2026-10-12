@@ -2,6 +2,7 @@ import { FounderMfaGate } from "@/components/tipe/FounderMfaGate";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { LebreLimits } from "@/components/tipe/LebreLimits";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Activity, Banknote, Building2, CheckCircle2, CircleDollarSign, Headphones, LayoutDashboard, LogOut, Plus, Search, ShieldCheck, Store, TriangleAlert, Users, Wallet } from "lucide-react";
@@ -144,6 +145,7 @@ function Backoffice() {
                   <DataPanel title="Solicitações de privacidade" subtitle={`${overview.kpis.openPrivacy} em aberto`}>{overview.privacy.length === 0 ? <Empty text="Nenhuma solicitação." /> : overview.privacy.map((item) => <div key={item.id} className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 border-t border-border py-3 first:border-0 first:pt-0"><div className="min-w-0"><p className="truncate font-semibold">{item.name}</p><p className="truncate text-xs text-muted-foreground">{item.request_type} · {item.email}</p></div><Badge variant="secondary" className="h-fit shrink-0">{item.status}</Badge></div>)}</DataPanel>
                   <DataPanel title="Eventos de segurança" subtitle="Registro recente da plataforma">{overview.security.length === 0 ? <Empty text="Nenhum evento recente." /> : overview.security.map((event) => <div key={event.id} className="border-t border-border py-3 first:border-0 first:pt-0"><div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3"><div className="min-w-0"><p className="truncate font-semibold">{event.action}</p><p className="truncate text-xs text-muted-foreground">{event.restaurant_slug ?? "Plataforma"}</p></div><Badge variant={event.result === "denied" ? "destructive" : "secondary"} className="h-fit shrink-0">{event.result}</Badge></div><p className="mt-1 text-xs text-muted-foreground">{dateTime(event.created_at)}</p></div>)}</DataPanel>
                 </div>
+                <LebreLimits />
                 <DataPanel title="Equipe de atendimento" subtitle="Visão consolidada de acessos e gorjetas"><SearchField value={search} onChange={setSearch} placeholder="Buscar garçom, e-mail ou restaurante" /><div className="mt-3 divide-y divide-border">{waiters.slice(0, 20).map((waiter) => <div key={waiter.id} className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-3"><div className="min-w-0"><p className="truncate font-semibold">{waiter.name}</p><p className="truncate text-xs text-muted-foreground">{waiter.restaurant} · {waiter.email ?? "sem e-mail"}</p></div><div className="shrink-0 text-right"><p className="text-sm font-semibold">{brl(waiter.tips30)}</p><p className="text-xs text-muted-foreground">30 dias</p></div></div>)}</div></DataPanel>
               </TabsContent>
             </>}

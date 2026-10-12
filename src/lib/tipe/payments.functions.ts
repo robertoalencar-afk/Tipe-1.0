@@ -81,7 +81,12 @@ export const createPayment = createServerFn({ method: "POST" })
         itemQuantities[item.item_code] = qty;
       }
       if (subtotal <= 0) throw new Error("Nenhum item disponível para pagamento");
-      const suggestedRate = Number((rest as { service_rate?: number } | null)?.service_rate ?? SERVICE_FEE);
+      // Taxa removida pelo restaurante para esta conta (vale até a mesa ser reaberta).
+      const restId = (rest as { id?: string } | null)?.id;
+      const { data: tbl } = await supabaseAdmin.from("restaurant_tables").select("session_token" as never).eq("restaurant_id", restId ?? "").eq("number", data.tableId).maybeSingle() as unknown as { data: { session_token: string } | null };
+      const { data: waiver } = tbl ? await supabaseAdmin.from("service_fee_waivers").select("id").eq("restaurant_id", restId ?? "").eq("table_number", data.tableId).eq("session_token", tbl.session_token).limit(1) : { data: [] };
+      const waived = (waiver ?? []).length > 0;
+      const suggestedRate = waived ? 0 : Number((rest as { service_rate?: number } | null)?.service_rate ?? SERVICE_FEE);
       // A taxa é definida pelo restaurante; qualquer escolha vinda do navegador é recusada.
       const raw = data.serviceFee ?? { kind: "suggested" as const };
       const fee = raw.kind === "suggested" ? resolveServiceFee(subtotal, suggestedRate, { kind: "suggested" }) : null;

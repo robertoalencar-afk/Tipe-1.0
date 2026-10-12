@@ -19,8 +19,14 @@ const errorMiddleware = createMiddleware().server(async ({ next, request }) => {
   }
 });
 
-// Cabeçalhos de segurança. CSP limitada a diretivas que não quebram
-// Supabase/Google/Lovable (frame-ancestors permite apenas o editor Lovable).
+// Cabeçalhos de segurança. frame-ancestors: só a própria TIPE, a prévia exata
+// deste projeto e o editor Lovable. Sem curingas de outros apps.
+const FRAME_ANCESTORS = [
+  "'self'",
+  "https://lovable.dev",
+  "https://id-preview--109e2366-b3e7-4b22-b1bb-eec1756f0b89.lovable.app",
+  "https://109e2366-b3e7-4b22-b1bb-eec1756f0b89.lovableproject.com",
+].join(" ");
 const securityHeadersMiddleware = createMiddleware().server(async ({ next, request }) => {
   if (new URL(request.url).pathname.startsWith("/lovable/")) return next();
   const result = await next();
@@ -30,7 +36,7 @@ const securityHeadersMiddleware = createMiddleware().server(async ({ next, reque
     h.set("Referrer-Policy", "strict-origin-when-cross-origin");
     h.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
     h.set("Permissions-Policy", "camera=(self), microphone=(self), geolocation=(), payment=(self)");
-    h.set("Content-Security-Policy", "frame-ancestors 'self' https://*.lovable.app https://*.lovable.dev https://lovable.dev https://*.lovableproject.com; object-src 'none'; base-uri 'self'; form-action 'self'");
+    h.set("Content-Security-Policy", `frame-ancestors ${FRAME_ANCESTORS}; object-src 'none'; base-uri 'self'; form-action 'self'`);
     h.set(
       "Content-Security-Policy-Report-Only",
       "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://connect.facebook.net https://pay.google.com https://applepay.cdn-apple.com https://assets.pagar.me; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.pagar.me https://*.google-analytics.com https://www.googletagmanager.com https://www.facebook.com https://ai.gateway.lovable.dev; frame-src 'self' https://pay.google.com https://*.pagar.me; object-src 'none'; base-uri 'self'; report-uri /api/public/csp-report",

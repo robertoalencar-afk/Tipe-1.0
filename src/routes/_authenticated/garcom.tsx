@@ -121,9 +121,11 @@ function AreaGarcom() {
                     <li>• As gorjetas são somadas por quinzena: do dia 1 ao 15 e do dia 16 ao fim do mês.</li>
                     <li>• Você pode pedir o saque a qualquer momento. O pedido só fica registrado.</li>
                     <li>• O Pix é feito pela TIPE no próximo dia de repasse (dia 1 ou 16). Nenhum saque é pago na hora.</li>
-                    <li>• Saque mínimo de R$ 10,00, um pedido por vez.</li>
+                    <li>• Um pedido de saque por vez.</li>
                   </ul>
-                  <Button className="mt-4 w-full" disabled={busy || d.balance.available < 10 || (!d.pix?.keyMasked && !d.pix?.pendingKeyMasked) || d.withdrawals.some((w) => w.status === "requested")} onClick={async () => {
+                  <p className="mt-4 rounded-xl bg-muted px-3 py-2 text-sm font-semibold">Saque mínimo: R$ 10,00</p>
+                  {d.balance.available < 10 && <p className="mt-2 text-xs text-muted-foreground">Seu saldo disponível ainda não chegou ao mínimo para saque.</p>}
+                  <Button className="mt-3 w-full" disabled={busy || d.balance.available < 10 || (!d.pix?.keyMasked && !d.pix?.pendingKeyMasked) || d.withdrawals.some((w) => w.status === "requested")} onClick={async () => {
                     setBusy(true);
                     try {
                       const r = await pedir();

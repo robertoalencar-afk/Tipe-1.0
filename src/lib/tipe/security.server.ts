@@ -50,6 +50,7 @@ export async function logSecurityEvent(e: { action: string; resource?: string | 
 
 const ALERT_TITLES: Record<string, string> = {
   pix_change: "Troca de chave Pix",
+  lebre_80: "Lebre perto do limite diário",
   role_change: "Mudança de papel de acesso",
   webhooks_denied: "Webhooks recusados em sequência",
   payment_limit: "Limite de pagamentos estourado",
@@ -89,7 +90,7 @@ export async function sendSecurityAlert(type: string, detail: string) {
   await db.from("security_alert_state").upsert({ alert_type: type, last_sent_at: new Date().toISOString(), suppressed_count: 0 });
   const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
   await sendTemplateEmail("security-alert", "roberto@tipe.digital", {
-    templateData: { title: ALERT_TITLES[type] ?? "Alerta de segurança", detail, count, at: new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }) },
+    templateData: { title: ALERT_TITLES[type.split(":")[0] ?? type] ?? "Alerta de segurança", detail, count, at: new Date().toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" }) },
   });
 }
 
@@ -116,4 +117,25 @@ export function safeEqual(a: string, b: string) {
   let x = 0;
   for (let i = 0; i < a.length; i++) x |= a.charCodeAt(i) ^ b.charCodeAt(i);
   return x === 0;
+}
+
+/**
+ * Teto diário da Lebre. kind "panel" conta por restaurante; "public" é global.
+ * Retorna mensagem educada quando o limite do dia foi atingido; alerta em 80%.
+ */
+export async function consumeLebreQuota(kind: "panel" | "public", restaurantSlug?: string): Promise<string | null> {
+  const db = await admin();
+  const scope = kind === "public" ? "public" : `panel:${restaurantSlug}`;
+  const { data, error } = await db.rpc("lebre_consume" as never, { p_scope: scope, p_kind: kind } as never);
+  if (error) { console.error("lebre_quota", error.message); return null; }
+  const r = data as { allowed: boolean; hits: number; limit: number; alert80: boolean };
+  const where = kind === "public" ? "Lebre pública (total do site)" : `Lebre do painel em ${restaurantSlug}`;
+  if (r.alert80) {
+    try { await sendSecurityAlert(`lebre_80:${scope}`, `${where} chegou a ${r.hits} de ${r.limit} mensagens hoje (80% do limite diário).`); } catch (e) { console.error("lebre_alert", e); }
+  }
+  if (!r.allowed) {
+    await logSecurityEvent({ action: "lebre_daily_limit", resource: scope, result: "denied", restaurantSlug });
+    return "Hoje eu já respondi todas as perguntas que podia por aqui. Meu limite do dia foi atingido e volto a responder amanhã. Se for urgente, fale com a equipe TIPE no WhatsApp.";
+  }
+  return null;
 }

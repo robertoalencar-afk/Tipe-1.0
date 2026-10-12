@@ -167,7 +167,8 @@ function MesaPage() {
         return { id: i.item_code, nome: i.item_name, qtd: i.ordered_quantity, preco: i.unit_price, data: d.toLocaleDateString("pt-BR"), hora: d.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }) };
       });
       setMetodosAceitos(estado.billMethods as Metodo[]);
-      setTaxaSugerida(estado.serviceRate);
+      setTaxaSugerida(estado.serviceWaived ? 0 : estado.serviceRate);
+      setTaxaRemovida(estado.serviceWaived);
       setDados({ restaurante: estado.restaurantName, mesa: estado.tableNumber, garcom: estado.waiterName, itens: itensMesa });
       setDisponiveis(Object.fromEntries(estado.items.map((item) => [item.item_code, roundPortion(Math.max(0, item.ordered_quantity - item.reserved_portion - item.paid_portion))])));
       setPagamentos(estado.payments);
@@ -194,6 +195,7 @@ function MesaPage() {
     [dados.itens, qtds],
   );
   const [taxaSugerida, setTaxaSugerida] = useState(0.1);
+  const [taxaRemovida, setTaxaRemovida] = useState(false);
   const servico = resolveServiceFee(subtotal, taxaSugerida, { kind: "suggested" })!.amount;
   const totalConta = +(subtotal + servico).toFixed(2);
   const mesaEncerrada = mesaSincronizada
@@ -434,7 +436,9 @@ function MesaPage() {
 
               <div className="mt-6 rounded-2xl border border-border bg-card p-5 text-sm shadow-sm">
                 <ResumoLinha label="Subtotal selecionado" valor={subtotal} />
-                <ResumoLinha label={`Taxa de serviço (${Math.round(taxaSugerida * 1000) / 10}%)`} valor={servico} className="mt-2" />
+                {taxaRemovida
+                  ? <ResumoLinha label="Taxa de serviço removida pelo restaurante" valor={0} className="mt-2" />
+                  : <ResumoLinha label={`Taxa de serviço (${Math.round(taxaSugerida * 1000) / 10}%)`} valor={servico} className="mt-2" />}
                 <ResumoLinha label="Total da conta" valor={totalConta} className="mt-3 border-t border-border pt-3 font-display text-base font-extrabold" />
               </div>
               <Button disabled={subtotal <= 0} onClick={() => setEtapa("pagamento-conta")} className="mt-5 h-12 w-full rounded-full font-display text-base font-bold">

@@ -55,14 +55,16 @@ export const getReports = createServerFn({ method: "GET" })
     const sb = context.supabase;
     const r = await rest(sb, data.slug);
     const since = new Date(Date.now() - data.days * 86400000).toISOString();
-    const [items, pays, arch, voids, waiters] = await Promise.all([
+    const [items, pays, arch, voids, waiters, waivers] = await Promise.all([
       sb.from("pdv_order_items").select("item_code, item_name, unit_price, quantity, created_at, pdv_orders(waiter_id, table_number)").eq("restaurant_id", r.id).gte("created_at", since).limit(5000),
       sb.from("table_payment_requests").select("payment_method, payment_target, amount, status, created_at, waiter_id, service_fee_amount").eq("restaurant_slug", data.slug).gte("created_at", since),
       sb.from("archived_payments").select("payment_method, payment_target, amount, status, created_at, waiter_id, service_fee_amount").eq("restaurant_slug", data.slug).gte("created_at", since),
       sb.from("pdv_voids").select("item_name, quantity, unit_price, reason, created_at").eq("restaurant_id", r.id).gte("created_at", since).order("created_at", { ascending: false }),
       sb.from("pdv_waiters").select("id, name").eq("restaurant_id", r.id),
+      sb.from("service_fee_waivers").select("table_number, reason, waived_amount, actor_name, created_at").eq("restaurant_id", r.id).gte("created_at", since).order("created_at", { ascending: false }),
     ]);
     return {
+      feeWaivers: (waivers.data ?? []).map((w) => ({ table: w.table_number, reason: w.reason, amount: Number(w.waived_amount), by: w.actor_name ?? "Equipe", at: w.created_at })),
       items: (items.data ?? []).map((i: any) => ({ code: i.item_code, name: i.item_name, price: Number(i.unit_price), qty: i.quantity, at: i.created_at, waiter: i.pdv_orders?.waiter_id as string | null, table: i.pdv_orders?.table_number as string })),
       payments: [...(pays.data ?? []), ...(arch.data ?? [])].filter((p) => p.status === "approved").map((p) => ({ method: p.payment_method, target: p.payment_target, amount: Number(p.amount), at: p.created_at, waiter: p.waiter_id as string | null, serviceFee: Number(p.service_fee_amount ?? 0) })),
       voids: (voids.data ?? []).map((v) => ({ ...v, unit_price: Number(v.unit_price) })),

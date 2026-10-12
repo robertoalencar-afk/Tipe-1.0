@@ -98,3 +98,34 @@ export const getFounderOverview = createServerFn({ method: "GET" })
       leads: leads.data ?? [], privacy: priv.data ?? [], security: sec.data ?? [],
     };
   });
+
+/** Teto diário da Lebre: leitura e ajuste (somente founder com 2FA). */
+export const getLebreLimits = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    await requireFounder(context);
+    const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
+    const day = new Date().toLocaleDateString("en-CA", { timeZone: "America/Sao_Paulo" });
+    const [lim, use] = await Promise.all([
+      db.from("lebre_limits").select("panel_daily, public_daily").eq("id", "default").maybeSingle(),
+      db.from("lebre_usage").select("scope, hits").eq("day", day).order("hits", { ascending: false }).limit(20),
+    ]);
+    return { panelDaily: lim.data?.panel_daily ?? 200, publicDaily: lim.data?.public_daily ?? 2000, today: use.data ?? [] };
+  });
+
+export const setLebreLimits = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d: { panelDaily: number; publicDaily: number }) => {
+    const ok = (n: number, max: number) => Number.isInteger(n) && n >= 1 && n <= max;
+    if (!ok(d.panelDaily, 100000) || !ok(d.publicDaily, 1000000)) throw new Error("Limite inválido");
+    return d;
+  })
+  .handler(async ({ data, context }) => {
+    await requireFounder(context);
+    const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
+    const { error } = await db.from("lebre_limits").update({ panel_daily: data.panelDaily, public_daily: data.publicDaily, updated_at: new Date().toISOString(), updated_by: context.userId }).eq("id", "default");
+    if (error) throw new Error("Não foi possível salvar os limites");
+    const { logSecurityEvent } = await import("./security.server");
+    await logSecurityEvent({ action: "lebre_limits_changed", resource: "lebre_limits", actorId: context.userId, detail: `painel=${data.panelDaily} publica=${data.publicDaily}` });
+    return { ok: true };
+  });

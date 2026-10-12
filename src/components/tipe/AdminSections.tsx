@@ -251,6 +251,12 @@ export function Relatorios({ slug }: { slug: string }) {
             <Lista t={`Taxa de serviço recebida: ${brl(taxaTotal)}`} rows={taxaPorGarcom} />
           </div>
           <Card>
+            <h3 className="mb-2 font-semibold">Taxas de serviço removidas: {brl(d?.feeWaivers.reduce((s, w) => s + w.amount, 0) ?? 0)}</h3>
+            {!d?.feeWaivers.length ? <p className="text-sm text-muted-foreground">Nenhuma taxa removida no período.</p> : (
+              <ul className="space-y-1 text-sm">{d.feeWaivers.map((w, i) => <li key={i} className="flex justify-between gap-2"><span>Mesa {w.table} · {w.reason} · por {w.by}</span><span className="shrink-0 text-muted-foreground">{brl(w.amount)} · {new Date(w.at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span></li>)}</ul>
+            )}
+          </Card>
+          <Card>
             <h3 className="mb-2 font-semibold">Estornos</h3>
             {!d?.voids.length ? <p className="text-sm text-muted-foreground">Nenhum estorno no período.</p> : (
               <ul className="space-y-1 text-sm">{d.voids.map((v, i) => <li key={i} className="flex justify-between gap-2"><span>{v.quantity}× {v.item_name} · {v.reason}</span><span className="text-muted-foreground">{hora(v.created_at)}</span></li>)}</ul>
