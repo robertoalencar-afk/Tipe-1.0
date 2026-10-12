@@ -3,6 +3,8 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { LebreLimits } from "@/components/tipe/LebreLimits";
+import { PlansAdmin } from "@/components/tipe/PlansAdmin";
+import { Layers } from "lucide-react";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Activity, Banknote, Building2, CheckCircle2, CircleDollarSign, Headphones, LayoutDashboard, LogOut, Plus, Search, ShieldCheck, Store, TriangleAlert, Users, Wallet } from "lucide-react";
@@ -38,6 +40,7 @@ const subscriptionLabels: Record<string, string> = { trialing: "Teste grátis", 
 const navigation = [
   { value: "overview", label: "Visão geral", icon: LayoutDashboard },
   { value: "clients", label: "Clientes", icon: Building2 },
+  { value: "plans", label: "Planos", icon: Layers },
   { value: "finance", label: "Financeiro", icon: Banknote },
   { value: "support", label: "Suporte", icon: Headphones },
   { value: "governance", label: "Governança", icon: ShieldCheck },
@@ -123,6 +126,11 @@ function Backoffice() {
                 <div className="grid gap-3 md:hidden">{restaurants.map((restaurant) => <RestaurantCard key={restaurant.id} restaurant={restaurant} />)}</div>
                 <div className="hidden overflow-x-auto rounded-lg border border-border bg-card md:block"><table className="w-full min-w-[900px] text-sm"><thead className="bg-muted/50 text-left text-xs text-muted-foreground"><tr>{["Cliente", "Assinatura", "Integração", "Estrutura", "Volume 30d", "Recebimentos"].map((heading) => <th key={heading} className="p-3 font-semibold">{heading}</th>)}</tr></thead><tbody>{restaurants.map((r) => <tr key={r.id} className="border-t border-border"><td className="p-3"><p className="font-semibold">{r.name}</p><p className="text-xs text-muted-foreground">{r.cnpj ?? "CNPJ não informado"} · desde {date(r.createdAt)}</p></td><td className="p-3"><Subscription status={r.subStatus} plan={r.plan} trialEndsAt={r.trialEndsAt} /></td><td className="p-3"><p>{r.pos}</p><p className={`text-xs ${r.onboarding === "done" ? "text-muted-foreground" : "text-destructive"}`}>{r.onboarding === "done" ? "Operando" : "Pendente"}</p></td><td className="p-3">{r.tables} mesas<br /><span className="text-xs text-muted-foreground">{r.waiters} garçons</span></td><td className="p-3">{brl(r.gmv30)}<br /><span className="text-xs text-muted-foreground">{r.payments30} pagamentos</span></td><td className="p-3"><ReceivingStatus status={r.payout} /></td></tr>)}</tbody></table></div>
                 <p className="text-xs text-muted-foreground">O Backoffice mostra somente dados administrativos e indicadores. A operação privada de cada restaurante permanece restrita à equipe autorizada.</p>
+              </TabsContent>
+
+              <TabsContent value="plans" className="mt-0 space-y-5">
+                <SectionHeader title="Planos e mesas" subtitle="Plano, limite de mesas, status, preço fundador e periodicidade de cada restaurante." />
+                <PlansAdmin />
               </TabsContent>
 
               <TabsContent value="finance" className="mt-0 space-y-5">
