@@ -14,6 +14,7 @@ export type PublicTable = {
   session: string;
   billMethods: string[];
   serviceRate: number;
+  serviceWaived: boolean;
   items: { item_code: string; item_name: string; unit_price: number; ordered_quantity: number; reserved_portion: number; paid_portion: number; ordered_at: string }[];
   payments: { id: string; customer_name: string; payment_method: string; status: "pending" | "approved" | "cancelled" | "failed"; amount: number; item_quantities: Record<string, number>; created_at: string; establishment_method: string | null; cash_received: number | null; change_due: number | null }[];
 };
@@ -38,12 +39,13 @@ export const getPublicTable = createServerFn({ method: "GET" })
       await logSecurityEvent({ action: "table_token_denied", resource: `mesa:${t.number}`, result: "denied", restaurantSlug: data.slug, restaurantId: r.id, detail: `ip=${clientIp()}` });
       return { error: "invalid_token" };
     }
-    const [items, payments, waiter] = await Promise.all([
+    const [items, payments, waiter, waiver] = await Promise.all([
       supabaseAdmin.from("table_bill_items").select("item_code, item_name, unit_price, ordered_quantity, reserved_portion, paid_portion, ordered_at")
         .eq("restaurant_slug", data.slug).eq("table_number", t.number).order("ordered_at"),
       supabaseAdmin.from("table_payment_requests").select("id, customer_name, payment_method, status, amount, item_quantities, created_at, establishment_method, cash_received, change_due")
         .eq("restaurant_slug", data.slug).eq("table_number", t.number).eq("payment_target", "restaurant").order("created_at", { ascending: false }),
       t.waiter_id ? supabaseAdmin.from("pdv_waiters").select("name").eq("id", t.waiter_id).maybeSingle() : Promise.resolve({ data: null }),
+      supabaseAdmin.from("service_fee_waivers").select("id").eq("restaurant_id", r.id).eq("table_number", t.number).eq("session_token", t.session_token).limit(1),
     ]);
     if (items.error || payments.error) throw new Error("Não foi possível atualizar a mesa");
     return {
@@ -52,6 +54,7 @@ export const getPublicTable = createServerFn({ method: "GET" })
       session: t.session_token,
       billMethods: (r as { bill_payment_methods?: string[] }).bill_payment_methods ?? ["pix", "apple_pay", "google_pay", "at_establishment"],
       serviceRate: Number((r as { service_rate?: number }).service_rate ?? 0.1),
+      serviceWaived: (waiver.data ?? []).length > 0,
       waiterName: (waiter.data as { name: string } | null)?.name?.split(" ")[0] ?? "",
       items: (items.data ?? []).map((i) => ({ ...i, unit_price: Number(i.unit_price), ordered_quantity: Number(i.ordered_quantity), reserved_portion: Number(i.reserved_portion), paid_portion: Number(i.paid_portion) })),
       payments: (payments.data ?? []).map((p) => ({ ...p, amount: Number(p.amount), cash_received: p.cash_received === null ? null : Number(p.cash_received), change_due: p.change_due === null ? null : Number(p.change_due), item_quantities: (p.item_quantities ?? {}) as Record<string, number> })) as PublicTable["payments"],
@@ -116,6 +119,16 @@ export const closeTable = createServerFn({ method: "POST" })
     const { error } = await context.supabase.rpc("pdv_close_table", { p_slug: data.slug, p_table: data.table });
     if (error) throw new Error(friendly(error.message, "Não foi possível fechar a mesa"));
     return { ok: true };
+  });
+
+/** Dono ou caixa remove a taxa de serviço da conta aberta da mesa (motivo obrigatório). */
+export const waiveServiceFee = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ slug: Slug, table: z.string().max(16), reason: z.string().trim().min(3).max(200) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { data: amount, error } = await context.supabase.rpc("waive_service_fee", { p_slug: data.slug, p_table: data.table, p_reason: data.reason });
+    if (error) throw new Error(friendly(error.message, "Não foi possível remover a taxa"));
+    return { amount: Number(amount ?? 0) };
   });
 
 export const addTable = createServerFn({ method: "POST" })
