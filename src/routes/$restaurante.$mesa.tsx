@@ -15,6 +15,7 @@ import {
   Star,
   Users,
   WalletCards,
+  WifiOff,
 } from "lucide-react";
 import { TipeLogo } from "@/components/tipe/Logo";
 import { SplitPicker } from "@/components/tipe/SplitPicker";
@@ -24,7 +25,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getPublicTable } from "@/lib/tipe/pdv.functions";
-import { createPayment, getPaymentConfig, getPaymentStatus, reopenClosedTable, submitRating, type SharedPayment } from "@/lib/tipe/payments.functions";
+import { createPayment, getPaymentByKey, getPaymentConfig, getPaymentStatus, reopenClosedTable, submitRating, type SharedPayment } from "@/lib/tipe/payments.functions";
 import { CardFields } from "@/components/tipe/CardFields";
 import { resolveServiceFee } from "@/lib/tipe/rules";
 import { cardValid, tokenizeCard, type CardInput } from "@/lib/tipe/pagarme-client";
@@ -105,9 +106,6 @@ const formatPortion = (value: number) => {
 };
 
 function MesaPage() {
-  useEffect(() => {
-    for (const src of [mascotWaiting, mascotThanks, mascotRating, mascotTableClosed]) { const img = new Image(); img.src = src; }
-  }, []);
   const { restaurante, mesa: codigoMesa } = Route.useParams();
   const { t: tokenMesa } = Route.useSearch();
   type ItemMesa = { id: string; nome: string; qtd: number; preco: number; data: string; hora: string };
@@ -189,6 +187,15 @@ function MesaPage() {
     const intervalo = window.setInterval(() => void atualizarMesa(), 5000);
     return () => window.clearInterval(intervalo);
   }, [atualizarMesa]);
+
+  // Mascotes só depois que a conta aparece e o celular fica ocioso, para não disputar o 4G fraco.
+  useEffect(() => {
+    if (!mesaSincronizada) return;
+    const carregar = () => { for (const src of [mascotWaiting, mascotThanks, mascotRating, mascotTableClosed]) { const img = new Image(); img.src = src; } };
+    const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number };
+    const id = w.requestIdleCallback ? w.requestIdleCallback(carregar, { timeout: 8000 }) : window.setTimeout(carregar, 3000);
+    return () => { if (!w.requestIdleCallback) window.clearTimeout(id); };
+  }, [mesaSincronizada]);
 
   const subtotal = useMemo(
     () => dados.itens.reduce((soma, item) => soma + item.preco * (qtds[item.id] ?? 0), 0),
@@ -294,12 +301,54 @@ function MesaPage() {
       setEtapa(tipo === "conta" ? (resultado.status === "approved" ? "conta-confirmada" : "conta-pendente") : "fim");
     } catch (error) {
       const msg = error instanceof Error ? error.message : "";
+      if (!navigator.onLine || error instanceof TypeError || /fetch|network|rede/i.test(msg)) {
+        // Queda de conexão: mantém a mesma chave e só libera nova tentativa após consultar o servidor.
+        tentativaOffline.current = tipo;
+        setSemConexao("offline");
+        return;
+      }
       if (/não está mais disponível|acabou de ser pago|foi atualizada/.test(msg)) chavePagamento.current = null;
       setErroPagamento(msg || "Não foi possível concluir o pagamento");
     } finally {
       setPagando(false);
     }
   }
+
+  const [semConexao, setSemConexao] = useState<"offline" | "verificando" | null>(null);
+  const tentativaOffline = useRef<"conta" | "gorjeta" | null>(null);
+  useEffect(() => {
+    const aoCair = () => { if (pagando || tentativaOffline.current) setSemConexao("offline"); };
+    const aoVoltar = async () => {
+      const tipo = tentativaOffline.current;
+      const chave = chavePagamento.current;
+      if (!tipo || !chave) { setSemConexao(null); return; }
+      setSemConexao("verificando");
+      for (let tentativa = 0; tentativa < 5; tentativa++) {
+        try {
+          const r = await getPaymentByKey({ data: { restaurantId: restaurante, tableId: String(dados.mesa), session: sessaoMesa, idempotencyKey: chave } });
+          await atualizarMesa();
+          tentativaOffline.current = null;
+          setSemConexao(null);
+          if (!r.found || r.status === "failed" || r.status === "cancelled") {
+            // Nada foi cobrado: pode tentar de novo. Se não chegou, a mesma chave segue protegendo contra duplicidade.
+            if (r.found) chavePagamento.current = null;
+            setErroPagamento("Seu pagamento não foi concluído. Nenhum valor foi cobrado. Você pode tentar de novo.");
+            return;
+          }
+          chavePagamento.current = null;
+          if (tipo === "conta") setValorPago(totalConta);
+          setQtds({});
+          setEtapa(tipo === "conta" ? (r.status === "approved" ? "conta-confirmada" : "conta-pendente") : "fim");
+          return;
+        } catch { await new Promise((ok) => window.setTimeout(ok, 2000)); }
+      }
+      setSemConexao("offline");
+    };
+    window.addEventListener("offline", aoCair);
+    window.addEventListener("online", aoVoltar);
+    if (semConexao === "offline" && navigator.onLine) void aoVoltar();
+    return () => { window.removeEventListener("offline", aoCair); window.removeEventListener("online", aoVoltar); };
+  }, [pagando, semConexao, restaurante, dados.mesa, sessaoMesa, atualizarMesa, totalConta]);
 
   useEffect(() => {
     if (etapa !== "pix" || !pix) return;
@@ -320,6 +369,17 @@ function MesaPage() {
         {etapaVisivel !== "identificacao" && etapaVisivel !== "carregando" && <p className="mt-4 text-sm text-secondary-foreground/70">{dados.restaurante}</p>}
         {etapaVisivel !== "identificacao" && etapaVisivel !== "carregando" && <div className="mt-4 flex gap-2" aria-hidden>{["conta", "pagamento-conta", "fim"].map((passo, indice) => <span key={passo} className={`h-1.5 flex-1 rounded-full ${(["conta", "pagamento-conta", "pix", "conta-pendente", "conta-confirmada", "avaliacao", "gorjeta", "pagamento-gorjeta", "fim"].indexOf(etapaVisivel) >= indice) ? "bg-primary" : "bg-secondary-foreground/20"}`} />)}</div>}
       </header>
+
+      {semConexao && (
+        <div role="alertdialog" aria-live="assertive" aria-label="Sem conexão" className="fixed inset-0 z-50 flex items-end justify-center bg-background/80 p-4 backdrop-blur-sm sm:items-center">
+          <div className="w-full max-w-md rounded-3xl border border-border bg-card p-6 text-center shadow-lg">
+            <WifiOff className="mx-auto h-10 w-10 text-primary" aria-hidden />
+            <h2 className="mt-3 font-display text-xl font-bold">Sem conexão</h2>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">Seu pagamento não foi concluído ou está sendo confirmado. Não pague de novo.</p>
+            <p className="mt-4 text-xs font-semibold text-primary">{semConexao === "verificando" ? "Conexão de volta. Conferindo seu pagamento…" : "Assim que a internet voltar, vamos conferir o pagamento para você."}</p>
+          </div>
+        </div>
+      )}
 
       {erroMesa && (
         <main className="flex flex-1 flex-col items-center justify-center px-6 pb-24 text-center">
