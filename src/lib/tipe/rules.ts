@@ -45,8 +45,9 @@ export function totals(items: BillItem[], qtys?: Record<string, number>) {
 }
 
 export function splitTip(tip: number) {
-  const waiter = +(tip * TIP_SPLIT.waiter).toFixed(2);
-  return { waiter, tipe: +(tip - waiter).toFixed(2) };
+  const cents = Math.round(tip * 100);
+  const waiter = Math.round(cents * TIP_SPLIT.waiter);
+  return { waiter: waiter / 100, tipe: (cents - waiter) / 100 };
 }
 
 // ---- Dados da mesa (exemplo; virão do sistema do restaurante) ----
@@ -67,8 +68,8 @@ export type Mesa = {
 };
 
 // Gorjeta extra: a TIPE recebe e separa 70% para a equipe e 30% para a plataforma.
+// A parte da TIPE é o resto, para que garçom + TIPE somem sempre a gorjeta exata.
 export function splitGorjeta(extra: number) {
-  const garcom = +(extra * TIP_SPLIT.waiter).toFixed(2);
-  const tipe = +(extra * TIP_SPLIT.tipe).toFixed(2);
-  return { garcom, tipe, restaurante: 0 };
+  const { waiter, tipe } = splitTip(extra);
+  return { garcom: waiter, tipe, restaurante: 0 };
 }

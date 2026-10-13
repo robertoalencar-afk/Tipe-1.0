@@ -53,7 +53,7 @@ export function Recebimentos({ slug, podeDono }: { slug: string; podeDono: boole
           <p className="text-sm text-muted-foreground">Chave {a.keyMasked}{a.mode === "test" ? " (modo de teste, nada é cobrado de verdade)" : ""}</p>
           <div className="space-y-3 rounded-xl bg-muted/40 p-4">
             <p className="text-sm font-semibold">Aviso de pagamento (webhook)</p>
-            <p className="text-xs text-muted-foreground">No painel da Pagar.me, vá em Configurações, Webhooks, e crie um novo com estes dados. Marque os eventos de pedido (order) e cobrança (charge). Assim a mesa atualiza sozinha quando o cliente paga.</p>
+            <p className="text-xs text-muted-foreground">No painel da Pagar.me, vá em Configurações, Webhooks, e crie um novo com estes dados. Marque os eventos de pedido (order), cobrança (charge) e contestação (chargeback). Assim a mesa atualiza sozinha quando o cliente paga, e estornos ou contestações aparecem como pendência no caixa.</p>
             <CopyField label="URL" value={a.webhook.url} />
             <div className="grid gap-3 sm:grid-cols-2"><CopyField label="Usuário" value={a.webhook.user} /><CopyField label="Senha" value={a.webhook.password} /></div>
           </div>

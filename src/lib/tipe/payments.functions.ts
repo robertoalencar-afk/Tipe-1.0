@@ -70,16 +70,21 @@ export const createPayment = createServerFn({ method: "POST" })
         .eq("restaurant_slug", data.restaurantId)
         .eq("table_number", data.tableId);
       if (error) throw new Error("Não foi possível ler a conta da mesa");
-      let subtotal = 0;
+      // Arredondamento cumulativo por item (bill-math.ts): a soma das partes de
+      // um item dividido é sempre exatamente o valor do item.
+      const { itemChargeCents, roundPortion } = await import("./bill-math");
+      let subtotalCents = 0;
       for (const item of billItems ?? []) {
-        const requested = Math.round((data.itemQuantities[item.item_code] ?? 0) * 10000) / 10000;
+        const requested = roundPortion(data.itemQuantities[item.item_code] ?? 0);
         if (requested <= 0) continue;
-        const available = Number(item.ordered_quantity) - Number(item.reserved_portion) - Number(item.paid_portion);
+        const consumed = roundPortion(Number(item.reserved_portion) + Number(item.paid_portion));
+        const available = roundPortion(Number(item.ordered_quantity) - consumed);
         const qty = Math.min(requested, Math.max(0, available));
         if (qty <= 0) continue;
-        subtotal += Number(item.unit_price) * qty;
+        subtotalCents += itemChargeCents(Number(item.unit_price), consumed, qty);
         itemQuantities[item.item_code] = qty;
       }
+      const subtotal = subtotalCents / 100;
       if (subtotal <= 0) throw new Error("Nenhum item disponível para pagamento");
       // Taxa removida pelo restaurante para esta conta (vale até a mesa ser reaberta).
       const restId = (rest as { id?: string } | null)?.id;
@@ -146,7 +151,7 @@ export const createPayment = createServerFn({ method: "POST" })
       return { id, status: "pending", provider: "estabelecimento" };
     }
 
-    const { pagarmeEnabled, pagarme, orderPaid, orderFailed } = await import("./pagarme.server");
+    const { pagarmeEnabled, pagarme } = await import("./pagarme.server");
 
     const split: unknown[] | undefined = undefined;
     let secretKey: string | undefined;
@@ -198,14 +203,11 @@ export const createPayment = createServerFn({ method: "POST" })
     }
 
     await supabaseAdmin.from("table_payment_requests").update({ provider_order_id: order.id }).eq("id", payId);
-    if (orderPaid(order)) {
-      await supabaseAdmin.rpc("provider_settle_payment" as never, { p_order_id: order.id, p_paid: true } as never);
-      return { id: payId, status: "approved", provider: "pagarme" };
-    }
-    if (orderFailed(order)) {
-      await supabaseAdmin.rpc("provider_settle_payment" as never, { p_order_id: order.id, p_paid: false } as never);
-      throw new Error("Pagamento recusado. Tente outro meio de pagamento.");
-    }
+    // Mesma decisão do webhook e do reconciliador (inclui conferência do valor pago).
+    const { applyProviderOrder } = await import("./payment-settlement.server");
+    const outcome = await applyProviderOrder(supabaseAdmin, order.id, order);
+    if (outcome === "settle_paid") return { id: payId, status: "approved", provider: "pagarme" };
+    if (outcome === "settle_failed") throw new Error("Pagamento recusado. Tente outro meio de pagamento.");
     const tx = order.charges?.[0]?.last_transaction;
     return { id: payId, status: "pending", provider: "pagarme", pixCode: tx?.qr_code, pixQrUrl: tx?.qr_code_url };
   });
@@ -223,7 +225,7 @@ export type SharedPayment = {
   id: string;
   customer_name: string;
   payment_method: string;
-  status: "pending" | "approved" | "cancelled" | "failed";
+  status: import("./payment-state").PaymentStatus;
   amount: number;
   item_quantities: Record<string, number>;
   created_at: string;
@@ -297,7 +299,7 @@ export const getPaymentStatus = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: p } = await supabaseAdmin.from("table_payment_requests").select("status")
       .eq("id", data.paymentId).eq("restaurant_slug", data.restaurantId).eq("table_number", data.tableId).maybeSingle();
-    return { status: (p?.status ?? "failed") as "pending" | "approved" | "cancelled" | "failed" };
+    return { status: (p?.status ?? "failed") as import("./payment-state").PaymentStatus };
   });
 
 // Depois de uma queda de conexão: descobre se o pagamento daquela tentativa chegou ao servidor.
@@ -309,7 +311,7 @@ export const getPaymentByKey = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: p } = await supabaseAdmin.from("table_payment_requests").select("id, status")
       .eq("idempotency_key", data.idempotencyKey).eq("restaurant_slug", data.restaurantId).eq("table_number", data.tableId).maybeSingle();
-    return p ? { found: true as const, id: p.id as string, status: p.status as "pending" | "approved" | "cancelled" | "failed" } : { found: false as const };
+    return p ? { found: true as const, id: p.id as string, status: p.status as import("./payment-state").PaymentStatus } : { found: false as const };
   });
 
 // Avaliação do atendimento: vinculada ao garçom atual da mesa (definido pelo servidor).

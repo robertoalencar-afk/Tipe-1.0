@@ -50,7 +50,7 @@ export function restaurantSplit(restaurantRecipientId: string) {
   return [{ type: "percentage", amount: 100, recipient_id: restaurantRecipientId, options: opts }];
 }
 
-export type PagarmeOrder = { id: string; status: string; charges?: Array<{ status: string; last_transaction?: { qr_code?: string; qr_code_url?: string; status?: string } }> };
+export type PagarmeOrder = { id: string; status: string; amount?: number; charges?: Array<{ status: string; amount?: number; paid_amount?: number; last_transaction?: { qr_code?: string; qr_code_url?: string; status?: string } }> };
 
 export function orderPaid(o: PagarmeOrder) {
   return o.status === "paid" || o.charges?.[0]?.status === "paid";
