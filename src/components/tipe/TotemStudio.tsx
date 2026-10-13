@@ -16,74 +16,84 @@ const MODELOS = {
 
 // Sugestões de uso: cada tamanho indica onde o material funciona melhor.
 const TAMANHOS = {
-  adesivo: { nome: "Adesivo na mesa", medida: "8 × 8 cm", w: 80, h: 80, qr: 0.5, desc: "Cola direto no tampo da mesa" },
-  comanda: { nome: "Comanda individual", medida: "6 × 9 cm", w: 60, h: 90, qr: 0.52, desc: "Vai junto da comanda de cada cliente" },
-  guardanapo: { nome: "Porta guardanapo", medida: "5 × 15 cm", w: 50, h: 150, qr: 0.62, desc: "Encaixa no porta guardanapo inox" },
-  acrilico: { nome: "Suporte acrílico", medida: "10 × 15 cm", w: 100, h: 150, qr: 0.56, desc: "Display de mesa em acrílico (A6)" },
+  adesivo: { nome: "Adesivo na mesa", medida: "8 × 8 cm", w: 80, h: 80, desc: "Cola direto no tampo da mesa" },
+  quadrado: { nome: "Quadrado", medida: "10 × 10 cm", w: 100, h: 100, desc: "Placa ou adesivo quadrado" },
+  faixa: { nome: "Faixa", medida: "10 × 5 cm", w: 100, h: 50, desc: "Horizontal, para bordas e balcões" },
+  comanda: { nome: "Comanda individual", medida: "6 × 9 cm", w: 60, h: 90, desc: "Vai junto da comanda de cada cliente" },
+  guardanapo: { nome: "Porta guardanapo", medida: "5 × 15 cm", w: 50, h: 150, desc: "Encaixa no porta guardanapo inox" },
+  acrilico: { nome: "Suporte acrílico", medida: "10 × 15 cm", w: 100, h: 150, desc: "Display de mesa em acrílico (A6)" },
 } as const;
 
 type ModeloKey = keyof typeof MODELOS;
 type TamanhoKey = keyof typeof TAMANHOS;
 
+// Instrução curta, pensada para caber nos tamanhos pequenos.
+const INSTRUCAO = "Aponte a câmera do celular para ver sua conta";
+
 function Totem({ modelo, tamanho, mesa, link, restaurante }: { modelo: ModeloKey; tamanho: TamanhoKey; mesa: string; link: string; restaurante: string }) {
   const m = MODELOS[modelo];
   const t = TAMANHOS[tamanho];
-  const compacto = tamanho === "adesivo" || tamanho === "comanda";
-  const estreito = tamanho === "guardanapo";
-  const qrMm = Math.min(t.w, t.h) * t.qr;
-  const pad = compacto ? "3mm" : estreito ? "4mm 3mm" : "6mm 5mm";
-  const logoH = compacto ? "5.5mm" : estreito ? "5mm" : "9mm";
-  const fraseFs = compacto ? "2.9mm" : estreito ? "2.7mm" : "4mm";
-  const mesaFs = compacto ? "2.6mm" : estreito ? "2.5mm" : "3.4mm";
-  const restFs = compacto ? "2.1mm" : estreito ? "2mm" : "2.6mm";
-  const scanFs = compacto ? "2.4mm" : estreito ? "2.3mm" : "3.2mm";
+  const horizontal = t.w > t.h;
+  const base = Math.min(t.w, t.h); // escala tipográfica pelo menor lado
+  const mm = (f: number) => `${(base * f).toFixed(2)}mm`;
+  const qrMm = horizontal ? t.h - 12 : Math.min(t.w * 0.62, t.h * 0.5);
+  const logoSrc = m.logo === "light" ? logo.url : logoDark.url;
+
+  const qr = (
+    <div style={{ background: m.stickerBg, padding: mm(0.03), borderRadius: mm(0.04), lineHeight: 0, border: `0.3mm solid ${m.accent}`, flexShrink: 0 }}>
+      <QRCodeSVG value={link} size={512} bgColor={m.stickerBg} fgColor={m.stickerFg} style={{ width: `${qrMm}mm`, height: `${qrMm}mm` }} level="M" />
+    </div>
+  );
+  const instrucao = (
+    <div style={{ display: "flex", alignItems: "center", gap: "1mm", fontSize: mm(horizontal ? 0.07 : 0.042), fontWeight: 700, lineHeight: 1.2, color: m.accent }}>
+      <svg viewBox="0 0 24 24" style={{ width: mm(horizontal ? 0.1 : 0.06), height: mm(horizontal ? 0.1 : 0.06), flexShrink: 0 }} fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" /><circle cx="12" cy="13" r="3" /></svg>
+      <span>{INSTRUCAO}</span>
+    </div>
+  );
+  const rodape = (
+    <div style={{ textAlign: horizontal ? "left" : "center", minWidth: 0 }}>
+      <div style={{ fontSize: mm(horizontal ? 0.085 : 0.05), fontWeight: 800 }}>Pague. Sem esperar.</div>
+      <div style={{ fontSize: mm(horizontal ? 0.075 : 0.042), fontWeight: 700, color: m.accent, marginTop: "0.5mm" }}>Mesa {mesa}</div>
+      <div style={{ fontSize: mm(horizontal ? 0.06 : 0.032), opacity: 0.75, marginTop: "0.3mm", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", maxWidth: horizontal ? `${t.w - qrMm - 16}mm` : `${t.w - 8}mm` }}>{restaurante}</div>
+    </div>
+  );
 
   return (
     <div
       className="totem"
       style={{
-        width: `${t.w}mm`,
-        height: `${t.h}mm`,
-        background: m.bg,
-        color: m.fg,
-        borderRadius: compacto ? "4mm" : "3mm",
-        overflow: "hidden",
+        width: `${t.w}mm`, height: `${t.h}mm`, background: m.bg, color: m.fg,
+        borderRadius: "3mm", overflow: "hidden", boxSizing: "border-box",
         border: m.bg === "#ffffff" ? "0.3mm dashed #cbd5e1" : undefined,
-        boxSizing: "border-box",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: pad,
-        fontFamily: "Sora, Manrope, sans-serif",
+        display: "flex", flexDirection: horizontal ? "row" : "column", alignItems: "center",
+        justifyContent: "space-between", gap: horizontal ? "4mm" : undefined,
+        padding: horizontal ? "5mm" : mm(0.06), fontFamily: "Sora, Manrope, sans-serif",
       }}
     >
-      <img src={m.logo === "light" ? logo.url : logoDark.url} alt="TIPE" style={{ height: logoH, maxWidth: "70%", objectFit: "contain" }} />
-
-      {/* Adesivo com o QR, como no suporte de plástico da referência */}
-      <div
-        style={{
-          background: m.stickerBg,
-          color: m.stickerFg,
-          padding: compacto ? "2mm" : "3mm",
-          borderRadius: compacto ? "2.5mm" : "3.5mm",
-          lineHeight: 0,
-          boxShadow: "0 1mm 2.5mm rgba(0,0,0,0.28)",
-          border: `0.25mm solid ${m.accent}`,
-        }}
-      >
-        <QRCodeSVG value={link} size={512} style={{ width: `${qrMm}mm`, height: `${qrMm}mm` }} level="M" />
-      </div>
-
-      <div style={{ fontSize: scanFs, fontWeight: 700, letterSpacing: "0.02em", color: m.accent }}>Escanear para pagar</div>
-
-      <div style={{ textAlign: "center" }}>
-        <div style={{ fontSize: fraseFs, fontWeight: 800, letterSpacing: "0.01em" }}>Pague. Sem esperar.</div>
-        <div style={{ marginTop: compacto ? "0.6mm" : "1.2mm", fontSize: mesaFs, fontWeight: 700, color: m.accent }}>Mesa {mesa}</div>
-        <div style={{ marginTop: "0.4mm", maxWidth: `${t.w - 10}mm`, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", fontSize: restFs, opacity: 0.75 }}>{restaurante}</div>
-      </div>
+      {horizontal ? (
+        <>
+          {qr}
+          <div style={{ flex: 1, minWidth: 0, height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between" }}>
+            <img src={logoSrc} alt="TIPE" style={{ height: "6mm", alignSelf: "flex-start", objectFit: "contain" }} />
+            {instrucao}
+            {rodape}
+          </div>
+        </>
+      ) : (
+        <>
+          <img src={logoSrc} alt="TIPE" style={{ height: mm(0.08), maxWidth: "70%", objectFit: "contain" }} />
+          {qr}
+          {instrucao}
+          {rodape}
+        </>
+      )}
     </div>
   );
+}
+
+// Escapa texto antes de inserir em HTML montado manualmente (nome do restaurante).
+function escapeHtml(v: string) {
+  return v.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]!);
 }
 
 export function TotemStudio({ tables, link, restaurante }: { tables: Table[]; link: (t: Table) => string; restaurante: string }) {
@@ -98,7 +108,7 @@ export function TotemStudio({ tables, link, restaurante }: { tables: Table[]; li
     if (!escolhidas.length) { toast.error("Selecione ao menos uma mesa"); return; }
     const w = window.open("", "_blank");
     if (!w) { toast.error("Permita pop-ups para imprimir"); return; }
-    w.document.write(`<!doctype html><html><head><title>Totens — ${restaurante}</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@700;800&display=swap"><style>@page{size:A4;margin:8mm}body{margin:0;font-family:Sora,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}.grid{display:flex;flex-wrap:wrap;gap:4mm}.totem{break-inside:avoid;page-break-inside:avoid}</style></head><body><div class="grid">${printRef.current?.innerHTML ?? ""}</div><script>window.onload=()=>setTimeout(()=>window.print(),400)</script></body></html>`);
+    w.document.write(`<!doctype html><html><head><title>Totens - ${escapeHtml(restaurante)}</title><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@700;800&display=swap"><style>@page{size:A4;margin:8mm}body{margin:0;font-family:Sora,sans-serif;-webkit-print-color-adjust:exact;print-color-adjust:exact}.grid{display:flex;flex-wrap:wrap;gap:4mm}.totem{break-inside:avoid;page-break-inside:avoid}</style></head><body><div class="grid">${printRef.current?.innerHTML ?? ""}</div><script>window.onload=()=>setTimeout(()=>window.print(),400)</script></body></html>`);
     w.document.close();
   }
 
@@ -129,7 +139,7 @@ export function TotemStudio({ tables, link, restaurante }: { tables: Table[]; li
           </section>
           <section>
             <p className="mb-2 text-sm font-semibold">Onde vai usar</p>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
               {(Object.keys(TAMANHOS) as TamanhoKey[]).map((k) => (
                 <button key={k} type="button" onClick={() => setTamanho(k)} className={opt(tamanho === k)}>
                   <span className="block text-sm font-bold">{TAMANHOS[k].nome}</span>
@@ -156,7 +166,7 @@ export function TotemStudio({ tables, link, restaurante }: { tables: Table[]; li
         </div>
         <div className="flex flex-col items-center gap-2">
           <p className="text-xs text-muted-foreground">Prévia {escolhidas[0] ? `· Mesa ${escolhidas[0].number}` : ""}</p>
-          <div className="rounded-xl bg-muted p-4" style={{ zoom: tamanho === "acrilico" ? 0.85 : tamanho === "guardanapo" ? 0.7 : 1 }}>
+          <div className="rounded-xl bg-muted p-4" style={{ zoom: tamanho === "acrilico" ? 0.85 : tamanho === "guardanapo" ? 0.7 : tamanho === "faixa" ? 0.9 : 1 }}>
             {escolhidas[0] ? <Totem modelo={modelo} tamanho={tamanho} mesa={escolhidas[0].number} link={link(escolhidas[0])} restaurante={restaurante} /> : <p className="p-8 text-sm text-muted-foreground">Nenhuma mesa</p>}
           </div>
         </div>
