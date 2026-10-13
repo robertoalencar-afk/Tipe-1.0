@@ -8,6 +8,7 @@ import { whatsappLink } from "@/lib/tipe/contact";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cashAction, getOpsData, getReports, saveSettings } from "@/lib/tipe/admin.functions";
+import { TotemACobrar, TotemConfig } from "@/components/tipe/Totem";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const hora = (s: string) => new Date(s).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
@@ -150,7 +151,7 @@ export function Caixa({ slug, podeCaixa, confirmacoes }: { slug: string; podeCai
           <Card><h3 className="mb-2 font-semibold">Movimentos</h3><ul className="space-y-1 text-sm">{mov.map((m) => <li key={m.id} className="flex justify-between"><span>{m.kind === "deposit" ? "Reforço" : "Sangria"}{m.reason ? ` · ${m.reason}` : ""}</span><span>{brl(m.amount)}</span></li>)}</ul></Card>
         )}
       </div>
-      <div><h3 className="mb-2 font-semibold">Pagamentos para confirmar</h3>{confirmacoes}</div>
+      <div className="space-y-4"><TotemACobrar slug={slug} podeCobrar={podeCaixa} /><div><h3 className="mb-2 font-semibold">Pagamentos para confirmar</h3>{confirmacoes}</div></div>
     </div>
   );
 }
@@ -331,14 +332,14 @@ export function Configuracoes({ slug, podeDono }: { slug: string; podeDono: bool
   const save = useServerFn(saveSettings);
   const qc = useQueryClient();
   const r = ops.data?.restaurant;
-  const [f, setF] = useState<null | { name: string; rate: string; phone: string; address: string; hours: string; methods: string[]; selfOrder: boolean }>(null);
+  const [f, setF] = useState<null | { name: string; rate: string; phone: string; address: string; hours: string; methods: string[]; selfOrder: boolean; totem: boolean }>(null);
   if (!r) return <p className="text-muted-foreground">Carregando…</p>;
-  const v = f ?? { name: r.name, rate: String(Math.round(r.service_rate * 100)), phone: r.phone ?? "", address: r.address ?? "", hours: r.opening_hours ?? "", methods: r.bill_payment_methods ?? ["pix", "apple_pay", "google_pay", "at_establishment"], selfOrder: r.self_order_enabled ?? false };
+  const v = f ?? { name: r.name, rate: String(Math.round(r.service_rate * 100)), phone: r.phone ?? "", address: r.address ?? "", hours: r.opening_hours ?? "", methods: r.bill_payment_methods ?? ["pix", "apple_pay", "google_pay", "at_establishment"], selfOrder: r.self_order_enabled ?? false, totem: r.totem_enabled ?? false };
   return (
     <form className="max-w-xl space-y-3" onSubmit={async (e) => {
       e.preventDefault();
       try {
-        await save({ data: { slug, name: v.name, serviceRate: Number(v.rate) / 100, phone: v.phone, address: v.address, openingHours: v.hours, billMethods: v.methods as ("pix" | "apple_pay" | "google_pay" | "at_establishment")[], selfOrder: v.selfOrder } });
+        await save({ data: { slug, name: v.name, serviceRate: Number(v.rate) / 100, phone: v.phone, address: v.address, openingHours: v.hours, billMethods: v.methods as ("pix" | "apple_pay" | "google_pay" | "at_establishment")[], selfOrder: v.selfOrder, totem: v.totem } });
         toast.success("Configurações salvas"); setF(null);
         qc.invalidateQueries({ queryKey: ["ops", slug] }); qc.invalidateQueries({ queryKey: ["panel", slug] });
       } catch (err) { toast.error((err as Error).message); }
@@ -378,6 +379,17 @@ export function Configuracoes({ slug, podeDono }: { slug: string; podeDono: bool
           Permitir que o cliente faça o pedido pela mesa
         </label>
         <p className="text-xs text-muted-foreground">O pagamento da conta continua igual: o cliente paga pelo QR quando quiser.</p>
+      </Card>
+      <Card className="space-y-3">
+        <div>
+          <h3 className="font-display font-bold">Totem de autoatendimento</h3>
+          <p className="text-sm text-muted-foreground">Quando ligado, o cliente monta o pedido no totem e recebe uma senha. O pedido vai para a cozinha quando o caixa cobra; você vê os pedidos a cobrar na aba Caixa.</p>
+        </div>
+        <label className="flex items-center gap-3 text-sm">
+          <input type="checkbox" className="h-4 w-4 accent-primary" disabled={!podeDono} checked={v.totem} onChange={() => setF({ ...v, totem: !v.totem })} />
+          Ativar o totem de autoatendimento
+        </label>
+        {v.totem && <TotemConfig slug={slug} podeDono={podeDono} />}
       </Card>
       {podeDono && <Button type="submit">Salvar</Button>}
     </form>

@@ -372,6 +372,35 @@ export type Database = {
           },
         ]
       }
+      totem_tokens: {
+        Row: {
+          restaurant_id: string
+          rotated_at: string
+          rotated_by: string | null
+          token: string
+        }
+        Insert: {
+          restaurant_id: string
+          rotated_at?: string
+          rotated_by?: string | null
+          token: string
+        }
+        Update: {
+          restaurant_id?: string
+          rotated_at?: string
+          rotated_by?: string | null
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "totem_tokens_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: true
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       order_display_tokens: {
         Row: {
           restaurant_id: string
@@ -1384,6 +1413,7 @@ export type Database = {
           pos_mode: string
           pos_provider: string
           self_order_enabled: boolean
+          totem_enabled: boolean
           service_rate: number
           slug: string
           updated_at: string
@@ -1403,6 +1433,7 @@ export type Database = {
           self_order_enabled?: boolean
           service_rate?: number
           slug: string
+          totem_enabled?: boolean
           updated_at?: string
         }
         Update: {
@@ -1420,6 +1451,7 @@ export type Database = {
           self_order_enabled?: boolean
           service_rate?: number
           slug?: string
+          totem_enabled?: boolean
           updated_at?: string
         }
         Relationships: []
@@ -2097,6 +2129,23 @@ export type Database = {
       }
       pdv_order_call: { Args: { p_order: string }; Returns: undefined }
       pdv_service_day: { Args: never; Returns: string }
+      pdv_settle_totem_order: {
+        Args: { p_cash_received: number; p_method: string; p_order: string }
+        Returns: Json
+      }
+      pdv_totem_order: {
+        Args: {
+          p_customer: string
+          p_items: Json
+          p_request_id: string
+          p_slug: string
+        }
+        Returns: Json
+      }
+      pdv_totem_token: {
+        Args: { p_rotate?: boolean; p_slug: string }
+        Returns: string
+      }
       pdv_set_item_status: {
         Args: { p_item: string; p_status: string }
         Returns: undefined
