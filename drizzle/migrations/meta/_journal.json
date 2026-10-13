@@ -134,6 +134,20 @@
       "when": 1791802722307,
       "tag": "0018_subscription_owner_only",
       "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1791803322307,
+      "tag": "0019_payment_reversals_incidents",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1791803922307,
+      "tag": "0020_founder_scope",
+      "breakpoints": true
     }
   ]
 }

@@ -41,6 +41,7 @@ import { Route as LegalVersoesArquivoRouteImport } from './routes/legal.versoes_
 import { Route as MesaRestauranteMesaRouteImport } from './routes/mesa.$restaurante.$mesa'
 import { Route as ApiPublicPagarmeWebhookRouteImport } from './routes/api/public/pagarme/webhook'
 import { Route as ApiPublicPdvSyncRouteImport } from './routes/api/public/pdv.sync'
+import { Route as ApiPublicPaymentsReconcileRouteImport } from './routes/api/public/payments.reconcile'
 import { Route as ApiPublicPosSlugRouteImport } from './routes/api/public/pos.$slug'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as ApiPublicPagarmeRestauranteSlugRouteImport } from './routes/api/public/pagarme/restaurante.$slug'
@@ -206,6 +207,11 @@ const ApiPublicPdvSyncRoute = ApiPublicPdvSyncRouteImport.update({
   path: '/api/public/pdv/sync',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicPaymentsReconcileRoute = ApiPublicPaymentsReconcileRouteImport.update({
+  id: '/api/public/payments/reconcile',
+  path: '/api/public/payments/reconcile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPosSlugRoute = ApiPublicPosSlugRouteImport.update({
   id: '/api/public/pos/$slug',
   path: '/api/public/pos/$slug',
@@ -262,6 +268,7 @@ export interface FileRoutesByFullPath {
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
+  '/api/public/payments/reconcile': typeof ApiPublicPaymentsReconcileRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/api/public/pagarme/restaurante/$slug': typeof ApiPublicPagarmeRestauranteSlugRoute
@@ -299,6 +306,7 @@ export interface FileRoutesByTo {
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
+  '/api/public/payments/reconcile': typeof ApiPublicPaymentsReconcileRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/api/public/pagarme/restaurante/$slug': typeof ApiPublicPagarmeRestauranteSlugRoute
@@ -338,6 +346,7 @@ export interface FileRoutesById {
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
+  '/api/public/payments/reconcile': typeof ApiPublicPaymentsReconcileRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/api/public/pagarme/restaurante/$slug': typeof ApiPublicPagarmeRestauranteSlugRoute
@@ -377,6 +386,7 @@ export interface FileRouteTypes {
     | '/mesa/$restaurante/$mesa'
     | '/api/public/pagarme/webhook'
     | '/api/public/pdv/sync'
+    | '/api/public/payments/reconcile'
     | '/api/public/pos/$slug'
     | '/lovable/email/transactional/preview'
     | '/api/public/pagarme/restaurante/$slug'
@@ -414,6 +424,7 @@ export interface FileRouteTypes {
     | '/mesa/$restaurante/$mesa'
     | '/api/public/pagarme/webhook'
     | '/api/public/pdv/sync'
+    | '/api/public/payments/reconcile'
     | '/api/public/pos/$slug'
     | '/lovable/email/transactional/preview'
     | '/api/public/pagarme/restaurante/$slug'
@@ -452,6 +463,7 @@ export interface FileRouteTypes {
     | '/mesa/$restaurante/$mesa'
     | '/api/public/pagarme/webhook'
     | '/api/public/pdv/sync'
+    | '/api/public/payments/reconcile'
     | '/api/public/pos/$slug'
     | '/lovable/email/transactional/preview'
     | '/api/public/pagarme/restaurante/$slug'
@@ -487,6 +499,7 @@ export interface RootRouteChildren {
   MesaRestauranteMesaRoute: typeof MesaRestauranteMesaRoute
   ApiPublicPagarmeWebhookRoute: typeof ApiPublicPagarmeWebhookRoute
   ApiPublicPdvSyncRoute: typeof ApiPublicPdvSyncRoute
+  ApiPublicPaymentsReconcileRoute: typeof ApiPublicPaymentsReconcileRoute
   ApiPublicPosSlugRoute: typeof ApiPublicPosSlugRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
   ApiPublicPagarmeRestauranteSlugRoute: typeof ApiPublicPagarmeRestauranteSlugRoute
@@ -719,6 +732,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPdvSyncRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/payments/reconcile': {
+      id: '/api/public/payments/reconcile'
+      path: '/api/public/payments/reconcile'
+      fullPath: '/api/public/payments/reconcile'
+      preLoaderRoute: typeof ApiPublicPaymentsReconcileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/pos/$slug': {
       id: '/api/public/pos/$slug'
       path: '/api/public/pos/$slug'
@@ -797,6 +817,7 @@ const rootRouteChildren: RootRouteChildren = {
   MesaRestauranteMesaRoute: MesaRestauranteMesaRoute,
   ApiPublicPagarmeWebhookRoute: ApiPublicPagarmeWebhookRoute,
   ApiPublicPdvSyncRoute: ApiPublicPdvSyncRoute,
+  ApiPublicPaymentsReconcileRoute: ApiPublicPaymentsReconcileRoute,
   ApiPublicPosSlugRoute: ApiPublicPosSlugRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
   ApiPublicPagarmeRestauranteSlugRoute: ApiPublicPagarmeRestauranteSlugRoute,

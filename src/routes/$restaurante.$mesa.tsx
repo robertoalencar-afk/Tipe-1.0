@@ -19,6 +19,9 @@ import {
 } from "lucide-react";
 import { TipeLogo } from "@/components/tipe/Logo";
 import { SplitPicker } from "@/components/tipe/SplitPicker";
+import { DividirConta } from "@/components/tipe/DividirConta";
+import { remainingSubtotal, selectionSubtotal, type ShareItem } from "@/lib/tipe/bill-math";
+import { PAYMENT_STATUS_LABEL } from "@/lib/tipe/payment-state";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -135,7 +138,8 @@ function MesaPage() {
   const [cartao, setCartao] = useState<CardInput>({ number: "", holder: "", exp: "", cvv: "" });
   const [chavePublica, setChavePublica] = useState<string | null>(null);
   const [pix, setPix] = useState<{ id: string; code: string; qrUrl?: string | undefined; tipo: "conta" | "gorjeta" } | null>(null);
-  useEffect(() => { getPaymentConfig().then((c) => setChavePublica(c.publicKey)).catch(() => undefined); }, []);
+  const [gorjetaDisponivel, setGorjetaDisponivel] = useState(false);
+  useEffect(() => { getPaymentConfig().then((c) => { setChavePublica(c.publicKey); setGorjetaDisponivel(c.tipsAvailable); }).catch(() => undefined); }, []);
   const chavePagamento = useRef<string | null>(null);
   const [valorPago, setValorPago] = useState(0);
 
@@ -197,10 +201,12 @@ function MesaPage() {
     return () => { if (!w.requestIdleCallback) window.clearTimeout(id); };
   }, [mesaSincronizada]);
 
-  const subtotal = useMemo(
-    () => dados.itens.reduce((soma, item) => soma + item.preco * (qtds[item.id] ?? 0), 0),
-    [dados.itens, qtds],
+  // Mesma matemática do servidor (arredondamento cumulativo por item).
+  const itensDivisao = useMemo<ShareItem[]>(
+    () => dados.itens.map((item) => ({ code: item.id, unitPrice: item.preco, ordered: item.qtd, available: disponiveis[item.id] ?? item.qtd })),
+    [dados.itens, disponiveis],
   );
+  const subtotal = useMemo(() => selectionSubtotal(itensDivisao, qtds), [itensDivisao, qtds]);
   const [taxaSugerida, setTaxaSugerida] = useState(0.1);
   const [taxaRemovida, setTaxaRemovida] = useState(false);
   const servico = resolveServiceFee(subtotal, taxaSugerida, { kind: "suggested" })!.amount;
@@ -451,6 +457,9 @@ function MesaPage() {
                   </Button>
                 );
               })()}
+              {dados.itens.some((item) => (disponiveis[item.id] ?? item.qtd) > 0) && (
+                <DividirConta items={itensDivisao} serviceRate={taxaSugerida} onApply={(quantidades) => setQtds(Object.fromEntries(dados.itens.map((item) => [item.id, quantidades[item.id] ?? 0])))} />
+              )}
               {dados.itens.some((item) => (disponiveis[item.id] ?? item.qtd) > 0) && <><h2 className="font-display text-lg font-extrabold">O que você vai pagar?</h2><p className="mb-4 mt-1 text-sm text-muted-foreground">Escolha quanto de cada item ficará com você.</p></>}
               <ul className="flex flex-col gap-3">
                 {dados.itens.filter((item) => (disponiveis[item.id] ?? item.qtd) > 0).map((item) => {
@@ -500,6 +509,16 @@ function MesaPage() {
                   ? <ResumoLinha label="Taxa de serviço removida pelo restaurante" valor={0} className="mt-2" />
                   : <ResumoLinha label={`Taxa de serviço (${Math.round(taxaSugerida * 1000) / 10}%)`} valor={servico} className="mt-2" />}
                 <ResumoLinha label="Total da conta" valor={totalConta} className="mt-3 border-t border-border pt-3 font-display text-base font-extrabold" />
+                {(() => {
+                  // Saldo da mesa sempre visível: ninguém sai achando que pagou tudo.
+                  const falta = remainingSubtotal(itensDivisao);
+                  const faltaDepois = Math.max(0, +(falta - subtotal).toFixed(2));
+                  return falta > 0 && subtotal > 0 ? (
+                    <p className="mt-3 rounded-xl bg-muted px-3 py-2 text-xs text-muted-foreground">
+                      {faltaDepois <= 0 ? "Com este pagamento, a conta da mesa fica quitada." : <>Depois do seu pagamento, ainda faltarão <strong className="text-foreground">{money(faltaDepois)}</strong> (sem taxa) para fechar a mesa.</>}
+                    </p>
+                  ) : null;
+                })()}
               </div>
               <Button disabled={subtotal <= 0} onClick={() => setEtapa("pagamento-conta")} className="mt-5 h-12 w-full rounded-full font-display text-base font-bold">
                 Continuar para pagamento <ChevronRight />
@@ -534,7 +553,7 @@ function MesaPage() {
                           </div>
                           <div className="text-right">
                             <p className="font-semibold">{money(pagamento.amount)}</p>
-                            <p className={pagamento.status === "pending" ? "text-xs font-semibold text-highlight" : "text-xs font-semibold text-primary"}>{pagamento.status === "pending" ? "Pendente" : "Confirmado"}</p>
+                            <p className={pagamento.status === "approved" ? "text-xs font-semibold text-primary" : pagamento.status === "pending" ? "text-xs font-semibold text-highlight" : "text-xs font-semibold text-destructive"}>{PAYMENT_STATUS_LABEL[pagamento.status] ?? "Pendente"}</p>
                           </div>
                         </div>
                         <ul className="mt-3 space-y-1 border-l-2 border-primary/30 pl-3 text-xs text-muted-foreground">
@@ -621,7 +640,7 @@ function MesaPage() {
           </div>
           <label htmlFor="comentario" className="mt-8 text-sm font-semibold">Comentário <span className="font-normal text-muted-foreground">(opcional)</span></label>
           <Textarea id="comentario" value={comentario} onChange={(event) => setComentario(event.target.value)} placeholder="Conte como foi sua experiência" maxLength={400} className="mt-2 min-h-28 rounded-lg bg-card" />
-          <Button onClick={() => { if (estrelas > 0) void submitRating({ data: { restaurantId: restaurante, tableId: String(dados.mesa), session: sessaoMesa, stars: estrelas, comment: comentario.trim() || undefined } }).catch(() => undefined); setEtapa("gorjeta"); }} className="mt-6 h-12 rounded-lg text-base font-bold">Continuar <ChevronRight /></Button>
+          <Button onClick={() => { if (estrelas > 0) void submitRating({ data: { restaurantId: restaurante, tableId: String(dados.mesa), session: sessaoMesa, stars: estrelas, comment: comentario.trim() || undefined } }).catch(() => undefined); setEtapa(gorjetaDisponivel ? "gorjeta" : "fim"); }} className="mt-6 h-12 rounded-lg text-base font-bold">Continuar <ChevronRight /></Button>
         </main>
       )}
 

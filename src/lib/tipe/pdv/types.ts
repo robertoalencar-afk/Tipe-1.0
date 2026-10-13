@@ -102,6 +102,10 @@ export interface AdaptadorPdv {
   /** Para sistemas sem webhook: devolve eventos novos daquela mesa. */
   sincronizar(ctx: ContextoAdaptador, mesa: string): Promise<EventoRecebido[]>;
   informarPagamento(ctx: ContextoAdaptador, pagamento: { mesa: string; itens: Record<string, number>; valor: number; forma: string; id: string }): Promise<ResultadoConexao>;
+  /** Opcional: encerra a conta no sistema de origem quando tudo foi pago. */
+  fecharConta?(ctx: ContextoAdaptador, mesa: string): Promise<ResultadoConexao>;
+  /** Opcional: equipe cadastrada no sistema de origem, para vincular garçons. */
+  listarGarcons?(ctx: ContextoAdaptador): Promise<{ externalId: string; nome: string }[]>;
 }
 
 export const LANCAMENTO_TIPE: AdapterId = "lancamento_tipe";

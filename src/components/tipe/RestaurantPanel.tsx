@@ -22,6 +22,7 @@ import { Caixa, Configuracoes, Cozinha, Inicio, Integracoes, Relatorios } from "
 import { TotemStudio } from "@/components/tipe/TotemStudio";
 import { Assinatura } from "@/components/tipe/Assinatura";
 import { Recebimentos } from "@/components/tipe/Recebimentos";
+import { AvisoPendencias, PendenciasFinanceiras } from "@/components/tipe/PendenciasFinanceiras";
 import { grantWaiterAccess } from "@/lib/tipe/waiter.functions";
 import { Landmark } from "lucide-react";
 import { DesempenhoGarcons } from "@/components/tipe/DesempenhoGarcons";
@@ -203,6 +204,7 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
             <strong>Atenção no cancelamento:</strong> {d.pdvAlerts[0].detail}
           </div>
         )}
+        {aba !== "caixa" && <AvisoPendencias slug={slug} enabled={podeConfirmar} onOpen={() => setAba("caixa")} />}
         {aba === "inicio" && <Inicio slug={slug} mesasAbertas={abertas.length} emAberto={abertas.reduce((s, m) => s + m.total - m.pago, 0)} pendentes={pendentes.length} onGo={setAba} />}
 
         {aba === "salao" && (
@@ -239,7 +241,7 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
 
         {aba === "pdv" && <LancarPedido slug={slug} pdv={pdv.data} mesa={mesaPedido} setMesa={setMesaPedido} onDone={refresh} />}
         {aba === "cozinha" && <Cozinha slug={slug} />}
-        {aba === "caixa" && <Caixa slug={slug} podeCaixa={podeConfirmar} confirmacoes={confirmacoes} />}
+        {aba === "caixa" && <><PendenciasFinanceiras slug={slug} enabled={podeConfirmar} /><Caixa slug={slug} podeCaixa={podeConfirmar} confirmacoes={confirmacoes} /></>}
 
         {aba === "historico" && (
           <div className="space-y-4">

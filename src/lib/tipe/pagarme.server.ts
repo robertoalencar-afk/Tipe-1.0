@@ -6,6 +6,22 @@ export function pagarmeEnabled() {
   return !!process.env["PAGARME_SECRET_KEY"];
 }
 
+/**
+ * Aprovação simulada (sem provedor de pagamento) só existe quando ligada de
+ * propósito, em ambientes de teste ou demonstração: TIPE_ALLOW_SIMULATED_PAYMENTS=true.
+ * Em produção fica desligada: sem conta Pagar.me, nenhum pagamento digital é aceito.
+ */
+export function simulatedPaymentsAllowed() {
+  return process.env["TIPE_ALLOW_SIMULATED_PAYMENTS"] === "true";
+}
+
+/** Meios da conta que o cliente pode usar de fato neste restaurante agora. */
+export function usableBillMethods(configured: string[], hasProvider: boolean) {
+  if (hasProvider || simulatedPaymentsAllowed()) return configured;
+  const presencial = configured.filter((m) => m === "at_establishment");
+  return presencial.length ? presencial : ["at_establishment"];
+}
+
 export async function pagarme<T = any>(path: string, init: { method?: string; body?: unknown; idempotencyKey?: string; secretKey?: string } = {}): Promise<T> {
   const key = init.secretKey ?? process.env["PAGARME_SECRET_KEY"];
   if (!key) throw new Error("Pagar.me não configurado");
@@ -50,7 +66,7 @@ export function restaurantSplit(restaurantRecipientId: string) {
   return [{ type: "percentage", amount: 100, recipient_id: restaurantRecipientId, options: opts }];
 }
 
-export type PagarmeOrder = { id: string; status: string; charges?: Array<{ status: string; last_transaction?: { qr_code?: string; qr_code_url?: string; status?: string } }> };
+export type PagarmeOrder = { id: string; status: string; amount?: number; charges?: Array<{ status: string; amount?: number; paid_amount?: number; last_transaction?: { qr_code?: string; qr_code_url?: string; status?: string } }> };
 
 export function orderPaid(o: PagarmeOrder) {
   return o.status === "paid" || o.charges?.[0]?.status === "paid";

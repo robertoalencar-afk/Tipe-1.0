@@ -15,18 +15,23 @@ export const Route = createFileRoute("/api/public/pagarme/webhook")({
           await logSecurityEvent({ action: "pagarme_webhook_denied", result: "denied" });
           return new Response("unauthorized", { status: 401 });
         }
-        let body: { type?: string; data?: { id?: string; order?: { id?: string }; subscription?: { id?: string } } };
+        let body: { type?: string; data?: { id?: string; order?: { id?: string }; subscription?: { id?: string } } & Record<string, unknown> };
         try { body = JSON.parse((await request.text()).slice(0, 200_000)); } catch { return new Response("bad request", { status: 400 }); }
         const type = String(body.type ?? "");
-        const { pagarme, orderPaid, orderFailed } = await import("@/lib/tipe/pagarme.server");
+        const { pagarme } = await import("@/lib/tipe/pagarme.server");
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-        if (type.startsWith("order.") || type.startsWith("charge.")) {
-          const orderId = type.startsWith("order.") ? body.data?.id : body.data?.order?.id;
-          if (!orderId || !/^or_[A-Za-z0-9]+$/.test(orderId)) return new Response("ok");
-          const order = await pagarme(`/orders/${orderId}`);
-          if (orderPaid(order)) await supabaseAdmin.rpc("provider_settle_payment" as never, { p_order_id: orderId, p_paid: true } as never);
-          else if (orderFailed(order)) await supabaseAdmin.rpc("provider_settle_payment" as never, { p_order_id: orderId, p_paid: false } as never);
+        // Pagamentos, estornos e contestações: o pedido é reconsultado e a decisão
+        // segue a mesma regra do reconciliador (payment-settlement.server.ts).
+        const { isPaymentEvent, findOrderId, findPaymentByOrder, applyProviderOrder } = await import("@/lib/tipe/payment-settlement.server");
+        if (isPaymentEvent(type)) {
+          const orderId = findOrderId(body.data);
+          if (!orderId) return new Response("ok");
+          // Conta da TIPE: só gorjetas extras. Contas de mesa chegam pelo webhook do restaurante.
+          const pay = await findPaymentByOrder(supabaseAdmin, orderId);
+          if (!pay || pay.payment_target !== "tipe") return new Response("ok");
+          const order = await pagarme<import("@/lib/tipe/pagarme.server").PagarmeOrder>(`/orders/${orderId}`);
+          await applyProviderOrder(supabaseAdmin, orderId, order, pay);
           return new Response("ok");
         }
 
