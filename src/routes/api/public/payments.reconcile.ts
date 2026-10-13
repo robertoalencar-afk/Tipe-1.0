@@ -7,6 +7,7 @@ import { authenticateCronRequest } from "@/integrations/supabase/cron-auth";
 //  - pedido pendente: reconsulta o provedor e aplica a mesma decisão do webhook;
 //  - pendente por tempo demais: abre uma pendência para o restaurante.
 // Nunca move dinheiro; só consulta o provedor e chama funções idempotentes do banco.
+// Também processa a fila de baixa no PDV (pdv_payment_outbox).
 const MIN_AGE_MS = 5 * 60 * 1000;
 const ORPHAN_AGE_MS = 20 * 60 * 1000;
 const BATCH = 40;
@@ -62,7 +63,10 @@ export const Route = createFileRoute("/api/public/payments/reconcile")({
             conta("erro_provedor");
           }
         }
-        return Response.json({ ok: true, verificados: (pendentes ?? []).length, resumo });
+        // Mesma rotina: baixa dos pagamentos aprovados no PDV externo do restaurante.
+        const { processarFilaBaixa } = await import("@/lib/tipe/pdv/outbox.server");
+        const baixa = await processarFilaBaixa(supabaseAdmin);
+        return Response.json({ ok: true, verificados: (pendentes ?? []).length, resumo, baixaPdv: baixa });
       },
     },
   },

@@ -7,7 +7,10 @@ const Slug = z.string().min(1).max(64).regex(/^[a-z0-9-]+$/);
 async function rest(supabase: any, slug: string) {
   const { data } = await supabase.from("restaurants").select("id, slug, name, pos_provider, pos_mode, service_rate, phone, address, opening_hours, bill_payment_methods").eq("slug", slug).maybeSingle();
   if (!data) throw new Error("Restaurante não encontrado ou sem acesso");
-  return data as { id: string; slug: string; name: string; pos_provider: string; pos_mode: string; service_rate: number; phone: string | null; address: string | null; opening_hours: string | null; bill_payment_methods: string[] };
+  // Consulta separada para não derrubar o painel se a migração 0021 ainda não rodou.
+  const { data: rv, error: rvErr } = await supabase.from("restaurants").select("google_review_url").eq("id", data.id).maybeSingle();
+  data.google_review_url = rvErr ? null : (rv?.google_review_url ?? null);
+  return data as { id: string; slug: string; name: string; pos_provider: string; pos_mode: string; service_rate: number; phone: string | null; address: string | null; opening_hours: string | null; bill_payment_methods: string[]; google_review_url: string | null };
 }
 const err = (m: string, fb: string) => {
   for (const k of ["Sem permissão", "Já existe", "Abra o caixa", "Nenhum caixa", "Valor inválido", "Escolha outra", "Há pagamentos", "Mesa inativa", "Informe o motivo", "Quantidade"]) if (m.includes(k)) return m;
@@ -78,9 +81,13 @@ export const saveSettings = createServerFn({ method: "POST" })
     slug: Slug, name: z.string().trim().min(2).max(80), serviceRate: z.number().min(0).max(0.2),
     phone: z.string().trim().max(30), address: z.string().trim().max(160), openingHours: z.string().trim().max(120),
     billMethods: z.array(z.enum(["pix", "apple_pay", "google_pay", "at_establishment"])).min(1, "Escolha ao menos um meio de pagamento").max(4),
+    googleReviewUrl: z.string().trim().max(300).optional(),
   }).parse(d))
   .handler(async ({ data, context }) => {
-    const { data: rows, error } = await context.supabase.from("restaurants").update({ name: data.name, service_rate: data.serviceRate, phone: data.phone || null, address: data.address || null, opening_hours: data.openingHours || null, bill_payment_methods: Array.from(new Set(data.billMethods)) }).eq("slug", data.slug).select("id");
+    const { isGoogleReviewUrl } = await import("./rules");
+    const review = data.googleReviewUrl ? data.googleReviewUrl : null;
+    if (review && !isGoogleReviewUrl(review)) throw new Error("Valor inválido: use o link de avaliação do Google (começa com https://g.page/ ou https://maps.app.goo.gl/, por exemplo)");
+    const { data: rows, error } = await context.supabase.from("restaurants").update({ name: data.name, service_rate: data.serviceRate, phone: data.phone || null, address: data.address || null, opening_hours: data.openingHours || null, bill_payment_methods: Array.from(new Set(data.billMethods)), ...(data.googleReviewUrl !== undefined ? { google_review_url: review } : {}) }).eq("slug", data.slug).select("id");
     if (error || !rows?.length) throw new Error("Somente o dono pode alterar as configurações");
     return { ok: true };
   });
@@ -136,3 +143,31 @@ export const setIntegration = createServerFn({ method: "POST" })
     if (error) throw new Error(err(error.message, "Não foi possível salvar a integração"));
     return { key };
   });
+
+// Fechamento do dia (dono ou caixa): pagamentos da conta, inclusive de mesas já reabertas.
+export const getDailyClose = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ slug: Slug, date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const sb = context.supabase;
+    const r = await rest(sb, data.slug);
+    const { data: allowed } = await sb.rpc("has_restaurant_role", { _user_id: context.userId, _restaurant_id: r.id, _roles: ["owner", "cashier"] });
+    if (!allowed) throw new Error("Sem permissão: o fechamento é do dono ou do caixa");
+    const { businessDayRange, dailyCloseCsv, buildDailyClose } = await import("./daily-close");
+    const { start, end } = businessDayRange(data.date);
+    const cols = "id, created_at, table_number, customer_name, payment_method, establishment_method, status, amount, service_fee_amount, payment_target";
+    const [cur, arch, inc] = await Promise.all([
+      sb.from("table_payment_requests").select(cols).eq("restaurant_slug", data.slug).eq("payment_target", "restaurant").gte("created_at", start).lt("created_at", end),
+      sb.from("archived_payments").select(cols).eq("restaurant_slug", data.slug).eq("payment_target", "restaurant").gte("created_at", start).lt("created_at", end),
+      sb.from("payment_incidents" as never).select("kind, amount, resolved_at").eq("restaurant_id" as never, r.id as never).gte("created_at" as never, start as never).lt("created_at" as never, end as never) as unknown as Promise<{ data: { kind: string; amount: number | null; resolved_at: string | null }[] | null }>,
+    ]);
+    if (cur.error || arch.error) throw new Error("Não foi possível montar o fechamento");
+    const seen = new Set<string>();
+    const payments = [...(cur.data ?? []), ...(arch.data ?? [])].filter((p) => !seen.has(p.id) && seen.add(p.id)).map((p) => ({
+      id: p.id, created_at: p.created_at, table_number: p.table_number, customer_name: p.customer_name, payment_method: p.payment_method,
+      establishment_method: p.establishment_method ?? null, status: p.status, amount: Number(p.amount), service_fee_amount: p.service_fee_amount === null ? null : Number(p.service_fee_amount),
+    }));
+    const incidents = (inc.data ?? []).map((i) => ({ kind: i.kind, amount: i.amount === null ? null : Number(i.amount), resolved: !!i.resolved_at }));
+    return { summary: buildDailyClose(payments, incidents), csv: dailyCloseCsv(r.name, data.date, payments, incidents) };
+  });
+

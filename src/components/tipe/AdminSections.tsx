@@ -8,6 +8,7 @@ import { whatsappLink } from "@/lib/tipe/contact";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cashAction, getOpsData, getReports, saveSettings, setItemStatus } from "@/lib/tipe/admin.functions";
+import { FechamentoDia } from "@/components/tipe/FechamentoDia";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const hora = (s: string) => new Date(s).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
@@ -221,6 +222,7 @@ export function Relatorios({ slug }: { slug: string }) {
   );
   return (
     <div className="space-y-4">
+      <FechamentoDia slug={slug} />
       <div className="flex flex-wrap items-center gap-2">
         {[1, 7, 30].map((n) => <Button key={n} size="sm" variant={days === n ? "default" : "outline"} onClick={() => setDays(n)}>{n === 1 ? "Hoje (24h)" : `${n} dias`}</Button>)}
         <Button size="sm" variant="outline" className="ml-auto" onClick={exportar}><Download className="mr-1 h-4 w-4" />Exportar planilha</Button>
@@ -365,14 +367,14 @@ export function Configuracoes({ slug, podeDono }: { slug: string; podeDono: bool
   const save = useServerFn(saveSettings);
   const qc = useQueryClient();
   const r = ops.data?.restaurant;
-  const [f, setF] = useState<null | { name: string; rate: string; phone: string; address: string; hours: string; methods: string[] }>(null);
+  const [f, setF] = useState<null | { name: string; rate: string; phone: string; address: string; hours: string; methods: string[]; review: string }>(null);
   if (!r) return <p className="text-muted-foreground">Carregando…</p>;
-  const v = f ?? { name: r.name, rate: String(Math.round(r.service_rate * 100)), phone: r.phone ?? "", address: r.address ?? "", hours: r.opening_hours ?? "", methods: r.bill_payment_methods ?? ["pix", "apple_pay", "google_pay", "at_establishment"] };
+  const v = f ?? { name: r.name, rate: String(Math.round(r.service_rate * 100)), phone: r.phone ?? "", address: r.address ?? "", hours: r.opening_hours ?? "", methods: r.bill_payment_methods ?? ["pix", "apple_pay", "google_pay", "at_establishment"], review: r.google_review_url ?? "" };
   return (
     <form className="max-w-xl space-y-3" onSubmit={async (e) => {
       e.preventDefault();
       try {
-        await save({ data: { slug, name: v.name, serviceRate: Number(v.rate) / 100, phone: v.phone, address: v.address, openingHours: v.hours, billMethods: v.methods as ("pix" | "apple_pay" | "google_pay" | "at_establishment")[] } });
+        await save({ data: { slug, name: v.name, serviceRate: Number(v.rate) / 100, phone: v.phone, address: v.address, openingHours: v.hours, billMethods: v.methods as ("pix" | "apple_pay" | "google_pay" | "at_establishment")[], googleReviewUrl: v.review.trim() } });
         toast.success("Configurações salvas"); setF(null);
         qc.invalidateQueries({ queryKey: ["ops", slug] }); qc.invalidateQueries({ queryKey: ["panel", slug] });
       } catch (err) { toast.error((err as Error).message); }
@@ -384,6 +386,7 @@ export function Configuracoes({ slug, podeDono }: { slug: string; podeDono: bool
         <label className="block text-sm">Telefone<Input disabled={!podeDono} value={v.phone} onChange={(e) => setF({ ...v, phone: e.target.value })} /></label>
         <label className="block text-sm">Endereço<Input disabled={!podeDono} value={v.address} onChange={(e) => setF({ ...v, address: e.target.value })} /></label>
         <label className="block text-sm">Horário de funcionamento<Input disabled={!podeDono} value={v.hours} onChange={(e) => setF({ ...v, hours: e.target.value })} /></label>
+        <label className="block text-sm">Link de avaliação no Google<Input disabled={!podeDono} inputMode="url" placeholder="https://g.page/r/..." value={v.review} onChange={(e) => setF({ ...v, review: e.target.value })} /><span className="mt-1 block text-xs text-muted-foreground">No Perfil da Empresa no Google, use "Pedir avaliações" e cole o link aqui. Ele aparece para todos os clientes depois do pagamento. Deixe em branco para não mostrar.</span></label>
       </Card>
       <Card className="space-y-3">
         <div>

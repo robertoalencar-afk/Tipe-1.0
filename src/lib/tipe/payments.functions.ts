@@ -360,3 +360,43 @@ export const submitRating = createServerFn({ method: "POST" })
     if (error) throw new Error("Não foi possível registrar a avaliação");
     return { ok: true };
   });
+
+// Comprovante por e-mail: só de pagamento aprovado da própria mesa (sessão válida).
+// O e-mail é usado só para este envio e não é gravado (LGPD: minimização).
+export const sendPaymentReceipt = createServerFn({ method: "POST" })
+  .inputValidator((d) => TableInput.extend({ paymentId: z.string().uuid(), email: z.string().trim().toLowerCase().email().max(160) }).parse(d))
+  .handler(async ({ data }) => {
+    const { verifyTableSession, enforceRate, clientIp } = await import("./security.server");
+    const ok = await verifyTableSession(data.restaurantId, data.tableId, data.session);
+    if (!ok) throw new Error("Sessão da mesa expirada");
+    await enforceRate(`receipt:${data.paymentId}`, 3, 600, data.restaurantId);
+    await enforceRate(`receipt-ip:${clientIp()}`, 10, 3600, data.restaurantId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: p } = await supabaseAdmin.from("table_payment_requests")
+      .select("id, customer_name, payment_method, status, amount, item_quantities, created_at, service_fee_amount, payment_target")
+      .eq("id", data.paymentId).eq("restaurant_slug", data.restaurantId).eq("table_number", data.tableId).maybeSingle();
+    if (!p || p.payment_target !== "restaurant" || p.status !== "approved") throw new Error("O comprovante fica disponível depois que o pagamento é confirmado.");
+    const qtys = (p.item_quantities ?? {}) as Record<string, number>;
+    const codes = Object.keys(qtys);
+    const [{ data: items }, { data: r }] = await Promise.all([
+      codes.length ? supabaseAdmin.from("table_bill_items").select("item_code, item_name").eq("restaurant_slug", data.restaurantId).eq("table_number", data.tableId).in("item_code", codes) : Promise.resolve({ data: [] as { item_code: string; item_name: string }[] }),
+      supabaseAdmin.from("restaurants").select("name").eq("slug", data.restaurantId).maybeSingle(),
+    ]);
+    const { buildReceipt, maskEmail } = await import("./receipt");
+    const receipt = buildReceipt({
+      restaurant: r?.name ?? "Restaurante", table: data.tableId, customer: p.customer_name, createdAt: p.created_at,
+      paymentMethod: p.payment_method, itemQuantities: qtys,
+      itemNames: Object.fromEntries((items ?? []).map((i) => [i.item_code, i.item_name])),
+      amount: Number(p.amount), serviceFee: p.service_fee_amount === null ? null : Number(p.service_fee_amount), paymentId: p.id,
+    });
+    const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
+    const digest = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(data.email))), (b) => b.toString(16).padStart(2, "0")).join("").slice(0, 16);
+    try {
+      const res = await sendTemplateEmail("payment-receipt", data.email, { templateData: receipt, idempotencyKey: `receipt-${p.id}-${digest}` });
+      if (!res.sent) throw new Error("suppressed");
+    } catch {
+      throw new Error("Não foi possível enviar o comprovante agora. Confira o e-mail e tente de novo.");
+    }
+    return { sentTo: maskEmail(data.email) };
+  });
+

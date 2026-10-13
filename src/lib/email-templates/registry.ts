@@ -3,6 +3,7 @@ import { template as leadConfirmation } from './lead-confirmation'
 import { template as privacyRequestNotification } from './privacy-request-notification'
 import { template as securityAlert } from './security-alert'
 import { template as pixChangeNotice } from './pix-change-notice'
+import { template as paymentReceipt } from './payment-receipt'
 import type { ComponentType } from 'react'
 
 export interface TemplateEntry {
@@ -28,6 +29,7 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'privacy-request-notification': privacyRequestNotification,
   'security-alert': securityAlert,
   'pix-change-notice': pixChangeNotice,
+  'payment-receipt': paymentReceipt,
   // Add templates here as they are created, e.g.:
   // 'welcome': welcomeTemplate,
 }

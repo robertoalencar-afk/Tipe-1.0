@@ -28,9 +28,9 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getPublicTable } from "@/lib/tipe/pdv.functions";
-import { createPayment, getPaymentByKey, getPaymentConfig, getPaymentStatus, reopenClosedTable, submitRating, type SharedPayment } from "@/lib/tipe/payments.functions";
+import { createPayment, getPaymentByKey, getPaymentConfig, getPaymentStatus, reopenClosedTable, sendPaymentReceipt, submitRating, type SharedPayment } from "@/lib/tipe/payments.functions";
 import { CardFields } from "@/components/tipe/CardFields";
-import { resolveServiceFee } from "@/lib/tipe/rules";
+import { resolveServiceFee, suggestedTips, TIP_SPLIT } from "@/lib/tipe/rules";
 import { cardValid, tokenizeCard, type CardInput } from "@/lib/tipe/pagarme-client";
 import mascotThanks from "@/assets/mascot-thanks-hd.webp";
 import mascotRating from "@/assets/mascot-rating-hd.webp";
@@ -142,6 +142,12 @@ function MesaPage() {
   useEffect(() => { getPaymentConfig().then((c) => { setChavePublica(c.publicKey); setGorjetaDisponivel(c.tipsAvailable); }).catch(() => undefined); }, []);
   const chavePagamento = useRef<string | null>(null);
   const [valorPago, setValorPago] = useState(0);
+  // Último pagamento confirmado da conta (para o comprovante por e-mail).
+  const [ultimoPagamento, setUltimoPagamento] = useState<string | null>(null);
+  const [emailRecibo, setEmailRecibo] = useState("");
+  const [recibo, setRecibo] = useState<{ estado: "idle" | "enviando" | "enviado" | "erro"; msg?: string }>({ estado: "idle" });
+  const [linkAvaliacao, setLinkAvaliacao] = useState<string | null>(null);
+  const [gorjetaOutro, setGorjetaOutro] = useState("");
 
   useEffect(() => {
     try {
@@ -171,6 +177,7 @@ function MesaPage() {
       setMetodosAceitos(estado.billMethods as Metodo[]);
       setTaxaSugerida(estado.serviceWaived ? 0 : estado.serviceRate);
       setTaxaRemovida(estado.serviceWaived);
+      setLinkAvaliacao(estado.googleReviewUrl ?? null);
       setDados({ restaurante: estado.restaurantName, mesa: estado.tableNumber, garcom: estado.waiterName, itens: itensMesa });
       setDisponiveis(Object.fromEntries(estado.items.map((item) => [item.item_code, roundPortion(Math.max(0, item.ordered_quantity - item.reserved_portion - item.paid_portion))])));
       setPagamentos(estado.payments);
@@ -296,7 +303,7 @@ function MesaPage() {
         },
       });
       chavePagamento.current = null;
-      if (tipo === "conta") setValorPago(totalConta);
+      if (tipo === "conta") { setValorPago(totalConta); setUltimoPagamento(resultado.id); setRecibo({ estado: "idle" }); }
       setQtds({});
       await atualizarMesa();
       if (resultado.provider === "pagarme" && resultado.status === "pending" && resultado.pixCode) {
@@ -342,7 +349,7 @@ function MesaPage() {
             return;
           }
           chavePagamento.current = null;
-          if (tipo === "conta") setValorPago(totalConta);
+          if (tipo === "conta") { setValorPago(totalConta); setUltimoPagamento(r.id); setRecibo({ estado: "idle" }); }
           setQtds({});
           setEtapa(tipo === "conta" ? (r.status === "approved" ? "conta-confirmada" : "conta-pendente") : "fim");
           return;
@@ -621,6 +628,28 @@ function MesaPage() {
           <h1 className="mt-2 text-2xl font-bold">Pagamento confirmado!</h1>
           <p className="mt-3 text-center text-sm leading-6 text-muted-foreground">{money(valorPago)} enviados ao {dados.restaurante}.</p>
           {mesaEncerrada && <p className="mt-2 text-center text-sm font-semibold text-primary">Este foi o último pagamento: a mesa está encerrada.</p>}
+          {ultimoPagamento && /^[0-9a-f-]{36}$/.test(ultimoPagamento) && (
+            <form className="mt-6 w-full rounded-2xl border border-border bg-card p-4 text-left" onSubmit={async (e) => {
+              e.preventDefault();
+              if (!emailRecibo.includes("@") || recibo.estado === "enviando") return;
+              setRecibo({ estado: "enviando" });
+              try {
+                const r = await sendPaymentReceipt({ data: { restaurantId: restaurante, tableId: String(dados.mesa), session: sessaoMesa, paymentId: ultimoPagamento, email: emailRecibo } });
+                setRecibo({ estado: "enviado", msg: `Comprovante enviado para ${r.sentTo}.` });
+                setEmailRecibo("");
+              } catch (err) {
+                setRecibo({ estado: "erro", msg: err instanceof Error ? err.message : "Não foi possível enviar agora." });
+              }
+            }}>
+              <label htmlFor="email-recibo" className="text-sm font-semibold">Quer o comprovante por e-mail?</label>
+              <div className="mt-2 flex gap-2">
+                <Input id="email-recibo" type="email" inputMode="email" autoComplete="email" maxLength={160} value={emailRecibo} onChange={(e) => setEmailRecibo(e.target.value)} placeholder="seu@email.com" className="h-11" />
+                <Button type="submit" variant="outline" disabled={recibo.estado === "enviando" || !emailRecibo.includes("@")} className="h-11 shrink-0">{recibo.estado === "enviando" ? "Enviando…" : "Enviar"}</Button>
+              </div>
+              {recibo.msg && <p role="status" className={`mt-2 text-xs ${recibo.estado === "erro" ? "text-destructive" : "text-primary"}`}>{recibo.msg}</p>}
+              <p className="mt-2 text-[11px] text-muted-foreground">Usamos o e-mail só para este envio. Não é nota fiscal.</p>
+            </form>
+          )}
           <Button onClick={() => setEtapa("avaliacao")} className="mt-8 h-12 w-full rounded-lg text-base font-bold">Avaliar atendimento <ChevronRight /></Button>
           {mesaEncerrada && <Button variant="outline" onClick={() => setEtapa("mesa-encerrada")} className="mt-3 h-12 w-full rounded-lg text-base font-bold">Ver mesa encerrada</Button>}
         </TelaCentral>
@@ -649,11 +678,18 @@ function MesaPage() {
           <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/15"><Heart className="h-7 w-7 text-primary" /></div>
           <h1 className="mt-5 text-center text-2xl font-bold">Quer deixar uma gorjeta extra?</h1>
            <p className="mt-2 text-center text-sm leading-6 text-muted-foreground">Uma forma opcional de agradecer pelo atendimento.</p>
-          <div className="mt-7 grid grid-cols-2 gap-3">
-            {[5, 10, 15, 20].map((valor) => (
-              <Button key={valor} variant={gorjetaExtra === valor ? "default" : "outline"} onClick={() => setGorjetaExtra(valor)} className="h-14 rounded-lg text-base font-bold">{money(valor)}</Button>
+          <div className="mt-7 grid grid-cols-3 gap-3">
+            {suggestedTips(valorPago).map((s) => (
+              <Button key={s.label} variant={gorjetaExtra === s.amount && !gorjetaOutro ? "default" : "outline"} onClick={() => { setGorjetaOutro(""); setGorjetaExtra(s.amount); }} className="h-16 flex-col gap-0 rounded-lg text-base font-bold">
+                <span>{s.label}</span>
+                {s.label.endsWith("%") && <span className="text-xs font-normal opacity-80">{money(s.amount)}</span>}
+              </Button>
             ))}
           </div>
+          <label htmlFor="gorjeta-outro" className="mt-4 text-sm font-semibold">Outro valor</label>
+          <Input id="gorjeta-outro" inputMode="decimal" maxLength={8} value={gorjetaOutro} placeholder="R$ 0,00" className="mt-1 h-11"
+            onChange={(e) => { const t = e.target.value.replace(/[^\d,.]/g, ""); setGorjetaOutro(t); const v = Number(t.includes(",") ? t.replace(/\./g, "").replace(",", ".") : t); setGorjetaExtra(Number.isFinite(v) && v > 0 && v <= 1000 ? Math.round(v * 100) / 100 : 0); }} />
+          <p className="mt-2 text-xs text-muted-foreground">{Math.round(TIP_SPLIT.waiter * 100)}% da gorjeta vai para a equipe e {Math.round(TIP_SPLIT.tipe * 100)}% é a taxa da plataforma TIPE.</p>
           {gorjetaExtra > 0 && <div className="mt-4 rounded-lg border border-border bg-card p-4 text-sm"><p className="font-semibold">Gorjeta: {money(gorjetaExtra)}</p></div>}
           <Button disabled={gorjetaExtra <= 0} onClick={() => setEtapa("pagamento-gorjeta")} className="mt-6 h-12 rounded-lg text-base font-bold">Continuar com gorjeta <ChevronRight /></Button>
           <Button variant="ghost" onClick={() => setEtapa("fim")} className="mt-2 h-11">Agora não, obrigado</Button>
@@ -703,6 +739,12 @@ function MesaPage() {
           <h1 className="mt-2 text-2xl font-bold">Obrigado pela sua visita.</h1>
           <p className="mt-3 text-center text-sm leading-6 text-muted-foreground">Sua conta foi paga e sua avaliação foi registrada.</p>
           {gorjetaExtra > 0 && <div className="mt-3 rounded-lg border border-border bg-card p-3 text-center text-sm"><p className="font-semibold">Gorjeta de {money(gorjetaExtra)} recebida.</p></div>}
+          {linkAvaliacao && (
+            // Mostrado a todos os clientes, sem filtrar por nota (as regras do Google proíbem pedir avaliação só de quem gostou).
+            <a href={linkAvaliacao} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-border bg-card px-5 text-sm font-semibold hover:border-primary">
+              <Star className="h-4 w-4 text-highlight" aria-hidden /> Avaliar {dados.restaurante} no Google
+            </a>
+          )}
           {mesaEncerrada && (
             <Button onClick={() => setEtapa("mesa-encerrada")} className="mt-8 h-12 w-full rounded-lg text-base font-bold">Ver mesa encerrada <ChevronRight /></Button>
           )}

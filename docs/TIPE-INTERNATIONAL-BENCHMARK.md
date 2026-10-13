@@ -58,13 +58,9 @@ Só faz sentido financiado pela receita da TIPE e pago como **crédito na assina
 1. No Lovable, peça: "agende uma chamada POST para `/api/public/payments/reconcile` a cada 5 minutos, com o mesmo segredo de cron usado em `/api/public/pdv/sync`".
 2. No painel da Pagar.me (conta da TIPE e de cada restaurante), em Configurações → Webhooks, marque também os eventos de contestação (`chargeback.*`) no webhook que já existe.
 
-### Próximo ciclo (P1, sem dependência externa)
-1. Recibo por e-mail (serviço de e-mail já existe).
-2. Gorjeta sugerida em % na própria conta (após D2).
-3. Convite para avaliação no Google para notas 4–5.
-4. Fechamento diário exportável (vendas, meios, taxa, gorjetas, estornos) no formato que Restaurant365/MarginEdge importam.
-5. Fila de baixa no PDV (outbox) usando `esperaAntesDaTentativa` e pendência `pdv_writeback_failed` — a tabela de pendências já aceita esse tipo.
-6. Carregar o texto jurídico sob demanda no simulador (achado do REA: 847 KB de JS na página pública).
+### Próximo ciclo (P1, sem dependência externa) — entregue na fase 2
+Recibo por e-mail, gorjeta sugerida em %, convite para avaliação no Google, fechamento diário exportável e fila de baixa no PDV: ver `docs/fase-2.md`.
+Ainda aberto: carregar o texto jurídico sob demanda no simulador (achado do REA: 847 KB de JS na página pública).
 
 ### Depende de integração, credenciais ou parceria
 | Item | Dependência |
