@@ -73,9 +73,9 @@ Complexidade: B baixa · M média · A alta. Prioridade: P0 agora · P1 próximo
 | 4 | Estorno/contestação refletidos | Rooam | conta "paga" com dinheiro devolvido | M | webhook Pagar.me | nenhum | evento de contestação mudou na Pagar.me | P0 | **Feito** |
 | 5 | Reconciliador de pendentes | R365 | webhook perdido prendia itens reservados | M | agendamento da rotina | chamadas à API Pagar.me | limite de requisições | P0 | **Feito** (falta agendar) |
 | 6 | Pendências financeiras no caixa | — | dono vê e registra o que fazer | B | migração 0019 | nenhum | — | P0 | **Feito** |
-| 7 | Desligar a aprovação simulada em produção | — | evita conta "paga" sem dinheiro (R1) | B | decisão de produto | nenhum | afeta pilotos sem Pagar.me | P0 | Pronto para decidir |
+| 7 | Desligar a aprovação simulada em produção | — | evita conta "paga" sem dinheiro (R1) | B | — | nenhum | afeta pilotos sem Pagar.me | P0 | **Feito** |
 | 8 | Apple Pay e Google Pay reais | sunday, Toast | conversão no iPhone/Android | M | Pagar.me (carteiras), domínio verificado | taxa de cartão | certificação Apple | P1 | Não (credenciamento) |
-| 9 | Gorjeta sugerida em % na própria conta | sunday, Rooam | gorjeta maior (alegação de até +10%) | B | definir regra 70/30 vs 75/25 (D2) | nenhum | confundir com taxa de serviço | P1 | Sim, após D2 |
+| 9 | Gorjeta sugerida em % na própria conta | sunday, Rooam | gorjeta maior (alegação de até +10%) | B | regra 70/30 confirmada | nenhum | confundir com taxa de serviço | P1 | Sim |
 | 10 | Recibo por e-mail | sunday, Zonal | comprovante para reembolso de despesa | B | serviço de e-mail já existe (`send-email.ts`) | e-mail por envio | LGPD (e-mail opcional) | P1 | Sim |
 | 11 | Convite para avaliação no Google | sunday, qlub | mais avaliações públicas | B | link do perfil do restaurante | nenhum | só após nota alta, sem "gating" abusivo | P1 | Sim |
 | 12 | Adaptador Lightspeed K-Series | API pública Lightspeed | primeiro PDV externo com baixa automática | A | conta de parceiro/demonstração | — | mudanças de API | P1 | Não (credenciais) |

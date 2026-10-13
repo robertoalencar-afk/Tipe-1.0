@@ -24,6 +24,8 @@ Data: 13/10/2026. Base: commit `5f1c36f`. Nenhuma funcionalidade existente foi r
 | `src/components/tipe/PendenciasFinanceiras.tsx` | aviso no painel e lista com registro de resolução no Caixa |
 | `src/lib/tipe/pdv/contract.ts` | correspondência de operações, conformidade de adaptador, espera entre tentativas de baixa |
 | `src/lib/tipe/pdv/adapters/demo.server.ts` | PDV fictício em memória para testes (**não registrado**) |
+| `drizzle/migrations/0020_founder_scope.sql` | founder sem acesso operacional pelo papel global |
+| `src/lib/tipe/simulation.test.ts` | testes da trava de simulação |
 | `drizzle/migrations/0019_payment_reversals_incidents.sql` (+ journal/snapshot) | estados de estorno, `payment_incidents`, funções do provedor, arquivo com id do pedido |
 | `tests/db/*` | harness PostgreSQL e cenários do banco |
 | `docs/*` | este e os demais relatórios |
@@ -31,10 +33,13 @@ Data: 13/10/2026. Base: commit `5f1c36f`. Nenhuma funcionalidade existente foi r
 ### Alterados
 | Arquivo | Mudança |
 |---|---|
-| `src/lib/tipe/payments.functions.ts` | subtotal com arredondamento cumulativo; resultado do pedido passa por `applyProviderOrder`; tipos de status ampliados |
+| `src/lib/tipe/payments.functions.ts` | sem aprovação simulada fora de teste; Pix pendente reconsultado enquanto o cliente espera; subtotal com arredondamento cumulativo; resultado do pedido passa por `applyProviderOrder`; tipos de status ampliados |
 | `src/routes/api/public/pagarme/webhook.ts` | aceita `order.*`, `charge.*`, `chargeback.*`; só trata gorjetas (alvo `tipe`) |
 | `src/routes/api/public/pagarme/restaurante.$slug.ts` | idem; confere que o pedido é do restaurante, inclusive em mesa reaberta |
-| `src/lib/tipe/pagarme.server.ts` | tipo do pedido com `amount`/`paid_amount` |
+| `src/lib/tipe/pagarme.server.ts` | tipo do pedido com `amount`/`paid_amount`; `simulatedPaymentsAllowed`, `usableBillMethods` |
+| `src/lib/tipe/pdv.functions.ts` | conta pública só oferece meios digitais com Pagar.me ativa (ou simulação ligada) |
+| `src/lib/tipe/staff.functions.ts` | cadastro de restaurante pelo Backoffice via servidor, com registro de segurança |
+| `src/lib/tipe/pdv-integrations.functions.ts` | founder com 2FA configura integração pelo servidor |
 | `src/routes/$restaurante.$mesa.tsx` | `DividirConta`, saldo restante da mesa, status "Estornado/Contestado" |
 | `src/components/tipe/RestaurantPanel.tsx` | aviso de pendências e lista no Caixa |
 | `src/components/tipe/Recebimentos.tsx` | instrução de webhook inclui eventos de contestação |
@@ -66,7 +71,8 @@ A migração é idempotente (reaplicada sem erro no teste).
 
 ## 5. Para colocar no ar
 
-1. Aplicar a migração 0019 (sincronização do Lovable).
+1. Aplicar as migrações 0019 e 0020 (sincronização do Lovable).
+   - Se algum ambiente de teste/demonstração depende de pagamentos simulados, defina nele `TIPE_ALLOW_SIMULATED_PAYMENTS=true`. Em produção, não defina.
 2. **Agendar** `POST /api/public/payments/reconcile` a cada 5 minutos, como já é feito com `/api/public/pdv/sync`.
 3. Em cada conta Pagar.me (TIPE e restaurantes), marcar também os eventos de **contestação** (`chargeback.*`).
 4. Rodar `npm i && npx vitest run && npx tsc --noEmit && npm run build`.

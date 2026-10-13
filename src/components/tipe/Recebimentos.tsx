@@ -66,6 +66,7 @@ export function Recebimentos({ slug, podeDono }: { slug: string; podeDono: boole
         </div>
       ) : (
         <div className="rounded-2xl border border-border bg-card p-5">
+          <p role="status" className="mb-5 rounded-xl border border-warning/50 bg-warning/10 p-3 text-sm">Enquanto a conta Pagar.me não estiver conectada, seus clientes só conseguem pedir o pagamento no estabelecimento (dinheiro ou maquininha). Pix e carteiras digitais aparecem assim que a conexão for concluída.</p>
           <ol className="space-y-5">
             <Passo n={1} titulo="Crie sua conta na Pagar.me">
               É grátis. Use o CNPJ do restaurante. A própria Pagar.me confere seus documentos e cadastra a conta bancária.

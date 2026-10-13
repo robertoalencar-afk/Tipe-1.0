@@ -151,7 +151,7 @@ export const createPayment = createServerFn({ method: "POST" })
       return { id, status: "pending", provider: "estabelecimento" };
     }
 
-    const { pagarmeEnabled, pagarme } = await import("./pagarme.server");
+    const { pagarmeEnabled, pagarme, simulatedPaymentsAllowed } = await import("./pagarme.server");
 
     const split: unknown[] | undefined = undefined;
     let secretKey: string | undefined;
@@ -162,9 +162,14 @@ export const createPayment = createServerFn({ method: "POST" })
       secretKey = (rest ? await restaurantPagarmeKey(rest.id) : null) ?? undefined;
     }
 
-    // Modo simulação: sem conta Pagar.me configurada, nada é cobrado de verdade.
+    // Sem conta Pagar.me: em produção o pagamento digital é recusado antes de
+    // reservar qualquer item; só ambientes de teste/demonstração aprovam simulado.
     if (data.target === "restaurant" ? !secretKey : !pagarmeEnabled()) {
-      // Em testes, pagamentos digitais são aprovados na hora.
+      if (!simulatedPaymentsAllowed()) {
+        throw new Error(data.target === "restaurant"
+          ? "Este restaurante ainda não aceita pagamento digital pela TIPE. Pague no estabelecimento."
+          : "A gorjeta digital ainda não está disponível. Você pode deixar a gorjeta diretamente com a equipe.");
+      }
       const simId = await register("approved");
       return { id: simId, status: "approved", provider: "simulado" };
     }
@@ -288,6 +293,8 @@ export const reopenClosedTable = createServerFn({ method: "POST" })
 export const getPaymentConfig = createServerFn({ method: "GET" }).handler(async () => ({
   live: !!process.env["PAGARME_SECRET_KEY"],
   publicKey: process.env["PAGARME_PUBLIC_KEY"] ?? null,
+  // Gorjeta extra é recebida na conta TIPE: só aparece se ela estiver configurada (ou em simulação).
+  tipsAvailable: !!process.env["PAGARME_SECRET_KEY"] || process.env["TIPE_ALLOW_SIMULATED_PAYMENTS"] === "true",
 }));
 
 // Situação de um pagamento da própria mesa (usado para acompanhar o Pix).
@@ -297,8 +304,30 @@ export const getPaymentStatus = createServerFn({ method: "GET" })
     const { verifyTableSession } = await import("./security.server");
     if (!(await verifyTableSession(data.restaurantId, data.tableId, data.session))) throw new Error("Sessão da mesa expirada");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: p } = await supabaseAdmin.from("table_payment_requests").select("status")
+    const { data: p } = await supabaseAdmin.from("table_payment_requests").select("id, status, amount, created_at, restaurant_slug, payment_target, provider, provider_order_id")
       .eq("id", data.paymentId).eq("restaurant_slug", data.restaurantId).eq("table_number", data.tableId).maybeSingle();
+    // Pix pendente há mais de 1 min enquanto o cliente espera: reconsulta o provedor
+    // (no máximo 3× por minuto por pagamento). Cobre webhook perdido sem depender da rotina.
+    if (p && p.status === "pending" && p.provider === "pagarme" && p.provider_order_id?.startsWith("or_") && Date.now() - Date.parse(p.created_at) > 60_000) {
+      const { rateLimit } = await import("./security.server");
+      if (await rateLimit(`paycheck:${p.id}`, 3, 60)) {
+        try {
+          const { pagarme, restaurantPagarmeKey } = await import("./pagarme.server");
+          let secretKey: string | undefined;
+          if (p.payment_target === "restaurant") {
+            const { data: r } = await supabaseAdmin.from("restaurants").select("id").eq("slug", p.restaurant_slug).maybeSingle();
+            secretKey = (r ? await restaurantPagarmeKey(r.id) : null) ?? undefined;
+          }
+          if (p.payment_target !== "restaurant" || secretKey) {
+            const order = await pagarme<import("./pagarme.server").PagarmeOrder>(`/orders/${p.provider_order_id}`, secretKey ? { secretKey } : {});
+            const { applyProviderOrder } = await import("./payment-settlement.server");
+            const acao = await applyProviderOrder(supabaseAdmin, p.provider_order_id, order, { ...p, amount: Number(p.amount), status: "pending", archived: false });
+            if (acao === "settle_paid") return { status: "approved" as const };
+            if (acao === "settle_failed") return { status: "failed" as const };
+          }
+        } catch { /* provedor fora do ar: o webhook ou a rotina resolvem depois */ }
+      }
+    }
     return { status: (p?.status ?? "failed") as import("./payment-state").PaymentStatus };
   });
 

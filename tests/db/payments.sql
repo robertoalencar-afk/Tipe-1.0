@@ -202,3 +202,22 @@ BEGIN
     PERFORM pg_temp.ok(true, 'tipo de pendência validado');
   END;
 END $$;
+
+-- D4) Founder sem papel no restaurante não acessa a operação privada.
+DO $$
+DECLARE u_founder uuid := gen_random_uuid(); v_rid uuid; n int; ok boolean;
+BEGIN
+  SELECT id INTO v_rid FROM restaurants WHERE slug='mare-alta';
+  INSERT INTO auth.users (id, email) VALUES (u_founder, 'founder@teste.local');
+  INSERT INTO user_roles (user_id, role, restaurant_id) VALUES (u_founder, 'founder', NULL);
+  PERFORM pg_temp.ok(NOT has_restaurant_role(u_founder, v_rid, ARRAY['owner','cashier']::app_role[]), 'founder não tem papel de dono/caixa pelo papel global');
+  PERFORM pg_temp.ok(NOT is_restaurant_member(u_founder, v_rid), 'founder não é membro pelo papel global');
+  PERFORM pg_temp.ok(NOT is_member_of_slug(u_founder, 'mare-alta'), 'founder não é membro pelo endereço');
+  PERFORM set_config('request.jwt.claim.sub', u_founder::text, true);
+  SET LOCAL ROLE authenticated;
+  SELECT count(*) INTO n FROM table_payment_requests WHERE restaurant_slug = 'mare-alta';
+  RESET ROLE;
+  PERFORM pg_temp.ok(n = 0, 'founder não lê pagamentos das mesas pela RLS');
+  INSERT INTO user_roles (user_id, role, restaurant_id) VALUES (u_founder, 'owner', v_rid);
+  PERFORM pg_temp.ok(has_restaurant_role(u_founder, v_rid, ARRAY['owner']::app_role[]), 'com papel explícito no restaurante, o acesso volta');
+END $$;

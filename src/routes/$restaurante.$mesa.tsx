@@ -138,7 +138,8 @@ function MesaPage() {
   const [cartao, setCartao] = useState<CardInput>({ number: "", holder: "", exp: "", cvv: "" });
   const [chavePublica, setChavePublica] = useState<string | null>(null);
   const [pix, setPix] = useState<{ id: string; code: string; qrUrl?: string | undefined; tipo: "conta" | "gorjeta" } | null>(null);
-  useEffect(() => { getPaymentConfig().then((c) => setChavePublica(c.publicKey)).catch(() => undefined); }, []);
+  const [gorjetaDisponivel, setGorjetaDisponivel] = useState(false);
+  useEffect(() => { getPaymentConfig().then((c) => { setChavePublica(c.publicKey); setGorjetaDisponivel(c.tipsAvailable); }).catch(() => undefined); }, []);
   const chavePagamento = useRef<string | null>(null);
   const [valorPago, setValorPago] = useState(0);
 
@@ -639,7 +640,7 @@ function MesaPage() {
           </div>
           <label htmlFor="comentario" className="mt-8 text-sm font-semibold">Comentário <span className="font-normal text-muted-foreground">(opcional)</span></label>
           <Textarea id="comentario" value={comentario} onChange={(event) => setComentario(event.target.value)} placeholder="Conte como foi sua experiência" maxLength={400} className="mt-2 min-h-28 rounded-lg bg-card" />
-          <Button onClick={() => { if (estrelas > 0) void submitRating({ data: { restaurantId: restaurante, tableId: String(dados.mesa), session: sessaoMesa, stars: estrelas, comment: comentario.trim() || undefined } }).catch(() => undefined); setEtapa("gorjeta"); }} className="mt-6 h-12 rounded-lg text-base font-bold">Continuar <ChevronRight /></Button>
+          <Button onClick={() => { if (estrelas > 0) void submitRating({ data: { restaurantId: restaurante, tableId: String(dados.mesa), session: sessaoMesa, stars: estrelas, comment: comentario.trim() || undefined } }).catch(() => undefined); setEtapa(gorjetaDisponivel ? "gorjeta" : "fim"); }} className="mt-6 h-12 rounded-lg text-base font-bold">Continuar <ChevronRight /></Button>
         </main>
       )}
 

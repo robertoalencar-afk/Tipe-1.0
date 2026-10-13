@@ -14,7 +14,7 @@ PGHOST=/caminho/do/socket PGPORT=5432 PGUSER=postgres tests/db/run.sh
 
 ## 2. Resultados
 
-### 2.1 Unidade — 56 testes, 56 passaram
+### 2.1 Unidade — 63 testes, 63 passaram
 
 Executados com o executor nativo do Node 22 (`node --test`) e um adaptador mínimo da API do vitest, porque o registro npm estava bloqueado neste ambiente. Os arquivos são vitest padrão e rodam sem mudança com `npx vitest run`.
 
@@ -23,11 +23,12 @@ Executados com o executor nativo do Node 22 (`node --test`) e um adaptador míni
 | `src/lib/tipe/bill-math.test.ts` | 15 | arredondamento cumulativo; divisão igual, valor livre, percentual; três pagadores mistos; concorrência |
 | `src/lib/tipe/payment-state.test.ts` | 19 | máquina de estados; webhook duplicado e fora de ordem; estorno; contestação; valor divergente; pagamento após liberação |
 | `src/lib/tipe/pdv/contract.test.ts` | 8 | contrato de PDV com adaptador fictício: assinatura de webhook, idempotência, fluxo conta → divisão → pagamento → baixa com falha e nova tentativa |
+| `src/lib/tipe/simulation.test.ts` | 7 | simulação desligada por padrão; meios de pagamento visíveis sem Pagar.me |
 | `src/lib/tipe/tips.test.ts` | 3 | divisão da gorjeta exata ao centavo em 100.000 valores |
 | `src/lib/tipe/service-fee.test.ts` (existente) | 9 | taxa de serviço |
 | `src/lib/tipe/mask.test.ts` (existente) | 2 | máscaras de CPF/Pix |
 
-### 2.2 Banco — 42 verificações, 42 passaram
+### 2.2 Banco — 47 verificações, 47 passaram
 
 PostgreSQL 16 local, com **todas** as migrações do repositório (incluindo a nova 0019) e as funções reais de produção. Saída do `tests/db/run.sh`:
 
@@ -44,6 +45,7 @@ PostgreSQL 16 local, com **todas** as migrações do repositório (incluindo a n
 | 9. Item lançado durante o checkout | PDV lança café com pagamento pendente; evento repetido descartado; café continua a pagar | ✅ |
 | 10. QR inválido ou expirado | **não automatizado nesta fase** (lógica existente em `getPublicTable`/`verifyTableSession`, não alterada) | — |
 | 11. Acesso a comanda de outro restaurante | dono de outro restaurante não vê nem resolve pendências; anônimo sem acesso; usuário comum não chama funções do provedor | ✅ |
+| Founder sem papel no restaurante (D4) | não tem papel de dono/caixa, não é membro, não lê pagamentos pela RLS; com papel explícito, o acesso volta | ✅ |
 | 12. Gorjetas | divisão 70/30 exata em todos os centavos até R$ 1.000 | ✅ |
 | 13. Arredondamento | ⅓ de R$ 10,00 em três partes = R$ 10,00 (antes R$ 9,99) | ✅ |
 | 14. Falha de integração externa | PDV fora do ar (fictício) e provedor sem resposta (reconciliador conta `erro_provedor` e tenta na próxima rodada) | ✅ unidade / rota não executada |

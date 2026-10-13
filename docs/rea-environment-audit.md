@@ -46,14 +46,14 @@ Data: 13/10/2026 · Escopo: repositório `robertoalencar-afk/tipe-1.0` (commit b
 
 | # | Risco | Gravidade | Tratamento |
 |---|---|---|---|
-| R1 | **Modo simulação aprova pagamento digital na hora** quando o restaurante não conectou a Pagar.me (`payments.functions.ts`). Em produção, a conta fica "paga" sem dinheiro. O comentário do código diz o contrário ("fica pending"). | Alta | **Não alterado** (muda o piloto). Decisão sua: ver roadmap, item D1 |
+| R1 | **Modo simulação aprova pagamento digital na hora** quando o restaurante não conectou a Pagar.me (`payments.functions.ts`). Em produção, a conta fica "paga" sem dinheiro. O comentário do código diz o contrário ("fica pending"). | Alta | **Corrigido** (D1): simulação só com `TIPE_ALLOW_SIMULATED_PAYMENTS=true` |
 | R2 | Mesa reaberta arquivava pagamentos **sem o id do pedido no provedor**; estorno posterior não encontrava o pagamento | Alta | Corrigido (migração 0019) |
 | R3 | Estornos e contestações ignorados; evento `charge.chargedback` foi descontinuado pela Pagar.me em favor de `chargeback.received` (prazo 30/09/2026) | Alta | Corrigido: webhooks aceitam `order.*`, `charge.*`, `chargeback.*` |
 | R4 | Divisão em frações perdia centavo (3 × ⅓ de R$ 10,00 = R$ 9,99) | Média | Corrigido: arredondamento cumulativo por item |
 | R5 | `splitGorjeta` (sem uso) perdia centavos na divisão 70/30 | Baixa | Corrigido |
 | R6 | Histórico de migrações **não recria o banco**: tabelas como `restaurant_leads` e `pdv_events` foram criadas fora dele | Média | Documentado; harness de teste completa a partir de `types.ts` |
-| R7 | `has_restaurant_role` dá acesso de restaurante ao founder, em tensão com a regra "founder só vê agregados" do `AGENTS.md` | Média | Não alterado; decisão de produto (D4) |
-| R8 | Proporção da gorjeta no código é **70/30**; o briefing desta fase cita **75/25** | Decisão | Não alterado (D2) |
+| R7 | `has_restaurant_role` dá acesso de restaurante ao founder, em tensão com a regra "founder só vê agregados" do `AGENTS.md` | Média | **Corrigido** (D4, migração 0020) |
+| R8 | Proporção da gorjeta: o briefing citava 75/25; o código usa 70/30 | Decisão | **70/30 confirmado** pelo dono do produto |
 | R9 | `.env` versionado | Baixa | Contém apenas chaves publicáveis do Supabase (públicas por desenho). Nenhum segredo exposto |
 
 ## 4. O skill REA

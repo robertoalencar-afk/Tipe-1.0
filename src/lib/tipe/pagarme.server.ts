@@ -6,6 +6,22 @@ export function pagarmeEnabled() {
   return !!process.env["PAGARME_SECRET_KEY"];
 }
 
+/**
+ * Aprovação simulada (sem provedor de pagamento) só existe quando ligada de
+ * propósito, em ambientes de teste ou demonstração: TIPE_ALLOW_SIMULATED_PAYMENTS=true.
+ * Em produção fica desligada: sem conta Pagar.me, nenhum pagamento digital é aceito.
+ */
+export function simulatedPaymentsAllowed() {
+  return process.env["TIPE_ALLOW_SIMULATED_PAYMENTS"] === "true";
+}
+
+/** Meios da conta que o cliente pode usar de fato neste restaurante agora. */
+export function usableBillMethods(configured: string[], hasProvider: boolean) {
+  if (hasProvider || simulatedPaymentsAllowed()) return configured;
+  const presencial = configured.filter((m) => m === "at_establishment");
+  return presencial.length ? presencial : ["at_establishment"];
+}
+
 export async function pagarme<T = any>(path: string, init: { method?: string; body?: unknown; idempotencyKey?: string; secretKey?: string } = {}): Promise<T> {
   const key = init.secretKey ?? process.env["PAGARME_SECRET_KEY"];
   if (!key) throw new Error("Pagar.me não configurado");

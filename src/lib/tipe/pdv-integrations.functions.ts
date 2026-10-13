@@ -10,12 +10,19 @@ async function isFounder(ctx: Ctx) {
   return isFounderWith2fa(ctx);
 }
 // Autoriza pelo papel do usuário no restaurante (consulta com RLS do próprio usuário).
+// Founder com 2FA configura integrações pelo servidor (sem acesso à operação do restaurante).
 async function authorize(ctx: Ctx, slug: string, roles: string[]) {
   const { data: r } = await ctx.supabase.from("restaurants").select("id, slug").eq("slug", slug).maybeSingle();
-  if (!r) throw new Error("Restaurante não encontrado ou sem acesso");
-  const { data: ok } = await ctx.supabase.rpc("has_restaurant_role", { _user_id: ctx.userId, _restaurant_id: r.id, _roles: roles });
-  if (!ok && !(await isFounder(ctx))) throw new Error("Sem permissão");
-  return r as { id: string; slug: string };
+  if (r) {
+    const { data: ok } = await ctx.supabase.rpc("has_restaurant_role", { _user_id: ctx.userId, _restaurant_id: r.id, _roles: roles });
+    if (ok) return r as { id: string; slug: string };
+  }
+  if (await isFounder(ctx)) {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: fr } = await supabaseAdmin.from("restaurants").select("id, slug").eq("slug", slug).maybeSingle();
+    if (fr) return fr as { id: string; slug: string };
+  }
+  throw new Error(r ? "Sem permissão" : "Restaurante não encontrado ou sem acesso");
 }
 
 /** Status da integração para o painel do restaurante. Nunca devolve credenciais. */

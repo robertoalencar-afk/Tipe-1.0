@@ -17,4 +17,6 @@
 - Bill splitting (items, equal parts, free amount, percent) always becomes item portions via src/lib/tipe/bill-math.ts, and every charge uses itemChargeCents (cumulative per-item rounding) on both client and server. Why: the database keeps guarding availability and the parts of an item always add up to its exact price.
 - Provider outcomes (order creation, both Pagar.me webhooks, /api/public/payments/reconcile) go only through applyProviderOrder → decideSettlement (payment-state.ts) on a re-fetched order; refunds/chargebacks use provider_reverse_payment and never reopen bill items; anything needing a human goes to payment_incidents. Why: one idempotent rule for duplicate, late or out-of-order events.
 - archive_and_reopen_table must keep provider and provider_order_id in archived_payments. Why: refunds and chargebacks arrive after the table reopens.
+- Simulated payment approval exists only when TIPE_ALLOW_SIMULATED_PAYMENTS=true (test/demo); without an active Pagar.me account the public bill offers only at_establishment (usableBillMethods). Why: a bill must never be marked paid without money.
+- has_restaurant_role / is_restaurant_member / is_member_of_slug have no founder bypass (migration 0020); founder tools act through supabaseAdmin after requireFounder2fa and log the action. Why: support never operates a restaurant through the global role.
 
