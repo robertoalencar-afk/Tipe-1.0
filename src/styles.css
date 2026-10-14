@@ -292,6 +292,13 @@
     --input: var(--border);
     --ring: var(--primary);
     --destructive: oklch(0.73 0.17 27);
+    /* Tokens do design system também acompanham o tema escuro da conta. */
+    --brand-primary-strong: oklch(0.83 0.12 178);
+    --brand-primary-soft: oklch(0.3 0.055 178);
+    --background-muted: oklch(0.21 0.018 240);
+    --surface: var(--card);
+    --surface-elevated: oklch(0.26 0.02 240);
+    --focus-ring: oklch(0.8 0.12 178);
   }
 }
 
