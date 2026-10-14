@@ -22,3 +22,9 @@ describe("pagamento simulado só quando ligado de propósito", () => {
   it("em ambiente de demonstração, todos os meios aparecem", () =>
     comFlag("true", () => expect(usableBillMethods(todos, false)).toEqual(todos)));
 });
+
+describe("restaurante de teste", () => {
+  it("teste-tipe simula mesmo com a flag desligada", () => comFlag(undefined, () => expect(simulatedPaymentsAllowed("teste-tipe")).toBe(true)));
+  it("outro restaurante continua sem simulação", () => comFlag(undefined, () => expect(simulatedPaymentsAllowed("mare-alta")).toBe(false)));
+  it("teste-tipe vê todos os meios sem Pagar.me", () => comFlag(undefined, () => expect(usableBillMethods(["pix", "at_establishment"], false, "teste-tipe")).toEqual(["pix", "at_establishment"])));
+});
