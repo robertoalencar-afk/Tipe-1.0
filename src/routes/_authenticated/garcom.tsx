@@ -60,7 +60,7 @@ function AreaGarcom() {
   const d = q.data;
   return (
     <AreaShell wide={false} eyebrow="Área do garçom" title={d ? `Olá, ${d.waiter.name.split(" ")[0]}!` : "Área do garçom"} subtitle={d ? `${d.waiter.restaurant} · código ${d.waiter.code}` : undefined}
-      actions={<Button size="sm" variant="ghost" onClick={sair} className="text-secondary-foreground hover:bg-secondary-foreground/10 hover:text-secondary-foreground"><LogOut className="mr-1 h-4 w-4" />Sair</Button>}>
+      actions={<Button size="sm" variant="ghost" onClick={sair} className="text-muted-foreground"><LogOut className="h-4 w-4" />Sair</Button>}>
       <div className="space-y-4">
         {q.isLoading && <p className="text-muted-foreground">Carregando…</p>}
         {q.error && <p className="rounded-2xl border border-border bg-card p-5 text-sm">{(q.error as Error).message}</p>}

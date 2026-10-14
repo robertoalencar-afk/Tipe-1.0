@@ -2,7 +2,9 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Copy, Download, KeyRound, MessageCircle, PlugZap } from "lucide-react";
+import { ArrowRight, BarChart3, ChefHat, Clock, Copy, Download, KeyRound, LayoutGrid, MessageCircle, PlugZap, QrCode, Receipt, ShoppingCart, TrendingUp, Wallet } from "lucide-react";
+import { EmptyState, StatCard } from "@/components/tipe/ds";
+import { cn } from "@/lib/utils";
 import { getPdvEvents, getPdvIntegration, setPdvAdapter, testPdvConnection } from "@/lib/tipe/pdv-integrations.functions";
 import { whatsappLink } from "@/lib/tipe/contact";
 import { Button } from "@/components/ui/button";
@@ -26,10 +28,20 @@ function useReports(slug: string, days: number) {
   const fetchR = useServerFn(getReports);
   return useQuery({ queryKey: ["reports", slug, days], queryFn: () => fetchR({ data: { slug, days } }) });
 }
-const Card = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => <div className={`rounded-2xl border border-border bg-card p-4 ${className}`}>{children}</div>;
-const Kpi = ({ label, value, hint }: { label: string; value: string; hint?: string }) => (
-  <Card><div className="text-xs text-muted-foreground">{label}</div><div className="mt-1 font-display text-2xl font-bold">{value}</div>{hint && <div className="text-xs text-muted-foreground">{hint}</div>}</Card>
+const Card = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => <div className={cn("surface-card p-4 sm:p-5", className)}>{children}</div>;
+const Kpi = ({ label, value, hint, icon, tone }: { label: string; value: string; hint?: string | undefined; icon?: React.ComponentType<{ className?: string }>; tone?: "brand" | "warning" | undefined }) => (
+  <StatCard label={label} value={value} hint={hint} icon={icon} tone={tone} />
 );
+/** Seletor segmentado (períodos, setores, tipos). */
+function Segmentado<T extends string | number>({ value, onChange, options, label }: { value: T; onChange: (v: T) => void; options: readonly (readonly [T, string])[]; label: string }) {
+  return (
+    <div role="radiogroup" aria-label={label} className="inline-flex rounded-full border border-border bg-surface p-1 shadow-xs">
+      {options.map(([v, l]) => (
+        <button key={String(v)} type="button" role="radio" aria-checked={value === v} onClick={() => onChange(v)} className={cn("h-8 rounded-full px-3.5 text-sm font-semibold transition-colors", value === v ? "bg-ink text-white" : "text-muted-foreground hover:text-foreground")}>{l}</button>
+      ))}
+    </div>
+  );
+}
 
 // ---------------- Início ----------------
 export function Inicio({ slug, mesasAbertas, emAberto, pendentes, onGo }: { slug: string; mesasAbertas: number; emAberto: number; pendentes: number; onGo: (s: string) => void }) {
@@ -41,26 +53,42 @@ export function Inicio({ slug, mesasAbertas, emAberto, pendentes, onGo }: { slug
     rep.data?.items.forEach((i) => m.set(i.name, (m.get(i.name) ?? 0) + i.qty));
     return [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
   }, [rep.data]);
+  const atalhos = [["pdv", "Lançar pedido", ShoppingCart], ["salao", "Ver salão", LayoutGrid], ["caixa", "Caixa", Wallet], ["cozinha", "Cozinha e bar", ChefHat], ["relatorios", "Relatórios", BarChart3], ["qr", "Mesas e QR", QrCode]] as const;
+  const maxTop = Math.max(1, ...top.map(([, q]) => q));
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Kpi label="Vendas lançadas (24h)" value={brl(vendas)} />
-        <Kpi label="Mesas abertas" value={String(mesasAbertas)} hint={`${brl(emAberto)} em aberto`} />
-        <Kpi label="Ticket médio (24h)" value={brl(pedidos ? vendas / pedidos : 0)} />
-        <Kpi label="Aguardando confirmação" value={String(pendentes)} />
+        <Kpi icon={TrendingUp} label="Vendas lançadas (24h)" value={brl(vendas)} />
+        <Kpi icon={LayoutGrid} label="Mesas abertas" value={String(mesasAbertas)} hint={`${brl(emAberto)} em aberto`} />
+        <Kpi icon={Receipt} label="Ticket médio (24h)" value={brl(pedidos ? vendas / pedidos : 0)} />
+        <Kpi icon={Clock} tone={pendentes > 0 ? "warning" : undefined} label="Aguardando confirmação" value={String(pendentes)} hint={pendentes > 0 ? "Confirme no Caixa" : undefined} />
       </div>
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 lg:grid-cols-[1.3fr_1fr]">
         <Card>
-          <h3 className="mb-2 font-semibold">Mais vendidos (24h)</h3>
-          {top.length === 0 ? <p className="text-sm text-muted-foreground">Nenhuma venda nas últimas 24h.</p> : (
-            <ol className="space-y-1 text-sm">{top.map(([n, q], i) => <li key={n} className="flex justify-between"><span>{i + 1}. {n}</span><span className="font-semibold">{q}</span></li>)}</ol>
+          <div className="flex items-baseline justify-between gap-2">
+            <h3 className="font-display font-semibold">Mais vendidos</h3>
+            <span className="text-xs text-muted-foreground">últimas 24h</span>
+          </div>
+          {top.length === 0 ? <p className="mt-4 text-sm text-muted-foreground">Nenhuma venda nas últimas 24h.</p> : (
+            <ol className="mt-4 space-y-3 text-sm">
+              {top.map(([n, q], i) => (
+                <li key={n}>
+                  <div className="flex justify-between gap-3"><span className="truncate"><span className="mr-2 text-muted-foreground">{i + 1}</span>{n}</span><span className="money font-semibold">{q}</span></div>
+                  <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-background-muted"><div className="h-full rounded-full bg-brand" style={{ width: `${(q / maxTop) * 100}%` }} /></div>
+                </li>
+              ))}
+            </ol>
           )}
         </Card>
         <Card>
-          <h3 className="mb-2 font-semibold">Atalhos</h3>
-          <div className="grid grid-cols-2 gap-2">
-            {[["pdv", "Lançar pedido"], ["salao", "Ver salão"], ["caixa", "Caixa"], ["cozinha", "Cozinha e bar"], ["relatorios", "Relatórios"], ["qr", "Mesas e QR"]].map(([k, l]) => (
-              <Button key={k} variant="outline" onClick={() => onGo(k!)}>{l}</Button>
+          <h3 className="font-display font-semibold">Atalhos</h3>
+          <div className="mt-4 grid grid-cols-2 gap-2">
+            {atalhos.map(([k, l, Icon]) => (
+              <button key={k} type="button" onClick={() => onGo(k)} className="group flex items-center gap-2 rounded-xl border border-border bg-background px-2.5 py-2.5 text-left text-sm font-semibold sm:gap-2.5 sm:px-3 sm:py-3 transition-colors hover:border-foreground/25 hover:bg-surface">
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-brand-soft text-brand-strong"><Icon className="h-4 w-4" /></span>
+                <span className="min-w-0 flex-1 leading-tight">{l}</span>
+                <ArrowRight className="hidden h-3.5 w-3.5 shrink-0 text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100 sm:block" />
+              </button>
             ))}
           </div>
         </Card>
@@ -85,20 +113,19 @@ export function Cozinha({ slug }: { slug: string }) {
   }
   return (
     <div>
-      <div className="mb-3 flex gap-2">
-        {([["all", "Todos"], ["kitchen", "Cozinha"], ["bar", "Bar"]] as const).map(([k, l]) => <Button key={k} size="sm" variant={setor === k ? "default" : "outline"} onClick={() => setSetor(k)}>{l}</Button>)}
-      </div>
+      <div className="mb-4"><Segmentado label="Setor" value={setor} onChange={setSetor} options={[["all", "Todos"], ["kitchen", "Cozinha"], ["bar", "Bar"]] as const} /></div>
       <div className="grid gap-3 md:grid-cols-3">
         {kdsCols.map(([st, label]) => (
-          <div key={st} className="rounded-2xl bg-muted/50 p-3">
-            <h3 className="mb-2 text-sm font-semibold">{label} ({itens.filter((i) => i.status === st).length})</h3>
+          <div key={st} className="rounded-2xl border border-border bg-background p-3">
+            <h3 className="mb-3 flex items-center justify-between px-1 text-sm font-semibold">{label}<span className="rounded-full bg-surface px-2 py-0.5 text-xs text-muted-foreground shadow-xs">{itens.filter((i) => i.status === st).length}</span></h3>
+            {itens.filter((i) => i.status === st).length === 0 && <p className="px-1 pb-2 text-xs text-muted-foreground">Nenhum pedido.</p>}
             <div className="space-y-2">
               {itens.filter((i) => i.status === st).map((i) => (
                 <Card key={i.id} className="p-3">
                   <div className="flex justify-between text-xs text-muted-foreground"><span>Mesa {i.table} · {i.sector === "bar" ? "Bar" : "Cozinha"}</span><span>{new Date(i.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span></div>
-                  <div className="mt-1 font-semibold">{i.quantity}× {i.item_name}</div>
-                  {i.notes && <div className="mt-1 rounded bg-accent/20 px-2 py-1 text-xs">Obs.: {i.notes}</div>}
-                  <Button size="sm" className="mt-2 w-full" onClick={() => mover(i.id, kdsNext[st]!.to)}>{kdsNext[st]!.label}</Button>
+                  <div className="mt-1 font-display font-semibold">{i.quantity}× {i.item_name}</div>
+                  {i.notes && <div className="mt-2 rounded-lg bg-warning/15 px-2 py-1 text-xs">Obs.: {i.notes}</div>}
+                  <Button size="sm" variant={st === "ready" ? "outline" : "ink"} className="mt-3 w-full" onClick={() => mover(i.id, kdsNext[st]!.to)}>{kdsNext[st]!.label}</Button>
                 </Card>
               ))}
             </div>
@@ -130,33 +157,30 @@ export function Caixa({ slug, podeCaixa, confirmacoes }: { slug: string; podeCai
       <div className="space-y-4">
         {!s ? (
           <Card>
-            <h3 className="font-semibold">Caixa fechado</h3>
+            <h3 className="font-display font-semibold">Caixa fechado</h3>
             <p className="mb-3 text-sm text-muted-foreground">Informe o troco inicial para abrir o caixa.</p>
             <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); void run({ action: "open", slug, amount: Number(abertura || 0) }, "Caixa aberto").then((ok) => ok && setAbertura("")); }}>
               <Input type="number" step="0.01" min={0} placeholder="R$ 0,00" value={abertura} onChange={(e) => setAbertura(e.target.value)} disabled={!podeCaixa} />
-              <Button type="submit" disabled={!podeCaixa}>Abrir caixa</Button>
+              <Button type="submit" variant="ink" disabled={!podeCaixa}>Abrir caixa</Button>
             </form>
           </Card>
         ) : (
           <>
             <Card>
-              <div className="flex items-baseline justify-between"><h3 className="font-semibold">Caixa aberto</h3><span className="text-xs text-muted-foreground">desde {hora(s.opened_at)}</span></div>
-              <dl className="mt-3 space-y-1 text-sm">
+              <div className="flex items-baseline justify-between"><h3 className="flex items-center gap-2 font-display font-semibold"><span className="h-2 w-2 rounded-full bg-success" aria-hidden />Caixa aberto</h3><span className="text-xs text-muted-foreground">desde {hora(s.opened_at)}</span></div>
+              <dl className="money mt-4 space-y-1.5 text-sm">
                 <div className="flex justify-between"><dt>Troco inicial</dt><dd>{brl(s.opening_amount)}</dd></div>
                 <div className="flex justify-between"><dt>Reforços</dt><dd>+ {brl(reforco)}</dd></div>
                 <div className="flex justify-between"><dt>Sangrias</dt><dd>− {brl(sangria)}</dd></div>
-                <div className="flex justify-between border-t border-border pt-1 font-semibold"><dt>Esperado em espécie (sem vendas)</dt><dd>{brl(esperado)}</dd></div>
+                <div className="flex justify-between border-t border-border pt-2 font-semibold"><dt>Esperado em espécie (sem vendas)</dt><dd>{brl(esperado)}</dd></div>
                 <div className="flex justify-between text-muted-foreground"><dt>Recebido no estabelecimento</dt><dd>{brl(ops.data?.received ?? 0)}</dd></div>
               </dl>
             </Card>
             {podeCaixa && (
               <Card>
-                <h3 className="mb-2 font-semibold">Sangria ou reforço</h3>
+                <h3 className="mb-3 font-display font-semibold">Sangria ou reforço</h3>
                 <form className="space-y-2" onSubmit={(e) => { e.preventDefault(); void run({ action: "move", slug, kind: mv.kind, amount: Number(mv.amount), reason: mv.reason }, "Movimento registrado").then((ok) => ok && setMv({ ...mv, amount: "", reason: "" })); }}>
-                  <div className="flex gap-2">
-                    <Button type="button" size="sm" variant={mv.kind === "withdrawal" ? "default" : "outline"} onClick={() => setMv({ ...mv, kind: "withdrawal" })}>Sangria</Button>
-                    <Button type="button" size="sm" variant={mv.kind === "deposit" ? "default" : "outline"} onClick={() => setMv({ ...mv, kind: "deposit" })}>Reforço</Button>
-                  </div>
+                  <Segmentado label="Tipo de movimento" value={mv.kind} onChange={(k) => setMv({ ...mv, kind: k })} options={[["withdrawal", "Sangria"], ["deposit", "Reforço"]] as const} />
                   <Input required type="number" step="0.01" min={0.01} placeholder="Valor" value={mv.amount} onChange={(e) => setMv({ ...mv, amount: e.target.value })} />
                   <Input placeholder="Motivo (opcional)" value={mv.reason} onChange={(e) => setMv({ ...mv, reason: e.target.value })} />
                   <Button type="submit" variant="outline" className="w-full">Registrar</Button>
@@ -165,7 +189,7 @@ export function Caixa({ slug, podeCaixa, confirmacoes }: { slug: string; podeCai
             )}
             {podeCaixa && (
               <Card>
-                <h3 className="mb-2 font-semibold">Fechar caixa</h3>
+                <h3 className="mb-3 font-display font-semibold">Fechar caixa</h3>
                 <form className="space-y-2" onSubmit={(e) => {
                   e.preventDefault();
                   const total = esperado + (ops.data?.received ?? 0);
@@ -174,17 +198,17 @@ export function Caixa({ slug, podeCaixa, confirmacoes }: { slug: string; podeCai
                 }}>
                   <Input required type="number" step="0.01" min={0} placeholder="Valor contado (espécie + comprovantes)" value={contado} onChange={(e) => setContado(e.target.value)} />
                   {contado && <p className="text-xs text-muted-foreground">Diferença: {brl(Number(contado) - esperado - (ops.data?.received ?? 0))}</p>}
-                  <Button type="submit" className="w-full">Fechar caixa</Button>
+                  <Button type="submit" variant="ink" className="w-full">Fechar caixa</Button>
                 </form>
               </Card>
             )}
           </>
         )}
         {mov.length > 0 && (
-          <Card><h3 className="mb-2 font-semibold">Movimentos</h3><ul className="space-y-1 text-sm">{mov.map((m) => <li key={m.id} className="flex justify-between"><span>{m.kind === "deposit" ? "Reforço" : "Sangria"}{m.reason ? ` · ${m.reason}` : ""}</span><span>{brl(m.amount)}</span></li>)}</ul></Card>
+          <Card><h3 className="mb-3 font-display font-semibold">Movimentos</h3><ul className="space-y-1 text-sm">{mov.map((m) => <li key={m.id} className="flex justify-between"><span>{m.kind === "deposit" ? "Reforço" : "Sangria"}{m.reason ? ` · ${m.reason}` : ""}</span><span>{brl(m.amount)}</span></li>)}</ul></Card>
         )}
       </div>
-      <div><h3 className="mb-2 font-semibold">Pagamentos para confirmar</h3>{confirmacoes}</div>
+      <div><h3 className="mb-3 font-display font-semibold">Pagamentos para confirmar</h3>{confirmacoes}</div>
     </div>
   );
 }
@@ -217,32 +241,35 @@ export function Relatorios({ slug }: { slug: string }) {
     a.download = `vendas-${slug}-${days}d.csv`; a.click();
   }
   const Lista = ({ t, rows }: { t: string; rows: [string, number][] }) => (
-    <Card><h3 className="mb-2 font-semibold">{t}</h3>{rows.length === 0 ? <p className="text-sm text-muted-foreground">Sem dados.</p> : <ul className="space-y-1 text-sm">{rows.map(([k, v]) => <li key={k} className="flex justify-between gap-2"><span className="truncate">{k}</span><span className="font-semibold">{brl(v)}</span></li>)}</ul>}</Card>
+    <Card><h3 className="mb-3 font-display font-semibold">{t}</h3>{rows.length === 0 ? <p className="text-sm text-muted-foreground">Sem dados no período.</p> : <ul className="divide-y divide-border text-sm">{rows.map(([k, v]) => <li key={k} className="flex justify-between gap-2 py-2 first:pt-0 last:pb-0"><span className="truncate">{k}</span><span className="money font-semibold">{brl(v)}</span></li>)}</ul>}</Card>
   );
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-2">
-        {[1, 7, 30].map((n) => <Button key={n} size="sm" variant={days === n ? "default" : "outline"} onClick={() => setDays(n)}>{n === 1 ? "Hoje (24h)" : `${n} dias`}</Button>)}
+        <Segmentado label="Período" value={days} onChange={setDays} options={[[1, "24h"], [7, "7 dias"], [30, "30 dias"]] as const} />
         <Button size="sm" variant="outline" className="ml-auto" onClick={exportar}><Download className="mr-1 h-4 w-4" />Exportar planilha</Button>
       </div>
-      {rep.isLoading ? <p className="text-muted-foreground">Carregando…</p> : (
+      {rep.isLoading ? <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">{[0, 1, 2, 3].map((i) => <div key={i} className="h-28 animate-pulse rounded-2xl bg-surface motion-reduce:animate-none" />)}</div> : (
         <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <Kpi label="Vendas lançadas" value={brl(vendas)} />
-            <Kpi label="Recebido pela TIPE (conta)" value={brl(recebido)} />
-            <Kpi label="Gorjetas extras" value={brl(gorjetas)} />
+            <Kpi icon={TrendingUp} label="Vendas lançadas" value={brl(vendas)} />
+            <Kpi icon={Wallet} label="Recebido pela TIPE (conta)" value={brl(recebido)} />
+            <Kpi icon={Receipt} label="Gorjetas extras" value={brl(gorjetas)} />
             <Kpi label="Estornos" value={String(d?.voids.length ?? 0)} hint={brl(d?.voids.reduce((s, v) => s + v.unit_price * v.quantity, 0) ?? 0)} />
           </div>
           <Card>
-            <h3 className="mb-3 font-semibold">Vendas por dia</h3>
-            <div className="flex h-40 items-end gap-2">
-              {porDia.map(([dia, v]) => (
-                <div key={dia} className="flex flex-1 flex-col items-center gap-1">
-                  <div className="w-full rounded-t bg-primary" style={{ height: `${(v / maxDia) * 100}%` }} title={brl(v)} />
-                  <span className="text-[10px] text-muted-foreground">{dia.slice(0, 5)}</span>
-                </div>
-              ))}
-            </div>
+            <h3 className="mb-4 font-display font-semibold">Vendas por dia</h3>
+            {porDia.length === 0 ? <EmptyState icon={BarChart3} title="Sem vendas no período" text="Os pedidos lançados aparecem aqui, dia a dia." className="border-0 bg-transparent py-6" /> : (
+              <div className="flex h-44 items-end gap-1.5 sm:gap-2" role="img" aria-label="Gráfico de vendas por dia">
+                {porDia.map(([dia, v]) => (
+                  <div key={dia} className="group flex h-full flex-1 flex-col items-center justify-end gap-1.5">
+                    <span className="money text-[10px] font-semibold text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">{brl(v)}</span>
+                    <div className="w-full max-w-10 rounded-t-md bg-brand/80 transition-colors group-hover:bg-brand" style={{ height: `${Math.max(2, (v / maxDia) * 100)}%` }} title={`${dia}: ${brl(v)}`} />
+                    <span className="text-[10px] text-muted-foreground">{dia.slice(0, 5)}</span>
+                  </div>
+                ))}
+              </div>
+            )}
           </Card>
           <div className="grid gap-4 md:grid-cols-3">
             <Lista t="Por produto" rows={porProduto} />
@@ -251,13 +278,13 @@ export function Relatorios({ slug }: { slug: string }) {
             <Lista t={`Taxa de serviço recebida: ${brl(taxaTotal)}`} rows={taxaPorGarcom} />
           </div>
           <Card>
-            <h3 className="mb-2 font-semibold">Taxas de serviço removidas: {brl(d?.feeWaivers.reduce((s, w) => s + w.amount, 0) ?? 0)}</h3>
+            <h3 className="mb-3 font-display font-semibold">Taxas de serviço removidas: {brl(d?.feeWaivers.reduce((s, w) => s + w.amount, 0) ?? 0)}</h3>
             {!d?.feeWaivers.length ? <p className="text-sm text-muted-foreground">Nenhuma taxa removida no período.</p> : (
               <ul className="space-y-1 text-sm">{d.feeWaivers.map((w, i) => <li key={i} className="flex justify-between gap-2"><span>Mesa {w.table} · {w.reason} · por {w.by}</span><span className="shrink-0 text-muted-foreground">{brl(w.amount)} · {new Date(w.at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span></li>)}</ul>
             )}
           </Card>
           <Card>
-            <h3 className="mb-2 font-semibold">Estornos</h3>
+            <h3 className="mb-3 font-display font-semibold">Estornos</h3>
             {!d?.voids.length ? <p className="text-sm text-muted-foreground">Nenhum estorno no período.</p> : (
               <ul className="space-y-1 text-sm">{d.voids.map((v, i) => <li key={i} className="flex justify-between gap-2"><span>{v.quantity}× {v.item_name} · {v.reason}</span><span className="text-muted-foreground">{hora(v.created_at)}</span></li>)}</ul>
             )}
@@ -318,7 +345,7 @@ export function Integracoes({ slug, podeDono }: { slug: string; podeDono: boolea
         )}
       </Card>
       <Card>
-        <h3 className="font-semibold">Integrações diretas disponíveis</h3>
+        <h3 className="font-display font-semibold">Integrações diretas disponíveis</h3>
         {d.disponiveis.length === 0 ? (
           <div className="mt-2 space-y-3">
             <p className="text-sm text-muted-foreground">A integração direta com o seu sistema é feita pela equipe TIPE. Fale com a gente.</p>
@@ -332,7 +359,7 @@ export function Integracoes({ slug, podeDono }: { slug: string; podeDono: boolea
       </Card>
       {d.isFounder && (
         <Card className="space-y-3 border-dashed">
-          <h3 className="font-semibold">Administração TIPE</h3>
+          <h3 className="font-display font-semibold">Administração TIPE</h3>
           <p className="text-xs text-muted-foreground">Somente administradores TIPE veem esta área. Um restaurante usa um adaptador principal por vez.</p>
           <div className="flex flex-wrap gap-2">
             <Button size="sm" variant={manual ? "default" : "outline"} onClick={() => definir("lancamento_tipe")}>Lançamento TIPE</Button>

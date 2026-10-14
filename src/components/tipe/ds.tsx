@@ -49,7 +49,7 @@ export function StatusBadge({ tone = "neutral", children, className, live = fals
 
 /** Indicador numérico. `value` sempre vem de dado real; sem dado, use `empty`. */
 export function StatCard({ label, value, hint, icon: Icon, tone, empty, className }: {
-  label: ReactNode; value?: ReactNode; hint?: ReactNode; icon?: ComponentType<{ className?: string }>; tone?: "brand" | "warning"; empty?: ReactNode; className?: string;
+  label: ReactNode; value?: ReactNode; hint?: ReactNode; icon?: ComponentType<{ className?: string }> | undefined; tone?: "brand" | "warning" | undefined; empty?: ReactNode; className?: string | undefined;
 }) {
   return (
     <div className={cn("surface-card flex min-h-[112px] flex-col p-4 sm:p-5", className)}>
