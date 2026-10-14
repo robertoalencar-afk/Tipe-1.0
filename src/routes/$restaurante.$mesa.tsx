@@ -139,7 +139,7 @@ function MesaPage() {
   const [chavePublica, setChavePublica] = useState<string | null>(null);
   const [pix, setPix] = useState<{ id: string; code: string; qrUrl?: string | undefined; tipo: "conta" | "gorjeta" } | null>(null);
   const [gorjetaDisponivel, setGorjetaDisponivel] = useState(false);
-  useEffect(() => { getPaymentConfig().then((c) => { setChavePublica(c.publicKey); setGorjetaDisponivel(c.tipsAvailable); }).catch(() => undefined); }, []);
+  useEffect(() => { getPaymentConfig({ data: { slug: restaurante } }).then((c) => { setChavePublica(c.publicKey); setGorjetaDisponivel(c.tipsAvailable); }).catch(() => undefined); }, []);
   const chavePagamento = useRef<string | null>(null);
   const [valorPago, setValorPago] = useState(0);
   // Último pagamento confirmado da conta (para o comprovante por e-mail).

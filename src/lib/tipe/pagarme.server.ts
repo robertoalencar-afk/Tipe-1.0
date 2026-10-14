@@ -11,13 +11,20 @@ export function pagarmeEnabled() {
  * propósito, em ambientes de teste ou demonstração: TIPE_ALLOW_SIMULATED_PAYMENTS=true.
  * Em produção fica desligada: sem conta Pagar.me, nenhum pagamento digital é aceito.
  */
-export function simulatedPaymentsAllowed() {
-  return process.env["TIPE_ALLOW_SIMULATED_PAYMENTS"] === "true";
+/** Restaurante de teste: sempre simula, nunca cobra de verdade (revisão visual sem afetar clientes reais). */
+export const SIMULATION_RESTAURANT_SLUG = "teste-tipe";
+
+export function isSimulationRestaurant(slug?: string | null) {
+  return slug === SIMULATION_RESTAURANT_SLUG;
+}
+
+export function simulatedPaymentsAllowed(slug?: string | null) {
+  return process.env["TIPE_ALLOW_SIMULATED_PAYMENTS"] === "true" || isSimulationRestaurant(slug);
 }
 
 /** Meios da conta que o cliente pode usar de fato neste restaurante agora. */
-export function usableBillMethods(configured: string[], hasProvider: boolean) {
-  if (hasProvider || simulatedPaymentsAllowed()) return configured;
+export function usableBillMethods(configured: string[], hasProvider: boolean, slug?: string | null) {
+  if (hasProvider || simulatedPaymentsAllowed(slug)) return configured;
   const presencial = configured.filter((m) => m === "at_establishment");
   return presencial.length ? presencial : ["at_establishment"];
 }

@@ -151,7 +151,13 @@ export const createPayment = createServerFn({ method: "POST" })
       return { id, status: "pending", provider: "estabelecimento" };
     }
 
-    const { pagarmeEnabled, pagarme, simulatedPaymentsAllowed } = await import("./pagarme.server");
+    const { pagarmeEnabled, pagarme, simulatedPaymentsAllowed, isSimulationRestaurant } = await import("./pagarme.server");
+
+    // Restaurante de teste: aprova simulado sem tocar em nenhuma conta Pagar.me.
+    if (isSimulationRestaurant(data.restaurantId)) {
+      const simId = await register("approved");
+      return { id: simId, status: "approved", provider: "simulado" };
+    }
 
     const split: unknown[] | undefined = undefined;
     let secretKey: string | undefined;
@@ -290,12 +296,17 @@ export const reopenClosedTable = createServerFn({ method: "POST" })
   });
 
 // Chave pública do Pagar.me (publicável) para tokenizar cartões no navegador.
-export const getPaymentConfig = createServerFn({ method: "GET" }).handler(async () => ({
-  live: !!process.env["PAGARME_SECRET_KEY"],
-  publicKey: process.env["PAGARME_PUBLIC_KEY"] ?? null,
-  // Gorjeta extra é recebida na conta TIPE: só aparece se ela estiver configurada (ou em simulação).
-  tipsAvailable: !!process.env["PAGARME_SECRET_KEY"] || process.env["TIPE_ALLOW_SIMULATED_PAYMENTS"] === "true",
-}));
+export const getPaymentConfig = createServerFn({ method: "GET" })
+  .inputValidator((d: { slug?: string } | undefined) => ({ slug: typeof d?.slug === "string" ? d.slug.slice(0, 80) : undefined }))
+  .handler(async ({ data }) => {
+    const sim = data.slug === "teste-tipe";
+    return {
+      live: !sim && !!process.env["PAGARME_SECRET_KEY"],
+      publicKey: sim ? null : process.env["PAGARME_PUBLIC_KEY"] ?? null,
+      // Gorjeta extra é recebida na conta TIPE: só aparece se ela estiver configurada (ou em simulação).
+      tipsAvailable: sim || !!process.env["PAGARME_SECRET_KEY"] || process.env["TIPE_ALLOW_SIMULATED_PAYMENTS"] === "true",
+    };
+  });
 
 // Situação de um pagamento da própria mesa (usado para acompanhar o Pix).
 export const getPaymentStatus = createServerFn({ method: "GET" })
