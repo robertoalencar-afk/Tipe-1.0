@@ -146,6 +146,8 @@ function MesaPage() {
   const [ultimoPagamento, setUltimoPagamento] = useState<string | null>(null);
   const [emailRecibo, setEmailRecibo] = useState("");
   const [recibo, setRecibo] = useState<{ estado: "idle" | "enviando" | "enviado" | "erro"; msg?: string }>({ estado: "idle" });
+  // Comprovante é opcional: o campo de e-mail só aparece se o cliente pedir.
+  const [querRecibo, setQuerRecibo] = useState(false);
   const [linkAvaliacao, setLinkAvaliacao] = useState<string | null>(null);
   const [gorjetaOutro, setGorjetaOutro] = useState("");
 
@@ -303,7 +305,7 @@ function MesaPage() {
         },
       });
       chavePagamento.current = null;
-      if (tipo === "conta") { setValorPago(totalConta); setUltimoPagamento(resultado.id); setRecibo({ estado: "idle" }); }
+      if (tipo === "conta") { setValorPago(totalConta); setUltimoPagamento(resultado.id); setRecibo({ estado: "idle" }); setQuerRecibo(false); }
       setQtds({});
       await atualizarMesa();
       if (resultado.provider === "pagarme" && resultado.status === "pending" && resultado.pixCode) {
@@ -349,7 +351,7 @@ function MesaPage() {
             return;
           }
           chavePagamento.current = null;
-          if (tipo === "conta") { setValorPago(totalConta); setUltimoPagamento(r.id); setRecibo({ estado: "idle" }); }
+          if (tipo === "conta") { setValorPago(totalConta); setUltimoPagamento(r.id); setRecibo({ estado: "idle" }); setQuerRecibo(false); }
           setQtds({});
           setEtapa(tipo === "conta" ? (r.status === "approved" ? "conta-confirmada" : "conta-pendente") : "fim");
           return;
@@ -628,7 +630,15 @@ function MesaPage() {
           <h1 className="mt-2 text-2xl font-bold">Pagamento confirmado!</h1>
           <p className="mt-3 text-center text-sm leading-6 text-muted-foreground">{money(valorPago)} enviados ao {dados.restaurante}.</p>
           {mesaEncerrada && <p className="mt-2 text-center text-sm font-semibold text-primary">Este foi o último pagamento: a mesa está encerrada.</p>}
-          {ultimoPagamento && /^[0-9a-f-]{36}$/.test(ultimoPagamento) && (
+          {ultimoPagamento && /^[0-9a-f-]{36}$/.test(ultimoPagamento) && !querRecibo && recibo.estado !== "enviado" && (
+            <button type="button" onClick={() => setQuerRecibo(true)} className="mt-4 text-sm font-semibold text-primary underline-offset-2 hover:underline">
+              Receber comprovante por e-mail (opcional)
+            </button>
+          )}
+          {ultimoPagamento && /^[0-9a-f-]{36}$/.test(ultimoPagamento) && recibo.estado === "enviado" && !querRecibo && (
+            <p role="status" className="mt-4 text-sm text-primary">{recibo.msg}</p>
+          )}
+          {ultimoPagamento && /^[0-9a-f-]{36}$/.test(ultimoPagamento) && querRecibo && (
             <form className="mt-6 w-full rounded-2xl border border-border bg-card p-4 text-left" onSubmit={async (e) => {
               e.preventDefault();
               if (!emailRecibo.includes("@") || recibo.estado === "enviando") return;
@@ -637,13 +647,17 @@ function MesaPage() {
                 const r = await sendPaymentReceipt({ data: { restaurantId: restaurante, tableId: String(dados.mesa), session: sessaoMesa, paymentId: ultimoPagamento, email: emailRecibo } });
                 setRecibo({ estado: "enviado", msg: `Comprovante enviado para ${r.sentTo}.` });
                 setEmailRecibo("");
+                setQuerRecibo(false);
               } catch (err) {
                 setRecibo({ estado: "erro", msg: err instanceof Error ? err.message : "Não foi possível enviar agora." });
               }
             }}>
-              <label htmlFor="email-recibo" className="text-sm font-semibold">Quer o comprovante por e-mail?</label>
+              <div className="flex items-center justify-between gap-2">
+                <label htmlFor="email-recibo" className="text-sm font-semibold">Comprovante por e-mail</label>
+                <button type="button" onClick={() => setQuerRecibo(false)} className="text-xs text-muted-foreground underline">Agora não</button>
+              </div>
               <div className="mt-2 flex gap-2">
-                <Input id="email-recibo" type="email" inputMode="email" autoComplete="email" maxLength={160} value={emailRecibo} onChange={(e) => setEmailRecibo(e.target.value)} placeholder="seu@email.com" className="h-11" />
+                <Input id="email-recibo" autoFocus type="email" inputMode="email" autoComplete="email" maxLength={160} value={emailRecibo} onChange={(e) => setEmailRecibo(e.target.value)} placeholder="seu@email.com" className="h-11" />
                 <Button type="submit" variant="outline" disabled={recibo.estado === "enviando" || !emailRecibo.includes("@")} className="h-11 shrink-0">{recibo.estado === "enviando" ? "Enviando…" : "Enviar"}</Button>
               </div>
               {recibo.msg && <p role="status" className={`mt-2 text-xs ${recibo.estado === "erro" ? "text-destructive" : "text-primary"}`}>{recibo.msg}</p>}
