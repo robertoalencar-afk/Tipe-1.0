@@ -155,6 +155,13 @@
       "when": 1791804522307,
       "tag": "0021_receipts_reviews_pdv_outbox",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1791971628310,
+      "tag": "0022_tipe2_reversals_founder_scope_reviews_outbox",
+      "breakpoints": true
     }
   ]
 }

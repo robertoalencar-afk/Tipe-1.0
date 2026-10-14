@@ -28,6 +28,8 @@ export type Database = {
           item_quantities: Json
           payment_method: string
           payment_target: string
+          provider: string | null
+          provider_order_id: string | null
           restaurant_slug: string
           service_fee_amount: number | null
           service_fee_changed: boolean | null
@@ -50,6 +52,8 @@ export type Database = {
           item_quantities?: Json
           payment_method: string
           payment_target: string
+          provider?: string | null
+          provider_order_id?: string | null
           restaurant_slug: string
           service_fee_amount?: number | null
           service_fee_changed?: boolean | null
@@ -72,6 +76,8 @@ export type Database = {
           item_quantities?: Json
           payment_method?: string
           payment_target?: string
+          provider?: string | null
+          provider_order_id?: string | null
           restaurant_slug?: string
           service_fee_amount?: number | null
           service_fee_changed?: boolean | null
@@ -324,6 +330,56 @@ export type Database = {
           table_number?: string
         }
         Relationships: []
+      }
+      payment_incidents: {
+        Row: {
+          amount: number | null
+          created_at: string
+          detail: string
+          id: string
+          kind: string
+          payment_id: string | null
+          resolution_note: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          restaurant_id: string
+          table_number: string | null
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string
+          detail?: string
+          id?: string
+          kind: string
+          payment_id?: string | null
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          restaurant_id: string
+          table_number?: string | null
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string
+          detail?: string
+          id?: string
+          kind?: string
+          payment_id?: string | null
+          resolution_note?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          restaurant_id?: string
+          table_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_incidents_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       pdv_connections: {
         Row: {
@@ -606,6 +662,68 @@ export type Database = {
             columns: ["waiter_id"]
             isOneToOne: false
             referencedRelation: "pdv_waiters"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pdv_payment_outbox: {
+        Row: {
+          adapter: string
+          amount: number
+          attempts: number
+          created_at: string
+          id: string
+          item_quantities: Json
+          last_error: string | null
+          locked_until: string | null
+          next_attempt_at: string
+          payment_id: string
+          payment_method: string
+          restaurant_id: string
+          status: string
+          table_number: string
+          updated_at: string
+        }
+        Insert: {
+          adapter: string
+          amount: number
+          attempts?: number
+          created_at?: string
+          id?: string
+          item_quantities?: Json
+          last_error?: string | null
+          locked_until?: string | null
+          next_attempt_at?: string
+          payment_id: string
+          payment_method: string
+          restaurant_id: string
+          status?: string
+          table_number: string
+          updated_at?: string
+        }
+        Update: {
+          adapter?: string
+          amount?: number
+          attempts?: number
+          created_at?: string
+          id?: string
+          item_quantities?: Json
+          last_error?: string | null
+          locked_until?: string | null
+          next_attempt_at?: string
+          payment_id?: string
+          payment_method?: string
+          restaurant_id?: string
+          status?: string
+          table_number?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pdv_payment_outbox_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
             referencedColumns: ["id"]
           },
         ]
@@ -1295,6 +1413,7 @@ export type Database = {
           bill_payment_methods: string[]
           cnpj: string | null
           created_at: string
+          google_review_url: string | null
           id: string
           name: string
           onboarding_step: string
@@ -1311,6 +1430,7 @@ export type Database = {
           bill_payment_methods?: string[]
           cnpj?: string | null
           created_at?: string
+          google_review_url?: string | null
           id?: string
           name: string
           onboarding_step?: string
@@ -1327,6 +1447,7 @@ export type Database = {
           bill_payment_methods?: string[]
           cnpj?: string | null
           created_at?: string
+          google_review_url?: string | null
           id?: string
           name?: string
           onboarding_step?: string
@@ -1978,6 +2099,32 @@ export type Database = {
         }
         Returns: string
       }
+      pdv_outbox_claim: {
+        Args: { p_limit: number }
+        Returns: {
+          adapter: string
+          amount: number
+          attempts: number
+          created_at: string
+          id: string
+          item_quantities: Json
+          last_error: string | null
+          locked_until: string | null
+          next_attempt_at: string
+          payment_id: string
+          payment_method: string
+          restaurant_id: string
+          status: string
+          table_number: string
+          updated_at: string
+        }[]
+        SetofOptions: {
+          from: "*"
+          to: "pdv_payment_outbox"
+          isOneToOne: false
+          isSetofReturn: true
+        }
+      }
       pdv_set_item_status: {
         Args: { p_item: string; p_status: string }
         Returns: undefined
@@ -2009,6 +2156,10 @@ export type Database = {
         Args: { p_force?: boolean; p_waiter: string }
         Returns: boolean
       }
+      provider_reverse_payment: {
+        Args: { p_kind: string; p_order_id: string }
+        Returns: string
+      }
       provider_settle_payment: {
         Args: { p_order_id: string; p_paid: boolean }
         Returns: string
@@ -2016,6 +2167,10 @@ export type Database = {
       rate_limit_hit: {
         Args: { p_key: string; p_max: number; p_window_seconds: number }
         Returns: boolean
+      }
+      record_payment_incident: {
+        Args: { p_detail: string; p_kind: string; p_payment_id: string }
+        Returns: string
       }
       register_table_payment: {
         Args: {
@@ -2030,6 +2185,10 @@ export type Database = {
           p_table_number: string
         }
         Returns: string
+      }
+      resolve_payment_incident: {
+        Args: { p_id: string; p_note: string }
+        Returns: undefined
       }
       resolve_table_payment: {
         Args: { p_action: string; p_payment_id: string }
