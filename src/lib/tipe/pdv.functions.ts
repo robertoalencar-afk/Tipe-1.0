@@ -64,7 +64,7 @@ export const getPublicTable = createServerFn({ method: "GET" })
       tableNumber: t.number,
       session: t.session_token,
       // Sem conta Pagar.me ativa (e fora de simulação), só o pagamento no estabelecimento aparece.
-      billMethods: usableBillMethods((r as { bill_payment_methods?: string[] }).bill_payment_methods ?? ["pix", "apple_pay", "google_pay", "at_establishment"], (account.data as { status?: string } | null)?.status === "active", (r as { slug?: string }).slug),
+      billMethods: usableBillMethods((r as { bill_payment_methods?: string[] }).bill_payment_methods ?? ["pix", "apple_pay", "google_pay", "at_establishment"], (account.data as { status?: string } | null)?.status === "active", data.slug),
       serviceRate: Number((r as { service_rate?: number }).service_rate ?? 0.1),
       serviceWaived: (waiver.data ?? []).length > 0,
       googleReviewUrl: review.error ? null : ((review.data as { google_review_url?: string | null } | null)?.google_review_url ?? null),
