@@ -97,4 +97,26 @@ Regras:
 
 ## 5. Registro por etapa
 
-As etapas e os detalhes de cada entrega ficam no histórico de commits da branch `redesign-premium`.
+Branch `redesign-premium`, um commit por etapa. Todas as mudanças são de apresentação: estado, efeitos, chamadas ao servidor, permissões e regras financeiras não foram alterados. As exceções intencionais estão marcadas com ⚑.
+
+| Etapa | O que mudou |
+|---|---|
+| Design system + landing | Tokens, `ds.tsx`, `Button`/`Badge`/`Card`, landing completa (header, hero com jornada, seções por público, prévia do painel, integrações por status, preços por mesas, FAQ, rodapé). Correção no `cn()`, que antes descartava os tamanhos customizados. |
+| Conta do cliente (`/$restaurante/$mesa`) | Topo leve com progresso Conta → Pagamento → Pronto; itens em cartões; ação principal fixa no rodapé; formas de pagamento como opções de rádio; Pix com retorno de "copiado"; confirmação "Pagamento realizado!" com recibo montado só com dados do servidor; gorjeta sem valor pré-selecionado e com a divisão 70/30 visível; esqueleto de carregamento; tema escuro dos novos tokens. ⚑ Apple Pay e Google Pay aparecem como "Em breve" e não podem ser escolhidos, porque o servidor recusa esses métodos. ⚑ Na gorjeta, cartão só aparece quando há chave pública para tokenizar. |
+| Painel do restaurante (`/$restaurante`) | Barra superior clara; navegação agrupada (Operação, Financeiro, Equipe, Configurações); navegação móvel com quatro atalhos e "Mais"; cabeçalho por seção; salão com estados consistentes e progresso pago/total; caixa, histórico, KDS, relatórios e início com `StatCard`, seletor segmentado, estados vazios e esqueletos. |
+| Área do garçom (`/garcom`) | Saldo em destaque, abas segmentadas, gráfico nas cores da marca, passos de saque numerados e status com `StatusBadge`. `/painel` usa a mesma moldura. |
+| Simulador (`/simulador`) | Mesmo visual da conta real. ⚑ As carteiras aparecem como "Em breve", como na conta real. |
+| Base | `Input`, `Textarea` e `Dialog` alinhados ao design system; `TipeLogo` mescla classes com `cn()`; preconnect para `fonts.gstatic.com`. |
+
+### Como foi verificado
+
+- O ambiente de desenvolvimento não tinha acesso ao registro npm, então `vite build`, `tsc` completo, ESLint e Vitest **não puderam ser executados**. Rode `bun run build` e `bun run lint` antes do merge.
+- Checagem de tipos parcial: `tsc` com as mesmas opções estritas do projeto, com pacotes externos tipados como `any`. Ela detecta nomes inexistentes, propriedades erradas e `exactOptionalPropertyTypes` no código local. Todos os arquivos alterados passaram.
+- Renderização real com React 19 e Tailwind 4 de cada tela alterada, com dados fictícios, em 1440 px e 390 px, em tema claro e escuro (conta do cliente), percorrendo a jornada completa com Playwright: identificação, conta, divisão, pagamento, presencial, Pix, confirmação, avaliação, gorjeta e pagamento da gorjeta.
+
+### Pendências e próximos passos
+
+1. **Performance não medida.** As metas (Lighthouse 90+, LCP ≤ 2,5 s, INP ≤ 200 ms, CLS ≤ 0,1) precisam ser medidas no deploy de preview. Pontos de atenção: o logotipo PNG tem cerca de 116 KB (vale uma versão SVG ou WebP) e há duas famílias de fonte com sete pesos.
+2. Telas não tocadas nesta rodada: backoffice dos fundadores, `/admin/leads`, cadastro e login, Central Jurídica, cardápio, integrações, configurações, recebimentos e assinatura. Elas já herdam os componentes base, mas a composição continua a antiga.
+3. Prova social: o bloco existe na landing, mas está oculto até haver restaurantes e depoimentos reais.
+4. Recibo por e-mail, conciliação e Apple Pay/Google Pay continuam como "planejado" ou "em breve" em toda a comunicação.
