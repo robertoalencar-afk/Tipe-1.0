@@ -1295,6 +1295,7 @@ export type Database = {
           bill_payment_methods: string[]
           cnpj: string | null
           created_at: string
+          google_review_url: string | null
           id: string
           name: string
           onboarding_step: string
@@ -1311,6 +1312,7 @@ export type Database = {
           bill_payment_methods?: string[]
           cnpj?: string | null
           created_at?: string
+          google_review_url?: string | null
           id?: string
           name: string
           onboarding_step?: string
@@ -1327,6 +1329,7 @@ export type Database = {
           bill_payment_methods?: string[]
           cnpj?: string | null
           created_at?: string
+          google_review_url?: string | null
           id?: string
           name?: string
           onboarding_step?: string

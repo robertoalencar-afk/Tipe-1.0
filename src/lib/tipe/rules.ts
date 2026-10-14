@@ -73,3 +73,25 @@ export function splitGorjeta(extra: number) {
   const { waiter, tipe } = splitTip(extra);
   return { garcom: waiter, tipe, restaurante: 0 };
 }
+
+/**
+ * Gorjeta sugerida em percentual do que o cliente pagou. Contas pequenas
+ * recebem valores fixos (percentual de conta pequena vira centavos).
+ */
+export function suggestedTips(paid: number): { label: string; amount: number }[] {
+  const cents = Math.round((Number.isFinite(paid) ? paid : 0) * 100);
+  if (cents < 2000) return [2, 5, 10].map((v) => ({ label: brl(v), amount: v }));
+  return [5, 10, 15].map((pct) => {
+    // arredonda para o múltiplo de R$ 0,50 mais próximo, mínimo R$ 1,00
+    const raw = (cents * pct) / 100;
+    const amount = Math.max(100, Math.round(raw / 50) * 50) / 100;
+    return { label: `${pct}%`, amount };
+  });
+}
+
+/** Link de avaliação aceito: só endereços do Google, sempre https. */
+export const GOOGLE_REVIEW_URL = /^https:\/\/(g\.page|www\.google\.com|google\.com|maps\.google\.com|maps\.app\.goo\.gl|search\.google\.com|g\.co)\//;
+export function isGoogleReviewUrl(url: string) {
+  return url.length <= 300 && GOOGLE_REVIEW_URL.test(url);
+}
+

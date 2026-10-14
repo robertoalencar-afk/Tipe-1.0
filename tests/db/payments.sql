@@ -221,3 +221,53 @@ BEGIN
   INSERT INTO user_roles (user_id, role, restaurant_id) VALUES (u_founder, 'owner', v_rid);
   PERFORM pg_temp.ok(has_restaurant_role(u_founder, v_rid, ARRAY['owner']::app_role[]), 'com papel explícito no restaurante, o acesso volta');
 END $$;
+
+-- Fase 2) Link do Google validado no banco.
+DO $$
+BEGIN
+  UPDATE restaurants SET google_review_url = 'https://g.page/r/teste/review' WHERE slug = 'mare-alta';
+  PERFORM pg_temp.ok(true, 'link de avaliação do Google aceito');
+  BEGIN
+    UPDATE restaurants SET google_review_url = 'https://evil.com/review' WHERE slug = 'mare-alta';
+    RAISE EXCEPTION 'FALHOU: aceitou link de outro domínio';
+  EXCEPTION WHEN check_violation THEN
+    PERFORM pg_temp.ok(true, 'link de outro domínio recusado pelo banco');
+  END;
+END $$;
+
+-- Fase 2) Fila de baixa no PDV.
+DO $$
+DECLARE v_rid uuid; a uuid; b uuid; n int; r text;
+BEGIN
+  SELECT id INTO v_rid FROM restaurants WHERE slug='mare-alta';
+  DELETE FROM pdv_connections WHERE restaurant_id = v_rid;
+  PERFORM pg_temp.mesa('mare-alta', '9');
+  a := register_table_payment('mare-alta','9','Ana Lima','restaurant','pix','approved', 90.00, '{"pizza":1}', 'fila-sem-pdv');
+  PERFORM pg_temp.ok((SELECT count(*) FROM pdv_payment_outbox WHERE payment_id = a) = 0, 'sem PDV externo, nada entra na fila');
+
+  INSERT INTO pdv_connections (restaurant_id, adapter, status) VALUES (v_rid, 'demo', 'connected');
+  b := register_table_payment('mare-alta','9','Bia Melo','restaurant','card','pending', 36.00, '{"suco":3}', 'fila-com-pdv');
+  PERFORM pg_temp.ok((SELECT count(*) FROM pdv_payment_outbox WHERE payment_id = b) = 0, 'pagamento pendente ainda não entra na fila');
+  UPDATE table_payment_requests SET provider='pagarme', provider_order_id='or_fila1' WHERE id = b;
+  r := provider_settle_payment('or_fila1', true);
+  PERFORM pg_temp.ok((SELECT count(*) FROM pdv_payment_outbox WHERE payment_id = b AND adapter = 'demo' AND amount = 36 AND item_quantities = '{"suco":3}'::jsonb) = 1, 'aprovação enfileira a baixa com cópia do pagamento');
+  r := provider_settle_payment('or_fila1', true);
+  UPDATE table_payment_requests SET status = 'approved' WHERE id = b;
+  PERFORM pg_temp.ok((SELECT count(*) FROM pdv_payment_outbox WHERE payment_id = b) = 1, 'webhook duplicado não duplica a baixa');
+  PERFORM archive_and_reopen_table('mare-alta', '9');
+  PERFORM pg_temp.ok((SELECT count(*) FROM pdv_payment_outbox WHERE payment_id = b) = 1, 'reabrir a mesa não apaga a fila');
+  SELECT count(*) INTO n FROM pdv_outbox_claim(10) WHERE payment_id = b;
+  PERFORM pg_temp.ok(n = 1, 'processador reserva o item vencido');
+  SELECT count(*) INTO n FROM pdv_outbox_claim(10) WHERE payment_id = b;
+  PERFORM pg_temp.ok(n = 0, 'segundo processador não pega o mesmo item');
+  BEGIN
+    SET LOCAL ROLE authenticated;
+    PERFORM pdv_outbox_claim(10);
+    RESET ROLE;
+    RAISE EXCEPTION 'FALHOU: usuário comum processou a fila';
+  EXCEPTION WHEN insufficient_privilege THEN
+    RESET ROLE;
+    PERFORM pg_temp.ok(true, 'só o servidor processa a fila');
+  END;
+  DELETE FROM pdv_connections WHERE restaurant_id = v_rid;
+END $$;
