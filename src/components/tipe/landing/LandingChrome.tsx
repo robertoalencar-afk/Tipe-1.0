@@ -48,7 +48,7 @@ export function LandingHeader() {
     return () => { document.documentElement.style.overflow = ""; };
   }, [menu]);
 
-  const linkCls = "rounded-full px-3 py-2 text-[0.9rem] font-medium text-foreground/70 transition-colors hover:text-foreground";
+  const linkCls = "rounded-full px-3.5 py-2 text-[0.95rem] font-medium text-foreground/85 transition-colors hover:text-foreground";
   return (
     <header className={cn("sticky top-0 z-40 transition-[background-color,box-shadow,border-color] duration-200", scrolled || menu ? "border-b border-border/70 bg-background/85 backdrop-blur-xl" : "border-b border-transparent bg-transparent")}>
       <div className="container-page flex h-16 items-center justify-between gap-4">
@@ -76,8 +76,8 @@ export function LandingHeader() {
         </nav>
 
         <div className="flex items-center gap-1.5">
-          <Link to="/entrar" className="hidden rounded-full px-3.5 py-2 text-[0.9rem] font-semibold text-foreground/80 hover:text-foreground sm:block">Entrar</Link>
-          <a href="#demonstracao" className="hidden h-10 items-center rounded-full bg-ink px-5 text-[0.9rem] font-semibold text-white transition-colors hover:bg-ink-soft sm:inline-flex">Agendar demonstração</a>
+          <Link to="/entrar" className="hidden h-11 items-center rounded-full border border-border px-6 text-[0.95rem] font-medium text-foreground transition-colors hover:border-foreground/40 sm:inline-flex">Entrar</Link>
+          <a href="#demonstracao" className="hidden h-11 items-center rounded-full bg-ink px-6 text-[0.95rem] font-medium text-white transition-colors hover:bg-ink-soft sm:inline-flex">Agendar demonstração</a>
           <button type="button" onClick={() => setMenu((v) => !v)} aria-expanded={menu} aria-controls="menu-mobile" aria-label={menu ? "Fechar menu" : "Abrir menu"} className="grid h-10 w-10 place-items-center rounded-full border border-border bg-surface lg:hidden">
             {menu ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
           </button>

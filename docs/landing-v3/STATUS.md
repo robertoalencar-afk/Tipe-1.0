@@ -15,3 +15,8 @@ Pendências do Roberto: DECISOES-PENDENTES.md.
 
 Arquivos alterados: `src/routes/index.tsx`, `src/components/tipe/landing/{FilmeMesa,EditorialPhoto,motion}.tsx`, `ProductScreens.tsx` (telas de divisão e de leitura do QR), `PrivacyPreferences.tsx`, `LandingCalculator.tsx` (só visual), `src/styles.css` (fontes e motion), `src/routes/__root.tsx` (preload das fontes), `public/fonts/`.
 Nada de pagamento, PDV, KDS, banco ou Pagar.me foi tocado. `bun.lock` intocado.
+
+## Rodada 15/10/2026 (tarde), após o retorno do Roberto
+- Estilo Sunday na landing inteira (classe `.sunday`): fundo branco, preto, Inter Tight (a Sunday usa Helvetica Neue LT, identificada pelo REA nos arquivos de fonte carregados pela página), títulos em peso médio de uma cor, rótulo grande na cor da marca, botões pretos em pílula, avisos de vidro sobre as fotos. Painel e conta do cliente não mudam.
+- Mesa Viva de volta no lugar do FilmeMesa: as mesmas cenas da versão publicada, agora guiadas pela rolagem (seção presa na tela, linha do tempo GSAP com amortecimento), com a arte real do totem na cena do QR Code e só promessas reais ("aprovado pelo banco" no lugar de "em 3 s").
+- Fotos refeitas por IA com a arte real do totem (renderizada do TotemStudio, modelo Clássico, suporte acrílico): garçom vendo a gorjeta extra no relógio, amigos lendo o QR do totem, casal pagando pelo celular sem maquininha, salão com totens nas mesas.

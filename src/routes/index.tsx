@@ -28,7 +28,7 @@ import { LazyLebreAssistant } from "@/components/tipe/LazyLebreAssistant";
 import { Eyebrow, PhoneFrame } from "@/components/tipe/ds";
 import { LandingFooter, LandingHeader } from "@/components/tipe/landing/LandingChrome";
 import { DashboardPreview, WaiterPreview } from "@/components/tipe/landing/PanelPreviews";
-import { FilmeMesa } from "@/components/tipe/landing/FilmeMesa";
+import { MesaViva } from "@/components/tipe/MesaViva";
 import { EditorialPhoto } from "@/components/tipe/landing/EditorialPhoto";
 import { LineReveal, Reveal, useParallax } from "@/components/tipe/landing/motion";
 import { money } from "@/components/tipe/landing/ProductScreens";
@@ -54,16 +54,32 @@ export const Route = createFileRoute("/")({
       { property: "og:image", content: OG_IMAGE },
       { name: "twitter:card", content: "summary_large_image" },
       { name: "twitter:image", content: OG_IMAGE },
-      { name: "theme-color", content: "#fbfcfd" },
+      { name: "theme-color", content: "#ffffff" },
     ],
-    links: [{ rel: "canonical", href: "https://tipe.digital/" }],
+    links: [
+      { rel: "canonical", href: "https://tipe.digital/" },
+      {
+        rel: "preload",
+        href: "/fonts/inter-tight-500-latin.woff2",
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
+      },
+      {
+        rel: "preload",
+        href: "/fonts/inter-tight-400-latin.woff2",
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
+      },
+    ],
   }),
   component: LandingPage,
 });
 
 function LandingPage() {
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="sunday min-h-screen bg-background text-foreground">
       <a
         href="#conteudo"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-ink focus:px-4 focus:py-2 focus:text-white"
@@ -75,7 +91,7 @@ function LandingPage() {
         <span id="principal" aria-hidden />
         <Hero />
         <Problema />
-        <FilmeMesa />
+        <MesaViva />
         <NaMesa />
         <QuemAtende />
         <QuemGerencia />
@@ -106,14 +122,11 @@ function CtaPrimary({
     <a
       href={href}
       className={cn(
-        "btn-press group inline-flex h-13 items-center gap-2 rounded-full bg-ink px-7 text-[1.02rem] font-semibold text-white shadow-[0_12px_30px_-12px_oklch(0.2_0.04_250/0.6)] hover:bg-ink-soft",
+        "btn-press group inline-flex h-14 items-center gap-2 rounded-full bg-ink px-8 text-[1.05rem] font-medium text-white hover:bg-ink-soft",
         className,
       )}
     >
       {children}
-      <span className="grid h-6 w-6 place-items-center rounded-full bg-brand text-ink transition-transform duration-300 group-hover:translate-x-0.5">
-        <ArrowRight className="h-3.5 w-3.5" strokeWidth={2.5} />
-      </span>
     </a>
   );
 }
@@ -176,11 +189,11 @@ function Toast({
         "flex items-center gap-3 rounded-2xl border px-3.5 py-3 shadow-[0_20px_40px_-20px_oklch(0.2_0.04_250/0.45)] backdrop-blur-xl",
         tone === "light"
           ? "border-white/60 bg-white/80 text-foreground"
-          : "border-white/15 bg-ink/55 text-white",
+          : "border-white/20 bg-[oklch(0.25_0_0/0.38)] text-white backdrop-saturate-150",
         className,
       )}
     >
-      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-ink text-brand">
+      <span className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-ink/80 text-brand">
         {icon}
       </span>
       <span className="min-w-0">
@@ -207,10 +220,10 @@ function Hero() {
     <section className="relative -mt-16 overflow-hidden pt-16">
       <div className="container-page grid items-center gap-10 pb-16 pt-8 sm:pt-12 lg:grid-cols-[0.95fr_1.05fr] lg:gap-20 lg:pb-24 lg:pt-14">
         <div className="max-w-[44rem] lg:order-2">
-          <p className="hero-in inline-flex items-center gap-2 font-display text-lg font-semibold tracking-heading text-brand-strong sm:text-xl">
-            Tipe <span className="text-foreground/30">—</span> Pague. Sem esperar.
+          <p className="hero-in font-display text-[clamp(1.5rem,1.1rem+1.4vw,2.2rem)] font-normal tracking-[-0.02em] text-brand-strong">
+            Pague. Sem esperar.
           </p>
-          <h1 className="mt-5 font-display text-[clamp(2.9rem,1.4rem+4.4vw,5.1rem)] font-semibold leading-[0.95] tracking-display">
+          <h1 className="mt-5 font-display text-[clamp(3rem,1.3rem+4.8vw,5.4rem)] font-medium leading-[0.98]">
             <span className="hero-in block" style={{ "--d": "80ms" } as CSSProperties}>
               A conta chega.
             </span>
@@ -236,7 +249,7 @@ function Hero() {
             <CtaPrimary>Quero a Tipe no meu restaurante</CtaPrimary>
             <Link
               to="/simulador"
-              className="btn-press inline-flex h-13 items-center rounded-full border border-border bg-surface px-6 font-semibold hover:border-foreground/25"
+              className="btn-press inline-flex h-14 items-center rounded-full border border-border bg-surface px-7 font-medium hover:border-foreground/40"
             >
               Testar o simulador
             </Link>
@@ -303,7 +316,7 @@ function Problema() {
     { quem: "Mesa 12", t: "Quanto deu a minha parte mesmo?", lado: "l" },
   ];
   return (
-    <section className="relative overflow-hidden bg-[oklch(0.97_0.025_70)] py-20 sm:py-28">
+    <section className="relative overflow-hidden bg-background-muted py-20 sm:py-28">
       <div className="container-page grid items-center gap-14 lg:grid-cols-[1.1fr_0.9fr]">
         <div>
           <Eyebrow>A parte chata</Eyebrow>
@@ -413,7 +426,7 @@ function NaMesa() {
           </Reveal>
         </div>
 
-        <div className="relative mt-12 grid gap-5 lg:mt-16 lg:grid-cols-[1.45fr_0.55fr]">
+        <div className="relative mt-12 grid gap-5 lg:mt-16 lg:grid-cols-[1.35fr_0.65fr]">
           <div className="relative">
             <EditorialPhoto
               scene="amigos"
@@ -458,19 +471,22 @@ function NaMesa() {
               </Reveal>
             </div>
           </div>
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-1">
+          <div className="relative">
             <EditorialPhoto
               scene="casal"
               alt="Casal sorrindo enquanto paga a conta pelo celular, à mesa, à noite"
               aspect="4/5"
-              sizes="(min-width: 1024px) 25vw, 50vw"
+              sizes="(min-width: 1024px) 34vw, 100vw"
+              position="40% 40%"
               className="lg:!aspect-auto lg:h-full"
             />
-            <Reveal className="flex flex-col justify-between rounded-[2rem] bg-ink p-6 text-white sm:p-7">
-              <p className="font-display text-2xl font-semibold leading-tight tracking-heading">
-                Paga como preferir.
-              </p>
-              <ul className="mt-6 space-y-3">
+            <Reveal
+              variant="scale"
+              delay={250}
+              className="absolute inset-x-3 bottom-3 rounded-[1.5rem] border border-white/15 bg-[oklch(0.15_0_0/0.55)] p-4 text-white backdrop-blur-xl sm:inset-x-4 sm:bottom-4 sm:p-5"
+            >
+              <p className="font-display text-xl font-medium leading-tight">Paga como preferir.</p>
+              <ul className="mt-4 space-y-2.5">
                 {metodos.map((m) => (
                   <li
                     key={m.nome}
@@ -486,7 +502,7 @@ function NaMesa() {
                     </span>
                     <span>
                       <span className="block text-sm font-semibold">{m.nome}</span>
-                      <span className="block text-xs text-white/60">{m.nota}</span>
+                      <span className="block text-xs text-white/65">{m.nota}</span>
                     </span>
                   </li>
                 ))}
@@ -520,7 +536,7 @@ function QuemAtende() {
   return (
     <section
       id="para-garcons"
-      className="scroll-mt-16 overflow-hidden bg-[oklch(0.95_0.035_178)] py-20 sm:py-32"
+      className="scroll-mt-16 overflow-hidden bg-background-muted py-20 sm:py-32"
     >
       <div className="container-page grid items-center gap-14 lg:grid-cols-[0.95fr_1.05fr] lg:gap-20">
         <div className="relative order-2 lg:order-1">
