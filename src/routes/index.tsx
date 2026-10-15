@@ -22,7 +22,6 @@ import {
   Wallet,
 } from "lucide-react";
 import { PLANS, SHOW_PLAN_PRICES, TRIAL_DAYS, priceLabel } from "@/lib/tipe/plans";
-import { WaitlistForm } from "@/components/tipe/WaitlistForm";
 import { LandingCalculator } from "@/components/tipe/LandingCalculator";
 import { LazyLebreAssistant } from "@/components/tipe/LazyLebreAssistant";
 import { Eyebrow, PhoneFrame } from "@/components/tipe/ds";
@@ -31,11 +30,11 @@ import { DashboardPreview, WaiterPreview } from "@/components/tipe/landing/Panel
 import { MesaViva } from "@/components/tipe/MesaViva";
 import { LiveSimulator } from "@/components/tipe/landing/LiveSimulator";
 import { PhoneShot, type Tela } from "@/components/tipe/landing/PhoneShot";
+import { Bigodes, Lebre, SimboloTipe } from "@/components/tipe/landing/Lebre";
+import { FraseAcende, Letreiro } from "@/components/tipe/landing/ScrollText";
 import { EditorialPhoto } from "@/components/tipe/landing/EditorialPhoto";
 import { LineReveal, Reveal, useParallax } from "@/components/tipe/landing/motion";
 import { money } from "@/components/tipe/landing/ProductScreens";
-import mascotWaiting from "@/assets/mascot-waiting-hd.webp";
-import mascotThanks from "@/assets/mascot-thanks-hd.webp";
 import { cn } from "@/lib/utils";
 
 const TITLE = "TIPE | Pague. Sem esperar. | Pagamento na mesa por QR Code";
@@ -93,11 +92,13 @@ function LandingPage() {
         <span id="principal" aria-hidden />
         <Hero />
         <Problema />
+        <Faixas />
         <MesaViva />
         <Experimente />
         <NaMesa />
         <QuemAtende />
         <QuemGerencia />
+        <Manifesto />
         <Ecossistema />
         <LandingCalculator />
         <Planos />
@@ -113,7 +114,7 @@ function LandingPage() {
 /* ------------------------------------------------------------ Peças */
 
 function CtaPrimary({
-  href = "#demonstracao",
+  href = "/teste-gratis",
   children,
   className,
 }: {
@@ -131,41 +132,6 @@ function CtaPrimary({
     >
       {children}
     </a>
-  );
-}
-
-/** Rabisco desenhado à mão (original): três traços de "brilho" ao lado de um elemento. */
-function Spark({ className, delay = 900 }: { className?: string; delay?: number }) {
-  return (
-    <svg
-      viewBox="0 0 40 40"
-      fill="none"
-      aria-hidden
-      className={cn("doodle", className)}
-      style={{ "--d": `${delay}ms` } as CSSProperties}
-    >
-      <path
-        pathLength={1}
-        d="M8 22 C10 16 11 11 11 5"
-        stroke="currentColor"
-        strokeWidth="3.2"
-        strokeLinecap="round"
-      />
-      <path
-        pathLength={1}
-        d="M17 26 C22 20 27 16 33 13"
-        stroke="currentColor"
-        strokeWidth="3.2"
-        strokeLinecap="round"
-      />
-      <path
-        pathLength={1}
-        d="M19 35 C24 34 29 34 35 35"
-        stroke="currentColor"
-        strokeWidth="3.2"
-        strokeLinecap="round"
-      />
-    </svg>
   );
 }
 
@@ -228,13 +194,12 @@ function Hero() {
           </p>
           <h1 className="mt-5 font-display text-[clamp(3rem,1.3rem+4.8vw,5.4rem)] font-medium leading-[0.98]">
             <span className="hero-in block" style={{ "--d": "80ms" } as CSSProperties}>
-              A conta chega.
+              A conta já está
             </span>
             <span className="hero-in block" style={{ "--d": "180ms" } as CSSProperties}>
-              A espera{" "}
               <span className="relative inline-block">
-                não.
-                <Spark className="absolute -right-[0.62em] top-[-0.08em] h-[0.5em] w-[0.5em] text-highlight" />
+                na mesa.
+                <Bigodes className="absolute -right-[0.95em] top-[0.24em] h-[0.66em] w-[0.78em] text-brand-strong" />
               </span>
             </span>
           </h1>
@@ -344,14 +309,9 @@ function Problema() {
           </Reveal>
         </div>
         <div className="relative mx-auto w-full max-w-md">
-          <img
-            src={mascotWaiting}
-            alt=""
-            aria-hidden
-            width={1024}
-            height={1024}
-            loading="lazy"
-            className="bob absolute -right-6 -top-16 w-32 sm:-right-14 sm:w-40"
+          <Lebre
+            humor="atenta"
+            className="bob absolute -right-4 -top-14 w-24 sm:-right-10 sm:w-28"
           />
           <ol className="relative space-y-3 rounded-[2rem] bg-surface p-5 shadow-lift sm:p-7">
             {falas.map((f, i) => (
@@ -446,12 +406,9 @@ function Experimente() {
             className="absolute -inset-x-10 inset-y-10 rounded-[4rem] bg-brand-soft"
           />
           <LiveSimulator className="relative" />
-          <img
-            src={mascotThanks}
-            alt=""
-            aria-hidden
-            loading="lazy"
-            className="bob pointer-events-none absolute -bottom-6 -left-16 hidden h-36 w-auto drop-shadow-xl sm:block"
+          <Lebre
+            humor="piscando"
+            className="bob pointer-events-none absolute -bottom-4 -left-14 hidden w-24 sm:block"
           />
           <p
             aria-hidden
@@ -473,6 +430,51 @@ function Experimente() {
           </p>
         </div>
       </div>
+    </section>
+  );
+}
+
+/* ------------------------------------------------ Frases em movimento */
+
+function Sep() {
+  return <SimboloTipe className="mx-[0.35em] inline-block h-[0.62em] w-auto align-baseline" />;
+}
+
+function Faixas() {
+  const a = ["Sem chamar o garçom.", "Sem esperar a maquininha.", "Sem fazer conta de cabeça."];
+  const b = [
+    "Cada um paga o seu.",
+    "Pix, Apple Pay e Google Pay.",
+    "Gorjeta direto para a equipe.",
+  ];
+  const linha = (xs: string[]) =>
+    [...xs, ...xs].map((t, i) => (
+      <span key={i}>
+        {t}
+        <Sep />
+      </span>
+    ));
+  return (
+    <section aria-label="O que muda na mesa" className="pb-10 sm:pb-16">
+      <Letreiro
+        linhas={[
+          linha(a),
+          <span key="b" style={{ color: "var(--color-brand-strong)" }}>
+            {linha(b)}
+          </span>,
+        ]}
+      />
+    </section>
+  );
+}
+
+function Manifesto() {
+  return (
+    <section aria-label="Manifesto Tipe" className="container-page py-24 sm:py-36">
+      <FraseAcende
+        className="max-w-[22ch] sm:max-w-[26ch]"
+        texto="A Tipe junta a conta, o pagamento, a gorjeta e o painel numa experiência só. O cliente sai na hora que quer, a equipe ganha mais e o caixa fecha sem susto."
+      />
     </section>
   );
 }
@@ -1076,7 +1078,7 @@ function Planos() {
                 ))}
               </ul>
               <a
-                href="#demonstracao"
+                href="/teste-gratis"
                 className={cn(
                   "btn-press mt-8 flex h-12 items-center justify-center rounded-full font-semibold",
                   p.popular
@@ -1170,7 +1172,7 @@ function Duvidas() {
             lines={["Perguntou,", "respondemos."]}
           />
           <a
-            href="#demonstracao"
+            href="/teste-gratis"
             className="mt-8 inline-flex items-center gap-2 font-semibold text-brand-strong hover:underline"
           >
             Ainda com dúvida? Fale com a equipe <ArrowRight className="h-4 w-4" />
@@ -1212,54 +1214,40 @@ function Conversao() {
       className="relative scroll-mt-16 overflow-hidden px-4 py-20 sm:px-6 sm:py-28"
     >
       <span id="lista-de-espera" className="block -translate-y-16" aria-hidden />
-      <div className="relative mx-auto grid max-w-7xl gap-10 overflow-hidden rounded-[2.5rem] bg-ink p-6 text-white sm:p-12 lg:grid-cols-[1fr_0.9fr] lg:gap-14 lg:p-16">
+      <div className="relative mx-auto flex max-w-7xl flex-col gap-10 overflow-hidden rounded-[2.5rem] bg-ink p-8 text-white sm:p-12 lg:flex-row lg:items-end lg:justify-between lg:p-16">
         <div
           aria-hidden
           className="pointer-events-none absolute -left-24 -top-24 h-96 w-96 rounded-full bg-brand/25 blur-3xl"
         />
-        <div className="relative flex flex-col">
+        <div className="relative">
+          <Lebre humor="feliz" className="bob mb-6 w-20 text-white" />
           <LineReveal
             className="font-display text-[clamp(3rem,1.6rem+6vw,7rem)] font-semibold leading-[0.9] tracking-display"
             lines={[
               "Pague.",
               "Sem",
-              <span key="e" className="text-brand">
+              <span key="e" style={{ color: "var(--color-brand)" }}>
                 esperar.
               </span>,
             ]}
           />
-          <Reveal delay={200}>
-            <p className="mt-6 max-w-md text-lg leading-relaxed text-white/70">
-              Os primeiros restaurantes ganham {TRIAL_DAYS} dias grátis, sem cartão de crédito.
-              Deixe seus dados e a equipe Tipe agenda a demonstração.
-            </p>
-          </Reveal>
-          <ul className="mt-8 space-y-3 text-[0.95rem]">
-            {[
-              "Vagas na ordem de chegada",
-              "Demonstração gratuita com a equipe",
-              "Implantação acompanhada",
-            ].map((t) => (
-              <li key={t} className="flex items-center gap-3">
-                <span className="grid h-6 w-6 place-items-center rounded-full bg-brand text-ink">
-                  <Check className="h-3.5 w-3.5" strokeWidth={3} />
-                </span>
-                {t}
-              </li>
-            ))}
-          </ul>
-          <img
-            src={mascotThanks}
-            alt=""
-            aria-hidden
-            width={687}
-            height={1024}
-            loading="lazy"
-            className="bob mt-auto hidden w-36 self-start pt-10 lg:block"
-          />
+          <p className="mt-6 max-w-md text-lg leading-relaxed text-white/70">
+            Os primeiros restaurantes ganham {TRIAL_DAYS} dias grátis, sem cartão de crédito.
+          </p>
         </div>
-        <div className="relative self-start rounded-[1.75rem] bg-surface p-5 text-foreground shadow-lift sm:p-8">
-          <WaitlistForm />
+        <div className="relative flex flex-col items-start gap-4">
+          <a
+            href="/teste-gratis"
+            className="btn-press inline-flex h-16 items-center gap-3 rounded-full bg-white px-9 text-lg font-medium text-ink"
+          >
+            Começar meu teste grátis <ArrowRight className="h-5 w-5" />
+          </a>
+          <Link
+            to="/simulador"
+            className="text-[0.95rem] text-white/70 underline-offset-4 hover:text-white hover:underline"
+          >
+            Ou teste o simulador antes
+          </Link>
         </div>
       </div>
     </section>

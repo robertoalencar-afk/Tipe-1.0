@@ -894,7 +894,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
             Imagine isso em todas as mesas do seu restaurante.
           </h1>
           <a
-            href="/#demonstracao"
+            href="/teste-gratis"
             target="_top"
             className="mt-8 flex h-12 w-full items-center justify-center rounded-lg bg-primary text-base font-bold text-primary-foreground"
           >

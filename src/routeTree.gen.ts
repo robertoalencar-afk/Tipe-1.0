@@ -21,6 +21,7 @@ import { Route as SimuladorRouteImport } from './routes/simulador'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermosRouteImport } from './routes/termos'
 import { Route as TermosParceirosRouteImport } from './routes/termos-parceiros'
+import { Route as TesteGratisRouteImport } from './routes/teste-gratis'
 import { Route as RestauranteIndexRouteImport } from './routes/$restaurante.index'
 import { Route as RestauranteMesaRouteImport } from './routes/$restaurante.$mesa'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
@@ -104,6 +105,11 @@ const TermosRoute = TermosRouteImport.update({
 const TermosParceirosRoute = TermosParceirosRouteImport.update({
   id: '/termos-parceiros',
   path: '/termos-parceiros',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TesteGratisRoute = TesteGratisRouteImport.update({
+  id: '/teste-gratis',
+  path: '/teste-gratis',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RestauranteIndexRoute = RestauranteIndexRouteImport.update({
@@ -249,6 +255,7 @@ export interface FileRoutesByFullPath {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/termos': typeof TermosRoute
   '/termos-parceiros': typeof TermosParceirosRoute
+  '/teste-gratis': typeof TesteGratisRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/backoffice': typeof AuthenticatedBackofficeRoute
@@ -287,6 +294,7 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/termos': typeof TermosRoute
   '/termos-parceiros': typeof TermosParceirosRoute
+  '/teste-gratis': typeof TesteGratisRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/backoffice': typeof AuthenticatedBackofficeRoute
@@ -327,6 +335,7 @@ export interface FileRoutesById {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/termos': typeof TermosRoute
   '/termos-parceiros': typeof TermosParceirosRoute
+  '/teste-gratis': typeof TesteGratisRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/backoffice': typeof AuthenticatedBackofficeRoute
@@ -367,6 +376,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/termos'
     | '/termos-parceiros'
+    | '/teste-gratis'
     | '/$restaurante/$mesa'
     | '/.well-known/oauth-protected-resource'
     | '/backoffice'
@@ -405,6 +415,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/termos'
     | '/termos-parceiros'
+    | '/teste-gratis'
     | '/$restaurante/$mesa'
     | '/.well-known/oauth-protected-resource'
     | '/backoffice'
@@ -444,6 +455,7 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/termos'
     | '/termos-parceiros'
+    | '/teste-gratis'
     | '/$restaurante/$mesa'
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/backoffice'
@@ -484,6 +496,7 @@ export interface RootRouteChildren {
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermosRoute: typeof TermosRoute
   TermosParceirosRoute: typeof TermosParceirosRoute
+  TesteGratisRoute: typeof TesteGratisRoute
   RestauranteMesaRoute: typeof RestauranteMesaRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   LegalLivroRoute: typeof LegalLivroRoute
@@ -591,6 +604,13 @@ declare module '@tanstack/react-router' {
       path: '/termos-parceiros'
       fullPath: '/termos-parceiros'
       preLoaderRoute: typeof TermosParceirosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/teste-gratis': {
+      id: '/teste-gratis'
+      path: '/teste-gratis'
+      fullPath: '/teste-gratis'
+      preLoaderRoute: typeof TesteGratisRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$restaurante/': {
@@ -801,6 +821,7 @@ const rootRouteChildren: RootRouteChildren = {
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermosRoute: TermosRoute,
   TermosParceirosRoute: TermosParceirosRoute,
+  TesteGratisRoute: TesteGratisRoute,
   RestauranteMesaRoute: RestauranteMesaRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,

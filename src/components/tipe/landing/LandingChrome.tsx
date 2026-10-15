@@ -8,16 +8,16 @@ import { WHATSAPP_SITE_MESSAGE, whatsappLink } from "@/lib/tipe/contact";
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { href: "#como-funciona", label: "Como funciona" },
-  { href: "#para-restaurantes", label: "Para restaurantes" },
-  { href: "#para-clientes", label: "Para clientes" },
+  { href: "/#como-funciona", label: "Como funciona" },
+  { href: "/#para-restaurantes", label: "Para restaurantes" },
+  { href: "/#para-clientes", label: "Para clientes" },
 ] as const;
 
 const SOLUCOES = [
-  { href: "#como-funciona", title: "Pagamento na mesa", text: "QR Code, conta ao vivo e Pix" },
-  { href: "#painel", title: "Painel do restaurante", text: "Mesas, caixa e pagamentos" },
-  { href: "#para-garcons", title: "Área do garçom", text: "Gorjetas extras e saques" },
-  { href: "#integracoes", title: "Integrações", text: "O que já funciona e o que vem aí" },
+  { href: "/#como-funciona", title: "Pagamento na mesa", text: "QR Code, conta ao vivo e Pix" },
+  { href: "/#painel", title: "Painel do restaurante", text: "Mesas, caixa e pagamentos" },
+  { href: "/#para-garcons", title: "Área do garçom", text: "Gorjetas extras e saques" },
+  { href: "/#integracoes", title: "Integrações", text: "O que já funciona e o que vem aí" },
 ] as const;
 
 export function LandingHeader() {
@@ -115,7 +115,7 @@ export function LandingHeader() {
               </div>
             )}
           </div>
-          <a href="#precos" className={linkCls}>
+          <a href="/#precos" className={linkCls}>
             Preços
           </a>
         </nav>
@@ -128,10 +128,10 @@ export function LandingHeader() {
             Entrar
           </Link>
           <a
-            href="#demonstracao"
+            href="/teste-gratis"
             className="hidden h-11 items-center rounded-full bg-ink px-6 text-[0.95rem] font-medium text-white transition-colors hover:bg-ink-soft sm:inline-flex"
           >
-            Agendar demonstração
+            Teste grátis
           </a>
           <button
             type="button"
@@ -154,11 +154,11 @@ export function LandingHeader() {
           <nav aria-label="Menu" className="flex flex-col">
             {[
               ...NAV,
-              { href: "#para-garcons", label: "Para garçons" },
-              { href: "#painel", label: "Painel do restaurante" },
-              { href: "#integracoes", label: "Integrações" },
-              { href: "#precos", label: "Preços" },
-              { href: "#duvidas", label: "Dúvidas" },
+              { href: "/#para-garcons", label: "Para garçons" },
+              { href: "/#painel", label: "Painel do restaurante" },
+              { href: "/#integracoes", label: "Integrações" },
+              { href: "/#precos", label: "Preços" },
+              { href: "/#duvidas", label: "Dúvidas" },
             ].map((n) => (
               <a
                 key={n.href + n.label}
@@ -179,11 +179,11 @@ export function LandingHeader() {
           </nav>
           <div className="mt-6 grid gap-2">
             <a
-              href="#demonstracao"
+              href="/teste-gratis"
               onClick={() => setMenu(false)}
               className="flex h-12 items-center justify-center rounded-full bg-ink font-semibold text-white"
             >
-              Agendar demonstração
+              Teste grátis
             </a>
             <Link
               to="/entrar"
@@ -240,16 +240,16 @@ export function LandingFooter() {
         </div>
         <div className={col}>
           <p className="font-display font-semibold">Produto</p>
-          <a href="#como-funciona" className={a}>
+          <a href="/#como-funciona" className={a}>
             Como funciona
           </a>
-          <a href="#painel" className={a}>
+          <a href="/#painel" className={a}>
             Painel do restaurante
           </a>
-          <a href="#para-garcons" className={a}>
+          <a href="/#para-garcons" className={a}>
             Área do garçom
           </a>
-          <a href="#integracoes" className={a}>
+          <a href="/#integracoes" className={a}>
             Integrações
           </a>
           <Link to="/simulador" className={a}>
@@ -258,13 +258,13 @@ export function LandingFooter() {
         </div>
         <div className={col}>
           <p className="font-display font-semibold">Comercial</p>
-          <a href="#precos" className={a}>
+          <a href="/#precos" className={a}>
             Preços
           </a>
-          <a href="#demonstracao" className={a}>
-            Agendar demonstração
+          <a href="/teste-gratis" className={a}>
+            Teste grátis
           </a>
-          <a href="#duvidas" className={a}>
+          <a href="/#duvidas" className={a}>
             Dúvidas frequentes
           </a>
           <a

@@ -27,3 +27,11 @@ Nada de pagamento, PDV, KDS, banco ou Pagar.me foi tocado. `bun.lock` intocado.
 - Telas reais do app em celulares nítidos no hero e numa galeria de 4 passos.
 - Apple Pay e Google Pay ativos também no simulador (decisão registrada).
 - Mesa Viva com o azul da Tipe, lebre em três cenas, divisão e gorjeta clicáveis.
+
+## 15/10 (noite)
+
+- Frase principal: "A conta já está na mesa.", com bigodes da lebre (focinho verde) no lugar dos três tracinhos.
+- Lebre minimalista em traço (`landing/Lebre.tsx`), derivada das folhas do logo, no lugar dos mascotes ilustrados na landing. O app do cliente continua com os mascotes oficiais.
+- Mesa Viva refeita: capítulos guiados pela rolagem, nome do restaurante digitado pelo visitante em todas as telas, celular clicável (escolher itens, pagar, avaliar, gorjeta), relógio do garçom e a lebre comentando.
+- Frases grandes com a rolagem: faixas que andam para os lados (após "Problema") e manifesto que acende palavra por palavra (antes de "Ecossistema").
+- Nova página `/teste-gratis` (inspirada na página de demonstração da sunday): formulário de teste grátis em destaque e carrossel de benefícios. O formulário saiu da home; todos os botões de conversão e o cabeçalho ("Teste grátis") levam para lá. Leads continuam com origem "home".
