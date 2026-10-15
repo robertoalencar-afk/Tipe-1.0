@@ -93,6 +93,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
+      // Os arquivos das fontes vêm de outro domínio: conectar cedo reduz o atraso do primeiro texto.
+      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Sora:wght@500;600;700;800&display=swap" },
       { rel: "icon", href: "/favicon.png?v=3", type: "image/png" },
       { rel: "apple-touch-icon", href: "/favicon.png?v=3" },
