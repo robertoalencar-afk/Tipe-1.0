@@ -12,9 +12,13 @@ Sem arquivo para uma cena, a página mostra a lebre da Tipe sobre um fundo da ma
 ## Registro de origem e licença
 | Cena | Arquivo | Origem (URL) | Autor | Licença | Data | Onde aparece |
 |---|---|---|---|---|---|---|
-| — | — | Nenhuma foto adicionada ainda | — | — | — | — |
+| garcom | garcom-*.{avif,webp,jpg} | Gerada por IA (Gemini) | — | Própria (gerada com a conta da Tipe) | 15/10/2026 | Hero |
+| amigos | amigos-* | Gerada por IA (Gemini) | — | Própria | 15/10/2026 | Para quem está na mesa |
+| casal | casal-* | Gerada por IA (Gemini) | — | Própria | 15/10/2026 | Para quem está na mesa |
+| salao | salao-* | Gerada por IA (Gemini) | — | Própria | 15/10/2026 | Para quem atende |
+| gestor | gestor-* | Gerada por IA (Gemini) | — | Própria | 15/10/2026 | Para quem gerencia |
 
-Regras: só fotos próprias, de ensaio contratado ou de bancos com licença comercial (Unsplash, Pexels). Nada de pessoas geradas por IA apresentadas como clientes, garçons ou donos reais.
+Regras: fotos próprias, de ensaio contratado, de bancos com licença comercial ou geradas por IA (decisão do Roberto, 15/10/2026). As pessoas geradas por IA ilustram cenas e não devem ser apresentadas como depoimentos ou clientes reais identificados.
 
 ## Fotos geradas por IA (15/10/2026)
 
