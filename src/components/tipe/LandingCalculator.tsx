@@ -34,13 +34,13 @@ export function LandingCalculator() {
   ];
   const input = "w-full rounded-xl border bg-background px-3 py-2.5 text-sm outline-none focus:border-primary focus:ring-2 focus:ring-primary/30";
   return (
-    <section id="calculadora" className="mx-auto max-w-6xl scroll-mt-20 px-4 py-12 sm:px-6 sm:py-16">
+    <section id="calculadora" className="container-page scroll-mt-20 py-20 sm:py-28">
       <div className="mx-auto max-w-2xl text-center">
-        <p className="font-display text-xs font-bold uppercase tracking-[0.2em] text-primary">Calculadora de giro</p>
-        <h2 className="mt-3 font-display text-3xl font-extrabold sm:text-4xl">Quanto seu salão pode faturar a mais?</h2>
+        <p className="eyebrow text-brand-strong">Calculadora de giro</p>
+        <h2 className="mt-4 font-display text-headline font-semibold tracking-display text-balance">Quanto seu salão pode faturar a mais?</h2>
       </div>
       <div className="mt-10 grid gap-6 lg:grid-cols-[1.2fr_1fr]">
-        <div className="grid gap-4 rounded-3xl border bg-card p-6 shadow-sm sm:grid-cols-2">
+        <div className="grid gap-4 rounded-[2rem] border bg-card p-6 sm:grid-cols-2 sm:p-8">
           {campos.map(([k, l, min, max]) => (
             <label key={k} className="space-y-1.5 text-sm font-medium">
               <span>{l}</span>
@@ -48,18 +48,18 @@ export function LandingCalculator() {
             </label>
           ))}
           <label className="space-y-2 text-sm font-medium sm:col-span-2">
-            <span className="flex justify-between"><span>Minutos economizados por mesa com a TIPE</span><strong className="text-primary">{v.economia} min</strong></span>
+            <span className="flex justify-between"><span>Minutos economizados por mesa com a TIPE</span><strong className="text-brand-strong">{v.economia} min</strong></span>
             <input type="range" min={5} max={20} step={1} className="w-full accent-primary" value={v.economia} onChange={set("economia")} />
           </label>
         </div>
-        <div className="flex flex-col justify-center rounded-3xl p-8 text-secondary-foreground shadow-xl" style={{ background: "var(--gradient-brand)" }}>
+        <div className="flex flex-col justify-center rounded-[2rem] bg-ink p-8 text-white sm:p-10">
           <p className="text-sm opacity-80">Até</p>
-          <p className="font-display text-4xl font-extrabold text-primary sm:text-5xl" aria-live="polite">{brl(r.faturamentoExtraMes)}</p>
-          <p className="mt-1 font-display text-lg font-bold">a mais por mês</p>
+          <p className="money font-display text-5xl font-semibold tracking-display text-brand sm:text-6xl" aria-live="polite">{brl(r.faturamentoExtraMes)}</p>
+          <p className="mt-1 font-display text-xl font-semibold">a mais por mês</p>
           <p className="mt-4 text-sm opacity-85"><strong>{Math.round(r.mesasExtrasMes).toLocaleString("pt-BR")}</strong> mesas extras atendidas por mês</p>
           <p className="mt-4 text-xs opacity-70">Estimativa ilustrativa. O ganho real depende de haver demanda (clientes esperando mesa) no horário de pico.</p>
           <a href="#lista-de-espera" onClick={() => saveCalculator({ ...v, faturamento_extra_mes: Math.round(r.faturamentoExtraMes), mesas_extras_mes: Math.round(r.mesasExtrasMes) })}
-            className="mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 text-center font-display text-sm font-semibold text-primary-foreground shadow-lg transition-transform hover:-translate-y-0.5">
+            className="btn-press mt-6 inline-flex items-center justify-center gap-2 rounded-full bg-brand px-5 py-3 text-center font-semibold text-ink">
             Quero esse resultado no meu restaurante <ChevronRight className="h-4 w-4" />
           </a>
         </div>

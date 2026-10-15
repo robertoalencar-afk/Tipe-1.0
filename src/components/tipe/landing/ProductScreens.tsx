@@ -176,3 +176,52 @@ export function TableTotem({ className }: { className?: string }) {
     </div>
   );
 }
+
+/** Divisão com a mesa: cada pessoa escolhe os itens; um item pode ser dividido em frações. */
+export function ScreenSplit({ className }: { className?: string }) {
+  const pessoas = [
+    { nome: "Ana", itens: "Moqueca ⅓ · Caipirinha", valor: 51.97, pago: true },
+    { nome: "Caio", itens: "Moqueca ⅓ · Caipirinha", valor: 51.97, pago: false },
+    { nome: "Bia", itens: "Moqueca ⅓ · Pudim", valor: 47.96, pago: false },
+  ];
+  return (
+    <div className={cn("flex h-full flex-col bg-background", className)}>
+      <StatusBar />
+      <TopBar />
+      <div className="px-4 pt-3">
+        <p className="font-display text-[17px] font-semibold tracking-heading">Quem paga o quê</p>
+        <p className="text-[10.5px] text-muted-foreground">A moqueca foi dividida em 3.</p>
+      </div>
+      <div className="mt-3 flex -space-x-1.5 px-4">
+        {pessoas.map((p, i) => (
+          <span key={p.nome} className={cn("grid h-8 w-8 place-items-center rounded-full text-[10px] font-bold ring-2 ring-background", ["bg-brand text-ink", "bg-highlight text-ink", "bg-ink text-white"][i])}>{p.nome[0]}</span>
+        ))}
+      </div>
+      <ul className="mt-3 space-y-1.5 px-3">
+        {pessoas.map((p) => (
+          <li key={p.nome} className={cn("flex items-center gap-2.5 rounded-xl border bg-surface px-2.5 py-2", p.pago ? "border-brand bg-brand-soft/60" : "border-border")}>
+            <span className="min-w-0 flex-1"><span className="block text-[11px] font-semibold">{p.nome}</span><span className="block truncate text-[9px] text-muted-foreground">{p.itens}</span></span>
+            <span className="text-right"><span className="money block text-[11px] font-semibold">{money(p.valor)}</span><span className={cn("block text-[8.5px] font-semibold", p.pago ? "text-brand-strong" : "text-muted-foreground")}>{p.pago ? "Pago" : "Escolhendo"}</span></span>
+          </li>
+        ))}
+      </ul>
+      <p className="mx-3 mt-2.5 rounded-lg bg-background-muted px-2.5 py-1.5 text-[9.5px] text-muted-foreground">Faltam <strong className="text-foreground">{money(99.93)}</strong> para fechar a mesa.</p>
+      <div className="mt-auto px-3 pb-5 pt-3"><Cta>Escolher meus itens</Cta></div>
+    </div>
+  );
+}
+
+/** Câmera apontada para o QR Code da mesa (ilustração). */
+export function ScreenScan({ className }: { className?: string }) {
+  return (
+    <div className={cn("relative flex h-full flex-col items-center justify-center overflow-hidden bg-[oklch(0.24_0.03_60)]", className)}>
+      <div aria-hidden className="absolute inset-0 bg-[radial-gradient(70%_50%_at_50%_45%,oklch(0.55_0.08_60/0.55),transparent_70%)]" />
+      <div className="relative">
+        <TableTotem className="w-[132px] shadow-2xl" />
+        <span aria-hidden className="scan-frame pointer-events-none absolute -inset-4 rounded-2xl border-2 border-white/80 [mask:linear-gradient(#000_0_0)_content-box_exclude,linear-gradient(#000_0_0)] p-0" />
+        <span aria-hidden className="scan-line pointer-events-none absolute inset-x-[-10px] top-0 h-0.5 rounded bg-brand shadow-[0_0_14px_var(--brand-primary)]" />
+      </div>
+      <p className="relative mt-8 rounded-full bg-black/45 px-3 py-1.5 text-[10px] font-semibold text-white backdrop-blur">Abrir tipe.digital/mare-alta/12</p>
+    </div>
+  );
+}
