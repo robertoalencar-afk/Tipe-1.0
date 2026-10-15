@@ -8,11 +8,15 @@ Branch: `research/us-benchmark-pdv-erp` · Início: 14/10/2026 · Base: `main` `
 |---|---|---|---|
 | 0 — Linha de base | Concluída | este arquivo | — |
 | 1 — Auditoria Tipe | Concluída | `01-AUDITORIA-TIPE.md` | — |
-| 2 — PDVs dos EUA | Em andamento | `notas/toast.md`, `square.md`, `lightspeed.md`, `touchbistro.md`, `spoton.md`, `nivel-2-pdv.md` | consolidar em `02-BENCHMARK-PDV-USA.md` |
-| 3 — ERPs | Em andamento | `notas/erp-usa.md` | consolidar em `03-BENCHMARK-ERP-USA.md` |
-| 4 — Realidade Brasil | Em andamento | `notas/brasil.md` | `04b-REALIDADE-BRASIL.md` |
-| 5 a 8 | Pendente | | |
-| 9 — Protótipos | Pendente (opcional) | | |
+| 2 — PDVs dos EUA | Concluída | `02-BENCHMARK-PDV-USA.md`, `notas/toast.md`, `square.md`, `lightspeed.md`, `touchbistro.md`, `spoton.md`, `nivel-2-pdv.md` | conferência visual pela REA (ver Impedimentos) |
+| 3 — ERPs | Concluída | `03-BENCHMARK-ERP-USA.md`, `notas/erp-usa.md` | — |
+| 4 — Realidade Brasil | Concluída | `04b-REALIDADE-BRASIL.md`, `notas/brasil.md` | ler a Order API da Saipos |
+| 5 — Matriz | Concluída | `04-MATRIZ-FUNCIONALIDADES-TIPE.md` | — |
+| 6 — Design e UX | Concluída | `05-DESIGN-SYSTEM-BENCHMARK.md` | conferência visual pela REA |
+| 7 — Telas | Concluída | `06-TELAS-REFERENCIA-TIPE.md` (com esboços ASCII) | — |
+| 8 — Arquitetura, priorização, plano | Concluída | `07` a `10` | — |
+| Resumo executivo | Concluído | `11-RESUMO-EXECUTIVO.md` | — |
+| 9 — Protótipos HTML | **Não feita** | — | próxima sessão: dashboard, PDV, mapa, KDS, financeiro, a partir dos esboços de `06` |
 
 ## Etapa 0 — Linha de base (resumo)
 
@@ -29,13 +33,13 @@ As ferramentas REA aparecem nesta sessão como ferramentas do **computador do us
 
 | Ferramentas | Decisão | Motivo |
 |---|---|---|
-| `capture_web_screenshot`, `capture_browser_scenario`, `inspect_web_page`, `compare_web_screenshots`, `export_evidence_bundle` | Permitidas, **não usadas** | rodariam no computador do usuário e pediriam autorização a cada site; a pesquisa precisa de texto de central de ajuda, que WebFetch lê direto; capturas de concorrentes não podem entrar no repositório |
+| `list_browser_targets`, `capture_web_screenshot`, `inspect_web_page`, `capture_browser_scenario`, `compare_web_screenshots`, `export_evidence_bundle` | **Usarei** (permitidas) | `list_browser_targets` e `capture_web_screenshot` usadas com sucesso; navegação e o restante ficaram bloqueados (ver Impedimentos). Capturas ficam fora do repositório |
 | `analyze_web_bundle`, `export_web_scripts`, `recover_javascript_sources`, `trace_javascript_semantics`, `trace_web_module_imports`, `compare_bundles`, `compare_source_to_bundle` e afins | Não usarei em concorrentes | engenharia reversa de código (proibido pela seção 2.1) |
 | `inspect_web_network_capture`, `observe_web_session`, `observe_web_execution`, `inspect_web_event_listeners` | Não usarei em concorrentes | captura de tráfego e execução (proibido) |
 | `pull_adb_package`, `decompile_jeb_item`, `open_binary`, `inspect_android_*`, `inspect_macho` e demais de binário/ADB | Não usarei | decompilação de apps (proibido) |
 | Análise de bundle no build da Tipe | Não necessária | o código-fonte está no repositório; o build foi verificado diretamente |
 
-**Troca registrada:** a pesquisa usou WebSearch e WebFetch (fontes públicas), por subagentes, como a seção 2.1 permite.
+**Troca registrada:** o conteúdo da pesquisa veio de WebSearch e WebFetch (fontes públicas), por subagentes, como a seção 2.1 permite quando a REA não abre um site.
 
 ## Verificação técnica
 
@@ -45,7 +49,10 @@ As ferramentas REA aparecem nesta sessão como ferramentas do **computador do us
 
 ## Impedimentos
 
-(atualizado ao longo da missão; ver também a seção "Impedimentos" de cada nota em `notas/`)
+Ver também a seção "Impedimentos" de cada nota em `notas/`.
 
-- Vídeos oficiais de treinamento (YouTube) não podem ser assistidos neste ambiente; só títulos e descrições.
-- Ferramentas REA não usadas (acima).
+- **REA (conferência visual):** a pedido do usuário (14/10/2026), a REA passou a ser obrigatória nesta pesquisa. Ela foi conectada ao Chrome do usuário com depurador (`127.0.0.1:9222`) e `list_browser_targets` e `capture_web_screenshot` funcionaram (captura da home pública do GoTab, guardada fora do repositório). Duas limitações impediram a conferência completa: (1) `capture_browser_scenario`, a ferramenta de navegação, recusou os parâmetros enviados por esta sessão, então só abas já abertas podem ser capturadas; (2) a conexão com o computador do usuário caiu durante a sessão e as ferramentas REA deixaram de estar disponíveis. **Por isso, toda afirmação `[TELA]` desta missão vem do texto dos artigos de ajuda oficiais, não de captura vista.** Pendente: abrir no Chrome com depurador os artigos de ajuda citados nas notas (Toast "Manage Tables", "Start and Send an Order", "Customize KDS Tickets"; Square 6427, 7944, 8171, 5119; Lightspeed F4/F5/F7; TouchBistro "Taking Orders", "Using the KDS") e capturá-los pela REA para confirmar cores, densidade e alvos de toque de `05-DESIGN-SYSTEM-BENCHMARK.md`.
+- Vídeos oficiais de treinamento (YouTube) não puderam ser assistidos; só títulos e descrições.
+- Limite de uso da conta interrompeu cinco subagentes de pesquisa por cerca de 4 h; todos foram retomados e concluídos.
+- Saipos Order API: robots.txt bloqueou a leitura. Central de ajuda da MarketMan não carregou. Página de ajuda do SpotOn só abre por JavaScript (lida pelo espelho público). Preços de Aloha, Brink, Simphony e R365 não são públicos.
+- Uma página pública da ajuda do SpotOn expõe senhas administrativas do handheld; não foram reproduzidas.
