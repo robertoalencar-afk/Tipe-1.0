@@ -254,7 +254,7 @@ function Hero() {
           <EditorialPhoto
             scene="garcom"
             priority
-            alt="Garçom sorrindo enquanto atende uma mesa em um restaurante movimentado"
+            alt="Garçom sorrindo enquanto olha o relógio, com a bandeja na mão, em um restaurante movimentado"
             aspect="4/5"
             sizes="(min-width: 1024px) 34rem, 92vw"
             position="50% 30%"
@@ -461,7 +461,7 @@ function NaMesa() {
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-1">
             <EditorialPhoto
               scene="casal"
-              alt="Casal finalizando a conta pelo celular, tranquilo, à mesa"
+              alt="Casal sorrindo enquanto paga a conta pelo celular, à mesa, à noite"
               aspect="4/5"
               sizes="(min-width: 1024px) 25vw, 50vw"
               className="lg:!aspect-auto lg:h-full"
@@ -526,7 +526,7 @@ function QuemAtende() {
         <div className="relative order-2 lg:order-1">
           <EditorialPhoto
             scene="salao"
-            alt="Garçonete atravessando o salão de um bar brasileiro com uma bandeja, sob luz quente"
+            alt="Salão cheio de um boteco brasileiro, com garçons atendendo as mesas sob luz quente"
             aspect="4/5"
             sizes="(min-width: 1024px) 42vw, 92vw"
             position="50% 35%"
@@ -667,7 +667,7 @@ function QuemGerencia() {
           <div className="grid gap-5 lg:grid-cols-[0.42fr_1fr]">
             <EditorialPhoto
               scene="gestor"
-              alt="Dona de restaurante acompanhando o salão, com a equipe trabalhando ao fundo"
+              alt="Dona de restaurante consultando o tablet no balcão, com a cozinha trabalhando ao fundo"
               aspect="4/5"
               sizes="(min-width: 1024px) 28vw, 92vw"
               position="50% 30%"

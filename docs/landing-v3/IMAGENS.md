@@ -15,3 +15,7 @@ Sem arquivo para uma cena, a página mostra a lebre da Tipe sobre um fundo da ma
 | — | — | Nenhuma foto adicionada ainda | — | — | — | — |
 
 Regras: só fotos próprias, de ensaio contratado ou de bancos com licença comercial (Unsplash, Pexels). Nada de pessoas geradas por IA apresentadas como clientes, garçons ou donos reais.
+
+## Fotos geradas por IA (15/10/2026)
+
+As cinco cenas (garcom, amigos, casal, salao, gestor) foram criadas com o modelo de imagem do Google Gemini (gemini-3-pro-image), a pedido do Roberto, com a chave da conta dele. São pessoas fictícias, não clientes reais. Originais e roteiro de cada cena: /mnt/project-files/landing-v3/fotos-ia/ (gerar.py). Versões otimizadas em src/assets/fotos/ (avif, webp e jpg em 640 px e na largura original).
