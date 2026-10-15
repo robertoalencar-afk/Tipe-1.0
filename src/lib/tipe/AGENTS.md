@@ -23,3 +23,4 @@
 - pdv_orders.called_at and picked_up_at are derived by the pdv_order_items status trigger (pdv_sync_order_flags); only pdv_order_call touches called_at directly (re-call). Why: KDS by item, by order and cancellations all drive the same ticket board.
 - The public ticket board (/$restaurante/senhas) is authorized by order_display_tokens (service_role only, rotated by owner/cashier via pdv_display_token) and returns only ticket number and first name. Why: a TV in the store needs no login and leaks no amounts, items or staff.
 
+- Waiter mobile ordering (área do garçom, aba Atender) goes through waiter-order.functions.ts: getWaiterPos reads the restaurant's menu/tables/bill scoped by the waiter's own pdv_waiters row, and waiterLaunchOrder calls pdv_launch_order with p_waiter forced to the logged-in waiter's id. Why: a waiter only ever launches as themselves, and the order flows into the same table_bill_items/KDS/QR bill as every other channel.

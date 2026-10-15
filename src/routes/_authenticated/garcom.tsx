@@ -10,6 +10,7 @@ import { AreaShell } from "@/components/tipe/AreaShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cancelWithdrawal, getWaiterDashboard, requestWithdrawal, saveWaiterPix } from "@/lib/tipe/waiter.functions";
+import { GarcomAtender } from "@/components/tipe/GarcomAtender";
 
 export const Route = createFileRoute("/_authenticated/garcom")({
   head: () => ({
@@ -42,7 +43,7 @@ function AreaGarcom() {
   const pedir = useServerFn(requestWithdrawal);
   const cancelar = useServerFn(cancelWithdrawal);
   const q = useQuery({ queryKey: ["waiter"], queryFn: () => fetchDash(), refetchInterval: 30000 });
-  const [aba, setAba] = useState<"inicio" | "saque">("inicio");
+  const [aba, setAba] = useState<"atender" | "inicio" | "saque">("atender");
   const [busy, setBusy] = useState(false);
 
   const serie = useMemo(() => {
@@ -66,16 +67,21 @@ function AreaGarcom() {
         {q.error && <p className="rounded-2xl border border-border bg-card p-5 text-sm">{(q.error as Error).message}</p>}
         {d && (
           <>
-            <div className="rounded-3xl p-6 text-secondary-foreground shadow-xl" style={{ background: "var(--gradient-brand)" }}>
-              <p className="text-sm text-secondary-foreground/70">Disponível para saque</p>
-              <p className="font-display text-3xl font-extrabold">{brl(d.balance.available)}</p>
-              <p className="mt-1 text-xs text-secondary-foreground/70">Nesta quinzena: {brl(d.balance.currentCycle)} · libera em {proximoPagamento().toLocaleDateString("pt-BR")}</p>
-            </div>
-
-            <div className="flex gap-2">
+            <div className="flex gap-2 overflow-x-auto">
+              <Button variant={aba === "atender" ? "default" : "outline"} onClick={() => setAba("atender")}>Atender mesas</Button>
               <Button variant={aba === "inicio" ? "default" : "outline"} onClick={() => setAba("inicio")}>Resumo</Button>
               <Button variant={aba === "saque" ? "default" : "outline"} onClick={() => setAba("saque")}>Saques e Pix</Button>
             </div>
+
+            {aba === "atender" && <GarcomAtender />}
+
+            {aba !== "atender" && (
+              <div className="rounded-3xl p-6 text-secondary-foreground shadow-xl" style={{ background: "var(--gradient-brand)" }}>
+                <p className="text-sm text-secondary-foreground/70">Disponível para saque</p>
+                <p className="font-display text-3xl font-extrabold">{brl(d.balance.available)}</p>
+                <p className="mt-1 text-xs text-secondary-foreground/70">Nesta quinzena: {brl(d.balance.currentCycle)} · libera em {proximoPagamento().toLocaleDateString("pt-BR")}</p>
+              </div>
+            )}
 
             {aba === "inicio" && (
               <>
