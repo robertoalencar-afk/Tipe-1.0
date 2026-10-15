@@ -1,5 +1,6 @@
 import logo from "@/assets/logo.png.asset.json";
 import logoDark from "@/assets/logo-dark.png.asset.json";
+import { cn } from "@/lib/utils";
 
 export function TipeSymbol({ className = "h-8 w-8" }: { className?: string }) {
   // "Y" minimalista com pontas sugerindo orelhas de lebre
@@ -14,6 +15,6 @@ export function TipeLogo({ className = "", variant = "light" }: { className?: st
   // "light" = texto branco (fundos escuros); "dark" = texto azul-marinho (fundos claros)
   const src = variant === "dark" ? logoDark.url : logo.url;
   return (
-    <img src={src} alt="TIPE" className={`h-12 w-auto object-contain ${className}`} />
+    <img src={src} alt="TIPE" className={cn("h-12 w-auto object-contain", className)} />
   );
 }
