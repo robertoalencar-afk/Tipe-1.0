@@ -32,6 +32,9 @@ grep -qE "FALHOU|ERROR" /tmp/tipe-db.log && FAIL=1
 $P -v ON_ERROR_STOP=1 -f "$DIR/balcao.sql" >/tmp/tipe-balcao.raw 2>&1 || FAIL=1
 grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-balcao.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-balcao.log
 grep -qE "FALHOU|ERROR" /tmp/tipe-balcao.log && FAIL=1
+$P -v ON_ERROR_STOP=1 -f "$DIR/garcom.sql" >/tmp/tipe-garcom.raw 2>&1 || FAIL=1
+grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-garcom.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-garcom.log
+grep -qE "FALHOU|ERROR" /tmp/tipe-garcom.log && FAIL=1
 
 # 1) Dois clientes pagando a conta inteira ao mesmo tempo, em conexões separadas.
 $P -c "SET search_path=public,extensions; DELETE FROM table_payment_requests WHERE restaurant_slug='mare-alta' AND table_number='8'; DELETE FROM table_bill_items WHERE restaurant_slug='mare-alta' AND table_number='8'; INSERT INTO table_bill_items (restaurant_slug, table_number, item_code, item_name, unit_price, ordered_quantity, ordered_by, ordered_at) VALUES ('mare-alta','8','pizza','Pizza',90,1,'Teste',now()),('mare-alta','8','suco','Suco',12,3,'Teste',now());" >/dev/null
