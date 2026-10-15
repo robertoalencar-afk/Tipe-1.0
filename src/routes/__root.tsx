@@ -8,7 +8,7 @@ import {
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
@@ -84,17 +84,40 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "TIPE | Pague. Sem esperar. | Pagamento na mesa por QR Code" },
-      { name: "description", content: "Plataforma TIPE: o cliente paga a conta pelo QR Code da mesa e o restaurante acompanha tudo em tempo real. Funciona com o PDV que você já usa. Entre na lista de espera para o lançamento." },
-      { property: "og:title", content: "TIPE | Pague. Sem esperar. | Pagamento na mesa por QR Code" },
-      { property: "og:description", content: "Plataforma TIPE: o cliente paga a conta pelo QR Code da mesa e o restaurante acompanha tudo em tempo real. Funciona com o PDV que você já usa. Entre na lista de espera para o lançamento." },
+      {
+        name: "description",
+        content:
+          "Plataforma TIPE: o cliente paga a conta pelo QR Code da mesa e o restaurante acompanha tudo em tempo real. Funciona com o PDV que você já usa. Entre na lista de espera para o lançamento.",
+      },
+      {
+        property: "og:title",
+        content: "TIPE | Pague. Sem esperar. | Pagamento na mesa por QR Code",
+      },
+      {
+        property: "og:description",
+        content:
+          "Plataforma TIPE: o cliente paga a conta pelo QR Code da mesa e o restaurante acompanha tudo em tempo real. Funciona com o PDV que você já usa. Entre na lista de espera para o lançamento.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
       // Fontes auto-hospedadas (ver @font-face em styles.css): sem domínio de terceiros no caminho do primeiro texto.
-      { rel: "preload", href: "/fonts/bricolage-grotesque-latin.woff2", as: "font", type: "font/woff2", crossOrigin: "anonymous" },
-      { rel: "preload", href: "/fonts/manrope-latin.woff2", as: "font", type: "font/woff2", crossOrigin: "anonymous" },
+      {
+        rel: "preload",
+        href: "/fonts/bricolage-grotesque-latin.woff2",
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
+      },
+      {
+        rel: "preload",
+        href: "/fonts/manrope-latin.woff2",
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
+      },
       { rel: "icon", href: "/favicon.png?v=3", type: "image/png" },
       { rel: "apple-touch-icon", href: "/favicon.png?v=3" },
     ],
@@ -136,21 +159,29 @@ function RootComponent() {
   useEffect(() => {
     captureAttribution();
     // Página da mesa do cliente fica sem scripts de medição para carregar rápido no 4G fraco.
-    if (/^\/(mesa\/)?[^/]+\/[^/]+$/.test(window.location.pathname) && !/^\/(legal|privacidade|_authenticated)\//.test(window.location.pathname)) return;
+    if (
+      /^\/(mesa\/)?[^/]+\/[^/]+$/.test(window.location.pathname) &&
+      !/^\/(legal|privacidade|_authenticated)\//.test(window.location.pathname)
+    )
+      return;
     loadMeasurement();
     const on = () => loadMeasurement();
     window.addEventListener("tipe:consent", on);
     return () => window.removeEventListener("tipe:consent", on);
   }, []);
 
+  // Dentro de um iframe (simulador embutido na landing) o aviso de cookies e o
+  // botão do WhatsApp já aparecem na página que contém o iframe.
+  const [embedded, setEmbedded] = useState(false);
+  useEffect(() => setEmbedded(window.self !== window.top), []);
 
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
       <Toaster position="top-center" />
-      <CookieBanner />
-      <WhatsAppFloat />
+      {!embedded && <CookieBanner />}
+      {!embedded && <WhatsAppFloat />}
     </QueryClientProvider>
   );
 }

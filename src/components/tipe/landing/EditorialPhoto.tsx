@@ -15,7 +15,7 @@ import mascotWaiting from "@/assets/mascot-waiting-hd.webp";
 import mascotRating from "@/assets/mascot-rating-hd.webp";
 import mascotClosed from "@/assets/mascot-table-closed-hd.webp";
 
-export type Scene = "garcom" | "amigos" | "casal" | "gestor" | "salao";
+export type Scene = "mesa" | "garcom" | "amigos" | "casal" | "gestor" | "salao";
 
 const FILES = import.meta.glob("/src/assets/fotos/*.{avif,webp,jpg}", {
   eager: true,
@@ -47,6 +47,10 @@ function sourcesFor(scene: Scene): {
 }
 
 const FALLBACK: Record<Scene, { img: string; bg: string }> = {
+  mesa: {
+    img: mascotThanks,
+    bg: "from-[oklch(0.86_0.09_60)] via-[oklch(0.8_0.12_45)] to-[oklch(0.62_0.14_35)]",
+  },
   garcom: {
     img: mascotThanks,
     bg: "from-[oklch(0.86_0.09_60)] via-[oklch(0.8_0.12_45)] to-[oklch(0.62_0.14_35)]",

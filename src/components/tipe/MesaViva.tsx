@@ -1,7 +1,10 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import wordmark from "@/assets/tipe-wordmark-light.png.asset.json";
 import roundLogo from "@/assets/tipe-logo-redondo.png.asset.json";
 import totemMesa from "@/assets/totem-tipe-mesa12.webp";
+import mascotWaiting from "@/assets/mascot-waiting-hd.webp";
+import mascotRating from "@/assets/mascot-rating-hd.webp";
+import mascotThanks from "@/assets/mascot-thanks-hd.webp";
 import {
   Check,
   ChevronRight,
@@ -76,7 +79,7 @@ const orbit = [
   ["Casquinha", "R$ 32,00", "Ana"],
   ["Camarão", "R$ 64,00", "Bia"],
 ];
-const group = [
+const group: [string, string][] = [
   ["Ana", "Moqueca ÷ 3"],
   ["Caio", "Moqueca ÷ 3 · Caipirinha"],
   ["Bia", "Moqueca ÷ 3 · Pudim"],
@@ -94,6 +97,9 @@ export function MesaViva() {
   const root = useRef<HTMLDivElement>(null);
   const bar = useRef<HTMLDivElement>(null);
   const passed = useRef(false);
+  // Pedaços interativos: dá para marcar quem já pagou e escolher a gorjeta.
+  const [pagos, setPagos] = useState<string[]>(["Ana"]);
+  const [gorjeta, setGorjeta] = useState(10);
 
   useEffect(() => {
     let ctx: { revert: () => void } | undefined;
@@ -206,6 +212,11 @@ export function MesaViva() {
           t + 2.4,
         );
         tl.from(q(".s1 .row"), { x: 40, opacity: 0, stagger: 0.12, duration: 0.5 }, t + 2.6);
+        tl.from(
+          q(".s1 .masc"),
+          { scale: 0, rotate: -18, opacity: 0, y: 30, duration: 0.7, ease: "back.out(2.4)" },
+          t + 1.4,
+        );
         exit(".s1", t + 4.4);
 
         // 2 · live bill carousel
@@ -285,6 +296,11 @@ export function MesaViva() {
           t + 1.1,
         );
         tl.from(q(".s3 .toast"), { y: 30, opacity: 0, duration: 0.5 }, t + 2.2);
+        tl.from(
+          q(".s3 .masc"),
+          { scale: 0, rotate: -18, opacity: 0, y: 30, duration: 0.7, ease: "back.out(2.4)" },
+          t + 1.2,
+        );
         exit(".s3", t + 4.4);
 
         // 4 · pay in seconds
@@ -330,6 +346,11 @@ export function MesaViva() {
           t + 2,
         );
         tl.from(q(".s5 .sent"), { y: 16, opacity: 0, duration: 0.5 }, t + 2.3);
+        tl.from(
+          q(".s5 .masc"),
+          { scale: 0, rotate: -18, opacity: 0, y: 30, duration: 0.7, ease: "back.out(2.4)" },
+          t + 1.6,
+        );
         exit(".s5", t + 4.2);
 
         // 6 · elements form the logo + tagline
@@ -442,10 +463,21 @@ export function MesaViva() {
       ref={wrap}
       id="como-funciona"
       aria-label="Como a TIPE funciona"
-      className="relative scroll-mt-16 bg-mv-stage text-secondary-foreground"
-      style={{ height: "620svh" }}
+      className="relative scroll-mt-16 text-secondary-foreground"
+      style={
+        {
+          height: "620svh",
+          background: "#0b1f3a",
+          "--mv-stage": "#0b1f3a",
+          "--mv-surface": "oklch(0.31 0.06 255)",
+        } as CSSProperties
+      }
     >
       <div className="sticky top-0 h-[100svh] overflow-hidden">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 opacity-[0.08] [background-image:radial-gradient(circle_at_1px_1px,white_1px,transparent_0)] [background-size:26px_26px]"
+        />
         <div
           aria-hidden
           className="pointer-events-none absolute -right-40 -top-40 h-[560px] w-[560px] rounded-full bg-primary/10 blur-3xl"
@@ -521,6 +553,12 @@ export function MesaViva() {
                 </div>
               </div>
             </Phone>
+            <img
+              src={mascotWaiting}
+              alt=""
+              aria-hidden
+              className="masc pointer-events-none absolute bottom-[12%] right-[6%] hidden h-40 w-auto drop-shadow-2xl lg:block"
+            />
           </div>
 
           {/* 2 */}
@@ -601,19 +639,39 @@ export function MesaViva() {
                   ))}
                 </div>
                 <div className="mt-4 space-y-2">
-                  {group.map(([n, d]) => (
-                    <div
-                      key={n}
-                      className="row flex items-center gap-3 rounded-xl bg-secondary-foreground/[0.06] p-2.5"
-                    >
-                      <span className="h-2 w-2 shrink-0 rounded-full bg-primary" />
-                      <div className="min-w-0 flex-1">
-                        <p className="text-xs font-semibold">{n}</p>
-                        <p className="truncate text-[10px] opacity-55">{d}</p>
-                      </div>
-                    </div>
-                  ))}
+                  {group.map(([n, d]) => {
+                    const pago = pagos.includes(n);
+                    return (
+                      <button
+                        type="button"
+                        key={n}
+                        aria-pressed={pago}
+                        onClick={() =>
+                          setPagos((v) => (v.includes(n) ? v.filter((x) => x !== n) : [...v, n]))
+                        }
+                        className="row flex w-full items-center gap-3 rounded-xl bg-secondary-foreground/[0.06] p-2.5 text-left transition-colors hover:bg-secondary-foreground/[0.12]"
+                      >
+                        <span
+                          className={`grid h-5 w-5 shrink-0 place-items-center rounded-full transition-colors ${pago ? "bg-primary text-primary-foreground" : "border border-secondary-foreground/30"}`}
+                        >
+                          {pago && <Check className="h-3 w-3" strokeWidth={3} />}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span className="block text-xs font-semibold">{n}</span>
+                          <span className="block truncate text-[10px] opacity-55">{d}</span>
+                        </span>
+                        <span className="text-[10px] font-semibold text-primary">
+                          {pago ? "pagou" : "pagar"}
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
+                <p className="mt-2 text-center text-[10px] font-semibold text-primary">
+                  {pagos.length === group.length
+                    ? "Mesa fechada. Bom resto de noite!"
+                    : `Faltam ${group.length - pagos.length} de ${group.length} · toque para pagar`}
+                </p>
                 <div className="toast mt-3 rounded-xl bg-secondary-foreground/[0.08] px-3 py-2 text-[11px]">
                   Leo entrou na mesa
                 </div>
@@ -621,6 +679,12 @@ export function MesaViva() {
                   + Escolher meus itens
                 </div>
               </Phone>
+              <img
+                src={mascotRating}
+                alt=""
+                aria-hidden
+                className="masc pointer-events-none absolute bottom-[10%] left-[8%] hidden h-40 w-auto drop-shadow-2xl lg:block"
+              />
               <div className="hidden flex-col gap-3 sm:flex">
                 {[Utensils, Wine, Star, Coffee, Heart].map((I, i) => (
                   <span
@@ -714,19 +778,29 @@ export function MesaViva() {
               </div>
               <p className="mt-5 text-xs opacity-60">Gorjeta extra (opcional)</p>
               <div className="mt-2 grid grid-cols-3 gap-2">
-                {["R$ 5", "R$ 10", "R$ 15"].map((v, i) => (
-                  <span
+                {[5, 10, 15].map((v, i) => (
+                  <button
+                    type="button"
                     key={v}
-                    className={`tip ${i === 1 ? "tip-on bg-primary text-primary-foreground" : "bg-secondary-foreground/10"} rounded-xl py-2.5 text-center text-sm font-bold`}
+                    aria-pressed={gorjeta === v}
+                    onClick={() => setGorjeta(v)}
+                    className={`tip ${i === 1 ? "tip-on" : ""} ${gorjeta === v ? "bg-primary text-primary-foreground" : "bg-secondary-foreground/10 hover:bg-secondary-foreground/20"} rounded-xl py-2.5 text-center text-sm font-bold transition-colors`}
                   >
-                    {v}
-                  </span>
+                    R$ {v}
+                  </button>
                 ))}
               </div>
               <div className="sent mt-4 flex items-center gap-2 rounded-xl bg-primary/15 px-3 py-2 text-xs font-semibold text-primary">
                 <Heart className="h-4 w-4 fill-primary" />
-                R$ 10 de gorjeta extra
+                R$ {gorjeta} para o Rafael · R$ {(gorjeta * 0.7).toFixed(2).replace(".", ",")} vão
+                para o saldo dele
               </div>
+              <img
+                src={mascotThanks}
+                alt=""
+                aria-hidden
+                className="masc pointer-events-none absolute -right-10 -top-24 h-28 w-auto drop-shadow-2xl sm:-right-16 sm:-top-28 sm:h-36"
+              />
             </div>
           </div>
 

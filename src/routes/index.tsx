@@ -29,6 +29,8 @@ import { Eyebrow, PhoneFrame } from "@/components/tipe/ds";
 import { LandingFooter, LandingHeader } from "@/components/tipe/landing/LandingChrome";
 import { DashboardPreview, WaiterPreview } from "@/components/tipe/landing/PanelPreviews";
 import { MesaViva } from "@/components/tipe/MesaViva";
+import { LiveSimulator } from "@/components/tipe/landing/LiveSimulator";
+import { PhoneShot, type Tela } from "@/components/tipe/landing/PhoneShot";
 import { EditorialPhoto } from "@/components/tipe/landing/EditorialPhoto";
 import { LineReveal, Reveal, useParallax } from "@/components/tipe/landing/motion";
 import { money } from "@/components/tipe/landing/ProductScreens";
@@ -92,6 +94,7 @@ function LandingPage() {
         <Hero />
         <Problema />
         <MesaViva />
+        <Experimente />
         <NaMesa />
         <QuemAtende />
         <QuemGerencia />
@@ -265,9 +268,9 @@ function Hero() {
 
         <div className="relative mx-auto w-full max-w-[34rem] lg:order-1 lg:ml-0">
           <EditorialPhoto
-            scene="garcom"
+            scene="mesa"
             priority
-            alt="Garçom sorrindo enquanto olha o relógio, com a bandeja na mão, em um restaurante movimentado"
+            alt="Cliente sorrindo enquanto paga a conta pelo celular, com o suporte da Tipe na mesa"
             aspect="4/5"
             sizes="(min-width: 1024px) 34rem, 92vw"
             position="50% 30%"
@@ -279,26 +282,29 @@ function Hero() {
               tone="dark"
               style={{ "--d": "700ms" } as CSSProperties}
               icon={<Check className="h-4 w-4" strokeWidth={3} />}
-              title="Mesa 12 · conta paga"
-              text="+ R$ 10 de gorjeta extra"
+              title="Sua parte: R$ 51,97"
+              text="Pix aprovado · sem chamar ninguém"
             />
             <Toast
               className="pop-in max-sm:hidden"
               tone="dark"
               style={{ "--d": "1000ms" } as CSSProperties}
               icon={<Users className="h-4 w-4" />}
-              title="Ana pagou a parte dela"
-              text="Pix aprovado · faltam R$ 99,93"
+              title="Caio e Bia pagaram também"
+              text="Mesa 12 fechada"
             />
           </div>
-          <Toast
-            className="pop-in absolute -bottom-5 right-3 w-[15rem] sm:-right-6"
-            tone="dark"
-            style={{ "--d": "1300ms" } as CSSProperties}
-            icon={<Star className="h-4 w-4 fill-current" />}
-            title="Atendimento 5 estrelas"
-            text="Mesa 7 avaliou o Rafael"
-          />
+          <div
+            className="pop-in absolute -bottom-10 -left-2 w-[9.5rem] -rotate-[4deg] sm:-left-10 sm:w-[11.5rem] lg:-left-14 lg:w-[12.5rem]"
+            style={{ "--d": "900ms" } as CSSProperties}
+          >
+            <PhoneShot
+              tela="pagamento"
+              priority
+              sizes="(min-width: 1024px) 12.5rem, 10rem"
+              alt="Tela de pagamento da Tipe com Pix, Apple Pay, Google Pay e pagamento no estabelecimento"
+            />
+          </div>
         </div>
       </div>
     </section>
@@ -387,6 +393,91 @@ function Problema() {
     </section>
   );
 }
+
+/* --------------------------------------------------------- Experimente */
+
+function Experimente() {
+  const passos = [
+    "Toque no QR Code da mesa",
+    "Diga seu nome e veja a conta",
+    "Escolha o que consumiu ou divida",
+    "Pague, avalie e agradeça",
+  ];
+  return (
+    <section id="experimente" className="scroll-mt-16 overflow-hidden py-20 sm:py-32">
+      <div className="container-page grid items-center gap-14 lg:grid-cols-[1fr_auto] lg:gap-24">
+        <div>
+          <Eyebrow>Experimente agora</Eyebrow>
+          <LineReveal
+            className="mt-4 font-display text-display"
+            lines={["A Mesa 12", "está aberta."]}
+          />
+          <Reveal delay={120}>
+            <p className="mt-6 max-w-lg text-lg leading-relaxed text-muted-foreground text-pretty">
+              Esse celular roda a Tipe de verdade. Faça o caminho de quem está na mesa, do QR Code
+              até a gorjeta. A Mesa 12 é fictícia e fica só no seu navegador.
+            </p>
+          </Reveal>
+          <ol className="mt-9 grid gap-3 sm:grid-cols-2">
+            {passos.map((t, i) => (
+              <Reveal
+                as="li"
+                key={t}
+                delay={i * 90}
+                className="flex items-center gap-3 rounded-2xl bg-background-muted px-4 py-3.5"
+              >
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-ink font-display text-sm font-medium text-white">
+                  {i + 1}
+                </span>
+                <span className="text-[0.95rem] font-medium">{t}</span>
+              </Reveal>
+            ))}
+          </ol>
+          <Link
+            to="/simulador"
+            className="btn-press mt-8 inline-flex h-12 items-center gap-2 rounded-full border border-border px-6 font-medium hover:border-foreground/40"
+          >
+            Abrir em tela cheia <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+        <div className="relative mx-auto w-[min(86vw,330px)]">
+          <div
+            aria-hidden
+            className="absolute -inset-x-10 inset-y-10 rounded-[4rem] bg-brand-soft"
+          />
+          <LiveSimulator className="relative" />
+          <img
+            src={mascotThanks}
+            alt=""
+            aria-hidden
+            loading="lazy"
+            className="bob pointer-events-none absolute -bottom-6 -left-16 hidden h-36 w-auto drop-shadow-xl sm:block"
+          />
+          <p
+            aria-hidden
+            className="pointer-events-none absolute -right-4 top-24 hidden rotate-[8deg] font-display text-xl font-medium text-brand-strong lg:-right-28 lg:block"
+          >
+            toque no QR!
+            <svg
+              viewBox="0 0 80 40"
+              className="mt-1 h-8 w-16 -scale-x-100 text-brand-strong"
+              fill="none"
+            >
+              <path
+                d="M4 6 C 30 4, 52 14, 70 32 M70 32 L58 30 M70 32 L68 20"
+                stroke="currentColor"
+                strokeWidth="2.6"
+                strokeLinecap="round"
+              />
+            </svg>
+          </p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+/* ----------------------------------------------------------- Na mesa */
 
 /* ------------------------------------------------- Para quem está na mesa */
 
@@ -511,6 +602,8 @@ function NaMesa() {
           </div>
         </div>
 
+        <TelasReais />
+
         <ul className="mt-14 grid gap-x-10 gap-y-8 sm:grid-cols-2 lg:grid-cols-4">
           {[
             ["Sem baixar app", "Abre direto na câmera do celular."],
@@ -529,6 +622,73 @@ function NaMesa() {
   );
 }
 
+/* ------------------------------------------------------ Telas reais */
+
+const TELAS_REAIS: { tela: Tela; t: string; d: string; alt: string }[] = [
+  {
+    tela: "selecao",
+    t: "Escolhe o que consumiu",
+    d: "Por item ou dividindo um prato com quem quiser.",
+    alt: "Conta da Mesa 12 na Tipe, com a moqueca selecionada para pagar",
+  },
+  {
+    tela: "pagamento",
+    t: "Paga como preferir",
+    d: "Pix, Apple Pay, Google Pay ou no estabelecimento.",
+    alt: "Escolha da forma de pagamento na Tipe, com Apple Pay selecionado",
+  },
+  {
+    tela: "aprovado",
+    t: "Aprovado na hora",
+    d: "A conta da mesa se atualiza para todo mundo.",
+    alt: "Tela de pagamento confirmado da Tipe, com a lebre comemorando",
+  },
+  {
+    tela: "gorjeta",
+    t: "E agradece, se quiser",
+    d: "Gorjeta extra direto para quem atendeu.",
+    alt: "Tela de gorjeta extra da Tipe, com R$ 10 selecionados",
+  },
+];
+
+function TelasReais() {
+  return (
+    <div className="relative mt-16 overflow-hidden rounded-[2.5rem] bg-background-muted px-5 pb-12 pt-12 sm:px-10 lg:mt-24 lg:px-14 lg:pt-16">
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <p className="max-w-xl font-display text-[clamp(1.6rem,1.1rem+1.6vw,2.4rem)] font-medium leading-tight tracking-[-0.03em]">
+          É isso que aparece no celular de quem está na mesa.
+        </p>
+        <Link
+          to="/simulador"
+          className="btn-press inline-flex h-11 items-center rounded-full border border-border bg-surface px-5 text-sm font-medium hover:border-foreground/40"
+        >
+          Testar em tela cheia
+        </Link>
+      </div>
+      <ol className="-mx-5 mt-10 flex snap-x snap-mandatory gap-5 overflow-x-auto px-5 pb-4 sm:-mx-10 sm:px-10 lg:mx-0 lg:grid lg:grid-cols-4 lg:gap-8 lg:overflow-visible lg:px-0">
+        {TELAS_REAIS.map((x, i) => (
+          <Reveal
+            as="li"
+            key={x.tela}
+            delay={i * 110}
+            className={cn(
+              "w-[15.5rem] shrink-0 snap-center lg:w-auto",
+              i % 2 === 1 && "lg:translate-y-10",
+            )}
+          >
+            <PhoneShot tela={x.tela} alt={x.alt} sizes="(min-width: 1024px) 18vw, 15rem" />
+            <p className="mt-6 flex items-baseline gap-2 font-display text-lg font-medium">
+              <span className="text-sm text-muted-foreground">{i + 1}</span>
+              {x.t}
+            </p>
+            <p className="mt-1 text-[0.95rem] leading-relaxed text-muted-foreground">{x.d}</p>
+          </Reveal>
+        ))}
+      </ol>
+    </div>
+  );
+}
+
 /* ---------------------------------------------------- Para quem atende */
 
 function QuemAtende() {
@@ -541,8 +701,8 @@ function QuemAtende() {
       <div className="container-page grid items-center gap-14 lg:grid-cols-[0.95fr_1.05fr] lg:gap-20">
         <div className="relative order-2 lg:order-1">
           <EditorialPhoto
-            scene="salao"
-            alt="Salão cheio de um boteco brasileiro, com garçons atendendo as mesas sob luz quente"
+            scene="garcom"
+            alt="Garçom sorrindo ao ver no relógio que recebeu uma gorjeta extra"
             aspect="4/5"
             sizes="(min-width: 1024px) 42vw, 92vw"
             position="50% 35%"
@@ -561,8 +721,8 @@ function QuemAtende() {
             <Reveal variant="scale" delay={350}>
               <Toast
                 icon={<Heart className="h-4 w-4" />}
-                title="Gorjeta extra recebida"
-                text="R$ 7,00 no seu saldo (70%)"
+                title="Gorjeta extra da Mesa 12"
+                text="R$ 10 · R$ 7,00 no seu saldo (70%)"
               />
             </Reveal>
             <Reveal variant="scale" delay={600}>

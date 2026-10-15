@@ -20,3 +20,10 @@ Nada de pagamento, PDV, KDS, banco ou Pagar.me foi tocado. `bun.lock` intocado.
 - Estilo Sunday na landing inteira (classe `.sunday`): fundo branco, preto, Inter Tight (a Sunday usa Helvetica Neue LT, identificada pelo REA nos arquivos de fonte carregados pela página), títulos em peso médio de uma cor, rótulo grande na cor da marca, botões pretos em pílula, avisos de vidro sobre as fotos. Painel e conta do cliente não mudam.
 - Mesa Viva de volta no lugar do FilmeMesa: as mesmas cenas da versão publicada, agora guiadas pela rolagem (seção presa na tela, linha do tempo GSAP com amortecimento), com a arte real do totem na cena do QR Code e só promessas reais ("aprovado pelo banco" no lugar de "em 3 s").
 - Fotos refeitas por IA com a arte real do totem (renderizada do TotemStudio, modelo Clássico, suporte acrílico): garçom vendo a gorjeta extra no relógio, amigos lendo o QR do totem, casal pagando pelo celular sem maquininha, salão com totens nas mesas.
+
+## 15/10 (fim da tarde)
+
+- Simulador funcionando de volta na landing (seção "Experimente", iframe do `/simulador` dentro de um celular; banner de cookies e WhatsApp escondidos dentro do iframe).
+- Telas reais do app em celulares nítidos no hero e numa galeria de 4 passos.
+- Apple Pay e Google Pay ativos também no simulador (decisão registrada).
+- Mesa Viva com o azul da Tipe, lebre em três cenas, divisão e gorjeta clicáveis.

@@ -23,3 +23,9 @@ Regras: fotos próprias, de ensaio contratado, de bancos com licença comercial 
 ## Fotos geradas por IA (15/10/2026)
 
 As cinco cenas (garcom, amigos, casal, salao, gestor) foram criadas com o modelo de imagem do Google Gemini (gemini-3-pro-image), a pedido do Roberto, com a chave da conta dele. São pessoas fictícias, não clientes reais. Originais e roteiro de cada cena: /mnt/project-files/landing-v3/fotos-ia/ (gerar.py). Versões otimizadas em src/assets/fotos/ (avif, webp e jpg em 640 px e na largura original).
+
+## Rodada 15/10 (tarde): telas reais e suporte de madeira
+
+- Fotos `mesa`, `amigos`, `casal`, `salao` e `garcom` refeitas no Gemini (gemini-3-pro-image) com o cartão real da Tipe num suporte de madeira, a partir de `ref-totem-claro.png`. Sem maquininha em nenhuma cena.
+- `mesa` é a nova foto principal. `garcom` (vendo no relógio que caiu a gorjeta extra) foi para a seção "Para quem atende".
+- `src/assets/telas/*.webp`: capturas do próprio `/simulador` em 390×844 a 3x (Playwright), exportadas em 390 e 780 px. Usadas pelo `PhoneShot` no hero e na galeria "É isso que aparece no celular". Para refazer: abrir `/simulador`, percorrer totem → nome → seleção → pagamento (Apple Pay) → aprovado → avaliação → gorjeta, escondendo o botão de WhatsApp, e salvar cada etapa.
