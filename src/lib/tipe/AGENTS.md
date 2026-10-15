@@ -19,4 +19,7 @@
 - archive_and_reopen_table must keep provider and provider_order_id in archived_payments. Why: refunds and chargebacks arrive after the table reopens.
 - Simulated payment approval exists only when TIPE_ALLOW_SIMULATED_PAYMENTS=true (test/demo); without an active Pagar.me account the public bill offers only at_establishment (usableBillMethods). Why: a bill must never be marked paid without money.
 - has_restaurant_role / is_restaurant_member / is_member_of_slug have no founder bypass (migration 0020); founder tools act through supabaseAdmin after requireFounder2fa and log the action. Why: support never operates a restaurant through the global role.
+- Counter (balcão) sales go only through pdv_counter_sale (owner/cashier, open cash session, idempotent request_id, ticket numbered per service day starting 5h BRT under a restaurants row lock); cancellations only via pdv_counter_cancel while that cash session is open, logged to pdv_voids. Why: tickets never repeat and the cash register always matches its sales.
+- pdv_orders.called_at and picked_up_at are derived by the pdv_order_items status trigger (pdv_sync_order_flags); only pdv_order_call touches called_at directly (re-call). Why: KDS by item, by order and cancellations all drive the same ticket board.
+- The public ticket board (/$restaurante/senhas) is authorized by order_display_tokens (service_role only, rotated by owner/cashier via pdv_display_token) and returns only ticket number and first name. Why: a TV in the store needs no login and leaks no amounts, items or staff.
 

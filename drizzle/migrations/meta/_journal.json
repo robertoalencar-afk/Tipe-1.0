@@ -162,6 +162,13 @@
       "when": 1791971628310,
       "tag": "0022_tipe2_reversals_founder_scope_reviews_outbox",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1791972228310,
+      "tag": "0023_counter_sales_kds_ticket_board",
+      "breakpoints": true
     }
   ]
 }

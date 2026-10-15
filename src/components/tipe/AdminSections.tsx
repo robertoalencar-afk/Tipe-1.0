@@ -7,7 +7,7 @@ import { getPdvEvents, getPdvIntegration, setPdvAdapter, testPdvConnection } fro
 import { whatsappLink } from "@/lib/tipe/contact";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cashAction, getOpsData, getReports, saveSettings, setItemStatus } from "@/lib/tipe/admin.functions";
+import { cashAction, getOpsData, getReports, saveSettings } from "@/lib/tipe/admin.functions";
 import { FechamentoDia } from "@/components/tipe/FechamentoDia";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -70,47 +70,6 @@ export function Inicio({ slug, mesasAbertas, emAberto, pendentes, onGo }: { slug
   );
 }
 
-// ---------------- Cozinha e bar (KDS) ----------------
-const kdsNext: Record<string, { to: "preparing" | "ready" | "delivered"; label: string }> = {
-  received: { to: "preparing", label: "Iniciar preparo" }, preparing: { to: "ready", label: "Marcar pronto" }, ready: { to: "delivered", label: "Entregue" },
-};
-const kdsCols = [["received", "Recebido"], ["preparing", "Preparando"], ["ready", "Pronto"]] as const;
-export function Cozinha({ slug }: { slug: string }) {
-  const ops = useOps(slug);
-  const set = useServerFn(setItemStatus);
-  const qc = useQueryClient();
-  const [setor, setSetor] = useState<"all" | "kitchen" | "bar">("all");
-  const itens = (ops.data?.kds ?? []).filter((k) => setor === "all" || k.sector === setor);
-  async function mover(id: string, to: "preparing" | "ready" | "delivered") {
-    try { await set({ data: { id, status: to } }); qc.invalidateQueries({ queryKey: ["ops", slug] }); } catch (e) { toast.error((e as Error).message); }
-  }
-  return (
-    <div>
-      <div className="mb-3 flex gap-2">
-        {([["all", "Todos"], ["kitchen", "Cozinha"], ["bar", "Bar"]] as const).map(([k, l]) => <Button key={k} size="sm" variant={setor === k ? "default" : "outline"} onClick={() => setSetor(k)}>{l}</Button>)}
-      </div>
-      <div className="grid gap-3 md:grid-cols-3">
-        {kdsCols.map(([st, label]) => (
-          <div key={st} className="rounded-2xl bg-muted/50 p-3">
-            <h3 className="mb-2 text-sm font-semibold">{label} ({itens.filter((i) => i.status === st).length})</h3>
-            <div className="space-y-2">
-              {itens.filter((i) => i.status === st).map((i) => (
-                <Card key={i.id} className="p-3">
-                  <div className="flex justify-between text-xs text-muted-foreground"><span>Mesa {i.table} · {i.sector === "bar" ? "Bar" : "Cozinha"}</span><span>{new Date(i.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span></div>
-                  <div className="mt-1 font-semibold">{i.quantity}× {i.item_name}</div>
-                  {i.notes && <div className="mt-1 rounded bg-accent/20 px-2 py-1 text-xs">Obs.: {i.notes}</div>}
-                  <Button size="sm" className="mt-2 w-full" onClick={() => mover(i.id, kdsNext[st]!.to)}>{kdsNext[st]!.label}</Button>
-                </Card>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// ---------------- Caixa ----------------
 export function Caixa({ slug, podeCaixa, confirmacoes }: { slug: string; podeCaixa: boolean; confirmacoes: React.ReactNode }) {
   const ops = useOps(slug);
   const act = useServerFn(cashAction);
@@ -122,7 +81,11 @@ export function Caixa({ slug, podeCaixa, confirmacoes }: { slug: string; podeCai
   const mov = ops.data?.movements ?? [];
   const reforco = mov.filter((m) => m.kind === "deposit").reduce((a, m) => a + m.amount, 0);
   const sangria = mov.filter((m) => m.kind === "withdrawal").reduce((a, m) => a + m.amount, 0);
-  const esperado = (s?.opening_amount ?? 0) + reforco - sangria;
+  const balcao = ops.data?.counter ?? { total: 0, cash: 0, card: 0, pix: 0, count: 0 };
+  // Dinheiro físico na gaveta: troco inicial, reforços, sangrias e vendas do balcão em dinheiro.
+  const esperado = (s?.opening_amount ?? 0) + reforco - sangria + balcao.cash;
+  // Cartão e Pix do balcão entram como comprovantes, junto com os pagamentos no estabelecimento.
+  const comprovantes = balcao.card + balcao.pix + (ops.data?.received ?? 0);
   async function run(data: CashInput, ok: string) {
     try { await act({ data }); toast.success(ok); qc.invalidateQueries({ queryKey: ["ops", slug] }); return true; } catch (e) { toast.error((e as Error).message); return false; }
   }
@@ -146,8 +109,11 @@ export function Caixa({ slug, podeCaixa, confirmacoes }: { slug: string; podeCai
                 <div className="flex justify-between"><dt>Troco inicial</dt><dd>{brl(s.opening_amount)}</dd></div>
                 <div className="flex justify-between"><dt>Reforços</dt><dd>+ {brl(reforco)}</dd></div>
                 <div className="flex justify-between"><dt>Sangrias</dt><dd>− {brl(sangria)}</dd></div>
-                <div className="flex justify-between border-t border-border pt-1 font-semibold"><dt>Esperado em espécie (sem vendas)</dt><dd>{brl(esperado)}</dd></div>
-                <div className="flex justify-between text-muted-foreground"><dt>Recebido no estabelecimento</dt><dd>{brl(ops.data?.received ?? 0)}</dd></div>
+                <div className="flex justify-between"><dt>Balcão em dinheiro</dt><dd>+ {brl(balcao.cash)}</dd></div>
+                <div className="flex justify-between border-t border-border pt-1 font-semibold"><dt>Esperado em espécie</dt><dd>{brl(esperado)}</dd></div>
+                <div className="flex justify-between text-muted-foreground"><dt>Balcão em cartão e Pix</dt><dd>{brl(balcao.card + balcao.pix)}</dd></div>
+                <div className="flex justify-between text-muted-foreground"><dt>Recebido nas mesas (no estabelecimento)</dt><dd>{brl(ops.data?.received ?? 0)}</dd></div>
+                <div className="flex justify-between text-muted-foreground"><dt>Vendas no balcão</dt><dd>{balcao.count} · {brl(balcao.total)}</dd></div>
               </dl>
             </Card>
             {podeCaixa && (
@@ -169,12 +135,12 @@ export function Caixa({ slug, podeCaixa, confirmacoes }: { slug: string; podeCai
                 <h3 className="mb-2 font-semibold">Fechar caixa</h3>
                 <form className="space-y-2" onSubmit={(e) => {
                   e.preventDefault();
-                  const total = esperado + (ops.data?.received ?? 0);
+                  const total = esperado + comprovantes;
                   if (!window.confirm(`Fechar o caixa com ${brl(Number(contado || 0))} contados? Esperado: ${brl(total)}.`)) return;
                   void run({ action: "close", slug, counted: Number(contado || 0), expected: total, notes: "" }, "Caixa fechado").then((ok) => ok && setContado(""));
                 }}>
                   <Input required type="number" step="0.01" min={0} placeholder="Valor contado (espécie + comprovantes)" value={contado} onChange={(e) => setContado(e.target.value)} />
-                  {contado && <p className="text-xs text-muted-foreground">Diferença: {brl(Number(contado) - esperado - (ops.data?.received ?? 0))}</p>}
+                  {contado && <p className="text-xs text-muted-foreground">Diferença: {brl(Number(contado) - esperado - comprovantes)}</p>}
                   <Button type="submit" className="w-full">Fechar caixa</Button>
                 </form>
               </Card>
