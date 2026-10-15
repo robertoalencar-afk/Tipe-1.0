@@ -205,8 +205,8 @@ function Toast({
 function Hero() {
   return (
     <section className="relative -mt-16 overflow-hidden pt-16">
-      <div className="container-page grid items-center gap-10 pb-16 pt-8 sm:pt-12 lg:grid-cols-[1.12fr_0.88fr] lg:gap-14 lg:pb-24 lg:pt-14">
-        <div className="max-w-[44rem]">
+      <div className="container-page grid items-center gap-10 pb-16 pt-8 sm:pt-12 lg:grid-cols-[0.95fr_1.05fr] lg:gap-20 lg:pb-24 lg:pt-14">
+        <div className="max-w-[44rem] lg:order-2">
           <p className="hero-in inline-flex items-center gap-2 font-display text-lg font-semibold tracking-heading text-brand-strong sm:text-xl">
             Tipe <span className="text-foreground/30">—</span> Pague. Sem esperar.
           </p>
@@ -250,7 +250,7 @@ function Hero() {
           </p>
         </div>
 
-        <div className="relative mx-auto w-full max-w-[34rem] lg:mr-0">
+        <div className="relative mx-auto w-full max-w-[34rem] lg:order-1 lg:ml-0">
           <EditorialPhoto
             scene="garcom"
             priority
@@ -260,9 +260,10 @@ function Hero() {
             position="50% 30%"
             radius="2.25rem"
           />
-          <div className="absolute -left-3 top-6 w-[min(78%,19rem)] space-y-2.5 sm:-left-10 lg:-left-16">
+          <div className="absolute -left-3 top-6 w-[min(80%,20rem)] space-y-2.5 sm:-left-8 lg:-left-10">
             <Toast
               className="pop-in"
+              tone="dark"
               style={{ "--d": "700ms" } as CSSProperties}
               icon={<Check className="h-4 w-4" strokeWidth={3} />}
               title="Mesa 12 · conta paga"
@@ -270,6 +271,7 @@ function Hero() {
             />
             <Toast
               className="pop-in max-sm:hidden"
+              tone="dark"
               style={{ "--d": "1000ms" } as CSSProperties}
               icon={<Users className="h-4 w-4" />}
               title="Ana pagou a parte dela"
@@ -278,6 +280,7 @@ function Hero() {
           </div>
           <Toast
             className="pop-in absolute -bottom-5 right-3 w-[15rem] sm:-right-6"
+            tone="dark"
             style={{ "--d": "1300ms" } as CSSProperties}
             icon={<Star className="h-4 w-4 fill-current" />}
             title="Atendimento 5 estrelas"
