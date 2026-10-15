@@ -7,12 +7,14 @@ const Slug = z.string().min(1).max(64).regex(/^[a-z0-9-]+$/);
 async function rest(supabase: any, slug: string) {
   const { data } = await supabase.from("restaurants").select("id, slug, name, pos_provider, pos_mode, service_rate, phone, address, opening_hours, bill_payment_methods").eq("slug", slug).maybeSingle();
   if (!data) throw new Error("Restaurante não encontrado ou sem acesso");
-  // Consultas separadas para não derrubar o painel se as migrações 0021 e 0024 ainda não rodaram.
+  // Consultas separadas para não derrubar o painel se as migrações 0021, 0024 e 0025 ainda não rodaram.
   const { data: rv, error: rvErr } = await supabase.from("restaurants").select("google_review_url").eq("id", data.id).maybeSingle();
   data.google_review_url = rvErr ? null : (rv?.google_review_url ?? null);
   const { data: so, error: soErr } = await supabase.from("restaurants").select("self_order_enabled").eq("id", data.id).maybeSingle();
   data.self_order_enabled = soErr ? false : (so?.self_order_enabled ?? false);
-  return data as { id: string; slug: string; name: string; pos_provider: string; pos_mode: string; service_rate: number; phone: string | null; address: string | null; opening_hours: string | null; bill_payment_methods: string[]; google_review_url: string | null; self_order_enabled: boolean };
+  const { data: tt, error: ttErr } = await supabase.from("restaurants").select("totem_enabled").eq("id", data.id).maybeSingle();
+  data.totem_enabled = ttErr ? false : (tt?.totem_enabled ?? false);
+  return data as { id: string; slug: string; name: string; pos_provider: string; pos_mode: string; service_rate: number; phone: string | null; address: string | null; opening_hours: string | null; bill_payment_methods: string[]; google_review_url: string | null; self_order_enabled: boolean; totem_enabled: boolean };
 }
 const err = (m: string, fb: string) => {
   for (const k of ["Sem permissão", "Já existe", "Abra o caixa", "Nenhum caixa", "Valor inválido", "Escolha outra", "Há pagamentos", "Mesa inativa", "Informe o motivo", "Quantidade"]) if (m.includes(k)) return m;
@@ -56,7 +58,18 @@ export const getOpsData = createServerFn({ method: "GET" })
         if (o.method === "cash" || o.method === "card" || o.method === "pix") counter[o.method] += o.total;
       }
     }
+    // Pedidos do totem aguardando o caixa cobrar (ainda não foram para a cozinha).
+    const { data: totemRows } = await sb.from("pdv_orders")
+      .select("id, ticket_number, customer_name, total, created_at, pdv_order_items(item_name, quantity)")
+      .eq("restaurant_id", r.id).eq("channel", "totem").is("cash_session_id", null).is("cancelled_at", null)
+      .gte("created_at", since).order("created_at", { ascending: true }).limit(50);
+    const totemPending = (totemRows ?? []).map((o: any) => ({
+      id: o.id as string, ticket: (o.ticket_number as number | null) ?? 0, customer: (o.customer_name as string | null),
+      total: Number(o.total ?? 0), at: o.created_at as string,
+      items: ((o.pdv_order_items ?? []) as { item_name: string; quantity: number }[]).map((i) => ({ name: i.item_name, qty: i.quantity })),
+    }));
     return {
+      totemPending,
       restaurant: { ...r, service_rate: Number(r.service_rate) },
       session: session.data ? { ...session.data, opening_amount: Number(session.data.opening_amount) } : null,
       movements, received, counter, counterOrders,
@@ -102,12 +115,13 @@ export const saveSettings = createServerFn({ method: "POST" })
     billMethods: z.array(z.enum(["pix", "apple_pay", "google_pay", "at_establishment"])).min(1, "Escolha ao menos um meio de pagamento").max(4),
     googleReviewUrl: z.string().trim().max(300).optional(),
     selfOrder: z.boolean().optional(),
+    totem: z.boolean().optional(),
   }).parse(d))
   .handler(async ({ data, context }) => {
     const { isGoogleReviewUrl } = await import("./rules");
     const review = data.googleReviewUrl ? data.googleReviewUrl : null;
     if (review && !isGoogleReviewUrl(review)) throw new Error("Valor inválido: use o link de avaliação do Google (começa com https://g.page/ ou https://maps.app.goo.gl/, por exemplo)");
-    const { data: rows, error } = await context.supabase.from("restaurants").update({ name: data.name, service_rate: data.serviceRate, phone: data.phone || null, address: data.address || null, opening_hours: data.openingHours || null, bill_payment_methods: Array.from(new Set(data.billMethods)), ...(data.googleReviewUrl !== undefined ? { google_review_url: review } : {}), ...(data.selfOrder !== undefined ? { self_order_enabled: data.selfOrder } : {}) }).eq("slug", data.slug).select("id");
+    const { data: rows, error } = await context.supabase.from("restaurants").update({ name: data.name, service_rate: data.serviceRate, phone: data.phone || null, address: data.address || null, opening_hours: data.openingHours || null, bill_payment_methods: Array.from(new Set(data.billMethods)), ...(data.googleReviewUrl !== undefined ? { google_review_url: review } : {}), ...(data.selfOrder !== undefined ? { self_order_enabled: data.selfOrder } : {}), ...(data.totem !== undefined ? { totem_enabled: data.totem } : {}) }).eq("slug", data.slug).select("id");
     if (error || !rows?.length) throw new Error("Somente o dono pode alterar as configurações");
     return { ok: true };
   });

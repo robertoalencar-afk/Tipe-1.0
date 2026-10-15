@@ -176,6 +176,13 @@
       "when": 1791972828310,
       "tag": "0024_customer_self_order",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1791973428310,
+      "tag": "0025_self_service_totem",
+      "breakpoints": true
     }
   ]
 }

@@ -24,6 +24,7 @@ import { Route as TermosParceirosRouteImport } from './routes/termos-parceiros'
 import { Route as RestauranteIndexRouteImport } from './routes/$restaurante.index'
 import { Route as RestauranteMesaRouteImport } from './routes/$restaurante.$mesa'
 import { Route as RestauranteCozinhaRouteImport } from './routes/$restaurante.cozinha'
+import { Route as RestauranteTotemRouteImport } from './routes/$restaurante.totem'
 import { Route as RestauranteSenhasRouteImport } from './routes/$restaurante.senhas'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AuthenticatedBackofficeRouteImport } from './routes/_authenticated/backoffice'
@@ -121,6 +122,11 @@ const RestauranteMesaRoute = RestauranteMesaRouteImport.update({
 const RestauranteCozinhaRoute = RestauranteCozinhaRouteImport.update({
   id: '/$restaurante/cozinha',
   path: '/$restaurante/cozinha',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RestauranteTotemRoute = RestauranteTotemRouteImport.update({
+  id: '/$restaurante/totem',
+  path: '/$restaurante/totem',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RestauranteSenhasRoute = RestauranteSenhasRouteImport.update({
@@ -263,6 +269,7 @@ export interface FileRoutesByFullPath {
   '/termos-parceiros': typeof TermosParceirosRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
   '/$restaurante/cozinha': typeof RestauranteCozinhaRoute
+  '/$restaurante/totem': typeof RestauranteTotemRoute
   '/$restaurante/senhas': typeof RestauranteSenhasRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/backoffice': typeof AuthenticatedBackofficeRoute
@@ -303,6 +310,7 @@ export interface FileRoutesByTo {
   '/termos-parceiros': typeof TermosParceirosRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
   '/$restaurante/cozinha': typeof RestauranteCozinhaRoute
+  '/$restaurante/totem': typeof RestauranteTotemRoute
   '/$restaurante/senhas': typeof RestauranteSenhasRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/backoffice': typeof AuthenticatedBackofficeRoute
@@ -345,6 +353,7 @@ export interface FileRoutesById {
   '/termos-parceiros': typeof TermosParceirosRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
   '/$restaurante/cozinha': typeof RestauranteCozinhaRoute
+  '/$restaurante/totem': typeof RestauranteTotemRoute
   '/$restaurante/senhas': typeof RestauranteSenhasRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/backoffice': typeof AuthenticatedBackofficeRoute
@@ -387,6 +396,7 @@ export interface FileRouteTypes {
     | '/termos-parceiros'
     | '/$restaurante/$mesa'
     | '/$restaurante/cozinha'
+    | '/$restaurante/totem'
     | '/$restaurante/senhas'
     | '/.well-known/oauth-protected-resource'
     | '/backoffice'
@@ -427,6 +437,7 @@ export interface FileRouteTypes {
     | '/termos-parceiros'
     | '/$restaurante/$mesa'
     | '/$restaurante/cozinha'
+    | '/$restaurante/totem'
     | '/$restaurante/senhas'
     | '/.well-known/oauth-protected-resource'
     | '/backoffice'
@@ -468,6 +479,7 @@ export interface FileRouteTypes {
     | '/termos-parceiros'
     | '/$restaurante/$mesa'
     | '/$restaurante/cozinha'
+    | '/$restaurante/totem'
     | '/$restaurante/senhas'
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/backoffice'
@@ -510,6 +522,7 @@ export interface RootRouteChildren {
   TermosParceirosRoute: typeof TermosParceirosRoute
   RestauranteMesaRoute: typeof RestauranteMesaRoute
   RestauranteCozinhaRoute: typeof RestauranteCozinhaRoute
+  RestauranteTotemRoute: typeof RestauranteTotemRoute
   RestauranteSenhasRoute: typeof RestauranteSenhasRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   LegalLivroRoute: typeof LegalLivroRoute
@@ -638,6 +651,13 @@ declare module '@tanstack/react-router' {
       path: '/$restaurante/cozinha'
       fullPath: '/$restaurante/cozinha'
       preLoaderRoute: typeof RestauranteCozinhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$restaurante/totem': {
+      id: '/$restaurante/totem'
+      path: '/$restaurante/totem'
+      fullPath: '/$restaurante/totem'
+      preLoaderRoute: typeof RestauranteTotemRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$restaurante/senhas': {
@@ -843,6 +863,7 @@ const rootRouteChildren: RootRouteChildren = {
   TermosParceirosRoute: TermosParceirosRoute,
   RestauranteMesaRoute: RestauranteMesaRoute,
   RestauranteCozinhaRoute: RestauranteCozinhaRoute,
+  RestauranteTotemRoute: RestauranteTotemRoute,
   RestauranteSenhasRoute: RestauranteSenhasRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
