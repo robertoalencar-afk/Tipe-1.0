@@ -67,8 +67,39 @@
   --color-highlight-foreground: var(--highlight-foreground);
   --color-info: var(--info);
   --color-info-foreground: var(--info-foreground);
-  --font-display: "Sora", sans-serif;
-  --font-sans: "Manrope", sans-serif;
+  --font-display: "Sora", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+
+  /* Tokens semânticos do design system TIPE (ver docs/design-system.md) */
+  --color-brand: var(--brand-primary);
+  --color-brand-strong: var(--brand-primary-strong);
+  --color-brand-soft: var(--brand-primary-soft);
+  --color-ink: var(--brand-secondary);
+  --color-ink-soft: var(--brand-secondary-soft);
+  --color-background-muted: var(--background-muted);
+  --color-surface: var(--surface);
+  --color-surface-elevated: var(--surface-elevated);
+  --color-text-primary: var(--text-primary);
+  --color-text-secondary: var(--text-secondary);
+  --color-error: var(--error);
+  --color-focus-ring: var(--focus-ring);
+
+  --shadow-xs: 0 1px 2px 0 oklch(0.2 0.04 250 / 0.05);
+  --shadow-soft: 0 1px 2px oklch(0.2 0.04 250 / 0.04), 0 8px 24px -12px oklch(0.2 0.04 250 / 0.12);
+  --shadow-lift: 0 2px 6px oklch(0.2 0.04 250 / 0.05), 0 24px 48px -24px oklch(0.2 0.04 250 / 0.22);
+  --shadow-device: 0 40px 80px -32px oklch(0.2 0.04 250 / 0.35), 0 12px 24px -12px oklch(0.2 0.04 250 / 0.18);
+
+  --tracking-display: -0.035em;
+  --tracking-heading: -0.025em;
+
+  --text-display: clamp(2.6rem, 1.6rem + 4.4vw, 5rem);
+  --text-display--line-height: 1.02;
+  --text-headline: clamp(2rem, 1.4rem + 2.4vw, 3.25rem);
+  --text-headline--line-height: 1.06;
+  --text-title: clamp(1.375rem, 1.15rem + 0.8vw, 1.75rem);
+  --text-title--line-height: 1.2;
+
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 :root {
@@ -77,7 +108,7 @@
   --warning: oklch(0.8 0.16 70);
   --warning-foreground: oklch(0.2 0.04 250);
   --radius: 1rem;
-  --background: oklch(0.975 0.004 260);
+  --background: oklch(0.985 0.003 250);
   --foreground: oklch(0.2 0.04 250);
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.2 0.04 250);
@@ -87,8 +118,8 @@
   --primary-foreground: oklch(0.2 0.04 250);
   --secondary: oklch(0.2 0.04 250);
   --secondary-foreground: oklch(0.98 0 0);
-  --muted: oklch(0.93 0.006 270);
-  --muted-foreground: oklch(0.5 0.03 255);
+  --muted: oklch(0.955 0.006 250);
+  --muted-foreground: oklch(0.47 0.03 255);
   --accent: oklch(0.9 0.09 165);
   --accent-foreground: oklch(0.2 0.04 250);
   --highlight: oklch(0.74 0.17 50);
@@ -97,8 +128,8 @@
   --info-foreground: oklch(0.98 0 0);
   --destructive: oklch(0.6 0.22 27);
   --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.91 0.008 265);
-  --input: oklch(0.91 0.008 265);
+  --border: oklch(0.92 0.008 255);
+  --input: oklch(0.89 0.01 255);
   --ring: oklch(0.77 0.14 178);
   --gradient-brand: linear-gradient(135deg, oklch(0.2 0.04 250), oklch(0.3 0.08 240));
   --shadow-glow: 0 18px 40px -18px color-mix(in oklab, var(--primary) 70%, transparent);
@@ -115,6 +146,20 @@
   --sidebar-accent-foreground: oklch(0.98 0 0);
   --sidebar-border: oklch(0.3 0.04 250);
   --sidebar-ring: oklch(0.77 0.14 178);
+
+  /* Marca TIPE: turquesa (primária) + azul-marinho (secundária). Não alterar os tons-base. */
+  --brand-primary: oklch(0.77 0.14 178);
+  --brand-primary-strong: oklch(0.5 0.1 182);
+  --brand-primary-soft: oklch(0.95 0.04 178);
+  --brand-secondary: oklch(0.2 0.04 250);
+  --brand-secondary-soft: oklch(0.27 0.045 250);
+  --background-muted: oklch(0.965 0.005 250);
+  --surface: oklch(1 0 0);
+  --surface-elevated: oklch(1 0 0);
+  --text-primary: var(--foreground);
+  --text-secondary: var(--muted-foreground);
+  --error: var(--destructive);
+  --focus-ring: oklch(0.62 0.12 180);
 }
 
 .dark {
@@ -157,10 +202,71 @@
     border-color: var(--color-border);
   }
 
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+
   body {
     background-color: var(--color-background);
     color: var(--color-foreground);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+
+  :where(a, button, [role="button"], input, select, textarea, summary):focus-visible {
+    outline: 2px solid var(--focus-ring);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    html:focus-within { scroll-behavior: smooth; }
+  }
+}
+
+/* ------------------------------------------------------------------
+ * Design system TIPE — utilitários de composição
+ * ------------------------------------------------------------------ */
+@utility container-page {
+  width: 100%;
+  max-width: 76rem;
+  margin-inline: auto;
+  padding-inline: 1.25rem;
+  @media (width >= 40rem) { padding-inline: 2rem; }
+}
+
+@utility eyebrow {
+  font-family: var(--font-display);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+@utility money {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+  letter-spacing: -0.01em;
+}
+
+@utility surface-card {
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  box-shadow: var(--shadow-xs);
+}
+
+/* Revelação suave ao rolar (só com movimento permitido e JS ativo) */
+@keyframes tipe-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+.tipe-rise { animation: tipe-rise 700ms var(--ease-out-soft) both; }
+@keyframes tipe-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.tipe-float { animation: tipe-float 7s ease-in-out infinite; }
+@keyframes tipe-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+@keyframes tipe-live { 0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--brand-primary) 55%, transparent); } 100% { box-shadow: 0 0 0 8px transparent; } }
+.tipe-live { animation: tipe-live 1.8s ease-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .tipe-rise, .tipe-float, .tipe-live { animation: none; }
 }
 
 /* Scope device theme at the token root so derived theme aliases, portalled
@@ -186,6 +292,13 @@
     --input: var(--border);
     --ring: var(--primary);
     --destructive: oklch(0.73 0.17 27);
+    /* Tokens do design system também acompanham o tema escuro da conta. */
+    --brand-primary-strong: oklch(0.83 0.12 178);
+    --brand-primary-soft: oklch(0.3 0.055 178);
+    --background-muted: oklch(0.21 0.018 240);
+    --surface: var(--card);
+    --surface-elevated: oklch(0.26 0.02 240);
+    --focus-ring: oklch(0.8 0.12 178);
   }
 }
 

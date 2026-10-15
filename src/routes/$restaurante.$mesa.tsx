@@ -6,18 +6,22 @@ import {
   Check,
   ChevronRight,
   ClipboardList,
+  Copy,
   CreditCard,
   HandCoins,
   Heart,
   QrCode,
   ReceiptText,
+  RefreshCw,
   Smartphone,
   Star,
   Users,
   WalletCards,
   WifiOff,
 } from "lucide-react";
-import { TipeLogo } from "@/components/tipe/Logo";
+import logoLight from "@/assets/logo.png.asset.json";
+import logoDark from "@/assets/logo-dark.png.asset.json";
+import { cn } from "@/lib/utils";
 import { SplitPicker } from "@/components/tipe/SplitPicker";
 import { DividirConta } from "@/components/tipe/DividirConta";
 import { remainingSubtotal, selectionSubtotal, type ShareItem } from "@/lib/tipe/bill-math";
@@ -377,44 +381,47 @@ function MesaPage() {
     return () => window.clearInterval(t);
   }, [etapa, pix, restaurante, dados.mesa, sessaoMesa, atualizarMesa]);
 
+  const primeiroNome = nome.trim().split(/\s+/)[0] ?? "";
+  const temItensEmAberto = dados.itens.some((item) => (disponiveis[item.id] ?? item.qtd) > 0);
+  const mostrarTopo = etapaVisivel !== "identificacao" && etapaVisivel !== "carregando" && !erroMesa;
+  // Recibo só com o que o servidor devolveu: o pagamento recém-criado ou, na falta dele, o aprovado mais recente desta pessoa.
+  const pagamentoRecibo = pagamentos.find((pagamento) => pagamento.id === ultimoPagamento) ?? pagamentos.find((pagamento) => pagamento.customer_name === nome.trim() && pagamento.status === "approved");
+
   return (
-    <div className="customer-theme mx-auto flex min-h-svh max-w-md flex-col bg-background">
-      <header className="mb-5 bg-secondary px-5 pb-5 pt-6 text-secondary-foreground">
-        <div className="flex items-center justify-between"><TipeLogo className="h-10" />{etapaVisivel !== "identificacao" && etapaVisivel !== "carregando" && <span className="rounded-full bg-primary/15 px-3 py-1 text-xs font-bold text-primary">Mesa {dados.mesa}</span>}</div>
-        {etapaVisivel !== "identificacao" && etapaVisivel !== "carregando" && <p className="mt-4 text-sm text-secondary-foreground/70">{dados.restaurante}</p>}
-        {etapaVisivel !== "identificacao" && etapaVisivel !== "carregando" && <div className="mt-4 flex gap-2" aria-hidden>{["conta", "pagamento-conta", "fim"].map((passo, indice) => <span key={passo} className={`h-1.5 flex-1 rounded-full ${(["conta", "pagamento-conta", "pix", "conta-pendente", "conta-confirmada", "avaliacao", "gorjeta", "pagamento-gorjeta", "fim"].indexOf(etapaVisivel) >= indice) ? "bg-primary" : "bg-secondary-foreground/20"}`} />)}</div>}
-      </header>
+    <div className="customer-theme mx-auto flex min-h-svh max-w-md flex-col bg-background text-foreground">
+      <MesaTopo restaurante={dados.restaurante} mesa={dados.mesa} etapa={etapaVisivel} mostrarMesa={mostrarTopo} aoVivo={mesaSincronizada} />
 
       {semConexao && (
         <div role="alertdialog" aria-live="assertive" aria-label="Sem conexão" className="fixed inset-0 z-50 flex items-end justify-center bg-background/80 p-4 backdrop-blur-sm sm:items-center">
-          <div className="w-full max-w-md rounded-3xl border border-border bg-card p-6 text-center shadow-lg">
-            <WifiOff className="mx-auto h-10 w-10 text-primary" aria-hidden />
-            <h2 className="mt-3 font-display text-xl font-bold">Sem conexão</h2>
-            <p className="mt-2 text-sm leading-6 text-muted-foreground">Seu pagamento não foi concluído ou está sendo confirmado. Não pague de novo.</p>
-            <p className="mt-4 text-xs font-semibold text-primary">{semConexao === "verificando" ? "Conexão de volta. Conferindo seu pagamento…" : "Assim que a internet voltar, vamos conferir o pagamento para você."}</p>
+          <div className="w-full max-w-md rounded-3xl border border-border bg-card p-6 text-center shadow-lift">
+            <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-muted"><WifiOff className="h-6 w-6 text-foreground" aria-hidden /></span>
+            <h2 className="mt-4 font-display text-xl font-semibold tracking-heading">Sem conexão</h2>
+            <p className="mt-2 text-sm leading-6 text-muted-foreground">Seu pagamento não foi concluído ou está sendo confirmado. <strong className="text-foreground">Não pague de novo.</strong></p>
+            <p className="mt-4 flex items-center justify-center gap-2 text-xs font-semibold text-brand-strong">
+              {semConexao === "verificando" && <Spinner />}
+              {semConexao === "verificando" ? "Conexão de volta. Conferindo seu pagamento…" : "Assim que a internet voltar, vamos conferir o pagamento para você."}
+            </p>
           </div>
         </div>
       )}
 
       {erroMesa && (
         <main className="flex flex-1 flex-col items-center justify-center px-6 pb-24 text-center">
-          <h1 className="font-display text-2xl font-bold">Não foi possível abrir a mesa</h1>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">{erroMesa}</p>
+          <span className="grid h-14 w-14 place-items-center rounded-full bg-muted"><QrCode className="h-6 w-6" aria-hidden /></span>
+          <h1 className="mt-5 font-display text-2xl font-semibold tracking-heading">Não foi possível abrir a mesa</h1>
+          <p className="mt-2 max-w-xs text-sm leading-6 text-muted-foreground">{erroMesa}</p>
+          <Button variant="outline" onClick={() => window.location.reload()} className="mt-6 h-11"><RefreshCw /> Tentar de novo</Button>
         </main>
       )}
 
-      {!erroMesa && etapaVisivel === "carregando" && (
-        <main className="flex flex-1 items-center justify-center px-6 pb-24" aria-label="Carregando mesa">
-          <span className="h-8 w-8 animate-spin rounded-full border-2 border-muted border-t-primary motion-reduce:animate-none" />
-        </main>
-      )}
+      {!erroMesa && etapaVisivel === "carregando" && <ContaCarregando />}
 
-      {etapaVisivel === "identificacao" && (
+      {!erroMesa && etapaVisivel === "identificacao" && (
         <main className="flex flex-1 flex-col justify-center px-6 pb-24">
-          <p className="text-sm font-semibold text-primary">Mesa {dados.mesa}</p>
-          <h1 className="mt-2 font-display text-3xl font-bold">Olá! Qual é o seu nome?</h1>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            Seu nome identifica os itens que você escolher pagar nesta mesa.
+          {dados.mesa && <p className="eyebrow text-brand-strong">{dados.restaurante ? `${dados.restaurante} · ` : ""}Mesa {dados.mesa}</p>}
+          <h1 className="mt-3 font-display text-[2rem] font-semibold leading-[1.1] tracking-heading">Olá! Qual é o seu nome?</h1>
+          <p className="mt-3 text-[0.95rem] leading-6 text-muted-foreground">
+            Seu nome identifica os itens que você escolher pagar nesta mesa. Sem cadastro e sem aplicativo.
           </p>
           <form onSubmit={identificar} className="mt-8">
             <label htmlFor="nome" className="text-sm font-semibold">Nome e sobrenome</label>
@@ -425,155 +432,181 @@ function MesaPage() {
               maxLength={40}
               value={nome}
               onChange={(event) => setNome(event.target.value)}
-              placeholder="Digite seu nome e sobrenome"
-              className="mt-2 h-12 rounded-full bg-card px-5"
+              placeholder="Ex.: Ana Souza"
+              className="mt-2 h-13 rounded-2xl px-4 text-base"
             />
-            <Button type="submit" disabled={!hasFirstAndLastName(nome)} className="mt-5 h-12 w-full rounded-full font-display text-base font-bold">
-              Ver minha mesa <ChevronRight />
+            <Button type="submit" disabled={!hasFirstAndLastName(nome)} className="mt-4 h-13 w-full font-display text-base">
+              Ver minha conta <ChevronRight />
             </Button>
           </form>
         </main>
       )}
 
-      {etapaVisivel === "conta" && (
-        <main className="flex flex-1 flex-col px-5 pb-8">
-           <p className="text-xs font-semibold text-primary">SUA MESA</p>
-           <h1 className="mt-1 font-display text-2xl font-extrabold">Olá, {nome.trim()}.</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {dados.garcom ? <>Você está sendo atendido por <strong className="text-foreground">{dados.garcom}</strong>.</> : "Bem-vindo! Seus pedidos aparecem aqui assim que forem lançados."}
-            </p>
+      {!erroMesa && etapaVisivel === "conta" && (
+        <main className="flex flex-1 flex-col px-5">
+          <h1 className="font-display text-[1.65rem] font-semibold leading-tight tracking-heading">Olá, {primeiroNome}.</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {dados.garcom ? <>Você está sendo atendido por <strong className="font-semibold text-foreground">{dados.garcom}</strong>.</> : "Seus pedidos aparecem aqui assim que forem lançados."}
+          </p>
 
-          <div className="mb-6 mt-5 grid grid-cols-2 gap-1 rounded-full bg-muted p-1">
-            <Button variant={aba === "conta" ? "outline" : "ghost"} onClick={() => setAba("conta")} className="h-10 rounded-full shadow-none">
-              <ReceiptText /> Conta
-             </Button>
-            <Button variant={aba === "atividade" ? "outline" : "ghost"} onClick={() => setAba("atividade")} className="h-10 rounded-full shadow-none">
-              <ClipboardList /> Atividade
-            </Button>
+          <div role="tablist" aria-label="Conta da mesa" className="mt-5 grid grid-cols-2 gap-1 rounded-full bg-muted p-1">
+            {([["conta", "Conta", ReceiptText], ["atividade", "Atividade", ClipboardList]] as const).map(([id, rotulo, Icone]) => (
+              <button
+                key={id}
+                type="button"
+                role="tab"
+                aria-selected={aba === id}
+                onClick={() => setAba(id)}
+                className={`flex h-10 items-center justify-center gap-2 rounded-full text-sm font-semibold transition-colors ${aba === id ? "bg-card text-foreground shadow-xs" : "text-muted-foreground hover:text-foreground"}`}
+              >
+                <Icone className="h-4 w-4" /> {rotulo}
+              </button>
+            ))}
           </div>
 
           {aba === "conta" && (
             <>
-              {dados.itens.some((item) => (disponiveis[item.id] ?? item.qtd) > 0) && (() => {
+              {temItensEmAberto && (() => {
                 const tudoSelecionado = dados.itens.every((item) => Math.abs((qtds[item.id] ?? 0) - (disponiveis[item.id] ?? item.qtd)) < EPSILON);
                 return (
-                  <Button
-                    variant={tudoSelecionado ? "default" : "outline"}
-                    onClick={() => setQtds(Object.fromEntries(dados.itens.map((item) => [item.id, tudoSelecionado ? 0 : Math.max(0, disponiveis[item.id] ?? item.qtd)])))}
-                    className="mb-3 h-12 w-full rounded-full font-display text-base font-bold"
-                  >
-                    <ReceiptText /> {tudoSelecionado ? "Limpar seleção" : "Pagar a conta inteira"}
-                  </Button>
+                  <div className="mt-5 space-y-2">
+                    <Button
+                      variant={tudoSelecionado ? "soft" : "outline"}
+                      onClick={() => setQtds(Object.fromEntries(dados.itens.map((item) => [item.id, tudoSelecionado ? 0 : Math.max(0, disponiveis[item.id] ?? item.qtd)])))}
+                      className="h-12 w-full font-display text-[0.95rem]"
+                    >
+                      <ReceiptText /> {tudoSelecionado ? "Limpar seleção" : "Pagar a conta inteira"}
+                    </Button>
+                    <DividirConta items={itensDivisao} serviceRate={taxaSugerida} onApply={(quantidades) => setQtds(Object.fromEntries(dados.itens.map((item) => [item.id, quantidades[item.id] ?? 0])))} />
+                  </div>
                 );
               })()}
-              {dados.itens.some((item) => (disponiveis[item.id] ?? item.qtd) > 0) && (
-                <DividirConta items={itensDivisao} serviceRate={taxaSugerida} onApply={(quantidades) => setQtds(Object.fromEntries(dados.itens.map((item) => [item.id, quantidades[item.id] ?? 0])))} />
+
+              {temItensEmAberto && (
+                <div className="mt-7 flex items-baseline justify-between gap-3">
+                  <h2 className="font-display text-lg font-semibold tracking-heading">O que você vai pagar?</h2>
+                  <span className="text-xs text-muted-foreground">Toque para escolher</span>
+                </div>
               )}
-              {dados.itens.some((item) => (disponiveis[item.id] ?? item.qtd) > 0) && <><h2 className="font-display text-lg font-extrabold">O que você vai pagar?</h2><p className="mb-4 mt-1 text-sm text-muted-foreground">Escolha quanto de cada item ficará com você.</p></>}
-              <ul className="flex flex-col gap-3">
+              <ul className="mt-3 flex flex-col gap-2.5">
                 {dados.itens.filter((item) => (disponiveis[item.id] ?? item.qtd) > 0).map((item) => {
                   const quantidade = qtds[item.id] ?? 0;
                   const disponivel = disponiveis[item.id] ?? item.qtd;
+                  const escolhido = quantidade > 0;
                   return (
-                    <li key={item.id} className={`rounded-2xl border bg-card p-4 shadow-sm transition ${quantidade > 0 ? "border-2 border-primary bg-primary/10" : "border-border"}`}>
-                      <div className="flex items-start justify-between gap-3">
-                        <button type="button" onClick={() => setQtd(item.id, quantidade >= Math.floor(disponivel) ? 0 : Math.floor(quantidade) + 1, disponivel)} aria-label={`Adicionar uma unidade de ${item.nome}`} className={`mt-0.5 grid h-6 w-6 shrink-0 cursor-pointer place-items-center rounded-full border transition ${quantidade > 0 ? "border-primary bg-primary text-primary-foreground" : "border-border hover:border-primary"}`}>{quantidade > 0 && <Check className="h-3.5 w-3.5" />}</button>
+                    <li key={item.id} className={`rounded-2xl border bg-card p-4 transition-colors ${escolhido ? "border-primary bg-brand-soft/40 ring-1 ring-primary" : "border-border"}`}>
+                      <div className="flex items-start gap-3">
+                        <button type="button" onClick={() => setQtd(item.id, quantidade >= Math.floor(disponivel) ? 0 : Math.floor(quantidade) + 1, disponivel)} aria-label={`Adicionar uma unidade de ${item.nome}`} className={`mt-0.5 grid h-6 w-6 shrink-0 cursor-pointer place-items-center rounded-full border-2 transition-colors ${escolhido ? "border-primary bg-primary text-primary-foreground" : "border-input hover:border-primary"}`}>{escolhido && <Check className="h-3.5 w-3.5" strokeWidth={3} />}</button>
                         <div className="min-w-0 flex-1">
-                          <p className="font-semibold">{item.nome}</p>
-                           <p className="mt-1 text-xs text-muted-foreground">{money(item.preco)} cada · {formatPortion(disponivel)} {disponivel > 1 ? "disponíveis" : "disponível"}</p>
+                          <p className="font-semibold leading-snug">{item.nome}</p>
+                          <p className="mt-0.5 text-xs text-muted-foreground"><span className="money">{money(item.preco)}</span> cada · {formatPortion(disponivel)} {disponivel > 1 ? "disponíveis" : "disponível"}</p>
                         </div>
-                        <span className="shrink-0 text-sm font-bold">{money(item.preco * quantidade)}</span>
+                        <span className={`money shrink-0 text-sm font-semibold ${escolhido ? "text-foreground" : "text-muted-foreground"}`}>{money(item.preco * quantidade)}</span>
                       </div>
-                      <div className="mt-3 flex items-center justify-between border-t border-border pt-3">
-                        <span className="text-xs text-muted-foreground">Quantidade a pagar</span>
-                        <select
-                          value={quantidade}
-                          onChange={(event) => setQtd(item.id, Number(event.target.value), disponivel)}
-                          className="h-10 min-w-20 rounded-md border border-input bg-background px-3 text-sm font-bold outline-none focus:ring-1 focus:ring-ring"
-                          aria-label={`Quantidade de ${item.nome}`}
-                        >
-                          {Math.abs(quantidade - Math.round(quantidade)) > EPSILON && <option value={quantidade}>{formatPortion(quantidade)}</option>}
-                          {Array.from({ length: Math.floor(disponivel) + 1 }, (_, numero) => (
-                            <option key={numero} value={numero}>{numero}</option>
-                          ))}
-                        </select>
+                      <div className="mt-3 flex items-center justify-between gap-2 border-t border-border pt-3">
+                        {dividindo === item.id
+                          ? <span className="text-xs font-semibold text-muted-foreground">Como dividir?</span>
+                          : <button type="button" onClick={() => setDividindo(item.id)} className="-ml-1 rounded-full px-1 py-1 text-sm font-semibold text-brand-strong hover:underline">Dividir este item</button>}
+                        <label className="flex items-center gap-2 text-xs text-muted-foreground">
+                          Quantidade
+                          <select
+                            value={quantidade}
+                            onChange={(event) => setQtd(item.id, Number(event.target.value), disponivel)}
+                            className="h-10 min-w-[4.5rem] rounded-xl border border-input bg-background px-3 text-sm font-semibold text-foreground outline-none focus-visible:ring-2 focus-visible:ring-focus-ring/40"
+                            aria-label={`Quantidade de ${item.nome}`}
+                          >
+                            {Math.abs(quantidade - Math.round(quantidade)) > EPSILON && <option value={quantidade}>{formatPortion(quantidade)}</option>}
+                            {Array.from({ length: Math.floor(disponivel) + 1 }, (_, numero) => (
+                              <option key={numero} value={numero}>{numero}</option>
+                            ))}
+                          </select>
+                        </label>
                       </div>
-                      <div className="mt-2 flex min-h-9 items-center justify-end">
-                        {dividindo === item.id ? (
+                      {dividindo === item.id && (
+                        <div className="mt-3">
                           <SplitPicker itemName={item.nome} unitPrice={item.preco} onPick={(c) => { if (c === "rest") { setQtd(item.id, disponivel, disponivel); setDividindo(null); } else setFracao(item.id, c, disponivel); }} />
-                        ) : (
-                          <Button type="button" size="sm" variant="ghost" onClick={() => setDividindo(item.id)} className="text-primary">Dividir este item</Button>
-                        )}
-                      </div>
-                      {quantidade > 0 && <p className="mt-1 text-right text-xs font-semibold text-primary">Você paga {formatPortion(quantidade)}</p>}
+                        </div>
+                      )}
+                      {escolhido && <p className="mt-2 text-xs font-semibold text-brand-strong">Você paga {formatPortion(quantidade)}</p>}
                     </li>
                   );
                 })}
               </ul>
-              {dados.itens.every((item) => (disponiveis[item.id] ?? item.qtd) <= 0) && <p className="py-10 text-center text-sm text-muted-foreground">{dados.itens.length === 0 ? "Nenhum pedido ainda. Chame o garçom para fazer seu pedido." : "Não há itens disponíveis para pagamento."}</p>}
+              {dados.itens.every((item) => (disponiveis[item.id] ?? item.qtd) <= 0) && (
+                <div className="mt-6 rounded-2xl border border-dashed border-border px-6 py-10 text-center">
+                  <ReceiptText className="mx-auto h-6 w-6 text-muted-foreground" aria-hidden />
+                  <p className="mt-3 font-semibold">{dados.itens.length === 0 ? "Nenhum pedido ainda" : "Nada em aberto"}</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{dados.itens.length === 0 ? "Chame o garçom para fazer seu pedido. Ele aparece aqui na hora." : "Não há itens disponíveis para pagamento."}</p>
+                </div>
+              )}
 
-              <div className="mt-6 rounded-2xl border border-border bg-card p-5 text-sm shadow-sm">
+              <div className="mt-6 rounded-2xl border border-border bg-card p-5 text-sm">
                 <ResumoLinha label="Subtotal selecionado" valor={subtotal} />
                 {taxaRemovida
                   ? <ResumoLinha label="Taxa de serviço removida pelo restaurante" valor={0} className="mt-2" />
                   : <ResumoLinha label={`Taxa de serviço (${Math.round(taxaSugerida * 1000) / 10}%)`} valor={servico} className="mt-2" />}
-                <ResumoLinha label="Total da conta" valor={totalConta} className="mt-3 border-t border-border pt-3 font-display text-base font-extrabold" />
+                <ResumoLinha label="Total da sua parte" valor={totalConta} destaque className="mt-3 border-t border-border pt-3" />
                 {(() => {
                   // Saldo da mesa sempre visível: ninguém sai achando que pagou tudo.
                   const falta = remainingSubtotal(itensDivisao);
                   const faltaDepois = Math.max(0, +(falta - subtotal).toFixed(2));
                   return falta > 0 && subtotal > 0 ? (
-                    <p className="mt-3 rounded-xl bg-muted px-3 py-2 text-xs text-muted-foreground">
-                      {faltaDepois <= 0 ? "Com este pagamento, a conta da mesa fica quitada." : <>Depois do seu pagamento, ainda faltarão <strong className="text-foreground">{money(faltaDepois)}</strong> (sem taxa) para fechar a mesa.</>}
+                    <p className="mt-3 rounded-xl bg-muted px-3 py-2.5 text-xs leading-5 text-muted-foreground">
+                      {faltaDepois <= 0 ? "Com este pagamento, a conta da mesa fica quitada." : <>Depois do seu pagamento, ainda faltarão <strong className="money text-foreground">{money(faltaDepois)}</strong> (sem taxa) para fechar a mesa.</>}
                     </p>
                   ) : null;
                 })()}
               </div>
-              <Button disabled={subtotal <= 0} onClick={() => setEtapa("pagamento-conta")} className="mt-5 h-12 w-full rounded-full font-display text-base font-bold">
-                Continuar para pagamento <ChevronRight />
-              </Button>
+              <BarraAcao>
+                <Button disabled={subtotal <= 0} onClick={() => setEtapa("pagamento-conta")} className="h-13 w-full justify-between px-6 font-display text-base">
+                  {subtotal > 0 ? <><span>Continuar para pagamento</span><span className="money">{money(totalConta)}</span></> : <span className="mx-auto">Escolha o que você vai pagar</span>}
+                </Button>
+              </BarraAcao>
             </>
           )}
 
           {aba === "atividade" && (
-            <section aria-labelledby="atividade-title">
-              <h2 id="atividade-title" className="mb-3 flex items-center gap-2 text-sm font-semibold"><Users className="h-4 w-4 text-primary" /> Registro dos pedidos</h2>
-              <ol className="border-l border-border pl-4">
+            <section aria-labelledby="atividade-title" className="mt-6 pb-8">
+              <h2 id="atividade-title" className="flex items-center gap-2 font-display text-base font-semibold"><Users className="h-4 w-4 text-brand-strong" /> Registro dos pedidos</h2>
+              {dados.itens.length === 0 && <p className="mt-3 text-sm text-muted-foreground">Nenhum pedido lançado ainda.</p>}
+              <ol className="mt-3 border-l border-border pl-4">
                 {dados.itens.map((item) => (
-                  <li key={item.id} className="relative border-b border-border py-4 first:pt-1 last:border-0">
-                    <span className="absolute -left-[1.18rem] top-5 h-2 w-2 rounded-full bg-primary" />
+                  <li key={item.id} className="relative border-b border-border py-3.5 first:pt-1 last:border-0">
+                    <span className="absolute -left-[1.2rem] top-[1.15rem] h-2 w-2 rounded-full bg-primary first:top-2" />
                     <div className="flex justify-between gap-3">
-                      <div><p className="font-medium">{item.qtd}× {item.nome}</p></div>
+                      <p className="font-medium">{item.qtd}× {item.nome}</p>
                       <div className="shrink-0 text-right text-xs text-muted-foreground"><p>{item.data}</p><p>{item.hora}</p></div>
                     </div>
                   </li>
                 ))}
               </ol>
-               {pagamentos.length > 0 && (
-                 <div className="mt-6 border-t border-border pt-5">
-                   <h3 className="mb-2 text-sm font-semibold">Pagamentos</h3>
+              {pagamentos.length > 0 && (
+                <div className="mt-6 border-t border-border pt-5">
+                  <h3 className="font-display text-base font-semibold">Pagamentos</h3>
+                  <ul className="mt-2">
                     {pagamentos.map((pagamento) => (
-                      <div key={pagamento.id} className="border-b border-border py-4 text-sm last:border-0">
+                      <li key={pagamento.id} className="border-b border-border py-4 text-sm last:border-0">
                         <div className="flex justify-between gap-3">
                           <div>
                             <p className="font-semibold">{pagamento.customer_name}</p>
                             <p className="mt-0.5 text-xs text-muted-foreground">{formatPaymentDate(pagamento.created_at)}</p>
-                             {pagamento.establishment_method && <p className="mt-1 text-xs font-semibold text-foreground">{pagamento.establishment_method === "cash" ? `Dinheiro${pagamento.change_due ? ` · Troco ${money(pagamento.change_due)}` : " · Sem troco"}` : "Maquininha"}</p>}
+                            {pagamento.establishment_method && <p className="mt-1 text-xs font-medium text-foreground">{pagamento.establishment_method === "cash" ? `Dinheiro${pagamento.change_due ? ` · Troco ${money(pagamento.change_due)}` : " · Sem troco"}` : "Maquininha"}</p>}
                           </div>
                           <div className="text-right">
-                            <p className="font-semibold">{money(pagamento.amount)}</p>
-                            <p className={pagamento.status === "approved" ? "text-xs font-semibold text-primary" : pagamento.status === "pending" ? "text-xs font-semibold text-highlight" : "text-xs font-semibold text-destructive"}>{PAYMENT_STATUS_LABEL[pagamento.status] ?? "Pendente"}</p>
+                            <p className="money font-semibold">{money(pagamento.amount)}</p>
+                            <EstadoPagamento status={pagamento.status} />
                           </div>
                         </div>
                         <ul className="mt-3 space-y-1 border-l-2 border-primary/30 pl-3 text-xs text-muted-foreground">
                           {Object.entries(pagamento.item_quantities ?? {}).filter(([, quantidade]) => quantidade > 0).map(([itemId, quantidade]) => (
-                             <li key={itemId}>{formatPortion(quantidade)} de {dados.itens.find((item) => item.id === itemId)?.nome ?? "Item da conta"}</li>
+                            <li key={itemId}>{formatPortion(quantidade)} de {dados.itens.find((item) => item.id === itemId)?.nome ?? "Item da conta"}</li>
                           ))}
                         </ul>
-                     </div>
-                   ))}
-                 </div>
-               )}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </section>
           )}
         </main>
@@ -581,9 +614,9 @@ function MesaPage() {
 
       {etapaVisivel === "pagamento-conta" && (
         <Pagamento
-          titulo="Pagamento da conta"
-          descricao="Este pagamento corresponde apenas aos itens que você escolheu. Após a confirmação, a conta da mesa será atualizada automaticamente."
-          rotuloValor="Total da conta"
+          titulo="Como você quer pagar?"
+          descricao="Este pagamento cobre só os itens que você escolheu. Depois da confirmação, a conta da mesa é atualizada sozinha."
+          rotuloValor="Sua parte da conta"
           valor={totalConta}
           metodo={metodoConta}
           setMetodo={setMetodoConta}
@@ -591,7 +624,7 @@ function MesaPage() {
           erro={erroPagamento}
           voltar={() => setEtapa("conta")}
           pagar={() => processarPagamento("conta")}
-           permitirEstabelecimento
+          permitirEstabelecimento
           metodosAceitos={metodosAceitos ?? undefined}
           metodoEstabelecimento={metodoEstabelecimento}
           setMetodoEstabelecimento={setMetodoEstabelecimento}
@@ -600,38 +633,36 @@ function MesaPage() {
         />
       )}
 
-      {etapa === "pix" && pix && (
-        <TelaCentral>
-          <p className="text-sm font-semibold text-primary">Pix gerado</p>
-          <h1 className="mt-2 text-2xl font-bold">Pague com Pix</h1>
-          <p className="mt-2 text-center text-sm text-muted-foreground">Abra o app do seu banco e use o QR Code ou o código copia e cola. A confirmação aparece aqui sozinha.</p>
-          {pix.qrUrl && <img src={pix.qrUrl} alt="QR Code do Pix" className="mx-auto mt-5 h-52 w-52 rounded-lg bg-card p-2" />}
-          <p className="mt-4 w-full break-all rounded-lg border border-border bg-card p-3 text-xs">{pix.code}</p>
-          <Button onClick={() => { void navigator.clipboard.writeText(pix.code); }} className="mt-4 h-12 w-full rounded-lg text-base font-bold">Copiar código Pix</Button>
-          <p className="mt-3 flex items-center gap-2 text-xs text-muted-foreground"><span className="h-3 w-3 animate-spin rounded-full border-2 border-muted border-t-primary motion-reduce:animate-none" />Aguardando o pagamento…</p>
-        </TelaCentral>
-      )}
+      {etapa === "pix" && pix && <PixPagamento codigo={pix.code} qrUrl={pix.qrUrl} valor={pix.tipo === "conta" ? valorPago : gorjetaExtra} />}
 
       {etapaVisivel === "conta-pendente" && (
         <TelaCentral>
-          <img src={mascotWaiting} alt="Mascote TIPE aguardando" className="mx-auto mb-3 h-44 w-44 object-contain" />
-          <p className="text-sm font-semibold text-highlight">Aguardando confirmação</p>
-          <h1 className="mt-2 text-2xl font-bold">Pagamento no estabelecimento</h1>
-          <p className="mt-3 text-center text-sm leading-6 text-muted-foreground">{pagamentoPresencialPendente?.establishment_method === "cash" ? `Prepare o dinheiro. O garçom tratará do seu troco${pagamentoPresencialPendente.change_due !== null && pagamentoPresencialPendente.change_due !== undefined ? ` de ${money(pagamentoPresencialPendente.change_due)}` : ""} em breve.` : "O garçom irá em instantes até sua mesa com a maquininha."}</p>
-          <Button onClick={() => setEtapa("avaliacao")} className="mt-8 h-12 w-full rounded-lg text-base font-bold">Avaliar atendimento <ChevronRight /></Button>
-          <Button variant="ghost" onClick={() => { setEtapa("conta"); setAba("atividade"); }} className="mt-2 h-11">Ver atividade da mesa</Button>
+          <img src={mascotWaiting} alt="Mascote TIPE aguardando" width={176} height={176} className="mx-auto h-40 w-40 object-contain" />
+          <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-highlight/15 px-3 py-1 text-xs font-semibold text-foreground"><span className="h-1.5 w-1.5 rounded-full bg-highlight" aria-hidden />Aguardando confirmação</span>
+          <h1 className="mt-4 font-display text-[1.65rem] font-semibold leading-tight tracking-heading">Pagamento no estabelecimento</h1>
+          <p className="mt-3 max-w-xs text-center text-sm leading-6 text-muted-foreground">{pagamentoPresencialPendente?.establishment_method === "cash" ? `Prepare o dinheiro. O garçom tratará do seu troco${pagamentoPresencialPendente.change_due !== null && pagamentoPresencialPendente.change_due !== undefined ? ` de ${money(pagamentoPresencialPendente.change_due)}` : ""} em breve.` : "O garçom irá em instantes até sua mesa com a maquininha."}</p>
+          <div className="mt-8 w-full space-y-2">
+            <Button onClick={() => setEtapa("avaliacao")} className="h-12 w-full font-display text-base">Avaliar atendimento <ChevronRight /></Button>
+            <Button variant="ghost" onClick={() => { setEtapa("conta"); setAba("atividade"); }} className="h-11 w-full">Ver atividade da mesa</Button>
+          </div>
         </TelaCentral>
       )}
 
       {etapaVisivel === "conta-confirmada" && (
         <TelaCentral>
-          <IconeSucesso />
-          <p className="text-sm font-semibold text-primary">Conta paga</p>
-          <h1 className="mt-2 text-2xl font-bold">Pagamento confirmado!</h1>
-          <p className="mt-3 text-center text-sm leading-6 text-muted-foreground">{money(valorPago)} enviados ao {dados.restaurante}.</p>
-          {mesaEncerrada && <p className="mt-2 text-center text-sm font-semibold text-primary">Este foi o último pagamento: a mesa está encerrada.</p>}
+          <MarcaSucesso />
+          <h1 className="mt-6 font-display text-[1.85rem] font-semibold leading-tight tracking-heading">Pagamento realizado!</h1>
+          <p className="mt-2 text-[0.95rem] text-muted-foreground">Obrigado, {primeiroNome}, por pagar com o TIPE.</p>
+          <dl className="mt-7 w-full rounded-2xl border border-border bg-card p-4 text-left text-sm">
+            <LinhaRecibo rotulo="Valor pago"><span className="money font-display text-base font-semibold">{money(valorPago)}</span></LinhaRecibo>
+            {pagamentoRecibo && <LinhaRecibo rotulo="Forma de pagamento">{metodoNome(pagamentoRecibo.payment_method)}</LinhaRecibo>}
+            <LinhaRecibo rotulo="Restaurante">{dados.restaurante}</LinhaRecibo>
+            <LinhaRecibo rotulo="Mesa">{dados.mesa}</LinhaRecibo>
+            {pagamentoRecibo && <LinhaRecibo rotulo="Data e hora">{formatPaymentDate(pagamentoRecibo.created_at)}</LinhaRecibo>}
+          </dl>
+          {mesaEncerrada && <p className="mt-4 rounded-xl bg-brand-soft px-3 py-2 text-center text-sm font-semibold text-brand-strong">Este foi o último pagamento: a mesa está encerrada.</p>}
           {ultimoPagamento && /^[0-9a-f-]{36}$/.test(ultimoPagamento) && !querRecibo && recibo.estado !== "enviado" && (
-            <button type="button" onClick={() => setQuerRecibo(true)} className="mt-4 text-sm font-semibold text-primary underline-offset-2 hover:underline">
+            <button type="button" onClick={() => setQuerRecibo(true)} className="mt-4 text-sm font-semibold text-brand-strong underline-offset-2 hover:underline">
               Receber comprovante por e-mail (opcional)
             </button>
           )}
@@ -664,57 +695,69 @@ function MesaPage() {
               <p className="mt-2 text-[11px] text-muted-foreground">Usamos o e-mail só para este envio. Não é nota fiscal.</p>
             </form>
           )}
-          <Button onClick={() => setEtapa("avaliacao")} className="mt-8 h-12 w-full rounded-lg text-base font-bold">Avaliar atendimento <ChevronRight /></Button>
-          {mesaEncerrada && <Button variant="outline" onClick={() => setEtapa("mesa-encerrada")} className="mt-3 h-12 w-full rounded-lg text-base font-bold">Ver mesa encerrada</Button>}
+          <div className="mt-7 w-full space-y-2">
+            <Button onClick={() => setEtapa("avaliacao")} className="h-12 w-full font-display text-base">Avaliar atendimento <ChevronRight /></Button>
+            {mesaEncerrada && <Button variant="outline" onClick={() => setEtapa("mesa-encerrada")} className="h-12 w-full">Ver mesa encerrada</Button>}
+          </div>
         </TelaCentral>
       )}
 
       {etapaVisivel === "avaliacao" && (
-        <main className="flex flex-1 flex-col px-6 pb-10">
-          <img src={mascotRating} alt="Mascote TIPE com uma estrela" className="mx-auto mb-3 h-28 w-28 object-contain" />
-          <h1 className="text-center text-2xl font-bold">Como foi seu atendimento?</h1>
+        <main className="flex flex-1 flex-col px-5">
+          <img src={mascotRating} alt="Mascote TIPE com uma estrela" width={112} height={112} className="mx-auto h-28 w-28 object-contain" />
+          <h1 className="mt-2 text-center font-display text-[1.65rem] font-semibold leading-tight tracking-heading">Como foi seu atendimento?</h1>
           <p className="mt-2 text-center text-sm text-muted-foreground">Sua avaliação ajuda {dados.garcom ? `o ${dados.garcom}` : "a equipe"} e o restaurante.</p>
-          <div className="mt-8 flex justify-center gap-2">
+          <div className="mt-7 flex justify-center gap-1.5" role="radiogroup" aria-label="Nota do atendimento">
             {[1, 2, 3, 4, 5].map((numero) => (
-              <Button key={numero} variant="ghost" size="icon" onClick={() => setEstrelas(numero)} aria-label={`${numero} estrelas`} className="h-11 w-11">
-                <Star className={`h-8 w-8 ${numero <= estrelas ? "fill-highlight text-highlight" : "text-border"}`} />
-              </Button>
+              <button key={numero} type="button" role="radio" aria-checked={estrelas === numero} onClick={() => setEstrelas(numero)} aria-label={`${numero} ${numero === 1 ? "estrela" : "estrelas"}`} className="grid h-12 w-12 place-items-center rounded-full transition-transform hover:scale-105 active:scale-95">
+                <Star className={`h-9 w-9 transition-colors ${numero <= estrelas ? "fill-highlight text-highlight" : "text-border"}`} />
+              </button>
             ))}
           </div>
           <label htmlFor="comentario" className="mt-8 text-sm font-semibold">Comentário <span className="font-normal text-muted-foreground">(opcional)</span></label>
-          <Textarea id="comentario" value={comentario} onChange={(event) => setComentario(event.target.value)} placeholder="Conte como foi sua experiência" maxLength={400} className="mt-2 min-h-28 rounded-lg bg-card" />
-          <Button onClick={() => { if (estrelas > 0) void submitRating({ data: { restaurantId: restaurante, tableId: String(dados.mesa), session: sessaoMesa, stars: estrelas, comment: comentario.trim() || undefined } }).catch(() => undefined); setEtapa(gorjetaDisponivel ? "gorjeta" : "fim"); }} className="mt-6 h-12 rounded-lg text-base font-bold">Continuar <ChevronRight /></Button>
+          <Textarea id="comentario" value={comentario} onChange={(event) => setComentario(event.target.value)} placeholder="Conte como foi sua experiência" maxLength={400} className="mt-2 min-h-28" />
+          <BarraAcao>
+            <Button onClick={() => { if (estrelas > 0) void submitRating({ data: { restaurantId: restaurante, tableId: String(dados.mesa), session: sessaoMesa, stars: estrelas, comment: comentario.trim() || undefined } }).catch(() => undefined); setEtapa(gorjetaDisponivel ? "gorjeta" : "fim"); }} className="h-12 w-full font-display text-base">{estrelas > 0 ? "Enviar avaliação" : "Continuar"} <ChevronRight /></Button>
+          </BarraAcao>
         </main>
       )}
 
       {etapaVisivel === "gorjeta" && (
-        <main className="flex flex-1 flex-col px-6 pb-10">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/15"><Heart className="h-7 w-7 text-primary" /></div>
-          <h1 className="mt-5 text-center text-2xl font-bold">Quer deixar uma gorjeta extra?</h1>
-           <p className="mt-2 text-center text-sm leading-6 text-muted-foreground">Uma forma opcional de agradecer pelo atendimento.</p>
-          <div className="mt-7 grid grid-cols-3 gap-3">
-            {suggestedTips(valorPago).map((s) => (
-              <Button key={s.label} variant={gorjetaExtra === s.amount && !gorjetaOutro ? "default" : "outline"} onClick={() => { setGorjetaOutro(""); setGorjetaExtra(s.amount); }} className="h-16 flex-col gap-0 rounded-lg text-base font-bold">
-                <span>{s.label}</span>
-                {s.label.endsWith("%") && <span className="text-xs font-normal opacity-80">{money(s.amount)}</span>}
-              </Button>
-            ))}
+        <main className="flex flex-1 flex-col px-5 pb-8">
+          <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-brand-soft"><Heart className="h-6 w-6 text-brand-strong" /></span>
+          <h1 className="mt-5 text-center font-display text-[1.65rem] font-semibold leading-tight tracking-heading">Quer deixar uma gorjeta extra?</h1>
+          <p className="mt-2 text-center text-sm leading-6 text-muted-foreground">É opcional e separada da conta. Uma forma de agradecer pelo atendimento.</p>
+          <div className="mt-7 grid grid-cols-3 gap-2.5" role="radiogroup" aria-label="Valor da gorjeta">
+            {suggestedTips(valorPago).map((s) => {
+              const ativo = gorjetaExtra === s.amount && !gorjetaOutro;
+              return (
+                <button key={s.label} type="button" role="radio" aria-checked={ativo} onClick={() => { setGorjetaOutro(""); setGorjetaExtra(s.amount); }} className={`flex h-16 flex-col items-center justify-center rounded-2xl border font-display text-lg font-semibold transition-colors ${ativo ? "border-primary bg-brand-soft/60 ring-1 ring-primary" : "border-border bg-card hover:border-foreground/25"}`}>
+                  <span>{s.label}</span>
+                  {s.label.endsWith("%") && <span className="money text-xs font-normal text-muted-foreground">{money(s.amount)}</span>}
+                </button>
+              );
+            })}
           </div>
           <label htmlFor="gorjeta-outro" className="mt-4 text-sm font-semibold">Outro valor</label>
           <Input id="gorjeta-outro" inputMode="decimal" maxLength={8} value={gorjetaOutro} placeholder="R$ 0,00" className="mt-1 h-11"
             onChange={(e) => { const t = e.target.value.replace(/[^\d,.]/g, ""); setGorjetaOutro(t); const v = Number(t.includes(",") ? t.replace(/\./g, "").replace(",", ".") : t); setGorjetaExtra(Number.isFinite(v) && v > 0 && v <= 1000 ? Math.round(v * 100) / 100 : 0); }} />
-          <p className="mt-2 text-xs text-muted-foreground">{Math.round(TIP_SPLIT.waiter * 100)}% da gorjeta vai para a equipe e {Math.round(TIP_SPLIT.tipe * 100)}% é a taxa da plataforma TIPE.</p>
-          {gorjetaExtra > 0 && <div className="mt-4 rounded-lg border border-border bg-card p-4 text-sm"><p className="font-semibold">Gorjeta: {money(gorjetaExtra)}</p></div>}
-          <Button disabled={gorjetaExtra <= 0} onClick={() => setEtapa("pagamento-gorjeta")} className="mt-6 h-12 rounded-lg text-base font-bold">Continuar com gorjeta <ChevronRight /></Button>
-          <Button variant="ghost" onClick={() => setEtapa("fim")} className="mt-2 h-11">Agora não, obrigado</Button>
-          <Link to="/legal/$livro" params={{ livro: "termos-de-uso" }} hash="gorjeta-extra" target="_blank" className="mt-3 block text-center text-sm font-semibold text-primary underline-offset-2 hover:underline">Como funciona a gorjeta?</Link>
+          {gorjetaExtra > 0 && (
+            <p className="mt-4 rounded-xl bg-muted px-3 py-2.5 text-xs leading-5 text-muted-foreground">
+              Dos <strong className="money text-foreground">{money(gorjetaExtra)}</strong>, <strong className="money text-foreground">{money(+(gorjetaExtra * TIP_SPLIT.waiter).toFixed(2))}</strong> vão para a equipe e <span className="money">{money(+(gorjetaExtra * TIP_SPLIT.tipe).toFixed(2))}</span> ficam com a TIPE.
+            </p>
+          )}
+          <div className="mt-6 grid gap-2">
+            <Button disabled={gorjetaExtra <= 0} onClick={() => setEtapa("pagamento-gorjeta")} className="h-12 w-full font-display text-base">{gorjetaExtra > 0 ? `Continuar com ${money(gorjetaExtra)}` : "Escolha um valor"}</Button>
+            <Button variant="outline" onClick={() => setEtapa("fim")} className="h-12 w-full">Agora não, obrigado</Button>
+          </div>
+          <Link to="/legal/$livro" params={{ livro: "termos-de-uso" }} hash="gorjeta-extra" target="_blank" className="mt-4 block text-center text-sm font-semibold text-brand-strong underline-offset-2 hover:underline">Como funciona a gorjeta?</Link>
         </main>
       )}
 
       {etapaVisivel === "pagamento-gorjeta" && (
         <Pagamento
           titulo="Pagamento da gorjeta"
-           descricao="Cobrança opcional e separada da conta."
+          descricao="Cobrança opcional e separada da conta."
           rotuloValor="Gorjeta extra"
           valor={gorjetaExtra}
           metodo={metodoGorjeta}
@@ -736,42 +779,174 @@ function MesaPage() {
             loading="lazy"
             width={1024}
             height={1024}
-            className="mx-auto h-52 w-52 object-contain"
+            className="mx-auto h-48 w-48 object-contain"
           />
-          <p className="mt-4 text-sm font-semibold text-primary">Tudo confirmado</p>
-          <h1 className="mt-2 text-2xl font-bold">Mesa encerrada</h1>
-          <p className="mt-3 text-center text-sm leading-6 text-muted-foreground">Todos os itens desta mesa foram pagos e não há pagamentos pendentes.</p>
-          <p className="mt-2 text-center text-xs text-muted-foreground">Uma nova conta será aberta nesta mesa automaticamente em até 2 minutos.</p>
-          <Button variant="outline" onClick={() => { setVoltouParaMesa(true); setEtapa("conta"); setAba("atividade"); }} className="mt-6 h-12 w-full rounded-lg text-base font-bold">Voltar à mesa</Button>
+          <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-3 py-1 text-xs font-semibold text-brand-strong"><Check className="h-3.5 w-3.5" strokeWidth={3} />Tudo confirmado</span>
+          <h1 className="mt-4 font-display text-[1.65rem] font-semibold leading-tight tracking-heading">Mesa encerrada</h1>
+          <p className="mt-3 max-w-xs text-center text-sm leading-6 text-muted-foreground">Todos os itens desta mesa foram pagos e não há pagamentos pendentes.</p>
+          <p className="mt-2 max-w-xs text-center text-xs text-muted-foreground">Uma nova conta será aberta nesta mesa automaticamente em até 2 minutos.</p>
+          <Button variant="outline" onClick={() => { setVoltouParaMesa(true); setEtapa("conta"); setAba("atividade"); }} className="mt-7 h-12 w-full">Voltar à mesa</Button>
         </TelaCentral>
       )}
 
       {etapaVisivel === "fim" && (
         <TelaCentral>
-          <img src={mascotThanks} alt="Mascote TIPE agradecendo" className="mx-auto h-48 w-48 object-contain" />
-          <p className="mt-5 text-sm font-semibold text-primary">Tudo certo, {nome.trim()}!</p>
-          <h1 className="mt-2 text-2xl font-bold">Obrigado pela sua visita.</h1>
-          <p className="mt-3 text-center text-sm leading-6 text-muted-foreground">Sua conta foi paga e sua avaliação foi registrada.</p>
-          {gorjetaExtra > 0 && <div className="mt-3 rounded-lg border border-border bg-card p-3 text-center text-sm"><p className="font-semibold">Gorjeta de {money(gorjetaExtra)} recebida.</p></div>}
+          <img src={mascotThanks} alt="Mascote TIPE agradecendo" width={176} height={176} className="mx-auto h-44 w-44 object-contain" />
+          <p className="mt-4 eyebrow text-brand-strong">Tudo certo, {primeiroNome}!</p>
+          <h1 className="mt-2 font-display text-[1.65rem] font-semibold leading-tight tracking-heading">Obrigado pela sua visita.</h1>
+          <p className="mt-3 max-w-xs text-center text-sm leading-6 text-muted-foreground">Sua conta foi paga e sua avaliação foi registrada.</p>
+          {gorjetaExtra > 0 && <p className="mt-4 rounded-xl bg-brand-soft px-4 py-2.5 text-center text-sm font-semibold text-brand-strong">Gorjeta de <span className="money">{money(gorjetaExtra)}</span> recebida. A equipe agradece!</p>}
           {linkAvaliacao && (
             // Mostrado a todos os clientes, sem filtrar por nota (as regras do Google proíbem pedir avaliação só de quem gostou).
-            <a href={linkAvaliacao} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex h-11 items-center justify-center gap-2 rounded-lg border border-border bg-card px-5 text-sm font-semibold hover:border-primary">
+            <a href={linkAvaliacao} target="_blank" rel="noopener noreferrer" className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-5 text-sm font-semibold hover:border-primary">
               <Star className="h-4 w-4 text-highlight" aria-hidden /> Avaliar {dados.restaurante} no Google
             </a>
           )}
-          {mesaEncerrada && (
-            <Button onClick={() => setEtapa("mesa-encerrada")} className="mt-8 h-12 w-full rounded-lg text-base font-bold">Ver mesa encerrada <ChevronRight /></Button>
-          )}
-          <Button variant="outline" onClick={() => { setVoltouParaMesa(true); setEtapa("conta"); setAba("atividade"); }} className="mt-6 h-12 w-full rounded-lg text-base font-bold">Voltar à mesa</Button>
+          <div className="mt-8 w-full space-y-2">
+            {mesaEncerrada && <Button onClick={() => setEtapa("mesa-encerrada")} className="h-12 w-full font-display text-base">Ver mesa encerrada <ChevronRight /></Button>}
+            <Button variant="outline" onClick={() => { setVoltouParaMesa(true); setEtapa("conta"); setAba("atividade"); }} className="h-12 w-full">Voltar à mesa</Button>
+          </div>
         </TelaCentral>
       )}
     </div>
   );
 }
 
-function ResumoLinha({ label, valor, className = "" }: { label: string; valor: number; className?: string }) {
-  return <div className={`flex justify-between gap-4 ${className}`}><span className="text-muted-foreground">{label}</span><span>{money(valor)}</span></div>;
+/* ----------------------------------------------------------------------------
+ * Peças visuais da conta. Nenhuma delas tem regra de negócio: só apresentação.
+ * -------------------------------------------------------------------------- */
+
+const PASSOS = ["Conta", "Pagamento", "Pronto"] as const;
+function passoDaEtapa(etapa: Etapa) {
+  if (etapa === "conta") return 0;
+  if (etapa === "pagamento-conta" || etapa === "pix" || etapa === "conta-pendente") return 1;
+  return 2;
 }
+
+/** Topo leve: logo, restaurante, mesa e progresso em três passos. */
+function MesaTopo({ restaurante, mesa, etapa, mostrarMesa, aoVivo }: { restaurante: string; mesa: string; etapa: Etapa; mostrarMesa: boolean; aoVivo: boolean }) {
+  const passo = passoDaEtapa(etapa);
+  return (
+    <header className="px-5 pb-5 pt-5">
+      <div className="flex items-center justify-between gap-3">
+        <span className="inline-flex">
+          <img src={logoDark.url} alt="TIPE" width={92} height={28} className="h-7 w-auto [@media(prefers-color-scheme:dark)]:hidden" />
+          <img src={logoLight.url} alt="TIPE" width={92} height={28} className="hidden h-7 w-auto [@media(prefers-color-scheme:dark)]:block" />
+        </span>
+        {mostrarMesa && (
+          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card px-3 py-1 text-xs font-semibold">
+            <span className={`h-1.5 w-1.5 rounded-full ${aoVivo ? "tipe-live bg-primary" : "bg-muted-foreground/40"}`} aria-hidden />
+            Mesa {mesa}
+          </span>
+        )}
+      </div>
+      {mostrarMesa && (
+        <>
+          {restaurante && <p className="mt-4 truncate text-sm text-muted-foreground">{restaurante}</p>}
+          <ol className="mt-3 grid grid-cols-3 gap-2" aria-label="Etapas do pagamento">
+            {PASSOS.map((rotulo, indice) => (
+              <li key={rotulo} aria-current={indice === passo ? "step" : undefined}>
+                <span className={`block h-1 rounded-full transition-colors ${indice <= passo ? "bg-primary" : "bg-border"}`} />
+                <span className={`mt-1.5 block text-[11px] font-semibold ${indice === passo ? "text-foreground" : "text-muted-foreground"}`}>{rotulo}</span>
+              </li>
+            ))}
+          </ol>
+        </>
+      )}
+    </header>
+  );
+}
+
+/** Esqueleto da conta enquanto a mesa carrega (sem saltos de layout). */
+function ContaCarregando() {
+  return (
+    <main className="flex flex-1 flex-col px-5" aria-busy="true" aria-label="Carregando mesa">
+      <div className="h-8 w-40 animate-pulse rounded-lg bg-muted motion-reduce:animate-none" />
+      <div className="mt-2 h-4 w-56 animate-pulse rounded bg-muted motion-reduce:animate-none" />
+      <div className="mt-6 h-12 animate-pulse rounded-full bg-muted motion-reduce:animate-none" />
+      <div className="mt-6 space-y-2.5">
+        {[0, 1, 2].map((i) => <div key={i} className="h-[104px] animate-pulse rounded-2xl bg-muted motion-reduce:animate-none" />)}
+      </div>
+      <span className="sr-only">Carregando a conta da mesa…</span>
+    </main>
+  );
+}
+
+/** Ação principal fixa no rodapé, sempre ao alcance do polegar. */
+function BarraAcao({ children }: { children: React.ReactNode }) {
+  return (
+    <div className="sticky bottom-0 z-10 -mx-5 mt-6 border-t border-border bg-background/90 px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3 backdrop-blur-md">
+      {children}
+    </div>
+  );
+}
+
+function Spinner({ className = "" }: { className?: string }) {
+  return <span aria-hidden className={cn("inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-muted border-t-primary motion-reduce:animate-none", className)} />;
+}
+
+function EstadoPagamento({ status }: { status: SharedPayment["status"] }) {
+  const cls = status === "approved" ? "bg-brand-soft text-brand-strong" : status === "pending" ? "bg-highlight/15 text-foreground" : "bg-destructive/12 text-destructive";
+  return <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold ${cls}`}>{PAYMENT_STATUS_LABEL[status] ?? "Pendente"}</span>;
+}
+
+function MarcaSucesso() {
+  return (
+    <span className="tipe-approved-mark relative grid h-20 w-20 place-items-center rounded-full bg-primary text-primary-foreground shadow-[0_18px_40px_-14px_var(--brand-primary)]">
+      <span aria-hidden className="absolute inset-0 rounded-full ring-8 ring-primary/15" />
+      <Check className="h-10 w-10" strokeWidth={3} />
+    </span>
+  );
+}
+
+function LinhaRecibo({ rotulo, children }: { rotulo: string; children: React.ReactNode }) {
+  return (
+    <div className="flex items-baseline justify-between gap-4 border-b border-border py-2.5 first:pt-0 last:border-0 last:pb-0">
+      <dt className="text-muted-foreground">{rotulo}</dt>
+      <dd className="text-right font-semibold">{children}</dd>
+    </div>
+  );
+}
+
+const metodoNome = (id: string) => metodos.find((m) => m.id === id)?.label ?? (id === "card" ? "Cartão" : "Pagamento");
+
+function PixPagamento({ codigo, qrUrl, valor }: { codigo: string; qrUrl?: string | undefined; valor: number }) {
+  const [copiado, setCopiado] = useState(false);
+  useEffect(() => {
+    if (!copiado) return;
+    const t = window.setTimeout(() => setCopiado(false), 2500);
+    return () => window.clearTimeout(t);
+  }, [copiado]);
+  return (
+    <main className="flex flex-1 flex-col px-5 pb-8">
+      <p className="eyebrow text-brand-strong">Pix gerado</p>
+      <h1 className="mt-2 font-display text-[1.65rem] font-semibold leading-tight tracking-heading">Pague com Pix</h1>
+      <p className="mt-2 text-sm leading-6 text-muted-foreground">Abra o app do seu banco e use o QR Code ou o código copia e cola. A confirmação aparece aqui sozinha.</p>
+      <div className="mt-6 rounded-3xl border border-border bg-card p-5 text-center">
+        <p className="text-xs text-muted-foreground">Valor</p>
+        <p className="money mt-0.5 font-display text-3xl font-semibold tracking-heading">{money(valor)}</p>
+        {qrUrl && <img src={qrUrl} alt="QR Code do Pix" width={208} height={208} className="mx-auto mt-5 h-52 w-52 rounded-2xl bg-white p-2" />}
+        <p className="mt-5 break-all rounded-xl bg-muted p-3 text-left font-mono text-[11px] leading-relaxed text-muted-foreground">{codigo}</p>
+        <Button onClick={() => { void navigator.clipboard.writeText(codigo).then(() => setCopiado(true)).catch(() => undefined); }} variant={copiado ? "soft" : "default"} className="mt-4 h-12 w-full font-display text-base">
+          {copiado ? <><Check /> Código copiado</> : <><Copy /> Copiar código Pix</>}
+        </Button>
+      </div>
+      <p role="status" className="mt-5 flex items-center justify-center gap-2 text-sm text-muted-foreground"><Spinner />Aguardando a confirmação do banco…</p>
+    </main>
+  );
+}
+
+function ResumoLinha({ label, valor, className = "", destaque = false }: { label: string; valor: number; className?: string; destaque?: boolean }) {
+  return (
+    <div className={`flex items-baseline justify-between gap-4 ${className}`}>
+      <span className={destaque ? "font-display text-base font-semibold" : "text-muted-foreground"}>{label}</span>
+      <span className={`money ${destaque ? "font-display text-lg font-semibold" : ""}`}>{money(valor)}</span>
+    </div>
+  );
+}
+
+// Carteiras digitais ainda não estão ativas no provedor: aparecem, mas não podem ser escolhidas.
+const EM_BREVE = new Set<Metodo>(["apple_pay", "google_pay"]);
 
 function Pagamento({ extra, titulo, descricao, rotuloValor, valor, metodo, setMetodo, pagando, erro, voltar, pagar, permitirEstabelecimento = false, metodosAceitos, metodoEstabelecimento, setMetodoEstabelecimento, valorDinheiro = "", setValorDinheiro, cartao, setCartao }: {
   extra?: React.ReactNode;
@@ -797,95 +972,113 @@ function Pagamento({ extra, titulo, descricao, rotuloValor, valor, metodo, setMe
   const [aceitouTermos, setAceitouTermos] = useState(false);
   const opcoes = permitirEstabelecimento
     ? metodos.filter((opcao) => opcao.id !== "card" && (!metodosAceitos || metodosAceitos.includes(opcao.id)))
-    : metodos.filter((opcao) => opcao.id !== "at_establishment");
+    // Na gorjeta, cartão só aparece quando o provedor está configurado para tokenizar.
+    : metodos.filter((opcao) => opcao.id !== "at_establishment" && (opcao.id !== "card" || !!cartao));
+  const ativas = opcoes.filter((opcao) => !EM_BREVE.has(opcao.id));
+  const emBreve = opcoes.filter((opcao) => EM_BREVE.has(opcao.id));
+  const dinheiro = Number(valorDinheiro.replace(",", "."));
+  const bloqueado = !metodo || EM_BREVE.has(metodo) || pagando || (permitirEstabelecimento && !aceitouTermos) || (metodo === "at_establishment" && (!metodoEstabelecimento || (metodoEstabelecimento === "cash" && dinheiro < valor))) || (metodo === "card" && !!cartao && !cardValid(cartao));
   return (
-    <main className="flex flex-1 flex-col px-5 pb-8">
-      <Button variant="ghost" onClick={voltar} className="mb-4 w-fit px-2 text-muted-foreground"><ArrowLeft /> Voltar</Button>
-      <h1 className="font-display text-2xl font-extrabold">{titulo}</h1>
+    <main className="flex flex-1 flex-col px-5">
+      <button type="button" onClick={voltar} className="-ml-2 mb-3 inline-flex w-fit items-center gap-1.5 rounded-full px-2 py-1.5 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"><ArrowLeft className="h-4 w-4" /> Voltar</button>
+      <h1 className="font-display text-[1.65rem] font-semibold leading-tight tracking-heading">{titulo}</h1>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">{descricao}</p>
-      <div className="my-6 rounded-2xl bg-muted/60 p-5 text-center">
-         <p className="text-xs text-muted-foreground">{rotuloValor}</p>
-        <p className="mt-1 font-display text-3xl font-extrabold">{money(valor)}</p>
+      <div className="my-6 rounded-3xl bg-secondary px-5 py-6 text-center text-secondary-foreground">
+        <p className="text-xs text-secondary-foreground/65">{rotuloValor}</p>
+        <p className="money mt-1 font-display text-[2.4rem] font-semibold leading-none tracking-heading">{money(valor)}</p>
         {extra}
       </div>
-       <h2 className="text-sm font-semibold">Como deseja pagar?</h2>
-       <div className="mt-3 flex flex-col gap-2.5">
-         {opcoes.map((opcao) => {
-           const { descricao: descricaoMetodo, Icone } = metodoDetalhes[opcao.id];
-           const selecionado = metodo === opcao.id;
-           return (
-             <Button
-                key={opcao.id}
-               variant="outline"
-                onClick={() => { setMetodo(opcao.id); if (opcao.id !== "at_establishment") setMetodoEstabelecimento?.(null); }}
-               className={`h-auto min-h-16 justify-start rounded-2xl px-4 py-3.5 text-left shadow-none transition-all ${selecionado ? "border-2 border-primary bg-primary/10" : "bg-card"}`}
-             >
-               <span className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${selecionado ? "bg-secondary text-secondary-foreground" : "bg-muted text-foreground"}`}><Icone className="h-4 w-4" /></span>
-               <span className="min-w-0 flex-1">
-                 <span className="block font-bold">{opcao.label}</span>
-                 <span className="block text-xs font-normal text-muted-foreground">{descricaoMetodo}</span>
-               </span>
-                {selecionado
-                  ? <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary" aria-hidden="true"><Check className="h-3 w-3 text-primary-foreground" /></span>
-                  : <span className="h-5 w-5 shrink-0 rounded-full border-2 border-input" aria-hidden="true" />}
-             </Button>
-           );
-         })}
+      <h2 className="text-sm font-semibold">Forma de pagamento</h2>
+      <div className="mt-3 flex flex-col gap-2.5" role="radiogroup" aria-label="Forma de pagamento">
+        {ativas.map((opcao) => {
+          const { descricao: descricaoMetodo, Icone } = metodoDetalhes[opcao.id];
+          const selecionado = metodo === opcao.id;
+          return (
+            <button
+              key={opcao.id}
+              type="button"
+              role="radio"
+              aria-checked={selecionado}
+              onClick={() => { setMetodo(opcao.id); if (opcao.id !== "at_establishment") setMetodoEstabelecimento?.(null); }}
+              className={`flex min-h-16 w-full items-center gap-3 rounded-2xl border bg-card px-4 py-3.5 text-left transition-colors ${selecionado ? "border-primary bg-brand-soft/40 ring-1 ring-primary" : "border-border hover:border-foreground/25"}`}
+            >
+              <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${selecionado ? "bg-secondary text-secondary-foreground" : "bg-muted text-foreground"}`}><Icone className="h-4 w-4" /></span>
+              <span className="min-w-0 flex-1">
+                <span className="block font-semibold">{opcao.label}</span>
+                <span className="block text-xs text-muted-foreground">{descricaoMetodo}</span>
+              </span>
+              {selecionado
+                ? <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-primary" aria-hidden="true"><Check className="h-3 w-3 text-primary-foreground" strokeWidth={3} /></span>
+                : <span className="h-5 w-5 shrink-0 rounded-full border-2 border-input" aria-hidden="true" />}
+            </button>
+          );
+        })}
+        {emBreve.length > 0 && (
+          <div className="flex items-center gap-3 rounded-2xl border border-dashed border-border px-4 py-3 text-left opacity-70" aria-disabled="true">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-muted"><Smartphone className="h-4 w-4" /></span>
+            <span className="min-w-0 flex-1">
+              <span className="block font-semibold">{emBreve.map((o) => o.label).join(" e ")}</span>
+              <span className="block text-xs text-muted-foreground">Ainda não disponível</span>
+            </span>
+            <span className="shrink-0 rounded-full bg-muted px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">Em breve</span>
+          </div>
+        )}
       </div>
-       {metodo === "at_establishment" && permitirEstabelecimento && setMetodoEstabelecimento && (
-         <div className="mt-4 rounded-2xl border border-border bg-muted/40 p-4">
-           <h3 className="text-sm font-semibold">Como você pagará no estabelecimento?</h3>
-           <div className="mt-3 grid grid-cols-2 gap-2">
-             <Button type="button" variant={metodoEstabelecimento === "cash" ? "default" : "outline"} onClick={() => setMetodoEstabelecimento("cash")} className="h-11 rounded-full">Dinheiro</Button>
-              <Button type="button" variant={metodoEstabelecimento === "card_terminal" ? "default" : "outline"} onClick={() => setMetodoEstabelecimento("card_terminal")} className="h-11 rounded-full">Maquininha</Button>
-           </div>
-           {metodoEstabelecimento === "cash" && setValorDinheiro && (
-             <div className="mt-4">
-               <label htmlFor="cash-received" className="text-sm font-semibold">Quanto você entregará em dinheiro?</label>
-               <Input id="cash-received" type="number" inputMode="decimal" min={valor} max={100000} step="0.01" value={valorDinheiro} onChange={(event) => setValorDinheiro(event.target.value)} placeholder={money(valor)} className="mt-2 h-12 bg-card" />
-               {Number(valorDinheiro.replace(",", ".")) >= valor && <p className="mt-2 text-sm font-semibold text-primary">Troco: {money(Math.round((Number(valorDinheiro.replace(",", ".")) - valor) * 100) / 100)}</p>}
-               {valorDinheiro && Number(valorDinheiro.replace(",", ".")) < valor && <p role="alert" className="mt-2 text-xs text-destructive">O valor precisa cobrir o total da conta.</p>}
-             </div>
-           )}
-           {metodoEstabelecimento && <p className="mt-4 text-sm leading-6 text-muted-foreground">{metodoEstabelecimento === "cash" ? "Prepare o dinheiro. O garçom tratará do seu troco em breve." : "O garçom irá em instantes até sua mesa com a maquininha."}</p>}
-         </div>
-       )}
-       {permitirEstabelecimento && (
-         <div className="mt-5 flex items-start gap-3 rounded-lg border border-border bg-card p-4">
-           <Checkbox id="aceite-termos" checked={aceitouTermos} onCheckedChange={(checked) => setAceitouTermos(checked === true)} className="mt-0.5 h-5 w-5" />
-           <label htmlFor="aceite-termos" className="text-xs leading-5 text-muted-foreground">
-             Confirmo que revisei e me responsabilizo pelos itens selecionados. Aceito os{" "}
-             <Dialog>
-               <DialogTrigger asChild><Button type="button" variant="link" className="h-auto p-0 text-xs font-semibold align-baseline">Termos de Uso</Button></DialogTrigger>
-               <DialogContent className="max-h-[85svh] max-w-[calc(100%-2rem)] overflow-y-auto rounded-lg">
-                 <DialogHeader>
-                   <DialogTitle>Termos de Uso do pagamento</DialogTitle>
-                   <DialogDescription>Leia antes de confirmar sua parte da conta.</DialogDescription>
-                 </DialogHeader>
-                 <div className="space-y-4 text-sm leading-6 text-muted-foreground">
-                   <p>Ao continuar, você declara que conferiu os itens e as quantidades escolhidas e reconhece que este pagamento cobre somente essa seleção.</p>
-                   <p>Após a confirmação, os itens pagos serão retirados do saldo disponível da mesa. Valores ainda não pagos permanecerão na conta.</p>
-                   <p>Pagamentos digitais são confirmados automaticamente. Pagamentos em dinheiro ou maquininha permanecem pendentes até a confirmação manual do restaurante.</p>
-                   <p>Em caso de divergência, procure o restaurante antes de concluir o pagamento.</p>
-                 </div>
-               </DialogContent>
-             </Dialog>.
-           </label>
-         </div>
-       )}
+      {metodo === "at_establishment" && permitirEstabelecimento && setMetodoEstabelecimento && (
+        <div className="mt-4 rounded-2xl border border-border bg-muted/50 p-4">
+          <h3 className="text-sm font-semibold">Como você vai pagar no estabelecimento?</h3>
+          <div className="mt-3 grid grid-cols-2 gap-1 rounded-full bg-muted p-1" role="radiogroup" aria-label="Pagamento no estabelecimento">
+            {([["cash", "Dinheiro"], ["card_terminal", "Maquininha"]] as const).map(([id, rotulo]) => (
+              <button key={id} type="button" role="radio" aria-checked={metodoEstabelecimento === id} onClick={() => setMetodoEstabelecimento(id)} className={`h-10 rounded-full text-sm font-semibold transition-colors ${metodoEstabelecimento === id ? "bg-card text-foreground shadow-xs" : "text-muted-foreground"}`}>{rotulo}</button>
+            ))}
+          </div>
+          {metodoEstabelecimento === "cash" && setValorDinheiro && (
+            <div className="mt-4">
+              <label htmlFor="cash-received" className="text-sm font-semibold">Quanto você vai entregar em dinheiro?</label>
+              <Input id="cash-received" type="number" inputMode="decimal" min={valor} max={100000} step="0.01" value={valorDinheiro} onChange={(event) => setValorDinheiro(event.target.value)} placeholder={money(valor)} className="money mt-2 h-12" />
+              {dinheiro >= valor && <p className="mt-2 text-sm font-semibold text-brand-strong">Troco: <span className="money">{money(Math.round((dinheiro - valor) * 100) / 100)}</span></p>}
+              {valorDinheiro && dinheiro < valor && <p role="alert" className="mt-2 text-xs text-destructive">O valor precisa cobrir o total da conta.</p>}
+            </div>
+          )}
+          {metodoEstabelecimento && <p className="mt-4 text-sm leading-6 text-muted-foreground">{metodoEstabelecimento === "cash" ? "Prepare o dinheiro. O garçom tratará do seu troco em breve." : "O garçom irá em instantes até sua mesa com a maquininha."}</p>}
+        </div>
+      )}
       {metodo === "card" && cartao && setCartao && <div className="mt-5"><CardFields value={cartao} onChange={setCartao} /></div>}
-      {erro && <p role="alert" className="mt-4 text-sm text-destructive">{erro}</p>}
-        <Button disabled={!metodo || pagando || (permitirEstabelecimento && !aceitouTermos) || (metodo === "at_establishment" && (!metodoEstabelecimento || (metodoEstabelecimento === "cash" && Number(valorDinheiro.replace(",", ".")) < valor))) || (metodo === "card" && !!cartao && !cardValid(cartao))} onClick={pagar} className="mt-6 h-12 rounded-full font-display text-base font-bold">{pagando ? "Processando…" : `Pagar ${money(valor)}`}</Button>
-        <p className="mt-3 text-center text-xs leading-5 text-muted-foreground">Ao continuar, você concorda com os <Link to="/legal/$livro" params={{ livro: "termos-de-uso" }} target="_blank" className="underline underline-offset-2">Termos de Uso</Link> e a <Link to="/legal/$livro" params={{ livro: "privacidade" }} target="_blank" className="underline underline-offset-2">Política de Privacidade</Link>.</p>
-         {metodo === "at_establishment" && metodoEstabelecimento && <p className="mt-3 text-center text-xs text-muted-foreground">O garçom verá {metodoEstabelecimento === "cash" ? "o valor entregue e o troco" : "que o pagamento será na maquininha"} antes de confirmar.</p>}
+      {permitirEstabelecimento && (
+        <div className="mt-5 flex items-start gap-3 rounded-2xl border border-border bg-card p-4">
+          <Checkbox id="aceite-termos" checked={aceitouTermos} onCheckedChange={(checked) => setAceitouTermos(checked === true)} className="mt-0.5 h-5 w-5" />
+          <label htmlFor="aceite-termos" className="text-xs leading-5 text-muted-foreground">
+            Confirmo que revisei e me responsabilizo pelos itens selecionados. Aceito os{" "}
+            <Dialog>
+              <DialogTrigger asChild><button type="button" className="font-semibold text-brand-strong underline-offset-2 hover:underline">Termos de Uso</button></DialogTrigger>
+              <DialogContent className="max-h-[85svh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Termos de Uso do pagamento</DialogTitle>
+                  <DialogDescription>Leia antes de confirmar sua parte da conta.</DialogDescription>
+                </DialogHeader>
+                <div className="space-y-4 text-sm leading-6 text-muted-foreground">
+                  <p>Ao continuar, você declara que conferiu os itens e as quantidades escolhidas e reconhece que este pagamento cobre somente essa seleção.</p>
+                  <p>Após a confirmação, os itens pagos serão retirados do saldo disponível da mesa. Valores ainda não pagos permanecerão na conta.</p>
+                  <p>Pagamentos digitais são confirmados automaticamente. Pagamentos em dinheiro ou maquininha permanecem pendentes até a confirmação manual do restaurante.</p>
+                  <p>Em caso de divergência, procure o restaurante antes de concluir o pagamento.</p>
+                </div>
+              </DialogContent>
+            </Dialog>.
+          </label>
+        </div>
+      )}
+      {erro && <p role="alert" className="mt-4 rounded-xl bg-destructive/10 px-3 py-2.5 text-sm text-destructive">{erro}</p>}
+      <BarraAcao>
+        <Button disabled={bloqueado} onClick={pagar} className="h-13 w-full font-display text-base">
+          {pagando ? <><Spinner className="border-primary-foreground/30 border-t-primary-foreground" /> Processando…</> : <>Pagar <span className="money">{money(valor)}</span></>}
+        </Button>
+        {metodo === "at_establishment" && metodoEstabelecimento && <p className="mt-2 text-center text-xs text-muted-foreground">O garçom verá {metodoEstabelecimento === "cash" ? "o valor entregue e o troco" : "que o pagamento será na maquininha"} antes de confirmar.</p>}
+        <p className="mt-2 text-center text-[11px] leading-4 text-muted-foreground">Ao continuar, você concorda com os <Link to="/legal/$livro" params={{ livro: "termos-de-uso" }} target="_blank" className="underline underline-offset-2">Termos de Uso</Link> e a <Link to="/legal/$livro" params={{ livro: "privacidade" }} target="_blank" className="underline underline-offset-2">Política de Privacidade</Link>.</p>
+      </BarraAcao>
     </main>
   );
 }
 
-function IconeSucesso() {
-  return <div className="mx-auto mb-5 flex h-20 w-20 items-center justify-center rounded-full bg-primary/15"><Check className="h-10 w-10 text-primary" /></div>;
-}
-
 function TelaCentral({ children }: { children: React.ReactNode }) {
-  return <main className="flex flex-1 flex-col items-center justify-center px-6 pb-20 text-center">{children}</main>;
+  return <main className="flex flex-1 flex-col items-center justify-center px-6 pb-16 text-center">{children}</main>;
 }
