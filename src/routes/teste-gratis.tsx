@@ -375,7 +375,7 @@ const GRUPOS: { id: string; nome: string; cor: string; slides: Slide[] }[] = [
         titulo: "Seu salão inteiro numa tela só.",
         texto: "Mesas, pagamentos e equipe em tempo real, no computador, no tablet ou no celular.",
         scene: "gestor",
-        alt: "Dona de restaurante sorrindo com o tablet no salão",
+        alt: "Dona de restaurante trabalhando no tablet, no balcão",
         selo: ["Ao vivo", "5 de 8 mesas abertas"],
         link: ["/#painel", "Conhecer o painel"],
       },

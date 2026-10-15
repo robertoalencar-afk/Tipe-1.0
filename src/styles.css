@@ -588,22 +588,6 @@
   text-transform: none;
 }
 
-/* Mesa Viva e lebre minimalista */
-@keyframes mv-scan { 0% { top: 4%; } 50% { top: 92%; } 100% { top: 4%; } }
-.mv-scan { animation: mv-scan 2.4s ease-in-out infinite; }
-@keyframes mv-pop { from { opacity: 0; transform: translateY(14px) scale(0.92); } to { opacity: 1; transform: none; } }
-.mv-pop { animation: mv-pop 500ms 1.1s cubic-bezier(.3,1.4,.5,1) both; }
-@keyframes mv-item { from { opacity: 0; transform: translateX(18px); } to { opacity: 1; transform: none; } }
-.mv-item { animation: mv-item 420ms cubic-bezier(.2,.8,.2,1) both; animation-delay: calc(var(--i, 0) * 260ms + 250ms); }
-@keyframes mv-pulse { 0%, 100% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--color-brand) 55%, transparent); } 50% { box-shadow: 0 0 0 8px transparent; } }
-.mv-pulse { animation: mv-pulse 1.8s ease-in-out infinite; }
-@keyframes lebre-pulo { 0% { transform: translateY(0) scale(1, 1); } 30% { transform: translateY(-14px) scale(0.96, 1.05); } 60% { transform: translateY(0) scale(1.05, 0.95); } 100% { transform: none; } }
-.lebre-pulo { animation: lebre-pulo 600ms cubic-bezier(.3,.7,.4,1) both; transform-origin: 50% 100%; }
-@keyframes lebre-fala { from { opacity: 0; transform: translateY(8px) scale(0.9); } to { opacity: 1; transform: none; } }
-.lebre-fala { animation: lebre-fala 400ms 250ms cubic-bezier(.3,1.4,.5,1) both; transform-origin: 0 100%; }
-@media (prefers-reduced-motion: reduce) {
-  .mv-scan, .mv-pop, .mv-item, .mv-pulse, .lebre-pulo, .lebre-fala { animation: none !important; }
-}
 @keyframes faixa { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 .faixa { animation: faixa 38s linear infinite; }
 @media (prefers-reduced-motion: reduce) { .faixa { animation: none; } }

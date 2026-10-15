@@ -191,17 +191,17 @@ function Hero() {
     <section className="relative -mt-16 overflow-hidden pt-16">
       <div className="container-page grid items-center gap-10 pb-16 pt-8 sm:pt-12 lg:grid-cols-[0.95fr_1.05fr] lg:gap-20 lg:pb-24 lg:pt-14">
         <div className="max-w-[44rem] lg:order-2">
-          <p className="hero-in font-display text-[clamp(1.5rem,1.1rem+1.4vw,2.2rem)] font-normal tracking-[-0.02em] text-brand-strong">
-            Pague. Sem esperar.
+          <p className="hero-in font-display text-[clamp(1.2rem,1rem+0.8vw,1.6rem)] font-normal tracking-[-0.02em] text-brand-strong">
+            Pagamento na mesa por QR Code
           </p>
-          <h1 className="mt-5 font-display text-[clamp(3rem,1.3rem+4.8vw,5.4rem)] font-medium leading-[0.98]">
+          <h1 className="mt-5 font-display text-[clamp(3.4rem,1.4rem+5.6vw,6.2rem)] font-medium leading-[0.95]">
             <span className="hero-in block" style={{ "--d": "80ms" } as CSSProperties}>
-              A conta já está
+              Pague.
             </span>
             <span className="hero-in block" style={{ "--d": "180ms" } as CSSProperties}>
               <span className="relative inline-block">
-                na mesa.
-                <Bigodes className="absolute -right-[1.3em] top-[0.3em] h-[0.66em] w-[1.08em]" />
+                Sem esperar.
+                <Bigodes className="absolute -right-[1.2em] top-[0.34em] h-[0.4em] w-[1.05em]" />
               </span>
             </span>
           </h1>
@@ -855,7 +855,7 @@ function QuemGerencia() {
           <div className="grid gap-5 lg:grid-cols-[0.42fr_1fr]">
             <EditorialPhoto
               scene="gestor"
-              alt="Dona de restaurante sorrindo no salão cheio, acompanhando as mesas no painel da Tipe pelo tablet"
+              alt="Dona de restaurante no balcão, conferindo as mesas no painel da Tipe pelo tablet"
               aspect="4/5"
               sizes="(min-width: 1024px) 28vw, 92vw"
               position="50% 45%"

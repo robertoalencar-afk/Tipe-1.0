@@ -42,3 +42,10 @@ Nada de pagamento, PDV, KDS, banco ou Pagar.me foi tocado. `bun.lock` intocado.
 - Bigodes refeitos com traço grosso e focinho verde, para ler claramente como a lebre.
 - `/teste-gratis` refeita na estrutura da página de demonstração da sunday, lida com o REA (inspect_web_page, só estrutura): título e formulário no topo, faixa rolando, frases grandes com foto embutida guiadas pela rolagem e carrosséis por público (cliente, equipe, caixa, dono) com navegação em pílulas.
 - Nova foto da dona do restaurante (Gemini, com o painel real da Tipe como referência na tela do tablet). Original em `fotos-ia/gestor.jpg`; versão anterior em `gestor-v2.jpg`.
+
+## Rodada 15/10 19:48
+- Título curto "Pague. Sem esperar." na mesma fonte, com bigodes finos (três fios e um ponto de focinho).
+- Símbolo oficial recortado do logo (src/assets/tipe-simbolo.png) nas faixas e na página de teste grátis.
+- Mesa Viva voltou à versão anterior (GSAP), com CTA para /teste-gratis, mascotes maiores e fechamento "A conta já está na mesa." para não repetir o título.
+- Nova foto da dona: mulher simples, de pele branca, trabalhando no tablet do balcão (fotos-ia/gestor-v4a.jpg).
+- Pendente: seção de celulares no estilo Sunday, aguardando captura do REA no trecho certo da página.
