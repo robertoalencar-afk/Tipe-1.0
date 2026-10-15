@@ -5,7 +5,7 @@ import { useEffect } from "react";
 import { z } from "zod";
 import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { TipeLogo } from "@/components/tipe/Logo";
+import { AreaShell } from "@/components/tipe/AreaShell";
 import { Button } from "@/components/ui/button";
 import { getMyAccess } from "@/lib/tipe/staff.functions";
 
@@ -46,37 +46,31 @@ function Painel() {
   }, [access.data, navigate]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <header className="flex items-center justify-between gap-3 bg-secondary px-4 py-3 text-secondary-foreground">
-        <TipeLogo className="h-9" />
-        <div className="flex items-center gap-2">
-          <Button size="sm" variant="ghost" onClick={sair} className="text-secondary-foreground"><LogOut className="mr-1 h-4 w-4" />Sair</Button>
-        </div>
-      </header>
-      <main className="mx-auto max-w-6xl p-4">
-        {access.isLoading && <p className="text-muted-foreground">Carregando…</p>}
+    <AreaShell eyebrow="Meus restaurantes" actions={<Button size="sm" variant="ghost" onClick={sair} className="text-muted-foreground"><LogOut className="h-4 w-4" />Sair</Button>}>
+      <div className="mx-auto max-w-4xl">
+        {access.isLoading && <div className="grid gap-3 sm:grid-cols-2">{[0, 1].map((i) => <div key={i} className="h-24 animate-pulse rounded-2xl bg-surface motion-reduce:animate-none" />)}</div>}
         {access.error && <p className="text-destructive">{(access.error as Error).message}</p>}
         {access.data && !slug && <SemAcesso isFounder={access.data.isFounder} email={access.data.email} />}
         {access.data && access.data.restaurants.length > 0 && (
           <div className="grid gap-3 sm:grid-cols-2">
             {access.data.restaurants.map((x) => (
-              <Link key={x.slug} to="/$restaurante" params={{ restaurante: x.slug }} className="rounded-2xl border border-border bg-card p-5 hover:border-primary">
-                <div className="font-display text-lg font-bold">{x.name}</div>
+              <Link key={x.slug} to="/$restaurante" params={{ restaurante: x.slug }} className="surface-card p-5 transition-[border-color,box-shadow] hover:border-foreground/25 hover:shadow-soft">
+                <div className="font-display text-lg font-semibold">{x.name}</div>
                 <div className="text-sm text-muted-foreground">tipe.digital/{x.slug}</div>
               </Link>
             ))}
           </div>
         )}
-      </main>
-    </div>
+      </div>
+    </AreaShell>
   );
 }
 
 function SemAcesso({ isFounder, email }: { isFounder: boolean; email: string }) {
   if (isFounder) return null;
   return (
-    <div className="mx-auto max-w-md rounded-2xl border border-border bg-card p-6 text-center">
-      <h1 className="font-display text-lg font-bold">Você ainda não faz parte de uma equipe</h1>
+    <div className="surface-card mx-auto mt-6 max-w-md p-6 text-center">
+      <h1 className="font-display text-lg font-semibold">Você ainda não faz parte de uma equipe</h1>
       <p className="mt-2 text-sm text-muted-foreground">Peça ao dono do restaurante para adicionar o e-mail <strong>{email}</strong> na aba Equipe.</p>
     </div>
   );
