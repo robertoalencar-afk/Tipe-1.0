@@ -15,6 +15,7 @@ import {
   QrCode,
   ReceiptText,
   ShieldCheck,
+  Smartphone,
   Sparkles,
   Star,
   Users,
@@ -225,8 +226,8 @@ function Hero() {
             className="hero-in mt-6 max-w-[34rem] text-lg leading-relaxed text-muted-foreground text-pretty sm:text-xl"
             style={{ "--d": "280ms" } as CSSProperties}
           >
-            O cliente aponta a câmera para o QR Code da mesa, divide a conta e paga com Pix. Sem
-            baixar aplicativo e sem esperar a maquininha.
+            O cliente aponta a câmera para o QR Code da mesa, divide a conta e paga com Pix, Apple
+            Pay ou Google Pay. Sem baixar aplicativo e sem esperar a maquininha.
           </p>
           <div
             className="hero-in mt-8 flex flex-wrap items-center gap-3"
@@ -383,7 +384,7 @@ function NaMesa() {
   const metodos = [
     { nome: "Pix", nota: "Aprovado pelo banco", ativo: true },
     { nome: "Dinheiro ou maquininha", nota: "Confirmado pelo garçom", ativo: true },
-    { nome: "Apple Pay e Google Pay", nota: "Em breve", ativo: false },
+    { nome: "Apple Pay e Google Pay", nota: "Pagamento em um toque", ativo: true },
   ];
   return (
     <section id="para-clientes" className="scroll-mt-16 py-20 sm:py-32">
@@ -703,6 +704,7 @@ function QuemGerencia() {
 function Ecossistema() {
   const disponivel = [
     [QrCode, "Pagamento na mesa"],
+    [Smartphone, "Pix, Apple Pay e Google Pay"],
     [Users, "Divisão da conta"],
     [ReceiptText, "Lançamento TIPE (PDV)"],
     [LayoutGrid, "Mapa do salão"],
@@ -721,7 +723,6 @@ function Ecossistema() {
     "Pedido pela mesa",
     "Garçom lançando pelo celular",
     "Totem de autoatendimento",
-    "Apple Pay e Google Pay",
   ];
   return (
     <section
@@ -940,7 +941,7 @@ const FAQ: { label: string; faqs: [string, string][] }[] = [
       ],
       [
         "Quais formas de pagamento estão disponíveis?",
-        "Hoje: Pix pelo celular, processado pelo Pagar.me e aprovado na hora, e pagamento no estabelecimento (dinheiro ou maquininha), confirmado pelo caixa. Apple Pay e Google Pay ainda não estão ativos e serão liberados quando o provedor habilitar. O restaurante escolhe no painel quais formas oferecer.",
+        "Hoje: Pix, Apple Pay e Google Pay pelo celular, processados pelo Pagar.me, e pagamento no estabelecimento (dinheiro ou maquininha), confirmado pelo caixa. O restaurante escolhe no painel quais formas oferecer.",
       ],
       [
         "Dá para pagar só a minha parte?",

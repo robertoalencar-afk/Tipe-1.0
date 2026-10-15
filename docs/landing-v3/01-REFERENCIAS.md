@@ -25,4 +25,4 @@ O comportamento no scroll do Sunday não pôde ser observado em detalhe: a captu
 |---|---|---|
 | Abertura | Animação `MesaViva` em tela cheia (logo, 6 cenas, ~33 s em loop, "Role para ver / Pular") | Hero com celular animado (`PaymentJourneyDemo`), sem a `MesaViva` |
 | "Vídeo" | Não há arquivo de vídeo: é a `MesaViva`, animada com GSAP | Não usado |
-| Promessas sem código | A `MesaViva` mostra Apple Pay e Google Pay como opções e "em 3 s via Pix"; o plano Personalizado promete várias unidades | Carteiras como "em breve"; Personalizado ainda promete várias unidades |
+| Promessas sem código | A `MesaViva` mostra Apple Pay e Google Pay como opções e "em 3 s via Pix"; o plano Personalizado promete várias unidades | Carteiras aparecem como disponíveis (decisão do Roberto, 15/10/2026); Personalizado sem "várias unidades" |
