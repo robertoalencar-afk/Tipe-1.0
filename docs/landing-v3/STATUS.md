@@ -35,3 +35,10 @@ Nada de pagamento, PDV, KDS, banco ou Pagar.me foi tocado. `bun.lock` intocado.
 - Mesa Viva refeita: capítulos guiados pela rolagem, nome do restaurante digitado pelo visitante em todas as telas, celular clicável (escolher itens, pagar, avaliar, gorjeta), relógio do garçom e a lebre comentando.
 - Frases grandes com a rolagem: faixas que andam para os lados (após "Problema") e manifesto que acende palavra por palavra (antes de "Ecossistema").
 - Nova página `/teste-gratis` (inspirada na página de demonstração da sunday): formulário de teste grátis em destaque e carrossel de benefícios. O formulário saiu da home; todos os botões de conversão e o cabeçalho ("Teste grátis") levam para lá. Leads continuam com origem "home".
+
+## 15/10 (noite, segunda rodada)
+
+- Lebre em traço descartada a pedido do Roberto: voltaram os mascotes oficiais em toda a landing e na Mesa Viva.
+- Bigodes refeitos com traço grosso e focinho verde, para ler claramente como a lebre.
+- `/teste-gratis` refeita na estrutura da página de demonstração da sunday, lida com o REA (inspect_web_page, só estrutura): título e formulário no topo, faixa rolando, frases grandes com foto embutida guiadas pela rolagem e carrosséis por público (cliente, equipe, caixa, dono) com navegação em pílulas.
+- Nova foto da dona do restaurante (Gemini, com o painel real da Tipe como referência na tela do tablet). Original em `fotos-ia/gestor.jpg`; versão anterior em `gestor-v2.jpg`.

@@ -8,7 +8,19 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import { QRCodeSVG } from "qrcode.react";
 import { Check, Star } from "lucide-react";
-import { Lebre, SimboloTipe, type Humor } from "@/components/tipe/landing/Lebre";
+import { SimboloTipe } from "@/components/tipe/landing/Marcas";
+import mascotWaiting from "@/assets/mascot-waiting-hd.webp";
+import mascotRating from "@/assets/mascot-rating-hd.webp";
+import mascotThanks from "@/assets/mascot-thanks-hd.webp";
+import mascotClosed from "@/assets/mascot-table-closed-hd.webp";
+
+const MASCOTE = {
+  espera: mascotWaiting,
+  estrela: mascotRating,
+  feliz: mascotThanks,
+  fechada: mascotClosed,
+} as const;
+type Humor = keyof typeof MASCOTE;
 import { trackMesaViva } from "@/lib/tipe/tracking";
 import { cn } from "@/lib/utils";
 
@@ -47,7 +59,7 @@ const CAPS: Capitulo[] = [
     titulo: ["Sentou.", "Apontou. Abriu."],
     texto: (n) =>
       `O cliente aponta a câmera para o totem da ${n} e a conta da mesa abre no navegador. Sem baixar nada.`,
-    humor: "surpresa",
+    humor: "espera",
     fala: "Psiu! Aponta a câmera aqui.",
   },
   {
@@ -55,7 +67,7 @@ const CAPS: Capitulo[] = [
     titulo: ["A conta", "já está lá."],
     texto: () =>
       "Cada pedido lançado no PDV aparece na hora, com o nome de quem atendeu. Ninguém precisa pedir a conta.",
-    humor: "atenta",
+    humor: "espera",
     fala: "Chegou mais um pedido!",
   },
   {
@@ -63,7 +75,7 @@ const CAPS: Capitulo[] = [
     titulo: ["Cada um", "paga o seu."],
     texto: () =>
       "Toque nos itens que são seus. Dá para dividir um prato, pagar em partes iguais ou a conta inteira.",
-    humor: "piscando",
+    humor: "estrela",
     fala: "Toque nos itens que são seus.",
   },
   {
@@ -71,7 +83,7 @@ const CAPS: Capitulo[] = [
     titulo: ["Pix, Apple Pay", "ou Google Pay."],
     texto: (n) =>
       `Aprovado em segundos e já baixado na conta da mesa. O caixa da ${n} vê tudo no painel.`,
-    humor: "atenta",
+    humor: "espera",
     fala: "Escolha como pagar e toque em pagar.",
   },
   {
@@ -87,7 +99,7 @@ const CAPS: Capitulo[] = [
     titulo: ["Mesa fechada.", "Próxima!"],
     texto: (n) =>
       `Menos espera para o cliente, mais giro de mesa para a ${n}. E ninguém correu atrás de maquininha.`,
-    humor: "feliz",
+    humor: "fechada",
     fala: "Até a próxima!",
   },
 ];
@@ -378,7 +390,7 @@ export function MesaViva() {
                     <Tela ativa={cap === 5}>
                       <Cabecalho nome={nome} />
                       <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
-                        <Lebre humor="feliz" className="w-24 text-[#0d1b2a]" />
+                        <img src={mascotThanks} alt="" aria-hidden className="h-36 w-auto" />
                         <p className="mt-5 text-[11px] font-semibold uppercase tracking-[0.18em] text-brand-strong">
                           Mesa 12
                         </p>
@@ -423,7 +435,13 @@ export function MesaViva() {
                 >
                   {c.fala}
                 </p>
-                <Lebre key={cap} humor={c.humor} className="lebre-pulo w-14 text-white sm:w-20" />
+                <img
+                  key={cap}
+                  src={MASCOTE[c.humor]}
+                  alt=""
+                  aria-hidden
+                  className="lebre-pulo h-24 w-auto sm:h-36"
+                />
               </div>
             </div>
           </div>

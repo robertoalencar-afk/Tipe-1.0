@@ -30,7 +30,9 @@ import { DashboardPreview, WaiterPreview } from "@/components/tipe/landing/Panel
 import { MesaViva } from "@/components/tipe/MesaViva";
 import { LiveSimulator } from "@/components/tipe/landing/LiveSimulator";
 import { PhoneShot, type Tela } from "@/components/tipe/landing/PhoneShot";
-import { Bigodes, Lebre, SimboloTipe } from "@/components/tipe/landing/Lebre";
+import { Bigodes, SimboloTipe } from "@/components/tipe/landing/Marcas";
+import mascotWaiting from "@/assets/mascot-waiting-hd.webp";
+import mascotThanks from "@/assets/mascot-thanks-hd.webp";
 import { FraseAcende, Letreiro } from "@/components/tipe/landing/ScrollText";
 import { EditorialPhoto } from "@/components/tipe/landing/EditorialPhoto";
 import { LineReveal, Reveal, useParallax } from "@/components/tipe/landing/motion";
@@ -199,7 +201,7 @@ function Hero() {
             <span className="hero-in block" style={{ "--d": "180ms" } as CSSProperties}>
               <span className="relative inline-block">
                 na mesa.
-                <Bigodes className="absolute -right-[0.95em] top-[0.24em] h-[0.66em] w-[0.78em] text-brand-strong" />
+                <Bigodes className="absolute -right-[1.3em] top-[0.3em] h-[0.66em] w-[1.08em]" />
               </span>
             </span>
           </h1>
@@ -309,9 +311,14 @@ function Problema() {
           </Reveal>
         </div>
         <div className="relative mx-auto w-full max-w-md">
-          <Lebre
-            humor="atenta"
-            className="bob absolute -right-4 -top-14 w-24 sm:-right-10 sm:w-28"
+          <img
+            src={mascotWaiting}
+            alt=""
+            aria-hidden
+            width={1024}
+            height={1024}
+            loading="lazy"
+            className="bob absolute -right-4 -top-16 w-28 sm:-right-12 sm:w-32"
           />
           <ol className="relative space-y-3 rounded-[2rem] bg-surface p-5 shadow-lift sm:p-7">
             {falas.map((f, i) => (
@@ -406,9 +413,12 @@ function Experimente() {
             className="absolute -inset-x-10 inset-y-10 rounded-[4rem] bg-brand-soft"
           />
           <LiveSimulator className="relative" />
-          <Lebre
-            humor="piscando"
-            className="bob pointer-events-none absolute -bottom-4 -left-14 hidden w-24 sm:block"
+          <img
+            src={mascotThanks}
+            alt=""
+            aria-hidden
+            loading="lazy"
+            className="bob pointer-events-none absolute -bottom-6 -left-16 hidden h-32 w-auto sm:block"
           />
           <p
             aria-hidden
@@ -845,11 +855,10 @@ function QuemGerencia() {
           <div className="grid gap-5 lg:grid-cols-[0.42fr_1fr]">
             <EditorialPhoto
               scene="gestor"
-              alt="Dona de restaurante consultando o tablet no balcão, com a cozinha trabalhando ao fundo"
+              alt="Dona de restaurante sorrindo no salão cheio, acompanhando as mesas no painel da Tipe pelo tablet"
               aspect="4/5"
               sizes="(min-width: 1024px) 28vw, 92vw"
-              position="50% 30%"
-              className="max-lg:!aspect-[3/2]"
+              position="50% 45%"
             />
             <Reveal
               variant="scale"
@@ -1220,7 +1229,13 @@ function Conversao() {
           className="pointer-events-none absolute -left-24 -top-24 h-96 w-96 rounded-full bg-brand/25 blur-3xl"
         />
         <div className="relative">
-          <Lebre humor="feliz" className="bob mb-6 w-20 text-white" />
+          <img
+            src={mascotThanks}
+            alt=""
+            aria-hidden
+            loading="lazy"
+            className="bob mb-6 h-28 w-auto"
+          />
           <LineReveal
             className="font-display text-[clamp(3rem,1.6rem+6vw,7rem)] font-semibold leading-[0.9] tracking-display"
             lines={[

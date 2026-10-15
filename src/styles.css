@@ -601,9 +601,9 @@
 .lebre-pulo { animation: lebre-pulo 600ms cubic-bezier(.3,.7,.4,1) both; transform-origin: 50% 100%; }
 @keyframes lebre-fala { from { opacity: 0; transform: translateY(8px) scale(0.9); } to { opacity: 1; transform: none; } }
 .lebre-fala { animation: lebre-fala 400ms 250ms cubic-bezier(.3,1.4,.5,1) both; transform-origin: 0 100%; }
-@keyframes lebre-orelha { 0%, 86%, 100% { transform: rotate(0); } 91% { transform: rotate(-9deg); } 96% { transform: rotate(4deg); } }
-.lebre-orelha-e { transform-box: fill-box; transform-origin: 90% 100%; animation: lebre-orelha 5s ease-in-out infinite; }
-.lebre-orelha-d { transform-box: fill-box; transform-origin: 10% 100%; animation: lebre-orelha 5s 0.15s ease-in-out infinite reverse; }
 @media (prefers-reduced-motion: reduce) {
-  .mv-scan, .mv-pop, .mv-item, .mv-pulse, .lebre-pulo, .lebre-fala, .lebre-orelha-e, .lebre-orelha-d { animation: none !important; }
+  .mv-scan, .mv-pop, .mv-item, .mv-pulse, .lebre-pulo, .lebre-fala { animation: none !important; }
 }
+@keyframes faixa { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.faixa { animation: faixa 38s linear infinite; }
+@media (prefers-reduced-motion: reduce) { .faixa { animation: none; } }
