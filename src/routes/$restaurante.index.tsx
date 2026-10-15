@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { RestaurantPanel } from "@/components/tipe/RestaurantPanel";
 import { PartnerTermsNotice } from "@/components/tipe/legal/PartnerTermsNotice";
 import { getMyAccess } from "@/lib/tipe/staff.functions";
+import { PainelCarregando } from "@/components/tipe/RestaurantPanel";
 
 export const Route = createFileRoute("/$restaurante/")({
   ssr: false,
@@ -49,15 +50,15 @@ function AreaRestaurante() {
   return (
     <AreaShell eyebrow="Área do restaurante"
       actions={<>
-        {access.data?.isFounder && <Link to="/backoffice" className="px-2 text-sm underline opacity-80">Voltar ao Backoffice</Link>}
-        <Button size="sm" variant="ghost" onClick={sair} className="text-secondary-foreground hover:bg-secondary-foreground/10 hover:text-secondary-foreground"><LogOut className="mr-1 h-4 w-4" />Sair</Button>
+        {access.data?.isFounder && <Button asChild size="sm" variant="ghost"><Link to="/backoffice">Voltar ao Backoffice</Link></Button>}
+        <Button size="sm" variant="ghost" onClick={sair} className="text-muted-foreground"><LogOut className="h-4 w-4" />Sair</Button>
       </>}>
       <div>
-        {access.isLoading && <p className="text-muted-foreground">Carregando…</p>}
+        {access.isLoading && <PainelCarregando />}
         {access.error && <p className="text-destructive">{(access.error as Error).message}</p>}
         {access.data && !r && (
-          <div className="mx-auto max-w-md rounded-2xl border border-border bg-card p-6 text-center">
-            <h1 className="font-display text-lg font-bold">Sem acesso a este restaurante</h1>
+          <div className="mx-auto mt-10 max-w-md rounded-2xl border border-border bg-card p-6 text-center shadow-xs">
+            <h1 className="font-display text-lg font-semibold">Sem acesso a este restaurante</h1>
             <p className="mt-2 text-sm text-muted-foreground">O endereço não existe ou sua conta ({access.data.email}) não faz parte da equipe. Peça ao dono para adicionar você.</p>
             <Link to="/painel" className="mt-4 inline-block text-sm underline">Ir para meus restaurantes</Link>
           </div>
