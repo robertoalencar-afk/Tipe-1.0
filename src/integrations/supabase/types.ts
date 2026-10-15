@@ -1502,6 +1502,7 @@ export type Database = {
           phone: string | null
           pos_mode: string
           pos_provider: string
+          self_order_enabled: boolean
           service_rate: number
           slug: string
           updated_at: string
@@ -1519,6 +1520,7 @@ export type Database = {
           phone?: string | null
           pos_mode?: string
           pos_provider?: string
+          self_order_enabled?: boolean
           service_rate?: number
           slug: string
           updated_at?: string
@@ -1536,6 +1538,7 @@ export type Database = {
           phone?: string | null
           pos_mode?: string
           pos_provider?: string
+          self_order_enabled?: boolean
           service_rate?: number
           slug?: string
           updated_at?: string
@@ -2183,6 +2186,16 @@ export type Database = {
           p_method: string
           p_request_id: string
           p_slug: string
+        }
+        Returns: Json
+      }
+      pdv_customer_order: {
+        Args: {
+          p_customer: string
+          p_items: Json
+          p_request_id: string
+          p_slug: string
+          p_table: string
         }
         Returns: Json
       }
