@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useMatches,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
@@ -167,13 +168,19 @@ function RootComponent() {
   // botão do WhatsApp já aparecem na página que contém o iframe.
   const [embedded, setEmbedded] = useState(false);
   useEffect(() => setEmbedded(window.self !== window.top), []);
+  // Na conta da mesa o aviso cobria o botão de pagar. Lá nada opcional carrega
+  // sem consentimento (loadMeasurement só roda com escolha salva), então o aviso
+  // fica para as demais páginas.
+  const naContaDaMesa = useMatches({
+    select: (matches) => matches.some((match) => match.routeId === "/$restaurante/$mesa"),
+  });
 
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
       <Toaster position="top-center" />
-      {!embedded && <CookieBanner />}
+      {!embedded && !naContaDaMesa && <CookieBanner />}
       {!embedded && <WhatsAppFloat />}
     </QueryClientProvider>
   );

@@ -71,10 +71,15 @@ export function DividirConta({
   items,
   serviceRate,
   onApply,
+  onPay,
+  triggerClassName,
 }: {
   items: ShareItem[];
   serviceRate: number;
   onApply: (quantities: Record<string, number>) => void;
+  /** Quando presente, aplicar a divisão já leva ao pagamento (um toque a menos). */
+  onPay?: () => void;
+  triggerClassName?: string;
 }) {
   const [aberto, setAberto] = useState(false);
   const [modo, setModo] = useState<Modo>("iguais");
@@ -109,7 +114,9 @@ export function DividirConta({
         type="button"
         variant="outline"
         onClick={() => setAberto(true)}
-        className="mb-3 h-12 w-full rounded-full font-display text-base font-bold"
+        className={
+          triggerClassName ?? "mb-3 h-12 w-full rounded-full font-display text-base font-medium"
+        }
       >
         <Divide /> Dividir a conta
       </Button>
@@ -119,10 +126,10 @@ export function DividirConta({
   return (
     <section
       aria-labelledby="dividir-title"
-      className="mb-4 rounded-2xl border-2 border-primary/40 bg-card p-4 shadow-sm"
+      className="col-span-2 mb-1 rounded-[1.25rem] border border-foreground bg-card p-4 ring-1 ring-foreground"
     >
       <div className="flex items-center justify-between">
-        <h2 id="dividir-title" className="font-display text-lg font-extrabold">
+        <h2 id="dividir-title" className="font-display text-lg font-medium tracking-[-0.02em]">
           Dividir a conta
         </h2>
         <button
@@ -227,11 +234,18 @@ export function DividirConta({
           if (plano) {
             onApply(plano.quantities);
             setAberto(false);
+            onPay?.();
           }
         }}
-        className="mt-3 h-11 w-full rounded-full font-display font-bold"
+        className="mt-3 h-12 w-full rounded-full font-display text-base font-medium"
       >
-        Usar esta divisão
+        {onPay && plano ? (
+          <>
+            Pagar minha parte <span className="money">{money(comTaxa(plano.subtotal))}</span>
+          </>
+        ) : (
+          "Usar esta divisão"
+        )}
       </Button>
       <p className="mt-2 text-[11px] leading-4 text-muted-foreground">
         A sua parte é tirada proporcionalmente de cada item em aberto. O valor exato é conferido no

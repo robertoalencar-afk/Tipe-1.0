@@ -9,6 +9,7 @@ import {
   Copy,
   CreditCard,
   HandCoins,
+  ListChecks,
   QrCode,
   ReceiptText,
   RefreshCw,
@@ -588,6 +589,12 @@ function MesaPage() {
     return () => window.clearInterval(t);
   }, [etapa, pix, restaurante, dados.mesa, sessaoMesa, atualizarMesa]);
 
+  // Pix vem pré-selecionado quando o restaurante aceita: um toque a menos para pagar.
+  useEffect(() => {
+    if (etapa === "pagamento-conta" && !metodoConta && metodosAceitos?.includes("pix"))
+      setMetodoConta("pix");
+  }, [etapa, metodoConta, metodosAceitos]);
+
   const primeiroNome = nome.trim().split(/\s+/)[0] ?? "";
   const temItensEmAberto = dados.itens.some((item) => (disponiveis[item.id] ?? item.qtd) > 0);
   const mostrarTopo =
@@ -620,9 +627,7 @@ function MesaPage() {
             <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-muted">
               <WifiOff className="h-6 w-6 text-foreground" aria-hidden />
             </span>
-            <h2 className="mt-4 font-display text-xl font-semibold tracking-heading">
-              Sem conexão
-            </h2>
+            <h2 className="mt-4 font-display text-xl font-medium tracking-heading">Sem conexão</h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
               Seu pagamento não foi concluído ou está sendo confirmado.{" "}
               <strong className="text-foreground">Não pague de novo.</strong>
@@ -642,7 +647,7 @@ function MesaPage() {
           <span className="grid h-14 w-14 place-items-center rounded-full bg-muted">
             <QrCode className="h-6 w-6" aria-hidden />
           </span>
-          <h1 className="mt-5 font-display text-2xl font-semibold tracking-heading">
+          <h1 className="mt-5 font-display text-2xl font-medium tracking-heading">
             Não foi possível abrir a mesa
           </h1>
           <p className="mt-2 max-w-xs text-sm leading-6 text-muted-foreground">{erroMesa}</p>
@@ -661,7 +666,7 @@ function MesaPage() {
               {dados.restaurante ? `${dados.restaurante} · ` : ""}Mesa {dados.mesa}
             </p>
           )}
-          <h1 className="mt-3 font-display text-[2rem] font-semibold leading-[1.1] tracking-heading">
+          <h1 className="mt-3 text-[2rem] font-medium leading-[1.06] tracking-[-0.035em]">
             Olá! Qual é o seu nome?
           </h1>
           <p className="mt-3 text-[0.95rem] leading-6 text-muted-foreground">
@@ -737,50 +742,83 @@ function MesaPage() {
             <>
               {temItensEmAberto &&
                 (() => {
-                  const tudoSelecionado = dados.itens.every(
-                    (item) =>
-                      Math.abs((qtds[item.id] ?? 0) - (disponiveis[item.id] ?? item.qtd)) < EPSILON,
+                  // Atalho principal: o valor em aberto em destaque e "pagar tudo" em um toque.
+                  const emAberto = remainingSubtotal(itensDivisao);
+                  const emAbertoComTaxa = +(
+                    emAberto +
+                    resolveServiceFee(emAberto, taxaSugerida, { kind: "suggested" })!.amount
+                  ).toFixed(2);
+                  const tudo = Object.fromEntries(
+                    dados.itens.map((item) => [
+                      item.id,
+                      Math.max(0, disponiveis[item.id] ?? item.qtd),
+                    ]),
                   );
+                  const algumPago = pagamentos.some((pagamento) => pagamento.status !== "failed");
                   return (
-                    <div className="mt-5 space-y-2">
+                    <section
+                      aria-labelledby="em-aberto-title"
+                      className="mt-5 rounded-[1.75rem] bg-background-muted p-5"
+                    >
+                      <p id="em-aberto-title" className="text-sm text-muted-foreground">
+                        {algumPago ? "Ainda em aberto na mesa" : "Total da mesa"}
+                      </p>
+                      <p className="money mt-1 text-[2.75rem] font-medium leading-none tracking-[-0.045em]">
+                        {money(emAbertoComTaxa)}
+                      </p>
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        {taxaRemovida || taxaSugerida <= 0
+                          ? "Sem taxa de serviço nesta conta."
+                          : `Inclui a taxa de serviço de ${Math.round(taxaSugerida * 1000) / 10}%.`}
+                      </p>
                       <Button
-                        variant={tudoSelecionado ? "soft" : "outline"}
-                        onClick={() =>
-                          setQtds(
-                            Object.fromEntries(
-                              dados.itens.map((item) => [
-                                item.id,
-                                tudoSelecionado ? 0 : Math.max(0, disponiveis[item.id] ?? item.qtd),
-                              ]),
-                            ),
-                          )
-                        }
-                        className="h-12 w-full font-display text-[0.95rem]"
+                        onClick={() => {
+                          setQtds(tudo);
+                          setEtapa("pagamento-conta");
+                        }}
+                        className="mt-5 h-13 w-full justify-between px-6 font-display text-base"
                       >
-                        <ReceiptText />{" "}
-                        {tudoSelecionado ? "Limpar seleção" : "Pagar a conta inteira"}
+                        <span>Pagar tudo</span>
+                        <span className="money">{money(emAbertoComTaxa)}</span>
                       </Button>
-                      <DividirConta
-                        items={itensDivisao}
-                        serviceRate={taxaSugerida}
-                        onApply={(quantidades) =>
-                          setQtds(
-                            Object.fromEntries(
-                              dados.itens.map((item) => [item.id, quantidades[item.id] ?? 0]),
-                            ),
-                          )
-                        }
-                      />
-                    </div>
+                      <div className="mt-2 grid grid-cols-2 gap-2">
+                        <DividirConta
+                          items={itensDivisao}
+                          serviceRate={taxaSugerida}
+                          triggerClassName="h-12 w-full rounded-full bg-card font-display text-[0.95rem] font-medium"
+                          onApply={(quantidades) =>
+                            setQtds(
+                              Object.fromEntries(
+                                dados.itens.map((item) => [item.id, quantidades[item.id] ?? 0]),
+                              ),
+                            )
+                          }
+                          onPay={() => setEtapa("pagamento-conta")}
+                        />
+                        <Button
+                          variant="outline"
+                          onClick={() =>
+                            document
+                              .getElementById("itens-da-conta")
+                              ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                          }
+                          className="h-12 w-full bg-card font-display text-[0.95rem] font-medium"
+                        >
+                          <ListChecks /> Escolher itens
+                        </Button>
+                      </div>
+                    </section>
                   );
                 })()}
 
               {temItensEmAberto && (
-                <div className="mt-7 flex items-baseline justify-between gap-3">
-                  <h2 className="font-display text-lg font-semibold tracking-heading">
-                    O que você vai pagar?
+                <div
+                  id="itens-da-conta"
+                  className="mt-8 flex scroll-mt-4 items-baseline justify-between gap-3"
+                >
+                  <h2 className="font-display text-lg font-medium tracking-heading">
+                    Ou escolha o que você vai pagar
                   </h2>
-                  <span className="text-xs text-muted-foreground">Toque para escolher</span>
                 </div>
               )}
               <ul className="mt-3 flex flex-col gap-2.5">
@@ -898,62 +936,62 @@ function MesaPage() {
                 </div>
               )}
 
-              <div className="mt-6 rounded-2xl border border-border bg-card p-5 text-sm">
-                <ResumoLinha label="Subtotal selecionado" valor={subtotal} />
-                {taxaRemovida ? (
-                  <ResumoLinha
-                    label="Taxa de serviço removida pelo restaurante"
-                    valor={0}
-                    className="mt-2"
-                  />
-                ) : (
-                  <ResumoLinha
-                    label={`Taxa de serviço (${Math.round(taxaSugerida * 1000) / 10}%)`}
-                    valor={servico}
-                    className="mt-2"
-                  />
-                )}
-                <ResumoLinha
-                  label="Total da sua parte"
-                  valor={totalConta}
-                  destaque
-                  className="mt-3 border-t border-border pt-3"
-                />
-                {(() => {
-                  // Saldo da mesa sempre visível: ninguém sai achando que pagou tudo.
-                  const falta = remainingSubtotal(itensDivisao);
-                  const faltaDepois = Math.max(0, +(falta - subtotal).toFixed(2));
-                  return falta > 0 && subtotal > 0 ? (
-                    <p className="mt-3 rounded-xl bg-muted px-3 py-2.5 text-xs leading-5 text-muted-foreground">
-                      {faltaDepois <= 0 ? (
-                        "Com este pagamento, a conta da mesa fica quitada."
-                      ) : (
-                        <>
-                          Depois do seu pagamento, ainda faltarão{" "}
-                          <strong className="money text-foreground">{money(faltaDepois)}</strong>{" "}
-                          (sem taxa) para fechar a mesa.
-                        </>
-                      )}
-                    </p>
-                  ) : null;
-                })()}
-              </div>
-              <BarraAcao>
-                <Button
-                  disabled={subtotal <= 0}
-                  onClick={() => setEtapa("pagamento-conta")}
-                  className="h-13 w-full justify-between px-6 font-display text-base"
-                >
-                  {subtotal > 0 ? (
-                    <>
+              {subtotal > 0 && (
+                <>
+                  <div className="mt-6 rounded-2xl border border-border bg-card p-5 text-sm">
+                    <ResumoLinha label="Subtotal selecionado" valor={subtotal} />
+                    {taxaRemovida ? (
+                      <ResumoLinha
+                        label="Taxa de serviço removida pelo restaurante"
+                        valor={0}
+                        className="mt-2"
+                      />
+                    ) : (
+                      <ResumoLinha
+                        label={`Taxa de serviço (${Math.round(taxaSugerida * 1000) / 10}%)`}
+                        valor={servico}
+                        className="mt-2"
+                      />
+                    )}
+                    <ResumoLinha
+                      label="Total da sua parte"
+                      valor={totalConta}
+                      destaque
+                      className="mt-3 border-t border-border pt-3"
+                    />
+                    {(() => {
+                      // Saldo da mesa sempre visível: ninguém sai achando que pagou tudo.
+                      const falta = remainingSubtotal(itensDivisao);
+                      const faltaDepois = Math.max(0, +(falta - subtotal).toFixed(2));
+                      return falta > 0 && subtotal > 0 ? (
+                        <p className="mt-3 rounded-xl bg-muted px-3 py-2.5 text-xs leading-5 text-muted-foreground">
+                          {faltaDepois <= 0 ? (
+                            "Com este pagamento, a conta da mesa fica quitada."
+                          ) : (
+                            <>
+                              Depois do seu pagamento, ainda faltarão{" "}
+                              <strong className="money text-foreground">
+                                {money(faltaDepois)}
+                              </strong>{" "}
+                              (sem taxa) para fechar a mesa.
+                            </>
+                          )}
+                        </p>
+                      ) : null;
+                    })()}
+                  </div>
+                  <BarraAcao>
+                    <Button
+                      disabled={subtotal <= 0}
+                      onClick={() => setEtapa("pagamento-conta")}
+                      className="h-13 w-full justify-between px-6 font-display text-base"
+                    >
                       <span>Continuar para pagamento</span>
                       <span className="money">{money(totalConta)}</span>
-                    </>
-                  ) : (
-                    <span className="mx-auto">Escolha o que você vai pagar</span>
-                  )}
-                </Button>
-              </BarraAcao>
+                    </Button>
+                  </BarraAcao>
+                </>
+              )}
             </>
           )}
 
@@ -1110,7 +1148,7 @@ function MesaPage() {
       {etapaVisivel === "conta-confirmada" && (
         <TelaCentral>
           <MarcaSucesso />
-          <h1 className="mt-6 font-display text-[1.85rem] font-semibold leading-tight tracking-heading">
+          <h1 className="mt-6 text-[1.9rem] font-medium leading-[1.06] tracking-[-0.035em]">
             Pagamento realizado!
           </h1>
           <p className="mt-2 text-[0.95rem] text-muted-foreground">
@@ -1788,9 +1826,6 @@ function ResumoLinha({
   );
 }
 
-// Carteiras digitais ainda não estão ativas no provedor: aparecem, mas não podem ser escolhidas.
-const EM_BREVE = new Set<Metodo>(["apple_pay", "google_pay"]);
-
 function Pagamento({
   extra,
   titulo,
@@ -1841,12 +1876,14 @@ function Pagamento({
       metodos.filter(
         (opcao) => opcao.id !== "at_establishment" && (opcao.id !== "card" || !!cartao),
       );
-  const ativas = opcoes.filter((opcao) => !EM_BREVE.has(opcao.id));
-  const emBreve = opcoes.filter((opcao) => EM_BREVE.has(opcao.id));
+  // Decisão do Roberto (15/10): Apple Pay e Google Pay aparecem como meios disponíveis.
+  const ativas = opcoes;
+  // Se o servidor recusar a carteira, o Pix fica a um toque.
+  const carteiraRecusada =
+    !!erro && /Apple Pay|Google Pay/.test(erro) && opcoes.some((opcao) => opcao.id === "pix");
   const dinheiro = Number(valorDinheiro.replace(",", "."));
   const bloqueado =
     !metodo ||
-    EM_BREVE.has(metodo) ||
     pagando ||
     (permitirEstabelecimento && !aceitouTermos) ||
     (metodo === "at_establishment" &&
@@ -1912,23 +1949,6 @@ function Pagamento({
             </button>
           );
         })}
-        {emBreve.length > 0 && (
-          <div
-            className="flex items-center gap-3 rounded-2xl border border-dashed border-border px-4 py-3 text-left opacity-70"
-            aria-disabled="true"
-          >
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-muted">
-              <Smartphone className="h-4 w-4" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block font-semibold">{emBreve.map((o) => o.label).join(" e ")}</span>
-              <span className="block text-xs text-muted-foreground">Ainda não disponível</span>
-            </span>
-            <span className="shrink-0 rounded-full bg-muted px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">
-              Em breve
-            </span>
-          </div>
-        )}
       </div>
       {metodo === "at_establishment" && permitirEstabelecimento && setMetodoEstabelecimento && (
         <div className="mt-4 rounded-2xl border border-border bg-muted/50 p-4">
@@ -2000,62 +2020,76 @@ function Pagamento({
           <CardFields value={cartao} onChange={setCartao} />
         </div>
       )}
-      {permitirEstabelecimento && (
-        <div className="mt-5 flex items-start gap-3 rounded-2xl border border-border bg-card p-4">
-          <Checkbox
-            id="aceite-termos"
-            checked={aceitouTermos}
-            onCheckedChange={(checked) => setAceitouTermos(checked === true)}
-            className="mt-0.5 h-5 w-5"
-          />
-          <label htmlFor="aceite-termos" className="text-xs leading-5 text-muted-foreground">
-            Confirmo que revisei e me responsabilizo pelos itens selecionados. Aceito os{" "}
-            <Dialog>
-              <DialogTrigger asChild>
-                <button
-                  type="button"
-                  className="font-semibold text-brand-strong underline-offset-2 hover:underline"
-                >
-                  Termos de Uso
-                </button>
-              </DialogTrigger>
-              <DialogContent className="max-h-[85svh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Termos de Uso do pagamento</DialogTitle>
-                  <DialogDescription>Leia antes de confirmar sua parte da conta.</DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 text-sm leading-6 text-muted-foreground">
-                  <p>
-                    Ao continuar, você declara que conferiu os itens e as quantidades escolhidas e
-                    reconhece que este pagamento cobre somente essa seleção.
-                  </p>
-                  <p>
-                    Após a confirmação, os itens pagos serão retirados do saldo disponível da mesa.
-                    Valores ainda não pagos permanecerão na conta.
-                  </p>
-                  <p>
-                    Pagamentos digitais são confirmados automaticamente. Pagamentos em dinheiro ou
-                    maquininha permanecem pendentes até a confirmação manual do restaurante.
-                  </p>
-                  <p>
-                    Em caso de divergência, procure o restaurante antes de concluir o pagamento.
-                  </p>
-                </div>
-              </DialogContent>
-            </Dialog>
-            .
-          </label>
-        </div>
-      )}
       {erro && (
-        <p
+        <div
           role="alert"
           className="mt-4 rounded-xl bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
         >
-          {erro}
-        </p>
+          {carteiraRecusada
+            ? "Este restaurante ainda não recebe Apple Pay e Google Pay pela TIPE. O Pix é instantâneo e já está disponível."
+            : erro}
+          {carteiraRecusada && metodo !== "pix" && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setMetodo("pix")}
+              className="mt-2 h-10 w-full bg-card text-foreground"
+            >
+              <QrCode /> Pagar com Pix
+            </Button>
+          )}
+        </div>
       )}
       <BarraAcao>
+        {permitirEstabelecimento && (
+          <div className="mb-3 flex items-start gap-3">
+            <Checkbox
+              id="aceite-termos"
+              checked={aceitouTermos}
+              onCheckedChange={(checked) => setAceitouTermos(checked === true)}
+              className="mt-0.5 h-5 w-5"
+            />
+            <label htmlFor="aceite-termos" className="text-xs leading-5 text-muted-foreground">
+              Confirmo que revisei e me responsabilizo pelos itens selecionados. Aceito os{" "}
+              <Dialog>
+                <DialogTrigger asChild>
+                  <button
+                    type="button"
+                    className="font-semibold text-brand-strong underline-offset-2 hover:underline"
+                  >
+                    Termos de Uso
+                  </button>
+                </DialogTrigger>
+                <DialogContent className="max-h-[85svh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Termos de Uso do pagamento</DialogTitle>
+                    <DialogDescription>
+                      Leia antes de confirmar sua parte da conta.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 text-sm leading-6 text-muted-foreground">
+                    <p>
+                      Ao continuar, você declara que conferiu os itens e as quantidades escolhidas e
+                      reconhece que este pagamento cobre somente essa seleção.
+                    </p>
+                    <p>
+                      Após a confirmação, os itens pagos serão retirados do saldo disponível da
+                      mesa. Valores ainda não pagos permanecerão na conta.
+                    </p>
+                    <p>
+                      Pagamentos digitais são confirmados automaticamente. Pagamentos em dinheiro ou
+                      maquininha permanecem pendentes até a confirmação manual do restaurante.
+                    </p>
+                    <p>
+                      Em caso de divergência, procure o restaurante antes de concluir o pagamento.
+                    </p>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              .
+            </label>
+          </div>
+        )}
         <Button disabled={bloqueado} onClick={pagar} className="h-13 w-full font-display text-base">
           {pagando ? (
             <>
