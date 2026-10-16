@@ -21,6 +21,21 @@ Referência visual: sunday (sundayapp.com), estudada só de forma passiva, por c
 | Navegação lateral escura e item ativo em pílula clara | Painel do restaurante com o item ativo em pílula preta. O backoffice tem barra lateral quase preta e o item ativo em pílula branca. No celular, as abas viram pílulas roláveis |
 | Planos em cartões grandes centrados, com selo "mais popular" | Cartões por número de mesas (`plans.ts`). O selecionado ganha contorno preto |
 
+### Medidas lidas da sunday (getComputedStyle, 1440 e 390 px)
+
+| Elemento | Desktop | Celular |
+|---|---|---|
+| Título do hero | 64 px, peso 400, entrelinha 0,95, entreletra −0,05em | 32 px |
+| Título de seção | 48 px, peso 400, −0,05em | 28 px |
+| Título de cartão | 32 px, peso 400 ou 500, −0,03em | 24 px |
+| Texto | 16 px / 24 px, peso 400 | igual |
+| Botões | pílula, 16 px peso 500, ~48–52 px de altura, 28 px de respiro lateral | igual |
+| Seções | 112 px de respiro vertical | 72 px |
+| Margem lateral | 56 px, conteúdo quase na largura total | 28 px |
+| Cartões | cinza ~#f2f2f2, raio 16–24 px, sem sombra | igual |
+
+A sunday usa só os pesos 400 e 500 e alterna seções brancas com seções pretas puras. Na TIPE, os títulos da landing passaram para peso 400 com entreletra de −0,045em, os negritos viraram 500 e o conteúdo ficou mais largo (84rem, com margem de 56 px no desktop). A seção da Mesa Viva continua em azul-marinho, por decisão anterior.
+
 Não adaptado de propósito: prova social com logos e números de clientes (a TIPE só mostra quando houver dados reais), ranking de desempenho de garçons e sugestão de gorjeta por IA.
 
 ---
