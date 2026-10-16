@@ -48,4 +48,4 @@ Nada de pagamento, PDV, KDS, banco ou Pagar.me foi tocado. `bun.lock` intocado.
 - Símbolo oficial recortado do logo (src/assets/tipe-simbolo.png) nas faixas e na página de teste grátis.
 - Mesa Viva voltou à versão anterior (GSAP), com CTA para /teste-gratis, mascotes maiores e fechamento "A conta já está na mesa." para não repetir o título.
 - Nova foto da dona: mulher simples, de pele branca, trabalhando no tablet do balcão (fotos-ia/gestor-v4a.jpg).
-- Pendente: seção de celulares no estilo Sunday, aguardando captura do REA no trecho certo da página.
+- Celulares no estilo do vídeo da página Digital Bill da sunday (capturado com o REA em 16/10): painel preto com brilho da marca, celular inclinado em 3D, moedas flutuando e barra branca de passos; a tela troca pelos 4 passos reais conforme a rolagem (PalcoCelular.tsx).

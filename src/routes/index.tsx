@@ -29,6 +29,7 @@ import { LandingFooter, LandingHeader } from "@/components/tipe/landing/LandingC
 import { DashboardPreview, WaiterPreview } from "@/components/tipe/landing/PanelPreviews";
 import { MesaViva } from "@/components/tipe/MesaViva";
 import { LiveSimulator } from "@/components/tipe/landing/LiveSimulator";
+import { PalcoCelular } from "@/components/tipe/landing/PalcoCelular";
 import { PhoneShot, type Tela } from "@/components/tipe/landing/PhoneShot";
 import { Bigodes, SimboloTipe } from "@/components/tipe/landing/Marcas";
 import mascotWaiting from "@/assets/mascot-waiting-hd.webp";
@@ -665,8 +666,8 @@ const TELAS_REAIS: { tela: Tela; t: string; d: string; alt: string }[] = [
 
 function TelasReais() {
   return (
-    <div className="relative mt-16 overflow-hidden rounded-[2.5rem] bg-background-muted px-5 pb-12 pt-12 sm:px-10 lg:mt-24 lg:px-14 lg:pt-16">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+    <div className="mt-16 lg:mt-24">
+      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
         <p className="max-w-xl font-display text-[clamp(1.6rem,1.1rem+1.6vw,2.4rem)] font-medium leading-tight tracking-[-0.03em]">
           É isso que aparece no celular de quem está na mesa.
         </p>
@@ -677,26 +678,7 @@ function TelasReais() {
           Testar em tela cheia
         </Link>
       </div>
-      <ol className="-mx-5 mt-10 flex snap-x snap-mandatory gap-5 overflow-x-auto px-5 pb-4 sm:-mx-10 sm:px-10 lg:mx-0 lg:grid lg:grid-cols-4 lg:gap-8 lg:overflow-visible lg:px-0">
-        {TELAS_REAIS.map((x, i) => (
-          <Reveal
-            as="li"
-            key={x.tela}
-            delay={i * 110}
-            className={cn(
-              "w-[15.5rem] shrink-0 snap-center lg:w-auto",
-              i % 2 === 1 && "lg:translate-y-10",
-            )}
-          >
-            <PhoneShot tela={x.tela} alt={x.alt} sizes="(min-width: 1024px) 18vw, 15rem" />
-            <p className="mt-6 flex items-baseline gap-2 font-display text-lg font-medium">
-              <span className="text-sm text-muted-foreground">{i + 1}</span>
-              {x.t}
-            </p>
-            <p className="mt-1 text-[0.95rem] leading-relaxed text-muted-foreground">{x.d}</p>
-          </Reveal>
-        ))}
-      </ol>
+      <PalcoCelular passos={TELAS_REAIS} />
     </div>
   );
 }

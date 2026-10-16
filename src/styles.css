@@ -591,3 +591,15 @@
 @keyframes faixa { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 .faixa { animation: faixa 38s linear infinite; }
 @media (prefers-reduced-motion: reduce) { .faixa { animation: none; } }
+
+/* Moedas do palco do celular: face com brilho e borda grossa, em 3D */
+.palco-moeda {
+  background:
+    radial-gradient(circle at 50% 50%, transparent 58%, color-mix(in oklab, white 30%, transparent) 60%, transparent 63%),
+    radial-gradient(circle at 35% 30%, color-mix(in oklab, var(--brand-primary) 55%, white), var(--brand-primary) 45%, var(--brand-primary-strong));
+  box-shadow:
+    0 6px 0 color-mix(in oklab, var(--brand-primary-strong) 80%, black),
+    0 12px 0 color-mix(in oklab, var(--brand-primary-strong) 70%, black),
+    0 18px 0 color-mix(in oklab, var(--brand-primary-strong) 60%, black),
+    0 40px 60px -10px rgb(0 0 0 / 0.6);
+}
