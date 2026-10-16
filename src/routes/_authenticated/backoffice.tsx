@@ -164,7 +164,7 @@ function Backoffice() {
               <TabsTrigger
                 key={item.value}
                 value={item.value}
-                className="h-10 justify-start gap-3 rounded-md px-3 text-sidebar-foreground/70 data-[state=active]:bg-sidebar-accent data-[state=active]:text-sidebar-accent-foreground"
+                className="h-10 justify-start gap-3 rounded-full px-4 text-sidebar-foreground/70 ring-offset-sidebar hover:text-sidebar-foreground data-[state=active]:bg-sidebar-foreground data-[state=active]:font-medium data-[state=active]:text-sidebar data-[state=active]:shadow-none"
               >
                 <item.icon className="h-4 w-4 shrink-0" />
                 {item.label}
@@ -189,8 +189,8 @@ function Backoffice() {
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 md:hidden">
                 <div className="flex min-w-0 items-center gap-2">
                   <TipeLogo variant="dark" className="h-8 shrink-0" />
-                  <span className="truncate text-xs font-bold text-muted-foreground">
-                    BACKOFFICE
+                  <span className="truncate text-sm font-medium text-muted-foreground">
+                    Backoffice
                   </span>
                 </div>
                 <div className="flex shrink-0 items-center gap-1">
@@ -205,7 +205,7 @@ function Backoffice() {
               </div>
               <div className="mt-4 md:mt-0 md:grid md:grid-cols-[minmax(0,1fr)_auto] md:items-center md:gap-3">
                 <div className="min-w-0">
-                  <h1 className="font-display text-xl font-extrabold md:text-2xl">
+                  <h1 className="font-display text-xl font-medium tracking-[-0.03em] md:text-2xl">
                     Central de Operações TIPE
                   </h1>
                   <p className="mt-1 text-sm text-muted-foreground">
@@ -223,12 +223,12 @@ function Backoffice() {
               </div>
             </div>
             <div className="overflow-x-auto px-4 pb-3 md:hidden">
-              <TabsList className="h-10 w-max justify-start rounded-lg bg-muted p-1">
+              <TabsList className="h-auto w-max justify-start gap-1.5 bg-transparent p-0">
                 {navigation.map((item) => (
                   <TabsTrigger
                     key={item.value}
                     value={item.value}
-                    className="shrink-0 gap-1.5 px-3"
+                    className="h-10 shrink-0 gap-1.5 rounded-full border border-border px-4 data-[state=active]:border-foreground data-[state=active]:bg-foreground data-[state=active]:text-background data-[state=active]:shadow-none"
                   >
                     <item.icon className="h-4 w-4" />
                     {item.label}
@@ -240,7 +240,7 @@ function Backoffice() {
 
           <main className="mx-auto w-full max-w-[1440px] p-4 sm:p-6 lg:p-8">
             {query.isLoading && (
-              <div className="rounded-lg border border-border bg-card p-6 text-sm text-muted-foreground">
+              <div className="rounded-[1.25rem] border border-border bg-card p-6 text-sm text-muted-foreground">
                 Carregando informações…
               </div>
             )}
@@ -284,10 +284,10 @@ function Backoffice() {
                     />
                   </div>
                   <div className="grid gap-4 xl:grid-cols-[minmax(0,1.6fr)_minmax(280px,0.7fr)]">
-                    <section className="rounded-lg border border-border bg-card p-4 sm:p-5">
+                    <section className="rounded-[1.25rem] border border-border bg-card p-4 sm:p-5">
                       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
                         <div className="min-w-0">
-                          <h2 className="font-display text-base font-bold sm:text-lg">
+                          <h2 className="font-display text-[1.05rem] font-medium tracking-[-0.02em]">
                             Volume processado nas mesas
                           </h2>
                           <p className="mt-1 text-xs text-muted-foreground">
@@ -374,7 +374,7 @@ function Backoffice() {
                       <RestaurantCard key={restaurant.id} restaurant={restaurant} />
                     ))}
                   </div>
-                  <div className="hidden overflow-x-auto rounded-lg border border-border bg-card md:block">
+                  <div className="hidden overflow-x-auto rounded-[1.25rem] border border-border bg-card md:block">
                     <table className="w-full min-w-[900px] text-sm">
                       <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
                         <tr>
@@ -495,7 +495,7 @@ function Backoffice() {
                     <DataPanel title="Interessados" subtitle="Contatos recebidos pela landing page">
                       <Link
                         to="/admin/leads"
-                        className="mb-4 flex h-10 items-center justify-center rounded-lg bg-primary text-sm font-semibold text-primary-foreground"
+                        className="mb-4 flex h-10 items-center justify-center rounded-full bg-foreground text-sm font-medium text-background"
                       >
                         Abrir lista de espera completa
                       </Link>
@@ -686,7 +686,9 @@ function SectionHeader({
   return (
     <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
       <div className="min-w-0">
-        <h2 className="font-display text-xl font-extrabold sm:text-2xl">{title}</h2>
+        <h2 className="font-display text-[clamp(1.6rem,1.3rem+0.9vw,2.2rem)] font-medium leading-[1.05] tracking-[-0.035em]">
+          {title}
+        </h2>
         <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
       </div>
       {action && <div className="shrink-0">{action}</div>}
@@ -707,16 +709,16 @@ function Kpi({
   warning?: boolean;
 }) {
   return (
-    <div className="rounded-lg border border-border bg-card p-4">
-      <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-        <span
-          className={`grid h-8 w-8 shrink-0 place-items-center rounded-md ${warning ? "bg-warning/15 text-warning-foreground" : "bg-primary/15 text-foreground"}`}
-        >
-          <Icon className="h-4 w-4" />
-        </span>
+    <div className="surface-card flex min-h-[124px] flex-col p-5">
+      <div className="flex items-start justify-between gap-2 text-sm text-muted-foreground">
         {label}
+        <Icon
+          className={`h-4 w-4 shrink-0 ${warning ? "text-warning-foreground" : "text-muted-foreground"}`}
+        />
       </div>
-      <div className="mt-3 font-display text-2xl font-extrabold">{value}</div>
+      <div className="money mt-auto pt-4 font-display text-[1.75rem] font-medium leading-none tracking-[-0.035em]">
+        {value}
+      </div>
       {sub && <p className="mt-1 text-xs text-muted-foreground">{sub}</p>}
     </div>
   );
@@ -795,10 +797,10 @@ function ReceivingStatus({ status }: { status: string }) {
 }
 function RestaurantCard({ restaurant: r }: { restaurant: RestaurantSummary }) {
   return (
-    <article className="rounded-lg border border-border bg-card p-4">
+    <article className="rounded-[1.25rem] border border-border bg-card p-4">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
         <div className="min-w-0">
-          <h3 className="font-display font-bold">{r.name}</h3>
+          <h3 className="font-display font-medium tracking-[-0.02em]">{r.name}</h3>
           <p className="mt-1 truncate text-xs text-muted-foreground">
             {r.cnpj ?? "CNPJ não informado"}
           </p>
@@ -842,9 +844,9 @@ function DataPanel({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-lg border border-border bg-card p-4 sm:p-5">
+    <section className="rounded-[1.25rem] border border-border bg-card p-4 sm:p-5">
       <div className="mb-4">
-        <h3 className="font-display font-bold">{title}</h3>
+        <h3 className="font-display font-medium tracking-[-0.02em]">{title}</h3>
         <p className="mt-1 text-xs text-muted-foreground">{subtitle}</p>
       </div>
       {children}
@@ -900,7 +902,7 @@ function RestaurantDialog({
           <div>
             <label
               htmlFor="restaurant-name"
-              className="mb-1.5 block text-xs font-bold text-muted-foreground"
+              className="mb-1.5 block text-sm font-medium text-muted-foreground"
             >
               Nome fantasia
             </label>
@@ -922,7 +924,7 @@ function RestaurantDialog({
           <div>
             <label
               htmlFor="restaurant-slug"
-              className="mb-1.5 block text-xs font-bold text-muted-foreground"
+              className="mb-1.5 block text-sm font-medium text-muted-foreground"
             >
               Endereço na TIPE
             </label>
@@ -943,7 +945,7 @@ function RestaurantDialog({
           <div>
             <label
               htmlFor="restaurant-pos"
-              className="mb-1.5 block text-xs font-bold text-muted-foreground"
+              className="mb-1.5 block text-sm font-medium text-muted-foreground"
             >
               PDV utilizado
             </label>
@@ -958,7 +960,7 @@ function RestaurantDialog({
           <div>
             <label
               htmlFor="restaurant-tables"
-              className="mb-1.5 block text-xs font-bold text-muted-foreground"
+              className="mb-1.5 block text-sm font-medium text-muted-foreground"
             >
               Quantidade inicial de mesas
             </label>
