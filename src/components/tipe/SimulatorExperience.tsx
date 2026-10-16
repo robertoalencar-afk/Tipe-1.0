@@ -20,6 +20,7 @@ import { markSimulatorUsed } from "@/lib/tipe/tracking";
 import { SplitPicker } from "@/components/tipe/SplitPicker";
 import { resolveServiceFee } from "@/lib/tipe/rules";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -414,7 +415,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
 
       {stage === "bill" && (
         <main className="flex flex-1 flex-col px-5 pb-8">
-          <h1 className="mt-1 font-display text-[1.65rem] font-semibold leading-tight tracking-heading">
+          <h1 className="mt-1 text-[1.9rem] font-medium leading-[1.06] tracking-[-0.035em]">
             Olá, {name.trim()}.
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -485,7 +486,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
                     return (
                       <li
                         key={item.id}
-                        className={`rounded-2xl border bg-card p-4 transition-colors ${qty > 0 ? "border-primary bg-brand-soft/40 ring-1 ring-primary" : "border-border"}`}
+                        className={`rounded-2xl border bg-card p-4 transition-colors ${qty > 0 ? "border-foreground bg-card ring-1 ring-foreground" : "border-border"}`}
                       >
                         <div className="flex items-start justify-between gap-3">
                           <button
@@ -719,7 +720,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
             className="mx-auto mb-3 h-44 w-44 object-contain"
           />
           <p className="text-sm font-semibold text-highlight">Pendente de confirmação</p>
-          <h1 className="mt-2 font-display text-[1.65rem] font-semibold leading-tight tracking-heading">
+          <h1 className="mt-2 text-[1.9rem] font-medium leading-[1.06] tracking-[-0.035em]">
             Pagamento no estabelecimento
           </h1>
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
@@ -766,7 +767,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
             className="mx-auto mb-3 h-44 w-44 object-contain"
           />
           <p className="eyebrow text-brand-strong">Conta paga</p>
-          <h1 className="mt-2 font-display text-[1.65rem] font-semibold leading-tight tracking-heading">
+          <h1 className="mt-2 text-[1.9rem] font-medium leading-[1.06] tracking-[-0.035em]">
             Pagamento confirmado!
           </h1>
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
@@ -787,7 +788,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
             alt="Mascote TIPE com uma estrela"
             className="mx-auto mb-3 h-28 w-28 object-contain"
           />
-          <h1 className="text-center font-display text-[1.65rem] font-semibold leading-tight tracking-heading">
+          <h1 className="text-center text-[1.9rem] font-medium leading-[1.06] tracking-[-0.035em]">
             Como foi seu atendimento?
           </h1>
           <p className="mt-2 text-center text-sm text-muted-foreground">
@@ -827,38 +828,64 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
       )}
       {stage === "tip" && (
         <main className="flex flex-1 flex-col px-6 pb-10">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/15">
-            <Heart className="h-7 w-7 text-primary" />
-          </div>
-          <h1 className="mt-5 text-center font-display text-[1.65rem] font-semibold leading-tight tracking-heading">
-            Quer deixar uma gorjeta extra?
+          <h1 className="mt-4 text-center text-[2.1rem] font-medium leading-[1.04] tracking-[-0.04em]">
+            Agradeça ao Carlos com uma gorjeta
           </h1>
-          <p className="mt-2 text-center text-sm leading-6 text-muted-foreground">
-            Uma forma opcional de agradecer pelo atendimento.
+          <p className="mt-3 text-center text-[0.95rem] leading-6 text-muted-foreground">
+            É opcional e separada da conta.
           </p>
-          <div className="mt-7 grid grid-cols-2 gap-3">
-            {[5, 10, 15, 20].map((value) => (
-              <Button
-                key={value}
-                variant={tip === value ? "default" : "outline"}
-                onClick={() => setTip(value)}
-                className="h-14 font-display text-base"
-              >
-                {money(value)}
-              </Button>
-            ))}
+          <div
+            className="mt-8 grid grid-cols-2 gap-3"
+            role="radiogroup"
+            aria-label="Valor da gorjeta"
+          >
+            {(
+              [
+                [5, "🙂"],
+                [10, "😊"],
+                [15, "😍"],
+                [20, "🤩"],
+              ] as const
+            ).map(([value, emoji]) => {
+              const ativo = tip === value;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  role="radio"
+                  aria-checked={ativo}
+                  onClick={() => setTip(value)}
+                  className={cn(
+                    "relative flex h-28 flex-col items-center justify-center gap-1.5 rounded-[1.25rem] border bg-card transition-[border-color,transform] active:scale-[0.98]",
+                    ativo
+                      ? "border-foreground ring-1 ring-foreground"
+                      : "border-border hover:border-foreground/40",
+                  )}
+                >
+                  {ativo && (
+                    <span className="absolute right-2.5 top-2.5 grid h-5 w-5 place-items-center rounded-full bg-foreground text-background">
+                      <Check className="h-3 w-3" strokeWidth={3} />
+                    </span>
+                  )}
+                  <span className="money text-xl font-medium">{money(value)}</span>
+                  <span aria-hidden className="text-2xl leading-none">
+                    {emoji}
+                  </span>
+                </button>
+              );
+            })}
           </div>
-          {tip > 0 && (
-            <div className="mt-4 rounded-lg border border-border bg-card p-4 text-sm">
-              <p className="font-semibold">Gorjeta: {money(tip)}</p>
-            </div>
-          )}
+          <div className="mt-6 border-t border-border pt-5 text-center">
+            <p className="text-sm text-muted-foreground">Gorjeta {money(tip)}</p>
+            <p className="money mt-0.5 text-lg font-medium">Você paga {money(tip)}</p>
+          </div>
           <Button
             disabled={tip <= 0}
             onClick={() => setStage("tip-payment")}
-            className="mt-6 h-12 font-display text-base"
+            size="lg"
+            className="mt-5 w-full"
           >
-            Continuar com gorjeta <ChevronRight />
+            Continuar com gorjeta
           </Button>
           <Button variant="ghost" onClick={() => setStage("done")} className="mt-2 h-11">
             Agora não, obrigado
@@ -890,7 +917,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
       {stage === "pitch" && (
         <Centered>
           <p className="eyebrow text-brand-strong">Gostou?</p>
-          <h1 className="mt-2 font-display text-[1.65rem] font-semibold leading-tight tracking-heading">
+          <h1 className="mt-2 text-[1.9rem] font-medium leading-[1.06] tracking-[-0.035em]">
             Imagine isso em todas as mesas do seu restaurante.
           </h1>
           <a
@@ -920,7 +947,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
             className="mx-auto h-52 w-52 object-contain"
           />
           <p className="mt-4 eyebrow text-brand-strong">Tudo confirmado</p>
-          <h1 className="mt-2 font-display text-[1.65rem] font-semibold leading-tight tracking-heading">
+          <h1 className="mt-2 text-[1.9rem] font-medium leading-[1.06] tracking-[-0.035em]">
             Mesa encerrada
           </h1>
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
@@ -942,7 +969,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
             className="mx-auto h-48 w-48 object-contain"
           />
           <p className="mt-5 eyebrow text-brand-strong">Tudo certo, {name.trim()}!</p>
-          <h1 className="mt-2 font-display text-[1.65rem] font-semibold leading-tight tracking-heading">
+          <h1 className="mt-2 text-[1.9rem] font-medium leading-[1.06] tracking-[-0.035em]">
             Obrigado pela sua visita.
           </h1>
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
@@ -1037,13 +1064,11 @@ function PaymentScreen<M extends Method | Exclude<Method, "at_establishment">>({
       <Button variant="ghost" onClick={back} className="mb-4 w-fit px-2 text-muted-foreground">
         <ArrowLeft /> Voltar
       </Button>
-      <h1 className="font-display text-[1.65rem] font-semibold leading-tight tracking-heading">
-        {title}
-      </h1>
+      <h1 className="text-[1.9rem] font-medium leading-[1.06] tracking-[-0.035em]">{title}</h1>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
-      <div className="my-6 rounded-3xl bg-secondary px-5 py-6 text-center text-secondary-foreground">
-        <p className="text-xs text-secondary-foreground/65">Total</p>
-        <p className="money mt-1 font-display text-[2.4rem] font-semibold leading-none tracking-heading">
+      <div className="my-6 rounded-[1.5rem] bg-background-muted px-5 py-7 text-center">
+        <p className="text-sm text-muted-foreground">Total</p>
+        <p className="money mt-1.5 text-[2.9rem] font-medium leading-none tracking-[-0.04em]">
           {money(value)}
         </p>
         {extra}
@@ -1061,10 +1086,10 @@ function PaymentScreen<M extends Method | Exclude<Method, "at_establishment">>({
                 setMethod(item);
                 if (item !== "at_establishment") setEstablishmentMethod?.(null);
               }}
-              className={`h-auto min-h-16 justify-start whitespace-normal rounded-2xl px-4 py-3.5 text-left shadow-none transition-colors ${selected ? "border-primary bg-brand-soft/40 ring-1 ring-primary" : "bg-card"}`}
+              className={`h-auto min-h-16 justify-start whitespace-normal rounded-2xl px-4 py-3.5 text-left shadow-none transition-colors ${selected ? "border-foreground bg-card ring-1 ring-foreground" : "bg-card"}`}
             >
               <span
-                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${selected ? "bg-secondary text-secondary-foreground" : "bg-muted text-foreground"}`}
+                className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${selected ? "bg-foreground text-background" : "bg-muted text-foreground"}`}
               >
                 <detail.Icon className="h-4 w-4" />
               </span>
