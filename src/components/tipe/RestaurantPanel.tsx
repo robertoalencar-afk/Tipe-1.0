@@ -4,21 +4,69 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
 import {
-  ArrowRightLeft, BarChart3, ChefHat, Check, History, Home, LayoutGrid, Minus, MoreHorizontal, Plug, Plus, Printer, QrCode, RefreshCw,
-  CreditCard, Settings, Star, ShoppingCart, UtensilsCrossed, Users, Wallet, X,
+  ArrowRightLeft,
+  BarChart3,
+  ChefHat,
+  Check,
+  History,
+  Home,
+  LayoutGrid,
+  Minus,
+  MoreHorizontal,
+  Plug,
+  Plus,
+  Printer,
+  QrCode,
+  RefreshCw,
+  CreditCard,
+  Settings,
+  Star,
+  ShoppingCart,
+  UtensilsCrossed,
+  Users,
+  Wallet,
+  X,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { getPanelData, inviteStaff, removeStaff, resolvePayment, type StaffRole } from "@/lib/tipe/staff.functions";
 import {
-  addTable, addTablesBulk, closeTable, waiveServiceFee, getTablePlan, getPdvData, launchOrder, saveCategory, saveMenuItem, saveWaiter, updateTable, voidItem,
+  getPanelData,
+  inviteStaff,
+  removeStaff,
+  resolvePayment,
+  type StaffRole,
+} from "@/lib/tipe/staff.functions";
+import {
+  addTable,
+  addTablesBulk,
+  closeTable,
+  waiveServiceFee,
+  getTablePlan,
+  getPdvData,
+  launchOrder,
+  saveCategory,
+  saveMenuItem,
+  saveWaiter,
+  updateTable,
+  voidItem,
 } from "@/lib/tipe/pdv.functions";
 import { transferTable } from "@/lib/tipe/admin.functions";
-import { getPdvIntegration, getTopItems, importMenuCsv } from "@/lib/tipe/pdv-integrations.functions";
+import {
+  getPdvIntegration,
+  getTopItems,
+  importMenuCsv,
+} from "@/lib/tipe/pdv-integrations.functions";
 import { PixGarcons } from "@/components/tipe/PixGarcons";
-import { Caixa, Configuracoes, Cozinha, Inicio, Integracoes, Relatorios } from "@/components/tipe/AdminSections";
+import {
+  Caixa,
+  Configuracoes,
+  Cozinha,
+  Inicio,
+  Integracoes,
+  Relatorios,
+} from "@/components/tipe/AdminSections";
 import { TotemStudio } from "@/components/tipe/TotemStudio";
 import { Assinatura } from "@/components/tipe/Assinatura";
 import { Recebimentos } from "@/components/tipe/Recebimentos";
@@ -32,15 +80,45 @@ import { EmptyState, PageHeader, StatusBadge, type Tone } from "@/components/tip
 import { cn } from "@/lib/utils";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-const hora = (s: string) => new Date(s).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
-const cargoLabel: Record<StaffRole, string> = { founder: "Fundador", owner: "Dono", cashier: "Caixa / gerente", waiter: "Garçom" };
-const metodoLabel: Record<string, string> = { pix: "Pix", card: "Cartão", apple_pay: "Apple Pay", google_pay: "Google Pay", at_establishment: "No estabelecimento" };
-const acaoLabel: Record<string, string> = { confirm: "Pagamento confirmado", cancel: "Pagamento cancelado", table_reopened: "Mesa encerrada e liberada" };
+const hora = (s: string) =>
+  new Date(s).toLocaleString("pt-BR", {
+    day: "2-digit",
+    month: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+const cargoLabel: Record<StaffRole, string> = {
+  founder: "Fundador",
+  owner: "Dono",
+  cashier: "Caixa / gerente",
+  waiter: "Garçom",
+};
+const metodoLabel: Record<string, string> = {
+  pix: "Pix",
+  card: "Cartão",
+  apple_pay: "Apple Pay",
+  google_pay: "Google Pay",
+  at_establishment: "No estabelecimento",
+};
+const acaoLabel: Record<string, string> = {
+  confirm: "Pagamento confirmado",
+  cancel: "Pagamento cancelado",
+  table_reopened: "Mesa encerrada e liberada",
+};
 const formatPortion = (value: number) => {
   const rounded = Math.round(value * 10000) / 10000;
   const whole = Math.floor(rounded + 0.0001);
   const fraction = rounded - whole;
-  const fractionLabel = Math.abs(fraction - 0.5) < 0.0001 ? "metade" : Math.abs(fraction - 1 / 3) < 0.0001 ? "1/3" : Math.abs(fraction - 0.25) < 0.0001 ? "1/4" : fraction > 0.0001 ? `${Math.round(fraction * 100)}%` : "";
+  const fractionLabel =
+    Math.abs(fraction - 0.5) < 0.0001
+      ? "metade"
+      : Math.abs(fraction - 1 / 3) < 0.0001
+        ? "1/3"
+        : Math.abs(fraction - 0.25) < 0.0001
+          ? "1/4"
+          : fraction > 0.0001
+            ? `${Math.round(fraction * 100)}%`
+            : "";
   if (!whole) return fractionLabel || "0";
   return fractionLabel ? `${whole} + ${fractionLabel}` : `${whole}×`;
 };
@@ -49,28 +127,133 @@ type Status = "livre" | "ocupada" | "aguardando" | "encerrada" | "inativa";
 const statusInfo: Record<Status, { label: string; tone: Tone; card: string }> = {
   livre: { label: "Livre", tone: "neutral", card: "border-dashed border-border bg-surface/60" },
   ocupada: { label: "Ocupada", tone: "brand", card: "border-border bg-surface" },
-  aguardando: { label: "Aguardando confirmação", tone: "warning", card: "border-warning/60 bg-surface ring-1 ring-warning/40" },
+  aguardando: {
+    label: "Aguardando confirmação",
+    tone: "warning",
+    card: "border-warning/60 bg-surface ring-1 ring-warning/40",
+  },
   encerrada: { label: "Encerrada", tone: "success", card: "border-border bg-surface" },
-  inativa: { label: "Desativada", tone: "neutral", card: "border-dashed border-border bg-transparent opacity-60" },
+  inativa: {
+    label: "Desativada",
+    tone: "neutral",
+    card: "border-dashed border-border bg-transparent opacity-60",
+  },
 };
-const selectCls = "h-10 w-full rounded-xl border border-input bg-card px-3 text-sm shadow-xs outline-none transition-colors hover:border-foreground/25 focus-visible:ring-2 focus-visible:ring-focus-ring/30";
+const selectCls =
+  "h-10 w-full rounded-xl border border-input bg-card px-3 text-sm shadow-xs outline-none transition-colors hover:border-foreground/25 focus-visible:ring-2 focus-visible:ring-focus-ring/30";
 
 const secoes = [
-  { k: "inicio", l: "Início", i: Home, g: "Operação", d: "O resumo do dia e os atalhos mais usados." },
-  { k: "salao", l: "Salão", i: LayoutGrid, g: "Operação", d: "Cada mesa ao vivo: o que foi pedido, pago e o que falta." },
-  { k: "pdv", l: "Lançamento TIPE", i: ShoppingCart, g: "Operação", d: "Lance pedidos nas mesas pelo próprio painel." },
-  { k: "cozinha", l: "Cozinha e bar", i: ChefHat, g: "Operação", d: "Pedidos por setor, do recebido ao entregue." },
-  { k: "caixa", l: "Caixa", i: Wallet, g: "Financeiro", d: "Abertura, movimentos, fechamento e pagamentos a confirmar." },
-  { k: "historico", l: "Histórico", i: History, g: "Financeiro", d: "Confirmações, cancelamentos e reaberturas com data e hora." },
-  { k: "relatorios", l: "Relatórios", i: BarChart3, g: "Financeiro", d: "Vendas, pagamentos, gorjetas e estornos por período." },
-  { k: "recebimentos", l: "Recebimentos", i: Landmark, g: "Financeiro", dono: true, d: "Conta que recebe os pagamentos digitais." },
-  { k: "equipe", l: "Equipe e garçons", i: Users, g: "Equipe", dono: true, d: "Pessoas com acesso, garçons e chaves Pix." },
-  { k: "garcons", l: "Garçons: avaliações", i: Star, g: "Equipe", dono: true, d: "Avaliações e gorjetas por garçom." },
-  { k: "cardapio", l: "Cardápio", i: UtensilsCrossed, g: "Configurações", dono: true, d: "Produtos, categorias e disponibilidade." },
-  { k: "qr", l: "Mesas e QR Codes", i: QrCode, g: "Configurações", d: "Mesas, códigos de cada mesa e material para impressão." },
-  { k: "integracoes", l: "Integrações", i: Plug, g: "Configurações", dono: true, d: "Conexão com o seu PDV." },
-  { k: "config", l: "Configurações", i: Settings, g: "Configurações", d: "Dados do restaurante, taxa de serviço e formas de pagamento." },
-  { k: "assinatura", l: "Assinatura", i: CreditCard, g: "Configurações", dono: true, d: "Seu plano TIPE." },
+  {
+    k: "inicio",
+    l: "Início",
+    i: Home,
+    g: "Operação",
+    d: "O resumo do dia e os atalhos mais usados.",
+  },
+  {
+    k: "salao",
+    l: "Salão",
+    i: LayoutGrid,
+    g: "Operação",
+    d: "Cada mesa ao vivo: o que foi pedido, pago e o que falta.",
+  },
+  {
+    k: "pdv",
+    l: "Lançamento TIPE",
+    i: ShoppingCart,
+    g: "Operação",
+    d: "Lance pedidos nas mesas pelo próprio painel.",
+  },
+  {
+    k: "cozinha",
+    l: "Cozinha e bar",
+    i: ChefHat,
+    g: "Operação",
+    d: "Pedidos por setor, do recebido ao entregue.",
+  },
+  {
+    k: "caixa",
+    l: "Caixa",
+    i: Wallet,
+    g: "Financeiro",
+    d: "Abertura, movimentos, fechamento e pagamentos a confirmar.",
+  },
+  {
+    k: "historico",
+    l: "Histórico",
+    i: History,
+    g: "Financeiro",
+    d: "Confirmações, cancelamentos e reaberturas com data e hora.",
+  },
+  {
+    k: "relatorios",
+    l: "Relatórios",
+    i: BarChart3,
+    g: "Financeiro",
+    d: "Vendas, pagamentos, gorjetas e estornos por período.",
+  },
+  {
+    k: "recebimentos",
+    l: "Recebimentos",
+    i: Landmark,
+    g: "Financeiro",
+    dono: true,
+    d: "Conta que recebe os pagamentos digitais.",
+  },
+  {
+    k: "equipe",
+    l: "Equipe e garçons",
+    i: Users,
+    g: "Equipe",
+    dono: true,
+    d: "Pessoas com acesso, garçons e chaves Pix.",
+  },
+  {
+    k: "garcons",
+    l: "Garçons: avaliações",
+    i: Star,
+    g: "Equipe",
+    dono: true,
+    d: "Avaliações e gorjetas por garçom.",
+  },
+  {
+    k: "cardapio",
+    l: "Cardápio",
+    i: UtensilsCrossed,
+    g: "Configurações",
+    dono: true,
+    d: "Produtos, categorias e disponibilidade.",
+  },
+  {
+    k: "qr",
+    l: "Mesas e QR Codes",
+    i: QrCode,
+    g: "Configurações",
+    d: "Mesas, códigos de cada mesa e material para impressão.",
+  },
+  {
+    k: "integracoes",
+    l: "Integrações",
+    i: Plug,
+    g: "Configurações",
+    dono: true,
+    d: "Conexão com o seu PDV.",
+  },
+  {
+    k: "config",
+    l: "Configurações",
+    i: Settings,
+    g: "Configurações",
+    d: "Dados do restaurante, taxa de serviço e formas de pagamento.",
+  },
+  {
+    k: "assinatura",
+    l: "Assinatura",
+    i: CreditCard,
+    g: "Configurações",
+    dono: true,
+    d: "Seu plano TIPE.",
+  },
 ] as const;
 const GRUPOS = ["Operação", "Financeiro", "Equipe", "Configurações"] as const;
 const PRINCIPAIS_MOBILE = ["inicio", "salao", "caixa", "pdv"] as const;
@@ -78,26 +261,53 @@ const PRINCIPAIS_MOBILE = ["inicio", "salao", "caixa", "pdv"] as const;
 /** Esqueleto do painel enquanto os dados chegam. */
 export function PainelCarregando() {
   return (
-    <div className="lg:grid lg:grid-cols-[232px_1fr] lg:gap-8" aria-busy="true" aria-label="Carregando painel">
+    <div
+      className="lg:grid lg:grid-cols-[232px_1fr] lg:gap-8"
+      aria-busy="true"
+      aria-label="Carregando painel"
+    >
       <div className="hidden h-[480px] animate-pulse rounded-2xl bg-surface lg:block motion-reduce:animate-none" />
       <div>
         <div className="h-8 w-48 animate-pulse rounded-lg bg-surface motion-reduce:animate-none" />
-        <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">{[0, 1, 2, 3].map((i) => <div key={i} className="h-28 animate-pulse rounded-2xl bg-surface motion-reduce:animate-none" />)}</div>
+        <div className="mt-6 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {[0, 1, 2, 3].map((i) => (
+            <div
+              key={i}
+              className="h-28 animate-pulse rounded-2xl bg-surface motion-reduce:animate-none"
+            />
+          ))}
+        </div>
         <div className="mt-4 h-64 animate-pulse rounded-2xl bg-surface motion-reduce:animate-none" />
       </div>
     </div>
   );
 }
 
-export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; myRoles: StaffRole[]; isFounder: boolean }) {
+export function RestaurantPanel({
+  slug,
+  myRoles,
+  isFounder,
+}: {
+  slug: string;
+  myRoles: StaffRole[];
+  isFounder: boolean;
+}) {
   const fetchPanel = useServerFn(getPanelData);
   const fetchPdv = useServerFn(getPdvData);
   const resolve = useServerFn(resolvePayment);
   const qc = useQueryClient();
-  const q = useQuery({ queryKey: ["panel", slug], queryFn: () => fetchPanel({ data: { slug } }), refetchInterval: 15000 });
+  const q = useQuery({
+    queryKey: ["panel", slug],
+    queryFn: () => fetchPanel({ data: { slug } }),
+    refetchInterval: 15000,
+  });
   const pdv = useQuery({ queryKey: ["pdv", slug], queryFn: () => fetchPdv({ data: { slug } }) });
   const fetchInteg = useServerFn(getPdvIntegration);
-  const integ = useQuery({ queryKey: ["pdv-integ", slug], queryFn: () => fetchInteg({ data: { slug } }), refetchInterval: 30000 });
+  const integ = useQuery({
+    queryKey: ["pdv-integ", slug],
+    queryFn: () => fetchInteg({ data: { slug } }),
+    refetchInterval: 30000,
+  });
   const [mesaAberta, setMesaAberta] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState<string | null>(null);
   const [aba, setAba] = useState("inicio");
@@ -106,26 +316,64 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
 
   useEffect(() => {
     const inv = () => qc.invalidateQueries({ queryKey: ["panel", slug] });
-    const ch = supabase.channel(`painel-${slug}`)
-      .on("postgres_changes", { event: "*", schema: "public", table: "table_payment_requests", filter: `restaurant_slug=eq.${slug}` }, inv)
-      .on("postgres_changes", { event: "*", schema: "public", table: "table_bill_items", filter: `restaurant_slug=eq.${slug}` }, inv)
+    const ch = supabase
+      .channel(`painel-${slug}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "table_payment_requests",
+          filter: `restaurant_slug=eq.${slug}`,
+        },
+        inv,
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "table_bill_items",
+          filter: `restaurant_slug=eq.${slug}`,
+        },
+        inv,
+      )
       .subscribe();
-    return () => { supabase.removeChannel(ch); };
+    return () => {
+      supabase.removeChannel(ch);
+    };
   }, [slug, qc]);
 
   const podeConfirmar = isFounder || myRoles.includes("owner") || myRoles.includes("cashier");
   const podeDono = isFounder || myRoles.includes("owner");
-  const refresh = () => { qc.invalidateQueries({ queryKey: ["panel", slug] }); qc.invalidateQueries({ queryKey: ["pdv", slug] }); qc.invalidateQueries({ queryKey: ["ops", slug] }); };
+  const refresh = () => {
+    qc.invalidateQueries({ queryKey: ["panel", slug] });
+    qc.invalidateQueries({ queryKey: ["pdv", slug] });
+    qc.invalidateQueries({ queryKey: ["ops", slug] });
+  };
 
   const mesas = useMemo(() => {
     if (!q.data || !pdv.data) return [];
     return pdv.data.tables.map((t) => {
       const itens = q.data.items.filter((i) => i.table_number === t.number);
-      const pend = q.data.payments.filter((p) => p.table_number === t.number && p.status === "pending");
+      const pend = q.data.payments.filter(
+        (p) => p.table_number === t.number && p.status === "pending",
+      );
       const total = itens.reduce((s, i) => s + i.unit_price * i.ordered_quantity, 0);
       const pago = itens.reduce((s, i) => s + i.unit_price * i.paid_portion, 0);
-      const disponivel = itens.reduce((s, i) => s + (i.ordered_quantity - i.reserved_portion - i.paid_portion), 0);
-      const status: Status = !t.active ? "inativa" : itens.length === 0 ? "livre" : pend.length ? "aguardando" : disponivel <= 0 ? "encerrada" : "ocupada";
+      const disponivel = itens.reduce(
+        (s, i) => s + (i.ordered_quantity - i.reserved_portion - i.paid_portion),
+        0,
+      );
+      const status: Status = !t.active
+        ? "inativa"
+        : itens.length === 0
+          ? "livre"
+          : pend.length
+            ? "aguardando"
+            : disponivel <= 0
+              ? "encerrada"
+              : "ocupada";
       const garcom = pdv.data.waiters.find((w) => w.id === t.waiter_id)?.name;
       return { ...t, itens, total, pago, status, garcom };
     });
@@ -135,34 +383,67 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
     setOcupado(id);
     try {
       await resolve({ data: { paymentId: id, action } });
-      toast.success(action === "confirm" ? "Recebimento confirmado" : "Pagamento cancelado e itens liberados");
+      toast.success(
+        action === "confirm" ? "Recebimento confirmado" : "Pagamento cancelado e itens liberados",
+      );
       refresh();
-    } catch (e) { toast.error((e as Error).message); }
-    finally { setOcupado(null); }
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setOcupado(null);
+    }
   }
 
   if (q.isLoading || pdv.isLoading) return <PainelCarregando />;
-  if (q.error || !q.data || pdv.error || !pdv.data) return <EmptyState icon={X} title="Não foi possível carregar o painel" text={((q.error ?? pdv.error) as Error)?.message ?? "Tente atualizar a página."} action={<Button variant="outline" onClick={refresh}><RefreshCw />Tentar de novo</Button>} />;
+  if (q.error || !q.data || pdv.error || !pdv.data)
+    return (
+      <EmptyState
+        icon={X}
+        title="Não foi possível carregar o painel"
+        text={((q.error ?? pdv.error) as Error)?.message ?? "Tente atualizar a página."}
+        action={
+          <Button variant="outline" onClick={refresh}>
+            <RefreshCw />
+            Tentar de novo
+          </Button>
+        }
+      />
+    );
   const d = q.data;
   if (d.restaurant.onboarding_step === "pos" && podeDono) {
     const nome = d.staff.find((x) => x.roles.includes("owner"))?.display_name?.split(" ")[0] ?? "";
     return <OnboardingPdv slug={slug} nome={nome} onDone={refresh} />;
   }
   const pendentes = d.payments.filter((p) => p.status === "pending");
-  const itemNome = (mesa: string, code: string) => d.items.find((i) => i.table_number === mesa && i.item_code === code)?.item_name ?? code;
+  const itemNome = (mesa: string, code: string) =>
+    d.items.find((i) => i.table_number === mesa && i.item_code === code)?.item_name ?? code;
   const mesaSel = mesas.find((m) => m.number === mesaAberta);
   const abertas = mesas.filter((m) => m.status === "ocupada" || m.status === "aguardando");
   // O Lançamento TIPE fica sempre disponível, inclusive como reserva de uma integração.
   const visiveis = secoes.filter((x) => !("dono" in x) || podeDono);
-  const pdvLabel = !integ.data || integ.data.adapter === "lancamento_tipe" ? "Lançamento TIPE" : `Integração: ${integ.data.adapterName}`;
-  const syncErro = integ.data && integ.data.adapter !== "lancamento_tipe" && integ.data.status === "error";
+  const pdvLabel =
+    !integ.data || integ.data.adapter === "lancamento_tipe"
+      ? "Lançamento TIPE"
+      : `Integração: ${integ.data.adapterName}`;
+  const syncErro =
+    integ.data && integ.data.adapter !== "lancamento_tipe" && integ.data.status === "error";
 
   const secaoAtual = visiveis.find((x) => x.k === aba) ?? visiveis[0]!;
-  const ir = (k: string) => { setAba(k); setMaisAberto(false); if (typeof window !== "undefined") window.scrollTo({ top: 0 }); };
+  const ir = (k: string) => {
+    setAba(k);
+    setMaisAberto(false);
+    if (typeof window !== "undefined") window.scrollTo({ top: 0 });
+  };
 
   const confirmacoes = (
     <>
-      {pendentes.length === 0 && <EmptyState icon={Check} title="Nada para confirmar" text="Pagamentos em dinheiro ou maquininha aparecem aqui para o caixa confirmar." />}
+      {pendentes.length === 0 && (
+        <EmptyState
+          icon={Check}
+          title="Nada para confirmar"
+          text="Pagamentos em dinheiro ou maquininha aparecem aqui para o caixa confirmar."
+        />
+      )}
       <ul className="space-y-3">
         {pendentes.map((p) => (
           <li key={p.id} className="surface-card p-4 sm:p-5">
@@ -173,20 +454,53 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
                   <StatusBadge tone="warning">Aguardando</StatusBadge>
                 </div>
                 <p className="mt-1 text-sm">{p.customer_name}</p>
-                <p className="text-xs text-muted-foreground">{metodoLabel[p.payment_method] ?? p.payment_method} · {hora(p.created_at)}</p>
+                <p className="text-xs text-muted-foreground">
+                  {metodoLabel[p.payment_method] ?? p.payment_method} · {hora(p.created_at)}
+                </p>
               </div>
-              <p className="money font-display text-2xl font-semibold tracking-heading">{brl(p.amount)}</p>
+              <p className="money font-display text-2xl font-semibold tracking-heading">
+                {brl(p.amount)}
+              </p>
             </div>
-            {p.establishment_method && <p className="mt-3 rounded-xl bg-background-muted px-3 py-2 text-sm font-medium">{p.establishment_method === "cash" ? `Dinheiro: cliente entregará ${brl(p.cash_received ?? p.amount)}${p.change_due ? ` · Troco ${brl(p.change_due)}` : " · Sem troco"}` : "Maquininha"}</p>}
+            {p.establishment_method && (
+              <p className="mt-3 rounded-xl bg-background-muted px-3 py-2 text-sm font-medium">
+                {p.establishment_method === "cash"
+                  ? `Dinheiro: cliente entregará ${brl(p.cash_received ?? p.amount)}${p.change_due ? ` · Troco ${brl(p.change_due)}` : " · Sem troco"}`
+                  : "Maquininha"}
+              </p>
+            )}
             <p className="mt-3 text-sm text-muted-foreground">
-              {Object.entries(p.item_quantities).filter(([, n]) => n > 0).map(([c, n]) => `${formatPortion(n)} de ${itemNome(p.table_number, c)}`).join(" · ")}
+              {Object.entries(p.item_quantities)
+                .filter(([, n]) => n > 0)
+                .map(([c, n]) => `${formatPortion(n)} de ${itemNome(p.table_number, c)}`)
+                .join(" · ")}
             </p>
             {podeConfirmar ? (
               <div className="mt-4 flex flex-wrap gap-2">
-                <Button size="sm" variant="ink" disabled={ocupado === p.id} onClick={() => agir(p.id, "confirm")}><Check />Confirmar recebimento</Button>
-                <Button size="sm" variant="outline" disabled={ocupado === p.id} onClick={() => agir(p.id, "cancel")}><X />Cancelar</Button>
+                <Button
+                  size="sm"
+                  variant="ink"
+                  disabled={ocupado === p.id}
+                  onClick={() => agir(p.id, "confirm")}
+                >
+                  <Check />
+                  Confirmar recebimento
+                </Button>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={ocupado === p.id}
+                  onClick={() => agir(p.id, "cancel")}
+                >
+                  <X />
+                  Cancelar
+                </Button>
               </div>
-            ) : <p className="mt-3 text-xs text-muted-foreground">Somente caixa, gerente ou dono confirmam.</p>}
+            ) : (
+              <p className="mt-3 text-xs text-muted-foreground">
+                Somente caixa, gerente ou dono confirmam.
+              </p>
+            )}
           </li>
         ))}
       </ul>
@@ -200,7 +514,7 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
       <aside className="hidden print:hidden lg:block">
         <nav aria-label="Seções do painel" className="sticky top-20 space-y-5">
           <div className="px-3">
-            <p className="truncate font-display text-[0.95rem] font-semibold">{d.restaurant.name}</p>
+            <p className="truncate text-base font-medium">{d.restaurant.name}</p>
             <p className="truncate text-xs text-muted-foreground">tipe.digital/{slug}</p>
           </div>
           {GRUPOS.map((g) => {
@@ -208,13 +522,33 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
             if (!itens.length) return null;
             return (
               <div key={g}>
-                <p className="px-3 pb-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/80">{g}</p>
+                <p className="px-3 pb-1.5 text-xs font-medium text-muted-foreground">{g}</p>
                 <ul className="space-y-0.5">
                   {itens.map(({ k, l, i: Icon }) => (
                     <li key={k}>
-                      <button type="button" onClick={() => ir(k)} aria-current={aba === k ? "page" : undefined} className={cn("flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm transition-colors", aba === k ? "bg-ink font-semibold text-white shadow-xs" : "text-foreground/75 hover:bg-surface hover:text-foreground")}>
-                        <Icon className="h-4 w-4 shrink-0" />{l}
-                        {k === "caixa" && pendentes.length > 0 && <span className={cn("ml-auto rounded-full px-1.5 text-[11px] font-semibold", aba === k ? "bg-white/15" : "bg-warning/25 text-foreground")}>{pendentes.length}</span>}
+                      <button
+                        type="button"
+                        onClick={() => ir(k)}
+                        aria-current={aba === k ? "page" : undefined}
+                        className={cn(
+                          "flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm transition-colors",
+                          aba === k
+                            ? "bg-foreground font-medium text-background"
+                            : "text-foreground/75 hover:bg-background-muted hover:text-foreground",
+                        )}
+                      >
+                        <Icon className="h-4 w-4 shrink-0" />
+                        {l}
+                        {k === "caixa" && pendentes.length > 0 && (
+                          <span
+                            className={cn(
+                              "ml-auto rounded-full px-1.5 text-[11px] font-semibold",
+                              aba === k ? "bg-white/15" : "bg-warning/25 text-foreground",
+                            )}
+                          >
+                            {pendentes.length}
+                          </span>
+                        )}
                       </button>
                     </li>
                   ))}
@@ -226,38 +560,93 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
       </aside>
 
       {/* Navegação móvel: quatro atalhos principais e o restante em "Mais". */}
-      <nav aria-label="Seções do painel" className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border bg-surface/95 px-1 pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur-xl print:hidden lg:hidden">
+      <nav
+        aria-label="Seções do painel"
+        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border bg-surface/95 px-1 pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur-xl print:hidden lg:hidden"
+      >
         {PRINCIPAIS_MOBILE.map((k) => {
           const sec = visiveis.find((x) => x.k === k);
           if (!sec) return null;
           const Icon = sec.i;
           return (
-            <button key={k} type="button" onClick={() => ir(k)} aria-current={aba === k ? "page" : undefined} className={cn("relative flex flex-col items-center gap-0.5 rounded-xl py-1.5 text-[10.5px] font-medium", aba === k ? "text-foreground" : "text-muted-foreground")}>
-              <span className={cn("grid h-7 w-12 place-items-center rounded-full transition-colors", aba === k && "bg-brand-soft text-brand-strong")}><Icon className="h-[18px] w-[18px]" /></span>
+            <button
+              key={k}
+              type="button"
+              onClick={() => ir(k)}
+              aria-current={aba === k ? "page" : undefined}
+              className={cn(
+                "relative flex flex-col items-center gap-0.5 rounded-xl py-1.5 text-[10.5px] font-medium",
+                aba === k ? "text-foreground" : "text-muted-foreground",
+              )}
+            >
+              <span
+                className={cn(
+                  "grid h-7 w-12 place-items-center rounded-full transition-colors",
+                  aba === k && "bg-foreground text-background",
+                )}
+              >
+                <Icon className="h-[18px] w-[18px]" />
+              </span>
               {k === "pdv" ? "Lançar" : sec.l}
-              {k === "caixa" && pendentes.length > 0 && <span className="absolute right-3 top-1 h-2 w-2 rounded-full bg-warning" aria-label={`${pendentes.length} pagamentos a confirmar`} />}
+              {k === "caixa" && pendentes.length > 0 && (
+                <span
+                  className="absolute right-3 top-1 h-2 w-2 rounded-full bg-warning"
+                  aria-label={`${pendentes.length} pagamentos a confirmar`}
+                />
+              )}
             </button>
           );
         })}
-        <button type="button" onClick={() => setMaisAberto(true)} aria-haspopup="dialog" className={cn("flex flex-col items-center gap-0.5 rounded-xl py-1.5 text-[10.5px] font-medium", !(PRINCIPAIS_MOBILE as readonly string[]).includes(aba) ? "text-foreground" : "text-muted-foreground")}>
-          <span className={cn("grid h-7 w-12 place-items-center rounded-full", !(PRINCIPAIS_MOBILE as readonly string[]).includes(aba) && "bg-brand-soft text-brand-strong")}><MoreHorizontal className="h-[18px] w-[18px]" /></span>
+        <button
+          type="button"
+          onClick={() => setMaisAberto(true)}
+          aria-haspopup="dialog"
+          className={cn(
+            "flex flex-col items-center gap-0.5 rounded-xl py-1.5 text-[10.5px] font-medium",
+            !(PRINCIPAIS_MOBILE as readonly string[]).includes(aba)
+              ? "text-foreground"
+              : "text-muted-foreground",
+          )}
+        >
+          <span
+            className={cn(
+              "grid h-7 w-12 place-items-center rounded-full",
+              !(PRINCIPAIS_MOBILE as readonly string[]).includes(aba) &&
+                "bg-foreground text-background",
+            )}
+          >
+            <MoreHorizontal className="h-[18px] w-[18px]" />
+          </span>
           Mais
         </button>
       </nav>
       <Dialog open={maisAberto} onOpenChange={setMaisAberto}>
         <DialogContent className="top-auto bottom-3 max-h-[80svh] translate-y-0 overflow-y-auto p-4 lg:hidden">
-          <DialogHeader><DialogTitle>Todas as seções</DialogTitle></DialogHeader>
+          <DialogHeader>
+            <DialogTitle>Todas as seções</DialogTitle>
+          </DialogHeader>
           <div className="space-y-4">
             {GRUPOS.map((g) => {
               const itens = visiveis.filter((x) => x.g === g);
               if (!itens.length) return null;
               return (
                 <div key={g}>
-                  <p className="pb-1.5 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">{g}</p>
+                  <p className="pb-1.5 text-xs font-medium text-muted-foreground">{g}</p>
                   <div className="grid grid-cols-2 gap-1.5">
                     {itens.map(({ k, l, i: Icon }) => (
-                      <button key={k} type="button" onClick={() => ir(k)} className={cn("flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-sm", aba === k ? "border-ink bg-ink font-semibold text-white" : "border-border bg-background hover:border-foreground/25")}>
-                        <Icon className="h-4 w-4 shrink-0" /><span className="truncate">{l}</span>
+                      <button
+                        key={k}
+                        type="button"
+                        onClick={() => ir(k)}
+                        className={cn(
+                          "flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-sm",
+                          aba === k
+                            ? "border-foreground bg-foreground font-medium text-background"
+                            : "border-border bg-background hover:border-foreground/25",
+                        )}
+                      >
+                        <Icon className="h-4 w-4 shrink-0" />
+                        <span className="truncate">{l}</span>
                       </button>
                     ))}
                   </div>
@@ -273,57 +662,125 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
           eyebrow={<span className="lg:hidden">{d.restaurant.name}</span>}
           title={secaoAtual.l}
           description={secaoAtual.d}
-          actions={<StatusBadge tone={syncErro ? "error" : "neutral"} className="print:hidden">{pdvLabel}</StatusBadge>}
+          actions={
+            <StatusBadge tone={syncErro ? "error" : "neutral"} className="print:hidden">
+              {pdvLabel}
+            </StatusBadge>
+          }
           className="print:hidden"
         />
 
         {syncErro && (
-          <div role="alert" className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-destructive/30 bg-destructive/[0.06] p-4 text-sm">
-            <span>Sincronização com o seu sistema com problema. Os pedidos podem ser lançados pelo Lançamento TIPE enquanto isso.</span>
-            <Button size="sm" variant="outline" onClick={() => ir("pdv")}>Abrir Lançamento TIPE</Button>
+          <div
+            role="alert"
+            className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-destructive/30 bg-destructive/[0.06] p-4 text-sm"
+          >
+            <span>
+              Sincronização com o seu sistema com problema. Os pedidos podem ser lançados pelo
+              Lançamento TIPE enquanto isso.
+            </span>
+            <Button size="sm" variant="outline" onClick={() => ir("pdv")}>
+              Abrir Lançamento TIPE
+            </Button>
           </div>
         )}
         {d.pdvAlerts[0] && (
-          <div role="alert" className="mb-4 rounded-2xl border border-warning/50 bg-warning/10 p-4 text-sm">
+          <div
+            role="alert"
+            className="mb-4 rounded-2xl border border-warning/50 bg-warning/10 p-4 text-sm"
+          >
             <strong>Atenção no cancelamento:</strong> {d.pdvAlerts[0].detail}
           </div>
         )}
-        {aba !== "caixa" && <AvisoPendencias slug={slug} enabled={podeConfirmar} onOpen={() => ir("caixa")} />}
-        {aba === "inicio" && <Inicio slug={slug} mesasAbertas={abertas.length} emAberto={abertas.reduce((s, m) => s + m.total - m.pago, 0)} pendentes={pendentes.length} onGo={ir} />}
+        {aba !== "caixa" && (
+          <AvisoPendencias slug={slug} enabled={podeConfirmar} onOpen={() => ir("caixa")} />
+        )}
+        {aba === "inicio" && (
+          <Inicio
+            slug={slug}
+            mesasAbertas={abertas.length}
+            emAberto={abertas.reduce((s, m) => s + m.total - m.pago, 0)}
+            pendentes={pendentes.length}
+            onGo={ir}
+          />
+        )}
 
         {aba === "salao" && (
           <>
             <div className="mb-4 flex flex-wrap gap-2">
-              {(["ocupada", "aguardando", "encerrada", "livre"] as Status[]).map((st) => <StatusBadge key={st} tone={statusInfo[st].tone} className="px-3 py-1.5 text-xs">{statusInfo[st].label} · {contagem(st)}</StatusBadge>)}
+              {(["ocupada", "aguardando", "encerrada", "livre"] as Status[]).map((st) => (
+                <StatusBadge key={st} tone={statusInfo[st].tone} className="px-3 py-1.5 text-xs">
+                  {statusInfo[st].label} · {contagem(st)}
+                </StatusBadge>
+              ))}
             </div>
             {mesas.length === 0 ? (
-              <EmptyState icon={LayoutGrid} title="Nenhuma mesa cadastrada" text="Cadastre as mesas em Mesas e QR Codes para acompanhar o salão aqui." action={<Button variant="outline" onClick={() => ir("qr")}>Ir para Mesas e QR Codes</Button>} />
+              <EmptyState
+                icon={LayoutGrid}
+                title="Nenhuma mesa cadastrada"
+                text="Cadastre as mesas em Mesas e QR Codes para acompanhar o salão aqui."
+                action={
+                  <Button variant="outline" onClick={() => ir("qr")}>
+                    Ir para Mesas e QR Codes
+                  </Button>
+                }
+              />
             ) : (
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-6">
                 {mesas.map((m) => {
                   const temItens = m.itens.length > 0;
-                  const pct = temItens && m.total > 0 ? Math.min(100, Math.round((m.pago / m.total) * 100)) : 0;
+                  const pct =
+                    temItens && m.total > 0
+                      ? Math.min(100, Math.round((m.pago / m.total) * 100))
+                      : 0;
                   return (
-                    <button key={m.id} type="button" onClick={() => setMesaAberta(m.number)} className={cn("group flex min-h-[152px] flex-col rounded-2xl border p-4 text-left transition-[box-shadow,border-color] hover:border-foreground/25 hover:shadow-soft", statusInfo[m.status].card)}>
+                    <button
+                      key={m.id}
+                      type="button"
+                      onClick={() => setMesaAberta(m.number)}
+                      className={cn(
+                        "group flex min-h-[152px] flex-col rounded-2xl border p-4 text-left transition-[box-shadow,border-color] hover:border-foreground/25 hover:shadow-soft",
+                        statusInfo[m.status].card,
+                      )}
+                    >
                       <div className="flex items-start justify-between gap-2">
-                        <span className="font-display text-lg font-semibold leading-tight tracking-heading">Mesa {m.number}</span>
-                        {m.status === "aguardando" && <span className="tipe-live mt-1.5 h-2 w-2 shrink-0 rounded-full bg-warning" aria-hidden />}
+                        <span className="font-display text-lg font-semibold leading-tight tracking-heading">
+                          Mesa {m.number}
+                        </span>
+                        {m.status === "aguardando" && (
+                          <span
+                            className="tipe-live mt-1.5 h-2 w-2 shrink-0 rounded-full bg-warning"
+                            aria-hidden
+                          />
+                        )}
                       </div>
-                      <StatusBadge tone={statusInfo[m.status].tone} className="mt-1.5 w-fit px-2 py-0.5 text-[10.5px]">{statusInfo[m.status].label}</StatusBadge>
+                      <StatusBadge
+                        tone={statusInfo[m.status].tone}
+                        className="mt-1.5 w-fit px-2 py-0.5 text-[10.5px]"
+                      >
+                        {statusInfo[m.status].label}
+                      </StatusBadge>
                       {temItens ? (
                         <div className="mt-auto pt-3">
                           <div className="flex items-baseline justify-between gap-2">
                             <span className="money text-base font-semibold">{brl(m.total)}</span>
                             <span className="text-[11px] text-muted-foreground">{pct}%</span>
                           </div>
-                          <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-background-muted"><div className="h-full rounded-full bg-brand" style={{ width: `${pct}%` }} /></div>
+                          <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-background-muted">
+                            <div
+                              className="h-full rounded-full bg-brand"
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
                           <div className="mt-1.5 flex justify-between gap-2 text-[11px] text-muted-foreground">
                             <span className="money">Pago {brl(m.pago)}</span>
                             {m.garcom && <span className="truncate">{m.garcom}</span>}
                           </div>
                         </div>
                       ) : (
-                        <div className="mt-auto pt-3 text-xs text-muted-foreground">{m.status === "inativa" ? "Mesa desativada" : "Sem itens"}</div>
+                        <div className="mt-auto pt-3 text-xs text-muted-foreground">
+                          {m.status === "inativa" ? "Mesa desativada" : "Sem itens"}
+                        </div>
                       )}
                     </button>
                   );
@@ -333,27 +790,73 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
           </>
         )}
 
-        {aba === "pdv" && <LancarPedido slug={slug} pdv={pdv.data} mesa={mesaPedido} setMesa={setMesaPedido} onDone={refresh} />}
+        {aba === "pdv" && (
+          <LancarPedido
+            slug={slug}
+            pdv={pdv.data}
+            mesa={mesaPedido}
+            setMesa={setMesaPedido}
+            onDone={refresh}
+          />
+        )}
         {aba === "cozinha" && <Cozinha slug={slug} />}
-        {aba === "caixa" && <><PendenciasFinanceiras slug={slug} enabled={podeConfirmar} /><Caixa slug={slug} podeCaixa={podeConfirmar} confirmacoes={confirmacoes} /></>}
+        {aba === "caixa" && (
+          <>
+            <PendenciasFinanceiras slug={slug} enabled={podeConfirmar} />
+            <Caixa slug={slug} podeCaixa={podeConfirmar} confirmacoes={confirmacoes} />
+          </>
+        )}
 
         {aba === "historico" && (
           <div className="space-y-4">
             {d.pdvAlerts.length > 0 && (
               <section className="rounded-2xl border border-warning/40 bg-warning/10">
-                <h2 className="border-b border-warning/30 px-4 py-3 text-sm font-semibold">Alertas do PDV</h2>
-                <ul className="divide-y divide-warning/20">{d.pdvAlerts.map((a) => <li key={a.id} className="flex justify-between gap-3 px-4 py-3 text-sm"><span>{a.detail}</span><span className="shrink-0 text-muted-foreground">{hora(a.created_at)}</span></li>)}</ul>
+                <h2 className="border-b border-warning/30 px-4 py-3 text-sm font-semibold">
+                  Alertas do PDV
+                </h2>
+                <ul className="divide-y divide-warning/20">
+                  {d.pdvAlerts.map((a) => (
+                    <li key={a.id} className="flex justify-between gap-3 px-4 py-3 text-sm">
+                      <span>{a.detail}</span>
+                      <span className="shrink-0 text-muted-foreground">{hora(a.created_at)}</span>
+                    </li>
+                  ))}
+                </ul>
               </section>
             )}
-            {d.audit.length === 0 ? <EmptyState icon={History} title="Sem registros ainda" text="Confirmações, cancelamentos e reaberturas de mesa aparecem aqui com data e hora." /> : (
+            {d.audit.length === 0 ? (
+              <EmptyState
+                icon={History}
+                title="Sem registros ainda"
+                text="Confirmações, cancelamentos e reaberturas de mesa aparecem aqui com data e hora."
+              />
+            ) : (
               <ul className="surface-card divide-y divide-border">
                 {d.audit.map((a) => (
-                  <li key={a.id} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-3 text-sm">
+                  <li
+                    key={a.id}
+                    className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 px-4 py-3 text-sm"
+                  >
                     <span className="flex items-center gap-2.5">
-                      <StatusBadge tone={a.action === "confirm" ? "success" : a.action === "cancel" ? "error" : "neutral"}>{acaoLabel[a.action] ?? a.action}</StatusBadge>
+                      <StatusBadge
+                        tone={
+                          a.action === "confirm"
+                            ? "success"
+                            : a.action === "cancel"
+                              ? "error"
+                              : "neutral"
+                        }
+                      >
+                        {acaoLabel[a.action] ?? a.action}
+                      </StatusBadge>
                       <span className="font-medium">Mesa {a.table_number}</span>
                     </span>
-                    <span className="flex items-center gap-3 text-muted-foreground">{a.amount ? <span className="money font-semibold text-foreground">{brl(a.amount)}</span> : null}<span>{hora(a.created_at)}</span></span>
+                    <span className="flex items-center gap-3 text-muted-foreground">
+                      {a.amount ? (
+                        <span className="money font-semibold text-foreground">{brl(a.amount)}</span>
+                      ) : null}
+                      <span>{hora(a.created_at)}</span>
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -362,10 +865,22 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
         )}
 
         {aba === "garcons" && <DesempenhoGarcons slug={slug} />}
-        {aba === "qr" && <MesasQr slug={slug} restaurante={d.restaurant.name} tables={pdv.data.tables} podeDono={podeDono} onDone={refresh} />}
+        {aba === "qr" && (
+          <MesasQr
+            slug={slug}
+            restaurante={d.restaurant.name}
+            tables={pdv.data.tables}
+            podeDono={podeDono}
+            onDone={refresh}
+          />
+        )}
         {aba === "cardapio" && podeDono && <Cardapio slug={slug} pdv={pdv.data} onDone={refresh} />}
         {aba === "equipe" && podeDono && (
-          <div className="space-y-6"><Garcons slug={slug} pdv={pdv.data} onDone={refresh} /><PixGarcons slug={slug} /><Equipe slug={slug} staff={d.staff} /></div>
+          <div className="space-y-6">
+            <Garcons slug={slug} pdv={pdv.data} onDone={refresh} />
+            <PixGarcons slug={slug} />
+            <Equipe slug={slug} staff={d.staff} />
+          </div>
         )}
         {aba === "relatorios" && <Relatorios slug={slug} />}
         {aba === "integracoes" && <Integracoes slug={slug} podeDono={podeDono} />}
@@ -377,10 +892,24 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
       <Dialog open={!!mesaSel} onOpenChange={(o) => !o && setMesaAberta(null)}>
         <DialogContent className="max-h-[85vh] overflow-y-auto">
           {mesaSel && (
-            <MesaDetalhe slug={slug} mesa={mesaSel} outras={mesas.filter((m) => m.active && m.number !== mesaSel.number).map((m) => m.number)}
-              payments={d.payments.filter((p) => p.table_number === mesaSel.number)} podeConfirmar={podeConfirmar}
-              onLancar={() => { setMesaPedido(mesaSel.number); setMesaAberta(null); setAba("pdv"); }}
-              onDone={() => { refresh(); }} onClose={() => setMesaAberta(null)} />
+            <MesaDetalhe
+              slug={slug}
+              mesa={mesaSel}
+              outras={mesas
+                .filter((m) => m.active && m.number !== mesaSel.number)
+                .map((m) => m.number)}
+              payments={d.payments.filter((p) => p.table_number === mesaSel.number)}
+              podeConfirmar={podeConfirmar}
+              onLancar={() => {
+                setMesaPedido(mesaSel.number);
+                setMesaAberta(null);
+                setAba("pdv");
+              }}
+              onDone={() => {
+                refresh();
+              }}
+              onClose={() => setMesaAberta(null)}
+            />
           )}
         </DialogContent>
       </Dialog>
@@ -392,9 +921,29 @@ export function RestaurantPanel({ slug, myRoles, isFounder }: { slug: string; my
 type PdvData = Awaited<ReturnType<typeof getPdvData>>;
 type PanelData = Awaited<ReturnType<typeof getPanelData>>;
 
-function MesaDetalhe({ slug, mesa, outras, payments, podeConfirmar, onLancar, onDone, onClose }: {
-  slug: string; outras: string[]; podeConfirmar: boolean; onLancar: () => void; onDone: () => void; onClose: () => void;
-  mesa: { number: string; status: Status; garcom?: string | undefined; total: number; itens: PanelData["items"] };
+function MesaDetalhe({
+  slug,
+  mesa,
+  outras,
+  payments,
+  podeConfirmar,
+  onLancar,
+  onDone,
+  onClose,
+}: {
+  slug: string;
+  outras: string[];
+  podeConfirmar: boolean;
+  onLancar: () => void;
+  onDone: () => void;
+  onClose: () => void;
+  mesa: {
+    number: string;
+    status: Status;
+    garcom?: string | undefined;
+    total: number;
+    itens: PanelData["items"];
+  };
   payments: PanelData["payments"];
 }) {
   const estornar = useServerFn(voidItem);
@@ -405,33 +954,84 @@ function MesaDetalhe({ slug, mesa, outras, payments, podeConfirmar, onLancar, on
   const [destino, setDestino] = useState("");
   async function run(fn: () => Promise<unknown>, ok: string) {
     setOcupado(true);
-    try { await fn(); toast.success(ok); onDone(); } catch (e) { toast.error((e as Error).message); } finally { setOcupado(false); }
+    try {
+      await fn();
+      toast.success(ok);
+      onDone();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setOcupado(false);
+    }
   }
   return (
     <>
       <DialogHeader>
-        <DialogTitle className="flex flex-wrap items-center gap-2">Mesa {mesa.number} <StatusBadge tone={statusInfo[mesa.status].tone}>{statusInfo[mesa.status].label}</StatusBadge></DialogTitle>
+        <DialogTitle className="flex flex-wrap items-center gap-2">
+          Mesa {mesa.number}{" "}
+          <StatusBadge tone={statusInfo[mesa.status].tone}>
+            {statusInfo[mesa.status].label}
+          </StatusBadge>
+        </DialogTitle>
         {mesa.garcom && <p className="text-sm text-muted-foreground">Garçom: {mesa.garcom}</p>}
       </DialogHeader>
-      {mesa.itens.length === 0 ? <p className="rounded-xl bg-background-muted px-4 py-6 text-center text-sm text-muted-foreground">Nenhum pedido nesta mesa.</p> : (
+      {mesa.itens.length === 0 ? (
+        <p className="rounded-xl bg-background-muted px-4 py-6 text-center text-sm text-muted-foreground">
+          Nenhum pedido nesta mesa.
+        </p>
+      ) : (
         <div className="overflow-hidden rounded-xl border border-border">
           <table className="w-full text-sm">
-            <thead className="bg-background-muted text-left text-xs text-muted-foreground"><tr><th className="px-3 py-2 font-medium">Item</th><th className="px-2 py-2 text-right font-medium">Qtd</th><th className="px-2 py-2 text-right font-medium">Reserv.</th><th className="px-2 py-2 text-right font-medium">Pago</th><th className="w-10" /></tr></thead>
+            <thead className="bg-background-muted text-left text-xs text-muted-foreground">
+              <tr>
+                <th className="px-3 py-2 font-medium">Item</th>
+                <th className="px-2 py-2 text-right font-medium">Qtd</th>
+                <th className="px-2 py-2 text-right font-medium">Reserv.</th>
+                <th className="px-2 py-2 text-right font-medium">Pago</th>
+                <th className="w-10" />
+              </tr>
+            </thead>
             <tbody>
               {mesa.itens.map((i) => {
                 const livre = i.ordered_quantity - i.reserved_portion - i.paid_portion;
                 return (
                   <tr key={i.item_code} className="border-t border-border">
-                    <td className="px-3 py-2">{i.item_name}<div className="money text-xs text-muted-foreground">{brl(i.unit_price)}</div></td>
-                    <td className="money px-2 text-right">{i.ordered_quantity}</td><td className="px-2 text-right">{formatPortion(i.reserved_portion)}</td><td className="px-2 text-right">{formatPortion(i.paid_portion)}</td>
+                    <td className="px-3 py-2">
+                      {i.item_name}
+                      <div className="money text-xs text-muted-foreground">{brl(i.unit_price)}</div>
+                    </td>
+                    <td className="money px-2 text-right">{i.ordered_quantity}</td>
+                    <td className="px-2 text-right">{formatPortion(i.reserved_portion)}</td>
+                    <td className="px-2 text-right">{formatPortion(i.paid_portion)}</td>
                     <td className="pr-1 text-right">
                       {podeConfirmar && livre > 0 && (
-                        <Button size="icon-sm" variant="ghost" disabled={ocupado} title="Estornar 1 unidade" aria-label={`Estornar 1 unidade de ${i.item_name}`}
+                        <Button
+                          size="icon-sm"
+                          variant="ghost"
+                          disabled={ocupado}
+                          title="Estornar 1 unidade"
+                          aria-label={`Estornar 1 unidade de ${i.item_name}`}
                           onClick={() => {
                             const reason = window.prompt(`Motivo do estorno de 1× ${i.item_name}:`);
-                            if (!reason || reason.trim().length < 3) { if (reason !== null) toast.error("Informe o motivo (mín. 3 letras)"); return; }
-                            void run(() => estornar({ data: { slug, table: mesa.number, code: i.item_code, qty: 1, reason } }), "Item estornado");
-                          }}>
+                            if (!reason || reason.trim().length < 3) {
+                              if (reason !== null) toast.error("Informe o motivo (mín. 3 letras)");
+                              return;
+                            }
+                            void run(
+                              () =>
+                                estornar({
+                                  data: {
+                                    slug,
+                                    table: mesa.number,
+                                    code: i.item_code,
+                                    qty: 1,
+                                    reason,
+                                  },
+                                }),
+                              "Item estornado",
+                            );
+                          }}
+                        >
                           <Minus className="h-4 w-4" />
                         </Button>
                       )}
@@ -443,45 +1043,137 @@ function MesaDetalhe({ slug, mesa, outras, payments, podeConfirmar, onLancar, on
           </table>
         </div>
       )}
-      {mesa.itens.length > 0 && <p className="text-right text-sm"><span className="text-muted-foreground">Total</span> <span className="money font-display text-base font-semibold">{brl(mesa.total)}</span> <span className="text-muted-foreground">+ 10% serviço</span></p>}
+      {mesa.itens.length > 0 && (
+        <p className="text-right text-sm">
+          <span className="text-muted-foreground">Total</span>{" "}
+          <span className="money font-display text-base font-semibold">{brl(mesa.total)}</span>{" "}
+          <span className="text-muted-foreground">+ 10% serviço</span>
+        </p>
+      )}
       <div>
         <h3 className="mb-2 text-sm font-semibold">Pagamentos</h3>
         <ul className="space-y-2 text-sm">
-          {payments.length === 0 && <li className="text-muted-foreground">Nenhum pagamento ainda.</li>}
+          {payments.length === 0 && (
+            <li className="text-muted-foreground">Nenhum pagamento ainda.</li>
+          )}
           {payments.map((p) => (
-            <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-background-muted px-3 py-2.5">
-              <span><span className="font-medium">{p.customer_name}</span><span className="block text-xs text-muted-foreground">{metodoLabel[p.payment_method] ?? p.payment_method} · {hora(p.created_at)}</span></span>
-              <span className="flex items-center gap-2"><span className="money font-semibold">{brl(p.amount)}</span><StatusBadge tone={p.status === "pending" ? "warning" : p.status === "approved" ? "success" : "error"}>{p.status === "pending" ? "Pendente" : p.status === "approved" ? "Confirmado" : "Cancelado"}</StatusBadge></span>
+            <li
+              key={p.id}
+              className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-background-muted px-3 py-2.5"
+            >
+              <span>
+                <span className="font-medium">{p.customer_name}</span>
+                <span className="block text-xs text-muted-foreground">
+                  {metodoLabel[p.payment_method] ?? p.payment_method} · {hora(p.created_at)}
+                </span>
+              </span>
+              <span className="flex items-center gap-2">
+                <span className="money font-semibold">{brl(p.amount)}</span>
+                <StatusBadge
+                  tone={
+                    p.status === "pending"
+                      ? "warning"
+                      : p.status === "approved"
+                        ? "success"
+                        : "error"
+                  }
+                >
+                  {p.status === "pending"
+                    ? "Pendente"
+                    : p.status === "approved"
+                      ? "Confirmado"
+                      : "Cancelado"}
+                </StatusBadge>
+              </span>
             </li>
           ))}
         </ul>
       </div>
       <div className="flex flex-wrap gap-2 border-t border-border pt-4">
-        {mesa.status !== "inativa" && <Button size="sm" variant="ink" onClick={onLancar}><Plus />Lançar pedido</Button>}
-        {podeConfirmar && mesa.itens.length > 0 && (
-          <Button size="sm" variant="outline" disabled={ocupado} onClick={() => {
-            if (!window.confirm(`Fechar a mesa ${mesa.number}? Os pagamentos serão arquivados e a mesa ficará livre para uma nova conta.`)) return;
-            void run(() => fechar({ data: { slug, table: mesa.number } }), "Mesa fechada e liberada");
-          }}>Fechar e liberar mesa</Button>
+        {mesa.status !== "inativa" && (
+          <Button size="sm" variant="ink" onClick={onLancar}>
+            <Plus />
+            Lançar pedido
+          </Button>
         )}
         {podeConfirmar && mesa.itens.length > 0 && (
-          <Button size="sm" variant="outline" disabled={ocupado} onClick={() => {
-            const reason = window.prompt(`Motivo para remover a taxa de serviço da mesa ${mesa.number}:`);
-            if (!reason || reason.trim().length < 3) { if (reason !== null) toast.error("Informe o motivo (mín. 3 letras)"); return; }
-            void run(() => removerTaxa({ data: { slug, table: mesa.number, reason } }), "Taxa de serviço removida desta mesa");
-          }}>Remover taxa desta mesa</Button>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={ocupado}
+            onClick={() => {
+              if (
+                !window.confirm(
+                  `Fechar a mesa ${mesa.number}? Os pagamentos serão arquivados e a mesa ficará livre para uma nova conta.`,
+                )
+              )
+                return;
+              void run(
+                () => fechar({ data: { slug, table: mesa.number } }),
+                "Mesa fechada e liberada",
+              );
+            }}
+          >
+            Fechar e liberar mesa
+          </Button>
+        )}
+        {podeConfirmar && mesa.itens.length > 0 && (
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={ocupado}
+            onClick={() => {
+              const reason = window.prompt(
+                `Motivo para remover a taxa de serviço da mesa ${mesa.number}:`,
+              );
+              if (!reason || reason.trim().length < 3) {
+                if (reason !== null) toast.error("Informe o motivo (mín. 3 letras)");
+                return;
+              }
+              void run(
+                () => removerTaxa({ data: { slug, table: mesa.number, reason } }),
+                "Taxa de serviço removida desta mesa",
+              );
+            }}
+          >
+            Remover taxa desta mesa
+          </Button>
         )}
         {mesa.itens.length > 0 && payments.length === 0 && mesa.status !== "inativa" && (
           <div className="flex w-full items-center gap-2 pt-1">
             <ArrowRightLeft className="h-4 w-4 shrink-0 text-muted-foreground" />
-            <select className={cn(selectCls, "flex-1")} value={destino} onChange={(e) => setDestino(e.target.value)} aria-label="Mesa de destino">
+            <select
+              className={cn(selectCls, "flex-1")}
+              value={destino}
+              onChange={(e) => setDestino(e.target.value)}
+              aria-label="Mesa de destino"
+            >
               <option value="">Transferir / juntar com a mesa…</option>
-              {outras.map((n) => <option key={n} value={n}>Mesa {n}</option>)}
+              {outras.map((n) => (
+                <option key={n} value={n}>
+                  Mesa {n}
+                </option>
+              ))}
             </select>
-            <Button size="sm" variant="outline" disabled={!destino || ocupado} onClick={() => {
-              if (!window.confirm(`Mover todos os itens da mesa ${mesa.number} para a mesa ${destino}? Se a mesa ${destino} já tiver itens, as contas serão juntadas.`)) return;
-              void run(() => transferir({ data: { slug, from: mesa.number, to: destino } }), `Itens movidos para a mesa ${destino}`).then(onClose);
-            }}>Mover</Button>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={!destino || ocupado}
+              onClick={() => {
+                if (
+                  !window.confirm(
+                    `Mover todos os itens da mesa ${mesa.number} para a mesa ${destino}? Se a mesa ${destino} já tiver itens, as contas serão juntadas.`,
+                  )
+                )
+                  return;
+                void run(
+                  () => transferir({ data: { slug, from: mesa.number, to: destino } }),
+                  `Itens movidos para a mesa ${destino}`,
+                ).then(onClose);
+              }}
+            >
+              Mover
+            </Button>
           </div>
         )}
       </div>
@@ -489,10 +1181,26 @@ function MesaDetalhe({ slug, mesa, outras, payments, podeConfirmar, onLancar, on
   );
 }
 
-function LancarPedido({ slug, pdv, mesa, setMesa, onDone }: { slug: string; pdv: PdvData; mesa: string; setMesa: (m: string) => void; onDone: () => void }) {
+function LancarPedido({
+  slug,
+  pdv,
+  mesa,
+  setMesa,
+  onDone,
+}: {
+  slug: string;
+  pdv: PdvData;
+  mesa: string;
+  setMesa: (m: string) => void;
+  onDone: () => void;
+}) {
   const launch = useServerFn(launchOrder);
   const fetchTop = useServerFn(getTopItems);
-  const top = useQuery({ queryKey: ["top-items", slug], queryFn: () => fetchTop({ data: { slug } }), staleTime: 300000 });
+  const top = useQuery({
+    queryKey: ["top-items", slug],
+    queryFn: () => fetchTop({ data: { slug } }),
+    staleTime: 300000,
+  });
   const [garcom, setGarcom] = useState("");
   const [carrinho, setCarrinho] = useState<Record<string, number>>({});
   const [busca, setBusca] = useState("");
@@ -507,40 +1215,97 @@ function LancarPedido({ slug, pdv, mesa, setMesa, onDone }: { slug: string; pdv:
     if (t?.waiter_id) setGarcom(t.waiter_id);
   }, [mesa, pdv.tables]);
 
-  const itens = pdv.items.filter((i) => i.available && (busca || !cat || i.category_id === cat) && (!busca || i.name.toLowerCase().includes(busca.toLowerCase()) || i.code.toLowerCase() === busca.toLowerCase()));
+  const itens = pdv.items.filter(
+    (i) =>
+      i.available &&
+      (busca || !cat || i.category_id === cat) &&
+      (!busca ||
+        i.name.toLowerCase().includes(busca.toLowerCase()) ||
+        i.code.toLowerCase() === busca.toLowerCase()),
+  );
   const linhas = Object.entries(carrinho).filter(([, n]) => n > 0);
-  const total = linhas.reduce((s, [c, n]) => s + (pdv.items.find((i) => i.code === c)?.price ?? 0) * n, 0);
-  const add = (code: string, delta: number) => setCarrinho((c) => ({ ...c, [code]: Math.max(0, Math.min(99, (c[code] ?? 0) + delta)) }));
+  const total = linhas.reduce(
+    (s, [c, n]) => s + (pdv.items.find((i) => i.code === c)?.price ?? 0) * n,
+    0,
+  );
+  const add = (code: string, delta: number) =>
+    setCarrinho((c) => ({ ...c, [code]: Math.max(0, Math.min(99, (c[code] ?? 0) + delta)) }));
 
   async function enviar() {
     if (!mesa || !garcom || linhas.length === 0) return;
     setEnviando(true);
     try {
-      await launch({ data: { slug, table: mesa, waiterId: garcom, items: linhas.map(([code, qty]) => ({ code, qty, ...(obs[code]?.trim() ? { notes: obs[code]!.trim() } : {}) })) } });
+      await launch({
+        data: {
+          slug,
+          table: mesa,
+          waiterId: garcom,
+          items: linhas.map(([code, qty]) => ({
+            code,
+            qty,
+            ...(obs[code]?.trim() ? { notes: obs[code]!.trim() } : {}),
+          })),
+        },
+      });
       toast.success(`Pedido lançado na mesa ${mesa}`);
-      setCarrinho({}); setObs({});
+      setCarrinho({});
+      setObs({});
       onDone();
-    } catch (e) { toast.error((e as Error).message); } finally { setEnviando(false); }
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setEnviando(false);
+    }
   }
 
   return (
     <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
       <div>
-        <Input placeholder="Buscar item ou código (ex.: P01)" value={busca} onChange={(e) => setBusca(e.target.value)} className="mb-3" />
+        <Input
+          placeholder="Buscar item ou código (ex.: P01)"
+          value={busca}
+          onChange={(e) => setBusca(e.target.value)}
+          className="mb-3"
+        />
         <div className="mb-3 flex flex-wrap gap-2">
-          <Button size="sm" variant={!cat ? "default" : "outline"} onClick={() => setCat("")}>Todos</Button>
-          {pdv.categories.map((c) => <Button key={c.id} size="sm" variant={cat === c.id ? "default" : "outline"} onClick={() => setCat(c.id)}>{c.name}</Button>)}
+          <Button size="sm" variant={!cat ? "default" : "outline"} onClick={() => setCat("")}>
+            Todos
+          </Button>
+          {pdv.categories.map((c) => (
+            <Button
+              key={c.id}
+              size="sm"
+              variant={cat === c.id ? "default" : "outline"}
+              onClick={() => setCat(c.id)}
+            >
+              {c.name}
+            </Button>
+          ))}
         </div>
         {!busca && !cat && (top.data?.length ?? 0) > 0 && (
           <section className="mb-4">
             <h3 className="mb-2 text-sm font-semibold text-brand-strong">Mais vendidos</h3>
             <div className="grid gap-2 sm:grid-cols-2">
-              {top.data!.map((code) => pdv.items.find((i) => i.code === code && i.available)).filter(Boolean).map((i) => (
-                <button key={`top-${i!.id}`} onClick={() => add(i!.code, 1)} className="flex items-center justify-between gap-3 rounded-xl border border-primary/50 bg-brand-soft/40 p-3 text-left text-sm transition-colors hover:border-primary active:scale-[0.99]">
-                  <span>{i!.name}{carrinho[i!.code] ? <span className="ml-2 rounded-full bg-primary px-1.5 text-xs text-primary-foreground">{carrinho[i!.code]}</span> : null}</span>
-                  <span className="font-semibold">{brl(i!.price)}</span>
-                </button>
-              ))}
+              {top
+                .data!.map((code) => pdv.items.find((i) => i.code === code && i.available))
+                .filter(Boolean)
+                .map((i) => (
+                  <button
+                    key={`top-${i!.id}`}
+                    onClick={() => add(i!.code, 1)}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-primary/50 bg-brand-soft/40 p-3 text-left text-sm transition-colors hover:border-primary active:scale-[0.99]"
+                  >
+                    <span>
+                      {i!.name}
+                      {carrinho[i!.code] ? (
+                        <span className="ml-2 rounded-full bg-primary px-1.5 text-xs text-primary-foreground">
+                          {carrinho[i!.code]}
+                        </span>
+                      ) : null}
+                    </span>
+                    <span className="font-semibold">{brl(i!.price)}</span>
+                  </button>
+                ))}
             </div>
           </section>
         )}
@@ -552,8 +1317,15 @@ function LancarPedido({ slug, pdv, mesa, setMesa, onDone }: { slug: string; pdv:
               <h3 className="mb-2 text-sm font-semibold text-muted-foreground">{cat.name}</h3>
               <div className="grid gap-2 sm:grid-cols-2">
                 {lista.map((i) => (
-                  <button key={i.id} onClick={() => add(i.code, 1)} className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface p-3 text-left text-sm transition-colors hover:border-foreground/25 hover:shadow-xs active:scale-[0.99]">
-                    <span><span className="mr-2 text-xs text-muted-foreground">{i.code}</span>{i.name}</span>
+                  <button
+                    key={i.id}
+                    onClick={() => add(i.code, 1)}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-border bg-surface p-3 text-left text-sm transition-colors hover:border-foreground/25 hover:shadow-xs active:scale-[0.99]"
+                  >
+                    <span>
+                      <span className="mr-2 text-xs text-muted-foreground">{i.code}</span>
+                      {i.name}
+                    </span>
                     <span className="font-semibold">{brl(i.price)}</span>
                   </button>
                 ))}
@@ -566,63 +1338,166 @@ function LancarPedido({ slug, pdv, mesa, setMesa, onDone }: { slug: string; pdv:
         <h3 className="font-display font-semibold">Comanda</h3>
         <select className={selectCls} value={mesa} onChange={(e) => setMesa(e.target.value)}>
           <option value="">Escolha a mesa</option>
-          {mesasAtivas.map((t) => <option key={t.id} value={t.number}>Mesa {t.number}</option>)}
+          {mesasAtivas.map((t) => (
+            <option key={t.id} value={t.number}>
+              Mesa {t.number}
+            </option>
+          ))}
         </select>
         <select className={selectCls} value={garcom} onChange={(e) => setGarcom(e.target.value)}>
           <option value="">Escolha o garçom</option>
-          {ativos.map((w) => <option key={w.id} value={w.id}>{w.code} · {w.name}</option>)}
+          {ativos.map((w) => (
+            <option key={w.id} value={w.id}>
+              {w.code} · {w.name}
+            </option>
+          ))}
         </select>
-        {linhas.length === 0 ? <p className="text-sm text-muted-foreground">Toque nos itens do cardápio para adicionar.</p> : (
+        {linhas.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            Toque nos itens do cardápio para adicionar.
+          </p>
+        ) : (
           <ul className="space-y-2 text-sm">
             {linhas.map(([code, n]) => {
               const it = pdv.items.find((i) => i.code === code);
               return (
                 <li key={code} className="space-y-1">
                   <div className="flex items-center justify-between gap-2">
-                  <span className="flex-1">{it?.name}</span>
-                  <div className="flex items-center gap-1">
-                    <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => add(code, -1)}><Minus className="h-3 w-3" /></Button>
-                    <span className="w-6 text-center">{n}</span>
-                    <Button size="icon" variant="outline" className="h-7 w-7" onClick={() => add(code, 1)}><Plus className="h-3 w-3" /></Button>
+                    <span className="flex-1">{it?.name}</span>
+                    <div className="flex items-center gap-1">
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        className="h-7 w-7"
+                        onClick={() => add(code, -1)}
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <span className="w-6 text-center">{n}</span>
+                      <Button
+                        size="icon"
+                        variant="outline"
+                        className="h-7 w-7"
+                        onClick={() => add(code, 1)}
+                      >
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                    </div>
                   </div>
-                  </div>
-                  <Input className="h-7 text-xs" placeholder="Observação (ex.: sem cebola)" maxLength={140} value={obs[code] ?? ""} onChange={(e) => setObs({ ...obs, [code]: e.target.value })} />
+                  <Input
+                    className="h-7 text-xs"
+                    placeholder="Observação (ex.: sem cebola)"
+                    maxLength={140}
+                    value={obs[code] ?? ""}
+                    onChange={(e) => setObs({ ...obs, [code]: e.target.value })}
+                  />
                 </li>
               );
             })}
           </ul>
         )}
-        <div className="flex items-baseline justify-between border-t border-border pt-3"><span className="font-semibold">Total</span><span className="money font-display text-lg font-semibold">{brl(total)}</span></div>
-        <Button variant="ink" className="h-11 w-full" disabled={!mesa || !garcom || !linhas.length || enviando} onClick={enviar}>{enviando ? "Enviando…" : "Enviar pedido"}</Button>
+        <div className="flex items-baseline justify-between border-t border-border pt-3">
+          <span className="font-semibold">Total</span>
+          <span className="money font-display text-lg font-semibold">{brl(total)}</span>
+        </div>
+        <Button
+          variant="ink"
+          className="h-11 w-full"
+          disabled={!mesa || !garcom || !linhas.length || enviando}
+          onClick={enviar}
+        >
+          {enviando ? "Enviando…" : "Enviar pedido"}
+        </Button>
       </aside>
     </div>
   );
 }
 
-function UsoMesas({ active, limit, plan, upgradeUrl, pdvTotal }: { active: number; limit: number; plan: string | null; upgradeUrl: string | null; pdvTotal: number | null }) {
+function UsoMesas({
+  active,
+  limit,
+  plan,
+  upgradeUrl,
+  pdvTotal,
+}: {
+  active: number;
+  limit: number;
+  plan: string | null;
+  upgradeUrl: string | null;
+  pdvTotal: number | null;
+}) {
   const pct = Math.min(100, Math.round((active / Math.max(1, limit)) * 100));
   const cheio = active >= limit;
   return (
-    <section aria-label="Uso de mesas do plano" className="mb-4 surface-card p-4 sm:p-5 print:hidden">
+    <section
+      aria-label="Uso de mesas do plano"
+      className="mb-4 surface-card p-4 sm:p-5 print:hidden"
+    >
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <p className="font-display font-semibold">{active} de {limit} mesas do seu plano</p>
+        <p className="font-display font-semibold">
+          {active} de {limit} mesas do seu plano
+        </p>
         {plan && <span className="text-xs text-muted-foreground">Plano {plan}</span>}
       </div>
-      <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted" role="progressbar" aria-valuenow={active} aria-valuemin={0} aria-valuemax={limit}>
-        <div className={`h-full rounded-full ${cheio ? "bg-destructive" : pct >= 80 ? "bg-highlight" : "bg-primary"}`} style={{ width: `${pct}%` }} />
+      <div
+        className="mt-2 h-2 overflow-hidden rounded-full bg-muted"
+        role="progressbar"
+        aria-valuenow={active}
+        aria-valuemin={0}
+        aria-valuemax={limit}
+      >
+        <div
+          className={`h-full rounded-full ${cheio ? "bg-destructive" : pct >= 80 ? "bg-highlight" : "bg-primary"}`}
+          style={{ width: `${pct}%` }}
+        />
       </div>
-      {active > limit && <p className="mt-2 text-sm">Há {active - limit} mesa(s) ativa(s) acima do plano. Desative as que não vai usar. Até lá, essas mesas não abrem contas novas, mas as contas já abertas podem ser pagas normalmente.</p>}
-      {cheio ? <p className="mt-2 text-sm font-semibold">Você atingiu o limite de mesas do seu plano. Fale com a TIPE para fazer upgrade.</p>
-        : pct >= 80 && <p className="mt-2 text-xs text-muted-foreground">Você está perto do limite de mesas do seu plano.</p>}
-      {pdvTotal && <p className="mt-2 text-sm">Seu sistema tem {pdvTotal} mesas, mas seu plano permite {limit}. Fale com a TIPE para ativar as demais.</p>}
+      {active > limit && (
+        <p className="mt-2 text-sm">
+          Há {active - limit} mesa(s) ativa(s) acima do plano. Desative as que não vai usar. Até lá,
+          essas mesas não abrem contas novas, mas as contas já abertas podem ser pagas normalmente.
+        </p>
+      )}
+      {cheio ? (
+        <p className="mt-2 text-sm font-semibold">
+          Você atingiu o limite de mesas do seu plano. Fale com a TIPE para fazer upgrade.
+        </p>
+      ) : (
+        pct >= 80 && (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Você está perto do limite de mesas do seu plano.
+          </p>
+        )
+      )}
+      {pdvTotal && (
+        <p className="mt-2 text-sm">
+          Seu sistema tem {pdvTotal} mesas, mas seu plano permite {limit}. Fale com a TIPE para
+          ativar as demais.
+        </p>
+      )}
       {upgradeUrl && (cheio || pct >= 80 || pdvTotal) && (
-        <Button asChild size="sm" className="mt-3"><a href={upgradeUrl} target="_blank" rel="noreferrer">Falar com a TIPE no WhatsApp</a></Button>
+        <Button asChild size="sm" className="mt-3">
+          <a href={upgradeUrl} target="_blank" rel="noreferrer">
+            Falar com a TIPE no WhatsApp
+          </a>
+        </Button>
       )}
     </section>
   );
 }
 
-function MesasQr({ slug, restaurante, tables, podeDono, onDone }: { slug: string; restaurante: string; tables: PdvData["tables"]; podeDono: boolean; onDone: () => void }) {
+function MesasQr({
+  slug,
+  restaurante,
+  tables,
+  podeDono,
+  onDone,
+}: {
+  slug: string;
+  restaurante: string;
+  tables: PdvData["tables"];
+  podeDono: boolean;
+  onDone: () => void;
+}) {
   const add = useServerFn(addTable);
   const upd = useServerFn(updateTable);
   const bulk = useServerFn(addTablesBulk);
@@ -630,50 +1505,160 @@ function MesasQr({ slug, restaurante, tables, podeDono, onDone }: { slug: string
   const [lote, setLote] = useState({ from: "", to: "" });
   const fetchPlan = useServerFn(getTablePlan);
   const ativas = tables.filter((t) => t.active).length;
-  const plano = useQuery({ queryKey: ["table-plan", slug, ativas, tables.length], queryFn: () => fetchPlan({ data: { slug } }) });
+  const plano = useQuery({
+    queryKey: ["table-plan", slug, ativas, tables.length],
+    queryFn: () => fetchPlan({ data: { slug } }),
+  });
   const noLimite = !!plano.data && plano.data.active >= plano.data.limit;
-  const base = typeof window !== "undefined" && !window.location.hostname.includes("lovable") && !window.location.hostname.includes("localhost") ? window.location.origin : "https://tipe.digital";
+  const base =
+    typeof window !== "undefined" &&
+    !window.location.hostname.includes("lovable") &&
+    !window.location.hostname.includes("localhost")
+      ? window.location.origin
+      : "https://tipe.digital";
   const link = (t: PdvData["tables"][number]) => `${base}/${slug}/${t.code}?t=${t.access_token}`;
   async function run(fn: () => Promise<unknown>, ok: string) {
-    try { await fn(); toast.success(ok); onDone(); } catch (e) { toast.error((e as Error).message); }
+    try {
+      await fn();
+      toast.success(ok);
+      onDone();
+    } catch (e) {
+      toast.error((e as Error).message);
+    }
   }
   return (
     <div>
       {plano.data && <UsoMesas {...plano.data} />}
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2 print:hidden">
         {podeDono && (
-          <form className="flex gap-2" onSubmit={(e) => { e.preventDefault(); if (nova.trim()) void run(() => add({ data: { slug, number: nova.trim() } }), "Mesa cadastrada").then(() => setNova("")); }}>
-            <Input className="w-32" placeholder="Nº da mesa" value={nova} onChange={(e) => setNova(e.target.value)} />
-            <Button type="submit" variant="outline" disabled={noLimite}>Nova mesa</Button>
+          <form
+            className="flex gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (nova.trim())
+                void run(
+                  () => add({ data: { slug, number: nova.trim() } }),
+                  "Mesa cadastrada",
+                ).then(() => setNova(""));
+            }}
+          >
+            <Input
+              className="w-32"
+              placeholder="Nº da mesa"
+              value={nova}
+              onChange={(e) => setNova(e.target.value)}
+            />
+            <Button type="submit" variant="outline" disabled={noLimite}>
+              Nova mesa
+            </Button>
           </form>
         )}
         {podeDono && (
-          <form className="flex items-center gap-2" onSubmit={(e) => {
-            e.preventDefault();
-            void run(async () => { const r = await bulk({ data: { slug, from: Number(lote.from), to: Number(lote.to) } }); if (r.limited) toast.warning(r.limited); else toast.info(`${r.created} mesa(s) nova(s)`); }, "Mesas cadastradas").then(() => setLote({ from: "", to: "" }));
-          }}>
+          <form
+            className="flex items-center gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void run(async () => {
+                const r = await bulk({
+                  data: { slug, from: Number(lote.from), to: Number(lote.to) },
+                });
+                if (r.limited) toast.warning(r.limited);
+                else toast.info(`${r.created} mesa(s) nova(s)`);
+              }, "Mesas cadastradas").then(() => setLote({ from: "", to: "" }));
+            }}
+          >
             <span className="text-sm text-muted-foreground">Em lote:</span>
-            <Input required type="number" min={1} className="w-20" placeholder="de" value={lote.from} onChange={(e) => setLote({ ...lote, from: e.target.value })} />
-            <Input required type="number" min={1} className="w-20" placeholder="até" value={lote.to} onChange={(e) => setLote({ ...lote, to: e.target.value })} />
-            <Button type="submit" variant="outline" disabled={noLimite}>Criar</Button>
+            <Input
+              required
+              type="number"
+              min={1}
+              className="w-20"
+              placeholder="de"
+              value={lote.from}
+              onChange={(e) => setLote({ ...lote, from: e.target.value })}
+            />
+            <Input
+              required
+              type="number"
+              min={1}
+              className="w-20"
+              placeholder="até"
+              value={lote.to}
+              onChange={(e) => setLote({ ...lote, to: e.target.value })}
+            />
+            <Button type="submit" variant="outline" disabled={noLimite}>
+              Criar
+            </Button>
           </form>
         )}
-        <Button variant="outline" onClick={() => window.print()}><Printer className="mr-1 h-4 w-4" />Imprimir QR Codes</Button>
+        <Button variant="outline" onClick={() => window.print()}>
+          <Printer className="mr-1 h-4 w-4" />
+          Imprimir QR Codes
+        </Button>
       </div>
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
         {tables.map((t) => (
-          <div key={t.id} className={`surface-card p-4 sm:p-5 text-center ${t.active ? "" : "opacity-50 print:hidden"}`}>
-            <div className="flex items-center justify-center gap-2"><span className="font-display text-lg font-semibold">Mesa {t.number}</span>{!t.active && <StatusBadge tone="neutral" className="print:hidden">Desativada</StatusBadge>}</div>
-            <div className="mx-auto my-3 w-fit rounded-xl border border-border bg-white p-2.5"><QRCodeSVG value={link(t)} size={132} /></div>
-            <div className="break-all text-xs text-muted-foreground">{base.replace(/^https?:\/\//, "")}/{slug}/{t.code}</div>
+          <div
+            key={t.id}
+            className={`surface-card p-4 sm:p-5 text-center ${t.active ? "" : "opacity-50 print:hidden"}`}
+          >
+            <div className="flex items-center justify-center gap-2">
+              <span className="font-display text-lg font-semibold">Mesa {t.number}</span>
+              {!t.active && (
+                <StatusBadge tone="neutral" className="print:hidden">
+                  Desativada
+                </StatusBadge>
+              )}
+            </div>
+            <div className="mx-auto my-3 w-fit rounded-xl border border-border bg-white p-2.5">
+              <QRCodeSVG value={link(t)} size={132} />
+            </div>
+            <div className="break-all text-xs text-muted-foreground">
+              {base.replace(/^https?:\/\//, "")}/{slug}/{t.code}
+            </div>
             <div className="mt-3 flex flex-wrap justify-center gap-1 print:hidden">
-              <Button size="sm" variant="ghost" onClick={() => { void navigator.clipboard.writeText(link(t)); toast.success("Link copiado"); }}>Copiar link</Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  void navigator.clipboard.writeText(link(t));
+                  toast.success("Link copiado");
+                }}
+              >
+                Copiar link
+              </Button>
               {podeDono && (
                 <>
-                  <Button size="sm" variant="ghost" title="Gerar novo código (o QR antigo deixa de funcionar)" onClick={() => {
-                    if (window.confirm(`Gerar novo QR para a mesa ${t.number}? O QR impresso atual deixará de funcionar.`)) void run(() => upd({ data: { id: t.id, regenerate: true } }), "Novo QR gerado");
-                  }}><RefreshCw className="h-4 w-4" /></Button>
-                  <Button size="sm" variant="ghost" onClick={() => run(() => upd({ data: { id: t.id, active: !t.active } }), t.active ? "Mesa desativada" : "Mesa ativada")}>{t.active ? "Desativar" : "Ativar"}</Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    title="Gerar novo código (o QR antigo deixa de funcionar)"
+                    onClick={() => {
+                      if (
+                        window.confirm(
+                          `Gerar novo QR para a mesa ${t.number}? O QR impresso atual deixará de funcionar.`,
+                        )
+                      )
+                        void run(
+                          () => upd({ data: { id: t.id, regenerate: true } }),
+                          "Novo QR gerado",
+                        );
+                    }}
+                  >
+                    <RefreshCw className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() =>
+                      run(
+                        () => upd({ data: { id: t.id, active: !t.active } }),
+                        t.active ? "Mesa desativada" : "Mesa ativada",
+                      )
+                    }
+                  >
+                    {t.active ? "Desativar" : "Ativar"}
+                  </Button>
                 </>
               )}
             </div>
@@ -691,21 +1676,62 @@ function Cardapio({ slug, pdv, onDone }: { slug: string; pdv: PdvData; onDone: (
   const importCsv = useServerFn(importMenuCsv);
   async function importar(file: File) {
     const texto = await file.text();
-    const linhas = texto.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    const linhas = texto
+      .split(/\r?\n/)
+      .map((l) => l.trim())
+      .filter(Boolean);
     const sep = (linhas[0] ?? "").includes(";") ? ";" : ",";
-    const rows = linhas.filter((l, i) => !(i === 0 && /categoria/i.test(l))).map((l) => {
-      const [category = "", code = "", name = "", price = "0", ativo = "sim"] = l.split(sep).map((x) => x.trim().replace(/^"|"$/g, ""));
-      return { category, code, name, price: Number(price.replace(/\./g, "").replace(",", ".")) || Number(price) || 0, available: !/^(n|nao|não|0|false|inativo)$/i.test(ativo) };
-    });
-    await run(async () => { const r = await importCsv({ data: { slug, rows } }); toast.message(`${r.imported} itens importados`); }, "Cardápio importado");
+    const rows = linhas
+      .filter((l, i) => !(i === 0 && /categoria/i.test(l)))
+      .map((l) => {
+        const [category = "", code = "", name = "", price = "0", ativo = "sim"] = l
+          .split(sep)
+          .map((x) => x.trim().replace(/^"|"$/g, ""));
+        return {
+          category,
+          code,
+          name,
+          price: Number(price.replace(/\./g, "").replace(",", ".")) || Number(price) || 0,
+          available: !/^(n|nao|não|0|false|inativo)$/i.test(ativo),
+        };
+      });
+    await run(async () => {
+      const r = await importCsv({ data: { slug, rows } });
+      toast.message(`${r.imported} itens importados`);
+    }, "Cardápio importado");
   }
-  const vazio = { id: undefined as string | undefined, categoryId: pdv.categories[0]?.id ?? null, code: "", name: "", price: 0, available: true, sector: "kitchen" as "kitchen" | "bar", description: "" };
+  const vazio = {
+    id: undefined as string | undefined,
+    categoryId: pdv.categories[0]?.id ?? null,
+    code: "",
+    name: "",
+    price: 0,
+    available: true,
+    sector: "kitchen" as "kitchen" | "bar",
+    description: "",
+  };
   const [f, setF] = useState(vazio);
   const [novaCat, setNovaCat] = useState("");
   async function run(fn: () => Promise<unknown>, ok: string) {
-    try { await fn(); toast.success(ok); onDone(); return true; } catch (e) { toast.error((e as Error).message); return false; }
+    try {
+      await fn();
+      toast.success(ok);
+      onDone();
+      return true;
+    } catch (e) {
+      toast.error((e as Error).message);
+      return false;
+    }
   }
-  const base = (i: PdvData["items"][number]) => ({ slug, id: i.id, categoryId: i.category_id, code: i.code, name: i.name, price: i.price, available: i.available });
+  const base = (i: PdvData["items"][number]) => ({
+    slug,
+    id: i.id,
+    categoryId: i.category_id,
+    code: i.code,
+    name: i.name,
+    price: i.price,
+    available: i.available,
+  });
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
       <div>
@@ -713,57 +1739,170 @@ function Cardapio({ slug, pdv, onDone }: { slug: string; pdv: PdvData; onDone: (
           <section key={cat.id} className="mb-4">
             <h3 className="mb-2 text-sm font-semibold text-muted-foreground">{cat.name}</h3>
             <ul className="surface-card divide-y divide-border">
-              {pdv.items.filter((i) => i.category_id === cat.id).map((i) => (
-                <li key={i.id} className="flex items-center justify-between gap-2 p-3 text-sm">
-                  <button className="flex-1 text-left" onClick={() => setF({ id: i.id, categoryId: i.category_id, code: i.code, name: i.name, price: i.price, available: i.available, sector: (i.sector as "kitchen" | "bar") ?? "kitchen", description: i.description ?? "" })}>
-                    <span className="mr-2 text-xs text-muted-foreground">{i.code}</span>
-                    <span className={i.available ? "" : "line-through opacity-60"}>{i.name}</span>
-                    <span className="ml-2 rounded bg-muted px-1.5 text-[10px] text-muted-foreground">{i.sector === "bar" ? "Bar" : "Cozinha"}</span>
-                    {!i.available && <span className="ml-2 text-[10px] text-destructive">Esgotado</span>}
-                  </button>
-                  <span className="font-semibold">{brl(i.price)}</span>
-                  <Button size="sm" variant="ghost" onClick={() => run(() => saveItem({ data: { ...base(i), available: !i.available } }), i.available ? "Marcado como esgotado" : "Item disponível")}>
-                    {i.available ? "Esgotar" : "Ativar"}
-                  </Button>
-                </li>
-              ))}
+              {pdv.items
+                .filter((i) => i.category_id === cat.id)
+                .map((i) => (
+                  <li key={i.id} className="flex items-center justify-between gap-2 p-3 text-sm">
+                    <button
+                      className="flex-1 text-left"
+                      onClick={() =>
+                        setF({
+                          id: i.id,
+                          categoryId: i.category_id,
+                          code: i.code,
+                          name: i.name,
+                          price: i.price,
+                          available: i.available,
+                          sector: (i.sector as "kitchen" | "bar") ?? "kitchen",
+                          description: i.description ?? "",
+                        })
+                      }
+                    >
+                      <span className="mr-2 text-xs text-muted-foreground">{i.code}</span>
+                      <span className={i.available ? "" : "line-through opacity-60"}>{i.name}</span>
+                      <span className="ml-2 rounded bg-muted px-1.5 text-[10px] text-muted-foreground">
+                        {i.sector === "bar" ? "Bar" : "Cozinha"}
+                      </span>
+                      {!i.available && (
+                        <span className="ml-2 text-[10px] text-destructive">Esgotado</span>
+                      )}
+                    </button>
+                    <span className="font-semibold">{brl(i.price)}</span>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() =>
+                        run(
+                          () => saveItem({ data: { ...base(i), available: !i.available } }),
+                          i.available ? "Marcado como esgotado" : "Item disponível",
+                        )
+                      }
+                    >
+                      {i.available ? "Esgotar" : "Ativar"}
+                    </Button>
+                  </li>
+                ))}
             </ul>
           </section>
         ))}
       </div>
       <div className="space-y-4">
-        <form className="space-y-3 surface-card p-4 sm:p-5 lg:sticky lg:top-4" onSubmit={async (e) => {
-          e.preventDefault();
-          if (await run(() => saveItem({ data: { slug, ...f } }), f.id ? "Produto atualizado" : "Produto cadastrado")) setF(vazio);
-        }}>
+        <form
+          className="space-y-3 surface-card p-4 sm:p-5 lg:sticky lg:top-4"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (
+              await run(
+                () => saveItem({ data: { slug, ...f } }),
+                f.id ? "Produto atualizado" : "Produto cadastrado",
+              )
+            )
+              setF(vazio);
+          }}
+        >
           <h3 className="font-display font-semibold">{f.id ? "Editar produto" : "Novo produto"}</h3>
-          <select className={selectCls} value={f.categoryId ?? ""} onChange={(e) => setF({ ...f, categoryId: e.target.value || null })}>
-            {pdv.categories.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
+          <select
+            className={selectCls}
+            value={f.categoryId ?? ""}
+            onChange={(e) => setF({ ...f, categoryId: e.target.value || null })}
+          >
+            {pdv.categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
           </select>
-          <Input required placeholder="Código (ex.: P10)" value={f.code} onChange={(e) => setF({ ...f, code: e.target.value })} />
-          <Input required placeholder="Nome" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
-          <Input placeholder="Descrição (opcional)" maxLength={200} value={f.description} onChange={(e) => setF({ ...f, description: e.target.value })} />
-          <Input required type="number" step="0.01" min={0} placeholder="Preço" value={f.price || ""} onChange={(e) => setF({ ...f, price: Number(e.target.value) })} />
+          <Input
+            required
+            placeholder="Código (ex.: P10)"
+            value={f.code}
+            onChange={(e) => setF({ ...f, code: e.target.value })}
+          />
+          <Input
+            required
+            placeholder="Nome"
+            value={f.name}
+            onChange={(e) => setF({ ...f, name: e.target.value })}
+          />
+          <Input
+            placeholder="Descrição (opcional)"
+            maxLength={200}
+            value={f.description}
+            onChange={(e) => setF({ ...f, description: e.target.value })}
+          />
+          <Input
+            required
+            type="number"
+            step="0.01"
+            min={0}
+            placeholder="Preço"
+            value={f.price || ""}
+            onChange={(e) => setF({ ...f, price: Number(e.target.value) })}
+          />
           <div className="flex gap-2">
-            <Button type="button" size="sm" className="flex-1" variant={f.sector === "kitchen" ? "default" : "outline"} onClick={() => setF({ ...f, sector: "kitchen" })}>Cozinha</Button>
-            <Button type="button" size="sm" className="flex-1" variant={f.sector === "bar" ? "default" : "outline"} onClick={() => setF({ ...f, sector: "bar" })}>Bar</Button>
+            <Button
+              type="button"
+              size="sm"
+              className="flex-1"
+              variant={f.sector === "kitchen" ? "default" : "outline"}
+              onClick={() => setF({ ...f, sector: "kitchen" })}
+            >
+              Cozinha
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              className="flex-1"
+              variant={f.sector === "bar" ? "default" : "outline"}
+              onClick={() => setF({ ...f, sector: "bar" })}
+            >
+              Bar
+            </Button>
           </div>
           <div className="flex gap-2">
-            <Button type="submit" className="flex-1">Salvar</Button>
-            {f.id && <Button type="button" variant="outline" onClick={() => setF(vazio)}>Novo</Button>}
+            <Button type="submit" className="flex-1">
+              Salvar
+            </Button>
+            {f.id && (
+              <Button type="button" variant="outline" onClick={() => setF(vazio)}>
+                Novo
+              </Button>
+            )}
           </div>
         </form>
         <div className="space-y-2 surface-card p-4 sm:p-5">
           <h3 className="font-display font-semibold">Importar planilha CSV</h3>
-          <p className="text-xs text-muted-foreground">Colunas: categoria; código; item; preço; ativo (sim/não). Itens com o mesmo código são atualizados.</p>
-          <Input type="file" accept=".csv,text/csv" onChange={(e) => { const f = e.target.files?.[0]; if (f) void importar(f); e.currentTarget.value = ""; }} />
+          <p className="text-xs text-muted-foreground">
+            Colunas: categoria; código; item; preço; ativo (sim/não). Itens com o mesmo código são
+            atualizados.
+          </p>
+          <Input
+            type="file"
+            accept=".csv,text/csv"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) void importar(f);
+              e.currentTarget.value = "";
+            }}
+          />
         </div>
-        <form className="flex gap-2 surface-card p-4 sm:p-5" onSubmit={async (e) => {
-          e.preventDefault();
-          if (await run(() => saveCat({ data: { slug, name: novaCat } }), "Categoria criada")) setNovaCat("");
-        }}>
-          <Input required placeholder="Nova categoria" value={novaCat} onChange={(e) => setNovaCat(e.target.value)} />
-          <Button type="submit" size="icon" variant="outline"><Plus className="h-4 w-4" /></Button>
+        <form
+          className="flex gap-2 surface-card p-4 sm:p-5"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (await run(() => saveCat({ data: { slug, name: novaCat } }), "Categoria criada"))
+              setNovaCat("");
+          }}
+        >
+          <Input
+            required
+            placeholder="Nova categoria"
+            value={novaCat}
+            onChange={(e) => setNovaCat(e.target.value)}
+          />
+          <Button type="submit" size="icon" variant="outline">
+            <Plus className="h-4 w-4" />
+          </Button>
         </form>
       </div>
     </div>
@@ -776,77 +1915,216 @@ function Garcons({ slug, pdv, onDone }: { slug: string; pdv: PdvData; onDone: ()
   const [acesso, setAcesso] = useState<{ id: string; email: string } | null>(null);
   const [w, setW] = useState({ code: "", name: "" });
   async function run(fn: () => Promise<unknown>, ok: string) {
-    try { await fn(); toast.success(ok); onDone(); return true; } catch (e) { toast.error((e as Error).message); return false; }
+    try {
+      await fn();
+      toast.success(ok);
+      onDone();
+      return true;
+    } catch (e) {
+      toast.error((e as Error).message);
+      return false;
+    }
   }
   return (
     <div className="space-y-3 surface-card p-4 sm:p-5">
       <h3 className="font-display font-semibold">Garçons</h3>
-      <p className="text-xs text-muted-foreground">Garçons aparecem no lançamento de pedidos e na conta do cliente. Libere o acesso para o garçom acompanhar gorjetas e sacar pela área do garçom.</p>
+      <p className="text-xs text-muted-foreground">
+        Garçons aparecem no lançamento de pedidos e na conta do cliente. Libere o acesso para o
+        garçom acompanhar gorjetas e sacar pela área do garçom.
+      </p>
       <ul className="grid gap-1 text-sm sm:grid-cols-2">
         {pdv.waiters.map((x) => (
-          <li key={x.id} className="flex items-center justify-between rounded-xl bg-background-muted px-3 py-1">
-            <span className={x.active ? "" : "line-through opacity-60"}>{x.code} · {x.name}</span>
+          <li
+            key={x.id}
+            className="flex items-center justify-between rounded-xl bg-background-muted px-3 py-1"
+          >
+            <span className={x.active ? "" : "line-through opacity-60"}>
+              {x.code} · {x.name}
+            </span>
             <span className="flex items-center">
-              {x.active && (x.user_id ? <span title={x.email ?? ""} className="mx-1"><StatusBadge tone="success">Com acesso</StatusBadge></span> : <Button size="sm" variant="ghost" onClick={() => setAcesso({ id: x.id, email: "" })}>Dar acesso</Button>)}
-              <Button size="sm" variant="ghost" onClick={() => run(() => saveW({ data: { slug, id: x.id, code: x.code, name: x.name, active: !x.active } }), "Garçom atualizado")}>{x.active ? "Desativar" : "Ativar"}</Button>
+              {x.active &&
+                (x.user_id ? (
+                  <span title={x.email ?? ""} className="mx-1">
+                    <StatusBadge tone="success">Com acesso</StatusBadge>
+                  </span>
+                ) : (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setAcesso({ id: x.id, email: "" })}
+                  >
+                    Dar acesso
+                  </Button>
+                ))}
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() =>
+                  run(
+                    () =>
+                      saveW({
+                        data: { slug, id: x.id, code: x.code, name: x.name, active: !x.active },
+                      }),
+                    "Garçom atualizado",
+                  )
+                }
+              >
+                {x.active ? "Desativar" : "Ativar"}
+              </Button>
             </span>
           </li>
         ))}
       </ul>
       {acesso && (
-        <form className="flex max-w-md flex-wrap gap-2 rounded-lg bg-muted/50 p-2" onSubmit={async (e) => {
-          e.preventDefault();
-          if (await run(async () => { const r = await grant({ data: { slug, waiterId: acesso.id, email: acesso.email } }); if (!r.invited) toast.info("Esse e-mail já tinha conta: enviamos um link para o garçom definir a senha."); }, "E-mail enviado: o garçom define a senha pelo link")) setAcesso(null);
-        }}>
-          <Input required type="email" className="flex-1" placeholder="E-mail do garçom" value={acesso.email} onChange={(e) => setAcesso({ ...acesso, email: e.target.value })} />
-          <Button type="submit" size="sm">Enviar convite</Button>
-          <Button type="button" size="sm" variant="ghost" onClick={() => setAcesso(null)}>Cancelar</Button>
+        <form
+          className="flex max-w-md flex-wrap gap-2 rounded-lg bg-muted/50 p-2"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            if (
+              await run(async () => {
+                const r = await grant({ data: { slug, waiterId: acesso.id, email: acesso.email } });
+                if (!r.invited)
+                  toast.info(
+                    "Esse e-mail já tinha conta: enviamos um link para o garçom definir a senha.",
+                  );
+              }, "E-mail enviado: o garçom define a senha pelo link")
+            )
+              setAcesso(null);
+          }}
+        >
+          <Input
+            required
+            type="email"
+            className="flex-1"
+            placeholder="E-mail do garçom"
+            value={acesso.email}
+            onChange={(e) => setAcesso({ ...acesso, email: e.target.value })}
+          />
+          <Button type="submit" size="sm">
+            Enviar convite
+          </Button>
+          <Button type="button" size="sm" variant="ghost" onClick={() => setAcesso(null)}>
+            Cancelar
+          </Button>
         </form>
       )}
-      <form className="flex max-w-md gap-2" onSubmit={async (e) => {
-        e.preventDefault();
-        if (await run(() => saveW({ data: { slug, ...w, active: true } }), "Garçom cadastrado")) setW({ code: "", name: "" });
-      }}>
-        <Input required className="w-20" placeholder="G06" value={w.code} onChange={(e) => setW({ ...w, code: e.target.value })} />
-        <Input required placeholder="Nome do garçom" value={w.name} onChange={(e) => setW({ ...w, name: e.target.value })} />
-        <Button type="submit" size="icon" variant="outline"><Plus className="h-4 w-4" /></Button>
+      <form
+        className="flex max-w-md gap-2"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          if (await run(() => saveW({ data: { slug, ...w, active: true } }), "Garçom cadastrado"))
+            setW({ code: "", name: "" });
+        }}
+      >
+        <Input
+          required
+          className="w-20"
+          placeholder="G06"
+          value={w.code}
+          onChange={(e) => setW({ ...w, code: e.target.value })}
+        />
+        <Input
+          required
+          placeholder="Nome do garçom"
+          value={w.name}
+          onChange={(e) => setW({ ...w, name: e.target.value })}
+        />
+        <Button type="submit" size="icon" variant="outline">
+          <Plus className="h-4 w-4" />
+        </Button>
       </form>
     </div>
   );
 }
 
-function Equipe({ slug, staff }: { slug: string; staff: { user_id: string; display_name: string; email: string; roles: StaffRole[] }[] }) {
+function Equipe({
+  slug,
+  staff,
+}: {
+  slug: string;
+  staff: { user_id: string; display_name: string; email: string; roles: StaffRole[] }[];
+}) {
   const invite = useServerFn(inviteStaff);
   const remove = useServerFn(removeStaff);
   const qc = useQueryClient();
-  const [f, setF] = useState({ name: "", email: "", role: "cashier" as "owner" | "cashier" | "waiter" });
+  const [f, setF] = useState({
+    name: "",
+    email: "",
+    role: "cashier" as "owner" | "cashier" | "waiter",
+  });
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      <form className="space-y-3 surface-card p-4 sm:p-5" onSubmit={async (e) => {
-        e.preventDefault();
-        try { await invite({ data: { slug, ...f } }); toast.success("Pessoa adicionada à equipe"); setF({ ...f, name: "", email: "" }); qc.invalidateQueries({ queryKey: ["panel", slug] }); }
-        catch (err) { toast.error((err as Error).message); }
-      }}>
+      <form
+        className="space-y-3 surface-card p-4 sm:p-5"
+        onSubmit={async (e) => {
+          e.preventDefault();
+          try {
+            await invite({ data: { slug, ...f } });
+            toast.success("Pessoa adicionada à equipe");
+            setF({ ...f, name: "", email: "" });
+            qc.invalidateQueries({ queryKey: ["panel", slug] });
+          } catch (err) {
+            toast.error((err as Error).message);
+          }
+        }}
+      >
         <h2 className="font-display font-semibold">Adicionar pessoa</h2>
-        <p className="text-xs text-muted-foreground">A pessoa precisa criar a conta antes neste mesmo endereço, com o mesmo e-mail.</p>
-        <Input required placeholder="Nome" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} />
-        <Input required type="email" placeholder="E-mail" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} />
-        <select className={selectCls} value={f.role} onChange={(e) => setF({ ...f, role: e.target.value as typeof f.role })}>
+        <p className="text-xs text-muted-foreground">
+          A pessoa precisa criar a conta antes neste mesmo endereço, com o mesmo e-mail.
+        </p>
+        <Input
+          required
+          placeholder="Nome"
+          value={f.name}
+          onChange={(e) => setF({ ...f, name: e.target.value })}
+        />
+        <Input
+          required
+          type="email"
+          placeholder="E-mail"
+          value={f.email}
+          onChange={(e) => setF({ ...f, email: e.target.value })}
+        />
+        <select
+          className={selectCls}
+          value={f.role}
+          onChange={(e) => setF({ ...f, role: e.target.value as typeof f.role })}
+        >
           <option value="cashier">Caixa / gerente</option>
           <option value="waiter">Garçom</option>
           <option value="owner">Dono</option>
         </select>
-        <Button type="submit" className="w-full">Adicionar</Button>
+        <Button type="submit" className="w-full">
+          Adicionar
+        </Button>
       </form>
       <ul className="surface-card divide-y divide-border">
-        {staff.length === 0 && <li className="p-4 text-center text-muted-foreground">Nenhuma pessoa na equipe ainda.</li>}
+        {staff.length === 0 && (
+          <li className="p-4 text-center text-muted-foreground">Nenhuma pessoa na equipe ainda.</li>
+        )}
         {staff.map((s) => (
           <li key={s.user_id} className="flex items-center justify-between gap-2 p-3 text-sm">
-            <div><div className="font-semibold">{s.display_name}</div><div className="text-xs text-muted-foreground">{s.email} · {s.roles.map((r) => cargoLabel[r]).join(", ")}</div></div>
-            <Button size="sm" variant="ghost" onClick={async () => {
-              try { await remove({ data: { slug, userId: s.user_id } }); toast.success("Removido"); qc.invalidateQueries({ queryKey: ["panel", slug] }); }
-              catch (err) { toast.error((err as Error).message); }
-            }}>Remover</Button>
+            <div>
+              <div className="font-semibold">{s.display_name}</div>
+              <div className="text-xs text-muted-foreground">
+                {s.email} · {s.roles.map((r) => cargoLabel[r]).join(", ")}
+              </div>
+            </div>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={async () => {
+                try {
+                  await remove({ data: { slug, userId: s.user_id } });
+                  toast.success("Removido");
+                  qc.invalidateQueries({ queryKey: ["panel", slug] });
+                } catch (err) {
+                  toast.error((err as Error).message);
+                }
+              }}
+            >
+              Remover
+            </Button>
           </li>
         ))}
       </ul>
