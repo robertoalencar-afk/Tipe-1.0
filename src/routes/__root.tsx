@@ -106,14 +106,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       // Fontes auto-hospedadas (ver @font-face em styles.css): sem domínio de terceiros no caminho do primeiro texto.
       {
         rel: "preload",
-        href: "/fonts/bricolage-grotesque-latin.woff2",
-        as: "font",
-        type: "font/woff2",
-        crossOrigin: "anonymous",
-      },
-      {
-        rel: "preload",
-        href: "/fonts/manrope-latin.woff2",
+        href: "/fonts/inter-tight-latin-var.woff2",
         as: "font",
         type: "font/woff2",
         crossOrigin: "anonymous",

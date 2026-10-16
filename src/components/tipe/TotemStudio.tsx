@@ -67,7 +67,7 @@ function Totem({ modelo, tamanho, mesa, link, restaurante }: { modelo: ModeloKey
         border: m.bg === "#ffffff" ? "0.3mm dashed #cbd5e1" : undefined,
         display: "flex", flexDirection: horizontal ? "row" : "column", alignItems: "center",
         justifyContent: "space-between", gap: horizontal ? "4mm" : undefined,
-        padding: horizontal ? "5mm" : mm(0.06), fontFamily: "Sora, Manrope, sans-serif",
+        padding: horizontal ? "5mm" : mm(0.06), fontFamily: "\"Inter Tight\", sans-serif",
       }}
     >
       {horizontal ? (
