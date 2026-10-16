@@ -9,7 +9,6 @@ import {
   Copy,
   CreditCard,
   HandCoins,
-  Heart,
   QrCode,
   ReceiptText,
   RefreshCw,
@@ -1326,21 +1325,18 @@ function MesaPage() {
 
       {etapaVisivel === "gorjeta" && (
         <main className="flex flex-1 flex-col px-5 pb-8">
-          <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-brand-soft">
-            <Heart className="h-6 w-6 text-brand-strong" />
-          </span>
-          <h1 className="mt-5 text-center text-[1.9rem] font-medium leading-[1.06] tracking-[-0.035em]">
-            Quer deixar uma gorjeta extra?
+          <h1 className="mt-4 text-center text-[2.1rem] font-medium leading-[1.04] tracking-[-0.04em]">
+            Quer agradecer com uma gorjeta?
           </h1>
-          <p className="mt-2 text-center text-sm leading-6 text-muted-foreground">
-            É opcional e separada da conta. Uma forma de agradecer pelo atendimento.
+          <p className="mt-3 text-center text-[0.95rem] leading-6 text-muted-foreground">
+            É opcional e separada da conta.
           </p>
           <div
-            className="mt-7 grid grid-cols-3 gap-2.5"
+            className="mt-8 grid grid-cols-3 gap-2.5"
             role="radiogroup"
             aria-label="Valor da gorjeta"
           >
-            {suggestedTips(valorPago).map((s) => {
+            {suggestedTips(valorPago).map((s, i) => {
               const ativo = gorjetaExtra === s.amount && !gorjetaOutro;
               return (
                 <button
@@ -1352,14 +1348,20 @@ function MesaPage() {
                     setGorjetaOutro("");
                     setGorjetaExtra(s.amount);
                   }}
-                  className={`flex h-16 flex-col items-center justify-center rounded-2xl border font-display text-lg font-semibold transition-colors ${ativo ? "border-foreground bg-card ring-1 ring-foreground" : "border-border bg-card hover:border-foreground/25"}`}
+                  className={`relative flex h-28 flex-col items-center justify-center gap-1 rounded-[1.25rem] border bg-card transition-[border-color,transform] active:scale-[0.98] ${ativo ? "border-foreground ring-1 ring-foreground" : "border-border hover:border-foreground/40"}`}
                 >
-                  <span>{s.label}</span>
-                  {s.label.endsWith("%") && (
-                    <span className="money text-xs font-normal text-muted-foreground">
-                      {money(s.amount)}
+                  {ativo && (
+                    <span className="absolute right-2 top-2 grid h-5 w-5 place-items-center rounded-full bg-foreground text-background">
+                      <Check className="h-3 w-3" strokeWidth={3} />
                     </span>
                   )}
+                  <span className="text-xl font-medium">{s.label}</span>
+                  {s.label.endsWith("%") && (
+                    <span className="money text-xs text-muted-foreground">{money(s.amount)}</span>
+                  )}
+                  <span aria-hidden className="mt-0.5 text-2xl leading-none">
+                    {["🙂", "😊", "😍", "🤩"][i] ?? "🙂"}
+                  </span>
                 </button>
               );
             })}

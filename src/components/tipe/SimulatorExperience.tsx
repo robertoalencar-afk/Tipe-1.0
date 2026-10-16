@@ -6,7 +6,6 @@ import {
   ChevronRight,
   ClipboardList,
   HandCoins,
-  Heart,
   QrCode,
   ReceiptText,
   Smartphone,
