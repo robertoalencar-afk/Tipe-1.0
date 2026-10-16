@@ -1,25 +1,22 @@
 # Status de execução da Tipe
-Atualizado em: 2026-10-15 · Branch: `integracao/redesign-premium` · Base: `main` em `e6813a2`
+Atualizado em: 2026-10-16 · Branch: `docs/backlog-unico` · Base: `main` em `05d7137`
 
 Prompt que orienta a execução: `execucao-integral-tipe-v2.md` (pasta `prompts/` do projeto).
 
 ## Fase atual e próxima tarefa
-Tarefa 1 (integrar as branches existentes): todos os PRs abertos, aguardando revisão humana.
-- PR #5 redesign premium (base `main`).
-- PR #6 colibri A: balcão, KDS por pedido, painel de senhas (base `main`, migração 0023).
-- PR #7 colibri B: garçom lança pelo celular (empilhado sobre o #6).
-- PR #8 colibri C: pedido do cliente pela mesa (empilhado sobre o #7, migração 0024).
-- PR #9 colibri D: totem (empilhado sobre o #8, migração 0025).
+Tarefa 1 concluída do lado técnico: o PR #5 (redesign) entrou no `main` em 15/10; os PRs #6 a #9 (colibri) já trazem o redesign, passam em build, tipos, vitest e testes do banco, e aguardam revisão e merge na ordem #6 → #7 → #8 → #9.
 
-Próxima tarefa: quando o #5 e o #6 entrarem, trazer o `main` para a cadeia #7–#9 e resolver os conflitos entre o redesign e a colibri (já previstos em `AdminSections.tsx`, `RestaurantPanel.tsx`, `$restaurante.$mesa.tsx` e `_authenticated/garcom.tsx`); depois aplicar o design system às telas da colibri e seguir para a Tarefa 2 (backlog).
+Tarefa 2 entregue: `docs/TIPE-BACKLOG.md`, com o estado de cada funcionalidade no código e a evidência em arquivo:linha.
+
+Próxima tarefa: aplicar o design system às telas da colibri (balcão, KDS, senhas, garçom, pedido da mesa, totem) quando os PRs #6 a #9 estiverem no `main`. Sem esperar por eles, a primeira entrega da Fase 2 do backlog é F2.2 (lançamento idempotente).
 
 ## Inventário de branches e PRs (15/10/2026)
 | Branch | Situação | Ação |
 |---|---|---|
-| `main` (`e6813a2`) | produção, sincronizada com o Lovable | base |
+| `main` (`05d7137`) | produção, sincronizada com o Lovable | base |
 | `tipe-2.0-pagamento-na-mesa` | já incorporada (PR #2) | nenhuma |
 | `tipe-2.0-fase-2` | já incorporada (PR #3) | nenhuma |
-| `redesign-premium` (`0b5f313`) | integrada em `integracao/redesign-premium` | PR #5 aguardando revisão |
+| `redesign-premium` (`0b5f313`) | integrada pelo PR #5 | no `main` desde 15/10 |
 | `colibri/fase-1-balcao-kds-senhas` (`931d3cb`, PR #1) | integrada em 4 partes, migrações renumeradas para 0023–0025 | PRs #6 a #9 aguardando revisão; PR #1 fica como referência |
 | `research/us-benchmark-pdv-erp` (`707cdb9`, PR #4 rascunho) | só documentação | segue pelo próprio PR |
 
@@ -27,18 +24,19 @@ Próxima tarefa: quando o #5 e o #6 entrarem, trazer o `main` para a cadeia #7�
 - Merge do `redesign-premium` sobre o `main` atual, com build, tipos e testes verdes (PR #5).
 - Merge das quatro partes da `colibri` com migrações renumeradas e testes do banco novos (PRs #6 a #9).
 
+- Backlog único em `docs/TIPE-BACKLOG.md` (Tarefa 2), com 64 itens distribuídos pelas 8 fases.
+
 ## Em andamento
-- Revisão dos PRs #5 a #9.
+- Revisão dos PRs #6 a #9.
 
 ## Pendente
-- Tarefa 2: `docs/TIPE-BACKLOG.md` consolidando Sunday e benchmark dos EUA.
 - Aplicar o design system às telas da `colibri` (balcão, KDS, senhas, garçom, totem) depois que os dois lados estiverem no `main`.
 
 ## Bloqueado
 Nada no momento.
 
 ## Decisões humanas pendentes
-1. Aprovar e fazer merge do PR do redesign (muda a aparência da landing, do pagamento, do painel e do garçom em produção).
+1. Aprovar e fazer merge dos PRs #6 a #9 (balcão, KDS, senhas, garçom, pedido da mesa e totem entram em produção).
 2. Cartão na conta, Apple Pay e Google Pay; cashback; preços públicos; caixinha; primeiro adaptador de PDV: não tocados.
 
 ## Migrações criadas
