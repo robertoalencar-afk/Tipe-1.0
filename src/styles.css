@@ -260,10 +260,11 @@
  * ------------------------------------------------------------------ */
 @utility container-page {
   width: 100%;
-  max-width: 76rem;
+  max-width: 84rem;
   margin-inline: auto;
-  padding-inline: 1.25rem;
-  @media (width >= 40rem) { padding-inline: 2rem; }
+  padding-inline: 1.5rem;
+  @media (width >= 40rem) { padding-inline: 2.5rem; }
+  @media (width >= 64rem) { padding-inline: 3.5rem; }
 }
 
 @utility eyebrow {
@@ -521,9 +522,10 @@
 .sunday :is(h1, h2, h3, h4) {
   font-family: "Inter Tight", "Inter Tight Fallback", ui-sans-serif, system-ui, sans-serif;
 }
+/* Medidas da sunday: títulos em peso 400, entrelinha ~0,95 e entreletra -0,05em. */
 .sunday :is(h1, h2) {
-  font-weight: 500;
-  letter-spacing: -0.035em;
+  font-weight: 400;
+  letter-spacing: -0.045em;
 }
 .sunday h3 {
   font-weight: 500;

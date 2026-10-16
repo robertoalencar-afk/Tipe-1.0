@@ -106,13 +106,13 @@ export function DashboardPreview({ className }: { className?: string }) {
       </div>
       <div className="grid grid-cols-[150px_1fr] max-md:grid-cols-1">
         <aside className="border-r border-border bg-surface p-2.5 max-md:hidden">
-          <p className="px-2 pb-2 pt-1 font-display text-[12px] font-semibold">Maré Alta</p>
+          <p className="px-2 pb-2 pt-1 font-display text-[12px] font-medium">Maré Alta</p>
           {nav.map(([Icon, l], i) => (
             <span
               key={l}
               className={cn(
                 "flex items-center gap-2 rounded-lg px-2 py-1.5 text-[11px]",
-                i === 1 ? "bg-ink font-semibold text-white" : "text-muted-foreground",
+                i === 1 ? "bg-ink font-medium text-white" : "text-muted-foreground",
               )}
             >
               <Icon className="h-3.5 w-3.5" />
@@ -124,7 +124,7 @@ export function DashboardPreview({ className }: { className?: string }) {
           <div className="flex items-end justify-between gap-3">
             <div>
               <p className="text-[10px] text-muted-foreground">Hoje, salão principal</p>
-              <p className="font-display text-[15px] font-semibold tracking-heading">Salão</p>
+              <p className="font-display text-[15px] font-medium tracking-heading">Salão</p>
             </div>
             <StatusBadge tone="brand" live>
               Ao vivo
@@ -139,7 +139,7 @@ export function DashboardPreview({ className }: { className?: string }) {
             ].map(([l, v]) => (
               <div key={l} className="rounded-xl border border-border bg-surface p-2.5">
                 <p className="text-[9px] text-muted-foreground">{l}</p>
-                <p className="money mt-1 font-display text-[13px] font-semibold">{v}</p>
+                <p className="money mt-1 font-display text-[13px] font-medium">{v}</p>
               </div>
             ))}
           </div>
@@ -157,10 +157,10 @@ export function DashboardPreview({ className }: { className?: string }) {
                         : "border-border bg-surface",
                     )}
                   >
-                    <span className="font-display text-[11px] font-semibold">Mesa {m.n}</span>
+                    <span className="font-display text-[11px] font-medium">Mesa {m.n}</span>
                     <span
                       className={cn(
-                        "mt-0.5 text-[8.5px] font-semibold",
+                        "mt-0.5 text-[8.5px] font-medium",
                         m.estado === "aguardando"
                           ? "text-[oklch(0.45_0.11_60)]"
                           : m.estado === "livre"
@@ -172,7 +172,7 @@ export function DashboardPreview({ className }: { className?: string }) {
                     </span>
                     {m.total ? (
                       <span className="mt-auto">
-                        <span className="money block text-[9.5px] font-semibold">
+                        <span className="money block text-[9.5px] font-medium">
                           {money(m.total)}
                         </span>
                         <span className="mt-1 block h-1 overflow-hidden rounded-full bg-background-muted">
@@ -188,22 +188,20 @@ export function DashboardPreview({ className }: { className?: string }) {
               })}
             </div>
             <div className="rounded-xl border border-border bg-surface">
-              <p className="border-b border-border px-3 py-2 text-[10.5px] font-semibold">
+              <p className="border-b border-border px-3 py-2 text-[10.5px] font-medium">
                 Pagamentos recentes
               </p>
               <ul className="divide-y divide-border">
                 {TRANSACOES.map((t) => (
                   <li key={t.nome} className="flex items-center justify-between gap-2 px-3 py-2">
                     <span className="min-w-0">
-                      <span className="block truncate text-[10px] font-semibold">
+                      <span className="block truncate text-[10px] font-medium">
                         Mesa {t.mesa} · {t.nome}
                       </span>
                       <span className="block text-[9px] text-muted-foreground">{t.forma}</span>
                     </span>
                     <span className="text-right">
-                      <span className="money block text-[10px] font-semibold">
-                        {money(t.valor)}
-                      </span>
+                      <span className="money block text-[10px] font-medium">{money(t.valor)}</span>
                       <StatusBadge tone={t.tone} className="mt-0.5 px-1.5 py-0.5 text-[8.5px]">
                         {t.status}
                       </StatusBadge>
@@ -233,10 +231,10 @@ export function WaiterPreview({ className }: { className?: string }) {
       aria-label="Demonstração da área do garçom com dados fictícios"
     >
       <p className="text-[10px] text-muted-foreground">Maré Alta · garçom</p>
-      <p className="font-display text-[17px] font-semibold tracking-heading">Olá, Rafael!</p>
+      <p className="font-display text-[17px] font-medium tracking-heading">Olá, Rafael!</p>
       <div className="mt-3 rounded-2xl bg-ink p-4 text-white">
         <p className="text-[10px] text-white/60">Disponível para saque</p>
-        <p className="money font-display text-[24px] font-semibold tracking-heading">
+        <p className="money font-display text-[24px] font-medium tracking-heading">
           {money(186.2)}
         </p>
         <p className="mt-1 text-[9.5px] text-white/60">Repasse por Pix no dia 16</p>
@@ -251,13 +249,13 @@ export function WaiterPreview({ className }: { className?: string }) {
             <div key={l as string} className="rounded-xl border border-border bg-surface p-2.5">
               <I className="h-3.5 w-3.5 text-brand-strong" />
               <p className="mt-1.5 text-[9px] text-muted-foreground">{l as string}</p>
-              <p className="money font-display text-[13px] font-semibold">{v as string}</p>
+              <p className="money font-display text-[13px] font-medium">{v as string}</p>
             </div>
           );
         })}
       </div>
       <div className="mt-2.5 rounded-xl border border-border bg-surface p-3">
-        <p className="text-[10px] font-semibold">Gorjetas extras · 7 dias</p>
+        <p className="text-[10px] font-medium">Gorjetas extras · 7 dias</p>
         <div className="mt-2 flex h-14 items-end gap-1.5">
           {barras.map((b, i) => (
             <span
@@ -277,7 +275,7 @@ export function WaiterPreview({ className }: { className?: string }) {
             <span>
               {m} · {h}
             </span>
-            <span className="money font-semibold text-brand-strong">{money(v)}</span>
+            <span className="money font-medium text-brand-strong">{money(v)}</span>
           </li>
         ))}
       </ul>

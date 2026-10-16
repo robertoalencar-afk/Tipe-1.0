@@ -133,7 +133,7 @@ function Hero() {
           <p className="hero-in font-display text-[clamp(1.2rem,1rem+0.8vw,1.6rem)] font-normal tracking-[-0.02em] text-brand-strong">
             Pagamento na mesa por QR Code
           </p>
-          <h1 className="mt-5 font-display text-[clamp(3.4rem,1.4rem+5.6vw,6.2rem)] font-medium leading-[0.95]">
+          <h1 className="mt-5 font-display text-[clamp(3.4rem,1.4rem+5.6vw,6.2rem)] font-normal leading-[0.95] tracking-[-0.05em]">
             <span className="hero-in block" style={{ "--d": "80ms" } as CSSProperties}>
               Pague.
             </span>
@@ -233,7 +233,7 @@ function Problema() {
         <div>
           <Eyebrow>A parte chata</Eyebrow>
           <LineReveal
-            className="mt-4 font-display text-headline font-semibold tracking-display"
+            className="mt-4 font-display text-headline font-normal tracking-display"
             lines={[
               "O melhor do restaurante",
               "não é esperar",
@@ -268,9 +268,7 @@ function Problema() {
                 variant="scale"
                 className={cn("flex flex-col", f.lado === "r" ? "items-end" : "items-start")}
               >
-                <span className="px-2 text-[11px] font-semibold text-muted-foreground">
-                  {f.quem}
-                </span>
+                <span className="px-2 text-[11px] font-medium text-muted-foreground">{f.quem}</span>
                 <span
                   className={cn(
                     "mt-1 max-w-[85%] rounded-3xl px-4 py-2.5 text-[0.95rem] font-medium",
@@ -289,7 +287,7 @@ function Problema() {
               className="!mt-6 flex items-center gap-3 rounded-2xl bg-brand-soft px-4 py-3 text-brand-strong"
             >
               <QrCode className="h-5 w-5 shrink-0" />
-              <span className="text-[0.95rem] font-semibold">
+              <span className="text-[0.95rem] font-medium">
                 Ou: aponta a câmera, confere e paga.
               </span>
             </Reveal>
@@ -451,7 +449,7 @@ function NaMesa() {
           <div>
             <Eyebrow>Para quem está na mesa</Eyebrow>
             <LineReveal
-              className="mt-4 font-display text-headline font-semibold tracking-display"
+              className="mt-4 font-display text-headline font-normal tracking-display"
               lines={[
                 "Menos espera.",
                 <span key="b" className="text-brand-strong">
@@ -488,12 +486,10 @@ function NaMesa() {
                 className="rounded-3xl border border-white/50 bg-white/80 p-4 text-foreground shadow-2xl backdrop-blur-xl"
               >
                 <div className="flex items-baseline justify-between">
-                  <p className="text-xs font-semibold text-muted-foreground">
-                    Mesa 12 · falta pagar
-                  </p>
+                  <p className="text-xs font-medium text-muted-foreground">Mesa 12 · falta pagar</p>
                   <p className="money text-xs text-muted-foreground line-through">{money(151.9)}</p>
                 </div>
-                <p className="money mt-1 font-display text-4xl font-semibold tracking-display">
+                <p className="money mt-1 font-display text-4xl font-normal tracking-display">
                   {money(0)}
                 </p>
                 <ul className="mt-3 space-y-1.5 border-t border-border pt-3 text-sm">
@@ -503,11 +499,11 @@ function NaMesa() {
                         {n[0]}
                       </span>
                       {n}
-                      <span className="money ml-auto font-semibold">{money(v)}</span>
+                      <span className="money ml-auto font-medium">{money(v)}</span>
                     </li>
                   ))}
                 </ul>
-                <p className="mt-3 rounded-xl bg-brand-soft py-2 text-center text-sm font-semibold text-brand-strong">
+                <p className="mt-3 rounded-xl bg-brand-soft py-2 text-center text-sm font-medium text-brand-strong">
                   Mesa fechada. Bom resto de noite!
                 </p>
               </Reveal>
@@ -543,7 +539,7 @@ function NaMesa() {
                       {m.ativo && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
                     </span>
                     <span>
-                      <span className="block text-sm font-semibold">{m.nome}</span>
+                      <span className="block text-sm font-medium">{m.nome}</span>
                       <span className="block text-xs text-white/65">{m.nota}</span>
                     </span>
                   </li>
@@ -563,7 +559,7 @@ function NaMesa() {
             ["Sem taxa para você", "Quem está na mesa não paga nada a mais pela Tipe."],
           ].map(([t, d], i) => (
             <Reveal as="li" key={t} delay={i * 90} className="border-t-2 border-ink pt-4">
-              <p className="font-display text-xl font-semibold tracking-heading">{t}</p>
+              <p className="font-display text-xl font-medium tracking-heading">{t}</p>
               <p className="mt-1.5 text-[0.95rem] leading-relaxed text-muted-foreground">{d}</p>
             </Reveal>
           ))}
@@ -678,7 +674,7 @@ function QuemAtende() {
         <div className="order-1 lg:order-2">
           <Eyebrow>Para quem atende</Eyebrow>
           <LineReveal
-            className="mt-4 font-display text-headline font-semibold tracking-display"
+            className="mt-4 font-display text-headline font-normal tracking-display"
             lines={[
               "Mais tempo para servir.",
               <span key="b" className="text-brand-strong">
@@ -717,7 +713,7 @@ function QuemAtende() {
                     <I className="h-5 w-5" />
                   </span>
                   <span>
-                    <span className="block font-display text-lg font-semibold tracking-heading">
+                    <span className="block font-display text-lg font-medium tracking-heading">
                       {t as string}
                     </span>
                     <span className="mt-1 block text-[0.95rem] leading-relaxed text-muted-foreground">
@@ -755,7 +751,7 @@ function QuemGerencia() {
           <div>
             <Eyebrow>Para quem gerencia</Eyebrow>
             <LineReveal
-              className="mt-4 font-display text-headline font-semibold tracking-display"
+              className="mt-4 font-display text-headline font-normal tracking-display"
               lines={[
                 "Seu salão inteiro,",
                 <span key="b" className="text-brand-strong">
@@ -799,7 +795,7 @@ function QuemGerencia() {
           {pontos.map(([I, t, d], i) => (
             <Reveal as="li" key={t} delay={i * 90}>
               <I className="h-6 w-6 text-brand-strong" />
-              <p className="mt-3 font-display text-xl font-semibold tracking-heading">{t}</p>
+              <p className="mt-3 font-display text-xl font-medium tracking-heading">{t}</p>
               <p className="mt-1.5 text-[0.95rem] leading-relaxed text-muted-foreground">{d}</p>
             </Reveal>
           ))}
@@ -842,7 +838,7 @@ function Ecossistema() {
       <div className="container-page">
         <Eyebrow tone="light">Ecossistema Tipe</Eyebrow>
         <LineReveal
-          className="mt-4 max-w-4xl font-display text-headline font-semibold tracking-display"
+          className="mt-4 max-w-4xl font-display text-headline font-normal tracking-display"
           lines={[
             "Do pedido ao pagamento,",
             <span key="b" className="text-brand">
@@ -859,7 +855,7 @@ function Ecossistema() {
         </Reveal>
         <div className="mt-12 grid gap-10 lg:grid-cols-[1.4fr_0.6fr]">
           <div>
-            <p className="flex items-center gap-2 text-sm font-semibold text-brand">
+            <p className="flex items-center gap-2 text-sm font-medium text-brand">
               <span className="h-2 w-2 rounded-full bg-brand tipe-live" />
               Disponível hoje
             </p>
@@ -870,7 +866,7 @@ function Ecossistema() {
                   key={t}
                   delay={i * 45}
                   variant="scale"
-                  className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-4 py-2.5 text-[0.95rem] font-semibold transition-colors hover:border-brand/60 hover:bg-white/10"
+                  className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/[0.06] px-4 py-2.5 text-[0.95rem] font-medium transition-colors hover:border-brand/60 hover:bg-white/10"
                 >
                   <I className="h-4 w-4 text-brand" />
                   {t}
@@ -879,7 +875,7 @@ function Ecossistema() {
             </ul>
           </div>
           <div>
-            <p className="text-sm font-semibold text-white/55">Em desenvolvimento</p>
+            <p className="text-sm font-medium text-white/55">Em desenvolvimento</p>
             <ul className="mt-5 space-y-3">
               {emBreve.map((t, i) => (
                 <Reveal
@@ -889,7 +885,7 @@ function Ecossistema() {
                   className="flex items-center justify-between gap-3 border-b border-white/10 pb-3 text-[0.95rem] text-white/70"
                 >
                   {t}
-                  <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-white/70">
+                  <span className="rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-medium text-white/70">
                     Em breve
                   </span>
                 </Reveal>
@@ -935,7 +931,7 @@ function Planos() {
         <div className="mx-auto max-w-3xl text-center">
           <Eyebrow>Planos</Eyebrow>
           <LineReveal
-            className="mt-4 font-display text-headline font-semibold tracking-display"
+            className="mt-4 font-display text-headline font-normal tracking-display"
             lines={["Preço simples.", "Sem surpresa."]}
           />
           <Reveal delay={120}>
@@ -958,15 +954,15 @@ function Planos() {
               )}
             >
               {p.popular && (
-                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-ink px-3 py-1 text-xs font-semibold text-white">
+                <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-ink px-3 py-1 text-xs font-medium text-white">
                   Mais escolhido
                 </span>
               )}
-              <h3 className="text-center font-display text-2xl font-semibold tracking-heading">
+              <h3 className="text-center font-display text-2xl font-medium tracking-heading">
                 {p.name}
               </h3>
               <div className="mt-6 text-center">
-                <p className="font-display text-[4.25rem] font-semibold leading-none tracking-display">
+                <p className="font-display text-[4.25rem] font-normal leading-none tracking-display">
                   {p.mesas}
                 </p>
                 <p
@@ -980,7 +976,7 @@ function Planos() {
               </div>
               <p
                 className={cn(
-                  "mt-6 rounded-2xl py-3 text-center font-display text-base font-semibold",
+                  "mt-6 rounded-2xl py-3 text-center font-display text-base font-medium",
                   p.popular ? "bg-ink/10" : "bg-background-muted",
                 )}
               >
@@ -1009,7 +1005,7 @@ function Planos() {
               <a
                 href="/teste-gratis"
                 className={cn(
-                  "btn-press mt-8 flex h-12 items-center justify-center rounded-full font-semibold",
+                  "btn-press mt-8 flex h-12 items-center justify-center rounded-full font-medium",
                   p.popular
                     ? "bg-ink text-white"
                     : "border border-border hover:border-foreground/30",
@@ -1097,12 +1093,12 @@ function Duvidas() {
         <div>
           <Eyebrow>Dúvidas</Eyebrow>
           <LineReveal
-            className="mt-4 font-display text-headline font-semibold tracking-display"
+            className="mt-4 font-display text-headline font-normal tracking-display"
             lines={["Perguntou,", "respondemos."]}
           />
           <a
             href="/teste-gratis"
-            className="mt-8 inline-flex items-center gap-2 font-semibold text-brand-strong hover:underline"
+            className="mt-8 inline-flex items-center gap-2 font-medium text-brand-strong hover:underline"
           >
             Ainda com dúvida? Fale com a equipe <ArrowRight className="h-4 w-4" />
           </a>
@@ -1114,7 +1110,7 @@ function Duvidas() {
               <div className="mt-3 divide-y divide-border border-y border-border">
                 {g.faqs.map(([q, a]) => (
                   <details key={q} className="group">
-                    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-5 font-display text-[1.15rem] font-semibold tracking-heading [&::-webkit-details-marker]:hidden">
+                    <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-5 font-display text-[1.15rem] font-medium tracking-heading [&::-webkit-details-marker]:hidden">
                       {q}
                       <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-border bg-surface transition-transform duration-300 group-open:rotate-180">
                         <ChevronDown className="h-4 w-4" />
@@ -1157,7 +1153,7 @@ function Conversao() {
             className="bob mb-6 h-28 w-auto"
           />
           <LineReveal
-            className="font-display text-[clamp(3rem,1.6rem+6vw,7rem)] font-semibold leading-[0.9] tracking-display"
+            className="font-display text-[clamp(3rem,1.6rem+6vw,7rem)] font-normal leading-[0.9] tracking-display"
             lines={[
               "Pague.",
               "Sem",

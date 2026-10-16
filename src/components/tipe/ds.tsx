@@ -47,7 +47,7 @@ export function SectionHeading({
       {eyebrow && <Eyebrow tone={invert ? "light" : "brand"}>{eyebrow}</Eyebrow>}
       <h2
         className={cn(
-          "mt-3 font-display text-headline font-semibold tracking-display text-balance",
+          "mt-3 font-display text-headline font-normal tracking-display text-balance",
           invert ? "text-white" : "text-foreground",
         )}
       >
@@ -100,7 +100,7 @@ export function StatusBadge({
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-semibold leading-none",
+        "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-medium leading-none",
         toneClass[tone],
         className,
       )}

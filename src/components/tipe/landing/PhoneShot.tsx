@@ -57,7 +57,7 @@ export function PhoneShot({
       >
         <div
           aria-hidden
-          className="flex h-[30px] items-end justify-between px-[11%] pb-0.5 text-[11px] font-semibold"
+          className="flex h-[30px] items-end justify-between px-[11%] pb-0.5 text-[11px] font-medium"
         >
           <span>9:41</span>
           <span className="flex items-center gap-1">

@@ -32,7 +32,7 @@ export function Toast({
         {icon}
       </span>
       <span className="min-w-0">
-        <span className="block text-[0.9rem] font-semibold leading-tight">{title}</span>
+        <span className="block text-[0.9rem] font-medium leading-tight">{title}</span>
         {text && (
           <span
             className={cn(

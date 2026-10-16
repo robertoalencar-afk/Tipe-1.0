@@ -30,7 +30,7 @@ function StatusBar({ dark = false }: { dark?: boolean }) {
   return (
     <div
       className={cn(
-        "flex items-center justify-between px-6 pb-1 pt-3 text-[10px] font-semibold",
+        "flex items-center justify-between px-6 pb-1 pt-3 text-[10px] font-medium",
         dark ? "text-white/80" : "text-foreground/70",
       )}
       aria-hidden
@@ -49,9 +49,9 @@ function TopBar() {
     <div className="flex items-center justify-between px-4 pt-1">
       <div>
         <p className="text-[10px] text-muted-foreground">{DEMO.restaurante}</p>
-        <p className="font-display text-[13px] font-semibold">Mesa {DEMO.mesa}</p>
+        <p className="font-display text-[13px] font-medium">Mesa {DEMO.mesa}</p>
       </div>
-      <span className="flex items-center gap-1 rounded-full bg-brand-soft px-2 py-0.5 text-[9px] font-semibold text-brand-strong">
+      <span className="flex items-center gap-1 rounded-full bg-brand-soft px-2 py-0.5 text-[9px] font-medium text-brand-strong">
         <span className="h-1.5 w-1.5 rounded-full bg-brand" />
         Ao vivo
       </span>
@@ -63,7 +63,7 @@ function Cta({ children, tone = "brand" }: { children: ReactNode; tone?: "brand"
   return (
     <span
       className={cn(
-        "flex h-10 w-full items-center justify-center gap-1 rounded-full font-display text-[12px] font-semibold",
+        "flex h-10 w-full items-center justify-center gap-1 rounded-full font-display text-[12px] font-medium",
         tone === "brand" ? "bg-brand text-ink" : "bg-ink text-white",
       )}
     >
@@ -79,7 +79,7 @@ export function ScreenBill({ className }: { className?: string }) {
       <StatusBar />
       <TopBar />
       <div className="px-4 pt-3">
-        <p className="font-display text-[17px] font-semibold tracking-heading">
+        <p className="font-display text-[17px] font-medium tracking-heading">
           Olá, {DEMO.cliente}.
         </p>
         <p className="text-[10.5px] text-muted-foreground">Toque no que você vai pagar.</p>
@@ -102,10 +102,10 @@ export function ScreenBill({ className }: { className?: string }) {
               {i.sel && <Check className="h-2.5 w-2.5" />}
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-[11px] font-semibold">{i.nome}</span>
+              <span className="block truncate text-[11px] font-medium">{i.nome}</span>
               <span className="block text-[9px] text-muted-foreground">{i.qtd}</span>
             </span>
-            <span className="money text-[11px] font-semibold">{money(i.valor)}</span>
+            <span className="money text-[11px] font-medium">{money(i.valor)}</span>
           </li>
         ))}
       </ul>
@@ -118,7 +118,7 @@ export function ScreenBill({ className }: { className?: string }) {
           <span>Serviço (10%)</span>
           <span className="money">{money(servico)}</span>
         </div>
-        <div className="mt-1.5 flex justify-between border-t border-border pt-1.5 font-display text-[12.5px] font-semibold">
+        <div className="mt-1.5 flex justify-between border-t border-border pt-1.5 font-display text-[12.5px] font-medium">
           <span>Sua parte</span>
           <span className="money">{money(DEMO_TOTAL)}</span>
         </div>
@@ -167,11 +167,11 @@ export function ScreenPay({ className }: { className?: string }) {
       <TopBar />
       <div className="mx-3 mt-3 rounded-2xl bg-surface p-4 text-center shadow-xs">
         <p className="text-[10px] text-muted-foreground">Sua parte da conta</p>
-        <p className="money mt-0.5 font-display text-[26px] font-semibold tracking-heading">
+        <p className="money mt-0.5 font-display text-[26px] font-medium tracking-heading">
           {money(DEMO_TOTAL)}
         </p>
       </div>
-      <p className="mt-4 px-4 text-[11px] font-semibold">Como você quer pagar?</p>
+      <p className="mt-4 px-4 text-[11px] font-medium">Como você quer pagar?</p>
       <ul className="mt-2 space-y-1.5 px-3">
         {opcoes.map(({ Icone, nome, desc, sel, breve }) => (
           <li
@@ -191,7 +191,7 @@ export function ScreenPay({ className }: { className?: string }) {
               <Icone className="h-3.5 w-3.5" />
             </span>
             <span className="min-w-0 flex-1">
-              <span className="block text-[11px] font-semibold">{nome}</span>
+              <span className="block text-[11px] font-medium">{nome}</span>
               <span className="block text-[9px] text-muted-foreground">{desc}</span>
             </span>
             {sel ? (
@@ -221,7 +221,7 @@ export function ScreenDone({ className }: { className?: string }) {
         <span className="grid h-16 w-16 place-items-center rounded-full bg-brand text-ink shadow-[0_12px_30px_-10px_var(--brand-primary)]">
           <Check className="h-8 w-8" strokeWidth={3} />
         </span>
-        <p className="mt-5 font-display text-[19px] font-semibold tracking-heading">
+        <p className="mt-5 font-display text-[19px] font-medium tracking-heading">
           Pagamento realizado!
         </p>
         <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
@@ -230,15 +230,15 @@ export function ScreenDone({ className }: { className?: string }) {
         <div className="mt-5 w-full rounded-xl bg-surface p-3 text-left text-[10px] shadow-xs">
           <div className="flex justify-between">
             <span className="text-muted-foreground">Valor</span>
-            <span className="money font-semibold">{money(DEMO_TOTAL)}</span>
+            <span className="money font-medium">{money(DEMO_TOTAL)}</span>
           </div>
           <div className="mt-1 flex justify-between">
             <span className="text-muted-foreground">Forma</span>
-            <span className="font-semibold">Pix</span>
+            <span className="font-medium">Pix</span>
           </div>
           <div className="mt-1 flex justify-between">
             <span className="text-muted-foreground">Mesa</span>
-            <span className="font-semibold">
+            <span className="font-medium">
               {DEMO.mesa} · {DEMO.restaurante}
             </span>
           </div>
@@ -261,7 +261,7 @@ export function ScreenTip({ className }: { className?: string }) {
         <span className="mx-auto grid h-11 w-11 place-items-center rounded-full bg-brand-soft text-brand-strong">
           <Heart className="h-5 w-5" />
         </span>
-        <p className="mt-4 font-display text-[17px] font-semibold tracking-heading">
+        <p className="mt-4 font-display text-[17px] font-medium tracking-heading">
           Quer deixar uma gorjeta extra?
         </p>
         <p className="mt-1 text-[10.5px] text-muted-foreground">
@@ -272,7 +272,7 @@ export function ScreenTip({ className }: { className?: string }) {
             <span
               key={v}
               className={cn(
-                "money rounded-xl border py-2.5 text-[12px] font-semibold",
+                "money rounded-xl border py-2.5 text-[12px] font-medium",
                 v === 10 ? "border-brand bg-brand-soft/60" : "border-border bg-surface",
               )}
             >
@@ -283,7 +283,7 @@ export function ScreenTip({ className }: { className?: string }) {
       </div>
       <div className="space-y-1.5 px-3 pb-5">
         <Cta>Continuar com {money(10)}</Cta>
-        <span className="block py-1 text-center text-[11px] font-semibold text-muted-foreground">
+        <span className="block py-1 text-center text-[11px] font-medium text-muted-foreground">
           Agora não, obrigado
         </span>
       </div>
@@ -325,7 +325,7 @@ export function TableTotem({ className }: { className?: string }) {
           })}
         </div>
       </div>
-      <p className="mt-3 font-display text-sm font-semibold">Mesa {DEMO.mesa}</p>
+      <p className="mt-3 font-display text-sm font-medium">Mesa {DEMO.mesa}</p>
     </div>
   );
 }
@@ -342,7 +342,7 @@ export function ScreenSplit({ className }: { className?: string }) {
       <StatusBar />
       <TopBar />
       <div className="px-4 pt-3">
-        <p className="font-display text-[17px] font-semibold tracking-heading">Quem paga o quê</p>
+        <p className="font-display text-[17px] font-medium tracking-heading">Quem paga o quê</p>
         <p className="text-[10.5px] text-muted-foreground">A moqueca foi dividida em 3.</p>
       </div>
       <div className="mt-3 flex -space-x-1.5 px-4">
@@ -368,14 +368,14 @@ export function ScreenSplit({ className }: { className?: string }) {
             )}
           >
             <span className="min-w-0 flex-1">
-              <span className="block text-[11px] font-semibold">{p.nome}</span>
+              <span className="block text-[11px] font-medium">{p.nome}</span>
               <span className="block truncate text-[9px] text-muted-foreground">{p.itens}</span>
             </span>
             <span className="text-right">
-              <span className="money block text-[11px] font-semibold">{money(p.valor)}</span>
+              <span className="money block text-[11px] font-medium">{money(p.valor)}</span>
               <span
                 className={cn(
-                  "block text-[8.5px] font-semibold",
+                  "block text-[8.5px] font-medium",
                   p.pago ? "text-brand-strong" : "text-muted-foreground",
                 )}
               >
@@ -419,7 +419,7 @@ export function ScreenScan({ className }: { className?: string }) {
           className="scan-line pointer-events-none absolute inset-x-[-10px] top-0 h-0.5 rounded bg-brand shadow-[0_0_14px_var(--brand-primary)]"
         />
       </div>
-      <p className="relative mt-8 rounded-full bg-black/45 px-3 py-1.5 text-[10px] font-semibold text-white backdrop-blur">
+      <p className="relative mt-8 rounded-full bg-black/45 px-3 py-1.5 text-[10px] font-medium text-white backdrop-blur">
         Abrir tipe.digital/mare-alta/12
       </p>
     </div>

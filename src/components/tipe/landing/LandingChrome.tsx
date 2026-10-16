@@ -102,13 +102,13 @@ export function LandingHeader() {
                     onClick={() => setSolucoes(false)}
                     className="block rounded-xl px-3 py-2.5 transition-colors hover:bg-background-muted"
                   >
-                    <span className="block text-sm font-semibold">{s.title}</span>
+                    <span className="block text-sm font-medium">{s.title}</span>
                     <span className="block text-xs text-muted-foreground">{s.text}</span>
                   </a>
                 ))}
                 <Link
                   to="/simulador"
-                  className="mt-1 flex items-center justify-between rounded-xl bg-background-muted px-3 py-2.5 text-sm font-semibold"
+                  className="mt-1 flex items-center justify-between rounded-xl bg-background-muted px-3 py-2.5 text-sm font-medium"
                 >
                   Testar o simulador <span aria-hidden>→</span>
                 </Link>
@@ -164,7 +164,7 @@ export function LandingHeader() {
                 key={n.href + n.label}
                 href={n.href}
                 onClick={() => setMenu(false)}
-                className="border-b border-border py-4 font-display text-lg font-semibold"
+                className="border-b border-border py-4 font-display text-lg font-medium"
               >
                 {n.label}
               </a>
@@ -172,7 +172,7 @@ export function LandingHeader() {
             <Link
               to="/simulador"
               onClick={() => setMenu(false)}
-              className="border-b border-border py-4 font-display text-lg font-semibold"
+              className="border-b border-border py-4 font-display text-lg font-medium"
             >
               Testar o simulador
             </Link>
@@ -181,14 +181,14 @@ export function LandingHeader() {
             <a
               href="/teste-gratis"
               onClick={() => setMenu(false)}
-              className="flex h-12 items-center justify-center rounded-full bg-ink font-semibold text-white"
+              className="flex h-12 items-center justify-center rounded-full bg-ink font-medium text-white"
             >
               Teste grátis
             </a>
             <Link
               to="/entrar"
               onClick={() => setMenu(false)}
-              className="flex h-12 items-center justify-center rounded-full border border-border bg-surface font-semibold"
+              className="flex h-12 items-center justify-center rounded-full border border-border bg-surface font-medium"
             >
               Entrar
             </Link>
@@ -239,7 +239,7 @@ export function LandingFooter() {
           </div>
         </div>
         <div className={col}>
-          <p className="font-display font-semibold">Produto</p>
+          <p className="font-display font-medium">Produto</p>
           <a href="/#como-funciona" className={a}>
             Como funciona
           </a>
@@ -257,7 +257,7 @@ export function LandingFooter() {
           </Link>
         </div>
         <div className={col}>
-          <p className="font-display font-semibold">Comercial</p>
+          <p className="font-display font-medium">Comercial</p>
           <a href="/#precos" className={a}>
             Preços
           </a>
@@ -280,7 +280,7 @@ export function LandingFooter() {
           </Link>
         </div>
         <div className={col}>
-          <p className="font-display font-semibold">Jurídico</p>
+          <p className="font-display font-medium">Jurídico</p>
           <Link to="/legal/$livro" params={{ livro: "termos-de-uso" }} className={a}>
             Termos de Uso
           </Link>
