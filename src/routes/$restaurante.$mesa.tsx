@@ -51,10 +51,10 @@ import {
 import { CardFields } from "@/components/tipe/CardFields";
 import { resolveServiceFee, suggestedTips, TIP_SPLIT } from "@/lib/tipe/rules";
 import { cardValid, tokenizeCard, type CardInput } from "@/lib/tipe/pagarme-client";
-import mascotThanks from "@/assets/mascot-thanks-hd.webp";
-import mascotRating from "@/assets/mascot-rating-hd.webp";
-import mascotWaiting from "@/assets/mascot-waiting-hd.webp";
-import mascotTableClosed from "@/assets/mascot-table-closed-hd.webp";
+import mascotThanks from "@/assets/lebre/rosto-feliz.webp";
+import mascotRating from "@/assets/lebre/rosto-piscando.webp";
+import mascotWaiting from "@/assets/lebre/rosto-ola.webp";
+import mascotTableClosed from "@/assets/lebre/rosto-dormindo.webp";
 
 export const Route = createFileRoute("/$restaurante/$mesa")({
   validateSearch: z.object({ t: z.string().max(64).optional() }),
@@ -1069,10 +1069,10 @@ function MesaPage() {
         <TelaCentral>
           <img
             src={mascotWaiting}
-            alt="Mascote TIPE aguardando"
+            alt="Lebre da TIPE aguardando"
             width={176}
             height={176}
-            className="mx-auto h-40 w-40 object-contain"
+            className="mx-auto h-32 w-32 object-contain"
           />
           <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-highlight/15 px-3 py-1 text-xs font-semibold text-foreground">
             <span className="h-1.5 w-1.5 rounded-full bg-highlight" aria-hidden />
@@ -1257,10 +1257,10 @@ function MesaPage() {
         <main className="flex flex-1 flex-col px-5">
           <img
             src={mascotRating}
-            alt="Mascote TIPE com uma estrela"
+            alt="Lebre da TIPE piscando"
             width={112}
             height={112}
-            className="mx-auto h-28 w-28 object-contain"
+            className="mx-auto h-24 w-24 object-contain"
           />
           <h1 className="mt-2 text-center text-[1.9rem] font-medium leading-[1.06] tracking-[-0.035em]">
             Como foi seu atendimento?
@@ -1441,11 +1441,11 @@ function MesaPage() {
         <TelaCentral>
           <img
             src={mascotTableClosed}
-            alt="Mascote TIPE ao lado da conta encerrada"
+            alt="Lebre da TIPE dormindo: a conta está encerrada"
             loading="lazy"
             width={1024}
             height={1024}
-            className="mx-auto h-48 w-48 object-contain"
+            className="mx-auto h-36 w-36 object-contain"
           />
           <span className="mt-3 inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-3 py-1 text-xs font-semibold text-brand-strong">
             <Check className="h-3.5 w-3.5" strokeWidth={3} />
@@ -1478,10 +1478,10 @@ function MesaPage() {
         <TelaCentral>
           <img
             src={mascotThanks}
-            alt="Mascote TIPE agradecendo"
+            alt="Lebre da TIPE sorrindo"
             width={176}
             height={176}
-            className="mx-auto h-44 w-44 object-contain"
+            className="mx-auto h-32 w-32 object-contain"
           />
           <p className="mt-4 eyebrow text-brand-strong">Tudo certo, {primeiroNome}!</p>
           <h1 className="mt-2 text-[1.9rem] font-medium leading-[1.06] tracking-[-0.035em]">
