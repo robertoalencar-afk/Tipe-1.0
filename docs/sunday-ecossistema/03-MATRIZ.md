@@ -12,7 +12,7 @@ Parte da matriz de `sunday-analise/02-SUNDAY-VS-TIPE.md`, atualizada com os PRs 
 | Divisão e pagamento no mesmo gesto | Doc. | `DividirConta.tsx` | Dividir → usar → continuar | — | "Pagar minha parte" vai direto | B | Médio | P1 | — | **Feito (#12)** |
 | Gorjeta antes do pagamento | Doc. | idem | Depois, separada | Regra 70/30 | Teste A/B | M | Alto | — | Decisão do Roberto | Seção 10 |
 | Aceite implícito ao pagar | Inferido (não observado na Sunday) | idem | Caixa obrigatória | — | "Ao pagar, você concorda…" | B | Médio | — | Texto jurídico | Seção 10 |
-| Página leve no 4G | — (Tipe) | build | Perf. Lighthouse 75 (LCP 4,7 s) | 408 KiB de JS sem uso | Separar o pacote da conta | M | Alto | P1 | — | A fazer |
+| Página leve no 4G | — (Tipe) | build | Perf. Lighthouse 75 (LCP 4,7 s) | 408 KiB de JS sem uso | Separar o pacote da conta | M | Alto | P1 | Cliente Supabase gerado pelo Lovable (`auth-attacher.ts`) | **Parcial (#16)**: texto jurídico fora do pacote; Supabase no pacote depende do Lovable |
 
 ## Garçom
 
