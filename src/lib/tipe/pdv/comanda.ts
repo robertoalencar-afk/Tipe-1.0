@@ -26,20 +26,33 @@ const r2 = (n: number) => Math.round(n * 100) / 100;
 
 /** Resume a conta da mesa a partir dos itens lançados. */
 export function resumoMesa(itens: ItemConta[]): ResumoMesa {
-  let total = 0, pago = 0, reservado = 0, disponivel = 0;
+  let total = 0,
+    pago = 0,
+    reservado = 0,
+    disponivel = 0;
   for (const i of itens) {
     total += i.unit_price * i.ordered_quantity;
     pago += i.unit_price * i.paid_portion;
     reservado += i.unit_price * i.reserved_portion;
-    disponivel += i.unit_price * Math.max(0, i.ordered_quantity - i.reserved_portion - i.paid_portion);
+    disponivel +=
+      i.unit_price * Math.max(0, i.ordered_quantity - i.reserved_portion - i.paid_portion);
   }
-  return { total: r2(total), pago: r2(pago), reservado: r2(reservado), disponivel: r2(disponivel), itens: itens.length };
+  return {
+    total: r2(total),
+    pago: r2(pago),
+    reservado: r2(reservado),
+    disponivel: r2(disponivel),
+    itens: itens.length,
+  };
 }
 
 export type StatusMesaSalao = "livre" | "ocupada" | "pagando" | "aguardando" | "fechada";
 
 /** Status da mesa para o mapa do salão do garçom. */
-export function statusMesaSalao(resumo: Pick<ResumoMesa, "itens" | "disponivel" | "reservado">, pagamentosPendentes: number): StatusMesaSalao {
+export function statusMesaSalao(
+  resumo: Pick<ResumoMesa, "itens" | "disponivel" | "reservado">,
+  pagamentosPendentes: number,
+): StatusMesaSalao {
   if (resumo.itens === 0) return "livre";
   if (pagamentosPendentes > 0) return "aguardando";
   if (resumo.disponivel <= 0.0001) return "fechada";
@@ -55,11 +68,81 @@ export function totalCarrinho(linhas: LinhaCarrinho[], precoDe: (code: string) =
 }
 
 /** Converte o carrinho (code → qtd) no formato aceito por pdv_launch_order, ignorando zeros. */
-export function carrinhoParaPedido(carrinho: Record<string, number>, obs: Record<string, string> = {}): LinhaCarrinho[] {
+export function carrinhoParaPedido(
+  carrinho: Record<string, number>,
+  obs: Record<string, string> = {},
+): LinhaCarrinho[] {
   return Object.entries(carrinho)
     .filter(([, n]) => n > 0)
     .map(([code, qty]) => {
       const nota = obs[code]?.trim();
       return nota ? { code, qty, notes: nota } : { code, qty };
     });
+}
+
+export type MesaAcompanhada = {
+  number: string;
+  status: StatusMesaSalao;
+  total: number;
+  pago: number;
+  disponivel: number;
+  minhaMesa: boolean;
+};
+
+export type AvisoMesa = {
+  /** Chave estável para não repetir o mesmo aviso. */
+  id: string;
+  mesa: string;
+  tipo: "quitada" | "pagamento" | "confirmar";
+  titulo: string;
+  texto: string;
+};
+
+const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+/**
+ * Avisos para o garçom a partir de duas leituras seguidas do salão: mesa quitada,
+ * pagamento parcial e pagamento no local esperando confirmação. Só olha as mesas
+ * do próprio garçom; se ele ainda não tem mesa atribuída, olha todas.
+ */
+export function avisosDeMudanca(antes: MesaAcompanhada[], depois: MesaAcompanhada[]): AvisoMesa[] {
+  const anterior = new Map(antes.map((m) => [m.number, m]));
+  const temMinhas = depois.some((m) => m.minhaMesa);
+  const avisos: AvisoMesa[] = [];
+  for (const m of depois) {
+    if (temMinhas && !m.minhaMesa) continue;
+    const a = anterior.get(m.number);
+    if (!a || m.total <= 0) continue;
+    if (m.status === "fechada" && a.status !== "fechada") {
+      avisos.push({
+        id: `${m.number}:quitada:${m.total}`,
+        mesa: m.number,
+        tipo: "quitada",
+        titulo: `Mesa ${m.number} · Paga por completo`,
+        texto: "A conta está quitada. A mesa pode ser liberada.",
+      });
+      continue;
+    }
+    if (m.status === "aguardando" && a.status !== "aguardando") {
+      avisos.push({
+        id: `${m.number}:confirmar:${m.pago}:${m.disponivel}`,
+        mesa: m.number,
+        tipo: "confirmar",
+        titulo: `Mesa ${m.number} · Pagamento no local`,
+        texto: "Um cliente vai pagar em dinheiro ou na maquininha. Confirme no caixa.",
+      });
+      continue;
+    }
+    const pagoAgora = r2(m.pago - a.pago);
+    if (pagoAgora > 0.009) {
+      avisos.push({
+        id: `${m.number}:pagamento:${m.pago}`,
+        mesa: m.number,
+        tipo: "pagamento",
+        titulo: `Mesa ${m.number} · Pagou ${brl(pagoAgora)}`,
+        texto: `Faltam ${brl(m.disponivel)} para fechar a conta.`,
+      });
+    }
+  }
+  return avisos;
 }

@@ -1,12 +1,25 @@
 import { describe, it, expect } from "vitest";
-import { resumoMesa, statusMesaSalao, totalCarrinho, carrinhoParaPedido, type ItemConta } from "./comanda";
+import {
+  resumoMesa,
+  statusMesaSalao,
+  totalCarrinho,
+  carrinhoParaPedido,
+  avisosDeMudanca,
+  type ItemConta,
+} from "./comanda";
 
 const item = (code: string, price: number, qty: number, reserved = 0, paid = 0): ItemConta => ({
-  item_code: code, item_name: code, unit_price: price, ordered_quantity: qty, reserved_portion: reserved, paid_portion: paid,
+  item_code: code,
+  item_name: code,
+  unit_price: price,
+  ordered_quantity: qty,
+  reserved_portion: reserved,
+  paid_portion: paid,
 });
 
 describe("resumoMesa", () => {
-  it("mesa vazia zera tudo", () => expect(resumoMesa([])).toEqual({ total: 0, pago: 0, reservado: 0, disponivel: 0, itens: 0 }));
+  it("mesa vazia zera tudo", () =>
+    expect(resumoMesa([])).toEqual({ total: 0, pago: 0, reservado: 0, disponivel: 0, itens: 0 }));
   it("soma total, pago, reservado e disponível", () => {
     const r = resumoMesa([item("A", 10, 3, 1, 1), item("B", 5.5, 2)]);
     expect(r.total).toBe(41); // 30 + 11
@@ -26,19 +39,82 @@ describe("resumoMesa", () => {
 describe("statusMesaSalao", () => {
   const base = { itens: 0, disponivel: 0, reservado: 0 };
   it("sem itens é livre", () => expect(statusMesaSalao(base, 0)).toBe("livre"));
-  it("pagamento pendente vence tudo", () => expect(statusMesaSalao({ itens: 2, disponivel: 10, reservado: 0 }, 1)).toBe("aguardando"));
-  it("tudo pago é fechada", () => expect(statusMesaSalao({ itens: 2, disponivel: 0, reservado: 0 }, 0)).toBe("fechada"));
-  it("parte reservada é pagando", () => expect(statusMesaSalao({ itens: 2, disponivel: 5, reservado: 5 }, 0)).toBe("pagando"));
-  it("com itens livres é ocupada", () => expect(statusMesaSalao({ itens: 2, disponivel: 20, reservado: 0 }, 0)).toBe("ocupada"));
+  it("pagamento pendente vence tudo", () =>
+    expect(statusMesaSalao({ itens: 2, disponivel: 10, reservado: 0 }, 1)).toBe("aguardando"));
+  it("tudo pago é fechada", () =>
+    expect(statusMesaSalao({ itens: 2, disponivel: 0, reservado: 0 }, 0)).toBe("fechada"));
+  it("parte reservada é pagando", () =>
+    expect(statusMesaSalao({ itens: 2, disponivel: 5, reservado: 5 }, 0)).toBe("pagando"));
+  it("com itens livres é ocupada", () =>
+    expect(statusMesaSalao({ itens: 2, disponivel: 20, reservado: 0 }, 0)).toBe("ocupada"));
 });
 
 describe("carrinho", () => {
   const preco: Record<string, number> = { A: 10, B: 5.5 };
-  it("total do carrinho", () => expect(totalCarrinho([{ code: "A", qty: 2 }, { code: "B", qty: 1 }], (c) => preco[c] ?? 0)).toBe(25.5));
+  it("total do carrinho", () =>
+    expect(
+      totalCarrinho(
+        [
+          { code: "A", qty: 2 },
+          { code: "B", qty: 1 },
+        ],
+        (c) => preco[c] ?? 0,
+      ),
+    ).toBe(25.5));
   it("ignora itens zerados e inclui observação", () => {
     expect(carrinhoParaPedido({ A: 2, B: 0, C: 1 }, { A: " sem cebola ", C: "" })).toEqual([
       { code: "A", qty: 2, notes: "sem cebola" },
       { code: "C", qty: 1 },
     ]);
+  });
+});
+
+describe("avisosDeMudanca", () => {
+  const mesa = (
+    number: string,
+    status: import("./comanda").StatusMesaSalao,
+    total: number,
+    pago: number,
+    minhaMesa = true,
+  ) => ({
+    number,
+    status,
+    total,
+    pago,
+    disponivel: Math.max(0, total - pago),
+    minhaMesa,
+  });
+  it("avisa quando a mesa fica quitada", () => {
+    const a = avisosDeMudanca([mesa("7", "ocupada", 100, 40)], [mesa("7", "fechada", 100, 100)]);
+    expect(a).toHaveLength(1);
+    expect(a[0]!.tipo).toBe("quitada");
+    expect(a[0]!.titulo).toBe("Mesa 7 · Paga por completo");
+  });
+  it("avisa pagamento parcial com o valor pago e o que falta", () => {
+    const [a] = avisosDeMudanca([mesa("3", "ocupada", 100, 0)], [mesa("3", "ocupada", 100, 40)]);
+    expect(a!.tipo).toBe("pagamento");
+    expect(a!.titulo).toContain("40,00");
+    expect(a!.texto).toContain("60,00");
+  });
+  it("avisa pagamento no local para confirmar", () => {
+    const [a] = avisosDeMudanca([mesa("5", "ocupada", 80, 0)], [mesa("5", "aguardando", 80, 0)]);
+    expect(a!.tipo).toBe("confirmar");
+  });
+  it("não avisa nada sem mudança, na primeira leitura ou em mesa de outro garçom", () => {
+    expect(avisosDeMudanca([mesa("1", "ocupada", 50, 0)], [mesa("1", "ocupada", 50, 0)])).toEqual(
+      [],
+    );
+    expect(avisosDeMudanca([], [mesa("1", "fechada", 50, 50)])).toEqual([]);
+    expect(
+      avisosDeMudanca(
+        [mesa("2", "ocupada", 50, 0, false), mesa("9", "ocupada", 10, 0)],
+        [mesa("2", "fechada", 50, 50, false), mesa("9", "ocupada", 10, 0)],
+      ),
+    ).toEqual([]);
+  });
+  it("sem mesas atribuídas, acompanha todas", () => {
+    expect(
+      avisosDeMudanca([mesa("2", "ocupada", 50, 0, false)], [mesa("2", "fechada", 50, 50, false)]),
+    ).toHaveLength(1);
   });
 });
