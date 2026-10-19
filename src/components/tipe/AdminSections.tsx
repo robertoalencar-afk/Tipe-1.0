@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cashAction, getOpsData, getReports, saveSettings, setItemStatus } from "@/lib/tipe/admin.functions";
 import { FechamentoDia } from "@/components/tipe/FechamentoDia";
+import { PagamentosRelatorio } from "@/components/tipe/PagamentosRelatorio";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const hora = (s: string) => new Date(s).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
@@ -280,6 +281,7 @@ export function Relatorios({ slug }: { slug: string }) {
             <Lista t="Por forma de pagamento" rows={porMetodo} />
             <Lista t={`Taxa de serviço recebida: ${brl(taxaTotal)}`} rows={taxaPorGarcom} />
           </div>
+          {d && <PagamentosRelatorio slug={slug} days={days} pagamentos={d.billPayments} garcons={d.waiters} />}
           <Card>
             <h3 className="mb-3 font-display font-semibold">Taxas de serviço removidas: {brl(d?.feeWaivers.reduce((s, w) => s + w.amount, 0) ?? 0)}</h3>
             {!d?.feeWaivers.length ? <p className="text-sm text-muted-foreground">Nenhuma taxa removida no período.</p> : (
