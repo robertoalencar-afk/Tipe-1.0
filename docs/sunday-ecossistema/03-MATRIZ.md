@@ -21,14 +21,14 @@ Parte da matriz de `sunday-analise/02-SUNDAY-VS-TIPE.md`, atualizada com os PRs 
 | Notificação de mesa quitada e parcial | Obs. + Doc. | `GarcomAtender.tsx` (#7) | Precisava olhar cartão por cartão | Sem aviso | Avisos com toast, lista, vibração e bipe | B | Alto | P1 | PR #7 | **Feito (#13)** |
 | Notificação com o app fechado | Doc. | — | — | Sem push | Web push | M | Alto | P1 | Permissão do navegador | A fazer |
 | Gorjeta no aviso | Obs. ("Payment with a $10 tip") | `waiter-order.functions.ts` | — | Gorjeta extra não vem no salão | Incluir gorjeta da mesa | B | Médio | P2 | — | A fazer |
-| Nota ruim avisa o garçom/gerente | Doc. | `submitRating` | — | Sem aviso | Aviso de nota ≤ 2 | B | Médio | P1 | — | A fazer |
+| Nota ruim avisa o garçom/gerente | Doc. | `submitRating` | — | Sem aviso | Aviso de nota ≤ 2 | B | Médio | P1 | — | **Gerente: feito (#15)**; garçom: a fazer |
 | Desempenho individual | Doc. | `garcom.tsx` (Resumo) | — | Só gorjetas e vendas | Notas recebidas | M | Médio | P2 | — | A fazer |
 
 ## Restaurante
 
 | Sunday | Evidência | Tipe (arquivo) | Diferença | Melhoria | Compl. | Impacto | Prior. | Depende de | Situação |
 |---|---|---|---|---|---|---|---|---|---|
-| Indicadores do dia no topo (Overview) | Doc. | `RestaurantPanel.tsx` Início | Tipe tem indicadores; falta "o que precisa de você agora" | Lista de pendências do momento no topo do Início | M | Alto | P1 | — | Próxima frente |
+| Indicadores do dia no topo (Overview) | Doc. | `RestaurantPanel.tsx` Início | Tipe tem indicadores; falta "o que precisa de você agora" | Lista de pendências do momento no topo do Início | M | Alto | P1 | — | **Feito (#15)** |
 | Pagamentos com filtros e CSV | Doc. | `AdminSections.tsx` | Filtros simples | Filtros por status, meio e garçom | M | Médio | P1 | — | A fazer |
 | Estorno pelo painel (24 h) | Doc. | `PendenciasFinanceiras.tsx` | Só registro | Estorno via Pagar.me | M | Médio | P2 | Pagar.me | A fazer |
 | Caixinha / rateio | Doc. | — | Só direta | Políticas de gorjeta | M | Alto | — | Jurídico (decisão 3) | Seção 10 |
