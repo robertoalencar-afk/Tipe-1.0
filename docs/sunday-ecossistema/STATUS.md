@@ -5,7 +5,7 @@ Atualizado em 19/10/2026. Prompt: `/mnt/project-files/prompts/sunday-ecossistema
 ## Fase atual e próxima tarefa exata
 
 - **Fase:** C (cliente), D (garçom) e E (restaurante) entregues em PR; F (backoffice) não começada.
-- **Próxima tarefa exata:** retomar a sessão de observação no Mac (carrossel de 8 passos de `sundayapp.com/digital-bill/`, `staff-app/`, central de ajuda) . A frente F (backoffice) só tem itens P2 na matriz; os P1 que restam são web push (depende de permissão do navegador e de decisão sobre service worker no Lovable) e filtros de pagamentos.
+- **Próxima tarefa exata:** retomar a sessão de observação no Mac (carrossel de 8 passos de `sundayapp.com/digital-bill/`, `staff-app/`, central de ajuda). A frente F (backoffice) só tem itens P2 na matriz; os P1 que restam são web push (depende de permissão do navegador e de decisão sobre service worker no Lovable) e filtros de pagamentos.
 
 ## Ferramentas testadas (16/10/2026)
 
