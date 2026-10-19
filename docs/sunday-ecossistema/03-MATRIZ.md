@@ -29,7 +29,7 @@ Parte da matriz de `sunday-analise/02-SUNDAY-VS-TIPE.md`, atualizada com os PRs 
 | Sunday | Evidência | Tipe (arquivo) | Diferença | Melhoria | Compl. | Impacto | Prior. | Depende de | Situação |
 |---|---|---|---|---|---|---|---|---|---|
 | Indicadores do dia no topo (Overview) | Doc. | `RestaurantPanel.tsx` Início | Tipe tem indicadores; falta "o que precisa de você agora" | Lista de pendências do momento no topo do Início | M | Alto | P1 | — | **Feito (#15)** |
-| Pagamentos com filtros e CSV | Doc. | `AdminSections.tsx` | Filtros simples | Filtros por status, meio e garçom | M | Médio | P1 | — | A fazer |
+| Pagamentos com filtros e CSV | Doc. | `AdminSections.tsx` | Filtros simples | Filtros por status, meio e garçom | M | Médio | P1 | — | **Feito (#18)** |
 | Estorno pelo painel (24 h) | Doc. | `PendenciasFinanceiras.tsx` | Só registro | Estorno via Pagar.me | M | Médio | P2 | Pagar.me | A fazer |
 | Caixinha / rateio | Doc. | — | Só direta | Políticas de gorjeta | M | Alto | — | Jurídico (decisão 3) | Seção 10 |
 

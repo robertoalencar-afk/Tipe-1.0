@@ -4,8 +4,8 @@ Atualizado em 19/10/2026. Prompt: `/mnt/project-files/prompts/sunday-ecossistema
 
 ## Fase atual e próxima tarefa exata
 
-- **Fase:** C (cliente), D (garçom) e E (restaurante) entregues em PR; F (backoffice) não começada.
-- **Próxima tarefa exata:** retomar a sessão de observação no Mac (carrossel de 8 passos de `sundayapp.com/digital-bill/`, `staff-app/`, central de ajuda). A frente F (backoffice) só tem itens P2 na matriz; os P1 que restam são web push (depende de permissão do navegador e de decisão sobre service worker no Lovable) e filtros de pagamentos.
+- **Fase:** C (cliente), D (garçom) e E (restaurante) entregues em PR (#12, #13, #15 a #18); F (backoffice) só tem P2.
+- **Próxima tarefa exata:** retomar a sessão de observação no Mac (carrossel de 8 passos de `sundayapp.com/digital-bill/`, `staff-app/`, central de ajuda). A frente F (backoffice) só tem itens P2 na matriz; o único P1 que resta é web push, que depende de permissão do navegador e de decisão sobre service worker no Lovable.
 
 ## Ferramentas testadas (16/10/2026)
 
@@ -55,6 +55,7 @@ Atualizado em 19/10/2026. Prompt: `/mnt/project-files/prompts/sunday-ecossistema
 | 19/10 | PR #13: `bun run build` | Verde |
 | 19/10 | PR #15: `vitest run` | 86 passaram (5 novos) |
 | 19/10 | PR #15: build `node-server` | Verde |
+| 19/10 | PR #18: `vitest run` | 90 passaram (4 novos); build verde |
 | 19/10 | PR #17: `vitest run` | 100 passaram (3 novos); build verde |
 | 19/10 | PR #16: Lighthouse mobile da mesa, 3 rodadas | Antes 79/72/75, depois 81/74/75; LCP 4,8 → 4,6 s |
 | 19/10 | PR #15: Lighthouse do painel (sessão falsa) | Desempenho 76–78, acessibilidade 100, SEO 100; boas práticas 75 só pelo WebSocket de realtime ausente no backend falso |
