@@ -93,7 +93,7 @@ export type AvisoMesa = {
   /** Chave estável para não repetir o mesmo aviso. */
   id: string;
   mesa: string;
-  tipo: "quitada" | "pagamento" | "confirmar";
+  tipo: "quitada" | "pagamento" | "confirmar" | "nota";
   titulo: string;
   texto: string;
 };
@@ -145,4 +145,32 @@ export function avisosDeMudanca(antes: MesaAcompanhada[], depois: MesaAcompanhad
     }
   }
   return avisos;
+}
+
+export type NotaBaixa = {
+  id: string;
+  stars: number;
+  comment: string | null;
+  table: string;
+  at: string;
+};
+
+/**
+ * Aviso de nota baixa (2 estrelas ou menos) para o próprio garçom. Na primeira
+ * leitura (`conhecidas` nulo) nada é avisado: só as notas que chegam depois.
+ */
+export function avisosDeNotas(
+  conhecidas: ReadonlySet<string> | null,
+  notas: NotaBaixa[],
+): AvisoMesa[] {
+  if (!conhecidas) return [];
+  return notas
+    .filter((n) => n.stars <= 2 && !conhecidas.has(n.id))
+    .map((n) => ({
+      id: `nota:${n.id}`,
+      mesa: n.table,
+      tipo: "nota" as const,
+      titulo: `Mesa ${n.table} · Nota ${n.stars} de 5`,
+      texto: n.comment?.trim() ? `“${n.comment.trim()}”` : "O cliente não deixou comentário.",
+    }));
 }

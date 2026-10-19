@@ -14,6 +14,7 @@ import {
   Plus,
   RefreshCw,
   Search,
+  Star,
   Utensils,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -30,6 +31,7 @@ import {
   totalCarrinho,
   carrinhoParaPedido,
   avisosDeMudanca,
+  avisosDeNotas,
   type AvisoMesa,
   type StatusMesaSalao,
 } from "@/lib/tipe/pdv/comanda";
@@ -77,20 +79,29 @@ export function GarcomAtender() {
   // Avisos que chegam sozinhos (mesa quitada, pagamento parcial, pagamento no local),
   // comparando cada leitura do salão com a anterior.
   const anterior = useRef<WaiterTable[] | null>(null);
+  const notasConhecidas = useRef<Set<string> | null>(null);
   const vistos = useRef(new Set<string>());
   const [avisos, setAvisos] = useState<(AvisoMesa & { em: Date })[]>([]);
   const [som, setSom] = useState(false);
   useEffect(() => {
     const atual = q.data?.tables;
     if (!atual) return;
-    const novos = anterior.current
-      ? avisosDeMudanca(anterior.current, atual).filter((a) => !vistos.current.has(a.id))
-      : [];
+    const notas = q.data?.notasBaixas ?? [];
+    const novos = [
+      ...(anterior.current ? avisosDeMudanca(anterior.current, atual) : []),
+      ...avisosDeNotas(notasConhecidas.current, notas),
+    ].filter((a) => !vistos.current.has(a.id));
     anterior.current = atual;
+    notasConhecidas.current = new Set([
+      ...(notasConhecidas.current ?? []),
+      ...notas.map((n) => n.id),
+    ]);
     if (!novos.length) return;
     for (const a of novos) {
       vistos.current.add(a.id);
-      (a.tipo === "confirmar" ? toast.warning : toast.success)(a.titulo, { description: a.texto });
+      (a.tipo === "confirmar" || a.tipo === "nota" ? toast.warning : toast.success)(a.titulo, {
+        description: a.texto,
+      });
     }
     setAvisos((lista) =>
       [...novos.map((a) => ({ ...a, em: new Date() })).reverse(), ...lista].slice(0, 6),
@@ -167,13 +178,20 @@ export function GarcomAtender() {
         </div>
         {avisos.length === 0 ? (
           <p className="mt-2 text-sm text-muted-foreground">
-            Quando uma mesa pagar, o aviso aparece aqui e no topo da tela, sem precisar abrir nada.
+            Quando uma mesa pagar ou der nota baixa, o aviso aparece aqui e no topo da tela, sem
+            precisar abrir nada.
           </p>
         ) : (
           <ul className="mt-3 divide-y divide-border" aria-live="polite">
             {avisos.map((a) => {
               const Icone =
-                a.tipo === "quitada" ? CircleCheck : a.tipo === "confirmar" ? Clock3 : HandCoins;
+                a.tipo === "quitada"
+                  ? CircleCheck
+                  : a.tipo === "confirmar"
+                    ? Clock3
+                    : a.tipo === "nota"
+                      ? Star
+                      : HandCoins;
               return (
                 <li key={a.id}>
                   <button
@@ -182,7 +200,7 @@ export function GarcomAtender() {
                     className="flex min-h-14 w-full items-center gap-3 py-2.5 text-left"
                   >
                     <span
-                      className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${a.tipo === "quitada" ? "bg-brand-soft text-brand-strong" : a.tipo === "confirmar" ? "bg-highlight/15 text-foreground" : "bg-muted text-foreground"}`}
+                      className={`grid h-10 w-10 shrink-0 place-items-center rounded-full ${a.tipo === "quitada" ? "bg-brand-soft text-brand-strong" : a.tipo === "confirmar" || a.tipo === "nota" ? "bg-highlight/15 text-foreground" : "bg-muted text-foreground"}`}
                     >
                       <Icone className="h-5 w-5" aria-hidden />
                     </span>

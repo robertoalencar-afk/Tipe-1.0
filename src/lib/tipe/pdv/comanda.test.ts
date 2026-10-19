@@ -5,6 +5,7 @@ import {
   totalCarrinho,
   carrinhoParaPedido,
   avisosDeMudanca,
+  avisosDeNotas,
   type ItemConta,
 } from "./comanda";
 
@@ -116,5 +117,32 @@ describe("avisosDeMudanca", () => {
     expect(
       avisosDeMudanca([mesa("2", "ocupada", 50, 0, false)], [mesa("2", "fechada", 50, 50, false)]),
     ).toHaveLength(1);
+  });
+});
+
+describe("avisosDeNotas", () => {
+  const nota = (id: string, stars: number, comment: string | null = null) => ({
+    id,
+    stars,
+    comment,
+    table: "12",
+    at: "2026-10-19T20:00:00Z",
+  });
+  it("não avisa as notas que já existiam na primeira leitura", () => {
+    expect(avisosDeNotas(null, [nota("a", 1)])).toEqual([]);
+  });
+  it("avisa nota baixa nova, com o comentário entre aspas", () => {
+    const [a] = avisosDeNotas(new Set(["a"]), [nota("a", 1), nota("b", 2, " Demorou ")]);
+    expect(a).toMatchObject({
+      id: "nota:b",
+      mesa: "12",
+      tipo: "nota",
+      titulo: "Mesa 12 · Nota 2 de 5",
+      texto: "“Demorou”",
+    });
+  });
+  it("ignora nota acima de 2 e explica quando não há comentário", () => {
+    const r = avisosDeNotas(new Set(), [nota("c", 3), nota("d", 1)]);
+    expect(r.map((x) => x.texto)).toEqual(["O cliente não deixou comentário."]);
   });
 });
