@@ -45,7 +45,7 @@ function Segmentado<T extends string | number>({ value, onChange, options, label
 }
 
 // ---------------- Início ----------------
-export function Inicio({ slug, mesasAbertas, emAberto, pendentes, onGo }: { slug: string; mesasAbertas: number; emAberto: number; pendentes: number; onGo: (s: string) => void }) {
+export function Inicio({ slug, mesasAbertas, emAberto, pendentes, onGo, agora }: { slug: string; mesasAbertas: number; emAberto: number; pendentes: number; onGo: (s: string) => void; agora?: React.ReactNode }) {
   const rep = useReports(slug, 1);
   const vendas = rep.data?.items.reduce((s, i) => s + i.price * i.qty, 0) ?? 0;
   const pedidos = new Set(rep.data?.items.map((i) => `${i.table}-${i.at}`)).size;
@@ -58,6 +58,7 @@ export function Inicio({ slug, mesasAbertas, emAberto, pendentes, onGo }: { slug
   const maxTop = Math.max(1, ...top.map(([, q]) => q));
   return (
     <div className="space-y-4">
+      {agora}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Kpi icon={TrendingUp} label="Vendas lançadas (24h)" value={brl(vendas)} />
         <Kpi icon={LayoutGrid} label="Mesas abertas" value={String(mesasAbertas)} hint={`${brl(emAberto)} em aberto`} />
