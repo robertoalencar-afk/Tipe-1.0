@@ -4,8 +4,8 @@ Atualizado em 19/10/2026. Prompt: `/mnt/project-files/prompts/sunday-ecossistema
 
 ## Fase atual e próxima tarefa exata
 
-- **Fase:** C (cliente) e D (garçom) entregues em PR; E (restaurante) e F (backoffice) não começadas.
-- **Próxima tarefa exata:** retomar a sessão de observação no Mac (carrossel de 8 passos de `sundayapp.com/digital-bill/`, `staff-app/`, central de ajuda) e, com ela, abrir a frente E: "o que precisa de você agora" no Início do painel do restaurante (pendências financeiras, pagamentos no local a confirmar, mesas quitadas, nota baixa), partindo da branch do PR #10.
+- **Fase:** C (cliente), D (garçom) e E (restaurante) entregues em PR; F (backoffice) não começada.
+- **Próxima tarefa exata:** retomar a sessão de observação no Mac (carrossel de 8 passos de `sundayapp.com/digital-bill/`, `staff-app/`, central de ajuda) e abrir a frente F (backoffice) a partir da branch do PR #10.
 
 ## Ferramentas testadas (16/10/2026)
 
@@ -53,3 +53,6 @@ Atualizado em 19/10/2026. Prompt: `/mnt/project-files/prompts/sunday-ecossistema
 | 16/10 | PR #12: Lighthouse mobile da mesa | Antes 73/100, CLS 0,004; depois 75/100, CLS 0 |
 | 19/10 | PR #13: `bunx vitest run` | 97 passaram (5 novos) |
 | 19/10 | PR #13: `bun run build` | Verde |
+| 19/10 | PR #15: `vitest run` | 86 passaram (5 novos) |
+| 19/10 | PR #15: build `node-server` | Verde |
+| 19/10 | PR #15: Lighthouse do painel (sessão falsa) | Desempenho 76–78, acessibilidade 100, SEO 100; boas práticas 75 só pelo WebSocket de realtime ausente no backend falso |
