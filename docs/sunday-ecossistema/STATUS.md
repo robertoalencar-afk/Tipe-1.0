@@ -55,5 +55,6 @@ Atualizado em 19/10/2026. Prompt: `/mnt/project-files/prompts/sunday-ecossistema
 | 19/10 | PR #13: `bun run build` | Verde |
 | 19/10 | PR #15: `vitest run` | 86 passaram (5 novos) |
 | 19/10 | PR #15: build `node-server` | Verde |
+| 19/10 | PR #17: `vitest run` | 100 passaram (3 novos); build verde |
 | 19/10 | PR #16: Lighthouse mobile da mesa, 3 rodadas | Antes 79/72/75, depois 81/74/75; LCP 4,8 → 4,6 s |
 | 19/10 | PR #15: Lighthouse do painel (sessão falsa) | Desempenho 76–78, acessibilidade 100, SEO 100; boas práticas 75 só pelo WebSocket de realtime ausente no backend falso |

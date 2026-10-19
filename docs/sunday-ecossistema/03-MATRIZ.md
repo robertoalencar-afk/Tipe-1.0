@@ -21,7 +21,7 @@ Parte da matriz de `sunday-analise/02-SUNDAY-VS-TIPE.md`, atualizada com os PRs 
 | Notificação de mesa quitada e parcial | Obs. + Doc. | `GarcomAtender.tsx` (#7) | Precisava olhar cartão por cartão | Sem aviso | Avisos com toast, lista, vibração e bipe | B | Alto | P1 | PR #7 | **Feito (#13)** |
 | Notificação com o app fechado | Doc. | — | — | Sem push | Web push | M | Alto | P1 | Permissão do navegador | A fazer |
 | Gorjeta no aviso | Obs. ("Payment with a $10 tip") | `waiter-order.functions.ts` | — | Gorjeta extra não vem no salão | Incluir gorjeta da mesa | B | Médio | P2 | — | A fazer |
-| Nota ruim avisa o garçom/gerente | Doc. | `submitRating` | — | Sem aviso | Aviso de nota ≤ 2 | B | Médio | P1 | — | **Gerente: feito (#15)**; garçom: a fazer |
+| Nota ruim avisa o garçom/gerente | Doc. | `submitRating` | — | Sem aviso | Aviso de nota ≤ 2 | B | Médio | P1 | — | **Feito: gerente (#15), garçom (#17)** |
 | Desempenho individual | Doc. | `garcom.tsx` (Resumo) | — | Só gorjetas e vendas | Notas recebidas | M | Médio | P2 | — | A fazer |
 
 ## Restaurante
