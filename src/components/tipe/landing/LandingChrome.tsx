@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronDown, Instagram, Menu, MessageCircle, X } from "lucide-react";
-import logo from "@/assets/logo-dark.png.asset.json";
+import logo from "@/assets/marca/tipe-logo.svg";
 import { PrivacyPreferences } from "@/components/tipe/PrivacyPreferences";
 import { COMPANY } from "@/lib/tipe/legal";
 import { WHATSAPP_SITE_MESSAGE, whatsappLink } from "@/lib/tipe/contact";
@@ -71,7 +71,7 @@ export function LandingHeader() {
     >
       <div className="container-page flex h-16 items-center justify-between gap-4">
         <Link to="/" aria-label="TIPE, página inicial" className="shrink-0">
-          <img src={logo.url} alt="TIPE" width={120} height={36} className="h-8 w-auto" />
+          <img src={logo} alt="TIPE" width={120} height={36} className="h-8 w-auto" />
         </Link>
 
         <nav aria-label="Principal" className="hidden items-center gap-0.5 lg:flex">
@@ -207,7 +207,7 @@ export function LandingFooter() {
       <div className="container-page grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div>
           <img
-            src={logo.url}
+            src={logo}
             alt="TIPE"
             width={120}
             height={36}

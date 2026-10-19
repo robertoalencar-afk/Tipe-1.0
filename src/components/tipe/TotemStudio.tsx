@@ -3,8 +3,8 @@ import { QRCodeSVG } from "qrcode.react";
 import { Printer } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import logo from "@/assets/logo.png.asset.json";
-import logoDark from "@/assets/logo-dark.png.asset.json";
+import logo from "@/assets/marca/tipe-logo-branco.svg";
+import logoDark from "@/assets/marca/tipe-logo.svg";
 
 type Table = { id: string; number: string; code: string; access_token: string; active: boolean; waiter_id: string | null };
 
@@ -37,7 +37,7 @@ function Totem({ modelo, tamanho, mesa, link, restaurante }: { modelo: ModeloKey
   const base = Math.min(t.w, t.h); // escala tipográfica pelo menor lado
   const mm = (f: number) => `${(base * f).toFixed(2)}mm`;
   const qrMm = horizontal ? t.h - 12 : Math.min(t.w * 0.62, t.h * 0.5);
-  const logoSrc = m.logo === "light" ? logo.url : logoDark.url;
+  const logoSrc = m.logo === "light" ? logo : logoDark;
 
   const qr = (
     <div style={{ background: m.stickerBg, padding: mm(0.03), borderRadius: mm(0.04), lineHeight: 0, border: `0.3mm solid ${m.accent}`, flexShrink: 0 }}>

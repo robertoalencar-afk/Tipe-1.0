@@ -4,7 +4,7 @@
  */
 import type { CSSProperties } from "react";
 import { cn } from "@/lib/utils";
-import simbolo from "@/assets/tipe-simbolo.png";
+import simbolo from "@/assets/marca/tipe-simbolo.svg";
 
 /** Bigodes da lebre: um ponto de focinho e três fios finos de cada lado. */
 export function Bigodes({ className, delay = 900 }: { className?: string; delay?: number }) {

@@ -18,8 +18,8 @@ import {
   WalletCards,
   WifiOff,
 } from "lucide-react";
-import logoLight from "@/assets/logo.png.asset.json";
-import logoDark from "@/assets/logo-dark.png.asset.json";
+import logoLight from "@/assets/marca/tipe-logo-branco.svg";
+import logoDark from "@/assets/marca/tipe-logo.svg";
 import { cn } from "@/lib/utils";
 import { SplitPicker } from "@/components/tipe/SplitPicker";
 import { DividirConta } from "@/components/tipe/DividirConta";
@@ -1566,14 +1566,14 @@ function MesaTopo({
       <div className="flex items-center justify-between gap-3">
         <span className="inline-flex">
           <img
-            src={logoDark.url}
+            src={logoDark}
             alt="TIPE"
             width={92}
             height={28}
             className="h-7 w-auto [@media(prefers-color-scheme:dark)]:hidden"
           />
           <img
-            src={logoLight.url}
+            src={logoLight}
             alt="TIPE"
             width={92}
             height={28}
