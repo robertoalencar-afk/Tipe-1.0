@@ -65,24 +65,27 @@ await garcom.getByRole("button", { name: "Enviar para a cozinha" }).click();
 await shot(garcom, "03-garcom");
 step("garçom recebeu o aviso, serviu e lançou café na mesma conta");
 
-// 4. Cliente divide e paga metade com Pix e gorjeta extra (nada vem marcado)
+// 4. Cliente divide, escolhe a gorjeta e paga metade com Pix (ordem da Sunday: dividir → gorjeta → pagar)
 await cliente.getByRole("tab", { name: "Conta" }).click();
 await cliente.getByText("1× Café espresso").waitFor();
-await cliente.getByRole("button", { name: "Partes iguais" }).click();
+await cliente.getByRole("button", { name: "Pagar a conta" }).click();
+await cliente.getByRole("radio", { name: /Dividir igualmente/ }).click();
 await shot(cliente, "04-conta-dividida");
-await cliente.getByRole("button", { name: /^Pagar R\$/ }).click();
-await cliente.getByLabel("Seu nome").fill("Marina");
+await cliente.getByRole("button", { name: /^Continuar/ }).click();
 await cliente.getByText("Sugerida").waitFor();
 if ((await cliente.locator('[aria-pressed="true"]').count()) > 0)
   throw new Error("gorjeta veio pré-selecionada");
-if (await cliente.getByRole("button", { name: /com Pix/ }).isEnabled())
-  throw new Error("pagar liberado sem escolher a gorjeta");
+if (await cliente.getByRole("button", { name: /^Continuar/ }).isEnabled())
+  throw new Error("seguir liberado sem escolher a gorjeta");
 await cliente.getByRole("button", { name: /^8%/ }).click();
 await cliente.getByRole("button", { name: "Outro valor", exact: true }).click();
 await cliente.getByLabel("Outro valor de gorjeta").fill("1,50");
 await cliente.getByText("Mínimo de R$").waitFor();
 await cliente.getByLabel("Outro valor de gorjeta").fill("8,00");
-await shot(cliente, "05-checkout");
+await shot(cliente, "05-gorjeta");
+await cliente.getByRole("button", { name: /^Continuar/ }).click();
+await cliente.getByLabel("Seu nome").fill("Marina");
+await shot(cliente, "05-pagamento");
 await cliente.getByRole("button", { name: /com Pix/ }).click();
 await cliente.getByRole("button", { name: "Simular confirmação do banco" }).click();
 await cliente.getByText("Pagamento aprovado").waitFor();
@@ -94,15 +97,19 @@ await cliente.getByRole("button", { name: "Voltar para a conta" }).click();
 const outro = await ctx.newPage();
 await outro.goto(`${BASE}/demo?papel=cliente&mesa=1`);
 await outro.getByRole("tab", { name: "Conta" }).click();
-for (const p of [cliente, outro]) await p.getByRole("button", { name: /^Pagar R\$/ }).click();
+for (const p of [cliente, outro]) {
+  await p.getByRole("button", { name: "Pagar a conta" }).click();
+  await p.getByRole("button", { name: /^Continuar/ }).click();
+  await p.getByRole("button", { name: "Sem gorjeta" }).click();
+  await p.getByRole("button", { name: /^Continuar/ }).click();
+}
 await outro.getByLabel("Seu nome").fill("Bruno");
-for (const p of [cliente, outro]) await p.getByRole("button", { name: "Sem gorjeta" }).click();
-await cliente.getByRole("button", { name: /com Apple Pay|Apple Pay/ }).first().click();
-await outro.getByRole("button", { name: /Google Pay/ }).first().click();
+await cliente.getByRole("radio", { name: /Apple Pay/ }).click();
+await outro.getByRole("radio", { name: /Google Pay/ }).click();
 await cliente.getByRole("button", { name: /Pagar R\$.*Apple Pay/ }).click();
 await cliente.getByRole("button", { name: /Simular confirmação/ }).waitFor();
-await outro.getByRole("button", { name: /Pagar R\$.*Google Pay/ }).click().catch(() => {});
-await outro.getByText(/acabou de ser paga por outra pessoa|acabou de pagar parte/).waitFor();
+await outro.getByRole("button", { name: /Pagar R\$.*Google Pay/ }).click({ timeout: 3000 }).catch(() => {});
+await outro.getByText(/acabou de ser paga por outra pessoa|acabou de pagar parte/).first().waitFor();
 await shot(outro, "07-concorrencia-recusada");
 step("o segundo pagamento simultâneo do mesmo saldo foi recusado");
 await cliente.getByRole("button", { name: /Simular confirmação/ }).click();

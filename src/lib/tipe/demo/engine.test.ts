@@ -55,11 +55,13 @@ const pay = (s: DemoState, id: string) => {
 };
 
 describe("estado inicial da demonstração", () => {
-  it("tem mesa paga, mesa em andamento e nenhum aviso pendente", () => {
+  it("tem almoço encerrado, mesa em andamento e nenhum aviso pendente", () => {
     const s = seedState(T0);
     expect(tableView(s, 5).state).toBe("ocupada");
-    expect(tableView(s, 3).state).toBe("livre");
-    expect(dashboard(s).payments).toBe(1);
+    for (const n of [1, 2, 3, 4, 6, 7, 8]) expect(tableView(s, n).state).toBe("livre");
+    expect(dashboard(s).payments).toBe(11);
+    expect(dashboard(s).byHour.reduce((a, h) => a + h.cents, 0)).toBe(dashboard(s).revenue);
+    expect(s.payments.every((p) => p.status === "aprovado")).toBe(true);
     expect(s.alerts).toHaveLength(0);
   });
 });
@@ -76,7 +78,7 @@ describe("pedido", () => {
       at: T0,
       items: [{ menuId: "moqueca", qty: 1 }],
     });
-    expect(again.state.lines.filter((l) => l.table === 1)).toHaveLength(3);
+    expect(again.state.lines.filter((l) => l.table === 1 && l.closedAt === null)).toHaveLength(3);
   });
 
   it("pedido do QR e do garçom caem na mesma conta", () => {
@@ -446,7 +448,8 @@ describe("conciliação", () => {
     expect(s.payments.find((x) => x.id === p.id)!.status).toBe("pendente");
     s = run(s, { type: "injectProviderDivergence", at: T0 }).state;
     const { summary } = reconcile(s);
-    expect(summary.conciliado).toBe(1); // a mesa 3 do estado inicial
+    expect(summary.conciliado).toBe(10); // pagamentos digitais do estado inicial
+    expect(summary.conferir_caixa).toBe(1); // a mesa 4 pagou no local
     expect(summary.valor_divergente).toBe(1);
     expect(summary.sem_registro_tipe).toBe(1);
   });

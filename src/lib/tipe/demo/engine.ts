@@ -115,7 +115,14 @@ export type Alert = {
   to: "garcom" | "gerente" | "cozinha";
   staffId: string | null;
   table: number | null;
-  kind: "mesa_quitada" | "pagamento" | "nota_baixa" | "atraso" | "pagamento_no_local" | "estorno";
+  kind:
+    | "prato_pronto"
+    | "mesa_quitada"
+    | "pagamento"
+    | "nota_baixa"
+    | "atraso"
+    | "pagamento_no_local"
+    | "estorno";
   text: string;
   createdAt: number;
   read: boolean;
@@ -130,7 +137,7 @@ export type ProviderRecord = {
 };
 
 export type DemoState = {
-  version: 2;
+  version: 3;
   seededAt: number;
   restaurant: {
     name: string;
@@ -343,7 +350,7 @@ const STAFF: Staff[] = [
 /** Estado inicial com algumas mesas em andamento e vendas anteriores do dia. */
 export function seedState(now: number): DemoState {
   let s: DemoState = {
-    version: 2,
+    version: 3,
     seededAt: now,
     restaurant: {
       name: "Bistrô da Lebre",
@@ -374,6 +381,8 @@ export function seedState(now: number): DemoState {
     processedEvents: [],
     seq: 0,
   };
+  // Almoço já encerrado: mesas servidas, pagas e liberadas (dá forma aos gráficos do painel).
+  for (const h of HISTORY) s = serveAndClose(s, h, now);
   // Mesa 3: já paga mais cedo (alimenta o painel).
   s = must(
     apply(s, {
@@ -413,9 +422,9 @@ export function seedState(now: number): DemoState {
     apply(s, {
       type: "providerEvent",
       eventId: "seed-evt-3",
-      providerRef: s.payments[0]!.providerRef!,
+      providerRef: s.payments.at(-1)!.providerRef!,
       status: "paid",
-      amountCents: totalCents(s.payments[0]!),
+      amountCents: totalCents(s.payments.at(-1)!),
       at: now - 95 * MIN,
     }),
   );
@@ -423,7 +432,7 @@ export function seedState(now: number): DemoState {
     apply(s, {
       type: "rate",
       table: 3,
-      paymentId: s.payments[0]!.id,
+      paymentId: s.payments.at(-1)!.id,
       stars: 5,
       comment: "Atendimento rápido!",
       at: now - 94 * MIN,
@@ -462,6 +471,201 @@ export function seedState(now: number): DemoState {
     ),
   };
   return { ...s, alerts: [] };
+}
+
+type HistoryPayment = {
+  payer: string;
+  method: Method;
+  mode: PayMode;
+  tipPercent?: number;
+  stars?: number;
+  comment?: string;
+};
+type HistoryTable = {
+  table: number;
+  minAgo: number;
+  guests: number;
+  items: CartItem[];
+  pay: HistoryPayment[];
+};
+
+const HISTORY: HistoryTable[] = [
+  {
+    table: 1,
+    minAgo: 330,
+    guests: 2,
+    items: [
+      { menuId: "bolinho", qty: 1 },
+      { menuId: "parmegiana", qty: 2 },
+      { menuId: "caipirinha", qty: 2 },
+    ],
+    pay: [
+      {
+        payer: "Lucas",
+        method: "pix",
+        mode: { kind: "equal", parts: 1, people: 2 },
+        tipPercent: 5,
+        stars: 5,
+      },
+      { payer: "Bia", method: "apple_pay", mode: { kind: "rest" } },
+    ],
+  },
+  {
+    table: 2,
+    minAgo: 300,
+    guests: 3,
+    items: [
+      { menuId: "moqueca", qty: 1 },
+      { menuId: "suco", qty: 2 },
+      { menuId: "pudim", qty: 2 },
+    ],
+    pay: [
+      { payer: "Renata", method: "google_pay", mode: { kind: "rest" }, tipPercent: 8, stars: 4 },
+    ],
+  },
+  {
+    table: 4,
+    minAgo: 270,
+    guests: 2,
+    items: [
+      { menuId: "risoto", qty: 2 },
+      { menuId: "vinho-branco", qty: 2 },
+    ],
+    pay: [{ payer: "Paulo", method: "estabelecimento", mode: { kind: "rest" }, stars: 5 }],
+  },
+  {
+    table: 6,
+    minAgo: 240,
+    guests: 4,
+    items: [
+      { menuId: "pao-queijo", qty: 1 },
+      { menuId: "parmegiana", qty: 3 },
+      { menuId: "chopp", qty: 4 },
+    ],
+    pay: [
+      {
+        payer: "Diego",
+        method: "pix",
+        mode: { kind: "equal", parts: 1, people: 3 },
+        tipPercent: 3,
+      },
+      { payer: "Clara", method: "pix", mode: { kind: "equal", parts: 1, people: 3 } },
+      {
+        payer: "Igor",
+        method: "pix",
+        mode: { kind: "rest" },
+        tipPercent: 5,
+        stars: 3,
+        comment: "Chopp chegou quente",
+      },
+    ],
+  },
+  {
+    table: 7,
+    minAgo: 210,
+    guests: 2,
+    items: [
+      { menuId: "moqueca", qty: 2 },
+      { menuId: "caipirinha", qty: 3 },
+      { menuId: "cafe", qty: 2 },
+    ],
+    pay: [{ payer: "Helena", method: "pix", mode: { kind: "rest" }, tipPercent: 5, stars: 5 }],
+  },
+  {
+    table: 8,
+    minAgo: 180,
+    guests: 3,
+    items: [
+      { menuId: "bolinho", qty: 1 },
+      { menuId: "risoto", qty: 1 },
+      { menuId: "chopp", qty: 2 },
+    ],
+    pay: [{ payer: "Tiago", method: "apple_pay", mode: { kind: "rest" }, stars: 4 }],
+  },
+  {
+    table: 1,
+    minAgo: 130,
+    guests: 2,
+    items: [
+      { menuId: "parmegiana", qty: 1 },
+      { menuId: "suco", qty: 1 },
+      { menuId: "cafe", qty: 1 },
+    ],
+    pay: [{ payer: "Sônia", method: "pix", mode: { kind: "rest" }, tipPercent: 3, stars: 4 }],
+  },
+];
+
+/** Uma mesa do começo do dia: pede, recebe tudo, paga, avalia e é liberada. */
+function serveAndClose(state: DemoState, h: HistoryTable, now: number): DemoState {
+  const at = now - h.minAgo * MIN;
+  const waiter = state.tables.find((t) => t.number === h.table)!.waiterId;
+  let s = must(
+    apply(state, {
+      type: "placeOrder",
+      actor: "garcom",
+      actorId: waiter,
+      table: h.table,
+      source: "garcom",
+      idempotencyKey: `seed-h-${h.table}-${h.minAgo}`,
+      guests: h.guests,
+      at,
+      items: h.items,
+    }),
+  );
+  s = {
+    ...s,
+    lines: s.lines.map((l) =>
+      l.table === h.table && l.closedAt === null ? { ...l, status: "entregue" as const } : l,
+    ),
+  };
+  h.pay.forEach((p, i) => {
+    const payAt = at + (55 + i * 2) * MIN;
+    const r = apply(s, {
+      type: "startPayment",
+      actor: "cliente",
+      table: h.table,
+      payer: p.payer,
+      method: p.method,
+      mode: p.mode,
+      ...(p.tipPercent ? { tipPercent: p.tipPercent } : {}),
+      idempotencyKey: `seed-h-pay-${h.table}-${h.minAgo}-${i}`,
+      at: payAt,
+    });
+    s = must(r);
+    const pay = s.payments.at(-1)!;
+    s =
+      p.method === "estabelecimento"
+        ? must(
+            apply(s, {
+              type: "confirmManual",
+              actor: "garcom",
+              paymentId: pay.id,
+              at: payAt + MIN,
+            }),
+          )
+        : must(
+            apply(s, {
+              type: "providerEvent",
+              eventId: `seed-h-evt-${pay.id}`,
+              providerRef: pay.providerRef!,
+              status: "paid",
+              amountCents: totalCents(pay),
+              at: payAt,
+            }),
+          );
+    if (p.stars)
+      s = must(
+        apply(s, {
+          type: "rate",
+          table: h.table,
+          paymentId: pay.id,
+          stars: p.stars,
+          comment: p.comment ?? "",
+          at: payAt + MIN,
+        }),
+      );
+  });
+  return must(apply(s, { type: "closeTable", actor: "garcom", table: h.table, at: at + 62 * MIN }));
 }
 
 function must(r: ApplyResult): DemoState {
@@ -688,7 +892,7 @@ export function apply(state: DemoState, action: Action): ApplyResult {
           to: "garcom",
           staffId: table.waiterId,
           table: line.table,
-          kind: "pagamento",
+          kind: "prato_pronto",
           text: `Mesa ${line.table}: ${line.name} pronto para servir`,
           createdAt: action.at,
         });
@@ -1212,10 +1416,16 @@ export function dashboard(s: DemoState) {
       cents: cur.cents + l.qty * l.unitCents,
     });
   }
-  const byHour = new Map<number, number>();
+  const byHour = new Map<number, { orders: number; cents: number }>();
+  const hourOf = (t: number) => new Date(t).getHours();
   for (const o of s.orders) {
-    const h = new Date(o.createdAt).getHours();
-    byHour.set(h, (byHour.get(h) ?? 0) + 1);
+    const cur = byHour.get(hourOf(o.createdAt)) ?? { orders: 0, cents: 0 };
+    byHour.set(hourOf(o.createdAt), { ...cur, orders: cur.orders + 1 });
+  }
+  for (const p of approved) {
+    const h = hourOf(p.approvedAt ?? p.createdAt);
+    const cur = byHour.get(h) ?? { orders: 0, cents: 0 };
+    byHour.set(h, { ...cur, cents: cur.cents + p.subtotalCents + p.serviceCents });
   }
   const ratings = s.ratings;
   const byWaiter = s.staff
@@ -1256,9 +1466,7 @@ export function dashboard(s: DemoState) {
       .map(([method, cents]) => ({ method, cents }))
       .sort((a, b) => b.cents - a.cents),
     topItems: [...byItem.values()].sort((a, b) => b.cents - a.cents).slice(0, 5),
-    byHour: [...byHour.entries()]
-      .sort((a, b) => a[0] - b[0])
-      .map(([hour, orders]) => ({ hour, orders })),
+    byHour: [...byHour.entries()].sort((a, b) => a[0] - b[0]).map(([hour, v]) => ({ hour, ...v })),
     avgRating: ratings.length ? ratings.reduce((a, r) => a + r.stars, 0) / ratings.length : null,
     byWaiter,
   };

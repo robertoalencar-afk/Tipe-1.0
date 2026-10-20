@@ -37,6 +37,17 @@ Legenda: **Não iniciada · Em desenvolvimento · Implementada · Testada · Blo
 | Conciliação determinística por referência | Testada (demo) | `engine.test.ts` + e2e |
 | Backoffice demo | Implementada | e2e (abre) |
 
+## Redesign visual da demonstração (20/10/2026)
+
+| Item | Status | Evidência |
+|---|---|---|
+| Marca oficial (logo SVG, sem "2.0" em nenhuma tela) | Implementada | `src/assets/marca/`, `DemoShell` |
+| Kit de interface próprio da demo (`ui.tsx`: Card, Segmented, Sheet, BarChart, ShareBar…) | Implementada | Capturas desktop e iPhone 13 |
+| Pagamento em 3 passos compactos: divisão → gorjeta → pagamento | Testada (demo) | e2e etapas 4 e 5 |
+| Gorjeta igual à conta real (PR #21): 3/5/8% arredondados a R$ 0,50, 5% sugerida sem vir marcada, "Sem gorjeta" | Testada (demo) | `engine.test.ts` + e2e |
+| Painel do gerente com faturamento por hora, "Precisa de você", salão, meios, mais vendidos | Testada (demo) | e2e etapa 8 |
+| Histórico de um almoço inteiro (7 mesas fechadas) no estado inicial | Testada (demo) | `engine.test.ts` |
+
 ## Produtos no código real
 
 | Produto | Status | Motivo / próximo passo |
@@ -60,7 +71,7 @@ Legenda: **Não iniciada · Em desenvolvimento · Implementada · Testada · Blo
 
 | Comando | Resultado |
 |---|---|
-| `bunx vitest run` | 102 passaram (81 do `main` + 21 novos do motor da demonstração) |
-| `bunx tsc --noEmit` | Sem erros nos arquivos novos |
+| `bunx vitest run` | 103 passaram (81 do `main` + 22 do motor da demonstração) |
+| `bunx tsc --noEmit` | Sem erros |
 | `node tests/e2e/demo-journey.mjs` (iPhone 13 + 1366 px) | 9 etapas verdes, sem erro de página |
 | `bun run build` (Cloudflare) | Verde |

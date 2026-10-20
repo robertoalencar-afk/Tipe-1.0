@@ -6,8 +6,8 @@
 import { useCallback, useSyncExternalStore } from "react";
 import { apply, seedState, type Action, type ApplyResult, type DemoState } from "./engine";
 
-const KEY = "tipe-demo-v2";
-const CHANNEL = "tipe-demo-v2";
+const KEY = "tipe-demo-v3";
+const CHANNEL = "tipe-demo-v3";
 
 let cache: DemoState | null = null;
 const listeners = new Set<() => void>();
@@ -18,7 +18,7 @@ function read(): DemoState {
     const raw = window.localStorage.getItem(KEY);
     if (raw) {
       const parsed = JSON.parse(raw) as DemoState;
-      if (parsed.version === 2) return parsed;
+      if (parsed.version === 3) return parsed;
     }
   } catch {
     /* armazenamento indisponível: segue com estado novo */

@@ -9,7 +9,7 @@ Resumo dos requisitos do prompt mestre (20/10/2026), já com as decisões do Rob
 | 15/10 | Apple Pay e Google Pay aparecem como meios disponíveis na landing e no produto (sem "em breve"). |
 | 20/10 | Sem cartão digitado na conta. Meios da conta: **Apple Pay, Google Pay, Pix e pagar no estabelecimento** (baixa manual pelo garçom ou caixa). |
 | 20/10 | Gorjeta extra continua **70% garçom / 30% Tipe**. A hipótese 75/25 do prompt fica só como configuração documentada, desligada. |
-| 20/10 | Ordem da conta como na Sunday: dividir → gorjeta extra com o nome do garçom → pagar; avaliação só depois. Percentuais menores, porque a conta brasileira já tem serviço, e "Outro valor" de R$ 2,00 até o valor que a pessoa está pagando. Sugestão adotada na demonstração: **3%, 5% (marcada) e 8%**. A conta real está sendo ajustada na conversa "Execução Sunday". |
+| 20/10 | Ordem da conta como na Sunday: dividir → gorjeta extra com o nome do garçom → pagar; avaliação só depois. Percentuais menores, porque a conta brasileira já tem serviço, e "Outro valor" de R$ 2,00 até o valor que a pessoa está pagando. Sugestão adotada na demonstração: **3%, 5% (sugerida, sem vir marcada) e 8%**, arredondados a R$ 0,50; contas pequenas usam R$ 2, R$ 3 e R$ 5, igual à conta real (PR #21). A conta real está sendo ajustada na conversa "Execução Sunday". |
 | 20/10 | Pesquisa da Sunday só passiva (REA: captura e inspeção de páginas públicas). |
 
 ## A. Tipe Pay
