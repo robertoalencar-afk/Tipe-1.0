@@ -2,13 +2,13 @@
 
 Data: 14/10/2026. Base: artigos de ajuda oficiais que descrevem telas e passos (`[TELA]`), documentação (`[DOC]`) e as notas em `notas/`. Design system da Tipe: tokens em `src/styles.css` (no `main`), tokens semânticos e `ds.tsx` no ramo `redesign-premium` (documento de design system da etapa 0).
 
-**Limite desta etapa.** As telas foram lidas pelos artigos de ajuda, que descrevem botões, ordem e cores. Medidas exatas (alvo de toque em pixels, tamanhos de fonte) não aparecem em texto e ficam **não verificadas**. A conferência visual com capturas da REA no Chrome do usuário está registrada como pendência em `00-PROGRESSO.md`.
+**Limite desta etapa.** As telas foram lidas pelos artigos de ajuda, que descrevem botões, ordem e cores. Medidas exatas (alvo de toque em pixels, tamanhos de fonte) não aparecem em texto e ficam **não verificadas**. Em 20/10/2026 seis artigos foram capturados inteiros pela REA no Chrome do usuário; o que as imagens confirmam, corrigem ou acrescentam está na seção 7. Capturas ficam fora do repositório.
 
 ## 1. Os sete motivos da velocidade
 
 ### 1.1 O mapa de mesas é a tela inicial e a tela de estado
 - **Toast**: bloco da mesa mostra pessoas, cronômetro, total e iniciais do garçom; a cor diz o estado do **pedido** (vermelho = item retido, amarelo = enviado, verde = tudo pronto no KDS), cinza = mesa de outro garçom, borda pontilhada = vazia [DOC/TELA, `notas/toast.md` §3].
-- **Lightspeed**: cor diz **de quem é** a mesa (verde = minha, laranja = de outro com acesso, vermelho = sem permissão) e uma faixa vermelha avisa mesa aberta há muito tempo [TELA, `notas/lightspeed.md` §3].
+- **Lightspeed**: um **selo no canto** da mesa diz de quem ela é (verde = minha, laranja = de outro com acesso, vermelho = sem permissão; corrigido pela captura de 20/10, §7.2) e uma faixa vermelha avisa mesa aberta há muito tempo [TELA, `notas/lightspeed.md` §3].
 - **Square**: a mesa fica ocupada assim que se informa o número de pessoas, antes do primeiro item [TELA].
 - **Tipe hoje**: grade de cartões com cinco estados de pagamento (`livre`, `ocupada`, `aguardando`, `encerrada`, `inativa`, em `RestaurantPanel.tsx:46-50`), sem tempo, sem pessoas, sem estado da cozinha e sem planta.
 
@@ -93,3 +93,41 @@ Identidade visual, layout integral e gestos patenteados (o gesto de juntar assen
 ## 6. Pré-requisito
 
 Os tokens semânticos e `ds.tsx` estão no ramo `redesign-premium`, fora do `main`. Os princípios acima pressupõem que esse ramo seja reaplicado sobre o `main` primeiro (ver `09-ROADMAP-EVOLUCAO-TIPE.md`, fase 0).
+
+## 7. Conferência visual pela REA (20/10/2026)
+
+Capturas de página inteira feitas com `capture_web_screenshot` da REA em abas abertas no Chrome do usuário (área visível esticada até a altura do artigo, sem executar script da página). Imagens guardadas fora do repositório. Nesta seção, `[TELA-REA]` = visto na imagem do produto dentro do artigo oficial.
+
+| Artigo (atualização) | Resultado |
+|---|---|
+| Toast · Manage Tables With Toast POS (17/09/2026) | capturado, com telas |
+| Toast · Customize the Appearance of KDS Tickets (30/09/2026) | capturado, com telas |
+| Lightspeed K · Understanding the Tables screen | capturado, com tela |
+| Square · Create and edit modifiers | capturado, com telas do painel |
+| Square · Create a floor plan; Complete and recall orders with Square KDS | capturados; **não têm imagem de tela**, só texto (as afirmações `[TELA]` da Square sobre mapa e KDS continuam vindo do texto) |
+| Lightspeed · Adding orders in Table Service mode | não capturado: imagem acima do limite de 10 MB da REA |
+| TouchBistro · Taking Orders; Using the KDS | não capturado: a REA recusou as abas |
+
+### 7.1 O que as imagens confirmam
+
+- **Toast, mapa de mesas** [TELA-REA]: tela escura por padrão; abas de área em pílula ("Main dining room / Bar / Patio"); cada mesa ocupada mostra pessoas, cronômetro, total e nome do garçom; mesas coloridas em verde, vermelho e ocre; mesa de outro garçom em cinza escuro; mesa livre com **borda tracejada**; formatos redondo, quadrado e retangular. Confirma P1, P2 e P8.
+- **Toast, KDS** [TELA-REA]: cabeçalho do ticket com número da mesa ou conta grande à esquerda e cronômetro à direita; selo vermelho **"NOT PAID"** no ticket; marca verde por item concluído; o fundo do ticket fica verde quando tudo foi entregue; modificador em vermelho por padrão e com fundo de destaque configurável ("Rare" em pílula vermelha); borda laranja para viagem/entrega; texto em P, M, G, GG. Confirma P7, P9 e a recomendação de mostrar "pago pelo QR" no ticket.
+- **Square, modificadores** [TELA-REA]: no cadastro, cada opção tem **nome para a cozinha**, preço, "ocultar online", **pré-seleção** e **estoque** ("In stock"); regras "exigir seleção" e "permitir mais de uma"; chave "modificadores conversacionais" (Adicionar, Extra, Sem). Confirma P4.
+
+### 7.2 O que as imagens acrescentam
+
+- **Toast tem um painel lateral "Minhas mesas / Outras mesas"** ao lado do mapa: lista com selo colorido da mesa, resumo dos itens, cronômetro, pessoas, número de contas e total. Ele compara mesas sem abrir nenhuma e pode ser escondido. No celular (Toast Go 2) a mesma lista vira a tela principal [TELA-REA].
+- **Toast tem barra de ações fixa no topo do mapa**: "Novo pedido" (sem mesa), "Todas as contas", "Buscar conta" (teclado numérico grande) e "Trocar usuário". Faixa vermelha avisa quando o restaurante está em **modo de teste** [TELA-REA].
+- **Lightspeed usa tema claro** e mostra **uma informação por vez** no bloco da mesa, escolhida num seletor "Pessoas / Total / Tempo / Status"; os assentos aparecem como pontos (preto = ocupado, cinza = livre); quem é dono da mesa aparece num selo pequeno no canto (ícone verde = minha, letra laranja = de outro); há indicador vermelho de conexão ao lado de "Sair" [TELA-REA]. Isso corrige a seção 1.1: a cor de dono é um **selo**, não o bloco inteiro.
+
+### 7.3 Ajustes no design system da Tipe
+
+| Princípio | Ajuste |
+|---|---|
+| P2 `TableTile` | Variante `compact` segue o Lightspeed: número, cor de estado e **uma** métrica escolhida num seletor (Tempo · Total · Pessoas · Pagamento). Variante `detailed` segue a Toast (quatro dados). Mesa livre com borda tracejada, sem cor de preenchimento. Selo do garçom no canto, não na cor do bloco |
+| Novo `TableListPane` | Lista "Minhas mesas / Outras mesas" ao lado do mapa no tablet e como tela inicial no celular, com o mesmo token de estado do `TableTile` |
+| P3 `ActionBar` | No mapa, ações globais no topo ("Novo pedido", "Buscar conta", "Trocar usuário"); no lançamento, ação primária no rodapé como já previsto |
+| P7 / KDS | Selo **"Pago pelo QR"** e **"Não pago"** no cabeçalho do ticket; marca por item concluído; fundo de ticket concluído em `--status-ready` |
+| P4 `ModifierSheet` | Cadastro com "nome para a cozinha", pré-seleção, estoque por opção, mínimo e máximo |
+| P8 tema | `.theme-ops` como padrão no KDS e no mapa do tablet, com troca para claro (Toast escuro, Lightspeed claro: os dois existem e o usuário escolhe) |
+| Novo | Faixa de **modo de teste** em toda a operação quando o restaurante estiver em homologação, coerente com a regra de não simular pagamento em produção |

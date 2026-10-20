@@ -8,11 +8,11 @@ Branch: `research/us-benchmark-pdv-erp` · Início: 14/10/2026 · Base: `main` `
 |---|---|---|---|
 | 0 — Linha de base | Concluída | este arquivo | — |
 | 1 — Auditoria Tipe | Concluída | `01-AUDITORIA-TIPE.md` | — |
-| 2 — PDVs dos EUA | Concluída | `02-BENCHMARK-PDV-USA.md`, `notas/toast.md`, `square.md`, `lightspeed.md`, `touchbistro.md`, `spoton.md`, `nivel-2-pdv.md` | conferência visual pela REA (ver Impedimentos) |
+| 2 — PDVs dos EUA | Concluída | `02-BENCHMARK-PDV-USA.md`, `notas/toast.md`, `square.md`, `lightspeed.md`, `touchbistro.md`, `spoton.md`, `nivel-2-pdv.md` | conferência visual pela REA feita em 20/10/2026 (ver `05` §7) |
 | 3 — ERPs | Concluída | `03-BENCHMARK-ERP-USA.md`, `notas/erp-usa.md` | — |
 | 4 — Realidade Brasil | Concluída | `04b-REALIDADE-BRASIL.md`, `notas/brasil.md` | ler a Order API da Saipos |
 | 5 — Matriz | Concluída | `04-MATRIZ-FUNCIONALIDADES-TIPE.md` | — |
-| 6 — Design e UX | Concluída | `05-DESIGN-SYSTEM-BENCHMARK.md` | conferência visual pela REA |
+| 6 — Design e UX | Concluída | `05-DESIGN-SYSTEM-BENCHMARK.md` | conferência pela REA feita (§7); faltam Lightspeed pedidos e TouchBistro |
 | 7 — Telas | Concluída | `06-TELAS-REFERENCIA-TIPE.md` (com esboços ASCII) | — |
 | 8 — Arquitetura, priorização, plano | Concluída | `07` a `10` | — |
 | Resumo executivo | Concluído | `11-RESUMO-EXECUTIVO.md` | — |
@@ -51,7 +51,8 @@ As ferramentas REA aparecem nesta sessão como ferramentas do **computador do us
 
 Ver também a seção "Impedimentos" de cada nota em `notas/`.
 
-- **REA (conferência visual):** a pedido do usuário (14/10/2026), a REA passou a ser obrigatória nesta pesquisa. Ela foi conectada ao Chrome do usuário com depurador (`127.0.0.1:9222`) e `list_browser_targets` e `capture_web_screenshot` funcionaram (captura da home pública do GoTab, guardada fora do repositório). Duas limitações impediram a conferência completa: (1) `capture_browser_scenario`, a ferramenta de navegação, recusou os parâmetros enviados por esta sessão, então só abas já abertas podem ser capturadas; (2) a conexão com o computador do usuário caiu durante a sessão e as ferramentas REA deixaram de estar disponíveis. **Por isso, toda afirmação `[TELA]` desta missão vem do texto dos artigos de ajuda oficiais, não de captura vista.** Pendente: abrir no Chrome com depurador os artigos de ajuda citados nas notas (Toast "Manage Tables", "Start and Send an Order", "Customize KDS Tickets"; Square 6427, 7944, 8171, 5119; Lightspeed F4/F5/F7; TouchBistro "Taking Orders", "Using the KDS") e capturá-los pela REA para confirmar cores, densidade e alvos de toque de `05-DESIGN-SYSTEM-BENCHMARK.md`.
+- **REA (conferência visual), atualizado em 20/10/2026:** seis artigos foram capturados inteiros (Toast mesas e KDS, Lightspeed mesas, Square modificadores, mapa e KDS); resultados em `05` §7. Para isso, um comando no Terminal do usuário estica a área visível de cada aba (`Emulation.setDeviceMetricsOverride`, sem executar script da página), porque a REA só captura a área visível e não navega. Ficaram de fora Lightspeed "Adding orders" (imagem acima de 10 MB) e os dois do TouchBistro (aba recusada).
+- **Histórico (14/10/2026):** a pedido do usuário (14/10/2026), a REA passou a ser obrigatória nesta pesquisa. Ela foi conectada ao Chrome do usuário com depurador (`127.0.0.1:9222`) e `list_browser_targets` e `capture_web_screenshot` funcionaram (captura da home pública do GoTab, guardada fora do repositório). Duas limitações impediram a conferência completa: (1) `capture_browser_scenario`, a ferramenta de navegação, recusou os parâmetros enviados por esta sessão, então só abas já abertas podem ser capturadas; (2) a conexão com o computador do usuário caiu durante a sessão e as ferramentas REA deixaram de estar disponíveis. **Por isso, toda afirmação `[TELA]` desta missão vem do texto dos artigos de ajuda oficiais, não de captura vista.** Pendente: abrir no Chrome com depurador os artigos de ajuda citados nas notas (Toast "Manage Tables", "Start and Send an Order", "Customize KDS Tickets"; Square 6427, 7944, 8171, 5119; Lightspeed F4/F5/F7; TouchBistro "Taking Orders", "Using the KDS") e capturá-los pela REA para confirmar cores, densidade e alvos de toque de `05-DESIGN-SYSTEM-BENCHMARK.md`.
 - Vídeos oficiais de treinamento (YouTube) não puderam ser assistidos; só títulos e descrições.
 - Limite de uso da conta interrompeu cinco subagentes de pesquisa por cerca de 4 h; todos foram retomados e concluídos.
 - Saipos Order API: robots.txt bloqueou a leitura. Central de ajuda da MarketMan não carregou. Página de ajuda do SpotOn só abre por JavaScript (lida pelo espelho público). Preços de Aloha, Brink, Simphony e R365 não são públicos.
