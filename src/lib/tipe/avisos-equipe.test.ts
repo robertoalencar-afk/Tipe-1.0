@@ -1,0 +1,51 @@
+import { describe, expect, it } from "vitest";
+import { avisoDeNota, avisoDePagamento } from "./avisos-equipe";
+
+const base = {
+  id: "p1",
+  mesa: "7",
+  slug: "bar",
+  valor: 80,
+  alvo: "restaurant",
+  metodo: "pix",
+  status: "approved",
+};
+
+describe("avisoDePagamento", () => {
+  it("pagamento parcial avisa só o garçom", () => {
+    const a = avisoDePagamento(base)!;
+    expect(a.para).toEqual(["garcom"]);
+    expect(a.titulo).toContain("Mesa 7 pagou");
+  });
+  it("conta quitada avisa garçom e gestão", () => {
+    const a = avisoDePagamento({ ...base, contaQuitada: true })!;
+    expect(a.para).toEqual(["garcom", "gestao"]);
+    expect(a.titulo).toBe("Mesa 7 pagou tudo");
+  });
+  it("pagar no local avisa todos com a forma escolhida", () => {
+    const a = avisoDePagamento({
+      ...base,
+      status: "pending",
+      metodo: "at_establishment",
+      formaLocal: "cash",
+    })!;
+    expect(a.titulo).toBe("Mesa 7 quer pagar em dinheiro");
+    expect(a.para).toEqual(["garcom", "gestao"]);
+  });
+  it("gorjeta vai só para o garçom, com a parte dele", () => {
+    const a = avisoDePagamento({ ...base, alvo: "tipe", valor: 10 })!;
+    expect(a.para).toEqual(["garcom"]);
+    expect(a.corpo).toContain("7,00");
+  });
+  it("pendente digital e recusado não avisam", () => {
+    expect(avisoDePagamento({ ...base, status: "pending" })).toBeNull();
+    expect(avisoDePagamento({ ...base, status: "failed" })).toBeNull();
+  });
+});
+
+describe("avisoDeNota", () => {
+  it("só notas de 1 ou 2 estrelas", () => {
+    expect(avisoDeNota("4", 3)).toBeNull();
+    expect(avisoDeNota("4", 2, "demorou")!.corpo).toBe('"demorou"');
+  });
+});

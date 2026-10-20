@@ -148,6 +148,8 @@ export const createPayment = createServerFn({ method: "POST" })
         change_due: changeDue,
       }).eq("id", payId);
       if (detailError) throw new Error("Não foi possível registrar a forma de pagamento");
+      const { avisarPagamento } = await import("./avisos-equipe.server");
+      await avisarPagamento(supabaseAdmin, payId);
       return { id, status: "pending", provider: "estabelecimento" };
     }
 
@@ -156,6 +158,8 @@ export const createPayment = createServerFn({ method: "POST" })
     // Restaurante de teste: aprova simulado sem tocar em nenhuma conta Pagar.me.
     if (isSimulationRestaurant(data.restaurantId)) {
       const simId = await register("approved");
+      const { avisarPagamento } = await import("./avisos-equipe.server");
+      await avisarPagamento(supabaseAdmin, simId);
       return { id: simId, status: "approved", provider: "simulado" };
     }
 
@@ -177,6 +181,8 @@ export const createPayment = createServerFn({ method: "POST" })
           : "A gorjeta digital ainda não está disponível. Você pode deixar a gorjeta diretamente com a equipe.");
       }
       const simId = await register("approved");
+      const { avisarPagamento } = await import("./avisos-equipe.server");
+      await avisarPagamento(supabaseAdmin, simId);
       return { id: simId, status: "approved", provider: "simulado" };
     }
 
@@ -369,6 +375,10 @@ export const submitRating = createServerFn({ method: "POST" })
       stars: data.stars, comment: data.comment ? data.comment : null,
     });
     if (error) throw new Error("Não foi possível registrar a avaliação");
+    if (data.stars <= 2) {
+      const { avisarNota } = await import("./avisos-equipe.server");
+      await avisarNota(supabaseAdmin, ok.restaurantId, t?.waiter_id ?? null, data.tableId, data.stars, data.comment);
+    }
     return { ok: true };
   });
 

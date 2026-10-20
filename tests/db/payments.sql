@@ -271,3 +271,36 @@ BEGIN
   END;
   DELETE FROM pdv_connections WHERE restaurant_id = v_rid;
 END $$;
+
+-- Avisos no celular: cada pessoa só vê e apaga as próprias inscrições; só o servidor grava.
+DO $$
+DECLARE u_a uuid := gen_random_uuid(); u_b uuid := gen_random_uuid(); n int;
+BEGIN
+  INSERT INTO auth.users (id, email) VALUES (u_a, 'push-a@teste.local'), (u_b, 'push-b@teste.local');
+  INSERT INTO staff_push_subscriptions (user_id, endpoint, p256dh, auth)
+  VALUES (u_a, 'https://push.teste/a', repeat('a', 87), repeat('b', 22)), (u_b, 'https://push.teste/b', repeat('a', 87), repeat('b', 22));
+  PERFORM set_config('request.jwt.claim.sub', u_a::text, true);
+  SET LOCAL ROLE authenticated;
+  SELECT count(*) INTO n FROM staff_push_subscriptions;
+  DELETE FROM staff_push_subscriptions WHERE user_id = u_b;
+  RESET ROLE;
+  PERFORM pg_temp.ok(n = 1, 'garçom vê só a própria inscrição de avisos');
+  PERFORM pg_temp.ok((SELECT count(*) FROM staff_push_subscriptions WHERE user_id = u_b) = 1, 'ninguém apaga a inscrição de outra pessoa');
+  BEGIN
+    SET LOCAL ROLE authenticated;
+    INSERT INTO staff_push_subscriptions (user_id, endpoint, p256dh, auth) VALUES (u_a, 'https://push.teste/c', repeat('a', 87), repeat('b', 22));
+    RESET ROLE;
+    RAISE EXCEPTION 'FALHOU: navegador gravou inscrição direto no banco';
+  EXCEPTION WHEN insufficient_privilege THEN
+    RESET ROLE;
+    PERFORM pg_temp.ok(true, 'inscrição só é gravada pelo servidor');
+  END;
+  BEGIN
+    INSERT INTO staff_push_subscriptions (user_id, endpoint, p256dh, auth) VALUES (u_a, 'http://inseguro/x', repeat('a', 87), repeat('b', 22));
+    RAISE EXCEPTION 'FALHOU: aceitou endereço sem https';
+  EXCEPTION WHEN check_violation THEN
+    PERFORM pg_temp.ok(true, 'endereço de aviso precisa ser https');
+  END;
+  DELETE FROM auth.users WHERE id IN (u_a, u_b);
+  PERFORM pg_temp.ok((SELECT count(*) FROM staff_push_subscriptions WHERE user_id IN (u_a, u_b)) = 0, 'conta apagada leva junto as inscrições');
+END $$;

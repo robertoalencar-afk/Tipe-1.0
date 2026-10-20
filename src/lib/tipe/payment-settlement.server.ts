@@ -62,6 +62,10 @@ export async function applyProviderOrder(admin: Admin, orderId: string, order: P
     case "settle_paid":
     case "settle_failed":
       await admin.rpc("provider_settle_payment" as never, { p_order_id: orderId, p_paid: decision.action === "settle_paid" } as never);
+      if (decision.action === "settle_paid" && !pay.archived) {
+        const { avisarPagamento } = await import("./avisos-equipe.server");
+        await avisarPagamento(admin, pay.id);
+      }
       break;
     case "reverse":
       await admin.rpc("provider_reverse_payment" as never, { p_order_id: orderId, p_kind: decision.kind } as never);
