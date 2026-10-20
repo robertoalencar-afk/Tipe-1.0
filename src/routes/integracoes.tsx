@@ -1,7 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { Foto } from "@/components/tipe/site/Foto";
-import { GradeIntegracoes } from "@/components/tipe/site/GradeIntegracoes";
-import { INTEGRACOES } from "@/components/tipe/site/produtos";
+import { GradeIntegracoes, ListaIntegracoes } from "@/components/tipe/site/GradeIntegracoes";
 import { BotaoPrincipal, FaixaCta, Secao, SitePage, Titulo } from "@/components/tipe/site/Site";
 
 const TITLE = "Integrações · Pix, Apple Pay, Google Pay e o seu PDV | Tipe";
@@ -57,14 +56,12 @@ function Integracoes() {
           <div className="mt-12">
             <GradeIntegracoes />
           </div>
-          <ul className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {INTEGRACOES.map((it) => (
-              <li key={it.nome} className="border-t border-border pt-4">
-                <p className="font-medium">{it.nome}</p>
-                <p className="mt-1 text-sm text-muted-foreground">{it.d}</p>
-              </li>
-            ))}
-          </ul>
+        </div>
+      </Secao>
+      <Secao tema="claro">
+        <div className="container-page">
+          <Titulo rotulo="Em detalhe" titulo="O que cada integração faz." className="mb-12" />
+          <ListaIntegracoes />
         </div>
       </Secao>
       <FaixaCta titulo="Conte qual é o seu PDV." texto="A gente mostra o caminho mais curto para ligar a Tipe ao seu salão." />

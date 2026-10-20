@@ -4,13 +4,15 @@
  * o celular, seção escura com fatos e fotos, passos no celular, recursos,
  * dúvidas, produtos relacionados e a faixa final.
  */
-import { useState, type CSSProperties } from "react";
-import { ArrowRight, Check, ChevronDown } from "lucide-react";
-import { PalcoCelular } from "@/components/tipe/landing/PalcoCelular";
+import type { CSSProperties } from "react";
+import { Check, ChevronDown } from "lucide-react";
+import { MesaViva } from "@/components/tipe/MesaViva";
 import { PhoneShot } from "@/components/tipe/landing/PhoneShot";
 import { Palavras, Reveal } from "@/components/tipe/landing/motion";
 import totemMesa from "@/assets/marca/totem-mesa.webp";
 import { cn } from "@/lib/utils";
+import { AbasDemo, type ItemAba } from "./AbasDemo";
+import { Experimente } from "./Experimente";
 import { Foto, type NomeFoto } from "./Foto";
 import { PRODUTOS, type Produto } from "./produtos";
 import { BotaoPrincipal, BotaoSecundario, FaixaCta, Secao, Titulo } from "./Site";
@@ -67,7 +69,7 @@ function Topo({ p }: { p: Produto }) {
   return (
     <section data-tema="claro" className="relative -mt-16 pt-16">
       <div className="container-page grid items-center gap-10 pb-14 pt-6 sm:pt-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:pb-20">
-        <div className="relative">
+        <div className="relative order-2 lg:order-1">
           <Foto
             nome={p.foto}
             prioridade
@@ -82,7 +84,7 @@ function Topo({ p }: { p: Produto }) {
             style={{ "--d": "700ms" } as CSSProperties}
           />
         </div>
-        <div>
+        <div className="order-1 lg:order-2">
           <p className="flex items-center gap-3 font-display text-[clamp(1.1rem,0.95rem+0.6vw,1.45rem)] tracking-[-0.02em] text-brand-strong">
             <p.icone className="h-5 w-5" />
             {p.rotulo}
@@ -92,12 +94,12 @@ function Topo({ p }: { p: Produto }) {
             as="h1"
             imediato
             delay={150}
-            className="mt-4 block font-display text-[clamp(2.7rem,1.3rem+4.4vw,5.2rem)] font-normal leading-[0.97] tracking-[-0.05em] text-balance"
+            className="mt-4 block font-display text-[clamp(2.4rem,1.2rem+4.4vw,5.2rem)] font-normal leading-[0.98] tracking-[-0.05em] text-balance"
           >
             {p.titulo}
           </Palavras>
           <p
-            className="hero-in mt-6 max-w-xl text-lg leading-relaxed text-muted-foreground text-pretty sm:text-xl"
+            className="hero-in mt-5 max-w-xl text-[1.05rem] leading-relaxed text-muted-foreground text-pretty sm:text-xl"
             style={{ "--d": "450ms" } as CSSProperties}
           >
             {p.texto}
@@ -118,42 +120,25 @@ function Topo({ p }: { p: Produto }) {
 }
 
 function Abas({ p }: { p: Produto }) {
-  const [ativa, setAtiva] = useState(0);
+  const itens: ItemAba[] = p.beneficios.map((b, i) => ({
+    id: `${p.slug}-${i}`,
+    rotulo: b.t,
+    titulo: b.t,
+    texto: b.d,
+    foto: b.foto,
+    posicao: b.posicao,
+    altFoto: "",
+    tela: b.tela,
+    altTela: b.tela ? `Tela real da Tipe: ${b.t.toLowerCase()}` : undefined,
+    extra: b.tela ? undefined : <CartaoInterface cartao={p.cartao} />,
+  }));
   return (
-    <section data-tema="claro" aria-label="Destaques" className="pb-16 sm:pb-24">
+    <Secao tema="claro" ariaLabel="Destaques" className="!pt-6 sm:!pt-10">
       <div className="container-page">
-        <div
-          role="tablist"
-          aria-label={`Destaques do ${p.nome}`}
-          className="sem-barra -mx-4 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0"
-        >
-          {p.beneficios.map((b, i) => (
-            <button
-              key={b.t}
-              type="button"
-              role="tab"
-              aria-selected={ativa === i}
-              onClick={() => setAtiva(i)}
-              className={cn(
-                "shrink-0 rounded-full border px-5 py-2.5 text-[0.95rem] font-medium",
-                ativa === i
-                  ? "border-foreground bg-foreground text-background"
-                  : "border-border text-muted-foreground hover:text-foreground",
-              )}
-            >
-              {b.t}
-            </button>
-          ))}
-        </div>
-        <p
-          key={ativa}
-          role="tabpanel"
-          className="troca-in mt-6 max-w-3xl font-display text-[clamp(1.5rem,1.1rem+1.5vw,2.3rem)] leading-tight tracking-[-0.03em]"
-        >
-          {p.beneficios[ativa]?.d}
-        </p>
+        <Titulo rotulo="Na prática" titulo={`O que muda com o ${p.nome}.`} className="mb-10 lg:mb-14" />
+        <AbasDemo itens={itens} />
       </div>
-    </section>
+    </Secao>
   );
 }
 
@@ -242,21 +227,14 @@ function Fatos({ p }: { p: Produto }) {
   );
 }
 
-function Passos({ p }: { p: Produto }) {
-  if (!p.passos) return null;
+/** Só no Tipe Pay: a história da mesa (Mesa Viva) e o simulador real para tocar. */
+function DemonstracaoPay({ p }: { p: Produto }) {
+  if (p.slug !== "pay") return null;
   return (
-    <Secao tema="claro">
-      <div className="container-page">
-        <Titulo
-          rotulo="Passo a passo"
-          titulo="O jeito mais simples de pagar a conta."
-          texto="Estas são as telas reais que aparecem no celular de quem está na mesa."
-        />
-        <div className="mt-12">
-          <PalcoCelular passos={p.passos} />
-        </div>
-      </div>
-    </Secao>
+    <>
+      <MesaViva />
+      <Experimente />
+    </>
   );
 }
 
@@ -272,14 +250,14 @@ function Recursos({ p }: { p: Produto }) {
     <Secao tema="claro">
       <div className="container-page">
         <Titulo rotulo="Recursos" titulo="Feito para o turno ficar mais leve." />
-        <ul className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="sem-barra -mx-4 mt-10 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-4 px-4 pb-2 sm:mx-0 sm:mt-12 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 lg:grid-cols-3">
           {p.recursos.map((r, i) => (
             <Reveal
               as="li"
               key={r.t}
               delay={(i % 3) * 110}
               className={cn(
-                "flex min-h-[15rem] flex-col justify-between rounded-[1.75rem] p-7 transition-transform duration-500 hover:-translate-y-1",
+                "flex min-h-[13rem] w-[72vw] max-w-[20rem] shrink-0 snap-start flex-col justify-between rounded-[1.75rem] p-6 transition-transform duration-500 hover:-translate-y-1 sm:w-auto sm:max-w-none sm:min-h-[15rem] sm:p-7",
                 TONS[i % TONS.length],
               )}
             >
@@ -320,38 +298,49 @@ function Duvidas({ p }: { p: Produto }) {
   );
 }
 
+/** Card de produto no formato da sunday: nome e promessa em cima, foto com a tela real embaixo. */
 export function CardProduto({ p, className }: { p: Produto; className?: string }) {
+  const tela = p.beneficios.find((b) => b.tela)?.tela;
   return (
     <a
       href={`/produtos/${p.slug}`}
-      className={cn("group block", className)}
+      className={cn(
+        "group flex flex-col overflow-hidden rounded-[1.75rem] bg-background-muted transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1",
+        className,
+      )}
       aria-label={`${p.nome}: ${p.resumo}`}
     >
-      <div className="relative">
+      <div className="p-6 pb-5">
+        <p className="flex items-center gap-2 text-[0.95rem] text-muted-foreground">
+          <p.icone className="h-4 w-4" />
+          {p.nome}
+          {p.status === "em-breve" && (
+            <span className="rounded-full border border-border px-2 py-0.5 text-[11px]">Em breve</span>
+          )}
+        </p>
+        <p className="mt-3 font-display text-[1.45rem] font-normal leading-[1.1] tracking-[-0.03em]">
+          {p.titulo}
+        </p>
+      </div>
+      <div className="relative mx-3 mb-3 mt-auto overflow-hidden rounded-[1.25rem]">
         <Foto
           nome={p.foto}
           alt=""
           posicao={p.posicao}
           sizes="(min-width: 1024px) 24rem, 80vw"
-          className="aspect-[4/5] rounded-[1.75rem]"
+          className="aspect-[4/4.2]"
         />
-        <span className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 text-sm font-medium text-[oklch(0.15_0_0)] backdrop-blur">
-          <p.icone className="h-4 w-4" />
-          {p.nome}
-        </span>
-        {p.status === "em-breve" && (
-          <span className="absolute right-4 top-4 rounded-full bg-[oklch(0.15_0_0/0.7)] px-3 py-1.5 text-xs font-medium text-white backdrop-blur">
-            Em breve
-          </span>
+        {tela ? (
+          <div className="absolute -bottom-[38%] right-[8%] w-[44%] transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-3">
+            <PhoneShot tela={tela} alt="" sizes="180px" />
+          </div>
+        ) : (
+          <CartaoInterface
+            cartao={p.cartao}
+            className="absolute inset-x-3 bottom-3 origin-bottom scale-[0.92] p-3.5 transition-transform duration-700 group-hover:scale-95 sm:p-4"
+          />
         )}
       </div>
-      <p className="mt-4 font-display text-xl font-medium leading-snug tracking-[-0.02em]">
-        {p.titulo}
-      </p>
-      <p className="mt-2 inline-flex items-center gap-1.5 text-[0.95rem] text-muted-foreground transition-colors group-hover:text-foreground">
-        Conhecer o {p.nome}{" "}
-        <ArrowRight className="h-4 w-4 transition-transform duration-500 group-hover:translate-x-1" />
-      </p>
     </a>
   );
 }
@@ -365,7 +354,7 @@ function Relacionados({ p }: { p: Produto }) {
       </div>
       <div className="sem-barra mt-12 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-px-4 px-4 pb-2 sm:scroll-px-6 sm:px-6 lg:scroll-px-[max(1.5rem,calc((100vw-80rem)/2+1.5rem))] lg:px-[max(1.5rem,calc((100vw-80rem)/2+1.5rem))]">
         {outros.map((o) => (
-          <CardProduto key={o.slug} p={o} className="w-[78vw] max-w-[22rem] shrink-0 snap-start" />
+          <CardProduto key={o.slug} p={o} className="w-[80vw] max-w-[22rem] shrink-0 snap-start" />
         ))}
       </div>
     </Secao>
@@ -379,7 +368,7 @@ export function ProdutoPagina({ p }: { p: Produto }) {
       <Abas p={p} />
       <Banda p={p} />
       <Fatos p={p} />
-      <Passos p={p} />
+      <DemonstracaoPay p={p} />
       <Recursos p={p} />
       <Duvidas p={p} />
       <Relacionados p={p} />

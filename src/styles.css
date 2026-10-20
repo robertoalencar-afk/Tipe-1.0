@@ -634,3 +634,6 @@
 .logo-escuro { display: none; }
 .sunday[data-tema="escuro"] .logo-claro { display: none; }
 .sunday[data-tema="escuro"] .logo-escuro { display: block; }
+@keyframes aba-progresso { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+.aba-progresso { animation: aba-progresso var(--tempo, 6s) linear both; }
+@media (prefers-reduced-motion: reduce) { .aba-progresso { animation: none; transform: scaleX(1); } }

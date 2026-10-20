@@ -4,7 +4,7 @@ import { ChevronDown, Instagram, Menu, MessageCircle, X } from "lucide-react";
 import logo from "@/assets/marca/tipe-logo.svg";
 import logoBranco from "@/assets/marca/tipe-logo-branco.svg";
 import { fotoSrc } from "@/components/tipe/site/Foto";
-import { PRODUTOS } from "@/components/tipe/site/produtos";
+import { GRUPOS, PRODUTOS } from "@/components/tipe/site/produtos";
 import { PrivacyPreferences } from "@/components/tipe/PrivacyPreferences";
 import { COMPANY } from "@/lib/tipe/legal";
 import { WHATSAPP_SITE_MESSAGE, whatsappLink } from "@/lib/tipe/contact";
@@ -109,39 +109,48 @@ export function LandingHeader() {
               {solucoes && (
                 <div className="absolute inset-x-0 top-full">
                   <div className="menu-in container-page pb-6">
-                    <div className="grid grid-cols-[1fr_17rem] gap-3 rounded-[1.75rem] border border-border bg-background p-3 shadow-lift">
-                      <ul className="grid grid-cols-2 gap-1 xl:grid-cols-3">
-                        {PRODUTOS.map((p) => (
-                          <li key={p.slug}>
-                            <a
-                              href={`/produtos/${p.slug}`}
-                              onClick={() => setSolucoes(false)}
-                              className="group flex items-center gap-3 rounded-2xl p-2.5 transition-colors hover:bg-background-muted"
-                            >
-                              <img
-                                src={fotoSrc(p.foto).src}
-                                alt=""
-                                loading="lazy"
-                                className="h-16 w-16 shrink-0 rounded-xl object-cover transition-transform duration-700 group-hover:scale-105"
-                                style={{ objectPosition: p.posicao }}
-                              />
-                              <span className="min-w-0">
-                                <span className="flex items-center gap-2 text-[0.95rem] font-medium">
-                                  {p.nome}
-                                  {p.status === "em-breve" && (
-                                    <span className="rounded-full bg-background-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                                      Em breve
+                    <div className="grid grid-cols-[1fr_16rem] gap-3 rounded-[1.75rem] border border-border bg-background p-3 shadow-lift">
+                      <div className="grid grid-cols-3 gap-2">
+                        {GRUPOS.map((g) => (
+                          <div key={g}>
+                            <p className="px-2.5 pb-1 pt-2 text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                              {g}
+                            </p>
+                            <ul>
+                              {PRODUTOS.filter((p) => p.grupo === g).map((p) => (
+                                <li key={p.slug}>
+                                  <a
+                                    href={`/produtos/${p.slug}`}
+                                    onClick={() => setSolucoes(false)}
+                                    className="group flex items-center gap-3 rounded-2xl p-2.5 transition-colors hover:bg-background-muted"
+                                  >
+                                    <img
+                                      src={fotoSrc(p.foto).src}
+                                      alt=""
+                                      loading="lazy"
+                                      className="h-14 w-14 shrink-0 rounded-xl object-cover transition-transform duration-700 group-hover:scale-105"
+                                      style={{ objectPosition: p.posicao }}
+                                    />
+                                    <span className="min-w-0">
+                                      <span className="flex items-center gap-2 text-[0.95rem] font-medium">
+                                        {p.nome}
+                                        {p.status === "em-breve" && (
+                                          <span className="rounded-full bg-background-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                                            Em breve
+                                          </span>
+                                        )}
+                                      </span>
+                                      <span className="mt-0.5 block text-xs leading-snug text-muted-foreground">
+                                        {p.resumo}
+                                      </span>
                                     </span>
-                                  )}
-                                </span>
-                                <span className="mt-0.5 block text-xs leading-snug text-muted-foreground">
-                                  {p.resumo}
-                                </span>
-                              </span>
-                            </a>
-                          </li>
+                                  </a>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                       <Link
                         to="/simulador"
                         className="group relative flex flex-col justify-end overflow-hidden rounded-2xl bg-[#021E34] p-5 text-white"
@@ -201,26 +210,32 @@ export function LandingHeader() {
             className="menu-in fixed inset-x-0 bottom-0 top-16 z-40 overflow-y-auto bg-background px-5 pb-10 pt-4 lg:hidden"
           >
             <nav aria-label="Menu" className="flex flex-col">
-              <p className="pb-2 pt-2 text-sm text-muted-foreground">Produtos</p>
-              <ul className="grid grid-cols-2 gap-2 pb-4">
-                {PRODUTOS.map((p) => (
-                  <li key={p.slug}>
-                    <a
-                      href={`/produtos/${p.slug}`}
-                      onClick={() => setMenu(false)}
-                      className="flex items-center gap-2.5 rounded-2xl border border-border p-2"
-                    >
-                      <img
-                        src={fotoSrc(p.foto).src}
-                        alt=""
-                        loading="lazy"
-                        className="h-11 w-11 shrink-0 rounded-xl object-cover"
-                      />
-                      <span className="text-sm font-medium leading-tight">{p.nome}</span>
-                    </a>
-                  </li>
-                ))}
-              </ul>
+              {GRUPOS.map((g) => (
+                <div key={g} className="pb-3">
+                  <p className="pb-2 pt-2 text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+                    {g}
+                  </p>
+                  <ul className="grid grid-cols-2 gap-2">
+                    {PRODUTOS.filter((p) => p.grupo === g).map((p) => (
+                      <li key={p.slug}>
+                        <a
+                          href={`/produtos/${p.slug}`}
+                          onClick={() => setMenu(false)}
+                          className="flex items-center gap-2.5 rounded-2xl border border-border p-2"
+                        >
+                          <img
+                            src={fotoSrc(p.foto).src}
+                            alt=""
+                            loading="lazy"
+                            className="h-11 w-11 shrink-0 rounded-xl object-cover"
+                          />
+                          <span className="text-sm font-medium leading-tight">{p.nome}</span>
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
               {[...NAV, { href: "/#duvidas", label: "Dúvidas" }].map((n) => (
                 <a
                   key={n.href + n.label}

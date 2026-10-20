@@ -32,6 +32,8 @@ import type { Tela } from "@/components/tipe/landing/PhoneShot";
 import type { NomeFoto } from "./Foto";
 
 export type Status = "disponivel" | "em-breve";
+export type Grupo = "Na mesa" | "Na equipe" | "Na gestão";
+export const GRUPOS: Grupo[] = ["Na mesa", "Na equipe", "Na gestão"];
 
 export type Produto = {
   slug: string;
@@ -48,8 +50,10 @@ export type Produto = {
   texto: string;
   /** Card de interface que flutua sobre a foto do topo. */
   cartao: { titulo: string; linhas: [string, string][]; rodape: string };
-  /** Abas curtas logo abaixo do topo. */
-  beneficios: { t: string; d: string }[];
+  /** Grupo no menu Produtos (como "Take payments" / "Power your business" na sunday). */
+  grupo: Grupo;
+  /** Abas logo abaixo do topo: cada uma troca a foto e a tela da demonstração. */
+  beneficios: { t: string; d: string; foto: NomeFoto; posicao?: string; tela?: Tela }[];
   /** Faixa na cor da marca com o celular. */
   banda: { titulo: string; texto: string; tela: Tela; altTela: string };
   /** Fatos verdadeiros do produto (sem números de mercado inventados). */
@@ -62,6 +66,7 @@ export type Produto = {
 export const PRODUTOS: Produto[] = [
   {
     slug: "pay",
+    grupo: "Na mesa",
     nome: "Tipe Pay",
     resumo: "Conta na mesa por QR Code, divisão e pagamento",
     status: "disponivel",
@@ -83,16 +88,16 @@ export const PRODUTOS: Produto[] = [
       rodape: "Pix aprovado · R$ 73,59",
     },
     beneficios: [
-      { t: "Sem aplicativo", d: "Abre direto na câmera do celular, no navegador." },
-      { t: "Cada um paga o seu", d: "Por item, em partes iguais, por valor ou porcentagem." },
-      { t: "Pague como preferir", d: "Pix, Apple Pay, Google Pay ou no estabelecimento." },
-      { t: "Gorjeta para a equipe", d: "O cliente agradece quem atendeu, se quiser." },
+      { t: "Sem aplicativo", d: "Abre direto na câmera do celular, no navegador." , foto: "scan", posicao: "50% 50%", tela: "conta" },
+      { t: "Cada um paga o seu", d: "Por item, em partes iguais, por valor ou porcentagem." , foto: "dividir", posicao: "50% 45%", tela: "selecao" },
+      { t: "Pague como preferir", d: "Pix, Apple Pay, Google Pay ou no estabelecimento." , foto: "pix-mao", posicao: "50% 50%", tela: "pagamento" },
+      { t: "Gorjeta para a equipe", d: "O cliente agradece quem atendeu, se quiser." , foto: "gorjeta-mao", posicao: "50% 50%", tela: "gorjeta" },
     ],
     banda: {
       titulo: "Aponte a câmera. A conta está ali.",
       texto:
         "Cada mesa tem o seu QR Code no suporte da Tipe. Os pedidos lançados aparecem na conta em tempo real e os itens pagos saem na hora para todo mundo.",
-      tela: "conta",
+      tela: "aprovado",
       altTela: "Conta da Mesa 12 aberta no celular pela Tipe",
     },
     fatos: [
@@ -143,6 +148,7 @@ export const PRODUTOS: Produto[] = [
   },
   {
     slug: "order",
+    grupo: "Na mesa",
     nome: "Tipe Order",
     resumo: "Cardápio e pedido pelo celular, direto da mesa",
     status: "em-breve",
@@ -163,9 +169,9 @@ export const PRODUTOS: Produto[] = [
       rodape: "Enviado para a cozinha",
     },
     beneficios: [
-      { t: "Cardápio com fotos", d: "Sempre atualizado, sem reimprimir nada." },
-      { t: "Pedido direto na cozinha", d: "Sem papel e sem passar pelo garçom." },
-      { t: "Entra na conta sozinho", d: "O que foi pedido já aparece para pagar." },
+      { t: "Cardápio com fotos", d: "Sempre atualizado, sem reimprimir nada." , foto: "order", posicao: "50% 50%" },
+      { t: "Pedido direto na cozinha", d: "Sem papel e sem passar pelo garçom." , foto: "kitchen", posicao: "50% 40%" },
+      { t: "Entra na conta sozinho", d: "O que foi pedido já aparece para pagar." , foto: "hamburgueria", posicao: "50% 45%", tela: "conta" },
     ],
     banda: {
       titulo: "Um QR Code para pedir e pagar.",
@@ -190,6 +196,7 @@ export const PRODUTOS: Produto[] = [
   },
   {
     slug: "staff",
+    grupo: "Na equipe",
     nome: "Tipe Staff",
     resumo: "Área do garçom com gorjetas, saldo e avaliações",
     status: "disponivel",
@@ -210,9 +217,9 @@ export const PRODUTOS: Produto[] = [
       rodape: "Avaliação: 5 estrelas",
     },
     beneficios: [
-      { t: "Gorjeta extra no saldo", d: "70% do valor vai para o garçom da mesa." },
-      { t: "Saque por Pix", d: "Ciclos quinzenais, com histórico completo." },
-      { t: "Avaliações", d: "Cada nota chega ligada a quem atendeu." },
+      { t: "Gorjeta extra no saldo", d: "70% do valor vai para o garçom da mesa." , foto: "gorjeta-mao", posicao: "50% 50%" },
+      { t: "Saque por Pix", d: "Ciclos quinzenais, com histórico completo." , foto: "staff", posicao: "55% 35%" },
+      { t: "Avaliações", d: "Cada nota chega ligada a quem atendeu." , foto: "equipe", posicao: "50% 40%" },
     ],
     banda: {
       titulo: "A gorjeta chega com o nome de quem atendeu.",
@@ -239,6 +246,7 @@ export const PRODUTOS: Produto[] = [
   },
   {
     slug: "kitchen",
+    grupo: "Na equipe",
     nome: "Tipe Kitchen",
     resumo: "Tela da cozinha e do bar com pedidos por ordem",
     status: "disponivel",
@@ -260,9 +268,9 @@ export const PRODUTOS: Produto[] = [
       rodape: "Mesa 7 · pronto para servir",
     },
     beneficios: [
-      { t: "Por ordem de chegada", d: "Cada pedido com o tempo que está esperando." },
-      { t: "Cozinha e bar", d: "Cada setor vê só o que é seu." },
-      { t: "Pronto para servir", d: "Um toque avisa que o prato saiu." },
+      { t: "Por ordem de chegada", d: "Cada pedido com o tempo que está esperando." , foto: "kitchen", posicao: "50% 40%" },
+      { t: "Cozinha e bar", d: "Cada setor vê só o que é seu." , foto: "japones", posicao: "50% 45%" },
+      { t: "Pronto para servir", d: "Um toque avisa que o prato saiu." , foto: "equipe", posicao: "50% 40%" },
     ],
     banda: {
       titulo: "Do salão para a cozinha sem papel.",
@@ -287,6 +295,7 @@ export const PRODUTOS: Produto[] = [
   },
   {
     slug: "restaurant",
+    grupo: "Na gestão",
     nome: "Tipe Restaurant",
     resumo: "Painel do salão, caixa e relatórios em tempo real",
     status: "disponivel",
@@ -308,10 +317,10 @@ export const PRODUTOS: Produto[] = [
       rodape: "Demonstração com dados fictícios",
     },
     beneficios: [
-      { t: "Salão ao vivo", d: "Livre, ocupada, aguardando ou encerrada." },
-      { t: "Caixa", d: "Abertura, sangria e fechamento do dia." },
-      { t: "Relatórios", d: "Vendas, mais vendidos e gorjetas por garçom." },
-      { t: "Tudo registrado", d: "Cada ação com data e responsável." },
+      { t: "Salão ao vivo", d: "Livre, ocupada, aguardando ou encerrada." , foto: "restaurant", posicao: "45% 45%" },
+      { t: "Caixa", d: "Abertura, sangria e fechamento do dia." , foto: "integracoes", posicao: "60% 50%" },
+      { t: "Relatórios", d: "Vendas, mais vendidos e gorjetas por garçom." , foto: "fechamento", posicao: "50% 45%" },
+      { t: "Tudo registrado", d: "Cada ação com data e responsável." , foto: "restaurant", posicao: "30% 60%" },
     ],
     banda: {
       titulo: "Saiba quem pagou sem atravessar o salão.",
@@ -340,6 +349,7 @@ export const PRODUTOS: Produto[] = [
   },
   {
     slug: "ai",
+    grupo: "Na gestão",
     nome: "Tipe AI",
     resumo: "A Lebre responde sobre o seu restaurante",
     status: "disponivel",
@@ -360,9 +370,9 @@ export const PRODUTOS: Produto[] = [
       rodape: "Demonstração com dados fictícios",
     },
     beneficios: [
-      { t: "Em português", d: "Sem filtro, planilha ou relatório para montar." },
-      { t: "Com os seus dados", d: "Responde sobre o seu restaurante, não sobre um exemplo." },
-      { t: "Com limite de uso", d: "Um teto diário mantém o custo previsível." },
+      { t: "Em português", d: "Sem filtro, planilha ou relatório para montar." , foto: "ai", posicao: "55% 40%" },
+      { t: "Com os seus dados", d: "Responde sobre o seu restaurante, não sobre um exemplo." , foto: "fechamento", posicao: "50% 45%" },
+      { t: "Com limite de uso", d: "Um teto diário mantém o custo previsível." , foto: "restaurant", posicao: "45% 45%" },
     ],
     banda: {
       titulo: "Pergunte como pergunta para o gerente.",
@@ -387,6 +397,7 @@ export const PRODUTOS: Produto[] = [
   },
   {
     slug: "guest",
+    grupo: "Na mesa",
     nome: "Tipe Guest",
     resumo: "Clientes que voltam: avaliações e relacionamento",
     status: "em-breve",
@@ -407,9 +418,9 @@ export const PRODUTOS: Produto[] = [
       rodape: "Garçom: Caio",
     },
     beneficios: [
-      { t: "Avaliações hoje", d: "Depois do pagamento, com nota e comentário." },
-      { t: "Cliente lembrado", d: "O celular guarda o nome para a próxima visita." },
-      { t: "Relacionamento em breve", d: "Campanhas e fidelidade estão a caminho." },
+      { t: "Avaliações hoje", d: "Depois do pagamento, com nota e comentário." , foto: "bistro", posicao: "50% 45%", tela: "aprovado" },
+      { t: "Cliente lembrado", d: "O celular guarda o nome para a próxima visita." , foto: "cafe", posicao: "50% 45%", tela: "conta" },
+      { t: "Relacionamento em breve", d: "Campanhas e fidelidade estão a caminho." , foto: "pizzaria", posicao: "50% 50%" },
     ],
     banda: {
       titulo: "Um obrigado vira uma visita de volta.",

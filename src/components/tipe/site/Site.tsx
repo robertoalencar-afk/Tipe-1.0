@@ -80,7 +80,7 @@ export function Secao({
       id={id}
       data-tema={tema}
       aria-label={ariaLabel}
-      className={cn("relative scroll-mt-16 py-20 sm:py-28 lg:py-32", className)}
+      className={cn("relative scroll-mt-16 py-16 sm:py-24 lg:py-32", className)}
     >
       {children}
     </section>
@@ -112,11 +112,12 @@ export function Titulo({
       )}
       <Palavras
         as={as}
+        passo={90}
         className={cn(
           "mt-3 block font-display font-normal leading-[0.98] tracking-[-0.045em] text-balance",
           as === "h1"
-            ? "text-[clamp(2.9rem,1.4rem+5vw,5.8rem)]"
-            : "text-[clamp(2.3rem,1.3rem+3.6vw,4.4rem)]",
+            ? "text-[clamp(2.5rem,1.3rem+5vw,5.8rem)]"
+            : "text-[clamp(2rem,1.2rem+3.6vw,4.4rem)]",
         )}
       >
         {titulo}
@@ -124,7 +125,7 @@ export function Titulo({
       {texto && (
         <p
           className={cn(
-            "mt-6 max-w-2xl text-lg leading-relaxed text-muted-foreground text-pretty sm:text-xl",
+            "mt-5 max-w-2xl text-[1.05rem] leading-relaxed text-muted-foreground text-pretty sm:mt-6 sm:text-xl",
             centro && "mx-auto",
           )}
         >

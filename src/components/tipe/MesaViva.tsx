@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import wordmarkUrl from "@/assets/marca/tipe-logo-branco.svg";
-import roundLogo from "@/assets/tipe-logo-redondo.png.asset.json";
+import simbolo from "@/assets/marca/tipe-simbolo.svg";
 import totemMesa from "@/assets/totem-tipe-mesa12.webp";
 import mascotWaiting from "@/assets/mascot-waiting-hd.webp";
 import mascotRating from "@/assets/mascot-rating-hd.webp";
@@ -462,11 +462,12 @@ export function MesaViva() {
     <section
       ref={wrap}
       id="como-funciona"
-      aria-label="Como a TIPE funciona"
+      aria-label="Como a Tipe funciona"
+      data-tema="escuro"
       className="relative scroll-mt-16 text-secondary-foreground"
       style={
         {
-          height: "620svh",
+          height: "440svh",
           background: "#0b1f3a",
           "--mv-stage": "#0b1f3a",
           "--mv-surface": "oklch(0.31 0.06 255)",
@@ -819,11 +820,9 @@ export function MesaViva() {
                 />
               ))}
               <div className="logo relative h-36 w-36 overflow-hidden rounded-full shadow-[0_0_50px_color-mix(in_oklab,var(--primary)_45%,transparent)] [clip-path:circle(50%)] sm:h-48 sm:w-48 lg:h-56 lg:w-56">
-                <img
-                  src={roundLogo.url}
-                  alt="TIPE"
-                  className="h-full w-full scale-[1.03] rounded-full object-cover"
-                />
+                <span className="grid h-full w-full place-items-center rounded-full bg-[#021E34]">
+                  <img src={simbolo} alt="Tipe" width={141} height={138} className="h-[52%] w-auto" />
+                </span>
               </div>
             </div>
             <div className="text-center sm:text-left">

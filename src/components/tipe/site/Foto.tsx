@@ -26,7 +26,13 @@ export type NomeFoto =
   | "japones"
   | "cafe"
   | "hamburgueria"
-  | "bistro";
+  | "bistro"
+  | "dividir"
+  | "pix-mao"
+  | "scan"
+  | "gorjeta-mao"
+  | "fechamento"
+  | "equipe";
 
 export function fotoSrc(nome: NomeFoto) {
   const tamanhos = Object.entries(ARQUIVOS)

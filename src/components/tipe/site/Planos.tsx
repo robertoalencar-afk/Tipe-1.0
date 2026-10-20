@@ -8,6 +8,12 @@ import { PLANS, SHOW_PLAN_PRICES, TRIAL_DAYS, priceLabel } from "@/lib/tipe/plan
 import { Reveal } from "@/components/tipe/landing/motion";
 import { cn } from "@/lib/utils";
 
+const PARA: Record<string, string> = {
+  essencial: "Para bares, cafés e casas pequenas.",
+  profissional: "Para restaurantes com equipe e PDV.",
+  premium: "Para casas grandes com cozinha e bar.",
+};
+
 const CARDS = [
   ...PLANS.map((p) => ({
     id: p.id as string | null,
@@ -16,6 +22,7 @@ const CARDS = [
     mesas: `${p.maxTables}`,
     popular: "popular" in p ? p.popular : false,
     itens: [...p.features] as string[],
+    para: PARA[p.id] ?? "",
   })),
   {
     id: null,
@@ -24,66 +31,85 @@ const CARDS = [
     mesas: "40+",
     popular: false,
     itens: ["Integrações sob medida", "Implantação acompanhada", "Condições para redes"],
+    para: "Para redes e casas com mais de 40 mesas.",
   },
 ];
 
 export function CardsPlanos() {
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
       {CARDS.map((p, i) => (
         <Reveal
           key={p.nome}
           delay={i * 90}
           className={cn(
-            "relative flex flex-col rounded-[2rem] p-7 transition-transform duration-500 hover:-translate-y-1",
-            p.popular ? "bg-[#0FC9BD] text-[#021E34]" : "border border-border",
+            "relative flex flex-col rounded-[1.75rem] p-6 transition-transform duration-500 hover:-translate-y-1 sm:p-7",
+            p.popular ? "bg-[#021E34] text-white" : "bg-background-muted",
           )}
         >
-          <div className="flex items-center justify-between">
-            <h3 className="font-display text-2xl font-medium tracking-[-0.03em]">{p.nome}</h3>
+          <div className="flex items-center justify-between gap-3">
+            <h3 className="font-display text-[1.6rem] font-normal tracking-[-0.03em]">{p.nome}</h3>
             {p.popular && (
-              <span className="rounded-full bg-[#021E34] px-3 py-1 text-xs font-medium text-white">
+              <span className="rounded-full bg-[#0FC9BD] px-3 py-1 text-xs font-medium text-[#021E34]">
                 Mais escolhido
               </span>
             )}
           </div>
-          <p className="mt-8 font-display text-[4.2rem] font-normal leading-none tracking-[-0.05em]">
-            {p.mesas}
+          <p className={cn("mt-1 text-[0.95rem]", p.popular ? "text-white/70" : "text-muted-foreground")}>
+            {p.para}
           </p>
-          <p className={cn("mt-2 text-sm", p.popular ? "text-[#021E34]/70" : "text-muted-foreground")}>
-            {p.id ? "mesas, no máximo" : "mesas ou redes"}
-          </p>
-          <p
-            className={cn(
-              "mt-6 border-t pt-5 font-display text-lg font-medium",
-              p.popular ? "border-[#021E34]/20" : "border-border",
-            )}
-          >
+          <div className="mt-8 flex items-end gap-2">
+            <p className="font-display text-[4.6rem] font-normal leading-[0.8] tracking-[-0.06em]">
+              {p.mesas}
+            </p>
+            <p className={cn("pb-1 text-sm leading-tight", p.popular ? "text-white/70" : "text-muted-foreground")}>
+              {p.id ? (
+                <>
+                  mesas
+                  <br />
+                  no máximo
+                </>
+              ) : (
+                <>
+                  mesas
+                  <br />
+                  ou redes
+                </>
+              )}
+            </p>
+          </div>
+          <p className={cn("mt-6 text-[0.95rem] font-medium", p.popular ? "text-[#0FC9BD]" : "text-brand-strong")}>
             {p.preco ? (
               <span className="money">R$ {p.preco}/mês</span>
             ) : p.id ? (
-              "Valores no lançamento"
+              "Assinatura mensal · valor no lançamento"
             ) : (
               "Sob consulta"
             )}
           </p>
-          <ul className="mt-5 flex-1 space-y-3 text-[0.95rem]">
-            {p.itens.map((f) => (
-              <li key={f} className="flex gap-2.5">
-                <Check className="mt-0.5 h-4 w-4 shrink-0" strokeWidth={2.5} />
-                {f}
-              </li>
-            ))}
-          </ul>
           <a
             href="/teste-gratis"
             className={cn(
-              "mt-8 flex min-h-12 items-center justify-center rounded-full font-medium",
-              p.popular ? "bg-[#021E34] text-white hover:bg-black" : "btn-tema",
+              "mt-5 flex min-h-12 items-center justify-center rounded-full font-medium",
+              p.popular ? "bg-white text-[#021E34] hover:bg-white/90" : "btn-tema",
             )}
           >
             {p.id ? `Começar com ${TRIAL_DAYS} dias grátis` : "Falar com a equipe"}
           </a>
+          <p className={cn("mt-7 text-xs font-medium uppercase tracking-[0.08em]", p.popular ? "text-white/60" : "text-muted-foreground")}>
+            O que inclui
+          </p>
+          <ul className="mt-3 flex-1 space-y-2.5 text-[0.95rem]">
+            {p.itens.map((f) => (
+              <li key={f} className="flex gap-2.5">
+                <Check
+                  className={cn("mt-0.5 h-4 w-4 shrink-0", p.popular ? "text-[#0FC9BD]" : "text-brand-strong")}
+                  strokeWidth={2.5}
+                />
+                {f}
+              </li>
+            ))}
+          </ul>
         </Reveal>
       ))}
     </div>
@@ -147,7 +173,10 @@ export function ComparacaoPlanos() {
                 <tr className="text-sm text-muted-foreground">
                   <th className="py-2 font-normal">Recurso</th>
                   {PLANS.map((p) => (
-                    <th key={p.id} className="w-28 py-2 text-center font-normal">
+                    <th
+                      key={p.id}
+                      className={cn("w-28 py-2 text-center font-normal", "popular" in p && "font-medium text-foreground")}
+                    >
                       {p.name}
                     </th>
                   ))}
@@ -158,7 +187,7 @@ export function ComparacaoPlanos() {
                   <tr key={nome} className="border-t border-border/70">
                     <td className="py-3.5 pr-4">{nome}</td>
                     {v.map((c, i) => (
-                      <td key={i} className="py-3.5 text-center">
+                      <td key={i} className={cn("py-3.5 text-center", i === 1 && "bg-brand/[0.07]")}>
                         <Celula v={c} />
                       </td>
                     ))}

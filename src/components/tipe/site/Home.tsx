@@ -3,12 +3,13 @@
  * produtos em carrossel no escuro, as três pessoas da mesa, abas com foto grande,
  * integrações no escuro e planos.
  */
-import { useRef, useState, type CSSProperties } from "react";
+import { useRef, type CSSProperties, type ReactNode } from "react";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { Bigodes } from "@/components/tipe/landing/Marcas";
 import { Palavras, Reveal, useVelocidadeFaixa } from "@/components/tipe/landing/motion";
 import { TRIAL_DAYS } from "@/lib/tipe/plans";
 import { cn } from "@/lib/utils";
+import { AbasDemo, type ItemAba } from "./AbasDemo";
 import { Foto, fotoSrc, type NomeFoto } from "./Foto";
 import { GradeIntegracoes } from "./GradeIntegracoes";
 import { CardsPlanos } from "./Planos";
@@ -31,7 +32,7 @@ export function TopoHome() {
   const faixa = useVelocidadeFaixa<HTMLUListElement>(90);
   return (
     <section data-tema="claro" className="relative -mt-16 overflow-hidden pt-16">
-      <div className="container-page pb-12 pt-12 text-center sm:pt-20 lg:pb-16">
+      <div className="container-page pb-10 pt-8 text-center sm:pt-20 lg:pb-16">
         <Palavras
           as="p"
           imediato
@@ -39,7 +40,7 @@ export function TopoHome() {
         >
           Pagamento na mesa por QR Code
         </Palavras>
-        <h1 className="mx-auto mt-5 font-display text-[clamp(3.4rem,1.2rem+7vw,8rem)] font-normal leading-[0.92] tracking-[-0.055em]">
+        <h1 className="mx-auto mt-4 font-display text-[clamp(2.75rem,1rem+7vw,8rem)] font-normal leading-[0.95] tracking-[-0.055em]">
           <Palavras imediato delay={250}>
             Pague.
           </Palavras>{" "}
@@ -47,11 +48,11 @@ export function TopoHome() {
             <Palavras imediato delay={390}>
               Sem esperar.
             </Palavras>
-            <Bigodes className="absolute -right-[0.9em] top-[0.3em] h-[0.36em] w-[0.95em]" />
+            <Bigodes className="absolute -right-[0.9em] top-[0.3em] hidden h-[0.36em] w-[0.95em] sm:block" />
           </span>
         </h1>
         <p
-          className="hero-in mx-auto mt-7 max-w-2xl text-lg leading-relaxed text-muted-foreground text-pretty sm:text-xl"
+          className="hero-in mx-auto mt-5 max-w-2xl text-[1.05rem] leading-relaxed text-muted-foreground text-pretty sm:mt-7 sm:text-xl"
           style={{ "--d": "500ms" } as CSSProperties}
         >
           O cliente aponta a câmera, divide a conta e paga com Pix, Apple Pay ou Google Pay. O
@@ -71,13 +72,13 @@ export function TopoHome() {
           {TRIAL_DAYS} dias grátis · Sem taxa para o cliente · Sem aplicativo
         </p>
       </div>
-      <div className="hero-in pb-20 sm:pb-28" style={{ "--d": "800ms" } as CSSProperties}>
+      <div className="hero-in pb-14 sm:pb-24" style={{ "--d": "800ms" } as CSSProperties}>
         <ul ref={faixa} className="marquee flex w-max gap-4 sm:gap-5" aria-label="Restaurantes">
           {[...RESTAURANTES, ...RESTAURANTES].map((r, i) => (
             <li
               key={i}
               aria-hidden={i >= RESTAURANTES.length || undefined}
-              className="relative w-[15rem] shrink-0 sm:w-[19rem] lg:w-[21rem]"
+              className="relative w-[11.5rem] shrink-0 sm:w-[17rem] lg:w-[20rem]"
             >
               <div className="overflow-hidden rounded-[1.75rem]">
                 <img
@@ -89,11 +90,11 @@ export function TopoHome() {
                   className="aspect-[3/4] w-full object-cover transition-transform duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-105"
                 />
               </div>
-              <span className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-sm font-medium text-[oklch(0.15_0_0)] backdrop-blur">
+              <span className="absolute left-3 top-3 rounded-full bg-white/90 px-2.5 py-1 text-xs font-medium text-[oklch(0.15_0_0)] backdrop-blur sm:left-4 sm:top-4 sm:text-sm">
                 {r.tipo}
               </span>
               {r.aviso && (
-                <span className="absolute inset-x-4 bottom-4 flex items-center gap-2 rounded-2xl bg-[oklch(0.13_0_0/0.72)] px-3.5 py-2.5 text-sm font-medium text-white backdrop-blur-md">
+                <span className="absolute inset-x-2.5 bottom-2.5 flex items-center gap-2 rounded-2xl bg-[oklch(0.13_0_0/0.72)] px-3 py-2 text-[0.78rem] font-medium leading-tight text-white backdrop-blur-md sm:inset-x-4 sm:bottom-4 sm:px-3.5 sm:py-2.5 sm:text-sm">
                   <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[#0FC9BD] text-[#021E34]">
                     <Check className="h-3 w-3" strokeWidth={3} />
                   </span>
@@ -148,8 +149,8 @@ export function ProdutosHome() {
         className="sem-barra mt-12 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-px-4 px-4 pb-2 sm:scroll-px-6 sm:px-6 lg:scroll-px-[max(1.5rem,calc((100vw-80rem)/2+1.5rem))] lg:px-[max(1.5rem,calc((100vw-80rem)/2+1.5rem))]"
       >
         {PRODUTOS.map((p, i) => (
-          <Reveal key={p.slug} delay={Math.min(i, 3) * 110} className="w-[78vw] max-w-[22rem] shrink-0 snap-start">
-            <CardProduto p={p} />
+          <Reveal key={p.slug} delay={Math.min(i, 3) * 110} className="flex w-[80vw] max-w-[22rem] shrink-0 snap-start">
+            <CardProduto p={p} className="w-full" />
           </Reveal>
         ))}
       </div>
@@ -159,27 +160,65 @@ export function ProdutosHome() {
 
 /* ------------------------------------------------------------- Pessoas */
 
-const PESSOAS = [
+const AVISO =
+  "absolute inset-x-3 bottom-3 rounded-2xl border border-white/50 bg-white/88 p-3.5 text-[oklch(0.15_0_0)] shadow-[0_20px_40px_-20px_rgb(0_0_0/0.5)] backdrop-blur-xl sm:inset-x-4 sm:bottom-4";
+
+const PESSOAS: {
+  quem: string;
+  foto: NomeFoto;
+  posicao: string;
+  v: string;
+  t: string;
+  href: string;
+  aviso: ReactNode;
+}[] = [
   {
     quem: "Cliente",
-    foto: "pay" as NomeFoto,
+    foto: "pix-mao",
+    posicao: "50% 50%",
     v: "0",
-    t: "aplicativos para baixar. A conta abre na câmera.",
+    t: "aplicativos para baixar. A conta abre na câmera e cada um paga o seu.",
     href: "/produtos/pay",
+    aviso: (
+      <>
+        <p className="text-xs text-[oklch(0.45_0_0)]">Mesa 12 · sua parte</p>
+        <p className="mt-0.5 flex items-center justify-between font-medium">
+          Pix aprovado <span className="money">R$ 73,59</span>
+        </p>
+      </>
+    ),
   },
   {
     quem: "Garçom",
-    foto: "staff" as NomeFoto,
+    foto: "gorjeta-mao",
+    posicao: "50% 45%",
     v: "70%",
-    t: "da gorjeta extra vai para quem atendeu a mesa.",
+    t: "da gorjeta extra vai para o saldo de quem atendeu a mesa.",
     href: "/produtos/staff",
+    aviso: (
+      <>
+        <p className="text-xs text-[oklch(0.45_0_0)]">Gorjeta extra · Mesa 12</p>
+        <p className="mt-0.5 flex items-center justify-between font-medium">
+          No seu saldo <span className="money">R$ 7,00</span>
+        </p>
+      </>
+    ),
   },
   {
     quem: "Dono",
-    foto: "restaurant" as NomeFoto,
+    foto: "fechamento",
+    posicao: "45% 45%",
     v: "R$ 0",
-    t: "de tarifa da Tipe por transação nas contas.",
+    t: "de tarifa da Tipe por transação. Você acompanha cada pagamento ao vivo.",
     href: "/produtos/restaurant",
+    aviso: (
+      <>
+        <p className="text-xs text-[oklch(0.45_0_0)]">Hoje · demonstração</p>
+        <p className="mt-0.5 flex items-center justify-between font-medium">
+          31 mesas pagas pela Tipe <Check className="h-4 w-4 text-[#03665f]" strokeWidth={3} />
+        </p>
+      </>
+    ),
   },
 ];
 
@@ -188,35 +227,36 @@ export function PessoasHome() {
     <Secao tema="escuro" id="para-quem">
       <div className="container-page">
         <Titulo
-          centro
           rotulo="Para quem é"
           titulo="Uma mesa. Três pessoas."
           texto="Quem paga, quem atende e quem cuida do caixa ganham tempo no mesmo momento."
         />
-        <ul className="mt-14 grid gap-5 md:grid-cols-3">
-          {PESSOAS.map((p, i) => (
-            <Reveal as="li" key={p.quem} delay={i * 140}>
-              <a href={p.href} className="group block">
-                <div className="relative">
-                  <Foto
-                    nome={p.foto}
-                    alt=""
-                    sizes="(min-width: 768px) 32vw, 92vw"
-                    className="aspect-[4/5] rounded-[1.75rem]"
-                  />
-                  <span className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-sm font-medium text-[oklch(0.15_0_0)]">
-                    {p.quem}
-                  </span>
-                </div>
-                <p className="mt-6 font-display text-[clamp(2.6rem,1.8rem+2.4vw,3.8rem)] font-normal leading-none tracking-[-0.05em]">
-                  {p.v}
-                </p>
-                <p className="mt-3 max-w-xs text-[1.02rem] text-muted-foreground">{p.t}</p>
-              </a>
-            </Reveal>
-          ))}
-        </ul>
       </div>
+      <ul className="sem-barra mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-px-4 px-4 pb-2 sm:mt-14 md:container-page md:grid md:grid-cols-3 md:gap-5 md:overflow-visible">
+        {PESSOAS.map((p, i) => (
+          <Reveal as="li" key={p.quem} delay={i * 140} className="w-[82vw] max-w-[24rem] shrink-0 snap-start md:w-auto md:max-w-none">
+            <a href={p.href} className="group block">
+              <div className="relative overflow-hidden rounded-[1.75rem]">
+                <Foto
+                  nome={p.foto}
+                  alt=""
+                  posicao={p.posicao}
+                  sizes="(min-width: 768px) 32vw, 82vw"
+                  className="aspect-[4/4.4]"
+                />
+                <span className="absolute left-3 top-3 rounded-full bg-white/90 px-3 py-1 text-sm font-medium text-[oklch(0.15_0_0)] sm:left-4 sm:top-4">
+                  {p.quem}
+                </span>
+                <div className={AVISO}>{p.aviso}</div>
+              </div>
+              <p className="mt-5 font-display text-[clamp(2.4rem,1.8rem+2.4vw,3.6rem)] font-normal leading-none tracking-[-0.05em]">
+                {p.v}
+              </p>
+              <p className="mt-2 max-w-xs text-[1rem] text-muted-foreground">{p.t}</p>
+            </a>
+          </Reveal>
+        ))}
+      </ul>
     </Secao>
   );
 }
@@ -226,90 +266,33 @@ export function PessoasHome() {
 const ABAS = ["pay", "order", "staff", "kitchen", "restaurant", "ai"] as const;
 
 export function AbasHome() {
-  const [ativa, setAtiva] = useState(0);
-  const p = produtoPorSlug(ABAS[ativa]!)!;
+  const itens: ItemAba[] = ABAS.map((slug) => {
+    const p = produtoPorSlug(slug)!;
+    const tela = p.beneficios.find((b) => b.tela)?.tela;
+    return {
+      id: slug,
+      rotulo: p.nome + (p.status === "em-breve" ? " · em breve" : ""),
+      titulo: p.titulo,
+      texto: p.texto,
+      foto: p.foto,
+      posicao: p.posicao,
+      altFoto: p.altFoto,
+      tela,
+      altTela: tela ? `Tela real do ${p.nome}` : undefined,
+      extra: tela ? undefined : <CartaoInterface cartao={p.cartao} />,
+      href: `/produtos/${p.slug}`,
+      link: `Conhecer o ${p.nome}`,
+    };
+  });
   return (
     <Secao tema="claro" id="como-funciona-tudo">
       <div className="container-page">
         <Titulo
           rotulo="Tudo numa plataforma"
           titulo="Você cuida do salão. A Tipe cuida do resto."
+          className="mb-10 lg:mb-14"
         />
-        <div
-          role="tablist"
-          aria-label="Produtos da Tipe"
-          className="sem-barra -mx-4 mt-10 flex gap-2 overflow-x-auto px-4 sm:mx-0 sm:flex-wrap sm:px-0"
-        >
-          {ABAS.map((slug, i) => {
-            const pr = produtoPorSlug(slug)!;
-            return (
-              <button
-                key={slug}
-                type="button"
-                role="tab"
-                aria-selected={ativa === i}
-                onClick={() => setAtiva(i)}
-                className={cn(
-                  "inline-flex shrink-0 items-center gap-2 rounded-full border px-5 py-2.5 text-[0.95rem] font-medium",
-                  ativa === i
-                    ? "border-foreground bg-foreground text-background"
-                    : "border-border text-muted-foreground hover:text-foreground",
-                )}
-              >
-                <pr.icone className="h-4 w-4" />
-                {pr.nome.replace("Tipe ", "")}
-              </button>
-            );
-          })}
-        </div>
-        <div className="mt-8 grid gap-6 lg:grid-cols-[1.35fr_0.65fr] lg:items-stretch">
-          <div key={p.slug} className="troca-in relative overflow-hidden rounded-[2rem]">
-            <Foto
-              nome={p.foto}
-              alt={p.altFoto}
-              posicao={p.posicao}
-              sizes="(min-width: 1024px) 60vw, 100vw"
-              className="aspect-[4/5] sm:aspect-[16/11] lg:h-full lg:min-h-[34rem] lg:aspect-auto"
-            />
-            <CartaoInterface
-              cartao={p.cartao}
-              className="absolute bottom-5 right-5 w-[min(80%,19rem)] sm:bottom-8 sm:right-8"
-            />
-          </div>
-          <div key={`t-${p.slug}`} className="troca-in flex flex-col justify-between rounded-[2rem] bg-background-muted p-7 sm:p-9">
-            <div>
-              <p className="flex items-center gap-2 text-brand-strong">
-                <p.icone className="h-5 w-5" /> {p.nome}
-                {p.status === "em-breve" && (
-                  <span className="rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground">
-                    Em breve
-                  </span>
-                )}
-              </p>
-              <p className="mt-4 font-display text-[clamp(1.8rem,1.3rem+1.6vw,2.6rem)] leading-[1.02] tracking-[-0.04em]">
-                {p.titulo}
-              </p>
-              <p className="mt-4 leading-relaxed text-muted-foreground">{p.texto}</p>
-              <ul className="mt-6 space-y-2.5">
-                {p.beneficios.slice(0, 3).map((b) => (
-                  <li key={b.t} className="flex gap-2.5 text-[0.95rem]">
-                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-brand-strong" strokeWidth={2.5} />
-                    <span>
-                      <span className="font-medium">{b.t}.</span>{" "}
-                      <span className="text-muted-foreground">{b.d}</span>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <a
-              href={`/produtos/${p.slug}`}
-              className="mt-8 inline-flex items-center gap-2 font-medium"
-            >
-              Conhecer o {p.nome} <ArrowRight className="h-4 w-4" />
-            </a>
-          </div>
-        </div>
+        <AbasDemo itens={itens} />
       </div>
     </Secao>
   );

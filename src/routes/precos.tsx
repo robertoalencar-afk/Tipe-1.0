@@ -50,7 +50,19 @@ function Precos() {
             titulo="Preço simples. Sem surpresa."
             texto={`Você paga pelo número de mesas, não por transação. ${TRIAL_DAYS} dias grátis para começar.`}
           />
-          <div className="mt-14">
+          <ul className="mx-auto mt-8 flex max-w-3xl flex-wrap justify-center gap-2 text-[0.95rem]">
+            {[
+              "Sem tarifa da Tipe por transação",
+              "Sem taxa para o cliente",
+              "Mensal sem fidelidade",
+              `${TRIAL_DAYS} dias grátis, sem cartão`,
+            ].map((t) => (
+              <li key={t} className="rounded-full border border-border px-4 py-2">
+                {t}
+              </li>
+            ))}
+          </ul>
+          <div className="mt-12">
             <CardsPlanos />
           </div>
         </div>
