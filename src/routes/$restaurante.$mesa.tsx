@@ -50,7 +50,14 @@ import {
   type SharedPayment,
 } from "@/lib/tipe/payments.functions";
 import { CardFields } from "@/components/tipe/CardFields";
-import { resolveServiceFee, suggestedTips, TIP_SPLIT } from "@/lib/tipe/rules";
+import {
+  gorjetaMaxima,
+  lerValor,
+  resolveServiceFee,
+  suggestedTips,
+  TIP_SPLIT,
+  validarGorjeta,
+} from "@/lib/tipe/rules";
 import { cardValid, tokenizeCard, type CardInput } from "@/lib/tipe/pagarme-client";
 import mascotThanks from "@/assets/mascot-thanks-hd.webp";
 import mascotRating from "@/assets/mascot-rating-hd.webp";
@@ -216,6 +223,9 @@ function MesaPage() {
   const [querRecibo, setQuerRecibo] = useState(false);
   const [linkAvaliacao, setLinkAvaliacao] = useState<string | null>(null);
   const [gorjetaOutro, setGorjetaOutro] = useState("");
+  // "Outro valor" é uma aba ao lado dos percentuais; o campo só aparece quando ela é escolhida.
+  const [gorjetaOutroAberto, setGorjetaOutroAberto] = useState(false);
+  const [gorjetaPaga, setGorjetaPaga] = useState(false);
 
   useEffect(() => {
     try {
@@ -426,6 +436,13 @@ function MesaPage() {
     setDividindo(null);
   }
 
+  // Fluxo: escolher o que pagar → gorjeta extra (opcional) → pagar. A gorjeta é
+  // cobrada à parte, logo depois da conta, porque vai para a TIPE e não para o restaurante.
+  function irParaPagamento() {
+    setErroPagamento(null);
+    setEtapa(gorjetaDisponivel && !gorjetaPaga ? "gorjeta" : "pagamento-conta");
+  }
+
   async function processarPagamento(tipo: "conta" | "gorjeta") {
     const metodo = tipo === "conta" ? metodoConta : metodoGorjeta;
     const valor = tipo === "conta" ? totalConta : gorjetaExtra;
@@ -443,6 +460,10 @@ function MesaPage() {
           cardToken,
           method: metodo,
           tip: tipo === "gorjeta" ? gorjetaExtra : 0,
+          billPaymentId:
+            tipo === "gorjeta" && ultimoPagamento && /^[0-9a-f-]{36}$/.test(ultimoPagamento)
+              ? ultimoPagamento
+              : undefined,
           tableId: String(dados.mesa),
           restaurantId: restaurante,
           idempotencyKey: chavePagamento.current,
@@ -466,7 +487,7 @@ function MesaPage() {
         setUltimoPagamento(resultado.id);
         setRecibo({ estado: "idle" });
         setQuerRecibo(false);
-      }
+      } else setGorjetaPaga(resultado.status === "approved");
       setQtds({});
       await atualizarMesa();
       if (resultado.provider === "pagarme" && resultado.status === "pending" && resultado.pixCode) {
@@ -479,7 +500,7 @@ function MesaPage() {
           ? resultado.status === "approved"
             ? "conta-confirmada"
             : "conta-pendente"
-          : "fim",
+          : "avaliacao",
       );
     } catch (error) {
       const msg = error instanceof Error ? error.message : "";
@@ -538,14 +559,14 @@ function MesaPage() {
             setUltimoPagamento(r.id);
             setRecibo({ estado: "idle" });
             setQuerRecibo(false);
-          }
+          } else setGorjetaPaga(r.status === "approved");
           setQtds({});
           setEtapa(
             tipo === "conta"
               ? r.status === "approved"
                 ? "conta-confirmada"
                 : "conta-pendente"
-              : "fim",
+              : "avaliacao",
           );
           return;
         } catch {
@@ -577,7 +598,8 @@ function MesaPage() {
         });
         if (r.status === "approved") {
           await atualizarMesa();
-          setEtapa(pix.tipo === "conta" ? "conta-confirmada" : "fim");
+          if (pix.tipo === "gorjeta") setGorjetaPaga(true);
+          setEtapa(pix.tipo === "conta" ? "conta-confirmada" : "avaliacao");
         } else if (r.status !== "pending") {
           setErroPagamento("O Pix expirou ou não foi concluído. Tente novamente.");
           setEtapa(pix.tipo === "conta" ? "pagamento-conta" : "pagamento-gorjeta");
@@ -774,7 +796,7 @@ function MesaPage() {
                       <Button
                         onClick={() => {
                           setQtds(tudo);
-                          setEtapa("pagamento-conta");
+                          irParaPagamento();
                         }}
                         className="mt-5 h-13 w-full justify-between px-6 font-display text-base"
                       >
@@ -793,7 +815,7 @@ function MesaPage() {
                               ),
                             )
                           }
-                          onPay={() => setEtapa("pagamento-conta")}
+                          onPay={irParaPagamento}
                         />
                         <Button
                           variant="outline"
@@ -983,7 +1005,7 @@ function MesaPage() {
                   <BarraAcao>
                     <Button
                       disabled={subtotal <= 0}
-                      onClick={() => setEtapa("pagamento-conta")}
+                      onClick={irParaPagamento}
                       className="h-13 w-full justify-between px-6 font-display text-base"
                     >
                       <span>Continuar para pagamento</span>
@@ -1077,14 +1099,18 @@ function MesaPage() {
       {etapaVisivel === "pagamento-conta" && (
         <Pagamento
           titulo="Como você quer pagar?"
-          descricao="Este pagamento cobre só os itens que você escolheu. Depois da confirmação, a conta da mesa é atualizada sozinha."
+          descricao={
+            gorjetaExtra > 0 && !gorjetaPaga
+              ? `Primeiro a conta. Logo depois vem a gorjeta de ${money(gorjetaExtra)}, cobrada à parte.`
+              : "Este pagamento cobre só os itens que você escolheu. Depois da confirmação, a conta da mesa é atualizada sozinha."
+          }
           rotuloValor="Sua parte da conta"
           valor={totalConta}
           metodo={metodoConta}
           setMetodo={setMetodoConta}
           pagando={pagando}
           erro={erroPagamento}
-          voltar={() => setEtapa("conta")}
+          voltar={() => setEtapa(gorjetaDisponivel && !gorjetaPaga ? "gorjeta" : "conta")}
           pagar={() => processarPagamento("conta")}
           permitirEstabelecimento
           metodosAceitos={metodosAceitos ?? undefined}
@@ -1125,7 +1151,20 @@ function MesaPage() {
               : "O garçom irá em instantes até sua mesa com a maquininha."}
           </p>
           <div className="mt-8 w-full space-y-2">
+            {gorjetaExtra > 0 && !gorjetaPaga && (
+              <Button
+                onClick={() => {
+                  setErroPagamento(null);
+                  setMetodoGorjeta((m) => m ?? "pix");
+                  setEtapa("pagamento-gorjeta");
+                }}
+                className="h-12 w-full font-display text-base"
+              >
+                Pagar gorjeta de {money(gorjetaExtra)} <ChevronRight />
+              </Button>
+            )}
             <Button
+              variant={gorjetaExtra > 0 && !gorjetaPaga ? "outline" : "default"}
               onClick={() => setEtapa("avaliacao")}
               className="h-12 w-full font-display text-base"
             >
@@ -1272,7 +1311,20 @@ function MesaPage() {
             </form>
           )}
           <div className="mt-7 w-full space-y-2">
+            {gorjetaExtra > 0 && !gorjetaPaga && (
+              <Button
+                onClick={() => {
+                  setErroPagamento(null);
+                  setMetodoGorjeta((m) => m ?? "pix");
+                  setEtapa("pagamento-gorjeta");
+                }}
+                className="h-12 w-full font-display text-base"
+              >
+                Pagar gorjeta de {money(gorjetaExtra)} <ChevronRight />
+              </Button>
+            )}
             <Button
+              variant={gorjetaExtra > 0 && !gorjetaPaga ? "outline" : "default"}
               onClick={() => setEtapa("avaliacao")}
               className="h-12 w-full font-display text-base"
             >
@@ -1351,7 +1403,7 @@ function MesaPage() {
                       comment: comentario.trim() || undefined,
                     },
                   }).catch(() => undefined);
-                setEtapa(gorjetaDisponivel ? "gorjeta" : "fim");
+                setEtapa("fim");
               }}
               className="h-12 w-full font-display text-base"
             >
@@ -1361,102 +1413,166 @@ function MesaPage() {
         </main>
       )}
 
-      {etapaVisivel === "gorjeta" && (
-        <main className="flex flex-1 flex-col px-5 pb-8">
-          <h1 className="mt-4 text-center text-[2.1rem] font-medium leading-[1.04] tracking-[-0.04em]">
-            Quer agradecer com uma gorjeta?
-          </h1>
-          <p className="mt-3 text-center text-[0.95rem] leading-6 text-muted-foreground">
-            É opcional e separada da conta.
-          </p>
-          <div
-            className="mt-8 grid grid-cols-3 gap-2.5"
-            role="radiogroup"
-            aria-label="Valor da gorjeta"
-          >
-            {suggestedTips(valorPago).map((s, i) => {
-              const ativo = gorjetaExtra === s.amount && !gorjetaOutro;
-              return (
+      {etapaVisivel === "gorjeta" &&
+        (() => {
+          // Antes de pagar, a base é a parte da conta escolhida; depois, o que foi pago.
+          const contaPaga = ultimoPagamento !== null;
+          const base = contaPaga ? valorPago : totalConta;
+          const opcoes = suggestedTips(base);
+          const valorOutro = lerValor(gorjetaOutro);
+          const erroOutro =
+            gorjetaOutroAberto && gorjetaOutro ? validarGorjeta(valorOutro, base) : null;
+          const seguir = (valor: number) => {
+            setGorjetaExtra(valor);
+            setErroPagamento(null);
+            if (contaPaga) {
+              if (valor > 0) {
+                setMetodoGorjeta((m) => m ?? "pix");
+                setEtapa("pagamento-gorjeta");
+              } else setEtapa("avaliacao");
+            } else setEtapa("pagamento-conta");
+          };
+          const garcom = dados.garcom?.split(" ")[0];
+          return (
+            <main className="flex flex-1 flex-col px-5 pb-8">
+              <h1 className="mt-4 text-center text-[2.1rem] font-medium leading-[1.04] tracking-[-0.04em]">
+                {garcom
+                  ? `Agradeça ao ${garcom} com uma gorjeta`
+                  : "Quer deixar uma gorjeta extra?"}
+              </h1>
+              <p className="mt-3 text-center text-[0.95rem] leading-6 text-muted-foreground">
+                É opcional e vai além da taxa de serviço da conta.
+              </p>
+              <div
+                className="mt-8 grid grid-cols-2 gap-2.5"
+                role="radiogroup"
+                aria-label="Valor da gorjeta"
+              >
+                {opcoes.map((s) => {
+                  const ativo = gorjetaExtra === s.amount && !gorjetaOutroAberto;
+                  return (
+                    <button
+                      key={s.label}
+                      type="button"
+                      role="radio"
+                      aria-checked={ativo}
+                      onClick={() => {
+                        setGorjetaOutroAberto(false);
+                        setGorjetaOutro("");
+                        setGorjetaExtra(s.amount);
+                      }}
+                      className={`relative flex h-24 flex-col items-center justify-center gap-1 rounded-[1.25rem] border bg-card transition-[border-color,transform] active:scale-[0.98] ${ativo ? "border-foreground ring-1 ring-foreground" : "border-border hover:border-foreground/40"}`}
+                    >
+                      {s.sugerida && (
+                        <span className="absolute left-2 top-2 rounded-full bg-brand-soft px-2 py-0.5 text-[0.68rem] font-semibold text-brand-strong">
+                          Sugerida
+                        </span>
+                      )}
+                      {ativo && (
+                        <span className="absolute right-2 top-2 grid h-5 w-5 place-items-center rounded-full bg-foreground text-background">
+                          <Check className="h-3 w-3" strokeWidth={3} />
+                        </span>
+                      )}
+                      <span className="text-xl font-medium">{s.label}</span>
+                      {s.label.endsWith("%") && (
+                        <span className="money text-xs text-muted-foreground">
+                          {money(s.amount)}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
                 <button
-                  key={s.label}
                   type="button"
                   role="radio"
-                  aria-checked={ativo}
+                  aria-checked={gorjetaOutroAberto}
                   onClick={() => {
-                    setGorjetaOutro("");
-                    setGorjetaExtra(s.amount);
+                    setGorjetaOutroAberto(true);
+                    const v = lerValor(gorjetaOutro);
+                    setGorjetaExtra(v !== null && !validarGorjeta(v, base) ? v : 0);
                   }}
-                  className={`relative flex h-28 flex-col items-center justify-center gap-1 rounded-[1.25rem] border bg-card transition-[border-color,transform] active:scale-[0.98] ${ativo ? "border-foreground ring-1 ring-foreground" : "border-border hover:border-foreground/40"}`}
+                  className={`relative flex h-24 flex-col items-center justify-center gap-1 rounded-[1.25rem] border bg-card transition-[border-color,transform] active:scale-[0.98] ${gorjetaOutroAberto ? "border-foreground ring-1 ring-foreground" : "border-border hover:border-foreground/40"}`}
                 >
-                  {ativo && (
-                    <span className="absolute right-2 top-2 grid h-5 w-5 place-items-center rounded-full bg-foreground text-background">
-                      <Check className="h-3 w-3" strokeWidth={3} />
-                    </span>
-                  )}
-                  <span className="text-xl font-medium">{s.label}</span>
-                  {s.label.endsWith("%") && (
-                    <span className="money text-xs text-muted-foreground">{money(s.amount)}</span>
-                  )}
-                  <span aria-hidden className="mt-0.5 text-2xl leading-none">
-                    {["🙂", "😊", "😍", "🤩"][i] ?? "🙂"}
-                  </span>
+                  <span className="text-xl font-medium">Outro valor</span>
+                  <span className="text-xs text-muted-foreground">você escolhe</span>
                 </button>
-              );
-            })}
-          </div>
-          <label htmlFor="gorjeta-outro" className="mt-4 text-sm font-semibold">
-            Outro valor
-          </label>
-          <Input
-            id="gorjeta-outro"
-            inputMode="decimal"
-            maxLength={8}
-            value={gorjetaOutro}
-            placeholder="R$ 0,00"
-            className="mt-1 h-11"
-            onChange={(e) => {
-              const t = e.target.value.replace(/[^\d,.]/g, "");
-              setGorjetaOutro(t);
-              const v = Number(t.includes(",") ? t.replace(/\./g, "").replace(",", ".") : t);
-              setGorjetaExtra(
-                Number.isFinite(v) && v > 0 && v <= 1000 ? Math.round(v * 100) / 100 : 0,
-              );
-            }}
-          />
-          {gorjetaExtra > 0 && (
-            <p className="mt-4 rounded-xl bg-muted px-3 py-2.5 text-xs leading-5 text-muted-foreground">
-              Dos <strong className="money text-foreground">{money(gorjetaExtra)}</strong>,{" "}
-              <strong className="money text-foreground">
-                {money(+(gorjetaExtra * TIP_SPLIT.waiter).toFixed(2))}
-              </strong>{" "}
-              vão para a equipe e{" "}
-              <span className="money">{money(+(gorjetaExtra * TIP_SPLIT.tipe).toFixed(2))}</span>{" "}
-              ficam com a TIPE.
-            </p>
-          )}
-          <div className="mt-6 grid gap-2">
-            <Button
-              disabled={gorjetaExtra <= 0}
-              onClick={() => setEtapa("pagamento-gorjeta")}
-              className="h-12 w-full font-display text-base"
-            >
-              {gorjetaExtra > 0 ? `Continuar com ${money(gorjetaExtra)}` : "Escolha um valor"}
-            </Button>
-            <Button variant="outline" onClick={() => setEtapa("fim")} className="h-12 w-full">
-              Agora não, obrigado
-            </Button>
-          </div>
-          <Link
-            to="/legal/$livro"
-            params={{ livro: "termos-de-uso" }}
-            hash="gorjeta-extra"
-            target="_blank"
-            className="mt-4 block text-center text-sm font-semibold text-brand-strong underline-offset-2 hover:underline"
-          >
-            Como funciona a gorjeta?
-          </Link>
-        </main>
-      )}
+              </div>
+              {gorjetaOutroAberto && (
+                <div className="mt-4">
+                  <label htmlFor="gorjeta-outro" className="text-sm font-semibold">
+                    Digite o valor
+                  </label>
+                  <Input
+                    id="gorjeta-outro"
+                    inputMode="decimal"
+                    maxLength={10}
+                    autoFocus
+                    value={gorjetaOutro}
+                    placeholder="R$ 0,00"
+                    aria-invalid={!!erroOutro}
+                    aria-describedby="gorjeta-outro-ajuda"
+                    className="mt-1 h-11"
+                    onChange={(e) => {
+                      const t = e.target.value.replace(/[^\d,.]/g, "");
+                      setGorjetaOutro(t);
+                      const v = lerValor(t);
+                      setGorjetaExtra(v !== null && !validarGorjeta(v, base) ? v : 0);
+                    }}
+                  />
+                  <p
+                    id="gorjeta-outro-ajuda"
+                    className={`mt-1.5 text-xs ${erroOutro ? "text-destructive" : "text-muted-foreground"}`}
+                  >
+                    {erroOutro ??
+                      `De ${money(2)} até ${money(gorjetaMaxima(base))}, o valor da sua conta.`}
+                  </p>
+                </div>
+              )}
+              {gorjetaExtra > 0 && (
+                <p className="mt-4 rounded-xl bg-muted px-3 py-2.5 text-xs leading-5 text-muted-foreground">
+                  Dos <strong className="money text-foreground">{money(gorjetaExtra)}</strong>,{" "}
+                  <strong className="money text-foreground">
+                    {money(+(gorjetaExtra * TIP_SPLIT.waiter).toFixed(2))}
+                  </strong>{" "}
+                  vão para {garcom ? `o ${garcom}` : "a equipe"} e{" "}
+                  <span className="money">
+                    {money(+(gorjetaExtra * TIP_SPLIT.tipe).toFixed(2))}
+                  </span>{" "}
+                  ficam com a TIPE. É cobrada à parte, logo depois da conta.
+                </p>
+              )}
+              <div className="mt-6 grid gap-2">
+                <Button
+                  disabled={gorjetaExtra <= 0}
+                  onClick={() => seguir(gorjetaExtra)}
+                  className="h-12 w-full font-display text-base"
+                >
+                  {gorjetaExtra > 0 ? `Continuar com ${money(gorjetaExtra)}` : "Escolha um valor"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setGorjetaOutroAberto(false);
+                    setGorjetaOutro("");
+                    seguir(0);
+                  }}
+                  className="h-12 w-full"
+                >
+                  Sem gorjeta
+                </Button>
+              </div>
+              <Link
+                to="/legal/$livro"
+                params={{ livro: "termos-de-uso" }}
+                hash="gorjeta-extra"
+                target="_blank"
+                className="mt-4 block text-center text-sm font-semibold text-brand-strong underline-offset-2 hover:underline"
+              >
+                Como funciona a gorjeta?
+              </Link>
+            </main>
+          );
+        })()}
 
       {etapaVisivel === "pagamento-gorjeta" && (
         <Pagamento
@@ -1528,7 +1644,7 @@ function MesaPage() {
           <p className="mt-3 max-w-xs text-center text-sm leading-6 text-muted-foreground">
             Sua conta foi paga e sua avaliação foi registrada.
           </p>
-          {gorjetaExtra > 0 && (
+          {gorjetaPaga && gorjetaExtra > 0 && (
             <p className="mt-4 rounded-xl bg-brand-soft px-4 py-2.5 text-center text-sm font-semibold text-brand-strong">
               Gorjeta de <span className="money">{money(gorjetaExtra)}</span> recebida. A equipe
               agradece!
@@ -1580,7 +1696,13 @@ function MesaPage() {
 const PASSOS = ["Conta", "Pagamento", "Pronto"] as const;
 function passoDaEtapa(etapa: Etapa) {
   if (etapa === "conta") return 0;
-  if (etapa === "pagamento-conta" || etapa === "pix" || etapa === "conta-pendente") return 1;
+  if (
+    etapa === "gorjeta" ||
+    etapa === "pagamento-conta" ||
+    etapa === "pix" ||
+    etapa === "conta-pendente"
+  )
+    return 1;
   return 2;
 }
 
