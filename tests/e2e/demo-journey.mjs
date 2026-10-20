@@ -65,15 +65,20 @@ await garcom.getByRole("button", { name: "Enviar para a cozinha" }).click();
 await shot(garcom, "03-garcom");
 step("garçom recebeu o aviso, serviu e lançou café na mesma conta");
 
-// 4. Cliente divide e paga metade com Pix e gorjeta de 10%
+// 4. Cliente divide e paga metade com Pix e gorjeta extra (nada vem marcado)
 await cliente.getByRole("tab", { name: "Conta" }).click();
 await cliente.getByText("1× Café espresso").waitFor();
 await cliente.getByRole("button", { name: "Partes iguais" }).click();
 await shot(cliente, "04-conta-dividida");
 await cliente.getByRole("button", { name: /^Pagar R\$/ }).click();
 await cliente.getByLabel("Seu nome").fill("Marina");
+await cliente.getByText("Sugerida").waitFor();
+if ((await cliente.locator('[aria-pressed="true"]').count()) > 0)
+  throw new Error("gorjeta veio pré-selecionada");
+if (await cliente.getByRole("button", { name: /com Pix/ }).isEnabled())
+  throw new Error("pagar liberado sem escolher a gorjeta");
 await cliente.getByRole("button", { name: /^8%/ }).click();
-await cliente.getByRole("button", { name: "Outro", exact: true }).click();
+await cliente.getByRole("button", { name: "Outro valor", exact: true }).click();
 await cliente.getByLabel("Outro valor de gorjeta").fill("1,50");
 await cliente.getByText("Mínimo de R$").waitFor();
 await cliente.getByLabel("Outro valor de gorjeta").fill("8,00");
@@ -91,6 +96,7 @@ await outro.goto(`${BASE}/demo?papel=cliente&mesa=1`);
 await outro.getByRole("tab", { name: "Conta" }).click();
 for (const p of [cliente, outro]) await p.getByRole("button", { name: /^Pagar R\$/ }).click();
 await outro.getByLabel("Seu nome").fill("Bruno");
+for (const p of [cliente, outro]) await p.getByRole("button", { name: "Sem gorjeta" }).click();
 await cliente.getByRole("button", { name: /com Apple Pay|Apple Pay/ }).first().click();
 await outro.getByRole("button", { name: /Google Pay/ }).first().click();
 await cliente.getByRole("button", { name: /Pagar R\$.*Apple Pay/ }).click();

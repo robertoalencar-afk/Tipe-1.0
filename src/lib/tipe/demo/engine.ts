@@ -471,9 +471,35 @@ function must(r: ApplyResult): DemoState {
 
 // ---------------------------------------------------------------- ações
 
-/** Opções de gorjeta extra sugeridas (a conta brasileira já inclui a taxa de serviço). */
+/**
+ * Gorjeta extra, com a mesma regra da conta real (PR #21): a conta brasileira já inclui a
+ * taxa de serviço, então os percentuais são pequenos e arredondados a R$ 0,50; conta pequena
+ * usa R$ 2, R$ 3 e R$ 5. 5% fica em destaque ("Sugerida"), mas nada vem marcado.
+ */
 export const TIP_PERCENTS = [3, 5, 8];
+export const TIP_SUGGESTED = 5;
 export const TIP_MIN_CENTS = 200;
+
+export type TipOption = { label: string; cents: number; suggested: boolean; percent?: number };
+
+/** `baseCents` é o valor que a pessoa está pagando (itens + serviço), que também é o teto. */
+export function tipOptions(baseCents: number): TipOption[] {
+  const base = Number.isFinite(baseCents) ? Math.max(0, Math.round(baseCents)) : 0;
+  if (base < TIP_MIN_CENTS) return [];
+  if ((base * TIP_PERCENTS[0]!) / 100 < TIP_MIN_CENTS) {
+    return [200, 300, 500]
+      .filter((c) => c <= base)
+      .map((c) => ({ label: brlCents(c), cents: c, suggested: c === 300 }));
+  }
+  const seen = new Set<number>();
+  return TIP_PERCENTS.flatMap((percent) => {
+    const raw = Math.round((base * percent) / 100 / 50) * 50;
+    const cents = Math.min(base, Math.max(TIP_MIN_CENTS, raw));
+    if (seen.has(cents)) return [];
+    seen.add(cents);
+    return [{ label: `${percent}%`, cents, suggested: percent === TIP_SUGGESTED, percent }];
+  });
+}
 
 export type CartItem = {
   menuId: string;
@@ -748,9 +774,11 @@ export function apply(state: DemoState, action: Action): ApplyResult {
         if (tipCents > subtotalCents + serviceCents)
           return fail(state, "A gorjeta não pode passar do valor que você está pagando.");
       } else if (action.tipPercent) {
-        if (!TIP_PERCENTS.includes(action.tipPercent))
-          return fail(state, "Percentual de gorjeta inválido.");
-        tipCents = Math.round((subtotalCents * action.tipPercent) / 100);
+        const option = tipOptions(subtotalCents + serviceCents).find(
+          (o) => o.percent === action.tipPercent,
+        );
+        if (!option) return fail(state, "Percentual de gorjeta inválido.");
+        tipCents = option.cents;
       }
       const [withId, id] = nextId(state, "pg");
       let s = withId;

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   apply,
+  tipOptions,
   can,
   dashboard,
   kitchenQueue,
@@ -291,7 +292,21 @@ describe("divisão e pagamento", () => {
     const p = r.state.payments.at(-1)!;
     expect(p.subtotalCents).toBe(17800);
     expect(p.serviceCents).toBe(1780);
-    expect(p.tipCents).toBe(1424);
+    // 8% de R$ 195,80 (itens + serviço) = R$ 15,66, arredondado a R$ 0,50
+    expect(p.tipCents).toBe(1550);
+  });
+
+  it("opções de gorjeta iguais às da conta real: R$ 0,50, conta pequena e nada marcado", () => {
+    expect(tipOptions(12600)).toEqual([
+      { label: "3%", cents: 400, suggested: false, percent: 3 },
+      { label: "5%", cents: 650, suggested: true, percent: 5 },
+      { label: "8%", cents: 1000, suggested: false, percent: 8 },
+    ]);
+    expect(tipOptions(5000).map((o) => o.cents)).toEqual([200, 300, 500]);
+    expect(tipOptions(400).map((o) => o.cents)).toEqual([200, 300]);
+    expect(tipOptions(7000)[0]?.cents).toBe(200);
+    expect(tipOptions(199)).toEqual([]);
+    expect(tipOptions(Number.NaN)).toEqual([]);
   });
 
   it("gorjeta: só 3, 5 ou 8%, e outro valor entre R$ 2,00 e o valor pago", () => {

@@ -19,7 +19,7 @@ import {
   previewCents,
   shareItems,
   TIP_MIN_CENTS,
-  TIP_PERCENTS,
+  tipOptions,
   tableView,
   totalCents,
   type CartItem,
@@ -761,19 +761,22 @@ function Checkout({
   const effective: PayMode =
     mode.kind === "amount" ? { kind: "amount", value: mode.value / (1 + rate) } : mode;
   const preview = previewCents(state, mesa, effective);
-  // 5% vem sugerida (marcada); "Não" tem o mesmo peso visual.
-  const [tip, setTip] = useState<number | "outro">(5);
+  // Mesma regra da conta real (PR #21): 5% em destaque como "Sugerida", mas nada vem marcado,
+  // porque cobrança opcional pré-marcada é risco no CDC. "Sem gorjeta" tem o mesmo peso.
+  const [tip, setTip] = useState<string | null>(null);
   const [custom, setCustom] = useState("");
   const [method, setMethod] = useState<Method>("pix");
   const [busy, setBusy] = useState(false);
   const waiter = tableView(state, mesa).waiter.name.split(" ")[0];
-  const tipCents = useMemo(
-    () =>
-      tip === "outro"
-        ? Math.round((Number(custom.replace(",", ".")) || 0) * 100)
-        : Math.round(((preview?.subtotal ?? 0) * tip) / 100),
-    [custom, tip, preview?.subtotal],
+  const options = useMemo(
+    () => tipOptions((preview?.subtotal ?? 0) + (preview?.service ?? 0)),
+    [preview?.subtotal, preview?.service],
   );
+  const chosen = options.find((o) => o.label === tip);
+  const tipCents =
+    tip === "outro"
+      ? Math.round((Number(custom.replace(/\./g, "").replace(",", ".")) || 0) * 100)
+      : (chosen?.cents ?? 0);
   if (!preview)
     return (
       <p className="surface-card p-6 text-center text-sm">
@@ -810,22 +813,32 @@ function Checkout({
           Gorjeta para {waiter}{" "}
           <span className="font-normal text-muted-foreground">(opcional)</span>
         </p>
-        <div className="mt-2 grid grid-cols-5 gap-1.5">
-          {([0, ...TIP_PERCENTS, "outro"] as const).map((t) => (
+        <div className="mt-3 grid grid-cols-3 gap-1.5">
+          {[
+            ...options.map((o) => ({
+              key: o.label,
+              label: o.label,
+              sub: o.percent ? brlCents(o.cents) : null,
+              suggested: o.suggested,
+            })),
+            { key: "sem", label: "Sem gorjeta", sub: null, suggested: false },
+            { key: "outro", label: "Outro valor", sub: null, suggested: false },
+          ].map((o) => (
             <button
-              key={t}
+              key={o.key}
               type="button"
-              aria-pressed={tip === t}
-              onClick={() => setTip(t)}
+              aria-pressed={tip === o.key}
+              onClick={() => setTip(o.key)}
               className={cn(
-                "flex flex-col items-center rounded-xl py-2 text-sm font-semibold leading-tight",
-                tip === t ? "bg-ink text-white" : "bg-muted",
+                "relative flex min-h-12 flex-col items-center justify-center rounded-xl py-2 text-sm font-semibold leading-tight",
+                tip === o.key ? "bg-ink text-white" : "bg-muted",
               )}
             >
-              {t === 0 ? "Não" : t === "outro" ? "Outro" : `${t}%`}
-              {typeof t === "number" && t > 0 && (
-                <span className="text-[10px] font-normal opacity-75">
-                  {brlCents(Math.round((preview.subtotal * t) / 100))}
+              {o.label}
+              {o.sub && <span className="text-[10px] font-normal opacity-75">{o.sub}</span>}
+              {o.suggested && (
+                <span className="absolute -top-2 rounded-full bg-brand px-1.5 text-[9px] font-semibold text-ink">
+                  Sugerida
                 </span>
               )}
             </button>
@@ -885,6 +898,11 @@ function Checkout({
         <Row label="Sua parte" cents={preview.subtotal} />
         <Row label={`Serviço (${Math.round(rate * 100)}%)`} cents={preview.service} />
         {tipCents > 0 && <Row label="Gorjeta" cents={tipCents} />}
+        {tip === null && (
+          <p className="pt-1 text-xs text-muted-foreground">
+            Escolha uma opção de gorjeta, ou "Sem gorjeta", para continuar.
+          </p>
+        )}
         <div className="flex justify-between border-t border-border pt-2 font-display text-lg font-semibold">
           <span>Total</span>
           <span className="money">{brlCents(total)}</span>
@@ -895,12 +913,17 @@ function Checkout({
         disabled={
           busy ||
           !name.trim() ||
+          tip === null ||
           !!tipError ||
-          (tip === "outro" && tipCents > 0 && tipCents < TIP_MIN_CENTS)
+          (tip === "outro" && tipCents < TIP_MIN_CENTS)
         }
         onClick={async () => {
           setBusy(true);
-          await onPaid(method, tip === "outro" ? 0 : tip, tip === "outro" ? tipCents : undefined);
+          await onPaid(
+            method,
+            chosen?.percent ?? 0,
+            tip === "outro" || (chosen && !chosen.percent) ? tipCents : undefined,
+          );
           setBusy(false);
         }}
       >
