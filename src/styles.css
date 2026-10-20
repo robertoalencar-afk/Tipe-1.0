@@ -125,6 +125,8 @@
 
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  /* Curva medida na sunday (reveal, botões, menus): expo-out. */
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 :root {
@@ -468,12 +470,27 @@
 /* ------------------------------------------------------------------ Landing v3: motion
  * Entradas no scroll (ver src/components/tipe/landing/motion.tsx). Só transform/opacity.
  */
-[data-reveal] { transition: opacity 700ms var(--ease-out-soft) var(--d, 0ms), transform 900ms var(--ease-out-soft) var(--d, 0ms); }
-[data-reveal="up"]:not([data-in]) { opacity: 0; transform: translate3d(0, 28px, 0); }
+[data-reveal] { transition: opacity 1200ms var(--ease-expo) var(--d, 0ms), transform 1500ms var(--ease-expo) var(--d, 0ms); }
+[data-reveal="up"]:not([data-in]) { opacity: 0; transform: translate3d(0, 16px, 0); }
 [data-reveal="fade"]:not([data-in]) { opacity: 0; }
 [data-reveal="scale"]:not([data-in]) { opacity: 0; transform: scale(0.94); }
-.line-reveal-inner { transition: transform 900ms var(--ease-out-soft) var(--d, 0ms), opacity 600ms ease var(--d, 0ms); }
-.line-reveal:not([data-in]) .line-reveal-inner { transform: translate3d(0, 105%, 0); opacity: 0; }
+/* Texto palavra por palavra (medido na sunday): sobe 15% da altura e aparece em 1,5 s,
+ * expo-out, com o atraso de cada palavra em --d. Ver Palavras e LineReveal. */
+@keyframes palavra-in { from { opacity: 0; transform: translate3d(0, 15%, 0); } to { opacity: 1; transform: none; } }
+.palavra { display: inline-block; }
+[data-palavras]:not([data-in]) .palavra { opacity: 0; }
+[data-palavras][data-in] .palavra { animation: palavra-in 1500ms var(--ease-expo) both; animation-delay: var(--d, 0ms); }
+/* Botões em pílula da landing: 0,4 s expo-out; o contornado se preenche no hover. */
+.sunday :is(a, button).rounded-full { transition-property: background-color, border-color, color, box-shadow, transform; transition-duration: 400ms; transition-timing-function: var(--ease-expo); }
+.sunday :is(a, button).rounded-full.border:not([role="tab"]):not([aria-current]):hover { background-color: var(--foreground); border-color: var(--foreground); color: var(--background); }
+/* Menus que abrem: opacidade e leve descida em 0,75 s expo-out. */
+@keyframes menu-in { from { opacity: 0; transform: translate3d(0, -8px, 0); } to { opacity: 1; transform: none; } }
+.menu-in { animation: menu-in 750ms var(--ease-expo) both; }
+/* Cabeçalho que some ao rolar e CTA que fica no topo. */
+.header-auto { transition: transform 500ms var(--ease-expo), background-color 300ms ease, border-color 300ms ease; }
+.header-auto[data-escondido] { transform: translate3d(0, -100%, 0); }
+.cta-fixo { transition: opacity 400ms var(--ease-expo), transform 500ms var(--ease-expo); }
+.cta-fixo:not([data-visivel]) { opacity: 0; transform: translate3d(0, -12px, 0); pointer-events: none; }
 /* Foto que "abre" de dentro de uma máscara com leve zoom-out. */
 .photo-reveal { clip-path: inset(0 0 0 0 round var(--photo-radius, 2rem)); transition: clip-path 1100ms var(--ease-out-soft); }
 .photo-reveal > .photo-zoom { transition: transform 1600ms var(--ease-out-soft); }
@@ -492,6 +509,8 @@
 .btn-press:active { transform: scale(0.97); }
 @media (prefers-reduced-motion: reduce) {
   [data-reveal], .line-reveal-inner, .photo-reveal, .photo-reveal > .photo-zoom { transition: none !important; opacity: 1 !important; transform: none !important; clip-path: none !important; }
+  [data-palavras] .palavra, .menu-in { animation: none !important; opacity: 1 !important; transform: none !important; }
+  .header-auto, .cta-fixo { transition: none !important; }
   .hero-in, .pop-in, .bob { animation: none !important; }
   .doodle path { animation: none; stroke-dashoffset: 0; }
 }

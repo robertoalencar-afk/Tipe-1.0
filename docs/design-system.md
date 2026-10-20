@@ -77,7 +77,19 @@ Não adaptado de propósito: prova social com logos e números de clientes (a TI
 | Rótulo (`eyebrow`, rótulos de campo) | 0,875 rem | 500, sem caixa-alta |
 | Números (`money`) | algarismos tabulares | 500 / −0,035 em |
 
-**Movimento:** transições de 200 a 500 ms em opacidade e transform. Rolagem com `requestAnimationFrame` e variável CSS `--p` (sem biblioteca no palco). Com `prefers-reduced-motion`, nada se move e os passos trocam por botão.
+**Movimento** (medido na sunday em 20/10, só observando as páginas públicas; detalhes em `/mnt/project-files/sunday-analise/movimento/README.md`):
+
+| Uso | Valor |
+|---|---|
+| Curva principal (`--ease-expo`) | `cubic-bezier(0.16, 1, 0.3, 1)` |
+| Texto entrando (`Palavras`, `LineReveal`) | palavra por palavra, sobe 15% e aparece em 1,5 s; 140 ms entre palavras nos títulos (35 ms no parágrafo do hero) |
+| Blocos (`Reveal`) | 16 px e opacidade, 1,2 a 1,5 s |
+| Botões em pílula da landing | 0,4 s; o contornado se preenche de preto no hover |
+| Menus (`.menu-in`) | 0,75 s, opacidade e descida de 8 px |
+| Cabeçalho | some ao rolar para baixo depois de 300 px e volta ao subir; o "Teste grátis" fica fixo no topo |
+| Faixas infinitas (`useVelocidadeFaixa`) | velocidade constante de 50 px/s |
+
+Como na sunday, não há biblioteca de animação, smooth scroll nem paralaxe forte. Rolagem com `requestAnimationFrame` e variável CSS `--p` no palco do celular. Com `prefers-reduced-motion`, nada se move.
 
 ---
 

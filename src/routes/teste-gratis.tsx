@@ -12,6 +12,7 @@ import { WaitlistForm } from "@/components/tipe/WaitlistForm";
 import { LandingFooter, LandingHeader } from "@/components/tipe/landing/LandingChrome";
 import { EditorialPhoto, type Scene } from "@/components/tipe/landing/EditorialPhoto";
 import { SimboloTipe } from "@/components/tipe/landing/Marcas";
+import { useVelocidadeFaixa } from "@/components/tipe/landing/motion";
 import mascotWaiting from "@/assets/mascot-waiting-hd.webp";
 import { cn } from "@/lib/utils";
 
@@ -120,13 +121,14 @@ const TIPOS = [
 
 function Faixa() {
   const itens = [...TIPOS, ...TIPOS];
+  const faixa = useVelocidadeFaixa<HTMLUListElement>(50);
   return (
     <section aria-label="Para quem é a Tipe" className="border-y border-border py-8">
       <p className="container-page mb-5 text-center text-sm text-muted-foreground">
         Feita para quem serve mesa no Brasil
       </p>
       <div className="relative overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_10%,black_90%,transparent)]">
-        <ul className="faixa flex w-max items-center">
+        <ul ref={faixa} className="faixa flex w-max items-center">
           {itens.map((t, i) => (
             <li
               key={i}

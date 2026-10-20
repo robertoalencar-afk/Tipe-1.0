@@ -6,6 +6,7 @@ import { PrivacyPreferences } from "@/components/tipe/PrivacyPreferences";
 import { COMPANY } from "@/lib/tipe/legal";
 import { WHATSAPP_SITE_MESSAGE, whatsappLink } from "@/lib/tipe/contact";
 import { cn } from "@/lib/utils";
+import { useHeaderEscondido } from "./motion";
 
 const NAV = [
   { href: "/#como-funciona", label: "Como funciona" },
@@ -25,6 +26,8 @@ export function LandingHeader() {
   const [menu, setMenu] = useState(false);
   const [solucoes, setSolucoes] = useState(false);
   const solRef = useRef<HTMLDivElement>(null);
+  const rolouPraBaixo = useHeaderEscondido(300);
+  const escondido = rolouPraBaixo && !menu && !solucoes;
 
   useEffect(() => {
     const on = () => setScrolled(window.scrollY > 8);
@@ -61,141 +64,156 @@ export function LandingHeader() {
   const linkCls =
     "rounded-full px-3.5 py-2 text-[0.95rem] font-medium text-foreground/85 transition-colors hover:text-foreground";
   return (
-    <header
-      className={cn(
-        "sticky top-0 z-40 transition-[background-color,box-shadow,border-color] duration-200",
-        scrolled || menu
-          ? "border-b border-border/70 bg-background/85 backdrop-blur-xl"
-          : "border-b border-transparent bg-transparent",
-      )}
-    >
-      <div className="container-page flex h-16 items-center justify-between gap-4">
-        <Link to="/" aria-label="TIPE, página inicial" className="shrink-0">
-          <img src={logo} alt="TIPE" width={120} height={36} className="h-8 w-auto" />
-        </Link>
-
-        <nav aria-label="Principal" className="hidden items-center gap-0.5 lg:flex">
-          {NAV.map((n) => (
-            <a key={n.href} href={n.href} className={linkCls}>
-              {n.label}
-            </a>
-          ))}
-          <div ref={solRef} className="relative">
-            <button
-              type="button"
-              aria-expanded={solucoes}
-              aria-haspopup="true"
-              onClick={() => setSolucoes((v) => !v)}
-              className={cn(linkCls, "inline-flex items-center gap-1")}
-            >
-              Soluções{" "}
-              <ChevronDown
-                className={cn("h-3.5 w-3.5 transition-transform", solucoes && "rotate-180")}
-              />
-            </button>
-            {solucoes && (
-              <div className="absolute left-1/2 top-full mt-2 w-[22rem] -translate-x-1/2 rounded-2xl border border-border bg-surface p-2 shadow-lift">
-                {SOLUCOES.map((s) => (
-                  <a
-                    key={s.title}
-                    href={s.href}
-                    onClick={() => setSolucoes(false)}
-                    className="block rounded-xl px-3 py-2.5 transition-colors hover:bg-background-muted"
-                  >
-                    <span className="block text-sm font-medium">{s.title}</span>
-                    <span className="block text-xs text-muted-foreground">{s.text}</span>
-                  </a>
-                ))}
-                <Link
-                  to="/simulador"
-                  className="mt-1 flex items-center justify-between rounded-xl bg-background-muted px-3 py-2.5 text-sm font-medium"
-                >
-                  Testar o simulador <span aria-hidden>→</span>
-                </Link>
-              </div>
-            )}
-          </div>
-          <a href="/#precos" className={linkCls}>
-            Preços
-          </a>
-        </nav>
-
-        <div className="flex items-center gap-1.5">
-          <Link
-            to="/entrar"
-            className="hidden h-11 items-center rounded-full border border-border px-6 text-[0.95rem] font-medium text-foreground transition-colors hover:border-foreground/40 sm:inline-flex"
-          >
-            Entrar
+    <>
+      <header
+        data-escondido={escondido || undefined}
+        className={cn(
+          "header-auto sticky top-0 z-40",
+          scrolled || menu
+            ? "border-b border-border/70 bg-background/85 backdrop-blur-xl"
+            : "border-b border-transparent bg-transparent",
+        )}
+      >
+        <div className="container-page flex h-16 items-center justify-between gap-4">
+          <Link to="/" aria-label="TIPE, página inicial" className="shrink-0">
+            <img src={logo} alt="TIPE" width={120} height={36} className="h-8 w-auto" />
           </Link>
-          <a
-            href="/teste-gratis"
-            className="hidden h-11 items-center rounded-full bg-ink px-6 text-[0.95rem] font-medium text-white transition-colors hover:bg-ink-soft sm:inline-flex"
-          >
-            Teste grátis
-          </a>
-          <button
-            type="button"
-            onClick={() => setMenu((v) => !v)}
-            aria-expanded={menu}
-            aria-controls="menu-mobile"
-            aria-label={menu ? "Fechar menu" : "Abrir menu"}
-            className="grid h-10 w-10 place-items-center rounded-full border border-border bg-surface lg:hidden"
-          >
-            {menu ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
-          </button>
-        </div>
-      </div>
 
-      {menu && (
-        <div
-          id="menu-mobile"
-          className="fixed inset-x-0 bottom-0 top-16 z-40 overflow-y-auto bg-background px-5 pb-10 pt-4 lg:hidden"
-        >
-          <nav aria-label="Menu" className="flex flex-col">
-            {[
-              ...NAV,
-              { href: "/#para-garcons", label: "Para garçons" },
-              { href: "/#painel", label: "Painel do restaurante" },
-              { href: "/#integracoes", label: "Integrações" },
-              { href: "/#precos", label: "Preços" },
-              { href: "/#duvidas", label: "Dúvidas" },
-            ].map((n) => (
-              <a
-                key={n.href + n.label}
-                href={n.href}
-                onClick={() => setMenu(false)}
-                className="border-b border-border py-4 font-display text-lg font-medium"
-              >
+          <nav aria-label="Principal" className="hidden items-center gap-0.5 lg:flex">
+            {NAV.map((n) => (
+              <a key={n.href} href={n.href} className={linkCls}>
                 {n.label}
               </a>
             ))}
-            <Link
-              to="/simulador"
-              onClick={() => setMenu(false)}
-              className="border-b border-border py-4 font-display text-lg font-medium"
-            >
-              Testar o simulador
-            </Link>
-          </nav>
-          <div className="mt-6 grid gap-2">
-            <a
-              href="/teste-gratis"
-              onClick={() => setMenu(false)}
-              className="flex h-12 items-center justify-center rounded-full bg-ink font-medium text-white"
-            >
-              Teste grátis
+            <div ref={solRef} className="relative">
+              <button
+                type="button"
+                aria-expanded={solucoes}
+                aria-haspopup="true"
+                onClick={() => setSolucoes((v) => !v)}
+                className={cn(linkCls, "inline-flex items-center gap-1")}
+              >
+                Soluções{" "}
+                <ChevronDown
+                  className={cn("h-3.5 w-3.5 transition-transform", solucoes && "rotate-180")}
+                />
+              </button>
+              {solucoes && (
+                <div className="absolute left-1/2 top-full mt-2 w-[22rem] -translate-x-1/2">
+                  <div className="menu-in rounded-2xl border border-border bg-surface p-2 shadow-lift">
+                    {SOLUCOES.map((s) => (
+                      <a
+                        key={s.title}
+                        href={s.href}
+                        onClick={() => setSolucoes(false)}
+                        className="block rounded-xl px-3 py-2.5 transition-colors hover:bg-background-muted"
+                      >
+                        <span className="block text-sm font-medium">{s.title}</span>
+                        <span className="block text-xs text-muted-foreground">{s.text}</span>
+                      </a>
+                    ))}
+                    <Link
+                      to="/simulador"
+                      className="mt-1 flex items-center justify-between rounded-xl bg-background-muted px-3 py-2.5 text-sm font-medium"
+                    >
+                      Testar o simulador <span aria-hidden>→</span>
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </div>
+            <a href="/#precos" className={linkCls}>
+              Preços
             </a>
+          </nav>
+
+          <div className="flex items-center gap-1.5">
             <Link
               to="/entrar"
-              onClick={() => setMenu(false)}
-              className="flex h-12 items-center justify-center rounded-full border border-border bg-surface font-medium"
+              className="hidden h-11 items-center rounded-full border border-border px-6 text-[0.95rem] font-medium text-foreground transition-colors hover:border-foreground/40 sm:inline-flex"
             >
               Entrar
             </Link>
+            <a
+              href="/teste-gratis"
+              className="hidden h-11 items-center rounded-full bg-ink px-6 text-[0.95rem] font-medium text-white transition-colors hover:bg-ink-soft sm:inline-flex"
+            >
+              Teste grátis
+            </a>
+            <button
+              type="button"
+              onClick={() => setMenu((v) => !v)}
+              aria-expanded={menu}
+              aria-controls="menu-mobile"
+              aria-label={menu ? "Fechar menu" : "Abrir menu"}
+              className="grid h-10 w-10 place-items-center rounded-full border border-border bg-surface lg:hidden"
+            >
+              {menu ? <X className="h-4 w-4" /> : <Menu className="h-4 w-4" />}
+            </button>
           </div>
         </div>
-      )}
-    </header>
+
+        {menu && (
+          <div
+            id="menu-mobile"
+            className="menu-in fixed inset-x-0 bottom-0 top-16 z-40 overflow-y-auto bg-background px-5 pb-10 pt-4 lg:hidden"
+          >
+            <nav aria-label="Menu" className="flex flex-col">
+              {[
+                ...NAV,
+                { href: "/#para-garcons", label: "Para garçons" },
+                { href: "/#painel", label: "Painel do restaurante" },
+                { href: "/#integracoes", label: "Integrações" },
+                { href: "/#precos", label: "Preços" },
+                { href: "/#duvidas", label: "Dúvidas" },
+              ].map((n) => (
+                <a
+                  key={n.href + n.label}
+                  href={n.href}
+                  onClick={() => setMenu(false)}
+                  className="border-b border-border py-4 font-display text-lg font-medium"
+                >
+                  {n.label}
+                </a>
+              ))}
+              <Link
+                to="/simulador"
+                onClick={() => setMenu(false)}
+                className="border-b border-border py-4 font-display text-lg font-medium"
+              >
+                Testar o simulador
+              </Link>
+            </nav>
+            <div className="mt-6 grid gap-2">
+              <a
+                href="/teste-gratis"
+                onClick={() => setMenu(false)}
+                className="flex h-12 items-center justify-center rounded-full bg-ink font-medium text-white"
+              >
+                Teste grátis
+              </a>
+              <Link
+                to="/entrar"
+                onClick={() => setMenu(false)}
+                className="flex h-12 items-center justify-center rounded-full border border-border bg-surface font-medium"
+              >
+                Entrar
+              </Link>
+            </div>
+          </div>
+        )}
+      </header>
+      {/* Com o cabeçalho escondido, o CTA principal continua no topo (como na sunday). */}
+      <a
+        href="/teste-gratis"
+        data-visivel={escondido || undefined}
+        aria-hidden={!escondido}
+        tabIndex={escondido ? undefined : -1}
+        className="cta-fixo fixed right-4 top-3 z-40 inline-flex h-11 items-center rounded-full bg-ink px-6 text-[0.95rem] font-medium text-white shadow-lift sm:right-6"
+      >
+        Teste grátis
+      </a>
+    </>
   );
 }
 

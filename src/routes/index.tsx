@@ -38,7 +38,7 @@ import mascotWaiting from "@/assets/mascot-waiting-hd.webp";
 import mascotThanks from "@/assets/mascot-thanks-hd.webp";
 import { FraseAcende, Letreiro } from "@/components/tipe/landing/ScrollText";
 import { EditorialPhoto } from "@/components/tipe/landing/EditorialPhoto";
-import { LineReveal, Reveal, useParallax } from "@/components/tipe/landing/motion";
+import { LineReveal, Palavras, Reveal, useParallax } from "@/components/tipe/landing/motion";
 import { money } from "@/components/tipe/landing/ProductScreens";
 import { cn } from "@/lib/utils";
 
@@ -132,27 +132,35 @@ function Hero() {
     <section className="relative -mt-16 overflow-hidden pt-16">
       <div className="container-page grid items-center gap-10 pb-16 pt-8 sm:pt-12 lg:grid-cols-[0.95fr_1.05fr] lg:gap-20 lg:pb-24 lg:pt-14">
         <div className="max-w-[44rem] lg:order-2">
-          <p className="hero-in font-display text-[clamp(1.2rem,1rem+0.8vw,1.6rem)] font-normal tracking-[-0.02em] text-brand-strong">
+          <Palavras
+            as="p"
+            imediato
+            className="font-display text-[clamp(1.2rem,1rem+0.8vw,1.6rem)] font-normal tracking-[-0.02em] text-brand-strong"
+          >
             Pagamento na mesa por QR Code
-          </p>
+          </Palavras>
           <h1 className="mt-5 font-display text-[clamp(3.4rem,1.4rem+5.6vw,6.2rem)] font-normal leading-[0.95] tracking-[-0.05em]">
-            <span className="hero-in block" style={{ "--d": "80ms" } as CSSProperties}>
+            <Palavras imediato delay={280} className="block">
               Pague.
-            </span>
-            <span className="hero-in block" style={{ "--d": "180ms" } as CSSProperties}>
+            </Palavras>
+            <span className="block">
               <span className="relative inline-block">
-                Sem esperar.
+                <Palavras imediato delay={420}>
+                  Sem esperar.
+                </Palavras>
                 <Bigodes className="absolute -right-[1.2em] top-[0.34em] h-[0.4em] w-[1.05em]" />
               </span>
             </span>
           </h1>
-          <p
-            className="hero-in mt-6 max-w-[34rem] text-lg leading-relaxed text-muted-foreground text-pretty sm:text-xl"
-            style={{ "--d": "280ms" } as CSSProperties}
+          <Palavras
+            as="p"
+            imediato
+            delay={560}
+            passo={35}
+            className="mt-6 block max-w-[34rem] text-lg leading-relaxed text-muted-foreground text-pretty sm:text-xl"
           >
-            O cliente aponta a câmera para o QR Code da mesa, divide a conta e paga com Pix, Apple
-            Pay ou Google Pay. Sem baixar aplicativo e sem esperar a maquininha.
-          </p>
+            O cliente aponta a câmera para o QR Code da mesa, divide a conta e paga com Pix, Apple Pay ou Google Pay. Sem baixar aplicativo e sem esperar a maquininha.
+          </Palavras>
           <div
             className="hero-in mt-8 flex flex-wrap items-center gap-3"
             style={{ "--d": "380ms" } as CSSProperties}
