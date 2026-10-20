@@ -39,3 +39,9 @@ Parte da matriz de `sunday-analise/02-SUNDAY-VS-TIPE.md`, atualizada com os PRs 
 |---|---|---|---|---|---|---|---|---|---|
 | Perfis Admin, Manager, Tips Manager | Doc. | `user_roles` | Tipe: dono, caixa, garçom | Perfil "gerente" só leitura | M | Médio | P2 | — | A fazer |
 | Configurações agrupadas por tarefa | Doc. | `backoffice.tsx` | Navegação já em pílula (#10) | Agrupar por tarefa | B | Baixo | P2 | — | A fazer |
+| Gorjeta antes de pagar, com nome do garçom | Obs. (carrossel 20/10) | `$restaurante.$mesa.tsx` | Tipe: gorjeta no fim | 3/5/8 %, "Outro valor" R$ 2 até a conta, nada pré-marcado | M | Alto | P1 | Decisão do Roberto (20/10) | **Feito (#21)** |
+| Pagamento falho: "Left to pay" + "Calculate what's left" | Doc. (central, 20/10) | `$restaurante.$mesa.tsx` | Tipe volta à conta | Botão único "Pagar o que falta" após falha | B | Médio | P2 | — | A fazer |
+| Garçom segue só as próprias mesas; avisos configuráveis por tipo | Doc. (central, 20/10) | `AvisosCelular.tsx` | Tipe: avisos fixos por evento | Ligar/desligar por tipo de aviso | B | Médio | P2 | #19 | A fazer |
+| Aviso "seu dinheiro está a caminho" | Obs. (hero Staff App, 20/10) | `payout.functions.ts` | Sem aviso de saque | Aviso no celular quando o Pix do saque for pago | B | Médio | P2 | #19 | A fazer |
+| End of Service: "Search for discrepancies" contra o PDV | Doc. (central, 20/10) | `FechamentoDia.tsx` | Fechamento sem conferência com PDV | Apontar diferenças Tipe × PDV no fechamento | M | Alto | P2 | Adaptador de PDV | A fazer |
+| Desempenho por garçom com barras verde/laranja/vermelha | Doc. (central, 20/10) | `DesempenhoGarcons.tsx` | Tabela simples | Faixas de cor por meta | B | Baixo | P2 | — | A fazer |

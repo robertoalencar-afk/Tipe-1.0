@@ -5,7 +5,7 @@ Atualizado em 19/10/2026. Prompt: `/mnt/project-files/prompts/sunday-ecossistema
 ## Fase atual e próxima tarefa exata
 
 - **Fase:** C (cliente), D (garçom) e E (restaurante) entregues em PR (#12, #13, #15 a #19); F (backoffice) só tem P2. Todos os P0/P1 da matriz estão em PR.
-- **Próxima tarefa exata:** retomar a sessão de observação no Mac (carrossel de 8 passos de `sundayapp.com/digital-bill/`, `staff-app/`, central de ajuda). A frente F (backoffice) só tem itens P2 na matriz. Web push foi entregue no PR #19 (20/10).
+- **Próxima tarefa exata:** observação passiva concluída em 20/10 (cliente, garçom, lojas, central de ajuda). Gorjeta antes de pagar no PR #21. Restam itens P2 novos na matriz.
 
 ## Ferramentas testadas (16/10/2026)
 
