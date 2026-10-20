@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as CookiesRouteImport } from './routes/cookies'
+import { Route as DemoRouteImport } from './routes/demo'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as FundadorRouteImport } from './routes/fundador'
 import { Route as McpRouteImport } from './routes/mcp'
@@ -64,6 +65,11 @@ const CadastroRoute = CadastroRouteImport.update({
 const CookiesRoute = CookiesRouteImport.update({
   id: '/cookies',
   path: '/cookies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoRoute = DemoRouteImport.update({
+  id: '/demo',
+  path: '/demo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EntrarRoute = EntrarRouteImport.update({
@@ -241,6 +247,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cadastro': typeof CadastroRoute
   '/cookies': typeof CookiesRoute
+  '/demo': typeof DemoRoute
   '/entrar': typeof EntrarRoute
   '/fundador': typeof FundadorRoute
   '/mcp': typeof McpRoute
@@ -279,6 +286,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cadastro': typeof CadastroRoute
   '/cookies': typeof CookiesRoute
+  '/demo': typeof DemoRoute
   '/entrar': typeof EntrarRoute
   '/fundador': typeof FundadorRoute
   '/mcp': typeof McpRoute
@@ -319,6 +327,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/cadastro': typeof CadastroRoute
   '/cookies': typeof CookiesRoute
+  '/demo': typeof DemoRoute
   '/entrar': typeof EntrarRoute
   '/fundador': typeof FundadorRoute
   '/mcp': typeof McpRoute
@@ -359,6 +368,7 @@ export interface FileRouteTypes {
     | '/'
     | '/cadastro'
     | '/cookies'
+    | '/demo'
     | '/entrar'
     | '/fundador'
     | '/mcp'
@@ -397,6 +407,7 @@ export interface FileRouteTypes {
     | '/'
     | '/cadastro'
     | '/cookies'
+    | '/demo'
     | '/entrar'
     | '/fundador'
     | '/mcp'
@@ -436,6 +447,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/cadastro'
     | '/cookies'
+    | '/demo'
     | '/entrar'
     | '/fundador'
     | '/mcp'
@@ -476,6 +488,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   CadastroRoute: typeof CadastroRoute
   CookiesRoute: typeof CookiesRoute
+  DemoRoute: typeof DemoRoute
   EntrarRoute: typeof EntrarRoute
   FundadorRoute: typeof FundadorRoute
   McpRoute: typeof McpRoute
@@ -535,6 +548,13 @@ declare module '@tanstack/react-router' {
       path: '/cookies'
       fullPath: '/cookies'
       preLoaderRoute: typeof CookiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo': {
+      id: '/demo'
+      path: '/demo'
+      fullPath: '/demo'
+      preLoaderRoute: typeof DemoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/entrar': {
@@ -793,6 +813,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   CadastroRoute: CadastroRoute,
   CookiesRoute: CookiesRoute,
+  DemoRoute: DemoRoute,
   EntrarRoute: EntrarRoute,
   FundadorRoute: FundadorRoute,
   McpRoute: McpRoute,
