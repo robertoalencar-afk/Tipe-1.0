@@ -3,11 +3,16 @@ import { useServerFn } from "@tanstack/react-start";
 import { Bell, BellOff, BellRing } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Switch } from "@/components/ui/switch";
 import {
+  getPushPreferences,
   getPushPublicKey,
   removePushSubscription,
   savePushSubscription,
+  setPushPreferences,
 } from "@/lib/tipe/avisos.functions";
+import { NOME_TIPO_AVISO, type TipoAviso } from "@/lib/tipe/avisos-equipe";
 
 type Estado = "carregando" | "sem-suporte" | "iphone" | "desligado" | "ligado" | "bloqueado";
 
@@ -32,9 +37,18 @@ function estadoInicial(): Estado {
   return "carregando";
 }
 
+// Cada área mostra só os tipos que chegam para ela (gorjeta e saque são do garçom).
+const TIPOS_POR_PAPEL: Record<"garcom" | "gestao", TipoAviso[]> = {
+  garcom: ["pagamento", "gorjeta", "nota", "saque"],
+  gestao: ["pagamento", "nota"],
+};
+
 /** Botão "Avisos" da equipe: liga o aviso no celular mesmo com o app fechado. */
-export function AvisosCelular() {
+export function AvisosCelular({ papel = "garcom" }: { papel?: "garcom" | "gestao" }) {
   const [estado, setEstado] = useState<Estado>("carregando");
+  const [silenciados, setSilenciados] = useState<TipoAviso[]>([]);
+  const lerPreferencias = useServerFn(getPushPreferences);
+  const gravarPreferencias = useServerFn(setPushPreferences);
   const [ocupado, setOcupado] = useState(false);
   const chave = useServerFn(getPushPublicKey);
   const salvar = useServerFn(savePushSubscription);
@@ -91,6 +105,35 @@ export function AvisosCelular() {
     }
   }
 
+  async function endpointAtual() {
+    const reg = await navigator.serviceWorker.getRegistration(SW);
+    return (await reg?.pushManager.getSubscription())?.endpoint ?? null;
+  }
+
+  async function abrirPreferencias(aberto: boolean) {
+    if (!aberto) return;
+    try {
+      const endpoint = await endpointAtual();
+      if (endpoint) setSilenciados((await lerPreferencias({ data: { endpoint } })).muted);
+    } catch {
+      /* mantém o que estava na tela */
+    }
+  }
+
+  async function alternarTipo(tipo: TipoAviso, receber: boolean) {
+    const antes = silenciados;
+    const depois = receber ? antes.filter((t) => t !== tipo) : [...antes, tipo];
+    setSilenciados(depois);
+    try {
+      const endpoint = await endpointAtual();
+      if (!endpoint) throw new Error("Ligue os avisos de novo neste celular.");
+      await gravarPreferencias({ data: { endpoint, muted: depois } });
+    } catch (e) {
+      setSilenciados(antes);
+      toast.error(e instanceof Error ? e.message : "Não foi possível salvar");
+    }
+  }
+
   async function desligar() {
     setOcupado(true);
     try {
@@ -118,26 +161,68 @@ export function AvisosCelular() {
       return toast(
         "Os avisos estão bloqueados neste navegador. Libere as notificações da TIPE nos ajustes do navegador.",
       );
-    return estado === "ligado" ? desligar() : ligar();
+    return ligar();
   };
 
   const Icone = estado === "ligado" ? BellRing : estado === "bloqueado" ? BellOff : Bell;
+  if (estado === "ligado")
+    return (
+      <Popover onOpenChange={(aberto) => void abrirPreferencias(aberto)}>
+        <PopoverTrigger asChild>
+          <Button
+            size="sm"
+            variant="ghost"
+            disabled={ocupado}
+            title="Escolher quais avisos receber"
+            className="text-foreground"
+          >
+            <Icone className="h-4 w-4" />
+            Avisos ligados
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent align="end" className="w-72">
+          <p className="text-sm font-semibold">Avisos neste celular</p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Chegam mesmo com o app fechado. Escolha o que receber.
+          </p>
+          <ul className="mt-3 space-y-2.5">
+            {TIPOS_POR_PAPEL[papel].map((tipo) => (
+              <li key={tipo} className="flex items-center justify-between gap-3">
+                <label htmlFor={`aviso-${tipo}`} className="text-sm">
+                  {NOME_TIPO_AVISO[tipo]}
+                </label>
+                <Switch
+                  id={`aviso-${tipo}`}
+                  checked={!silenciados.includes(tipo)}
+                  onCheckedChange={(v) => void alternarTipo(tipo, v)}
+                />
+              </li>
+            ))}
+          </ul>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => void desligar()}
+            disabled={ocupado}
+            className="mt-4 w-full"
+          >
+            Desligar avisos neste celular
+          </Button>
+        </PopoverContent>
+      </Popover>
+    );
   return (
     <Button
       size="sm"
       variant="ghost"
       onClick={clique}
       disabled={ocupado}
-      aria-pressed={estado === "ligado"}
-      title={
-        estado === "ligado"
-          ? "Desligar avisos no celular"
-          : "Receber avisos no celular com o app fechado"
-      }
-      className={estado === "ligado" ? "text-foreground" : "text-muted-foreground"}
+      aria-pressed={false}
+      title="Receber avisos no celular com o app fechado"
+      className="text-muted-foreground"
     >
       <Icone className="h-4 w-4" />
-      {estado === "ligado" ? "Avisos ligados" : "Avisos"}
+      Avisos
     </Button>
   );
 }

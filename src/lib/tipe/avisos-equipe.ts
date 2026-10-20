@@ -3,8 +3,24 @@
 import { TIP_SPLIT } from "./rules";
 
 export type Destino = "garcom" | "gestao";
+/** Tipos que cada pessoa pode silenciar em cada celular. */
+export const TIPOS_AVISO = ["pagamento", "gorjeta", "nota", "saque"] as const;
+export type TipoAviso = (typeof TIPOS_AVISO)[number];
+export const NOME_TIPO_AVISO: Record<TipoAviso, string> = {
+  pagamento: "Pagamentos das mesas",
+  gorjeta: "Gorjetas",
+  nota: "Notas baixas",
+  saque: "Saques via Pix",
+};
 // `url` é a tela da gestão; o garçom sempre abre a área dele (/garcom).
-export type Aviso = { titulo: string; corpo: string; url: string; tag: string; para: Destino[] };
+export type Aviso = {
+  tipo: TipoAviso;
+  titulo: string;
+  corpo: string;
+  url: string;
+  tag: string;
+  para: Destino[];
+};
 
 export type PagamentoAviso = {
   id: string;
@@ -26,6 +42,7 @@ export function avisoDePagamento(p: PagamentoAviso): Aviso | null {
     if (p.status !== "approved") return null;
     const parte = Math.round(p.valor * 100 * TIP_SPLIT.waiter) / 100;
     return {
+      tipo: "gorjeta",
       titulo: "Você recebeu uma gorjeta",
       corpo: `Mesa ${p.mesa}: ${brl(parte)} para você.`,
       url: "/garcom",
@@ -37,6 +54,7 @@ export function avisoDePagamento(p: PagamentoAviso): Aviso | null {
   if (p.status === "pending" && p.metodo === "at_establishment") {
     const forma = p.formaLocal === "cash" ? "em dinheiro" : "na maquininha";
     return {
+      tipo: "pagamento",
       titulo: `Mesa ${p.mesa} quer pagar ${forma}`,
       corpo: `${brl(p.valor)} aguardando confirmação.`,
       url: painel,
@@ -47,6 +65,7 @@ export function avisoDePagamento(p: PagamentoAviso): Aviso | null {
   if (p.status !== "approved") return null;
   if (p.contaQuitada) {
     return {
+      tipo: "pagamento",
       titulo: `Mesa ${p.mesa} pagou tudo`,
       corpo: `Último pagamento de ${brl(p.valor)}. A mesa pode ser liberada.`,
       url: painel,
@@ -55,6 +74,7 @@ export function avisoDePagamento(p: PagamentoAviso): Aviso | null {
     };
   }
   return {
+    tipo: "pagamento",
     titulo: `Mesa ${p.mesa} pagou ${brl(p.valor)}`,
     corpo: "Ainda há itens em aberto na conta.",
     url: "/garcom",
@@ -71,10 +91,45 @@ export function avisoDeNota(
   if (estrelas > 2) return null;
   const texto = comentario?.trim() ? `"${comentario.trim().slice(0, 90)}"` : "Vale passar na mesa.";
   return {
+    tipo: "nota",
     titulo: `Mesa ${mesa} deu nota ${estrelas}`,
     corpo: texto,
     url: "/garcom",
     tag: `nota-${mesa}`,
     para: ["garcom", "gestao"],
   };
+}
+
+/** Saque resolvido pela TIPE: só o garçom dono do saque recebe. */
+export function avisoDeSaque(
+  id: string,
+  status: "paid" | "rejected",
+  valor: number,
+  nota?: string | null,
+): Aviso {
+  return status === "paid"
+    ? {
+        tipo: "saque",
+        titulo: "Seu Pix foi enviado",
+        corpo: `${brl(valor)} a caminho da sua conta.`,
+        url: "/garcom",
+        tag: `saque-${id}`,
+        para: ["garcom"],
+      }
+    : {
+        tipo: "saque",
+        titulo: "Seu saque não foi pago",
+        // Saque recusado não sai do saldo (waiter_balance ignora "rejected").
+        corpo: nota?.trim()
+          ? `${brl(valor)} voltou para o seu saldo. Motivo: ${nota.trim().slice(0, 80)}`
+          : `${brl(valor)} voltou para o seu saldo. Confira na área do garçom.`,
+        url: "/garcom",
+        tag: `saque-${id}`,
+        para: ["garcom"],
+      };
+}
+
+/** Silenciados num celular: o aviso só vai se o tipo dele não estiver na lista. */
+export function querReceber(silenciados: readonly string[] | null | undefined, tipo: TipoAviso) {
+  return !(silenciados ?? []).includes(tipo);
 }

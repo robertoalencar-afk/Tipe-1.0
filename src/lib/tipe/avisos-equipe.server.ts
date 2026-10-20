@@ -1,11 +1,24 @@
 // Envia os avisos da equipe por web push. Nunca derruba o fluxo que chamou:
 // sem chaves VAPID não faz nada, e qualquer erro ou demora é engolido.
-import { avisoDeNota, avisoDePagamento, type Aviso } from "./avisos-equipe";
+import {
+  avisoDeNota,
+  avisoDePagamento,
+  avisoDeSaque,
+  querReceber,
+  type Aviso,
+} from "./avisos-equipe";
 import { enviarPush, type ChavesServidor } from "./web-push";
 
 type Admin = Awaited<typeof import("@/integrations/supabase/client.server")>["supabaseAdmin"];
 // Tabela nova (migração 0026): ainda fora dos tipos gerados.
-type Inscricao = { id: string; user_id: string; endpoint: string; p256dh: string; auth: string };
+type Inscricao = {
+  id: string;
+  user_id: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  muted_kinds: string[] | null;
+};
 
 const LIMITE_MS = 3000;
 
@@ -59,32 +72,35 @@ async function entregar(admin: Admin, para: Map<string, string>, aviso: Aviso) {
     Admin["from"]
   >;
   const { data } = await (
-    tabela.select("id, user_id, endpoint, p256dh, auth") as unknown as {
+    tabela.select("id, user_id, endpoint, p256dh, auth, muted_kinds") as unknown as {
       in: (c: string, v: string[]) => Promise<{ data: Inscricao[] | null }>;
     }
   ).in("user_id", [...para.keys()]);
   await Promise.all(
-    (data ?? []).map(async (s) => {
-      try {
-        const mensagem = {
-          title: aviso.titulo,
-          body: aviso.corpo,
-          url: para.get(s.user_id) ?? "/",
-          tag: aviso.tag,
-        };
-        const status = await enviarPush(s, mensagem, k, k.contato);
-        const t = admin.from("staff_push_subscriptions" as never) as unknown as {
-          delete: () => { eq: (c: string, v: string) => Promise<unknown> };
-          update: (v: object) => { eq: (c: string, v: string) => Promise<unknown> };
-        };
-        // 404/410: o navegador cancelou a inscrição; apaga para não insistir.
-        if (status === 404 || status === 410) await t.delete().eq("id", s.id);
-        else if (status < 300)
-          await t.update({ last_sent_at: new Date().toISOString() }).eq("id", s.id);
-      } catch {
-        /* serviço de push fora do ar: o aviso na tela continua valendo */
-      }
-    }),
+    // Cada celular pode silenciar tipos de aviso (pagamentos, gorjetas, notas, saques).
+    (data ?? [])
+      .filter((s) => querReceber(s.muted_kinds, aviso.tipo))
+      .map(async (s) => {
+        try {
+          const mensagem = {
+            title: aviso.titulo,
+            body: aviso.corpo,
+            url: para.get(s.user_id) ?? "/",
+            tag: aviso.tag,
+          };
+          const status = await enviarPush(s, mensagem, k, k.contato);
+          const t = admin.from("staff_push_subscriptions" as never) as unknown as {
+            delete: () => { eq: (c: string, v: string) => Promise<unknown> };
+            update: (v: object) => { eq: (c: string, v: string) => Promise<unknown> };
+          };
+          // 404/410: o navegador cancelou a inscrição; apaga para não insistir.
+          if (status === 404 || status === 410) await t.delete().eq("id", s.id);
+          else if (status < 300)
+            await t.update({ last_sent_at: new Date().toISOString() }).eq("id", s.id);
+        } catch {
+          /* serviço de push fora do ar: o aviso na tela continua valendo */
+        }
+      }),
   );
 }
 
@@ -154,5 +170,22 @@ export function avisarNota(
     const aviso = avisoDeNota(mesa, estrelas, comentario);
     if (!aviso) return;
     await entregar(admin, await destinatarios(admin, restaurantId, waiterId, aviso), aviso);
+  });
+}
+
+/** Avisa o garçom quando a TIPE paga ou recusa o saque dele. */
+export function avisarSaque(
+  admin: Admin,
+  saque: { id: string; waiterId: string; restaurantId: string; valor: number },
+  status: "paid" | "rejected",
+  nota?: string | null,
+) {
+  return comLimite(async () => {
+    const aviso = avisoDeSaque(saque.id, status, saque.valor, nota);
+    await entregar(
+      admin,
+      await destinatarios(admin, saque.restaurantId, saque.waiterId, aviso),
+      aviso,
+    );
   });
 }

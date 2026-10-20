@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { TIPOS_AVISO, type TipoAviso } from "./avisos-equipe";
 
 // Chave pública VAPID: o navegador precisa dela para criar a inscrição.
 export const getPushPublicKey = createServerFn({ method: "GET" }).handler(async () => {
@@ -58,5 +59,75 @@ export const removePushSubscription = createServerFn({ method: "POST" })
       };
     };
     await t.delete().eq("endpoint", data.endpoint).eq("user_id", context.userId);
+    return { ok: true };
+  });
+
+const Preferencias = z.object({
+  endpoint: z.string().max(1000),
+  muted: z.array(z.enum(TIPOS_AVISO)).max(TIPOS_AVISO.length),
+});
+
+type TabelaInscricoes = {
+  select: (c: string) => {
+    eq: (
+      c: string,
+      v: string,
+    ) => {
+      eq: (
+        c: string,
+        v: string,
+      ) => { maybeSingle: () => Promise<{ data: { muted_kinds: string[] } | null }> };
+    };
+  };
+  update: (v: object) => {
+    eq: (
+      c: string,
+      v: string,
+    ) => {
+      eq: (
+        c: string,
+        v: string,
+      ) => { select: (c: string) => Promise<{ data: unknown[] | null; error: unknown }> };
+    };
+  };
+};
+
+// Quais tipos de aviso este celular recebe. Só a própria inscrição é lida ou alterada.
+export const getPushPreferences = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ endpoint: z.string().max(1000) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const t = supabaseAdmin.from(
+      "staff_push_subscriptions" as never,
+    ) as unknown as TabelaInscricoes;
+    const { data: row } = await t
+      .select("muted_kinds")
+      .eq("endpoint", data.endpoint)
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    return {
+      found: !!row,
+      muted: (row?.muted_kinds ?? []).filter((k): k is TipoAviso =>
+        (TIPOS_AVISO as readonly string[]).includes(k),
+      ),
+    };
+  });
+
+export const setPushPreferences = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => Preferencias.parse(d))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const t = supabaseAdmin.from(
+      "staff_push_subscriptions" as never,
+    ) as unknown as TabelaInscricoes;
+    const { data: rows, error } = await t
+      .update({ muted_kinds: [...new Set(data.muted)] })
+      .eq("endpoint", data.endpoint)
+      .eq("user_id", context.userId)
+      .select("id");
+    if (error || !rows?.length)
+      throw new Error("Não foi possível salvar. Ligue os avisos de novo neste celular.");
     return { ok: true };
   });

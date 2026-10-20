@@ -8,7 +8,9 @@ CREATE TABLE IF NOT EXISTS public.staff_push_subscriptions (
   p256dh text NOT NULL CHECK (length(p256dh) BETWEEN 80 AND 100),
   auth text NOT NULL CHECK (length(auth) BETWEEN 16 AND 32),
   created_at timestamptz NOT NULL DEFAULT now(),
-  last_sent_at timestamptz
+  last_sent_at timestamptz,
+  -- Tipos de aviso que a pessoa desligou neste celular.
+  muted_kinds text[] NOT NULL DEFAULT '{}' CHECK (muted_kinds <@ ARRAY['pagamento','gorjeta','nota','saque']::text[])
 );
 CREATE INDEX IF NOT EXISTS staff_push_subscriptions_user_idx ON public.staff_push_subscriptions (user_id);
 

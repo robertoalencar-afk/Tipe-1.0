@@ -301,6 +301,14 @@ BEGIN
   EXCEPTION WHEN check_violation THEN
     PERFORM pg_temp.ok(true, 'endereço de aviso precisa ser https');
   END;
+  BEGIN
+    UPDATE staff_push_subscriptions SET muted_kinds = ARRAY['spam'] WHERE user_id = u_a;
+    RAISE EXCEPTION 'FALHOU: aceitou tipo de aviso desconhecido';
+  EXCEPTION WHEN check_violation THEN
+    PERFORM pg_temp.ok(true, 'só tipos de aviso conhecidos podem ser silenciados');
+  END;
+  UPDATE staff_push_subscriptions SET muted_kinds = ARRAY['gorjeta','saque'] WHERE user_id = u_a;
+  PERFORM pg_temp.ok((SELECT muted_kinds FROM staff_push_subscriptions WHERE user_id = u_a) = ARRAY['gorjeta','saque'], 'tipos silenciados ficam gravados');
   DELETE FROM auth.users WHERE id IN (u_a, u_b);
   PERFORM pg_temp.ok((SELECT count(*) FROM staff_push_subscriptions WHERE user_id IN (u_a, u_b)) = 0, 'conta apagada leva junto as inscrições');
 END $$;

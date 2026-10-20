@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { avisoDeNota, avisoDePagamento } from "./avisos-equipe";
+import { avisoDeNota, avisoDePagamento, avisoDeSaque, querReceber } from "./avisos-equipe";
 
 const base = {
   id: "p1",
@@ -47,5 +47,26 @@ describe("avisoDeNota", () => {
   it("só notas de 1 ou 2 estrelas", () => {
     expect(avisoDeNota("4", 3)).toBeNull();
     expect(avisoDeNota("4", 2, "demorou")!.corpo).toBe('"demorou"');
+  });
+});
+
+describe("avisos por tipo", () => {
+  it("cada aviso diz o seu tipo", () => {
+    expect(avisoDePagamento(base)!.tipo).toBe("pagamento");
+    expect(avisoDePagamento({ ...base, alvo: "tipe" })!.tipo).toBe("gorjeta");
+    expect(avisoDeNota("4", 1)!.tipo).toBe("nota");
+  });
+  it("saque pago e recusado vão só para o garçom", () => {
+    const pago = avisoDeSaque("s1", "paid", 84.5);
+    expect(pago).toMatchObject({ tipo: "saque", titulo: "Seu Pix foi enviado", para: ["garcom"] });
+    expect(pago.corpo).toContain("84,50");
+    expect(avisoDeSaque("s1", "rejected", 10, "chave inválida").corpo).toContain(
+      "Motivo: chave inválida",
+    );
+  });
+  it("celular que silenciou um tipo não recebe esse tipo", () => {
+    expect(querReceber(["gorjeta"], "gorjeta")).toBe(false);
+    expect(querReceber(["gorjeta"], "nota")).toBe(true);
+    expect(querReceber(null, "saque")).toBe(true);
   });
 });
