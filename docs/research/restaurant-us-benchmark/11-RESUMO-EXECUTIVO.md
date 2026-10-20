@@ -54,7 +54,7 @@ Confiança alta. [08](08-TOP-50-FUNCIONALIDADES.md)
 9. resumo diário pela Lebre;
 10. módulos por plano.
 
-O cartão na conta também pontua alto, mas depende de revogar uma regra do produto. Confiança média. [08](08-TOP-50-FUNCIONALIDADES.md)
+O cartão digitado na conta foi descartado pelo dono (20/10/2026); Apple Pay e Google Pay ocupam esse lugar. Confiança média. [08](08-TOP-50-FUNCIONALIDADES.md)
 
 **15. O que desenvolver primeiro (90 dias, três frentes).** Começa por uma fase 0 que reaplica os ramos `redesign-premium` e `colibri`. Depois, três frentes: **A. PDV confiável** (idempotência, KDS ao vivo, caixa no servidor, modificadores, desconto e PIN de gerente); **B. Salão vivo** (mapa com estado do pedido e do QR, KDS operacional, notificações, chamado do cliente, dashboard); **C. Brasil obrigatório** (agente de impressão, NFC-e por parceiro, descoberta da integração Saipos). Confiança média. [09](09-ROADMAP-EVOLUCAO-TIPE.md)
 
@@ -77,8 +77,10 @@ Cada mudança está marcada se exige migração. Confiança alta. [07](07-ARQUIT
 
 **20. Plano técnico concreto.** O backlog tem épicos e histórias com critérios verificáveis e os arquivos afetados: 0 (consolidar ramos), A (PDV confiável), B (salão vivo), C (Brasil obrigatório) e D (P1 comercial). As migrações estão listadas em ordem em `07` §4. Confiança alta. [10](10-IMPLEMENTATION-BACKLOG.md)
 
-## Conflitos com decisões vigentes (apontados, não contornados)
+## Conflitos com decisões vigentes
 
-- **Gorjeta extra 70/30:** mantida. A Lei 13.419/2017 diz que gorjeta não é receita do empregador; recomenda-se parecer jurídico e mostrar os 30% como taxa da plataforma em linha separada. [04b §3](04b-REALIDADE-BRASIL.md)
-- **Cartão na conta pelo QR:** o `AGENTS.md` proíbe oferecer digitação de cartão na conta. A recomendação fica fora do plano até o dono decidir.
+Decididos pelo dono em 20/10/2026:
+
+- **Cartão na conta pelo QR: não terá cartão digitado.** A conta aceita Apple Pay, Google Pay, Pix e "pagar no estabelecimento" (baixa manual pela equipe). O item "cartão na conta" sai do ranking como recomendação; carteiras digitais substituem. Dependência: hoje o servidor recusa Apple Pay e Google Pay, que precisam ser habilitados no Pagar.me antes de ir ao ar.
+- **Gorjeta extra 70/30:** continua como está. O risco jurídico apontado (Lei 13.419/2017, [04b §3](04b-REALIDADE-BRASIL.md)) fica registrado, sem parecer previsto.
 - **Sem pagamento simulado em produção** e **founder sem acesso operacional:** respeitados em todas as recomendações.

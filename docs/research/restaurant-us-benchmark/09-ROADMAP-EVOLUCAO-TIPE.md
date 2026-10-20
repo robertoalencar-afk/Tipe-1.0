@@ -54,7 +54,10 @@ Por quê: sem impressão e nota o Tipe completo não é levado a sério; sem int
 
 Contabilidade, contas a pagar, DRE, escala, ponto e folha: são produtos inteiros que os ERPs americanos vendem por US$ 350–750 por unidade/mês (`03-BENCHMARK-ERP-USA.md`). A Tipe deve ser a melhor **fonte de dados** para eles, não um concorrente.
 
-## Decisões pendentes do dono (registradas, não contornadas)
+## Decisões do dono (20/10/2026)
 
-1. Cartão de crédito na conta pelo QR conflita com a regra atual do `AGENTS.md`; fica fora do plano até decisão.
-2. A gorjeta extra 70/30 continua como decidido; o parecer jurídico sobre a Lei 13.419/2017 deve vir antes de escalar a gorjeta digital e antes do rateio da taxa de serviço.
+1. Sem cartão digitado na conta. Formas de pagamento da conta: Apple Pay, Google Pay, Pix e "pagar no estabelecimento" com baixa manual. Habilitar Apple Pay e Google Pay no Pagar.me entra como dependência da frente B.
+2. A gorjeta extra 70/30 continua como está; o risco da Lei 13.419/2017 fica registrado.
+3. O PR desta pesquisa fica aberto como referência, sem merge por enquanto.
+
+Andamento: a fase 0 já foi executada em outra frente (PRs #5 a #9, em revisão em 20/10/2026).

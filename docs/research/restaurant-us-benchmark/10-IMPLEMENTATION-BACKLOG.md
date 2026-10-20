@@ -117,4 +117,4 @@ Data: 14/10/2026. Épicos na ordem do roadmap (`09-ROADMAP-EVOLUCAO-TIPE.md`). C
 
 ## Fora deste backlog (decisão do dono)
 
-Cartão de crédito na conta pelo QR: conflita com a regra do `AGENTS.md` ("Do not offer direct card entry on the bill"). Se a regra for revogada, a história está descrita em `02-SUNDAY-VS-TIPE.md` §3.1 (pasta compartilhada).
+Cartão de crédito digitado na conta pelo QR: descartado pelo dono em 20/10/2026. No lugar, a história a escrever é habilitar Apple Pay e Google Pay no Pagar.me (hoje o servidor recusa as duas), mantendo Pix e pagar no estabelecimento com baixa manual.

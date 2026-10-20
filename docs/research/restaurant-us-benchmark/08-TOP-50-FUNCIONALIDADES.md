@@ -33,7 +33,7 @@ Classes: **P0** necessário para PDV e atendimento confiáveis · **P1** alto va
 | 5 | Mapa: cor por estado do pedido + tempo de mesa | Mesas | 5 | 3 | 4 | 4 | 3 | 4 | 4 | **55** | P0 | P | KDS em tempo real | — |
 | 6 | NFC-e via parceiro | PDV | 5 | 5 | 5 | 2 | 3 | 3 | 2 | **54** | P1 | G | emissor + dados fiscais | regras estaduais, certificado |
 | 7 | Comanda individual e nome da conta (entidade conta) | Mesas | 5 | 4 | 5 | 3 | 3 | 3 | 2 | **53** | P1 | G | migração bills | transição de chaves texto |
-| 8 | Cartão de crédito na conta (QR) | Pagamento | 4 | 4 | 4 | 3 | 5 | 3 | 3 | **52** | P1 | M | Pagar.me 3DS | revogar regra de produto |
+| 8 | ~~Cartão de crédito na conta (QR)~~ descartado em 20/10/2026; substituto: Apple Pay e Google Pay na conta | Pagamento | 4 | 4 | 4 | 3 | 5 | 3 | 3 | **52** | P1 | M | Pagar.me 3DS | revogar regra de produto |
 | 9 | Modificadores estruturados (obrigatório/opcional, mín/máx, preço) | PDV | 5 | 4 | 5 | 2 | 3 | 3 | 2 | **51** | P0 | M | migração | impacta conta, KDS, divisão e QR |
 | 10 | Chamado do cliente (chamar garçom / pedir a conta) | Garçom | 3 | 3 | 4 | 4 | 5 | 3 | 4 | **50** | P1 | P | — | excesso de notificação |
 | 11 | App do garçom em maquininha smart Android | Garçom | 4 | 4 | 5 | 3 | 2 | 3 | 2 | **49** | P1 | M | publicação na loja do adquirente | homologação |
@@ -83,5 +83,5 @@ Classes: **P0** necessário para PDV e atendimento confiáveis · **P1** alto va
 2. **Os estados de pagamento QR no salão** (nº 2) são o item de melhor relação valor/esforço: só a Tipe tem esse dado, ele já existe no banco e nenhum PDV americano mostra "pagando pelo QR" no mapa.
 3. **Reaplicar o ramo `colibri`** (garçom no celular, KDS por pedido) pontua alto e custa pouco porque o código já existe.
 4. **NFC-e e comanda individual** são o preço de entrada para o Tipe completo no Brasil.
-5. **Cartão de crédito na conta (nº 8) conflita com uma regra vigente** do projeto (`AGENTS.md`: "Do not offer direct card entry on the bill"). Fica registrado como recomendação condicionada a revogar essa regra; não entra no plano de 90 dias sem decisão do dono.
+5. **Cartão de crédito na conta (nº 8) conflita com uma regra vigente** do projeto (`AGENTS.md`: "Do not offer direct card entry on the bill"). **Decisão do dono (20/10/2026): não terá cartão digitado.** A conta aceita Apple Pay, Google Pay, Pix e pagar no estabelecimento (baixa manual); o lugar do item 8 passa a ser habilitar Apple Pay e Google Pay no Pagar.me.
 6. **Rateio da taxa de serviço (nº 14)** depende de parecer sobre a Lei 13.419/2017; a gorjeta extra 70/30 segue como está (ver `04b-REALIDADE-BRASIL.md` §3).
