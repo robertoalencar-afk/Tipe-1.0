@@ -2,6 +2,9 @@ import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ChevronDown, Instagram, Menu, MessageCircle, X } from "lucide-react";
 import logo from "@/assets/marca/tipe-logo.svg";
+import logoBranco from "@/assets/marca/tipe-logo-branco.svg";
+import { fotoSrc } from "@/components/tipe/site/Foto";
+import { PRODUTOS } from "@/components/tipe/site/produtos";
 import { PrivacyPreferences } from "@/components/tipe/PrivacyPreferences";
 import { COMPANY } from "@/lib/tipe/legal";
 import { WHATSAPP_SITE_MESSAGE, whatsappLink } from "@/lib/tipe/contact";
@@ -9,17 +12,27 @@ import { cn } from "@/lib/utils";
 import { useHeaderEscondido } from "./motion";
 
 const NAV = [
-  { href: "/#como-funciona", label: "Como funciona" },
-  { href: "/#para-restaurantes", label: "Para restaurantes" },
-  { href: "/#para-clientes", label: "Para clientes" },
+  { href: "/produtos/ai", label: "Tipe AI" },
+  { href: "/integracoes", label: "Integrações" },
+  { href: "/precos", label: "Preços" },
 ] as const;
 
-const SOLUCOES = [
-  { href: "/#como-funciona", title: "Pagamento na mesa", text: "QR Code, conta ao vivo e Pix" },
-  { href: "/#painel", title: "Painel do restaurante", text: "Mesas, caixa e pagamentos" },
-  { href: "/#para-garcons", title: "Área do garçom", text: "Gorjetas extras e saques" },
-  { href: "/#integracoes", title: "Integrações", text: "O que já funciona e o que vem aí" },
-] as const;
+/** Logo oficial; troca para a versão branca quando o fundo da página fica escuro. */
+function Logo({ className }: { className?: string }) {
+  return (
+    <>
+      <img src={logo} alt="Tipe" width={462} height={141} className={cn("logo-claro", className)} />
+      <img
+        src={logoBranco}
+        alt=""
+        aria-hidden
+        width={462}
+        height={141}
+        className={cn("logo-escuro", className)}
+      />
+    </>
+  );
+}
 
 export function LandingHeader() {
   const [scrolled, setScrolled] = useState(false);
@@ -75,17 +88,12 @@ export function LandingHeader() {
         )}
       >
         <div className="container-page flex h-16 items-center justify-between gap-4">
-          <Link to="/" aria-label="TIPE, página inicial" className="shrink-0">
-            <img src={logo} alt="TIPE" width={120} height={36} className="h-8 w-auto" />
+          <Link to="/" aria-label="Tipe, página inicial" className="shrink-0">
+            <Logo className="h-8 w-auto" />
           </Link>
 
           <nav aria-label="Principal" className="hidden items-center gap-0.5 lg:flex">
-            {NAV.map((n) => (
-              <a key={n.href} href={n.href} className={linkCls}>
-                {n.label}
-              </a>
-            ))}
-            <div ref={solRef} className="relative">
+            <div ref={solRef}>
               <button
                 type="button"
                 aria-expanded={solucoes}
@@ -93,38 +101,72 @@ export function LandingHeader() {
                 onClick={() => setSolucoes((v) => !v)}
                 className={cn(linkCls, "inline-flex items-center gap-1")}
               >
-                Soluções{" "}
+                Produtos{" "}
                 <ChevronDown
                   className={cn("h-3.5 w-3.5 transition-transform", solucoes && "rotate-180")}
                 />
               </button>
               {solucoes && (
-                <div className="absolute left-1/2 top-full mt-2 w-[22rem] -translate-x-1/2">
-                  <div className="menu-in rounded-2xl border border-border bg-surface p-2 shadow-lift">
-                    {SOLUCOES.map((s) => (
-                      <a
-                        key={s.title}
-                        href={s.href}
-                        onClick={() => setSolucoes(false)}
-                        className="block rounded-xl px-3 py-2.5 transition-colors hover:bg-background-muted"
+                <div className="absolute inset-x-0 top-full">
+                  <div className="menu-in container-page pb-6">
+                    <div className="grid grid-cols-[1fr_17rem] gap-3 rounded-[1.75rem] border border-border bg-background p-3 shadow-lift">
+                      <ul className="grid grid-cols-2 gap-1 xl:grid-cols-3">
+                        {PRODUTOS.map((p) => (
+                          <li key={p.slug}>
+                            <a
+                              href={`/produtos/${p.slug}`}
+                              onClick={() => setSolucoes(false)}
+                              className="group flex items-center gap-3 rounded-2xl p-2.5 transition-colors hover:bg-background-muted"
+                            >
+                              <img
+                                src={fotoSrc(p.foto).src}
+                                alt=""
+                                loading="lazy"
+                                className="h-16 w-16 shrink-0 rounded-xl object-cover transition-transform duration-700 group-hover:scale-105"
+                                style={{ objectPosition: p.posicao }}
+                              />
+                              <span className="min-w-0">
+                                <span className="flex items-center gap-2 text-[0.95rem] font-medium">
+                                  {p.nome}
+                                  {p.status === "em-breve" && (
+                                    <span className="rounded-full bg-background-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
+                                      Em breve
+                                    </span>
+                                  )}
+                                </span>
+                                <span className="mt-0.5 block text-xs leading-snug text-muted-foreground">
+                                  {p.resumo}
+                                </span>
+                              </span>
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                      <Link
+                        to="/simulador"
+                        className="group relative flex flex-col justify-end overflow-hidden rounded-2xl bg-[#021E34] p-5 text-white"
                       >
-                        <span className="block text-sm font-medium">{s.title}</span>
-                        <span className="block text-xs text-muted-foreground">{s.text}</span>
-                      </a>
-                    ))}
-                    <Link
-                      to="/simulador"
-                      className="mt-1 flex items-center justify-between rounded-xl bg-background-muted px-3 py-2.5 text-sm font-medium"
-                    >
-                      Testar o simulador <span aria-hidden>→</span>
-                    </Link>
+                        <img
+                          src={fotoSrc("pay").src}
+                          alt=""
+                          loading="lazy"
+                          className="absolute inset-0 h-full w-full object-cover opacity-55 transition-transform duration-1000 group-hover:scale-105"
+                        />
+                        <span className="relative text-sm text-white/80">Experimente agora</span>
+                        <span className="relative mt-1 font-display text-xl font-medium leading-tight">
+                          Pague a Mesa 12 no simulador →
+                        </span>
+                      </Link>
+                    </div>
                   </div>
                 </div>
               )}
             </div>
-            <a href="/#precos" className={linkCls}>
-              Preços
-            </a>
+            {NAV.map((n) => (
+              <a key={n.href} href={n.href} className={linkCls}>
+                {n.label}
+              </a>
+            ))}
           </nav>
 
           <div className="flex items-center gap-1.5">
@@ -136,7 +178,7 @@ export function LandingHeader() {
             </Link>
             <a
               href="/teste-gratis"
-              className="hidden h-11 items-center rounded-full bg-ink px-6 text-[0.95rem] font-medium text-white transition-colors hover:bg-ink-soft sm:inline-flex"
+              className="btn-tema hidden h-11 items-center rounded-full px-6 text-[0.95rem] font-medium sm:inline-flex"
             >
               Teste grátis
             </a>
@@ -159,14 +201,27 @@ export function LandingHeader() {
             className="menu-in fixed inset-x-0 bottom-0 top-16 z-40 overflow-y-auto bg-background px-5 pb-10 pt-4 lg:hidden"
           >
             <nav aria-label="Menu" className="flex flex-col">
-              {[
-                ...NAV,
-                { href: "/#para-garcons", label: "Para garçons" },
-                { href: "/#painel", label: "Painel do restaurante" },
-                { href: "/#integracoes", label: "Integrações" },
-                { href: "/#precos", label: "Preços" },
-                { href: "/#duvidas", label: "Dúvidas" },
-              ].map((n) => (
+              <p className="pb-2 pt-2 text-sm text-muted-foreground">Produtos</p>
+              <ul className="grid grid-cols-2 gap-2 pb-4">
+                {PRODUTOS.map((p) => (
+                  <li key={p.slug}>
+                    <a
+                      href={`/produtos/${p.slug}`}
+                      onClick={() => setMenu(false)}
+                      className="flex items-center gap-2.5 rounded-2xl border border-border p-2"
+                    >
+                      <img
+                        src={fotoSrc(p.foto).src}
+                        alt=""
+                        loading="lazy"
+                        className="h-11 w-11 shrink-0 rounded-xl object-cover"
+                      />
+                      <span className="text-sm font-medium leading-tight">{p.nome}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+              {[...NAV, { href: "/#duvidas", label: "Dúvidas" }].map((n) => (
                 <a
                   key={n.href + n.label}
                   href={n.href}
@@ -188,7 +243,7 @@ export function LandingHeader() {
               <a
                 href="/teste-gratis"
                 onClick={() => setMenu(false)}
-                className="flex h-12 items-center justify-center rounded-full bg-ink font-medium text-white"
+                className="btn-tema flex h-12 items-center justify-center rounded-full font-medium"
               >
                 Teste grátis
               </a>
@@ -209,7 +264,7 @@ export function LandingHeader() {
         data-visivel={escondido || undefined}
         aria-hidden={!escondido}
         tabIndex={escondido ? undefined : -1}
-        className="cta-fixo fixed right-4 top-3 z-40 inline-flex h-11 items-center rounded-full bg-ink px-6 text-[0.95rem] font-medium text-white shadow-lift sm:right-6"
+        className="cta-fixo btn-tema fixed right-4 top-3 z-40 inline-flex h-11 items-center rounded-full px-6 text-[0.95rem] font-medium shadow-lift sm:right-6"
       >
         Teste grátis
       </a>
@@ -221,17 +276,10 @@ export function LandingFooter() {
   const col = "space-y-2.5 text-sm";
   const a = "block text-muted-foreground transition-colors hover:text-foreground";
   return (
-    <footer className="border-t border-border bg-surface">
+    <footer data-tema="claro" className="border-t border-border">
       <div className="container-page grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
         <div>
-          <img
-            src={logo}
-            alt="TIPE"
-            width={120}
-            height={36}
-            loading="lazy"
-            className="h-8 w-auto"
-          />
+          <Logo className="h-8 w-auto" />
           <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
             Pagamento na mesa por QR Code para restaurantes, bares e cafeterias.
           </p>
@@ -257,17 +305,13 @@ export function LandingFooter() {
           </div>
         </div>
         <div className={col}>
-          <p className="font-display font-medium">Produto</p>
-          <a href="/#como-funciona" className={a}>
-            Como funciona
-          </a>
-          <a href="/#painel" className={a}>
-            Painel do restaurante
-          </a>
-          <a href="/#para-garcons" className={a}>
-            Área do garçom
-          </a>
-          <a href="/#integracoes" className={a}>
+          <p className="font-display font-medium">Produtos</p>
+          {PRODUTOS.map((p) => (
+            <a key={p.slug} href={`/produtos/${p.slug}`} className={a}>
+              {p.nome}
+            </a>
+          ))}
+          <a href="/integracoes" className={a}>
             Integrações
           </a>
           <Link to="/simulador" className={a}>
@@ -276,7 +320,7 @@ export function LandingFooter() {
         </div>
         <div className={col}>
           <p className="font-display font-medium">Comercial</p>
-          <a href="/#precos" className={a}>
+          <a href="/precos" className={a}>
             Preços
           </a>
           <a href="/teste-gratis" className={a}>
@@ -321,6 +365,10 @@ export function LandingFooter() {
           </Link>
           <PrivacyPreferences triggerClassName={a} />
         </div>
+      </div>
+      <div aria-hidden className="container-page overflow-hidden pb-4">
+        <img src={logo} alt="" width={462} height={141} loading="lazy" className="logo-claro w-full" />
+        <img src={logoBranco} alt="" width={462} height={141} loading="lazy" className="logo-escuro w-full" />
       </div>
       <div className="border-t border-border">
         <p className="container-page py-5 text-xs text-muted-foreground">

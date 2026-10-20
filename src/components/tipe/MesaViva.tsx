@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import wordmark from "@/assets/tipe-wordmark-light.png.asset.json";
+import wordmarkUrl from "@/assets/marca/tipe-logo-branco.svg";
 import roundLogo from "@/assets/tipe-logo-redondo.png.asset.json";
 import totemMesa from "@/assets/totem-tipe-mesa12.webp";
 import mascotWaiting from "@/assets/mascot-waiting-hd.webp";
@@ -489,7 +489,7 @@ export function MesaViva() {
         <div ref={root} className="relative mx-auto h-full max-w-7xl">
           {/* 0 */}
           <div className="layer invisible s0 absolute inset-0 flex flex-col items-center justify-center px-8 text-center">
-            <img src={wordmark.url} alt="TIPE" className="wm w-[min(70vw,460px)]" />
+            <img src={wordmarkUrl} alt="Tipe" width={462} height={141} className="wm w-[min(70vw,460px)]" />
             <p className="mt-8 max-w-xl text-sm font-medium leading-6 text-secondary-foreground/80 sm:text-base">
               Pagamento na mesa por QR Code. Sem app, sem fila, sem maquininha rodando.
             </p>
@@ -861,7 +861,7 @@ export function MesaViva() {
           <div className="absolute inset-x-6 bottom-9 flex items-center justify-between pr-14 text-xs text-secondary-foreground/65 lg:inset-x-16 lg:pr-0">
             <span>Role para ver a mesa acontecer</span>
             <a
-              href="#para-clientes"
+              href="#para-quem"
               onClick={() => trackMesaViva("skip")}
               className="font-semibold text-primary hover:underline"
             >

@@ -126,3 +126,9 @@ Regras:
 - `npx tsc --noEmit`, `npx eslint`, `npx vitest run` e `bun run build`.
 - Capturas com Playwright em 1440×900 e 390×844. O harness de telas autenticadas, com dados fictícios do "Maré Alta", fica fora do repositório.
 - Comparação lado a lado com as capturas da sunday, feitas nas páginas públicas.
+
+## Site no estilo sunday (20/10)
+
+- Moldura: `src/components/tipe/site/Site.tsx` (`SitePage`, `Secao tema="claro|escuro"`, `Titulo`, `FaixaCta`). Quando uma seção escura cruza o meio da tela, a página inteira passa para preto em 0,5 s (variáveis `--pg-*` registradas com `@property`); o logo troca para a versão branca e `.btn-tema` inverte.
+- Fotos: `Foto` (src/assets/produtos/<nome>-<800|1600>.webp) entra ampliada 1,12× e assenta em 2,4 s; hover de card aproxima 1,05× em 1,2 s. Fotos geradas com /mnt/project-files/landing-v3/fotos-ia/gerar-produtos.py.
+- Produtos: catálogo em `site/produtos.ts` → páginas `/produtos/<slug>` (pay, order, staff, kitchen, restaurant, ai, guest). Status "em-breve" aparece como selo. Também `/precos` e `/integracoes`.

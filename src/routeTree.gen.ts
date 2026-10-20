@@ -15,7 +15,9 @@ import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as FundadorRouteImport } from './routes/fundador'
+import { Route as IntegracoesRouteImport } from './routes/integracoes'
 import { Route as McpRouteImport } from './routes/mcp'
+import { Route as PrecosRouteImport } from './routes/precos'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SimuladorRouteImport } from './routes/simulador'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
@@ -35,6 +37,7 @@ import { Route as LegalGlossarioRouteImport } from './routes/legal.glossario'
 import { Route as LegalVersoesRouteImport } from './routes/legal.versoes'
 import { Route as PrivacidadeIndexRouteImport } from './routes/privacidade.index'
 import { Route as PrivacidadeSolicitacaoRouteImport } from './routes/privacidade.solicitacao'
+import { Route as ProdutosProdutoRouteImport } from './routes/produtos.$produto'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin.leads'
 import { Route as ApiPublicCspReportRouteImport } from './routes/api/public/csp-report'
@@ -77,9 +80,19 @@ const FundadorRoute = FundadorRouteImport.update({
   path: '/fundador',
   getParentRoute: () => rootRouteImport,
 } as any)
+const IntegracoesRoute = IntegracoesRouteImport.update({
+  id: '/integracoes',
+  path: '/integracoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const McpRoute = McpRouteImport.update({
   id: '/mcp',
   path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrecosRoute = PrecosRouteImport.update({
+  id: '/precos',
+  path: '/precos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -178,6 +191,11 @@ const PrivacidadeSolicitacaoRoute = PrivacidadeSolicitacaoRouteImport.update({
   path: '/privacidade/solicitacao',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProdutosProdutoRoute = ProdutosProdutoRouteImport.update({
+  id: '/produtos/$produto',
+  path: '/produtos/$produto',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
   id: '/.lovable/oauth/consent',
   path: '/.lovable/oauth/consent',
@@ -249,7 +267,9 @@ export interface FileRoutesByFullPath {
   '/cookies': typeof CookiesRoute
   '/entrar': typeof EntrarRoute
   '/fundador': typeof FundadorRoute
+  '/integracoes': typeof IntegracoesRoute
   '/mcp': typeof McpRoute
+  '/precos': typeof PrecosRoute
   '/reset-password': typeof ResetPasswordRoute
   '/simulador': typeof SimuladorRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -266,6 +286,7 @@ export interface FileRoutesByFullPath {
   '/legal/glossario': typeof LegalGlossarioRoute
   '/legal/versoes': typeof LegalVersoesRoute
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
+  '/produtos/$produto': typeof ProdutosProdutoRoute
   '/$restaurante/': typeof RestauranteIndexRoute
   '/legal/': typeof LegalIndexRoute
   '/privacidade/': typeof PrivacidadeIndexRoute
@@ -288,7 +309,9 @@ export interface FileRoutesByTo {
   '/cookies': typeof CookiesRoute
   '/entrar': typeof EntrarRoute
   '/fundador': typeof FundadorRoute
+  '/integracoes': typeof IntegracoesRoute
   '/mcp': typeof McpRoute
+  '/precos': typeof PrecosRoute
   '/reset-password': typeof ResetPasswordRoute
   '/simulador': typeof SimuladorRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -305,6 +328,7 @@ export interface FileRoutesByTo {
   '/legal/glossario': typeof LegalGlossarioRoute
   '/legal/versoes': typeof LegalVersoesRoute
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
+  '/produtos/$produto': typeof ProdutosProdutoRoute
   '/$restaurante': typeof RestauranteIndexRoute
   '/legal': typeof LegalIndexRoute
   '/privacidade': typeof PrivacidadeIndexRoute
@@ -329,7 +353,9 @@ export interface FileRoutesById {
   '/cookies': typeof CookiesRoute
   '/entrar': typeof EntrarRoute
   '/fundador': typeof FundadorRoute
+  '/integracoes': typeof IntegracoesRoute
   '/mcp': typeof McpRoute
+  '/precos': typeof PrecosRoute
   '/reset-password': typeof ResetPasswordRoute
   '/simulador': typeof SimuladorRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -346,6 +372,7 @@ export interface FileRoutesById {
   '/legal/glossario': typeof LegalGlossarioRoute
   '/legal/versoes': typeof LegalVersoesRoute
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
+  '/produtos/$produto': typeof ProdutosProdutoRoute
   '/$restaurante/': typeof RestauranteIndexRoute
   '/legal/': typeof LegalIndexRoute
   '/privacidade/': typeof PrivacidadeIndexRoute
@@ -370,7 +397,9 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/entrar'
     | '/fundador'
+    | '/integracoes'
     | '/mcp'
+    | '/precos'
     | '/reset-password'
     | '/simulador'
     | '/sitemap.xml'
@@ -387,6 +416,7 @@ export interface FileRouteTypes {
     | '/legal/glossario'
     | '/legal/versoes'
     | '/privacidade/solicitacao'
+    | '/produtos/$produto'
     | '/$restaurante/'
     | '/legal/'
     | '/privacidade/'
@@ -409,7 +439,9 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/entrar'
     | '/fundador'
+    | '/integracoes'
     | '/mcp'
+    | '/precos'
     | '/reset-password'
     | '/simulador'
     | '/sitemap.xml'
@@ -426,6 +458,7 @@ export interface FileRouteTypes {
     | '/legal/glossario'
     | '/legal/versoes'
     | '/privacidade/solicitacao'
+    | '/produtos/$produto'
     | '/$restaurante'
     | '/legal'
     | '/privacidade'
@@ -449,7 +482,9 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/entrar'
     | '/fundador'
+    | '/integracoes'
     | '/mcp'
+    | '/precos'
     | '/reset-password'
     | '/simulador'
     | '/sitemap.xml'
@@ -466,6 +501,7 @@ export interface FileRouteTypes {
     | '/legal/glossario'
     | '/legal/versoes'
     | '/privacidade/solicitacao'
+    | '/produtos/$produto'
     | '/$restaurante/'
     | '/legal/'
     | '/privacidade/'
@@ -490,7 +526,9 @@ export interface RootRouteChildren {
   CookiesRoute: typeof CookiesRoute
   EntrarRoute: typeof EntrarRoute
   FundadorRoute: typeof FundadorRoute
+  IntegracoesRoute: typeof IntegracoesRoute
   McpRoute: typeof McpRoute
+  PrecosRoute: typeof PrecosRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SimuladorRoute: typeof SimuladorRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -504,6 +542,7 @@ export interface RootRouteChildren {
   LegalGlossarioRoute: typeof LegalGlossarioRoute
   LegalVersoesRoute: typeof LegalVersoesRoute
   PrivacidadeSolicitacaoRoute: typeof PrivacidadeSolicitacaoRoute
+  ProdutosProdutoRoute: typeof ProdutosProdutoRoute
   RestauranteIndexRoute: typeof RestauranteIndexRoute
   LegalIndexRoute: typeof LegalIndexRoute
   PrivacidadeIndexRoute: typeof PrivacidadeIndexRoute
@@ -564,11 +603,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FundadorRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/integracoes': {
+      id: '/integracoes'
+      path: '/integracoes'
+      fullPath: '/integracoes'
+      preLoaderRoute: typeof IntegracoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/mcp': {
       id: '/mcp'
       path: '/mcp'
       fullPath: '/mcp'
       preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/precos': {
+      id: '/precos'
+      path: '/precos'
+      fullPath: '/precos'
+      preLoaderRoute: typeof PrecosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -704,6 +757,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivacidadeSolicitacaoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/produtos/$produto': {
+      id: '/produtos/$produto'
+      path: '/produtos/$produto'
+      fullPath: '/produtos/$produto'
+      preLoaderRoute: typeof ProdutosProdutoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/.lovable/oauth/consent': {
       id: '/.lovable/oauth/consent'
       path: '/.lovable/oauth/consent'
@@ -815,7 +875,9 @@ const rootRouteChildren: RootRouteChildren = {
   CookiesRoute: CookiesRoute,
   EntrarRoute: EntrarRoute,
   FundadorRoute: FundadorRoute,
+  IntegracoesRoute: IntegracoesRoute,
   McpRoute: McpRoute,
+  PrecosRoute: PrecosRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SimuladorRoute: SimuladorRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
@@ -830,6 +892,7 @@ const rootRouteChildren: RootRouteChildren = {
   LegalGlossarioRoute: LegalGlossarioRoute,
   LegalVersoesRoute: LegalVersoesRoute,
   PrivacidadeSolicitacaoRoute: PrivacidadeSolicitacaoRoute,
+  ProdutosProdutoRoute: ProdutosProdutoRoute,
   RestauranteIndexRoute: RestauranteIndexRoute,
   LegalIndexRoute: LegalIndexRoute,
   PrivacidadeIndexRoute: PrivacidadeIndexRoute,

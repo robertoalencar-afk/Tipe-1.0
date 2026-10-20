@@ -579,3 +579,58 @@
     0 18px 0 color-mix(in oklab, var(--brand-primary-strong) 60%, black),
     0 40px 60px -10px rgb(0 0 0 / 0.6);
 }
+
+/* ---------------------------------------------------------------------------
+   Site no estilo sunday: o fundo da página inteira troca de branco para preto
+   quando uma seção data-tema="escuro" cruza o meio da tela (0,5 s, expo-out),
+   e as fotos assentam com zoom lento. Ver src/components/tipe/site/.
+--------------------------------------------------------------------------- */
+@property --pg-bg { syntax: "<color>"; inherits: true; initial-value: #fff; }
+@property --pg-fg { syntax: "<color>"; inherits: true; initial-value: #111; }
+@property --pg-muted { syntax: "<color>"; inherits: true; initial-value: #6b6b6b; }
+@property --pg-line { syntax: "<color>"; inherits: true; initial-value: #e5e5e5; }
+@property --pg-soft { syntax: "<color>"; inherits: true; initial-value: #f5f5f5; }
+.sunday {
+  --pg-bg: oklch(1 0 0);
+  --pg-fg: oklch(0.13 0 0);
+  --pg-muted: oklch(0.48 0 0);
+  --pg-line: oklch(0.9 0 0);
+  --pg-soft: oklch(0.968 0 0);
+  --background: var(--pg-bg);
+  --surface: var(--pg-bg);
+  --foreground: var(--pg-fg);
+  --muted-foreground: var(--pg-muted);
+  --border: var(--pg-line);
+  --background-muted: var(--pg-soft);
+  background-color: var(--pg-bg);
+  color: var(--pg-fg);
+  transition: --pg-bg 500ms var(--ease-expo), --pg-fg 500ms var(--ease-expo), --pg-muted 500ms var(--ease-expo), --pg-line 500ms var(--ease-expo), --pg-soft 500ms var(--ease-expo);
+}
+.sunday[data-tema="escuro"] {
+  --pg-bg: oklch(0.11 0 0);
+  --pg-fg: oklch(0.98 0 0);
+  --pg-muted: oklch(0.72 0 0);
+  --pg-line: oklch(1 0 0 / 0.14);
+  --pg-soft: oklch(0.18 0 0);
+}
+/* Botão principal: preto no claro, branco no escuro (como a sunday). */
+.btn-tema { background-color: var(--pg-fg); color: var(--pg-bg); }
+.btn-tema:hover { background-color: color-mix(in oklab, var(--pg-fg) 82%, var(--pg-bg)); }
+.foto-zoom > img { transform: scale(1.12); transition: transform 2400ms var(--ease-expo); will-change: transform; }
+.foto-zoom[data-in] > img { transform: scale(1); }
+.group:hover .foto-zoom[data-in] > img { transform: scale(1.05); transition-duration: 1200ms; }
+@keyframes marquee { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-50%, 0, 0); } }
+.marquee { animation: marquee 40s linear infinite; }
+.marquee:hover { animation-play-state: paused; }
+.sem-barra { scrollbar-width: none; }
+.sem-barra::-webkit-scrollbar { display: none; }
+@keyframes troca-in { from { opacity: 0; transform: scale(1.04); } to { opacity: 1; transform: none; } }
+.troca-in { animation: troca-in 900ms var(--ease-expo) both; }
+@media (prefers-reduced-motion: reduce) {
+  .sunday { transition: none; }
+  .foto-zoom > img, .group:hover .foto-zoom[data-in] > img { transform: none; transition: none; }
+  .marquee, .troca-in { animation: none; }
+}
+.logo-escuro { display: none; }
+.sunday[data-tema="escuro"] .logo-claro { display: none; }
+.sunday[data-tema="escuro"] .logo-escuro { display: block; }
