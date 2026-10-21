@@ -6,16 +6,14 @@ import { LazyLebreAssistant } from "@/components/tipe/LazyLebreAssistant";
 import { Eyebrow } from "@/components/tipe/ds";
 import { LebreTartaruga } from "@/components/tipe/landing/LebreTartaruga";
 import { LineReveal, Reveal } from "@/components/tipe/landing/motion";
-import {
-  AbasHome,
-  IntegracoesHome,
-  PessoasHome,
-  PlanosHome,
-  ProdutosHome,
-  TopoHome,
-} from "@/components/tipe/site/Home";
-import { Experimente } from "@/components/tipe/site/Experimente";
-import { FaixaCta, SitePage } from "@/components/tipe/site/Site";
+import { IntegracoesHome, PlanosHome, ProdutosHome, TopoHome } from "@/components/tipe/site/Home";
+import { CarrosselHistorias } from "@/components/tipe/site/CarrosselHistorias";
+import { CtaVibrante } from "@/components/tipe/site/CtaVibrante";
+import { FluxoPagamento } from "@/components/tipe/site/FluxoPagamento";
+import { NumerosHome } from "@/components/tipe/site/NumerosHome";
+import { StaffHome } from "@/components/tipe/site/StaffHome";
+import { Fios } from "@/components/tipe/site/Bigode";
+import { SitePage } from "@/components/tipe/site/Site";
 
 const TITLE = "Tipe | Pague. Sem esperar. | Pagamento na mesa por QR Code";
 const DESCRIPTION =
@@ -48,15 +46,16 @@ function LandingPage() {
       <span id="principal" aria-hidden />
       <TopoHome />
       <ProdutosHome />
+      <CarrosselHistorias />
+      <FluxoPagamento />
       <LebreTartaruga />
-      <PessoasHome />
-      <AbasHome />
-      <Experimente />
+      <StaffHome />
+      <NumerosHome />
       <IntegracoesHome />
       <LandingCalculator />
       <PlanosHome />
       <Duvidas />
-      <FaixaCta />
+      <CtaVibrante />
     </SitePage>
   );
 }
@@ -85,7 +84,7 @@ const FAQ: { label: string; faqs: [string, string][] }[] = [
       ],
       [
         "Como funciona a gorjeta extra?",
-        "A taxa de serviço é definida pelo restaurante e entra na conta. A gorjeta extra é opcional e aparece depois do pagamento e da avaliação. A Tipe recebe o valor e separa 70% para a equipe do restaurante e 30% como taxa da plataforma. O cliente vê os valores antes de confirmar.",
+        "A taxa de serviço é definida pelo restaurante e entra na conta; pela Lei 13.419/2017, gorjeta e taxa de serviço pertencem aos trabalhadores. A gorjeta extra é opcional, nunca vem marcada, e o cliente vê o valor antes de confirmar. A Tipe recebe a gorjeta extra e separa 70% para quem atendeu e 30% como taxa da plataforma.",
       ],
     ],
   },
@@ -109,6 +108,10 @@ const FAQ: { label: string; faqs: [string, string][] }[] = [
         `Assinatura mensal de acordo com o número de mesas, sem tarifa por transação nas contas; o restaurante paga apenas as tarifas do Pagar.me. Os valores serão divulgados no lançamento e os primeiros restaurantes ganham ${TRIAL_DAYS} dias grátis, sem cartão de crédito.`,
       ],
       [
+        "De onde vêm os números da página?",
+        "De fontes públicas: Banco Central do Brasil, Abecs e Abrasel, com o link de cada estudo ao lado do número. São dados de mercado, não resultados da Tipe, que está em pré-lançamento.",
+      ],
+      [
         "E se um pagamento sair errado?",
         "Pagamentos presenciais podem ser cancelados pelo caixa e os itens voltam para a conta. Estornos e contestações do Pagar.me aparecem como pendência no caixa, com registro de quem resolveu.",
       ],
@@ -128,9 +131,10 @@ function Duvidas() {
           />
           <a
             href="/teste-gratis"
-            className="mt-8 inline-flex items-center gap-2 font-medium text-brand-strong hover:underline"
+            className="com-fios mt-8 inline-flex items-center gap-2 font-medium text-brand-strong"
           >
-            Ainda com dúvida? Fale com a equipe <ArrowRight className="h-4 w-4" />
+            Ainda com dúvida? Fale com a equipe <ArrowRight className="seta h-4 w-4" />
+            <Fios intensidade="leve" />
           </a>
         </div>
         <div className="space-y-10">

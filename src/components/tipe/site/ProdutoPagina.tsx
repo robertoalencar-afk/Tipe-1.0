@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { AbasDemo, type ItemAba } from "./AbasDemo";
 import { Experimente } from "./Experimente";
 import { Foto, type NomeFoto } from "./Foto";
+import { CardProduto } from "./CardProduto";
 import { PRODUTOS, type Produto } from "./produtos";
 import { BotaoPrincipal, BotaoSecundario, FaixaCta, Secao, Titulo } from "./Site";
 
@@ -299,52 +300,6 @@ function Duvidas({ p }: { p: Produto }) {
 }
 
 /** Card de produto no formato da sunday: nome e promessa em cima, foto com a tela real embaixo. */
-export function CardProduto({ p, className }: { p: Produto; className?: string }) {
-  const tela = p.beneficios.find((b) => b.tela)?.tela;
-  return (
-    <a
-      href={`/produtos/${p.slug}`}
-      className={cn(
-        "group flex flex-col overflow-hidden rounded-[1.75rem] bg-background-muted transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1",
-        className,
-      )}
-      aria-label={`${p.nome}: ${p.resumo}`}
-    >
-      <div className="p-6 pb-5">
-        <p className="flex items-center gap-2 text-[0.95rem] text-muted-foreground">
-          <p.icone className="h-4 w-4" />
-          {p.nome}
-          {p.status === "em-breve" && (
-            <span className="rounded-full border border-border px-2 py-0.5 text-[11px]">Em breve</span>
-          )}
-        </p>
-        <p className="mt-3 font-display text-[1.45rem] font-normal leading-[1.1] tracking-[-0.03em]">
-          {p.titulo}
-        </p>
-      </div>
-      <div className="relative mx-3 mb-3 mt-auto overflow-hidden rounded-[1.25rem]">
-        <Foto
-          nome={p.foto}
-          alt=""
-          posicao={p.posicao}
-          sizes="(min-width: 1024px) 24rem, 80vw"
-          className="aspect-[4/4.2]"
-        />
-        {tela ? (
-          <div className="absolute -bottom-[38%] right-[8%] w-[44%] transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] group-hover:-translate-y-3">
-            <PhoneShot tela={tela} alt="" sizes="180px" />
-          </div>
-        ) : (
-          <CartaoInterface
-            cartao={p.cartao}
-            className="absolute inset-x-3 bottom-3 origin-bottom scale-[0.92] p-3.5 transition-transform duration-700 group-hover:scale-95 sm:p-4"
-          />
-        )}
-      </div>
-    </a>
-  );
-}
-
 function Relacionados({ p }: { p: Produto }) {
   const outros = PRODUTOS.filter((o) => o.slug !== p.slug).slice(0, 6);
   return (

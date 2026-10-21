@@ -8,6 +8,7 @@ import { LandingFooter, LandingHeader } from "@/components/tipe/landing/LandingC
 import { Palavras } from "@/components/tipe/landing/motion";
 import { TRIAL_DAYS } from "@/lib/tipe/plans";
 import { cn } from "@/lib/utils";
+import { Fios } from "./Bigode";
 
 /** Liga o fundo da página ao tema da seção que cruza o meio da tela. */
 function useTemaPorSecao(raiz: React.RefObject<HTMLDivElement | null>) {
@@ -149,11 +150,12 @@ export function BotaoPrincipal({
     <a
       href={href}
       className={cn(
-        "btn-tema inline-flex h-13 min-h-12 items-center gap-2 rounded-full px-7 text-[1rem] font-medium",
+        "btn-tema com-fios inline-flex h-13 min-h-12 items-center gap-2 rounded-full px-7 text-[1rem] font-medium",
         className,
       )}
     >
       {children}
+      <Fios intensidade="forte" />
     </a>
   );
 }
@@ -171,11 +173,12 @@ export function BotaoSecundario({
     <a
       href={href}
       className={cn(
-        "inline-flex min-h-12 items-center gap-2 rounded-full border border-foreground/25 px-7 text-[1rem] font-medium",
+        "com-fios inline-flex min-h-12 items-center gap-2 rounded-full border border-foreground/25 px-7 text-[1rem] font-medium",
         className,
       )}
     >
       {children}
+      <Fios />
     </a>
   );
 }

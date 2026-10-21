@@ -5,16 +5,16 @@
  */
 import { useRef, type CSSProperties, type ReactNode } from "react";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
-import { Bigodes } from "@/components/tipe/landing/Marcas";
 import { Palavras, Reveal, useVelocidadeFaixa } from "@/components/tipe/landing/motion";
 import { TRIAL_DAYS } from "@/lib/tipe/plans";
 import { cn } from "@/lib/utils";
 import { AbasDemo, type ItemAba } from "./AbasDemo";
+import { Focinho } from "./Bigode";
 import { Foto, fotoSrc, type NomeFoto } from "./Foto";
-import { GradeIntegracoes } from "./GradeIntegracoes";
 import { CardsPlanos } from "./Planos";
-import { CardProduto, CartaoInterface } from "./ProdutoPagina";
-import { PRODUTOS, produtoPorSlug } from "./produtos";
+import { CardProduto } from "./CardProduto";
+import { CartaoInterface } from "./ProdutoPagina";
+import { INTEGRACOES, PRODUTOS, produtoPorSlug } from "./produtos";
 import { BotaoPrincipal, BotaoSecundario, Secao, Titulo } from "./Site";
 
 /* ---------------------------------------------------------------- Topo */
@@ -48,7 +48,7 @@ export function TopoHome() {
             <Palavras imediato delay={390}>
               Sem esperar.
             </Palavras>
-            <Bigodes className="absolute -right-[0.9em] top-[0.3em] hidden h-[0.36em] w-[0.95em] sm:block" />
+            <Focinho className="absolute -right-[0.92em] top-[0.26em] h-[0.36em] w-[0.9em] sm:-right-[1.05em] sm:top-[0.22em] sm:h-[0.44em] sm:w-[1.1em]" />
           </span>
         </h1>
         <p
@@ -56,7 +56,7 @@ export function TopoHome() {
           style={{ "--d": "500ms" } as CSSProperties}
         >
           O cliente aponta a câmera, divide a conta e paga com Pix, Apple Pay ou Google Pay. O
-          garçom recebe a gorjeta, a cozinha vê o pedido e você acompanha tudo ao vivo.
+          garçom recebe a gorjeta e você acompanha cada mesa ao vivo.
         </p>
         <div
           className="hero-in mt-9 flex flex-wrap justify-center gap-3"
@@ -300,24 +300,57 @@ export function AbasHome() {
 
 /* --------------------------------------------------------- Integrações */
 
+const CORES_INTEGRACAO = ["#0FC9BD", "#f6f5f1", "#f4b860", "#9be7c4", "#6ec6ff", "#ffffff"];
+
+function FaixaIntegracoes({ itens, sentido, emBreve = false }: { itens: typeof INTEGRACOES; sentido: 1 | -1; emBreve?: boolean }) {
+  const lista = [...itens, ...itens, ...itens, ...itens];
+  return (
+    <div className="relative overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]">
+      <ul
+        className={cn("marquee flex w-max gap-3 py-1.5", sentido < 0 && "[animation-direction:reverse]")}
+        style={{ animationDuration: `${lista.length * 4}s` }}
+      >
+        {lista.map((it, i) => (
+          <li
+            key={i}
+            aria-hidden={i >= itens.length || undefined}
+            className={cn(
+              "flex h-24 w-[13.5rem] shrink-0 flex-col justify-between rounded-[1.25rem] px-5 py-4 sm:h-28 sm:w-[16rem]",
+              emBreve ? "border border-dashed border-white/30 text-white" : "text-[#021E34]",
+            )}
+            style={emBreve ? undefined : { background: CORES_INTEGRACAO[i % CORES_INTEGRACAO.length] }}
+          >
+            <span className={cn("text-[0.72rem] font-medium uppercase tracking-[0.08em]", emBreve ? "text-white/60" : "opacity-75")}>
+              {it.tipo} · {emBreve ? "em desenvolvimento" : "disponível"}
+            </span>
+            <span className="font-display text-[1.45rem] font-medium leading-none tracking-[-0.04em] sm:text-[1.7rem]">{it.nome}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export function IntegracoesHome() {
+  const prontas = INTEGRACOES.filter((i) => i.status === "disponivel");
+  const aCaminho = INTEGRACOES.filter((i) => i.status !== "disponivel");
   return (
     <Secao tema="escuro" id="integracoes">
-      <div className="container-page grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:items-center lg:gap-20">
-        <div>
-          <Titulo
-            rotulo="Integrações"
-            titulo="Tudo conversa, do pedido ao Pix."
-            texto="Use a Tipe completa ou só o fechamento da conta junto do PDV que você já tem. O que ainda está a caminho aparece assim."
-          />
-          <a
-            href="/integracoes"
-            className="mt-8 inline-flex min-h-12 items-center gap-2 rounded-full border border-foreground/25 px-7 font-medium"
-          >
-            Ver integrações <ArrowRight className="h-4 w-4" />
-          </a>
-        </div>
-        <GradeIntegracoes compacta />
+      <div className="container-page">
+        <Titulo
+          centro
+          rotulo="Integrações"
+          titulo="Conversa com o que você já usa."
+          texto="Pagamentos e lançamento de pedidos funcionam hoje. O que está em desenvolvimento aparece separado, sem promessa de data."
+        />
+      </div>
+      <div className="mt-12 space-y-3 sm:mt-16">
+        <FaixaIntegracoes itens={prontas} sentido={1} />
+        <FaixaIntegracoes itens={aCaminho} sentido={-1} emBreve />
+      </div>
+      <div className="container-page mt-10 flex flex-col items-center gap-3 text-center">
+        <BotaoSecundario href="/integracoes">Ver todas as integrações</BotaoSecundario>
+        <p className="text-sm text-muted-foreground">Usa outro sistema? Conte qual na conversa de implantação.</p>
       </div>
     </Secao>
   );

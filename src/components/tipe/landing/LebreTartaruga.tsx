@@ -7,6 +7,8 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Eyebrow } from "@/components/tipe/ds";
 import { LineReveal, Reveal } from "./motion";
+import { MascoteVivo } from "@/components/tipe/site/MascoteVivo";
+import { VideoLebre } from "@/components/tipe/site/VideoLebre";
 import garcom800 from "@/assets/cenas/lebre-tartaruga-garcom-800.webp";
 import garcom1600 from "@/assets/cenas/lebre-tartaruga-garcom-1600.webp";
 import dono800 from "@/assets/cenas/lebre-tartaruga-dono-800.webp";
@@ -58,7 +60,7 @@ const CENAS = [
     aba: "Gorjeta",
     p: [gorjeta800, gorjeta1600],
     antes: "Sem dinheiro trocado, o garçom fica sem gorjeta.",
-    depois: "Depois de pagar, o cliente pode deixar uma gorjeta extra pelo celular.",
+    depois: "Na hora de pagar, o cliente pode deixar uma gorjeta extra para quem atendeu.",
     alt: "A tartaruga garçom olha uma mesa vazia; a lebre garçom recebe uma gorjeta no celular.",
   },
   {
@@ -78,14 +80,16 @@ export function LebreTartaruga() {
     <section id="jeito-tipe" className="scroll-mt-16 py-20 sm:py-28">
       <div className="container-page">
         <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
-          <div>
+          <div className="relative">
+            <MascoteVivo className="absolute -top-16 right-0 w-24 sm:-top-20 sm:w-28 lg:hidden" />
             <Eyebrow>A lebre e a tartaruga</Eyebrow>
             <LineReveal
               className="mt-4 font-display text-headline font-normal tracking-display"
               lines={["Desta vez,", "a lebre ganha."]}
             />
           </div>
-          <Reveal delay={200}>
+          <Reveal delay={200} className="relative">
+            <MascoteVivo className="absolute -top-36 right-4 hidden w-32 lg:block" alt="" />
             <p className="max-w-md text-lg leading-relaxed text-muted-foreground text-pretty">
               A tartaruga é o jeito antigo de pagar a conta. A lebre é a Tipe. Veja a diferença em
               cada lugar do restaurante.
@@ -93,10 +97,17 @@ export function LebreTartaruga() {
           </Reveal>
         </div>
 
+        <Reveal delay={150} className="mt-10 sm:mt-14">
+          <VideoLebre />
+        </Reveal>
+
+        <p className="mt-14 font-display text-[1.6rem] leading-tight tracking-[-0.03em] sm:text-[2rem]">
+          Em cada lugar do restaurante
+        </p>
         <div
           role="tablist"
           aria-label="Situações"
-          className="-mx-6 mt-10 flex gap-2 overflow-x-auto px-6 pb-1 [scrollbar-width:none] sm:mx-0 sm:px-0"
+          className="-mx-6 mt-5 flex gap-2 overflow-x-auto px-6 pb-1 [scrollbar-width:none] sm:mx-0 sm:px-0"
         >
           {CENAS.map((c, i) => (
             <button

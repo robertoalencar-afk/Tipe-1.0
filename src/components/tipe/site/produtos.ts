@@ -224,7 +224,7 @@ export const PRODUTOS: Produto[] = [
     banda: {
       titulo: "A gorjeta chega com o nome de quem atendeu.",
       texto:
-        "Depois de pagar, o cliente pode deixar uma gorjeta extra para o garçom da mesa. O valor entra no saldo dele, separado da conta do restaurante.",
+        "Na hora de pagar, o cliente pode deixar uma gorjeta extra para o garçom da mesa. O valor entra no saldo dele, separado da conta do restaurante.",
       tela: "gorjeta",
       altTela: "Tela de gorjeta extra no celular do cliente",
     },

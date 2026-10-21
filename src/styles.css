@@ -637,3 +637,160 @@
 @keyframes aba-progresso { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 .aba-progresso { animation: aba-progresso var(--tempo, 6s) linear both; }
 @media (prefers-reduced-motion: reduce) { .aba-progresso { animation: none; transform: scaleX(1); } }
+
+/* ---------------------------------------------------------------------------
+   V4: tokens de movimento (os mesmos de src/components/tipe/site/movimento.ts),
+   o focinho da lebre e o Tipe Whisker Motion (fios dos botões).
+--------------------------------------------------------------------------- */
+:root {
+  --mv-toque: 400ms;
+  --mv-painel: 750ms;
+  --mv-foto: 1200ms;
+  --mv-texto: 1500ms;
+  --mv-palavra: 140ms;
+  --mv-lista: 100ms;
+  --mv-subida: 24px;
+}
+
+.focinho { overflow: visible; color: var(--color-brand-strong); --ox: 0; --oy: 0; }
+.focinho-lado { transform-box: view-box; transition: transform 900ms var(--ease-expo); }
+.focinho-esq { transform-origin: 47px 25px; transform: rotate(calc(var(--ox) * 5deg + var(--oy) * -4deg)); }
+.focinho-dir { transform-origin: 73px 25px; transform: rotate(calc(var(--ox) * 5deg + var(--oy) * 4deg)); }
+.focinho-fio {
+  stroke: currentColor;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transform-box: view-box;
+  animation:
+    tipe-doodle 900ms var(--ease-expo) forwards calc(var(--d, 600ms) + var(--i) * 90ms),
+    focinho-tremor-esq 5.2s ease-in-out infinite calc(var(--d, 600ms) + 1200ms + var(--i) * 40ms);
+}
+.focinho-esq .focinho-fio { transform-origin: 47px 25px; }
+.focinho-dir .focinho-fio {
+  transform-origin: 73px 25px;
+  animation-name: tipe-doodle, focinho-tremor-dir;
+  animation-delay: calc(var(--d, 600ms) + var(--i) * 90ms), calc(var(--d, 600ms) + 1260ms + var(--i) * 55ms);
+}
+.focinho-nariz {
+  fill: #0fc9bd;
+  transform-box: fill-box;
+  transform-origin: 50% 35%;
+  animation:
+    focinho-surge 700ms var(--ease-expo) both calc(var(--d, 600ms) + 150ms),
+    focinho-fareja 5.2s ease-in-out infinite calc(var(--d, 600ms) + 1200ms);
+}
+.focinho-brilho { fill: #fff; opacity: 0.6; }
+.focinho:hover .focinho-fio,
+.focinho:hover .focinho-nariz { animation-duration: 900ms, 1.7s; }
+@keyframes focinho-surge { from { transform: scale(0); } 70% { transform: scale(1.12); } to { transform: none; } }
+@keyframes focinho-fareja {
+  0%, 56%, 82%, 100% { transform: none; }
+  60% { transform: translateY(0.5px) scale(0.9, 0.82); }
+  64% { transform: scale(1.06, 1.05); }
+  68% { transform: translateY(0.4px) scale(0.92, 0.86); }
+  72% { transform: scale(1.03); }
+}
+@keyframes focinho-tremor-esq {
+  0%, 56%, 82%, 100% { transform: none; }
+  60% { transform: rotate(-3.2deg); }
+  64% { transform: rotate(2deg); }
+  68% { transform: rotate(-2.4deg); }
+  73% { transform: rotate(0.8deg); }
+}
+@keyframes focinho-tremor-dir {
+  0%, 56%, 82%, 100% { transform: none; }
+  61% { transform: rotate(2.6deg); }
+  65% { transform: rotate(-1.6deg); }
+  69% { transform: rotate(2.2deg); }
+  74% { transform: rotate(-0.6deg); }
+}
+
+@layer components { .com-fios { position: relative; } .com-fios:active { scale: 0.98; } }
+.fios { position: absolute; inset: 0; pointer-events: none; --fl: 11px; --fio-cor: var(--fio, #0fc9bd); }
+.fios-leve { --fl: 8px; }
+.fios-forte { --fl: 14px; }
+.fios-lado { position: absolute; top: 50%; width: 0; height: 0; }
+.fios-dir { right: -2px; }
+.fios-esq { left: -2px; transform: scaleX(-1); }
+.fios i {
+  position: absolute;
+  left: 0;
+  top: -1px;
+  height: 2px;
+  width: var(--fl);
+  border-radius: 2px;
+  background: var(--fio-cor);
+  transform-origin: left center;
+  transform: rotate(var(--a)) translateX(0) scaleX(0);
+  opacity: 0;
+  transition:
+    transform 500ms var(--ease-expo) calc(var(--i) * 45ms),
+    opacity 220ms ease calc(var(--i) * 45ms);
+}
+.fios i:nth-child(1) { --a: -34deg; }
+.fios i:nth-child(2) { --a: 0deg; }
+.fios i:nth-child(3) { --a: 34deg; }
+.com-fios:is(:hover, :focus-visible, :active) .fios i { transform: rotate(var(--a)) translateX(6px) scaleX(1); opacity: 1; }
+.com-fios:is(:hover, :focus-visible) .fios-media .fios-lado,
+.com-fios:is(:hover, :focus-visible) .fios-forte .fios-lado { animation: fios-farejam 1.9s ease-in-out 520ms infinite; }
+.com-fios:is(:hover, :focus-visible) .fios-forte .fios-esq { animation-name: fios-farejam-esq; }
+@keyframes fios-farejam { 0%, 60%, 100% { rotate: 0deg; } 70% { rotate: -6deg; } 80% { rotate: 4deg; } 90% { rotate: -2deg; } }
+@keyframes fios-farejam-esq { 0%, 60%, 100% { rotate: 0deg; } 72% { rotate: 5deg; } 82% { rotate: -4deg; } 92% { rotate: 2deg; } }
+/* A seta dos botões anda junto com os fios. */
+.com-fios .seta { transition: transform 500ms var(--ease-expo); }
+.com-fios:is(:hover, :focus-visible) .seta { transform: translateX(3px); }
+
+@media (prefers-reduced-motion: reduce) {
+  .focinho-fio { animation: none; stroke-dashoffset: 0; }
+  .focinho-nariz { animation: none; }
+  .focinho-lado { transition: none; transform: none; }
+  .fios i { transition: opacity 150ms ease; }
+  .com-fios:is(:hover, :focus-visible) .fios-lado { animation: none; }
+  .com-fios:active { scale: none; }
+}
+.group:is(:hover, :focus-visible) .com-fios .fios i { transform: rotate(var(--a)) translateX(6px) scaleX(1); opacity: 1; }
+.group:is(:hover, :focus-visible) .com-fios .seta { transform: translateX(3px); }
+
+/* Seção de conversão vibrante: camadas com profundidade (--z), rolagem (--p) e cursor (--mx/--my). */
+.cta-palco { --p: 0; --mx: 0; --my: 0; }
+.cta-camada {
+  transform: translate3d(calc(var(--mx) * var(--z) * -12px), calc(var(--p) * var(--z) * -70px + var(--my) * var(--z) * -9px), 0);
+  transition: transform 700ms var(--ease-expo);
+  will-change: transform;
+}
+.cta-flutua { animation: cta-flutua var(--dur, 6s) ease-in-out infinite var(--atraso, 0s); }
+@keyframes cta-flutua { 0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); } 50% { transform: translate3d(0, -12px, 0) rotate(1.5deg); } }
+.cta-vidro {
+  background: linear-gradient(160deg, rgb(255 255 255 / 0.96), rgb(255 255 255 / 0.72));
+  border: 1px solid rgb(255 255 255 / 0.8);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    inset 0 -8px 16px rgb(2 30 52 / 0.07),
+    0 34px 50px -22px rgb(2 30 52 / 0.5),
+    0 6px 0 rgb(2 30 52 / 0.06);
+  backdrop-filter: blur(14px);
+  color: #021e34;
+}
+.cta-objeto { box-shadow: inset 0 2px 0 rgb(255 255 255 / 0.18), 0 30px 40px -18px rgb(2 30 52 / 0.6), 0 8px 0 #01121f; }
+.cta-check {
+  background: radial-gradient(circle at 34% 28%, #6ff0e4 0%, #12a99e 45%, #03665f 100%);
+  box-shadow: inset 0 3px 6px rgb(255 255 255 / 0.45), inset 0 -8px 14px rgb(1 50 46 / 0.5), 0 26px 36px -14px rgb(2 30 52 / 0.55);
+}
+@media (prefers-reduced-motion: reduce) {
+  .cta-camada { transform: none; transition: none; }
+  .cta-flutua { animation: none; }
+}
+/* Avisos do Tipe Staff: o mais novo desce do topo, os outros abrem espaço. */
+@keyframes aviso-chega { from { opacity: 0; transform: translate3d(0, -18px, 0) scale(0.96); } to { opacity: 1; transform: none; } }
+.aviso-staff { transition: transform 700ms var(--ease-expo), opacity 500ms ease; }
+.aviso-staff:first-child { animation: aviso-chega 800ms var(--ease-expo) both; }
+@media (prefers-reduced-motion: reduce) { .aviso-staff:first-child { animation: none; } }
+
+/* Menu do celular: painel desce e os itens entram em cascata (100ms por item). */
+@keyframes menu-cel { from { opacity: 0; clip-path: inset(0 0 100% 0); } to { opacity: 1; clip-path: inset(0 0 0 0); } }
+.menu-cel { animation: menu-cel var(--mv-painel, 750ms) var(--ease-expo) both; }
+@keyframes menu-item { from { opacity: 0; transform: translate3d(0, 14px, 0); } to { opacity: 1; transform: none; } }
+.menu-cel .menu-item { animation: menu-item 700ms var(--ease-expo) both; animation-delay: calc(120ms + var(--i, 0) * 40ms); }
+@media (prefers-reduced-motion: reduce) {
+  .menu-cel, .menu-cel .menu-item { animation: none !important; opacity: 1 !important; transform: none !important; clip-path: none !important; }
+}

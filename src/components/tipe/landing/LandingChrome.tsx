@@ -1,8 +1,10 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Link } from "@tanstack/react-router";
-import { ChevronDown, Instagram, Menu, MessageCircle, X } from "lucide-react";
+import { ArrowRight, ChevronDown, Instagram, Menu, MessageCircle, X } from "lucide-react";
 import logo from "@/assets/marca/tipe-logo.svg";
 import logoBranco from "@/assets/marca/tipe-logo-branco.svg";
+import { Fios } from "@/components/tipe/site/Bigode";
+import { LUZ } from "@/components/tipe/site/CardProduto";
 import { fotoSrc } from "@/components/tipe/site/Foto";
 import { GRUPOS, PRODUTOS } from "@/components/tipe/site/produtos";
 import { PrivacyPreferences } from "@/components/tipe/PrivacyPreferences";
@@ -67,10 +69,38 @@ export function LandingHeader() {
     };
   }, [solucoes]);
 
+  const headerRef = useRef<HTMLElement>(null);
+  const botaoMenu = useRef<HTMLButtonElement>(null);
   useEffect(() => {
     document.documentElement.style.overflow = menu ? "hidden" : "";
+    if (!menu) return () => void (document.documentElement.style.overflow = "");
+    // Menu do celular: foco vai para o primeiro link, Esc fecha e o Tab fica preso no cabeçalho.
+    const header = headerRef.current;
+    header?.querySelector<HTMLElement>("#menu-mobile a")?.focus({ preventScroll: true });
+    const tecla = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setMenu(false);
+        botaoMenu.current?.focus();
+        return;
+      }
+      if (e.key !== "Tab" || !header) return;
+      const focaveis = [...header.querySelectorAll<HTMLElement>("a[href], button")].filter(
+        (el) => el.offsetParent !== null,
+      );
+      const primeiro = focaveis[0];
+      const ultimo = focaveis[focaveis.length - 1];
+      if (e.shiftKey && document.activeElement === primeiro) {
+        e.preventDefault();
+        ultimo?.focus();
+      } else if (!e.shiftKey && document.activeElement === ultimo) {
+        e.preventDefault();
+        primeiro?.focus();
+      }
+    };
+    document.addEventListener("keydown", tecla);
     return () => {
       document.documentElement.style.overflow = "";
+      document.removeEventListener("keydown", tecla);
     };
   }, [menu]);
 
@@ -79,12 +109,17 @@ export function LandingHeader() {
   return (
     <>
       <header
+        ref={headerRef}
         data-escondido={escondido || undefined}
         className={cn(
-          "header-auto sticky top-0 z-40",
-          scrolled || menu
-            ? "border-b border-border/70 bg-background/85 backdrop-blur-xl"
-            : "border-b border-transparent bg-transparent",
+          "header-auto sticky top-0",
+          menu ? "z-[70]" : "z-40",
+          // Com o menu aberto, nada de backdrop-filter: ele vira o bloco de contenção do painel fixed.
+          menu
+            ? "border-b border-border/70 bg-background"
+            : scrolled
+              ? "border-b border-border/70 bg-background/85 backdrop-blur-xl"
+              : "border-b border-transparent bg-transparent",
         )}
       >
         <div className="container-page flex h-16 items-center justify-between gap-4">
@@ -122,7 +157,7 @@ export function LandingHeader() {
                                   <a
                                     href={`/produtos/${p.slug}`}
                                     onClick={() => setSolucoes(false)}
-                                    className="group flex items-center gap-3 rounded-2xl p-2.5 transition-colors hover:bg-background-muted"
+                                    className="group flex items-center gap-3 rounded-2xl p-2.5 transition-colors hover:bg-background-muted focus-visible:bg-background-muted"
                                   >
                                     <img
                                       src={fotoSrc(p.foto).src}
@@ -133,6 +168,11 @@ export function LandingHeader() {
                                     />
                                     <span className="min-w-0">
                                       <span className="flex items-center gap-2 text-[0.95rem] font-medium">
+                                        <span
+                                          aria-hidden
+                                          className="h-2 w-2 shrink-0 rounded-full"
+                                          style={{ background: LUZ[p.slug] ?? "#0FC9BD" }}
+                                        />
                                         {p.nome}
                                         {p.status === "em-breve" && (
                                           <span className="rounded-full bg-background-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
@@ -143,6 +183,14 @@ export function LandingHeader() {
                                       <span className="mt-0.5 block text-xs leading-snug text-muted-foreground">
                                         {p.resumo}
                                       </span>
+                                    </span>
+                                    <span
+                                      aria-hidden
+                                      className="com-fios ml-auto grid h-8 w-8 shrink-0 place-items-center rounded-full opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100"
+                                      style={{ "--fio": LUZ[p.slug] ?? "#0FC9BD" } as CSSProperties}
+                                    >
+                                      <ArrowRight className="seta h-4 w-4" />
+                                      <Fios intensidade="leve" />
                                     </span>
                                   </a>
                                 </li>
@@ -192,6 +240,7 @@ export function LandingHeader() {
               Teste grátis
             </a>
             <button
+              ref={botaoMenu}
               type="button"
               onClick={() => setMenu((v) => !v)}
               aria-expanded={menu}
@@ -207,61 +256,69 @@ export function LandingHeader() {
         {menu && (
           <div
             id="menu-mobile"
-            className="menu-in fixed inset-x-0 bottom-0 top-16 z-40 overflow-y-auto bg-background px-5 pb-10 pt-4 lg:hidden"
+            className="menu-cel fixed inset-x-0 bottom-0 top-16 z-40 flex flex-col bg-background lg:hidden"
           >
-            <nav aria-label="Menu" className="flex flex-col">
-              {GRUPOS.map((g) => (
-                <div key={g} className="pb-3">
-                  <p className="pb-2 pt-2 text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground">
+            <nav aria-label="Menu" className="flex-1 overflow-y-auto px-5 pb-6 pt-2">
+              {GRUPOS.map((g, gi) => (
+                <div key={g} className="pb-4">
+                  <p
+                    className="menu-item pb-2 pt-3 text-xs font-medium uppercase tracking-[0.08em] text-muted-foreground"
+                    style={{ "--i": gi * 4 } as CSSProperties}
+                  >
                     {g}
                   </p>
                   <ul className="grid grid-cols-2 gap-2">
-                    {PRODUTOS.filter((p) => p.grupo === g).map((p) => (
-                      <li key={p.slug}>
+                    {PRODUTOS.filter((p) => p.grupo === g).map((p, pi) => (
+                      <li key={p.slug} className="menu-item" style={{ "--i": gi * 4 + pi + 1 } as CSSProperties}>
                         <a
                           href={`/produtos/${p.slug}`}
                           onClick={() => setMenu(false)}
-                          className="flex items-center gap-2.5 rounded-2xl border border-border p-2"
+                          className="flex min-h-14 items-center gap-2.5 rounded-2xl border border-border p-2 transition-colors active:bg-background-muted"
                         >
-                          <img
-                            src={fotoSrc(p.foto).src}
-                            alt=""
-                            loading="lazy"
-                            className="h-11 w-11 shrink-0 rounded-xl object-cover"
-                          />
-                          <span className="text-sm font-medium leading-tight">{p.nome}</span>
+                          <span className="relative shrink-0">
+                            <img
+                              src={fotoSrc(p.foto).src}
+                              alt=""
+                              loading="lazy"
+                              className="h-11 w-11 rounded-xl object-cover"
+                              style={{ objectPosition: p.posicao }}
+                            />
+                            <span
+                              aria-hidden
+                              className="absolute -right-0.5 -top-0.5 h-2.5 w-2.5 rounded-full ring-2 ring-background"
+                              style={{ background: LUZ[p.slug] ?? "#0FC9BD" }}
+                            />
+                          </span>
+                          <span className="min-w-0 text-sm font-medium leading-tight">
+                            {p.nome}
+                            {p.status === "em-breve" && (
+                              <span className="block text-[11px] font-normal text-muted-foreground">Em breve</span>
+                            )}
+                          </span>
                         </a>
                       </li>
                     ))}
                   </ul>
                 </div>
               ))}
-              {[...NAV, { href: "/#duvidas", label: "Dúvidas" }].map((n) => (
-                <a
-                  key={n.href + n.label}
-                  href={n.href}
-                  onClick={() => setMenu(false)}
-                  className="border-b border-border py-4 font-display text-lg font-medium"
-                >
-                  {n.label}
-                </a>
-              ))}
-              <Link
-                to="/simulador"
-                onClick={() => setMenu(false)}
-                className="border-b border-border py-4 font-display text-lg font-medium"
-              >
-                Testar o simulador
-              </Link>
+              <div className="mt-2">
+                {[...NAV.filter((n) => n.href !== "/produtos/ai"), { href: "/simulador", label: "Testar o simulador" }, { href: "/#duvidas", label: "Dúvidas" }].map(
+                  (n, k) => (
+                    <a
+                      key={n.href + n.label}
+                      href={n.href}
+                      onClick={() => setMenu(false)}
+                      className="menu-item flex items-center justify-between border-b border-border py-4 font-display text-[1.35rem] font-normal tracking-[-0.02em]"
+                      style={{ "--i": 12 + k } as CSSProperties}
+                    >
+                      {n.label}
+                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                    </a>
+                  ),
+                )}
+              </div>
             </nav>
-            <div className="mt-6 grid gap-2">
-              <a
-                href="/teste-gratis"
-                onClick={() => setMenu(false)}
-                className="btn-tema flex h-12 items-center justify-center rounded-full font-medium"
-              >
-                Teste grátis
-              </a>
+            <div className="menu-item grid grid-cols-2 gap-2 border-t border-border bg-background px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3" style={{ "--i": 16 } as CSSProperties}>
               <Link
                 to="/entrar"
                 onClick={() => setMenu(false)}
@@ -269,6 +326,13 @@ export function LandingHeader() {
               >
                 Entrar
               </Link>
+              <a
+                href="/teste-gratis"
+                onClick={() => setMenu(false)}
+                className="btn-tema flex h-12 items-center justify-center rounded-full font-medium"
+              >
+                Teste grátis
+              </a>
             </div>
           </div>
         )}
