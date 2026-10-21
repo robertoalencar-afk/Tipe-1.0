@@ -7,8 +7,8 @@ Regra da casa: quando uma skill conflitar com as decisões do Tipe (logo, cores 
 | Skill | Frente do Tipe | Origem (commit) | Licença |
 | --- | --- | --- | --- |
 | design-taste-frontend (v2) | Landing e telas | [Leonxlnx/taste-skill](https://github.com/Leonxlnx/taste-skill) `6010f91` | MIT |
-| frontend-design | Landing e telas | [anthropics/skills](https://github.com/anthropics/skills) `dbd4588` | ver LICENSE.txt |
-| webapp-testing | Testes de tela (Playwright) | [anthropics/skills](https://github.com/anthropics/skills) `dbd4588` | ver LICENSE.txt |
+| frontend-design | Landing e telas | [anthropics/skills](https://github.com/anthropics/skills) `dbd4588` | Apache 2.0 |
+| webapp-testing | Testes de tela (Playwright) | [anthropics/skills](https://github.com/anthropics/skills) `dbd4588` | Apache 2.0 |
 | ui-ux-pro-max | Landing e telas | [nextlevelbuilder/ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) `623a9a9` | MIT |
 | design-system | Tokens da marca | [nextlevelbuilder/ui-ux-pro-max-skill](https://github.com/nextlevelbuilder/ui-ux-pro-max-skill) `623a9a9` | MIT |
 | graphify | Mapa do código | [Graphify-Labs/graphify](https://github.com/Graphify-Labs/graphify) `847a93f` | MIT |
