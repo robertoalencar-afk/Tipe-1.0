@@ -12,7 +12,8 @@ import { cn } from "@/lib/utils";
 import totem360 from "@/assets/telas-v4/totem-360.webp";
 import totem720 from "@/assets/telas-v4/totem-720.webp";
 import { Fios } from "./Bigode";
-import { Celular, Janela, type TelaCelular } from "./Dispositivo";
+import { CelularReal, type EtapaCelular, type TelaReal } from "./CelularReal";
+import { Janela } from "./Dispositivo";
 import { reduzMovimento } from "./movimento";
 import { Secao, Titulo } from "./Site";
 
@@ -21,11 +22,14 @@ type Passo = {
   quem: "Cliente" | "Restaurante";
   titulo: string;
   texto: string;
-  tela?: TelaCelular;
+  tela?: TelaReal;
   alt: string;
+  toque?: { x: number; y: number };
   chip?: ReactNode;
 };
 
+// Ordem real do app do cliente: a conta é paga primeiro e a gorjeta extra, opcional,
+// vem depois como um segundo pagamento.
 const PASSOS: Passo[] = [
   {
     id: "qr",
@@ -40,26 +44,19 @@ const PASSOS: Passo[] = [
     titulo: "Vê a conta ao vivo",
     texto: "Os itens aparecem conforme o garçom lança, com a taxa de serviço do restaurante.",
     tela: "conta",
-    alt: "Conta da Mesa 5 no celular: R$ 310,20 com os itens por lugar",
-    chip: <>Mesa 5 · <span className="money">R$ 310,20</span></>,
+    alt: "Conta da Mesa 12 no celular: total de R$ 356,40 com a taxa de serviço",
+    toque: { x: 23, y: 42 },
+    chip: <>Mesa 12 · <span className="money">R$ 356,40</span></>,
   },
   {
     id: "dividir",
     quem: "Cliente",
     titulo: "Divide do jeito da mesa",
-    texto: "Tudo, partes iguais, só os seus itens, pelo lugar ou um valor. O resto fica para quem ainda vai pagar.",
+    texto: "Pagar tudo, partes iguais, por valor, por porcentagem ou só os próprios itens. O resto fica para quem ainda vai pagar.",
     tela: "dividir",
-    alt: "Tela de divisão da conta com a opção dividir igualmente entre 2 pessoas",
-    chip: <>Dividido em 2 · <span className="money">R$ 155,10</span> cada</>,
-  },
-  {
-    id: "gorjeta",
-    quem: "Cliente",
-    titulo: "Decide a gorjeta extra",
-    texto: "Opcional, com o nome de quem atendeu. Nada vem marcado: o cliente escolhe se quer dar.",
-    tela: "gorjeta",
-    alt: "Tela de gorjeta extra para a garçonete Joyce, com 3, 5 e 8 por cento",
-    chip: <>Gorjeta para Joyce · <span className="money">R$ 8,00</span></>,
+    alt: "Conta dividida em 3 partes, com a parte de R$ 118,79",
+    toque: { x: 50, y: 70 },
+    chip: <>Dividido em 3 · <span className="money">R$ 118,79</span> cada</>,
   },
   {
     id: "forma",
@@ -68,6 +65,7 @@ const PASSOS: Passo[] = [
     texto: "Pix, Apple Pay ou Google Pay pelo celular, ou pagar no estabelecimento.",
     tela: "metodos",
     alt: "Formas de pagamento: Pix, Apple Pay, Google Pay e pagar no estabelecimento",
+    toque: { x: 50, y: 89 },
   },
   {
     id: "paga",
@@ -75,26 +73,42 @@ const PASSOS: Passo[] = [
     titulo: "Paga em segundos",
     texto: "No Pix, o banco confirma e a Tipe aprova sozinha. O dinheiro vai para a conta do restaurante.",
     tela: "pix",
-    alt: "Tela do Pix com o valor de R$ 163,10 e o QR Code de demonstração",
+    alt: "Tela do Pix com o valor de R$ 118,79 e o QR Code",
   },
   {
     id: "pronto",
     quem: "Cliente",
-    titulo: "A conta se atualiza na hora",
-    texto: "A parte paga sai da mesa e o cliente pode avaliar o atendimento antes de ir embora.",
-    tela: "confirmado",
-    alt: "Pagamento confirmado no celular, com o mascote da Tipe",
-    chip: <>Pagamento confirmado</>,
+    titulo: "Recebe a confirmação",
+    texto: "A parte paga sai da mesa na hora. Dali o cliente pode pedir o comprovante por e-mail e avaliar o atendimento.",
+    tela: "pago",
+    alt: "Pagamento realizado, com o valor pago, o restaurante e a mesa",
+    toque: { x: 49, y: 75 },
+    chip: <>Pagamento realizado</>,
+  },
+  {
+    id: "gorjeta",
+    quem: "Cliente",
+    titulo: "Se quiser, agradece com gorjeta",
+    texto: "Depois de pagar, a gorjeta extra é opcional e cobrada à parte, como um segundo pagamento. Nada vem marcado, e 70% vai para quem atendeu a mesa.",
+    tela: "gorjeta",
+    alt: "Gorjeta extra para a Joyce: 3%, 5% (sugerida) ou 8%, ou outro valor",
+    toque: { x: 62, y: 73 },
+    chip: <>Gorjeta para Joyce · <span className="money">R$ 6,00</span></>,
   },
   {
     id: "caixa",
     quem: "Restaurante",
     titulo: "O restaurante vê tudo ao vivo",
-    texto: "O caixa recebe cada pagamento com nome, itens, valor e hora. O garçom vê a gorjeta no celular.",
-    tela: "garcom",
-    alt: "Painel do caixa com a lista de pagamentos e o celular do garçom com as gorjetas",
+    texto: "O caixa recebe cada pagamento com nome, itens, valor e hora, e a mesa muda de status sozinha.",
+    alt: "Painel do caixa com a lista de pagamentos do dia",
   },
 ];
+
+const ETAPAS_CELULAR: EtapaCelular[] = PASSOS.filter((p) => p.tela).map((p) => ({
+  tela: p.tela!,
+  alt: p.alt,
+  ...(p.toque ? { toque: p.toque } : {}),
+}));
 
 const TEMPO = 3600;
 
@@ -127,7 +141,7 @@ export function FluxoPagamento() {
         <Titulo
           rotulo="Como funciona"
           titulo="Da câmera ao caixa em oito passos."
-          texto="Com as telas de verdade da Tipe. Toque num passo para ver de perto."
+          texto="Com as telas reais do app do cliente. Toque num passo para ver de perto."
         />
       </div>
       <div ref={ref} className="container-page mt-10 grid items-center gap-8 lg:mt-16 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
@@ -234,7 +248,7 @@ export function FluxoPagamento() {
         >
           <div className="relative mx-auto aspect-[1/1] max-h-[78svh] overflow-hidden rounded-[2rem] bg-[radial-gradient(120%_90%_at_50%_100%,#d9f6f3_0%,#eef8f7_45%,var(--pg-soft)_75%)] sm:aspect-[5/4] lg:aspect-[1/1]">
             <span className="absolute left-4 top-4 z-20 rounded-full bg-white/85 px-3 py-1 text-xs font-medium text-[oklch(0.3_0_0)] backdrop-blur">
-              Demonstração · Maré Alta (fictício)
+              Telas reais · dados de teste do Maré Alta (fictício)
             </span>
 
             {/* Passo 1: totem */}
@@ -260,31 +274,22 @@ export function FluxoPagamento() {
               </figcaption>
             </figure>
 
-            {/* Passos 2 a 7: o celular troca a tela */}
+            {/* Passos 2 a 7: o celular com as telas reais */}
             <div
               className={cn(
-                "absolute left-1/2 top-[7%] w-[46%] max-w-[17rem] -translate-x-1/2 transition-[opacity,transform] duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] sm:w-[34%]",
+                "absolute left-1/2 top-[6%] w-[44%] max-w-[16rem] -translate-x-1/2 transition-[opacity,transform] duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] sm:w-[32%]",
                 ativo === 0 && "pointer-events-none translate-y-[30%] opacity-0",
-                ativo === 7 && "translate-x-[10%] scale-[0.82] sm:translate-x-[55%]",
+                ativo === 7 && "pointer-events-none translate-x-[40%] scale-[0.8] opacity-0 sm:translate-x-[70%]",
               )}
+              aria-hidden={ativo === 0 || ativo === 7 || undefined}
             >
-              {PASSOS.map((p, i) =>
-                p.tela ? (
-                  <div
-                    key={p.id}
-                    className={cn(
-                      "transition-[opacity,transform] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]",
-                      i === 1 ? "relative" : "absolute inset-0",
-                      i === ativo ? "opacity-100" : i < ativo ? "-translate-x-6 opacity-0" : "translate-x-6 opacity-0",
-                      // O celular do passo 8 é o do garçom e só aparece nele.
-                      i === 7 && ativo !== 7 && "invisible",
-                    )}
-                    aria-hidden={i !== ativo || undefined}
-                  >
-                    <Celular tela={p.tela} alt={i === ativo ? p.alt : ""} sizes="(min-width: 640px) 272px, 46vw" />
-                  </div>
-                ) : null,
-              )}
+              <CelularReal
+                etapas={ETAPAS_CELULAR}
+                indice={Math.min(Math.max(ativo - 1, 0), ETAPAS_CELULAR.length - 1)}
+                ms={TEMPO}
+                animando={auto && visivel && ativo > 0 && ativo < 7}
+                sizes="(min-width: 640px) 256px, 44vw"
+              />
             </div>
 
             {/* Passo 8: o caixa no computador */}

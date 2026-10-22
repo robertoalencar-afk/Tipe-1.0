@@ -6,7 +6,8 @@ import { LazyLebreAssistant } from "@/components/tipe/LazyLebreAssistant";
 import { Eyebrow } from "@/components/tipe/ds";
 import { LebreTartaruga } from "@/components/tipe/landing/LebreTartaruga";
 import { LineReveal, Reveal } from "@/components/tipe/landing/motion";
-import { IntegracoesHome, PlanosHome, ProdutosHome, TopoHome } from "@/components/tipe/site/Home";
+import { IntegracoesHome, PlanosHome, ProdutosHome } from "@/components/tipe/site/Home";
+import { AberturaMesa } from "@/components/tipe/site/AberturaMesa";
 import { CarrosselHistorias } from "@/components/tipe/site/CarrosselHistorias";
 import { CtaVibrante } from "@/components/tipe/site/CtaVibrante";
 import { FluxoPagamento } from "@/components/tipe/site/FluxoPagamento";
@@ -44,7 +45,7 @@ function LandingPage() {
   return (
     <SitePage extra={<LazyLebreAssistant />}>
       <span id="principal" aria-hidden />
-      <TopoHome />
+      <AberturaMesa />
       <ProdutosHome />
       <CarrosselHistorias />
       <FluxoPagamento />
