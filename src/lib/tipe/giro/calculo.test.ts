@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { calcular, capacidade, contasPorServicoDe, economiaEfetiva, sanear, type Entradas } from "./calculo";
-import { BASE_DEMO, CENARIOS, custoPlanoPorMesas, entradasDoCenario } from "./cenarios";
+import { BASE_DEMO, CENARIOS, custoInicial, custoPlanoPorMesas, entradasDoCenario } from "./cenarios";
+import { SHOW_PLAN_PRICES } from "@/lib/tipe/plans";
 
 /*
  * Restaurante demonstrativo (BASE_DEMO), à mão:
@@ -9,8 +10,10 @@ import { BASE_DEMO, CENARIOS, custoPlanoPorMesas, entradasDoCenario } from "./ce
  *   capacidade atual = 20 × 240 ÷ 90 = 53,333 contas/serviço → ociosidade = 53,333 − 52 = 1,333
  *   demanda não atendida 10 → demanda atribuível = 10 − 1,333 = 8,667; limite operacional 6
  *   fator mês = 2 × 26 = 52 serviços
+ *   assinatura informada nos testes: R$ 89 (o campo começa vazio quando SHOW_PLAN_PRICES = false)
  */
-const REF = entradasDoCenario("referencia");
+const cen = (id: Parameters<typeof entradasDoCenario>[0]) => ({ ...entradasDoCenario(id), custoTipeMensal: 89 });
+const REF = cen("referencia");
 const perto = (a: number, b: number, casas = 2) => expect(a).toBeCloseTo(b, casas);
 
 describe("valores conhecidos (conferidos à mão)", () => {
@@ -50,7 +53,7 @@ describe("valores conhecidos (conferidos à mão)", () => {
   });
 
   it("cenário Conservador: 8 min, adoção 30%", () => {
-    const r = calcular(entradasDoCenario("conservador"));
+    const r = calcular(cen("conservador"));
     // redução 8 × 0,3 = 2,4 → ciclo 87,6 → capacidade 4800 ÷ 87,6 = 54,7945 → adicional 1,4612
     perto(r.cicloProjetadoMin, 87.6);
     perto(r.capacidadeAdicional, 1.4612, 3);
@@ -64,7 +67,7 @@ describe("valores conhecidos (conferidos à mão)", () => {
   });
 
   it("cenário Otimista: 12 min, adoção 70%", () => {
-    const r = calcular(entradasDoCenario("otimista"));
+    const r = calcular(cen("otimista"));
     // redução 12 × 0,7 = 8,4 → ciclo 81,6 → capacidade 58,8235 → adicional 5,4902 (abaixo do limite 6)
     perto(r.cicloProjetadoMin, 81.6);
     perto(r.capacidadeAdicional, 5.4902, 3);
@@ -198,7 +201,7 @@ describe("regras obrigatórias (seção 14)", () => {
       diasPorMes: 45,
       unidadeContas: "semana" as never,
       gorjetaAtualPct: "abc" as never,
-    });
+    } as unknown as Partial<Entradas>);
     expect(s.mesas).toBe(0);
     expect(s.contas).toBe(0);
     expect(s.adocaoPct).toBe(100);
@@ -306,6 +309,24 @@ describe("custo do plano a partir de src/lib/tipe/plans.ts", () => {
     expect(custoPlanoPorMesas(20).preco).toBe(89);
     expect(custoPlanoPorMesas(35).preco).toBe(129);
     expect(custoPlanoPorMesas(90).preco).toBe(129);
-    expect(BASE_DEMO.custoTipeMensal).toBe(89);
+  });
+
+  it("respeita SHOW_PLAN_PRICES: com preços ocultos, a assinatura começa vazia", () => {
+    expect(custoInicial(20, true)).toBe(89);
+    expect(custoInicial(8, true)).toBe(59);
+    expect(custoInicial(20, false)).toBeNull();
+    expect(BASE_DEMO.custoTipeMensal).toBe(SHOW_PLAN_PRICES ? 89 : null);
+  });
+
+  it("sem o valor da assinatura não há resultado líquido nem ROI, mas há receita e margem", () => {
+    const r = calcular({ ...REF, custoTipeMensal: null });
+    perto(r.receitaGiroMes, 21894.74);
+    perto(r.margemIncrementalMes!, 6568.42);
+    expect(r.resultadoLiquidoMes).toBeNull();
+    expect(r.roiPct).toBeNull();
+    expect(sanear({ custoTipeMensal: Number.NaN }).custoTipeMensal).toBeNull();
+    // o demonstrativo padrão segue a mesma regra
+    const padrao = calcular(entradasDoCenario("referencia"));
+    expect(padrao.resultadoLiquidoMes === null).toBe(!SHOW_PLAN_PRICES);
   });
 });

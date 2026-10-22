@@ -2,10 +2,10 @@
  * Cenários, valores iniciais e fontes da calculadora de giro.
  *
  * Todos os valores iniciais são HIPÓTESES demonstrativas, não médias comprovadas.
- * Os números do Sunday são indicadores divulgados por outra empresa: servem de
- * referência e comparação, nunca de resultado do Tipe nem de promessa.
+ * Os números da Sunday são indicadores divulgados por outra empresa: servem de
+ * referência e comparação, nunca de resultado da Tipe nem de promessa.
  */
-import { PLANS } from "@/lib/tipe/plans";
+import { PLANS, SHOW_PLAN_PRICES } from "@/lib/tipe/plans";
 import type { Entradas } from "./calculo";
 
 export type CenarioId = "conservador" | "referencia" | "otimista";
@@ -22,7 +22,7 @@ export const FONTES = {
   },
 } as const;
 
-/** Indicadores divulgados pelo Sunday. Só comparação; nunca somados aos cálculos. */
+/** Indicadores divulgados pela Sunday. Só comparação; nunca somados aos cálculos. */
 export const INDICADORES_SUNDAY = {
   minutosPorMesa: 12,
   minutosPorGarcomTurno: 72,
@@ -49,26 +49,34 @@ export const CENARIOS: Record<
     nome: "Conservador",
     parametros: { economiaPagamentoMin: 8, adocaoPct: 30, aumentoGorjetaRelPct: 0 },
     origem:
-      "8 min por conta: menor economia entre os casos do estudo de ROI do Sunday. Adoção de 30%: hipótese. Sem aumento de gorjeta.",
+      "8 min por conta: menor economia entre os casos do estudo de ROI da Sunday. Adoção de 30%: hipótese. Sem aumento de gorjeta.",
   },
   referencia: {
     nome: "Referência",
     parametros: { economiaPagamentoMin: 9, adocaoPct: 50, aumentoGorjetaRelPct: 10 },
     origem:
-      "9 min por conta: valor do meio entre os casos do estudo (8, 9 e 10 min). Adoção de 50%: hipótese. Gorjeta +10%: indicador do Sunday, como aumento relativo.",
+      "9 min por conta: valor do meio entre os casos do estudo (8, 9 e 10 min). Adoção de 50%: hipótese. Gorjeta +10%: indicador da Sunday, como aumento relativo.",
   },
   otimista: {
     nome: "Otimista",
     parametros: { economiaPagamentoMin: 12, adocaoPct: 70, aumentoGorjetaRelPct: 10 },
     origem:
-      "12 min por mesa: indicador da página inicial do Sunday. Adoção de 70%: hipótese. Gorjeta +10%: indicador do Sunday, como aumento relativo.",
+      "12 min por mesa: indicador da página inicial da Sunday. Adoção de 70%: hipótese. Gorjeta +10%: indicador da Sunday, como aumento relativo.",
   },
 };
 
 /** Preço mensal do plano que comporta o número de mesas (fonte: src/lib/tipe/plans.ts). */
 export function custoPlanoPorMesas(mesas: number) {
-  const plano = PLANS.find((p) => mesas <= p.maxTables) ?? PLANS[PLANS.length - 1];
+  const plano = PLANS.find((p) => mesas <= p.maxTables) ?? PLANS[2];
   return { id: plano.id, nome: plano.name, preco: plano.price };
+}
+
+/**
+ * Valor inicial da assinatura. Respeita SHOW_PLAN_PRICES: com preços ocultos no
+ * site, o campo começa vazio (null) e nenhum preço de plano aparece na calculadora.
+ */
+export function custoInicial(mesas: number, mostrarPrecos: boolean = SHOW_PLAN_PRICES): number | null {
+  return mostrarPrecos ? custoPlanoPorMesas(mesas).preco : null;
 }
 
 /** Restaurante demonstrativo. Hipóteses editáveis, não médias de mercado. */
@@ -88,7 +96,7 @@ export const BASE_DEMO: Omit<Entradas, keyof ParametrosCenario> = {
   garcons: 5,
   gorjetaAtualPct: 10,
   margemPct: 30,
-  custoTipeMensal: custoPlanoPorMesas(20).preco,
+  custoTipeMensal: custoInicial(20),
   custosVariaveisMensais: 0,
   aumentoTicketPct: 0,
 };

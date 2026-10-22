@@ -78,6 +78,7 @@ export function Campo({
   tom = "claro",
   destaque = false,
   extra,
+  placeholder,
 }: {
   rotulo: string;
   valor: number | null;
@@ -93,6 +94,8 @@ export function Campo({
   tom?: Tom;
   destaque?: boolean;
   extra?: ReactNode;
+  /** Texto curto mostrado no campo vazio (só em campos opcionais). */
+  placeholder?: string;
 }) {
   const id = useId();
   const [texto, setTexto] = useState(valor === null ? "" : numero(valor, casas));
@@ -142,7 +145,7 @@ export function Campo({
             inputMode="decimal"
             autoComplete="off"
             value={texto}
-            placeholder={opcional ? "—" : undefined}
+            placeholder={opcional ? (placeholder ?? "—") : undefined}
             onFocus={() => setEditando(true)}
             onBlur={() => {
               setEditando(false);
@@ -162,6 +165,8 @@ export function Campo({
             className={cn(
               "money w-[4.6ch] min-w-0 bg-transparent text-right text-[0.95rem] font-medium tabular-nums outline-none",
               (prefixo || (texto.length > 4)) && "w-[6.2ch]",
+              placeholder && texto === "" && "w-[9.5ch] placeholder:text-[0.8rem] placeholder:font-normal",
+              escuro ? "placeholder:text-white/40" : "placeholder:text-[#021E34]/40",
             )}
           />
           {sufixo && <span className={cn("text-[0.8rem]", escuro ? "text-white/55" : "text-[#021E34]/50")}>{sufixo}</span>}

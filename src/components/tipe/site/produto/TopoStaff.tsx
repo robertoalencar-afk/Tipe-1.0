@@ -36,8 +36,8 @@ const ESTILO = `
 
 function IconeApp() {
   return (
-    <span className="grid h-9 w-9 shrink-0 place-items-center rounded-[0.7rem] bg-[#021E34] shadow-[inset_0_0_0_1px_rgb(255_255_255/0.08)] sm:h-10 sm:w-10">
-      <TipeSymbol className="h-5 w-5 [--color-primary:#0FC9BD] sm:h-6 sm:w-6" />
+    <span className="grid h-8 w-8 shrink-0 place-items-center rounded-[0.6rem] bg-[#021E34] shadow-[inset_0_0_0_1px_rgb(255_255_255/0.08)] sm:h-10 sm:w-10">
+      <TipeSymbol className="h-[1.1rem] w-[1.1rem] [--color-primary:#0FC9BD] sm:h-6 sm:w-6" />
     </span>
   );
 }
@@ -60,22 +60,25 @@ function Aviso({
   return (
     <li
       className={cn(
-        "staff-entra flex items-start gap-3 rounded-[1.15rem] border border-white/60 bg-white/[0.86] p-3 text-[#021E34] shadow-[0_22px_44px_-22px_rgb(2_30_52/0.55),0_2px_6px_-2px_rgb(2_30_52/0.12)] backdrop-blur-md sm:rounded-[1.3rem] sm:p-3.5",
+        "staff-entra flex items-center gap-2.5 rounded-[1.05rem] border border-white/60 bg-white/[0.86] px-2.5 py-2 text-[#021E34] sm:items-start sm:gap-3 shadow-[0_22px_44px_-22px_rgb(2_30_52/0.55),0_2px_6px_-2px_rgb(2_30_52/0.12)] backdrop-blur-md sm:rounded-[1.3rem] sm:p-3.5",
         novo && "staff-novo",
       )}
       style={{ "--d": `${atraso}ms` } as CSSProperties}
     >
       <IconeApp />
       <div className="min-w-0 flex-1">
-        <p className="flex items-center justify-between gap-2 text-[0.68rem] font-medium uppercase tracking-[0.06em] text-[#021E34]/55">
+        <p className="hidden items-center justify-between gap-2 text-[0.68rem] font-medium uppercase tracking-[0.06em] text-[#021E34]/55 sm:flex">
           <span className="flex items-center gap-1.5">
             Tipe Staff
             <span className="grid h-3.5 w-3.5 place-items-center rounded-full bg-[#0FC9BD] text-[#021E34]">{selo}</span>
           </span>
           <span className="normal-case tracking-normal">{quando}</span>
         </p>
-        <p className="mt-0.5 text-[0.9rem] font-semibold leading-snug tracking-[-0.01em] sm:text-[0.95rem]">{titulo}</p>
-        <div className="mt-0.5 text-[0.82rem] leading-snug text-[#021E34]/70 sm:text-[0.86rem]">{children}</div>
+        <p className="flex items-baseline justify-between gap-2 text-[0.84rem] font-semibold leading-snug tracking-[-0.01em] sm:mt-0.5 sm:text-[0.95rem]">
+          <span className="truncate">{titulo}</span>
+          <span className="shrink-0 text-[0.68rem] font-normal text-[#021E34]/55 sm:hidden">{quando}</span>
+        </p>
+        <div className="truncate text-[0.78rem] leading-snug text-[#021E34]/70 sm:mt-0.5 sm:text-[0.86rem]">{children}</div>
       </div>
     </li>
   );
@@ -85,15 +88,15 @@ function ResumoTurno({ atraso }: { atraso: number }) {
   const barras = [32, 48, 40, 72, 100, 64];
   return (
     <div
-      className="staff-entra w-[11.5rem] rounded-[1.2rem] border border-white/10 bg-[#021E34]/[0.9] p-3.5 text-white shadow-[0_26px_50px_-24px_rgb(0_0_0/0.7)] backdrop-blur-md sm:w-[14.5rem] sm:rounded-[1.4rem] sm:p-4"
+      className="staff-entra w-[10.5rem] rounded-[1.05rem] border border-white/10 bg-[#021E34]/[0.9] p-3 text-white shadow-[0_26px_50px_-24px_rgb(0_0_0/0.7)] backdrop-blur-md sm:w-[14.5rem] sm:rounded-[1.4rem] sm:p-4"
       style={{ "--d": `${atraso}ms` } as CSSProperties}
     >
       <p className="flex items-center justify-between text-[0.68rem] font-medium uppercase tracking-[0.06em] text-white/60">
         Resumo do turno <HandCoins className="h-3.5 w-3.5 text-[#0FC9BD]" aria-hidden />
       </p>
-      <p className="mt-1.5 text-[0.78rem] text-white/70">Suas gorjetas hoje</p>
-      <p className="money font-display text-[1.6rem] leading-none tracking-[-0.03em] sm:text-[2rem]">R$ 84,70</p>
-      <div aria-hidden className="mt-3 flex h-8 items-end gap-1 sm:h-10">
+      <p className="mt-1 text-[0.74rem] text-white/70 sm:mt-1.5 sm:text-[0.78rem]">Suas gorjetas hoje</p>
+      <p className="money font-display text-[1.45rem] leading-none tracking-[-0.03em] sm:text-[2rem]">R$ 84,70</p>
+      <div aria-hidden className="mt-3 hidden h-10 items-end gap-1 sm:flex">
         {barras.map((h, i) => (
           <span
             key={i}
@@ -102,7 +105,9 @@ function ResumoTurno({ atraso }: { atraso: number }) {
           />
         ))}
       </div>
-      <p className="mt-2 text-[0.72rem] text-white/60 sm:text-[0.76rem]">9 mesas atendidas · 18h às 23h</p>
+      <p className="mt-1.5 text-[0.72rem] text-white/60 sm:mt-2 sm:text-[0.76rem]">
+        9 mesas atendidas<span className="hidden sm:inline"> · 18h às 23h</span>
+      </p>
     </div>
   );
 }
@@ -123,7 +128,7 @@ export function TopoStaff({ children }: { children: ReactNode }) {
                 alt="Garçom no salão de um restaurante, com dois pratos numa mão, sorrindo ao ver um aviso no celular"
                 posicao="58% 40%"
                 sizes="(min-width: 1024px) 52vw, 100vw"
-                className="aspect-[4/5] scale-[1.03]"
+                className="aspect-[4/5.6] scale-[1.03] sm:aspect-[4/5]"
               />
               <div
                 aria-hidden
@@ -141,17 +146,19 @@ export function TopoStaff({ children }: { children: ReactNode }) {
 
             {/* Avisos: camada da frente, do mais antigo (embaixo) ao mais novo (em cima) */}
             <div
-              className="staff-camada absolute inset-x-3 bottom-3 sm:inset-x-auto sm:bottom-7 sm:left-7 sm:w-[min(24rem,78%)] xl:-left-10"
+              className="staff-camada absolute inset-x-2.5 bottom-2.5 sm:inset-x-auto sm:bottom-7 sm:left-7 sm:w-[min(24rem,78%)] xl:-left-10"
               style={{ "--z": 18 } as CSSProperties}
             >
-              <ol aria-label="Exemplo de avisos do Tipe Staff" className="flex flex-col-reverse gap-2 sm:gap-2.5">
+              <ol aria-label="Exemplo de avisos do Tipe Staff" className="flex flex-col-reverse gap-1.5 sm:gap-2.5">
                 <Aviso titulo="Mesa 14 · pagamento confirmado" quando="5 min" selo={<Check className="h-2.5 w-2.5" strokeWidth={3.5} />} atraso={600}>
-                  Pix aprovado · <span className="money">R$ 186,90</span> · conta quitada
+                  Pix aprovado · <span className="money">R$ 186,90</span>
+                  <span className="hidden sm:inline"> · conta quitada</span>
                 </Aviso>
                 <Aviso titulo="Nova gorjeta recebida" quando="2 min" selo={<HandCoins className="h-2.5 w-2.5" />} atraso={1300}>
-                  Mesa 14 deixou <span className="money">R$ 10,00</span>.{" "}
+                  <span className="hidden sm:inline">Mesa 14 · </span>
+                  <span className="money">R$ 10,00</span> ·{" "}
                   <span className="font-medium text-[#03665f]">
-                    <span className="money">R$ 7,00</span> são seus (70%)
+                    <span className="money">R$ 7,00</span> para você (70%)
                   </span>
                 </Aviso>
                 <Aviso titulo="Avaliação positiva" quando="agora" selo={<Star className="h-2.5 w-2.5 fill-current" />} atraso={2000} novo>
@@ -161,14 +168,14 @@ export function TopoStaff({ children }: { children: ReactNode }) {
                         <Star key={i} className="h-3.5 w-3.5 fill-current" aria-hidden />
                       ))}
                     </span>
-                    <span className="truncate">Mesa 14 · “Atendimento atencioso”</span>
+                    <span className="truncate">“Atendimento atencioso”</span>
                   </span>
                 </Aviso>
               </ol>
             </div>
           </div>
-          <figcaption className="mt-3 flex items-center gap-2 text-[0.8rem] text-muted-foreground">
-            <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-[#0FC9BD]" />
+          <figcaption className="mt-3 flex items-start gap-2 text-[0.8rem] leading-snug text-muted-foreground">
+            <span aria-hidden className="mt-[0.4em] h-1.5 w-1.5 shrink-0 rounded-full bg-[#0FC9BD]" />
             Valores demonstrativos. Avisos como os que o garçom vê no Tipe Staff.
           </figcaption>
         </figure>

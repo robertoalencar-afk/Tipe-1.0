@@ -679,8 +679,7 @@
   stroke-dashoffset: 1;
   transform-box: view-box;
   transform-origin: inherit;
-  rotate: 0deg;
-  transition: rotate 700ms var(--ease-expo), stroke 500ms var(--ease-expo);
+  transition: stroke 500ms var(--ease-expo);
   animation:
     tipe-doodle 900ms var(--ease-expo) forwards calc(var(--d, 600ms) + var(--i) * 90ms),
     focinho-tremor var(--t, 4.2s) ease-in-out var(--f, 0s) infinite;
@@ -688,7 +687,10 @@
 .focinho-esq .focinho-fio { transform-origin: 45px 30px; }
 .focinho-dir .focinho-fio { transform-origin: 75px 30px; animation-delay: calc(var(--d, 600ms) + 60ms + var(--i) * 90ms), var(--f, 0s); }
 /* Resposta extra no hover: o leque dos bigodes se abre (o de cima sobe, o de baixo desce). */
-:is(.focinho, .com-focinho):hover .focinho-fio { rotate: calc(var(--s) * var(--h) * 9deg); }
+.focinho-leque { transform-box: view-box; transition: transform 700ms var(--ease-expo); }
+.focinho-esq .focinho-leque { transform-origin: 45px 30px; }
+.focinho-dir .focinho-leque { transform-origin: 75px 30px; }
+:is(.focinho, .com-focinho):hover .focinho-leque { transform: rotate(calc(var(--s) * var(--h) * 9deg)); }
 :is(.focinho, .com-focinho):hover .focinho-nariz { animation-duration: 700ms, 1.6s; }
 /* Fora da primeira dobra: espera entrar na tela para desenhar. */
 .focinho[data-espera] * { animation: none !important; }
@@ -736,6 +738,7 @@
   stroke-linecap: round;
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
+  opacity: 0; /* em repouso nada aparece, nem o ponto da ponta arredondada */
 }
 .fios path:nth-child(2), .seta-fios .sf-fio:nth-child(2) { --i: 1; }
 .fios path:nth-child(3), .seta-fios .sf-fio:nth-child(3) { --i: 2; }
@@ -744,8 +747,8 @@
 .group:is(:hover, :focus-visible) .com-fios :is(.fios path, .sf-fio) {
   animation: fios-salta 1100ms var(--ease-expo) calc(var(--i, 0) * 60ms) both;
 }
-@keyframes fios-salta { 0% { stroke-dashoffset: 1; } 40% { stroke-dashoffset: 0; } 68% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -1; } }
-@keyframes fios-auto { 0%, 55% { stroke-dashoffset: 1; } 66% { stroke-dashoffset: 0; } 84% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -1; } }
+@keyframes fios-salta { 0% { stroke-dashoffset: 1; opacity: 0; } 6% { opacity: 1; } 40% { stroke-dashoffset: 0; } 68% { stroke-dashoffset: 0; } 92% { opacity: 1; } 100% { stroke-dashoffset: -1; opacity: 0; } }
+@keyframes fios-auto { 0%, 55% { stroke-dashoffset: 1; opacity: 0; } 56% { opacity: 1; } 66% { stroke-dashoffset: 0; } 84% { stroke-dashoffset: 0; } 97% { opacity: 1; } 100% { stroke-dashoffset: -1; opacity: 0; } }
 
 /* Seta com fios (CTA aprovado): a seta dá um passinho quando os fios saltam. */
 .seta-fios { flex-shrink: 0; width: 1.6em; height: 0.9em; margin-right: -0.35em; overflow: visible; }
@@ -765,7 +768,8 @@
 
 @media (prefers-reduced-motion: reduce) {
   .focinho *, .focinho[data-espera] * { animation: none !important; transition: none !important; }
-  .focinho-fio { stroke-dashoffset: 0; rotate: none !important; }
+  .focinho-fio { stroke-dashoffset: 0; }
+  .focinho-leque { transform: none !important; }
   .focinho[data-espera] .focinho-nariz { transform: none; }
   /* Fios: em vez de se desenhar, aparecem por opacidade enquanto há hover ou foco. */
   .fios path, .seta-fios .sf-fio { animation: none !important; stroke-dashoffset: 0; opacity: 0; transition: opacity 150ms ease; }

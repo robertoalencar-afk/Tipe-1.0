@@ -69,6 +69,8 @@ export type Produto = {
     painel?: Painel;
     /** Card "em desenvolvimento" sobre a foto, sem tela que finja existir. */
     emDesenvolvimento?: boolean;
+    /** Tablet com a captura real do Salão do painel (src/assets/telas-reais/salao-*). */
+    tabletSalao?: boolean;
     /** @deprecated Telas antigas do PhoneShot; não use. Mantido só para o tipo da Home. */
     tela?: Tela;
   }[];
@@ -310,7 +312,7 @@ export const PRODUTOS: Produto[] = [
       rodape: "Demonstração com dados fictícios",
     },
     beneficios: [
-      { t: "Salão ao vivo", d: "Livre, ocupada, aguardando ou encerrada." , foto: "salao", posicao: "50% 50%" },
+      { t: "Salão ao vivo", d: "Livre, ocupada, aguardando ou encerrada." , foto: "salao", posicao: "50% 50%", tabletSalao: true },
       { t: "Caixa", d: "Abertura, sangria e fechamento do dia." , foto: "integracoes", posicao: "60% 50%" },
       { t: "Relatórios", d: "Vendas, mais vendidos e gorjetas por garçom." , foto: "fechamento", posicao: "50% 45%" },
       { t: "Tudo registrado", d: "Cada ação com data e responsável." , foto: "restaurant", posicao: "30% 60%" },
@@ -423,9 +425,9 @@ export const PRODUTOS: Produto[] = [
     banda: {
       titulo: "Um obrigado vira uma visita de volta.",
       texto:
-        "Logo depois do pagamento, o cliente pode agradecer com uma gorjeta extra ou avaliar o atendimento, quando a experiência ainda está fresca.",
-      telaReal: "pago",
-      altTela: "Tela real de pagamento realizado, com os botões Agradecer Joyce com gorjeta e Avaliar atendimento",
+        "Logo depois do pagamento, quando a experiência ainda está fresca, o cliente pode agradecer quem atendeu com uma gorjeta extra e avaliar o atendimento.",
+      telaReal: "gorjeta",
+      altTela: "Tela real de gorjeta extra: Agradeça à Joyce com uma gorjeta, com opções de 3, 5 e 8 por cento",
     },
     fatos: [
       { v: "Depois", t: "do pagamento: a avaliação aparece na hora" },

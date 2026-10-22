@@ -83,13 +83,13 @@ function Precos() {
         </div>
       </Secao>
       <Secao tema="claro">
-        <div className="container-page grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:gap-16">
+        <div className="container-page grid grid-cols-1 gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:gap-16 [&>*]:min-w-0">
           <Titulo titulo="Tudo nos detalhes." texto="Compare o que cada plano inclui." />
           <ComparacaoPlanos />
         </div>
       </Secao>
       <Secao tema="claro" className="!pt-0">
-        <div className="container-page grid gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:gap-16">
+        <div className="container-page grid grid-cols-1 gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:gap-16 [&>*]:min-w-0">
           <Titulo titulo="Perguntas sobre preço." />
           <div className="divide-y divide-border border-y border-border">
             {PERGUNTAS.map(([q, a]) => (

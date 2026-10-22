@@ -17,7 +17,7 @@ import { PRODUTOS, type Painel, type Produto } from "./produtos";
 import { BotaoPrincipal, BotaoSecundario, FaixaCta, Secao, Titulo } from "./Site";
 import { AbasProduto, type AbaProduto } from "./produto/AbasProduto";
 import { CelularLebre, ConversaLebre, PainelLebre, type ConversaId } from "./produto/Lebre";
-import { CelularReal } from "./produto/TelaReal";
+import { CelularReal, TabletSalao } from "./produto/TelaReal";
 import { TopoStaff } from "./produto/TopoStaff";
 
 export function SeloStatus({ status, className }: { status: Produto["status"]; className?: string }) {
@@ -125,8 +125,8 @@ function SobreFoto({ p }: { p: Produto }) {
     );
   if (p.slug === "guest")
     return (
-      <div className="pop-in absolute bottom-[-10%] right-4 w-[40%] max-w-[13.5rem] sm:right-8" style={atraso}>
-        <CelularReal tela="avaliacao" alt="Tela real de avaliação depois do pagamento: Como foi seu atendimento?" sizes="220px" prioridade />
+      <div className="pop-in absolute bottom-[-10%] right-4 w-[38%] max-w-[12.5rem] sm:right-6" style={atraso}>
+        <CelularReal tela="pago" alt="Tela real de pagamento realizado, com os botões Agradecer Joyce com gorjeta e Avaliar atendimento" sizes="220px" prioridade />
       </div>
     );
   return (
@@ -184,7 +184,9 @@ function Abas({ p }: { p: Produto }) {
     painel: b.painel ? <PainelLebre id={CONVERSA[b.painel]} /> : undefined,
     tela: b.telaReal,
     altTela: b.telaReal ? `Tela real do app do cliente: ${b.t.toLowerCase()}` : undefined,
-    extra: b.telaReal || b.painel ? undefined : b.emDesenvolvimento ? <CartaoEmDesenvolvimento titulo={b.t} /> : <CartaoInterface cartao={p.cartao} />,
+    extra: b.telaReal || b.painel ? undefined : b.tabletSalao ? (
+      <TabletSalao alt="Tela real do Salão no painel da Tipe: mesa 12 encerrada, 100% paga" className="ml-auto w-[78%] max-w-[16rem] sm:w-full" />
+    ) : b.emDesenvolvimento ? <CartaoEmDesenvolvimento titulo={b.t} /> : <CartaoInterface cartao={p.cartao} />,
   }));
   return (
     <Secao tema="claro" ariaLabel="Destaques" className="!pt-6 sm:!pt-10">
@@ -212,14 +214,15 @@ function Banda({ p }: { p: Produto }) {
           </p>
         </div>
         <div className="relative mx-auto flex h-full w-full max-w-md items-end justify-center gap-4 self-end lg:pt-14">
-          <Reveal className="relative z-10 w-[55%] translate-y-6" delay={100}>
+          <Reveal className={cn("relative z-10 translate-y-6", p.banda.lebre ? "w-[62%]" : "w-[55%]")} delay={100}>
             {p.banda.lebre ? (
               <CelularLebre />
             ) : (
               <CelularReal tela={p.banda.telaReal ?? "conta"} alt={p.banda.altTela} sizes="240px" />
             )}
           </Reveal>
-          <Reveal className="mb-10 w-[46%] shrink-0" delay={300}>
+          {/* O suporte de mesa só faz sentido ao lado da conta do cliente, não da Lebre */}
+          <Reveal className={cn("mb-10 w-[46%] shrink-0", p.banda.lebre && "hidden")} delay={300}>
             <div className="rotate-[-4deg]">
               <img
                 src={totemMesa}

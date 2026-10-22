@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, ChevronDown } from "lucide-react";
 import { TRIAL_DAYS } from "@/lib/tipe/plans";
-import { LandingCalculator } from "@/components/tipe/LandingCalculator";
 import { LazyLebreAssistant } from "@/components/tipe/LazyLebreAssistant";
 import { Eyebrow } from "@/components/tipe/ds";
 import { LebreTartaruga } from "@/components/tipe/landing/LebreTartaruga";
@@ -11,7 +10,7 @@ import { AberturaMesa } from "@/components/tipe/site/AberturaMesa";
 import { CarrosselHistorias } from "@/components/tipe/site/CarrosselHistorias";
 import { CtaVibrante } from "@/components/tipe/site/CtaVibrante";
 import { FluxoPagamento } from "@/components/tipe/site/FluxoPagamento";
-import { NumerosHome } from "@/components/tipe/site/NumerosHome";
+import { ImpactoECalculadora } from "@/components/tipe/site/CalculadoraGiro";
 import { StaffHome } from "@/components/tipe/site/StaffHome";
 import { Fios } from "@/components/tipe/site/Bigode";
 import { SitePage } from "@/components/tipe/site/Site";
@@ -51,9 +50,8 @@ function LandingPage() {
       <FluxoPagamento />
       <LebreTartaruga />
       <StaffHome />
-      <NumerosHome />
       <IntegracoesHome />
-      <LandingCalculator />
+      <ImpactoECalculadora />
       <PlanosHome />
       <Duvidas />
       <CtaVibrante />
@@ -85,7 +83,7 @@ const FAQ: { label: string; faqs: [string, string][] }[] = [
       ],
       [
         "Como funciona a gorjeta extra?",
-        "A taxa de serviço é definida pelo restaurante e entra na conta; pela Lei 13.419/2017, gorjeta e taxa de serviço pertencem aos trabalhadores. A gorjeta extra é opcional, nunca vem marcada, e o cliente vê o valor antes de confirmar. A Tipe recebe a gorjeta extra e separa 70% para quem atendeu e 30% como taxa da plataforma.",
+        "Ela vem depois que a conta está paga, como um segundo pagamento, separado. A taxa de serviço é definida pelo restaurante e entra na conta; pela Lei 13.419/2017, gorjeta e taxa de serviço pertencem aos trabalhadores. A gorjeta extra é opcional, nunca vem marcada, e o cliente vê o valor antes de confirmar. A Tipe recebe a gorjeta extra e separa 70% para quem atendeu e 30% como taxa da plataforma.",
       ],
     ],
   },
@@ -110,7 +108,7 @@ const FAQ: { label: string; faqs: [string, string][] }[] = [
       ],
       [
         "De onde vêm os números da página?",
-        "De fontes públicas: Banco Central do Brasil, Abecs e Abrasel, com o link de cada estudo ao lado do número. São dados de mercado, não resultados da Tipe, que está em pré-lançamento.",
+        "Os números de \"O impacto de cada minuto\" são resultados publicados pelo Sunday, empresa de pagamento na mesa, com o link de cada fonte ao lado. Não são resultados da Tipe, que está em pré-lançamento. A calculadora usa os dados que você preenche e mostra a conta e as premissas de cada cenário.",
       ],
       [
         "E se um pagamento sair errado?",

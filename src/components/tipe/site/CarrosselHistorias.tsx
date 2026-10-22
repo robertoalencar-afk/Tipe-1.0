@@ -1,8 +1,8 @@
 /**
- * Carrossel fotográfico editorial (o "sunday pays for itself" da sunday, com fotos
- * e textos da Tipe): foto grande com a frase por cima, navegação discreta com
- * setas e pontos. No celular desliza com o dedo (scroll-snap nativo); a foto
- * ativa assenta com zoom lento e a frase entra palavra por palavra.
+ * Carrossel de histórias no formato da gravação de referência (V5): cards altos 4:5 lado a lado,
+ * o primeiro é o filme do fluxo do produto e os outros são fotos do casting com a frase por cima.
+ * No celular desliza com o dedo (scroll-snap nativo) mostrando a ponta do próximo card; setas e
+ * pontos embaixo. A foto ativa assenta com zoom lento e a frase sobe.
  */
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight } from "lucide-react";
@@ -10,9 +10,15 @@ import { cn } from "@/lib/utils";
 import { Fios } from "./Bigode";
 import { fotoSrc, type NomeFoto } from "./Foto";
 import { Secao } from "./Site";
+import { VideoProduto } from "./VideoProduto";
 
-const HISTORIAS: { foto: NomeFoto; posicao: string; frase: string; dado: string; legenda: string; alt: string }[] = [
+type Historia = { id: string; foto?: NomeFoto; posicao?: string; frase?: string; dado?: string; legenda?: string; alt?: string };
+
+// O primeiro card é o vídeo; a foto "dividir" ficou na abertura e não se repete aqui.
+const HISTORIAS: Historia[] = [
+  { id: "video" },
   {
+    id: "pix",
     foto: "pix-mao",
     posicao: "50% 50%",
     frase: "Ninguém levanta a mão para pedir a conta.",
@@ -21,14 +27,7 @@ const HISTORIAS: { foto: NomeFoto; posicao: string; frase: string; dado: string;
     alt: "Cliente pagando com Pix no celular à mesa",
   },
   {
-    foto: "dividir",
-    posicao: "50% 45%",
-    frase: "Cada um paga o seu, sem calculadora.",
-    dado: "5 jeitos de dividir",
-    legenda: "Tudo, partes iguais, itens, lugar ou valor.",
-    alt: "Amigos dividindo a conta pelo celular",
-  },
-  {
+    id: "gorjeta",
     foto: "gorjeta-mao",
     posicao: "50% 45%",
     frase: "A gorjeta chega com o nome de quem atendeu.",
@@ -37,6 +36,7 @@ const HISTORIAS: { foto: NomeFoto; posicao: string; frase: string; dado: string;
     alt: "Garçom recebendo aviso de gorjeta no celular",
   },
   {
+    id: "caixa",
     foto: "fechamento",
     posicao: "45% 45%",
     frase: "O caixa fecha mesa por mesa, ao vivo.",
@@ -50,19 +50,37 @@ export function CarrosselHistorias() {
   const trilho = useRef<HTMLDivElement>(null);
   const [ativo, setAtivo] = useState(0);
 
+  // Ativo = o card mais perto da borda esquerda do trilho (vários cabem na tela no desktop).
   useEffect(() => {
     const el = trilho.current;
     if (!el) return;
-    const io = new IntersectionObserver(
-      (entradas) => {
-        for (const e of entradas) {
-          if (e.isIntersecting) setAtivo(Number((e.target as HTMLElement).dataset["i"]));
+    let quadro = 0;
+    const medir = () => {
+      quadro = 0;
+      const cards = Array.from(el.querySelectorAll<HTMLElement>("[data-i]"));
+      const origem = cards[0]?.offsetLeft ?? 0;
+      let melhor = 0;
+      let menor = Infinity;
+      cards.forEach((c, i) => {
+        const d = Math.abs(c.offsetLeft - origem - el.scrollLeft);
+        if (d < menor) {
+          menor = d;
+          melhor = i;
         }
-      },
-      { root: el, threshold: 0.6 },
-    );
-    el.querySelectorAll("[data-i]").forEach((s) => io.observe(s));
-    return () => io.disconnect();
+      });
+      // No fim do trilho, o último card conta como ativo.
+      if (el.scrollLeft + el.clientWidth >= el.scrollWidth - 4) melhor = cards.length - 1;
+      setAtivo(melhor);
+    };
+    const aoRolar = () => {
+      if (!quadro) quadro = requestAnimationFrame(medir);
+    };
+    el.addEventListener("scroll", aoRolar, { passive: true });
+    medir();
+    return () => {
+      el.removeEventListener("scroll", aoRolar);
+      cancelAnimationFrame(quadro);
+    };
   }, []);
 
   const ir = (i: number) => {
@@ -79,48 +97,53 @@ export function CarrosselHistorias() {
         aria-roledescription="carrossel"
       >
         {HISTORIAS.map((h, i) => {
+          const classe =
+            "relative w-[82vw] max-w-[30rem] shrink-0 snap-start overflow-hidden rounded-[1.75rem] sm:w-[44vw] lg:w-[min(30rem,31vw)] lg:rounded-[2.25rem]";
+          if (!h.foto)
+            return (
+              <div key={h.id} data-i={i} aria-roledescription="slide" aria-label={`${i + 1} de ${HISTORIAS.length}`} className={classe}>
+                <VideoProduto className="!rounded-none" />
+              </div>
+            );
           const f = fotoSrc(h.foto);
           return (
             <figure
-              key={h.foto}
+              key={h.id}
               data-i={i}
               aria-roledescription="slide"
               aria-label={`${i + 1} de ${HISTORIAS.length}`}
-              className="relative w-[86vw] max-w-[78rem] shrink-0 snap-start overflow-hidden rounded-[1.75rem] sm:w-[88%] lg:rounded-[2.25rem]"
+              className={classe}
             >
               <img
                 src={f.src}
                 srcSet={f.srcSet}
-                sizes="(min-width: 1024px) 78rem, 88vw"
+                sizes="(min-width: 1024px) 30rem, 82vw"
                 alt={h.alt}
-                loading={i === 0 ? "eager" : "lazy"}
+                loading="lazy"
                 decoding="async"
+                width={1080}
+                height={1350}
                 className={cn(
-                  "aspect-[4/5] w-full object-cover transition-transform duration-[2400ms] ease-[cubic-bezier(0.16,1,0.3,1)] sm:aspect-[16/9]",
+                  "aspect-[4/5] w-full object-cover transition-transform duration-[2400ms] ease-[cubic-bezier(0.16,1,0.3,1)]",
                   ativo === i ? "scale-100" : "scale-[1.08]",
                 )}
                 style={{ objectPosition: h.posicao }}
               />
-              <div aria-hidden className="absolute inset-0 bg-[linear-gradient(180deg,rgb(0_0_0/0.5)_0%,transparent_45%,transparent_60%,rgb(0_0_0/0.55)_100%)]" />
-              <figcaption className="absolute inset-0 flex flex-col justify-between p-6 text-white sm:p-10 lg:p-14">
+              <div aria-hidden className="absolute inset-0 bg-[linear-gradient(180deg,rgb(0_0_0/0.5)_0%,transparent_40%,transparent_58%,rgb(0_0_0/0.6)_100%)]" />
+              <figcaption className="absolute inset-0 flex flex-col justify-between p-6 text-white sm:p-8">
                 <p
                   className={cn(
-                    "max-w-[16ch] font-display text-[clamp(1.9rem,1.1rem+3.4vw,4.4rem)] font-normal leading-[1] tracking-[-0.045em] transition-[opacity,transform] duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)]",
-                    ativo === i ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0",
+                    "max-w-[15ch] font-display text-[clamp(1.7rem,1.2rem+1.5vw,2.5rem)] font-normal leading-[1.02] tracking-[-0.04em] transition-[opacity,transform] duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)]",
+                    ativo === i ? "translate-y-0 opacity-100" : "translate-y-3 opacity-80",
                   )}
                 >
                   {h.frase}
                 </p>
-                <p
-                  className={cn(
-                    "flex flex-wrap items-baseline gap-x-3 transition-[opacity,transform] delay-200 duration-[1200ms] ease-[cubic-bezier(0.16,1,0.3,1)]",
-                    ativo === i ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0",
-                  )}
-                >
-                  <span className="font-display text-[clamp(1.6rem,1.2rem+1.6vw,2.6rem)] leading-none tracking-[-0.04em] text-[#0FC9BD]">
+                <p className="flex flex-wrap items-baseline gap-x-3">
+                  <span className="font-display text-[clamp(1.5rem,1.2rem+1vw,2.1rem)] leading-none tracking-[-0.04em] text-[#0FC9BD]">
                     {h.dado}
                   </span>
-                  <span className="text-[0.98rem] text-white/85 sm:text-lg">{h.legenda}</span>
+                  <span className="text-[0.95rem] text-white/85">{h.legenda}</span>
                 </p>
               </figcaption>
             </figure>
@@ -131,7 +154,7 @@ export function CarrosselHistorias() {
         <button
           type="button"
           onClick={() => ir(ativo - 1)}
-          aria-label="Foto anterior"
+          aria-label="História anterior"
           className="com-fios grid h-12 w-12 place-items-center rounded-full border border-border"
         >
           <ArrowLeft className="h-5 w-5" />
@@ -139,10 +162,10 @@ export function CarrosselHistorias() {
         <div className="flex gap-2">
           {HISTORIAS.map((h, i) => (
             <button
-              key={h.foto}
+              key={h.id}
               type="button"
               onClick={() => ir(i)}
-              aria-label={`Ir para a foto ${i + 1}`}
+              aria-label={`Ir para a história ${i + 1}`}
               aria-current={ativo === i || undefined}
               className="grid h-6 w-6 place-items-center"
             >
@@ -153,7 +176,7 @@ export function CarrosselHistorias() {
         <button
           type="button"
           onClick={() => ir(ativo + 1)}
-          aria-label="Próxima foto"
+          aria-label="Próxima história"
           className="com-fios grid h-12 w-12 place-items-center rounded-full border border-border"
         >
           <ArrowRight className="seta h-5 w-5" />

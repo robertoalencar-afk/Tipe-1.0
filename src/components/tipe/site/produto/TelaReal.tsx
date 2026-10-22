@@ -24,6 +24,8 @@ import gorjetaPix390 from "@/assets/telas-reais/gorjeta-pix-390.webp";
 import gorjetaPix780 from "@/assets/telas-reais/gorjeta-pix-780.webp";
 import avaliacao390 from "@/assets/telas-reais/avaliacao-390.webp";
 import avaliacao780 from "@/assets/telas-reais/avaliacao-780.webp";
+import salao560 from "@/assets/telas-reais/salao-560.webp";
+import salao1000 from "@/assets/telas-reais/salao-1000.webp";
 
 export const TELAS_REAIS = {
   conta: [conta390, conta780],
@@ -77,6 +79,34 @@ export function CelularReal({
           className="block h-auto w-full"
         />
       </div>
+    </figure>
+  );
+}
+
+
+/**
+ * Tablet com a tela REAL do Salão do painel do restaurante (Maré Alta, mesa 12 já paga).
+ * Captura do componente RestaurantPanel com dados de teste respondidos no navegador.
+ */
+export function TabletSalao({ alt, className, sizes = "320px" }: { alt: string; className?: string; sizes?: string }) {
+  return (
+    <figure
+      className={cn(
+        "relative w-full rounded-[6%/4.5%] bg-[oklch(0.17_0_0)] p-[2.8%] shadow-[0_60px_90px_-40px_oklch(0.2_0.05_250/0.55),0_0_0_1px_oklch(0.42_0_0/0.5)]",
+        className,
+      )}
+    >
+      <img
+        src={salao560}
+        srcSet={`${salao560} 560w, ${salao1000} 1000w`}
+        sizes={sizes}
+        alt={alt}
+        width={560}
+        height={747}
+        loading="lazy"
+        decoding="async"
+        className="block h-auto w-full rounded-[3.5%/2.6%]"
+      />
     </figure>
   );
 }

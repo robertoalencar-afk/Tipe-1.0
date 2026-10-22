@@ -298,7 +298,7 @@ function render(t) {
     const kin = E.outQuint(P(t, 2.58, 3.38));
     const kout = E.inOutCubic(P(t, 5.62, 6.1));
     const drift = E.inOutSine(P(t, 2.55, 5.7));
-    const o = Math.min(P(t, 2.58, 2.8), 1 - P(t, 5.8, 6.1));
+    const o = Math.min(P(t, 2.64, 2.84), 1 - P(t, 5.8, 6.1));
     set($('phone'), {
       x: 540 - 235 - L(0, 60, drift), y: 330 + L(520, 0, kin) + 6 * Math.sin(t * 1.9),
       z: L(-400, 0, kin) - 520 * kout, rx: L(28, 7, kin), ry: L(14, -10, drift), rz: L(5, -1.5, kin),
@@ -388,7 +388,7 @@ function render(t) {
     const kh = E.outCubic(P(t, 9.5, 9.9));
     const out = (i) => E.inBack(P(t, 11.12 + i * .05, 11.45 + i * .05));
     const ho = out(3);
-    set($('tipHead'), { x: 0, y: 400 + L(40, 0, kh), o: Math.min(P(t, 9.5, 9.75), 1 - P(t, 11.1, 11.3)) });
+    set($('tipHead'), { x: 0, y: 352 + L(40, 0, kh), o: Math.min(P(t, 9.5, 9.75), 1 - P(t, 11.1, 11.3)) });
     const cxs = [540 - 262, 540, 540 + 262];
     let selK = E.outBack(P(t, 10.32, 10.6));
     ['c0', 'c1', 'c2'].forEach((id, i) => {
@@ -399,7 +399,7 @@ function render(t) {
       // os três colapsam para o centro, como um ponto
       setC($(id), 232, 232, L(cxs[i], 540, ko), 790 + L(60, 0, k), {
         s: Math.max(s, 0), o: Math.min(P(t, 9.58 + i * .07, 9.75 + i * .07), 1 - P(t, 11.38 + i * .05, 11.5 + i * .05)),
-        rx: L(30, 0, k) + 8 * Math.sin(t * 1.6 + i) * (1 - ko), ry: 6 * Math.sin(t * 1.3 + i * 2),
+        z: i === 1 ? 110 : 50, rx: L(30, 0, k) + 6 * Math.sin(t * 1.6 + i) * (1 - ko), ry: 6 * Math.sin(t * 1.3 + i * 2),
       });
     });
     $('c1sel').style.opacity = cl(P(t, 10.32, 10.42));
@@ -414,9 +414,9 @@ function render(t) {
     hearts.forEach((el, i) => {
       const d = HEART_DEFS[i];
       const k = P(t, d.t0, d.t0 + 1.25);
-      const y = 690 - 250 * E.outCubic(k);
+      const y = 690 - 205 * E.outCubic(k);
       const x = 610 + Math.abs(d.dx) * 1.9 * E.outCubic(k) + d.sw * Math.sin(k * Math.PI * 2.2);
-      setC(el, 70, 64, x, y, { z: 160, s: d.s * L(.3, 1.15, E.outBack(cl(k * 3))), rz: d.sw * .5 * Math.sin(k * 6), o: k > 0 ? 1 - P(k, .55, 1) : 0 });
+      setC(el, 70, 64, x, y, { z: 30, s: d.s * L(.3, 1.15, E.outBack(cl(k * 3))), rz: d.sw * .5 * Math.sin(k * 6), o: k > 0 ? 1 - P(k, .45, .95) : 0 });
     });
   }
 

@@ -89,21 +89,14 @@ export function Focinho({
       {(["esq", "dir"] as const).map((lado) => (
         <g key={lado} className={`focinho-lado focinho-${lado}`}>
           {BIGODES[lado].map((b, i) => (
-            <path
-              key={b.d}
-              d={b.d}
-              className="focinho-fio"
-              style={
-                {
-                  "--i": i,
-                  "--t": `${b.t}s`,
-                  "--f": `${b.f}s`,
-                  "--a": `${b.a}deg`,
-                  "--h": b.h,
-                } as CSSProperties
-              }
-              {...fio}
-            />
+            <g key={b.d} className="focinho-leque" style={{ "--h": b.h } as CSSProperties}>
+              <path
+                d={b.d}
+                className="focinho-fio"
+                style={{ "--i": i, "--t": `${b.t}s`, "--f": `${b.f}s`, "--a": `${b.a}deg` } as CSSProperties}
+                {...fio}
+              />
+            </g>
           ))}
         </g>
       ))}
@@ -132,9 +125,9 @@ export function Fios({
     <span aria-hidden className={cn("fios", `fios-${intensidade}`, auto && "fios-auto", className)}>
       {lados.map((lado) => (
         <svg key={lado} viewBox="0 0 16 16" className={`fios-lado fios-${lado}`} focusable="false">
-          <path d="M1 8 L14 2" pathLength={1} style={{ "--i": 0 } as CSSProperties} />
-          <path d="M1 8 L15.5 8" pathLength={1} style={{ "--i": 1 } as CSSProperties} />
-          <path d="M1 8 L14 14" pathLength={1} style={{ "--i": 2 } as CSSProperties} />
+          <path d="M1 4.6 Q7 2.6 14.5 1.4" pathLength={1} />
+          <path d="M1 8 Q8 7.6 15.5 8.4" pathLength={1} />
+          <path d="M1 11.4 Q7 13.4 14 14.8" pathLength={1} />
         </svg>
       ))}
     </span>
@@ -163,9 +156,9 @@ export function SetaFios({
       focusable="false"
       className={cn("seta-fios", auto && "seta-fios-auto", !seta && "seta-fios-solto", className)}
     >
-      <path className="sf-fio" d="M14 8 L26 2" pathLength={1} />
-      <path className="sf-fio" d="M14 8 L27 8" pathLength={1} />
-      <path className="sf-fio" d="M14 8 L26 14" pathLength={1} />
+      <path className="sf-fio" d="M14.5 5.4 Q20 3.2 26 2" pathLength={1} />
+      <path className="sf-fio" d="M15 8 Q21 7.7 27 8.4" pathLength={1} />
+      <path className="sf-fio" d="M14.5 10.6 Q20 12.8 26 14" pathLength={1} />
       {seta && <path className="sf-seta" d="M3 8 H12 M8.5 4.5 12 8 8.5 11.5" />}
     </svg>
   );

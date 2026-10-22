@@ -7,15 +7,15 @@ import { useRef, type CSSProperties, type ReactNode } from "react";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { Palavras, Reveal, useVelocidadeFaixa } from "@/components/tipe/landing/motion";
 import { TRIAL_DAYS } from "@/lib/tipe/plans";
-import { cn } from "@/lib/utils";
 import { AbasDemo, type ItemAba } from "./AbasDemo";
 import { Focinho } from "./Bigode";
 import { Foto, fotoSrc, type NomeFoto } from "./Foto";
 import { CardsPlanos } from "./Planos";
 import { CardProduto } from "./CardProduto";
 import { CartaoInterface } from "./ProdutoPagina";
-import { INTEGRACOES, PRODUTOS, produtoPorSlug } from "./produtos";
+import { PRODUTOS, produtoPorSlug } from "./produtos";
 import { BotaoPrincipal, BotaoSecundario, Secao, Titulo } from "./Site";
+import { HubIntegracoes } from "./GradeIntegracoes";
 
 /* ---------------------------------------------------------------- Topo */
 
@@ -300,40 +300,7 @@ export function AbasHome() {
 
 /* --------------------------------------------------------- Integrações */
 
-const CORES_INTEGRACAO = ["#0FC9BD", "#f6f5f1", "#f4b860", "#9be7c4", "#6ec6ff", "#ffffff"];
-
-function FaixaIntegracoes({ itens, sentido, emBreve = false }: { itens: typeof INTEGRACOES; sentido: 1 | -1; emBreve?: boolean }) {
-  const lista = [...itens, ...itens, ...itens, ...itens];
-  return (
-    <div className="relative overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_8%,#000_92%,transparent)]">
-      <ul
-        className={cn("marquee flex w-max gap-3 py-1.5", sentido < 0 && "[animation-direction:reverse]")}
-        style={{ animationDuration: `${lista.length * 4}s` }}
-      >
-        {lista.map((it, i) => (
-          <li
-            key={i}
-            aria-hidden={i >= itens.length || undefined}
-            className={cn(
-              "flex h-24 w-[13.5rem] shrink-0 flex-col justify-between rounded-[1.25rem] px-5 py-4 sm:h-28 sm:w-[16rem]",
-              emBreve ? "border border-dashed border-white/30 text-white" : "text-[#021E34]",
-            )}
-            style={emBreve ? undefined : { background: CORES_INTEGRACAO[i % CORES_INTEGRACAO.length] }}
-          >
-            <span className={cn("text-[0.72rem] font-medium uppercase tracking-[0.08em]", emBreve ? "text-white/60" : "opacity-75")}>
-              {it.tipo} · {emBreve ? "em desenvolvimento" : "disponível"}
-            </span>
-            <span className="font-display text-[1.45rem] font-medium leading-none tracking-[-0.04em] sm:text-[1.7rem]">{it.nome}</span>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
-
 export function IntegracoesHome() {
-  const prontas = INTEGRACOES.filter((i) => i.status === "disponivel");
-  const aCaminho = INTEGRACOES.filter((i) => i.status !== "disponivel");
   return (
     <Secao tema="escuro" id="integracoes">
       <div className="container-page">
@@ -344,9 +311,8 @@ export function IntegracoesHome() {
           texto="Pagamentos e lançamento de pedidos funcionam hoje. O que está em desenvolvimento aparece separado, sem promessa de data."
         />
       </div>
-      <div className="mt-12 space-y-3 sm:mt-16">
-        <FaixaIntegracoes itens={prontas} sentido={1} />
-        <FaixaIntegracoes itens={aCaminho} sentido={-1} emBreve />
+      <div className="container-page mt-12 sm:mt-16">
+        <HubIntegracoes compacto />
       </div>
       <div className="container-page mt-10 flex flex-col items-center gap-3 text-center">
         <BotaoSecundario href="/integracoes">Ver todas as integrações</BotaoSecundario>

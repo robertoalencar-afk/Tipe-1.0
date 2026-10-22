@@ -14,8 +14,8 @@
  * E. Tempo recuperado = contas adotantes × economia efetiva. Não vira economia de folha.
  * F. Gorjeta fica separada e nunca entra no faturamento do restaurante. A parte extra
  *    segue a regra vigente da gorjeta extra (TIP_SPLIT: 70% garçom, 30% Tipe).
- * G. Margem incremental, custo do Tipe, resultado líquido e ROI. Sem margem informada,
- *    não existe resultado líquido (nada de lucro inventado).
+ * G. Margem incremental, custo da Tipe, resultado líquido e ROI. Sem margem ou sem o
+ *    valor da assinatura, não existe resultado líquido (nada de lucro inventado).
  */
 import { TIP_SPLIT } from "@/lib/tipe/rules";
 
@@ -55,7 +55,8 @@ export type Entradas = {
   aumentoGorjetaRelPct: number;
   /** Margem de contribuição sobre vendas adicionais (%). null = não informado. */
   margemPct: number | null;
-  custoTipeMensal: number;
+  /** Assinatura mensal da Tipe (R$). null = não informada (sem resultado líquido). */
+  custoTipeMensal: number | null;
   custosVariaveisMensais: number;
   /** Aumento opcional do tíquete nas contas pagas pelo QR (%). Linha separada; padrão 0. */
   aumentoTicketPct: number;
@@ -140,7 +141,7 @@ export function sanear(e: Partial<Entradas>): Entradas {
     gorjetaAtualPct: limOuNulo(e.gorjetaAtualPct, 0, 100),
     aumentoGorjetaRelPct: lim(e.aumentoGorjetaRelPct, 0, 100),
     margemPct: limOuNulo(e.margemPct, 0, 100),
-    custoTipeMensal: lim(e.custoTipeMensal, 0, 1_000_000),
+    custoTipeMensal: limOuNulo(e.custoTipeMensal, 0, 1_000_000),
     custosVariaveisMensais: lim(e.custosVariaveisMensais, 0, 1_000_000),
     aumentoTicketPct: lim(e.aumentoTicketPct, 0, 100),
   };
@@ -228,9 +229,10 @@ export function calcular(bruto: Partial<Entradas>): Resultado {
   const receitaIncrementalMes = receitaGiroMes + receitaTicketMes;
 
   // G. Retorno
-  const custoTotalMes = e.custoTipeMensal + e.custosVariaveisMensais;
+  const custoTotalMes = (e.custoTipeMensal ?? 0) + e.custosVariaveisMensais;
   const margemIncrementalMes = e.margemPct === null ? null : receitaIncrementalMes * (e.margemPct / 100);
-  const resultadoLiquidoMes = margemIncrementalMes === null ? null : margemIncrementalMes - custoTotalMes;
+  const resultadoLiquidoMes =
+    margemIncrementalMes === null || e.custoTipeMensal === null ? null : margemIncrementalMes - custoTotalMes;
   const roiPct =
     resultadoLiquidoMes === null || custoTotalMes <= 0 ? null : (resultadoLiquidoMes / custoTotalMes) * 100;
 

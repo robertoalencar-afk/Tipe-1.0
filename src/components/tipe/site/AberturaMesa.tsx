@@ -168,7 +168,7 @@ export function AberturaMesa() {
             className="hero-in mt-8 flex flex-wrap justify-center gap-3 lg:justify-start"
             style={{ "--d": "620ms" } as CSSProperties}
           >
-            <BotaoPrincipal>Começar o teste grátis</BotaoPrincipal>
+            <BotaoPrincipal vivo>Começar o teste grátis</BotaoPrincipal>
             <BotaoSecundario href="/simulador">Testar o simulador</BotaoSecundario>
           </div>
           <p
