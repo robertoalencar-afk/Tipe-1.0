@@ -8,7 +8,7 @@ import type { CSSProperties } from "react";
 import { useInView } from "@/components/tipe/landing/motion";
 import { cn } from "@/lib/utils";
 
-const ARQUIVOS = import.meta.glob(["/src/assets/produtos/*.webp", "/src/assets/fotos/*.webp"], {
+const ARQUIVOS = import.meta.glob(["/src/assets/produtos/*.webp", "/src/assets/fotos/*.webp", "/src/assets/cenas/*.webp"], {
   eager: true,
   query: "?url",
   import: "default",
@@ -43,7 +43,38 @@ export type NomeFoto =
   | "salao"
   | "mesa"
   | "amigos"
-  | "casal";
+  | "casal"
+  /* Cenas finais do casting (4K, scripts/sync-cenas.py): 4:5, "-vertical" 9:16 e "-larga" 16:9. */
+  | "cena-casal"
+  | "cena-casal-vertical"
+  | "cena-casal-larga"
+  | "cena-amigos"
+  | "cena-amigos-vertical"
+  | "cena-amigos-larga"
+  | "cena-familia"
+  | "cena-familia-vertical"
+  | "cena-familia-larga"
+  | "cena-executiva"
+  | "cena-executiva-vertical"
+  | "cena-praia"
+  | "cena-praia-vertical"
+  | "cena-garcom"
+  | "cena-garcom-vertical"
+  | "cena-garconete"
+  | "cena-garconete-vertical"
+  | "cena-gerente"
+  | "cena-gerente-vertical"
+  | "cena-caixa"
+  | "cena-caixa-vertical"
+  | "cena-cozinha"
+  | "cena-cozinha-vertical"
+  | "cena-bartender"
+  | "cena-bartender-vertical"
+  | "cena-dono"
+  | "cena-dono-vertical"
+  | "cena-dono-larga"
+  | "cena-mesa-liberada"
+  | "cena-mesa-liberada-vertical";
 
 export function fotoSrc(nome: NomeFoto) {
   const tamanhos = Object.entries(ARQUIVOS)
