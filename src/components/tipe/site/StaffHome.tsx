@@ -74,7 +74,7 @@ export function StaffHome() {
         <div ref={ref} className="relative">
           <div className="relative overflow-hidden rounded-[2rem]">
             <Foto
-              nome="staff"
+              nome="garcom"
               alt="Garçom no salão sorrindo ao ver um aviso no celular"
               posicao="55% 35%"
               sizes="(min-width: 1024px) 50vw, 100vw"

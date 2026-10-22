@@ -1,30 +1,31 @@
 /**
- * Celular, tablet e janela de computador com telas reais da Tipe. As imagens vêm
- * do banco de telas aprovado pelo Roberto (casting-tipe/telas-tipe), renderizadas
- * do simulador e da demonstração com o restaurante fictício "Maré Alta".
+ * Celular, tablet e janela de computador com telas reais da Tipe, sempre com dados de teste do
+ * restaurante fictício "Maré Alta". As telas do app do cliente e o salão vêm de
+ * src/assets/telas-reais (capturadas do código atual); garçom, cozinha, caixa e relatórios ainda
+ * vêm do banco de telas aprovado pelo Roberto (telas-v4).
  */
 import type { CSSProperties } from "react";
 import { cn } from "@/lib/utils";
-import avaliacao390 from "@/assets/telas-v4/avaliacao-390.webp";
-import avaliacao780 from "@/assets/telas-v4/avaliacao-780.webp";
-import conta390 from "@/assets/telas-v4/conta-mesa-390.webp";
-import conta780 from "@/assets/telas-v4/conta-mesa-780.webp";
-import dividir390 from "@/assets/telas-v4/dividir-conta-390.webp";
-import dividir780 from "@/assets/telas-v4/dividir-conta-780.webp";
+import avaliacao390 from "@/assets/telas-reais/avaliacao-390.webp";
+import avaliacao780 from "@/assets/telas-reais/avaliacao-780.webp";
+import conta390 from "@/assets/telas-reais/conta-390.webp";
+import conta780 from "@/assets/telas-reais/conta-780.webp";
+import dividir390 from "@/assets/telas-reais/dividir-390.webp";
+import dividir780 from "@/assets/telas-reais/dividir-780.webp";
 import garcom390 from "@/assets/telas-v4/garcom-gorjetas-390.webp";
 import garcom780 from "@/assets/telas-v4/garcom-gorjetas-780.webp";
-import gorjeta390 from "@/assets/telas-v4/gorjeta-extra-390.webp";
-import gorjeta780 from "@/assets/telas-v4/gorjeta-extra-780.webp";
-import confirmado390 from "@/assets/telas-v4/pagamento-confirmado-390.webp";
-import confirmado780 from "@/assets/telas-v4/pagamento-confirmado-780.webp";
-import metodos390 from "@/assets/telas-v4/pagamento-metodos-390.webp";
-import metodos780 from "@/assets/telas-v4/pagamento-metodos-780.webp";
-import pix390 from "@/assets/telas-v4/pix-qr-390.webp";
-import pix780 from "@/assets/telas-v4/pix-qr-780.webp";
+import gorjeta390 from "@/assets/telas-reais/gorjeta-390.webp";
+import gorjeta780 from "@/assets/telas-reais/gorjeta-780.webp";
+import confirmado390 from "@/assets/telas-reais/pago-390.webp";
+import confirmado780 from "@/assets/telas-reais/pago-780.webp";
+import metodos390 from "@/assets/telas-reais/metodos-390.webp";
+import metodos780 from "@/assets/telas-reais/metodos-780.webp";
+import pix390 from "@/assets/telas-reais/pix-390.webp";
+import pix780 from "@/assets/telas-reais/pix-780.webp";
 import kds560 from "@/assets/telas-v4/cozinha-kds-560.webp";
 import kds1000 from "@/assets/telas-v4/cozinha-kds-1000.webp";
-import salao560 from "@/assets/telas-v4/mapa-salao-560.webp";
-import salao1000 from "@/assets/telas-v4/mapa-salao-1000.webp";
+import salao560 from "@/assets/telas-reais/salao-560.webp";
+import salao1000 from "@/assets/telas-reais/salao-1000.webp";
 import caixa900 from "@/assets/telas-v4/caixa-pagamentos-900.webp";
 import caixa1600 from "@/assets/telas-v4/caixa-pagamentos-1600.webp";
 import relatorios900 from "@/assets/telas-v4/relatorios-faturamento-900.webp";

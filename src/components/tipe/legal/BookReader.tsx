@@ -110,7 +110,7 @@ export function BookReader({ book, destaque }: { book: Book; destaque?: string |
         </DrawerContent>
       </Drawer>
 
-      <div className="mx-auto grid max-w-7xl gap-10 px-4 lg:grid-cols-[280px_minmax(0,1fr)]">
+      <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)] gap-10 px-4 lg:grid-cols-[280px_minmax(0,1fr)]">
         <aside data-noprint className="hidden lg:block">
           <div className="sticky top-6 max-h-[calc(100vh-3rem)] overflow-y-auto py-8 pr-2">
             <div className="mb-5"><LegalSearch /></div>
