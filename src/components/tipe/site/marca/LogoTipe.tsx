@@ -9,7 +9,7 @@
  */
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { cn } from "@/lib/utils";
-import { E, I, LOGO_VIEWBOX, P, SIMBOLO, T, TRACO_E } from "./logoTipe";
+import { E, I, LOGO_VIEWBOX, P, SIMBOLO, T, TRACO_E } from "./logoTipeGeometria";
 
 export function LogoTipe({
   tom = "claro",
