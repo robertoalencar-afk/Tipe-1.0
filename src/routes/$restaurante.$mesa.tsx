@@ -436,11 +436,11 @@ function MesaPage() {
     setDividindo(null);
   }
 
-  // Fluxo: escolher o que pagar → gorjeta extra (opcional) → pagar. A gorjeta é
-  // cobrada à parte, logo depois da conta, porque vai para a TIPE e não para o restaurante.
+  // Fluxo: escolher o que pagar → pagar a conta → (opcional) gorjeta extra como segundo
+  // pagamento → avaliação. A gorjeta é cobrada à parte porque vai para a TIPE e não para o restaurante.
   function irParaPagamento() {
     setErroPagamento(null);
-    setEtapa(gorjetaDisponivel && !gorjetaPaga ? "gorjeta" : "pagamento-conta");
+    setEtapa("pagamento-conta");
   }
 
   async function processarPagamento(tipo: "conta" | "gorjeta") {
@@ -1110,7 +1110,7 @@ function MesaPage() {
           setMetodo={setMetodoConta}
           pagando={pagando}
           erro={erroPagamento}
-          voltar={() => setEtapa(gorjetaDisponivel && !gorjetaPaga ? "gorjeta" : "conta")}
+          voltar={() => setEtapa("conta")}
           pagar={() => processarPagamento("conta")}
           permitirEstabelecimento
           metodosAceitos={metodosAceitos ?? undefined}
@@ -1151,20 +1151,19 @@ function MesaPage() {
               : "O garçom irá em instantes até sua mesa com a maquininha."}
           </p>
           <div className="mt-8 w-full space-y-2">
-            {gorjetaExtra > 0 && !gorjetaPaga && (
+            {gorjetaDisponivel && !gorjetaPaga && (
               <Button
                 onClick={() => {
                   setErroPagamento(null);
-                  setMetodoGorjeta((m) => m ?? "pix");
-                  setEtapa("pagamento-gorjeta");
+                  setEtapa("gorjeta");
                 }}
                 className="h-12 w-full font-display text-base"
               >
-                Pagar gorjeta de {money(gorjetaExtra)} <ChevronRight />
+                {dados.garcom ? `Agradecer ${dados.garcom.split(" ")[0]} com gorjeta` : "Deixar uma gorjeta"} <ChevronRight />
               </Button>
             )}
             <Button
-              variant={gorjetaExtra > 0 && !gorjetaPaga ? "outline" : "default"}
+              variant={gorjetaDisponivel && !gorjetaPaga ? "outline" : "default"}
               onClick={() => setEtapa("avaliacao")}
               className="h-12 w-full font-display text-base"
             >
@@ -1311,20 +1310,19 @@ function MesaPage() {
             </form>
           )}
           <div className="mt-7 w-full space-y-2">
-            {gorjetaExtra > 0 && !gorjetaPaga && (
+            {gorjetaDisponivel && !gorjetaPaga && (
               <Button
                 onClick={() => {
                   setErroPagamento(null);
-                  setMetodoGorjeta((m) => m ?? "pix");
-                  setEtapa("pagamento-gorjeta");
+                  setEtapa("gorjeta");
                 }}
                 className="h-12 w-full font-display text-base"
               >
-                Pagar gorjeta de {money(gorjetaExtra)} <ChevronRight />
+                {dados.garcom ? `Agradecer ${dados.garcom.split(" ")[0]} com gorjeta` : "Deixar uma gorjeta"} <ChevronRight />
               </Button>
             )}
             <Button
-              variant={gorjetaExtra > 0 && !gorjetaPaga ? "outline" : "default"}
+              variant={gorjetaDisponivel && !gorjetaPaga ? "outline" : "default"}
               onClick={() => setEtapa("avaliacao")}
               className="h-12 w-full font-display text-base"
             >
