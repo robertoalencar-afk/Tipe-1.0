@@ -43,6 +43,14 @@ if [ -z "${CF_GATEWAY_TOKEN:-}" ]; then
 fi
 export CF_GATEWAY_TOKEN
 
+case "$CF_GATEWAY_TOKEN" in
+  cfk_*)
+    echo "Isso é a Global API Key (prefixo cfk_), não um API token. Ela não funciona aqui e dá acesso total à conta."
+    echo "Crie um API token (prefixo cfut_ ou cfat_) em https://dash.cloudflare.com/profile/api-tokens"
+    exit 1
+    ;;
+esac
+
 umask 077
 printf 'CLOUDFLARE_ACCOUNT_ID=%s\nCLOUDFLARE_API_TOKEN=%s\n' "$CLOUDFLARE_ACCOUNT_ID" "$CF_GATEWAY_TOKEN" > .dev.vars
 
@@ -58,7 +66,10 @@ done
 node scripts/verify-cache.mjs http://localhost:8787 ${EXTRA[@]+"${EXTRA[@]}"} || LOCAL_FAIL=1
 kill $DEV_PID 2>/dev/null || true
 
-if [ "$DEPLOY" = "1" ]; then
+if [ "$DEPLOY" = "1" ] && [ -n "${LOCAL_FAIL:-}" ]; then
+  echo
+  echo "Deploy pulado: o teste local falhou. Veja o motivo em .wrangler-dev.log (evento faq_failed)."
+elif [ "$DEPLOY" = "1" ]; then
   echo
   echo "== Deploy (Workers, sem recursos pagos) =="
   npx wrangler deploy --env="" | tee .wrangler-deploy.log

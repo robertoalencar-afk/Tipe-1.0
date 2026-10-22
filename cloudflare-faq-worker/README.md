@@ -95,6 +95,10 @@ Erros seguem `{ "success": false, "error": { "code", "message" } }`:
   - `Account` > `AI Gateway` > `Read` (consultar logs no script de verificação);
   - `Account` > `AI Gateway` > `Edit` (criação automática do gateway `default` e ajustes de config).
 
+  O valor começa com `cfut_` (token de usuário) ou `cfat_` (token da conta). **Não use a Global
+  API Key** (`cfk_`): ela não é aceita como `Bearer` (o gateway responde 401) e dá acesso total à conta.
+- Para o deploy: um subdomínio workers.dev registrado (gratuito), em **Workers & Pages** no painel.
+
 ## Instalação e testes (sem credenciais)
 
 ```bash
