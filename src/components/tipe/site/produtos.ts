@@ -212,7 +212,7 @@ export const PRODUTOS: Produto[] = [
       rodape: "Avaliação: 5 estrelas",
     },
     beneficios: [
-      { t: "Gorjeta extra no saldo", d: "70% do valor vai para o garçom da mesa." , foto: "gorjeta-mao", posicao: "50% 50%" },
+      { t: "Gorjeta extra no saldo", d: "70% do valor vai para o garçom da mesa." , foto: "gorjetas-garcom", posicao: "50% 40%" },
       { t: "Saque por Pix", d: "Ciclos quinzenais, com histórico completo." , foto: "garcom", posicao: "50% 35%" },
       { t: "Avaliações", d: "Cada nota chega ligada a quem atendeu." , foto: "equipe", posicao: "50% 40%" },
     ],
@@ -315,7 +315,7 @@ export const PRODUTOS: Produto[] = [
       { t: "Salão ao vivo", d: "Livre, ocupada, aguardando ou encerrada." , foto: "salao", posicao: "50% 50%", tabletSalao: true },
       { t: "Caixa", d: "Abertura, sangria e fechamento do dia." , foto: "integracoes", posicao: "60% 50%" },
       { t: "Relatórios", d: "Vendas, mais vendidos e gorjetas por garçom." , foto: "fechamento", posicao: "50% 45%" },
-      { t: "Tudo registrado", d: "Cada ação com data e responsável." , foto: "restaurant", posicao: "30% 60%" },
+      { t: "Tudo registrado", d: "Cada ação com data e responsável." , foto: "tablet-maos", posicao: "50% 55%" },
     ],
     banda: {
       titulo: "Saiba quem pagou sem atravessar o salão.",

@@ -34,6 +34,9 @@ export type NomeFoto =
   | "gorjeta-mao"
   | "fechamento"
   | "equipe"
+  /* Aprovadas por Roberto em 22/10 (landing-v3/fotos-ia/real), no tamanho original. */
+  | "tablet-maos"
+  | "gorjetas-garcom"
   /* Cenas do casting em src/assets/fotos (também usadas no /teste-gratis). */
   | "garcom"
   | "gestor"
