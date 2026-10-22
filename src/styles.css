@@ -652,104 +652,171 @@
   --mv-subida: 24px;
 }
 
-.focinho { overflow: visible; color: var(--color-brand-strong); --ox: 0; --oy: 0; }
-.focinho-lado { transform-box: view-box; transition: transform 900ms var(--ease-expo); }
-.focinho-esq { transform-origin: 47px 25px; transform: rotate(calc(var(--ox) * 5deg + var(--oy) * -4deg)); }
-.focinho-dir { transform-origin: 73px 25px; transform: rotate(calc(var(--ox) * 5deg + var(--oy) * 4deg)); }
+/* Focinho da lebre (V5, desenho aprovado na prévia E). viewBox 120 × 64, nariz em x = 60.
+   O nariz fareja em rajadas com pausa; a cada farejada os lados se abrem um pouco; cada
+   bigode tem ritmo (--t), defasagem (--f) e amplitude (--a) próprios. No hover os
+   bigodes se abrem mais (propriedade rotate, que soma com a animação). */
+.focinho { overflow: visible; --focinho-fio: #021e34; }
+.focinho[data-tom="escuro"],
+.sunday[data-tema="escuro"] .focinho[data-tom="auto"] { --focinho-fio: #fff; }
+.focinho-nariz {
+  fill: #0fc9bd;
+  transform-box: view-box;
+  transform-origin: 60px 24px;
+  animation:
+    focinho-surge 700ms var(--ease-expo) both calc(var(--d, 600ms) + 150ms),
+    focinho-fareja 3.4s ease-in-out infinite calc(var(--d, 600ms) + 1200ms);
+}
+.focinho-boca { stroke: var(--focinho-fio); stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; transition: stroke 500ms var(--ease-expo); }
+.focinho-lado { transform-box: view-box; animation: focinho-abre 3.4s ease-in-out infinite calc(var(--d, 600ms) + 1200ms); }
+.focinho-esq { transform-origin: 45px 30px; --s: 1; }
+.focinho-dir { transform-origin: 75px 30px; --s: -1; }
 .focinho-fio {
-  stroke: currentColor;
+  stroke: var(--focinho-fio);
+  stroke-width: 2.5;
+  stroke-linecap: round;
   stroke-dasharray: 1;
   stroke-dashoffset: 1;
   transform-box: view-box;
+  transform-origin: inherit;
+  rotate: 0deg;
+  transition: rotate 700ms var(--ease-expo), stroke 500ms var(--ease-expo);
   animation:
     tipe-doodle 900ms var(--ease-expo) forwards calc(var(--d, 600ms) + var(--i) * 90ms),
-    focinho-tremor-esq 5.2s ease-in-out infinite calc(var(--d, 600ms) + 1200ms + var(--i) * 40ms);
+    focinho-tremor var(--t, 4.2s) ease-in-out var(--f, 0s) infinite;
 }
-.focinho-esq .focinho-fio { transform-origin: 47px 25px; }
-.focinho-dir .focinho-fio {
-  transform-origin: 73px 25px;
-  animation-name: tipe-doodle, focinho-tremor-dir;
-  animation-delay: calc(var(--d, 600ms) + var(--i) * 90ms), calc(var(--d, 600ms) + 1260ms + var(--i) * 55ms);
-}
-.focinho-nariz {
-  fill: #0fc9bd;
-  transform-box: fill-box;
-  transform-origin: 50% 35%;
-  animation:
-    focinho-surge 700ms var(--ease-expo) both calc(var(--d, 600ms) + 150ms),
-    focinho-fareja 5.2s ease-in-out infinite calc(var(--d, 600ms) + 1200ms);
-}
-.focinho-brilho { fill: #fff; opacity: 0.6; }
-.focinho:hover .focinho-fio,
-.focinho:hover .focinho-nariz { animation-duration: 900ms, 1.7s; }
+.focinho-esq .focinho-fio { transform-origin: 45px 30px; }
+.focinho-dir .focinho-fio { transform-origin: 75px 30px; animation-delay: calc(var(--d, 600ms) + 60ms + var(--i) * 90ms), var(--f, 0s); }
+/* Resposta extra no hover: o leque dos bigodes se abre (o de cima sobe, o de baixo desce). */
+:is(.focinho, .com-focinho):hover .focinho-fio { rotate: calc(var(--s) * var(--h) * 9deg); }
+:is(.focinho, .com-focinho):hover .focinho-nariz { animation-duration: 700ms, 1.6s; }
+/* Fora da primeira dobra: espera entrar na tela para desenhar. */
+.focinho[data-espera] * { animation: none !important; }
+.focinho[data-espera] .focinho-nariz { transform: scale(0); }
 @keyframes focinho-surge { from { transform: scale(0); } 70% { transform: scale(1.12); } to { transform: none; } }
 @keyframes focinho-fareja {
-  0%, 56%, 82%, 100% { transform: none; }
-  60% { transform: translateY(0.5px) scale(0.9, 0.82); }
-  64% { transform: scale(1.06, 1.05); }
-  68% { transform: translateY(0.4px) scale(0.92, 0.86); }
-  72% { transform: scale(1.03); }
+  0%, 50%, 100% { transform: none; }
+  54% { transform: scale(1.1, 0.88) translateY(1px); }
+  58% { transform: none; }
+  62% { transform: scale(1.1, 0.88) translateY(1px); }
+  66% { transform: none; }
+  70% { transform: scale(1.06, 0.92); }
+  74% { transform: none; }
 }
-@keyframes focinho-tremor-esq {
-  0%, 56%, 82%, 100% { transform: none; }
-  60% { transform: rotate(-3.2deg); }
-  64% { transform: rotate(2deg); }
-  68% { transform: rotate(-2.4deg); }
-  73% { transform: rotate(0.8deg); }
+@keyframes focinho-abre {
+  0%, 50%, 100% { transform: none; }
+  56% { transform: rotate(calc(var(--s) * -4deg)) scale(1.05); }
+  64% { transform: rotate(calc(var(--s) * 3deg)); }
+  72% { transform: rotate(calc(var(--s) * -2deg)) scale(1.03); }
+  80% { transform: none; }
 }
-@keyframes focinho-tremor-dir {
-  0%, 56%, 82%, 100% { transform: none; }
-  61% { transform: rotate(2.6deg); }
-  65% { transform: rotate(-1.6deg); }
-  69% { transform: rotate(2.2deg); }
-  74% { transform: rotate(-0.6deg); }
+@keyframes focinho-tremor {
+  0%, 100% { transform: rotate(0deg); }
+  8% { transform: rotate(calc(var(--s) * var(--a, 6deg) * -1)); }
+  13% { transform: rotate(calc(var(--s) * var(--a, 6deg) * 0.5)); }
+  18% { transform: rotate(calc(var(--s) * var(--a, 6deg) * -0.25)); }
+  24% { transform: rotate(0deg); }
+  60% { transform: rotate(calc(var(--s) * 1.5deg)); }
 }
 
+/* Fios: a linguagem dos botões. Três traços que se desenham e somem (stroke-dashoffset
+   de 1 a 0 a -1). Disparam no hover, no foco do teclado e no toque; com "auto",
+   saltam sozinhos a cada 4,5 s. */
 @layer components { .com-fios { position: relative; } .com-fios:active { scale: 0.98; } }
-.fios { position: absolute; inset: 0; pointer-events: none; --fl: 11px; --fio-cor: var(--fio, #0fc9bd); }
-.fios-leve { --fl: 8px; }
-.fios-forte { --fl: 14px; }
-.fios-lado { position: absolute; top: 50%; width: 0; height: 0; }
-.fios-dir { right: -2px; }
-.fios-esq { left: -2px; transform: scaleX(-1); }
-.fios i {
-  position: absolute;
-  left: 0;
-  top: -1px;
-  height: 2px;
-  width: var(--fl);
-  border-radius: 2px;
-  background: var(--fio-cor);
-  transform-origin: left center;
-  transform: rotate(var(--a)) translateX(0) scaleX(0);
-  opacity: 0;
-  transition:
-    transform 500ms var(--ease-expo) calc(var(--i) * 45ms),
-    opacity 220ms ease calc(var(--i) * 45ms);
+.fios { position: absolute; inset: 0; pointer-events: none; --fl: 13px; --fio-cor: var(--fio, #0fc9bd); }
+.fios-leve { --fl: 10px; }
+.fios-forte { --fl: 16px; }
+.fios-lado { position: absolute; top: 50%; width: var(--fl); height: var(--fl); margin-top: calc(var(--fl) / -2); overflow: visible; }
+.fios-dir { left: calc(100% + 3px); }
+.fios-esq { right: calc(100% + 3px); transform: scaleX(-1); }
+.fios path, .seta-fios .sf-fio {
+  fill: none;
+  stroke: var(--fio-cor, var(--fio, #0fc9bd));
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
 }
-.fios i:nth-child(1) { --a: -34deg; }
-.fios i:nth-child(2) { --a: 0deg; }
-.fios i:nth-child(3) { --a: 34deg; }
-.com-fios:is(:hover, :focus-visible, :active) .fios i { transform: rotate(var(--a)) translateX(6px) scaleX(1); opacity: 1; }
-.com-fios:is(:hover, :focus-visible) .fios-media .fios-lado,
-.com-fios:is(:hover, :focus-visible) .fios-forte .fios-lado { animation: fios-farejam 1.9s ease-in-out 520ms infinite; }
-.com-fios:is(:hover, :focus-visible) .fios-forte .fios-esq { animation-name: fios-farejam-esq; }
-@keyframes fios-farejam { 0%, 60%, 100% { rotate: 0deg; } 70% { rotate: -6deg; } 80% { rotate: 4deg; } 90% { rotate: -2deg; } }
-@keyframes fios-farejam-esq { 0%, 60%, 100% { rotate: 0deg; } 72% { rotate: 5deg; } 82% { rotate: -4deg; } 92% { rotate: 2deg; } }
-/* A seta dos botões anda junto com os fios. */
+.fios path:nth-child(2), .seta-fios .sf-fio:nth-child(2) { --i: 1; }
+.fios path:nth-child(3), .seta-fios .sf-fio:nth-child(3) { --i: 2; }
+.fios-auto path, .seta-fios-auto .sf-fio { animation: fios-auto 4.5s var(--ease-expo) calc(2.4s + var(--i, 0) * 60ms) infinite; }
+.com-fios:is(:hover, :focus-visible, :active) :is(.fios path, .sf-fio),
+.group:is(:hover, :focus-visible) .com-fios :is(.fios path, .sf-fio) {
+  animation: fios-salta 1100ms var(--ease-expo) calc(var(--i, 0) * 60ms) both;
+}
+@keyframes fios-salta { 0% { stroke-dashoffset: 1; } 40% { stroke-dashoffset: 0; } 68% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -1; } }
+@keyframes fios-auto { 0%, 55% { stroke-dashoffset: 1; } 66% { stroke-dashoffset: 0; } 84% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -1; } }
+
+/* Seta com fios (CTA aprovado): a seta dá um passinho quando os fios saltam. */
+.seta-fios { flex-shrink: 0; width: 1.6em; height: 0.9em; margin-right: -0.35em; overflow: visible; }
+.seta-fios .sf-seta { fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.seta-fios-auto .sf-seta { animation: fios-passo 4.5s var(--ease-expo) 2.4s infinite; }
+.com-fios:is(:hover, :focus-visible, :active) .sf-seta,
+.group:is(:hover, :focus-visible) .com-fios .sf-seta { animation: fios-passo-hover 1100ms var(--ease-expo) both; }
+@keyframes fios-passo { 0%, 55%, 100% { transform: none; } 64% { transform: translateX(2px); } 76% { transform: none; } }
+@keyframes fios-passo-hover { 0% { transform: none; } 30% { transform: translateX(2.5px); } 100% { transform: translateX(1px); } }
+/* Sem seta: os fios ficam soltos na margem direita do botão ("Entrar"). */
+.seta-fios-solto { position: absolute; right: 0.45rem; top: 50%; width: 0.85em; height: 0.85em; margin: -0.425em 0 0; }
+
+/* A seta lucide dos botões redondos anda junto com os fios. */
 .com-fios .seta { transition: transform 500ms var(--ease-expo); }
-.com-fios:is(:hover, :focus-visible) .seta { transform: translateX(3px); }
+.com-fios:is(:hover, :focus-visible) .seta,
+.group:is(:hover, :focus-visible) .com-fios .seta { transform: translateX(3px); }
 
 @media (prefers-reduced-motion: reduce) {
-  .focinho-fio { animation: none; stroke-dashoffset: 0; }
-  .focinho-nariz { animation: none; }
-  .focinho-lado { transition: none; transform: none; }
-  .fios i { transition: opacity 150ms ease; }
-  .com-fios:is(:hover, :focus-visible) .fios-lado { animation: none; }
+  .focinho *, .focinho[data-espera] * { animation: none !important; transition: none !important; }
+  .focinho-fio { stroke-dashoffset: 0; rotate: none !important; }
+  .focinho[data-espera] .focinho-nariz { transform: none; }
+  /* Fios: em vez de se desenhar, aparecem por opacidade enquanto há hover ou foco. */
+  .fios path, .seta-fios .sf-fio { animation: none !important; stroke-dashoffset: 0; opacity: 0; transition: opacity 150ms ease; }
+  .com-fios:is(:hover, :focus-visible) :is(.fios path, .sf-fio),
+  .group:is(:hover, :focus-visible) .com-fios :is(.fios path, .sf-fio) { opacity: 1; }
+  .seta-fios .sf-seta, .com-fios .seta { animation: none !important; transition: none; transform: none !important; }
   .com-fios:active { scale: none; }
 }
-.group:is(:hover, :focus-visible) .com-fios .fios i { transform: rotate(var(--a)) translateX(6px) scaleX(1); opacity: 1; }
-.group:is(:hover, :focus-visible) .com-fios .seta { transform: translateX(3px); }
+
+/* Rodapé V5: logotipo grande que se monta ao entrar na tela. As letras sobem uma a uma,
+   as orelhas (o símbolo) espiam de trás da linha de base e o traço do E se desenha como
+   um bigode. Depois as orelhas mexem de leve a cada ~7 s. Só transform e opacity. */
+.logo-tipe { overflow: visible; }
+.logo-vivo .lt-letra, .logo-vivo .lt-simbolo, .logo-vivo .lt-simbolo path, .logo-vivo .lt-traco { transform-box: view-box; }
+.logo-vivo .lt-simbolo, .logo-vivo .lt-simbolo path { transform-origin: 133px 195px; }
+.logo-vivo .lt-traco { transform-origin: 478px 140px; }
+.logo-vivo:not([data-in]) .lt-letra { opacity: 0; transform: translateY(46px); }
+.logo-vivo:not([data-in]) .lt-simbolo { opacity: 0; transform: translateY(70px) scale(0.86); }
+.logo-vivo:not([data-in]) .lt-traco { transform: scaleX(0); }
+.logo-vivo[data-in] .lt-letra { animation: lt-sobe 1300ms var(--ease-expo) both calc(120ms + var(--i) * 95ms); }
+.logo-vivo[data-in] .lt-simbolo { animation: lt-espia 1500ms var(--ease-expo) both 420ms; }
+.logo-vivo[data-in] .lt-simbolo path { animation: lt-orelhas 7s ease-in-out 2.6s infinite; }
+.logo-vivo[data-in] .lt-traco { animation: lt-traco 900ms var(--ease-expo) both 900ms; }
+.logo-vivo[data-in]:hover .lt-simbolo path { animation-duration: 1.4s; animation-delay: 0s; }
+@keyframes lt-sobe { from { opacity: 0; transform: translateY(46px); } to { opacity: 1; transform: none; } }
+@keyframes lt-espia {
+  0% { opacity: 0; transform: translateY(70px) scale(0.86); }
+  35% { opacity: 1; }
+  62% { transform: translateY(-5px) rotate(-2deg); }
+  82% { transform: translateY(1.5px) rotate(1deg); }
+  100% { opacity: 1; transform: none; }
+}
+@keyframes lt-orelhas {
+  0%, 84%, 100% { transform: none; }
+  87% { transform: rotate(-2.6deg); }
+  90% { transform: rotate(1.8deg); }
+  93% { transform: rotate(-0.8deg); }
+  96% { transform: none; }
+}
+@keyframes lt-traco { 0% { transform: scaleX(0); } 70% { transform: scaleX(1.08); } 100% { transform: none; } }
+/* Selo do pré-lançamento: pulso discreto no ponto. */
+.rodape-vivo { animation: tipe-live 2.4s ease-out infinite; }
+/* Links do rodapé: sublinhado fino que cresce da esquerda (sem os fios, que ficam para os CTAs). */
+.rodape-link { background: linear-gradient(currentColor, currentColor) no-repeat 0 calc(100% - 0.35rem) / 0 1px; transition: color 300ms ease, background-size 500ms var(--ease-expo); }
+.rodape-link:is(:hover, :focus-visible) { background-size: 100% 1px; }
+.rodape :focus-visible { outline: 2px solid #0fc9bd; outline-offset: 3px; border-radius: 0.5rem; }
+@media (prefers-reduced-motion: reduce) {
+  .logo-vivo .lt-letra, .logo-vivo .lt-simbolo, .logo-vivo .lt-simbolo path, .logo-vivo .lt-traco { animation: none !important; opacity: 1 !important; transform: none !important; }
+  .rodape-vivo { animation: none; }
+  .rodape-link { transition: color 150ms ease; }
+}
 
 /* Seção de conversão vibrante: camadas com profundidade (--z), rolagem (--p) e cursor (--mx/--my). */
 .cta-palco { --p: 0; --mx: 0; --my: 0; }

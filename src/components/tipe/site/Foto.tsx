@@ -1,5 +1,6 @@
 /**
- * Fotos do site (src/assets/produtos/<nome>-<largura>.webp) com o zoom lento da sunday:
+ * Fotos do site (src/assets/produtos/<nome>-<largura>.webp e as cenas do casting em
+ * src/assets/fotos/<cena>-<largura>.webp) com o zoom lento da sunday:
  * a foto entra levemente ampliada e assenta em 2,4 s quando aparece na tela; num card
  * com a classe `group`, o hover aproxima de novo em 1,2 s. Origem: docs/landing-v3/IMAGENS.md.
  */
@@ -7,7 +8,7 @@ import type { CSSProperties } from "react";
 import { useInView } from "@/components/tipe/landing/motion";
 import { cn } from "@/lib/utils";
 
-const ARQUIVOS = import.meta.glob("/src/assets/produtos/*.webp", {
+const ARQUIVOS = import.meta.glob(["/src/assets/produtos/*.webp", "/src/assets/fotos/*.webp"], {
   eager: true,
   query: "?url",
   import: "default",
@@ -32,7 +33,14 @@ export type NomeFoto =
   | "scan"
   | "gorjeta-mao"
   | "fechamento"
-  | "equipe";
+  | "equipe"
+  /* Cenas do casting em src/assets/fotos (também usadas no /teste-gratis). */
+  | "garcom"
+  | "gestor"
+  | "salao"
+  | "mesa"
+  | "amigos"
+  | "casal";
 
 export function fotoSrc(nome: NomeFoto) {
   const tamanhos = Object.entries(ARQUIVOS)

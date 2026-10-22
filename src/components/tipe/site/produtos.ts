@@ -30,6 +30,10 @@ import {
 } from "lucide-react";
 import type { Tela } from "@/components/tipe/landing/PhoneShot";
 import type { NomeFoto } from "./Foto";
+import type { TelaReal } from "./produto/TelaReal";
+
+/** Palco desenhado sem foto (conversa da Lebre) ou card sobre a foto. */
+export type Painel = "lebre-salao" | "lebre-acao" | "lebre-limite";
 
 export type Status = "disponivel" | "em-breve";
 export type Grupo = "Na mesa" | "Na equipe" | "Na gestão";
@@ -52,13 +56,28 @@ export type Produto = {
   cartao: { titulo: string; linhas: [string, string][]; rodape: string };
   /** Grupo no menu Produtos (como "Take payments" / "Power your business" na sunday). */
   grupo: Grupo;
-  /** Abas logo abaixo do topo: cada uma troca a foto e a tela da demonstração. */
-  beneficios: { t: string; d: string; foto: NomeFoto; posicao?: string; tela?: Tela }[];
-  /** Faixa na cor da marca com o celular. */
-  banda: { titulo: string; texto: string; tela: Tela; altTela: string };
+  /**
+   * Abas logo abaixo do topo: cada uma troca a foto (ou o painel desenhado) e a
+   * tela REAL do app do cliente (src/assets/telas-reais).
+   */
+  beneficios: {
+    t: string;
+    d: string;
+    foto?: NomeFoto;
+    posicao?: string;
+    telaReal?: TelaReal;
+    painel?: Painel;
+    /** Card "em desenvolvimento" sobre a foto, sem tela que finja existir. */
+    emDesenvolvimento?: boolean;
+    /** @deprecated Telas antigas do PhoneShot; não use. Mantido só para o tipo da Home. */
+    tela?: Tela;
+  }[];
+  /** Faixa na cor da marca com o celular (tela real) ou a conversa da Lebre. */
+  banda: { titulo: string; texto: string; telaReal?: TelaReal; lebre?: boolean; altTela: string };
   /** Fatos verdadeiros do produto (sem números de mercado inventados). */
   fatos: { v: string; t: string }[];
-  passos?: { tela: Tela; t: string; d: string; alt: string }[];
+  /** Sequência de telas reais do app do cliente, com legenda. */
+  fluxoReal?: { titulo: string; texto: string; telas: { tela: TelaReal; t: string; d: string; alt: string }[] };
   recursos: { icone: LucideIcon; t: string; d: string }[];
   faq: [string, string][];
 };
@@ -88,49 +107,23 @@ export const PRODUTOS: Produto[] = [
       rodape: "Pix aprovado · R$ 73,59",
     },
     beneficios: [
-      { t: "Sem aplicativo", d: "Abre direto na câmera do celular, no navegador." , foto: "scan", posicao: "50% 50%", tela: "conta" },
-      { t: "Cada um paga o seu", d: "Por item, em partes iguais, por valor ou porcentagem." , foto: "dividir", posicao: "50% 45%", tela: "selecao" },
-      { t: "Pague como preferir", d: "Pix, Apple Pay, Google Pay ou no estabelecimento." , foto: "pix-mao", posicao: "50% 50%", tela: "pagamento" },
-      { t: "Gorjeta para a equipe", d: "O cliente agradece quem atendeu, se quiser." , foto: "gorjeta-mao", posicao: "50% 50%", tela: "gorjeta" },
+      { t: "Sem aplicativo", d: "Abre direto na câmera do celular, no navegador." , foto: "scan", posicao: "50% 50%", telaReal: "conta" },
+      { t: "Cada um paga o seu", d: "Por item, em partes iguais, por valor ou porcentagem." , foto: "dividir", posicao: "50% 45%", telaReal: "dividir" },
+      { t: "Pague como preferir", d: "Pix, Apple Pay, Google Pay ou no estabelecimento." , foto: "pix-mao", posicao: "50% 50%", telaReal: "metodos" },
+      { t: "Gorjeta para a equipe", d: "O cliente agradece quem atendeu, se quiser." , foto: "gorjeta-mao", posicao: "50% 50%", telaReal: "gorjeta" },
     ],
     banda: {
       titulo: "Aponte a câmera. A conta está ali.",
       texto:
         "Cada mesa tem o seu QR Code no suporte da Tipe. Os pedidos lançados aparecem na conta em tempo real e os itens pagos saem na hora para todo mundo.",
-      tela: "aprovado",
-      altTela: "Conta da Mesa 12 aberta no celular pela Tipe",
+      telaReal: "conta",
+      altTela: "Conta da Mesa 12 do Maré Alta aberta no celular, com o total de R$ 356,40",
     },
     fatos: [
       { v: "0", t: "aplicativos para baixar" },
       { v: "4", t: "formas de pagar na mesa" },
       { v: "R$ 0", t: "de taxa para quem paga a conta" },
       { v: "70%", t: "da gorjeta extra vai para quem atendeu" },
-    ],
-    passos: [
-      {
-        tela: "selecao",
-        t: "Escolhe o que consumiu",
-        d: "Por item ou dividindo um prato com quem quiser.",
-        alt: "Conta da Mesa 12 na Tipe, com a moqueca selecionada para pagar",
-      },
-      {
-        tela: "pagamento",
-        t: "Paga como preferir",
-        d: "Pix, Apple Pay, Google Pay ou no estabelecimento.",
-        alt: "Escolha da forma de pagamento na Tipe, com Apple Pay selecionado",
-      },
-      {
-        tela: "aprovado",
-        t: "Aprovado na hora",
-        d: "A conta da mesa se atualiza para todo mundo.",
-        alt: "Tela de pagamento confirmado da Tipe",
-      },
-      {
-        tela: "gorjeta",
-        t: "E agradece, se quiser",
-        d: "Gorjeta extra direto para quem atendeu.",
-        alt: "Tela de gorjeta extra da Tipe",
-      },
     ],
     recursos: [
       { icone: Smartphone, t: "Pix, Apple Pay e Google Pay", d: "Processados pelo Pagar.me, com o dinheiro direto na conta do restaurante." },
@@ -169,16 +162,16 @@ export const PRODUTOS: Produto[] = [
       rodape: "Enviado para a cozinha",
     },
     beneficios: [
-      { t: "Cardápio com fotos", d: "Sempre atualizado, sem reimprimir nada." , foto: "order", posicao: "50% 50%" },
-      { t: "Pedido direto na cozinha", d: "Sem papel e sem passar pelo garçom." , foto: "kitchen", posicao: "50% 40%" },
-      { t: "Entra na conta sozinho", d: "O que foi pedido já aparece para pagar." , foto: "hamburgueria", posicao: "50% 45%", tela: "conta" },
+      { t: "Cardápio com fotos", d: "Sempre atualizado, sem reimprimir nada." , foto: "amigos", posicao: "50% 50%", emDesenvolvimento: true },
+      { t: "Pedido direto na cozinha", d: "Sem papel e sem passar pelo garçom." , foto: "kitchen", posicao: "50% 40%", emDesenvolvimento: true },
+      { t: "Entra na conta sozinho", d: "O que foi pedido já aparece para pagar." , foto: "hamburgueria", posicao: "50% 45%", telaReal: "conta" },
     ],
     banda: {
       titulo: "Um QR Code para pedir e pagar.",
       texto:
         "O suporte da mesa é a porta de entrada para tudo: cardápio, pedido, conta e pagamento, na mesma tela que o cliente já conhece.",
-      tela: "totem",
-      altTela: "Suporte de mesa da Tipe com o QR Code",
+      telaReal: "conta",
+      altTela: "Conta da Mesa 12 aberta no celular depois de ler o QR Code",
     },
     fatos: [
       { v: "1", t: "QR Code para pedir e pagar" },
@@ -218,15 +211,15 @@ export const PRODUTOS: Produto[] = [
     },
     beneficios: [
       { t: "Gorjeta extra no saldo", d: "70% do valor vai para o garçom da mesa." , foto: "gorjeta-mao", posicao: "50% 50%" },
-      { t: "Saque por Pix", d: "Ciclos quinzenais, com histórico completo." , foto: "staff", posicao: "55% 35%" },
+      { t: "Saque por Pix", d: "Ciclos quinzenais, com histórico completo." , foto: "garcom", posicao: "50% 35%" },
       { t: "Avaliações", d: "Cada nota chega ligada a quem atendeu." , foto: "equipe", posicao: "50% 40%" },
     ],
     banda: {
       titulo: "A gorjeta chega com o nome de quem atendeu.",
       texto:
         "Na hora de pagar, o cliente pode deixar uma gorjeta extra para o garçom da mesa. O valor entra no saldo dele, separado da conta do restaurante.",
-      tela: "gorjeta",
-      altTela: "Tela de gorjeta extra no celular do cliente",
+      telaReal: "gorjeta",
+      altTela: "Tela real de gorjeta extra: dos R$ 6,00, R$ 4,20 vão para a Joyce",
     },
     fatos: [
       { v: "70%", t: "da gorjeta extra para o garçom da mesa" },
@@ -276,8 +269,8 @@ export const PRODUTOS: Produto[] = [
       titulo: "Do salão para a cozinha sem papel.",
       texto:
         "O pedido lançado no salão vai direto para a tela do setor certo. Quando fica pronto, o salão sabe.",
-      tela: "conta",
-      altTela: "Conta da mesa com os itens lançados",
+      telaReal: "conta",
+      altTela: "Conta da Mesa 12 com os itens lançados",
     },
     fatos: [
       { v: "0", t: "comandas de papel" },
@@ -317,7 +310,7 @@ export const PRODUTOS: Produto[] = [
       rodape: "Demonstração com dados fictícios",
     },
     beneficios: [
-      { t: "Salão ao vivo", d: "Livre, ocupada, aguardando ou encerrada." , foto: "restaurant", posicao: "45% 45%" },
+      { t: "Salão ao vivo", d: "Livre, ocupada, aguardando ou encerrada." , foto: "salao", posicao: "50% 50%" },
       { t: "Caixa", d: "Abertura, sangria e fechamento do dia." , foto: "integracoes", posicao: "60% 50%" },
       { t: "Relatórios", d: "Vendas, mais vendidos e gorjetas por garçom." , foto: "fechamento", posicao: "50% 45%" },
       { t: "Tudo registrado", d: "Cada ação com data e responsável." , foto: "restaurant", posicao: "30% 60%" },
@@ -326,8 +319,8 @@ export const PRODUTOS: Produto[] = [
       titulo: "Saiba quem pagou sem atravessar o salão.",
       texto:
         "Os pagamentos digitais aparecem aprovados na hora. Os presenciais ficam esperando a confirmação do caixa, com nome, itens, valor e horário.",
-      tela: "aprovado",
-      altTela: "Pagamento aprovado na tela do cliente",
+      telaReal: "pago",
+      altTela: "Tela real de pagamento realizado no celular do cliente",
     },
     fatos: [
       { v: "Ao vivo", t: "mesas e pagamentos no painel" },
@@ -351,95 +344,112 @@ export const PRODUTOS: Produto[] = [
     slug: "ai",
     grupo: "Na gestão",
     nome: "Tipe AI",
-    resumo: "A Lebre responde sobre o seu restaurante",
+    resumo: "A Lebre resume o salão e faz o que você pedir, com confirmação",
     status: "disponivel",
     icone: Bot,
     foto: "ai",
     posicao: "55% 40%",
-    altFoto: "Gerente apoiada no balcão fazendo uma pergunta no celular antes de abrir o restaurante",
+    altFoto: "Gerente apoiada no balcão consultando o celular antes de abrir o restaurante",
     rotulo: "Tipe AI",
     titulo: "Você cuida do salão. A Lebre cuida das respostas.",
     texto:
-      "Pergunte em português como foi o dia, qual prato mais saiu ou quanto entrou de gorjeta. A Lebre lê os dados do seu restaurante e responde.",
+      "Pergunte em português, digitando ou falando, como está o salão agora. E peça o que precisa: abrir uma mesa, pausar um item, convidar um garçom. A Lebre prepara e você confirma.",
     cartao: {
       titulo: "Lebre",
       linhas: [
-        ["Você", "Qual prato mais saiu ontem?"],
-        ["Lebre", "A moqueca, com 23 pedidos."],
+        ["Você", "Resuma a situação do salão."],
+        ["Lebre", "6 mesas abertas, 1 no caixa."],
       ],
       rodape: "Demonstração com dados fictícios",
     },
     beneficios: [
-      { t: "Em português", d: "Sem filtro, planilha ou relatório para montar." , foto: "ai", posicao: "55% 40%" },
-      { t: "Com os seus dados", d: "Responde sobre o seu restaurante, não sobre um exemplo." , foto: "fechamento", posicao: "50% 45%" },
-      { t: "Com limite de uso", d: "Um teto diário mantém o custo previsível." , foto: "restaurant", posicao: "45% 45%" },
+      { t: "Em português, por texto ou voz", d: "Pergunte como está o salão. A Lebre lê as mesas com conta aberta, os pagamentos esperando o caixa e a equipe do seu restaurante.", painel: "lebre-salao" },
+      { t: "Você confirma antes", d: "Abrir, desativar ou liberar mesa, pausar item do cardápio, cadastrar e convidar garçom. Nada muda sem o seu toque em Confirmar.", painel: "lebre-acao" },
+      { t: "Com limite diário", d: "Cada restaurante tem um limite de mensagens por dia. Quando ele acaba, a Lebre avisa e volta no dia seguinte.", painel: "lebre-limite" },
     ],
     banda: {
       titulo: "Pergunte como pergunta para o gerente.",
       texto:
         "A Lebre está no painel do restaurante e também no site da Tipe, para tirar dúvidas de quem ainda está conhecendo.",
-      tela: "conta",
-      altTela: "Tela da Tipe no celular",
+      lebre: true,
+      altTela: "Conversa demonstrativa com a Lebre no celular",
     },
     fatos: [
-      { v: "24h", t: "disponível no painel" },
-      { v: "PT-BR", t: "pergunta e resposta" },
-      { v: "Diário", t: "limite de uso por restaurante" },
+      { v: "PT-BR", t: "pergunta por texto ou por voz" },
+      { v: "1 toque", t: "em Confirmar antes de qualquer mudança" },
+      { v: "Foto e PDF", t: "anexos que a Lebre lê, como um cardápio" },
+      { v: "Diário", t: "limite de mensagens por restaurante" },
     ],
     recursos: [
-      { icone: MessageSquareText, t: "Perguntas livres", d: "Vendas, pratos, gorjetas e avaliações." },
-      { icone: Sparkles, t: "Respostas curtas", d: "Direto ao ponto, com os números do período." },
-      { icone: ShieldCheck, t: "Só o seu restaurante", d: "Cada restaurante vê apenas os próprios dados." },
+      { icone: LayoutGrid, t: "Situação do salão", d: "Mesas com conta aberta, pagamentos esperando o caixa e valor em aberto." },
+      { icone: ShieldCheck, t: "Ações com confirmação", d: "Mesas, equipe e cardápio. A Lebre propõe, você confirma." },
+      { icone: MessageSquareText, t: "Voz e anexos", d: "Fale em vez de digitar ou mande a foto de um cardápio." },
+      { icone: Users, t: "Respeita os papéis", d: "Só o dono altera cadastros. Os outros perfis fazem perguntas." },
+      { icone: Sparkles, t: "Respostas curtas", d: "Direto ao ponto, sem inventar números." },
+      { icone: UserRound, t: "Só o seu restaurante", d: "Cada restaurante vê apenas os próprios dados." },
     ],
     faq: [
-      ["A Lebre toma decisões sozinha?", "Não. Ela responde perguntas; quem decide e age é a equipe do restaurante."],
+      ["A Lebre toma decisões sozinha?", "Não. Ela responde e propõe. A ação só acontece quando você toca em Confirmar, e cada uma fica registrada."],
+      ["E se o limite do dia acabar?", "A Lebre avisa que o limite do dia foi atingido e volta a responder no dia seguinte."],
     ],
   },
   {
     slug: "guest",
     grupo: "Na mesa",
     nome: "Tipe Guest",
-    resumo: "Clientes que voltam: avaliações e relacionamento",
+    resumo: "Avaliação depois de pagar e cliente lembrado; relacionamento em desenvolvimento",
     status: "em-breve",
     icone: Heart,
-    foto: "bistro",
+    foto: "casal",
     posicao: "50% 45%",
-    altFoto: "Garçom servindo vinho para dois clientes num bistrô à luz de velas",
+    altFoto: "Casal num restaurante à luz de vela; ela confere a conta no celular, com o QR Code da Tipe na mesa",
     rotulo: "Tipe Guest",
     titulo: "Quem paga bem, volta.",
     texto:
-      "Cada pagamento é uma chance de conhecer o cliente. Hoje a Tipe já lembra quem voltou à mesma mesa e recolhe avaliações; o programa de relacionamento vem a seguir.",
+      "Cada pagamento é uma chance de conhecer o cliente. Hoje a Tipe já pede a avaliação logo depois do pagamento e lembra o nome de quem volta à mesma mesa. Relacionamento e campanhas estão em desenvolvimento.",
     cartao: {
-      titulo: "Avaliação · Mesa 9",
+      titulo: "Avaliação · Mesa 12",
       linhas: [
         ["Nota", "5 estrelas"],
-        ["Comentário", "Atendimento nota dez"],
+        ["Garçom", "Joyce"],
       ],
-      rodape: "Garçom: Caio",
+      rodape: "Depois do pagamento",
     },
     beneficios: [
-      { t: "Avaliações hoje", d: "Depois do pagamento, com nota e comentário." , foto: "bistro", posicao: "50% 45%", tela: "aprovado" },
-      { t: "Cliente lembrado", d: "O celular guarda o nome para a próxima visita." , foto: "cafe", posicao: "50% 45%", tela: "conta" },
-      { t: "Relacionamento em breve", d: "Campanhas e fidelidade estão a caminho." , foto: "pizzaria", posicao: "50% 50%" },
+      { t: "Avaliação depois de pagar", d: "Com a conta paga, o cliente dá a nota e, se quiser, deixa um comentário. A avaliação chega ligada a quem atendeu.", foto: "mesa", posicao: "50% 40%", telaReal: "avaliacao" },
+      { t: "Nome lembrado no aparelho", d: "Na próxima visita à mesma mesa, a conta abre com “Olá, Lucas”. O nome fica guardado no celular do cliente, sem cadastro.", foto: "cafe", posicao: "50% 45%", telaReal: "conta" },
+      { t: "Relacionamento e campanhas", d: "Em desenvolvimento. Ainda não está disponível para os restaurantes.", foto: "pizzaria", posicao: "50% 50%", emDesenvolvimento: true },
     ],
     banda: {
       titulo: "Um obrigado vira uma visita de volta.",
       texto:
-        "A avaliação aparece logo depois do pagamento, quando a experiência ainda está fresca, e chega para o restaurante e para o garçom.",
-      tela: "aprovado",
-      altTela: "Tela de agradecimento depois do pagamento",
+        "Logo depois do pagamento, o cliente pode agradecer com uma gorjeta extra ou avaliar o atendimento, quando a experiência ainda está fresca.",
+      telaReal: "pago",
+      altTela: "Tela real de pagamento realizado, com os botões Agradecer Joyce com gorjeta e Avaliar atendimento",
     },
     fatos: [
-      { v: "1 toque", t: "para avaliar depois de pagar" },
+      { v: "Depois", t: "do pagamento: a avaliação aparece na hora" },
       { v: "Por garçom", t: "cada avaliação ligada a quem atendeu" },
+      { v: "Sem cadastro", t: "o nome fica guardado no celular do cliente" },
     ],
+    fluxoReal: {
+      titulo: "As telas que o cliente vê hoje.",
+      texto: "Capturadas do app do cliente, com dados de teste do restaurante fictício Maré Alta.",
+      telas: [
+        { tela: "conta", t: "Nome lembrado", d: "A conta abre com o nome de quem já pagou nessa mesa.", alt: "Conta da Mesa 12 com a saudação Olá, Lucas e o total de R$ 356,40" },
+        { tela: "pago", t: "Pagamento realizado", d: "Comprovante, gorjeta para a Joyce e avaliação.", alt: "Pagamento realizado de R$ 118,79 no Maré Alta, Mesa 12" },
+        { tela: "gorjeta", t: "Gorjeta, se quiser", d: "Opcional, cobrada à parte. 70% vai para a Joyce.", alt: "Tela de gorjeta extra com 3, 5 ou 8 por cento e Outro valor" },
+        { tela: "avaliacao", t: "Avaliação", d: "Estrelas e um comentário opcional.", alt: "Tela Como foi seu atendimento, com cinco estrelas e campo de comentário" },
+      ],
+    },
     recursos: [
-      { icone: Star, t: "Avaliações", d: "Disponível hoje." },
-      { icone: UserRound, t: "Identidade lembrada", d: "Disponível hoje, no celular do cliente." },
-      { icone: Clock, t: "Fidelidade e campanhas", d: "Em breve." },
+      { icone: Star, t: "Avaliações", d: "Disponível hoje, logo depois do pagamento." },
+      { icone: UserRound, t: "Nome lembrado", d: "Disponível hoje, no celular do cliente." },
+      { icone: Clock, t: "Relacionamento e campanhas", d: "Em desenvolvimento." },
     ],
     faq: [
-      ["O programa de fidelidade já existe?", "Ainda não. Avaliações e identidade lembrada já funcionam; fidelidade e campanhas estão em desenvolvimento."],
+      ["O programa de relacionamento já existe?", "Ainda não. Avaliações e nome lembrado já funcionam; relacionamento e campanhas estão em desenvolvimento."],
+      ["Quem vê as avaliações?", "O restaurante, e cada avaliação fica ligada ao garçom que atendeu a mesa."],
     ],
   },
 ];

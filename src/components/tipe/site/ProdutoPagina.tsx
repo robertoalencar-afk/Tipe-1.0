@@ -5,18 +5,20 @@
  * dúvidas, produtos relacionados e a faixa final.
  */
 import type { CSSProperties } from "react";
-import { Check, ChevronDown } from "lucide-react";
+import { Check, ChevronDown, Clock } from "lucide-react";
 import { MesaViva } from "@/components/tipe/MesaViva";
-import { PhoneShot } from "@/components/tipe/landing/PhoneShot";
 import { Palavras, Reveal } from "@/components/tipe/landing/motion";
 import totemMesa from "@/assets/marca/totem-mesa.webp";
 import { cn } from "@/lib/utils";
-import { AbasDemo, type ItemAba } from "./AbasDemo";
 import { Experimente } from "./Experimente";
 import { Foto, type NomeFoto } from "./Foto";
 import { CardProduto } from "./CardProduto";
-import { PRODUTOS, type Produto } from "./produtos";
+import { PRODUTOS, type Painel, type Produto } from "./produtos";
 import { BotaoPrincipal, BotaoSecundario, FaixaCta, Secao, Titulo } from "./Site";
+import { AbasProduto, type AbaProduto } from "./produto/AbasProduto";
+import { CelularLebre, ConversaLebre, PainelLebre, type ConversaId } from "./produto/Lebre";
+import { CelularReal } from "./produto/TelaReal";
+import { TopoStaff } from "./produto/TopoStaff";
 
 export function SeloStatus({ status, className }: { status: Produto["status"]; className?: string }) {
   if (status === "disponivel") return null;
@@ -66,11 +68,87 @@ export function CartaoInterface({
   );
 }
 
+/** Card honesto para o que ainda não existe: nada de tela que finja ser real. */
+function CartaoEmDesenvolvimento({ titulo }: { titulo: string }) {
+  return (
+    <div className="rounded-[1.4rem] border border-white/60 bg-white/[0.88] p-4 text-[#021E34] shadow-[0_30px_60px_-25px_rgb(0_0_0/0.45)] backdrop-blur-md sm:p-5">
+      <p className="flex w-fit items-center gap-1.5 rounded-full bg-[#021E34] px-2.5 py-1 text-[0.72rem] font-medium text-white">
+        <Clock className="h-3.5 w-3.5 text-[#0FC9BD]" aria-hidden /> Em desenvolvimento
+      </p>
+      <p className="mt-3 font-display text-[1.15rem] leading-tight tracking-[-0.02em]">{titulo}</p>
+      <p className="mt-1.5 text-[0.88rem] leading-snug text-[#021E34]/70">
+        Ainda não está disponível. Quem entrar no teste grátis fica sabendo primeiro.
+      </p>
+    </div>
+  );
+}
+
+function TextoTopo({ p }: { p: Produto }) {
+  return (
+    <>
+      <p className="flex items-center gap-3 font-display text-[clamp(1.1rem,0.95rem+0.6vw,1.45rem)] tracking-[-0.02em] text-brand-strong">
+        <p.icone className="h-5 w-5" />
+        {p.rotulo}
+        <SeloStatus status={p.status} className="text-foreground" />
+      </p>
+      <Palavras
+        as="h1"
+        imediato
+        delay={150}
+        className="mt-4 block font-display text-[clamp(2.4rem,1.2rem+4.4vw,5.2rem)] font-normal leading-[0.98] tracking-[-0.05em] text-balance"
+      >
+        {p.titulo}
+      </Palavras>
+      <p
+        className="hero-in mt-5 max-w-xl text-[1.05rem] leading-relaxed text-muted-foreground text-pretty sm:text-xl"
+        style={{ "--d": "450ms" } as CSSProperties}
+      >
+        {p.texto}
+      </p>
+      <div className="hero-in mt-8 flex flex-wrap gap-3" style={{ "--d": "600ms" } as CSSProperties}>
+        <BotaoPrincipal>{p.status === "disponivel" ? "Começar o teste grátis" : "Quero saber primeiro"}</BotaoPrincipal>
+        <BotaoSecundario href="/simulador">Testar o simulador</BotaoSecundario>
+      </div>
+    </>
+  );
+}
+
+/** O que flutua sobre a foto do topo: a conversa da Lebre, uma tela real ou o card de interface. */
+function SobreFoto({ p }: { p: Produto }) {
+  const atraso = { "--d": "700ms" } as CSSProperties;
+  if (p.slug === "ai")
+    return (
+      <div className="pop-in absolute inset-x-4 bottom-4 sm:inset-x-auto sm:bottom-8 sm:left-8 sm:w-[min(84%,22rem)]" style={atraso}>
+        <ConversaLebre id="salao" compacta />
+        <p className="mt-2 text-[0.72rem] text-white/80 [text-shadow:0_1px_8px_rgb(0_0_0/0.5)]">Conversa demonstrativa</p>
+      </div>
+    );
+  if (p.slug === "guest")
+    return (
+      <div className="pop-in absolute bottom-[-10%] right-4 w-[40%] max-w-[13.5rem] sm:right-8" style={atraso}>
+        <CelularReal tela="avaliacao" alt="Tela real de avaliação depois do pagamento: Como foi seu atendimento?" sizes="220px" prioridade />
+      </div>
+    );
+  return (
+    <CartaoInterface
+      cartao={p.cartao}
+      className="pop-in absolute bottom-5 left-5 w-[min(78%,19rem)] sm:bottom-8 sm:left-8"
+      style={atraso}
+    />
+  );
+}
+
 function Topo({ p }: { p: Produto }) {
+  if (p.slug === "staff")
+    return (
+      <TopoStaff>
+        <TextoTopo p={p} />
+      </TopoStaff>
+    );
   return (
     <section data-tema="claro" className="relative -mt-16 pt-16">
       <div className="container-page grid items-center gap-10 pb-14 pt-6 sm:pt-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:pb-20">
-        <div className="relative order-2 lg:order-1">
+        <div className="relative order-2 overflow-hidden rounded-[2rem] lg:order-1">
           <Foto
             nome={p.foto}
             prioridade
@@ -79,65 +157,40 @@ function Topo({ p }: { p: Produto }) {
             sizes="(min-width: 1024px) 52vw, 100vw"
             className="aspect-[4/5] rounded-[2rem] sm:aspect-[5/5] lg:aspect-[4/5]"
           />
-          <CartaoInterface
-            cartao={p.cartao}
-            className="pop-in absolute bottom-5 left-5 w-[min(78%,19rem)] sm:bottom-8 sm:left-8"
-            style={{ "--d": "700ms" } as CSSProperties}
-          />
+          <SobreFoto p={p} />
         </div>
         <div className="order-1 lg:order-2">
-          <p className="flex items-center gap-3 font-display text-[clamp(1.1rem,0.95rem+0.6vw,1.45rem)] tracking-[-0.02em] text-brand-strong">
-            <p.icone className="h-5 w-5" />
-            {p.rotulo}
-            <SeloStatus status={p.status} className="text-foreground" />
-          </p>
-          <Palavras
-            as="h1"
-            imediato
-            delay={150}
-            className="mt-4 block font-display text-[clamp(2.4rem,1.2rem+4.4vw,5.2rem)] font-normal leading-[0.98] tracking-[-0.05em] text-balance"
-          >
-            {p.titulo}
-          </Palavras>
-          <p
-            className="hero-in mt-5 max-w-xl text-[1.05rem] leading-relaxed text-muted-foreground text-pretty sm:text-xl"
-            style={{ "--d": "450ms" } as CSSProperties}
-          >
-            {p.texto}
-          </p>
-          <div
-            className="hero-in mt-8 flex flex-wrap gap-3"
-            style={{ "--d": "600ms" } as CSSProperties}
-          >
-            <BotaoPrincipal>
-              {p.status === "disponivel" ? "Começar o teste grátis" : "Quero saber primeiro"}
-            </BotaoPrincipal>
-            <BotaoSecundario href="/simulador">Testar o simulador</BotaoSecundario>
-          </div>
+          <TextoTopo p={p} />
         </div>
       </div>
     </section>
   );
 }
 
+const CONVERSA: Record<Painel, ConversaId> = {
+  "lebre-salao": "salao",
+  "lebre-acao": "acao",
+  "lebre-limite": "limite",
+};
+
 function Abas({ p }: { p: Produto }) {
-  const itens: ItemAba[] = p.beneficios.map((b, i) => ({
+  const itens: AbaProduto[] = p.beneficios.map((b, i) => ({
     id: `${p.slug}-${i}`,
     rotulo: b.t,
-    titulo: b.t,
     texto: b.d,
     foto: b.foto,
     posicao: b.posicao,
     altFoto: "",
-    tela: b.tela,
-    altTela: b.tela ? `Tela real da Tipe: ${b.t.toLowerCase()}` : undefined,
-    extra: b.tela ? undefined : <CartaoInterface cartao={p.cartao} />,
+    painel: b.painel ? <PainelLebre id={CONVERSA[b.painel]} /> : undefined,
+    tela: b.telaReal,
+    altTela: b.telaReal ? `Tela real do app do cliente: ${b.t.toLowerCase()}` : undefined,
+    extra: b.telaReal || b.painel ? undefined : b.emDesenvolvimento ? <CartaoEmDesenvolvimento titulo={b.t} /> : <CartaoInterface cartao={p.cartao} />,
   }));
   return (
     <Secao tema="claro" ariaLabel="Destaques" className="!pt-6 sm:!pt-10">
       <div className="container-page">
         <Titulo rotulo="Na prática" titulo={`O que muda com o ${p.nome}.`} className="mb-10 lg:mb-14" />
-        <AbasDemo itens={itens} />
+        <AbasProduto itens={itens} />
       </div>
     </Secao>
   );
@@ -160,7 +213,11 @@ function Banda({ p }: { p: Produto }) {
         </div>
         <div className="relative mx-auto flex h-full w-full max-w-md items-end justify-center gap-4 self-end lg:pt-14">
           <Reveal className="relative z-10 w-[55%] translate-y-6" delay={100}>
-            <PhoneShot tela={p.banda.tela} alt={p.banda.altTela} sizes="240px" />
+            {p.banda.lebre ? (
+              <CelularLebre />
+            ) : (
+              <CelularReal tela={p.banda.telaReal ?? "conta"} alt={p.banda.altTela} sizes="240px" />
+            )}
           </Reveal>
           <Reveal className="mb-10 w-[46%] shrink-0" delay={300}>
             <div className="rotate-[-4deg]">
@@ -184,18 +241,23 @@ function Banda({ p }: { p: Produto }) {
   );
 }
 
-const MOSAICO: Record<string, NomeFoto[]> = {
+/**
+ * Mosaico da seção escura. Sem repetir foto que já aparece no topo ou nas abas da
+ * mesma página. "lebre" é um painel desenhado (conversa da Lebre) no lugar de foto.
+ */
+const MOSAICO: Record<string, (NomeFoto | "lebre")[]> = {
   pay: ["boteco", "cafe", "pizzaria", "bistro"],
-  order: ["hamburgueria", "boteco", "pizzaria", "japones"],
+  order: ["cafe", "boteco", "pizzaria", "japones"],
   staff: ["bistro", "boteco", "japones", "cafe"],
-  kitchen: ["japones", "pizzaria", "hamburgueria", "boteco"],
-  restaurant: ["integracoes", "cafe", "bistro", "pizzaria"],
-  ai: ["restaurant", "cafe", "boteco", "bistro"],
-  guest: ["pay", "cafe", "pizzaria", "boteco"],
+  kitchen: ["cafe", "pizzaria", "hamburgueria", "boteco"],
+  restaurant: ["mesa", "cafe", "bistro", "pizzaria"],
+  ai: ["gestor", "lebre"],
+  guest: ["pay", "amigos", "boteco", "bistro"],
 };
 
 function Fatos({ p }: { p: Produto }) {
-  const fotos = MOSAICO[p.slug] ?? MOSAICO["pay"]!;
+  const itens = MOSAICO[p.slug] ?? MOSAICO["pay"]!;
+  const dupla = itens.length === 2;
   return (
     <Secao tema="escuro">
       <div className="container-page grid gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
@@ -213,16 +275,51 @@ function Fatos({ p }: { p: Produto }) {
           </dl>
         </div>
         <div className="grid grid-cols-2 gap-3 sm:gap-4">
-          {fotos.map((n, i) => (
-            <Foto
-              key={n + i}
-              nome={n}
-              alt=""
-              sizes="(min-width: 1024px) 26vw, 46vw"
-              className={cn("rounded-[1.5rem]", i % 3 === 0 ? "aspect-[3/4]" : "aspect-[4/5]", i === 1 && "mt-10")}
-            />
-          ))}
+          {itens.map((n, i) => {
+            const forma = dupla ? "aspect-[3/4.6]" : i % 3 === 0 ? "aspect-[3/4]" : "aspect-[4/5]";
+            const deslocar = i === 1 && "mt-10";
+            if (n === "lebre")
+              return (
+                <div key={n + i} className={cn("overflow-hidden rounded-[1.5rem] [&_p]:text-[0.8rem] [&_div]:text-[0.8rem]", forma, deslocar)}>
+                  <PainelLebre id="acao" className="!p-4 sm:!p-5" />
+                </div>
+              );
+            return (
+              <Foto
+                key={n + i}
+                nome={n}
+                alt=""
+                sizes="(min-width: 1024px) 26vw, 46vw"
+                className={cn("rounded-[1.5rem]", forma, deslocar)}
+              />
+            );
+          })}
         </div>
+      </div>
+    </Secao>
+  );
+}
+
+/** Só no Tipe Guest: as telas reais do app do cliente, em sequência. */
+function FluxoReal({ p }: { p: Produto }) {
+  if (!p.fluxoReal) return null;
+  const f = p.fluxoReal;
+  return (
+    <Secao tema="claro">
+      <div className="container-page">
+        <Titulo rotulo="Telas reais" titulo={f.titulo} texto={f.texto} />
+        <ol className="sem-barra -mx-4 mt-10 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-px-4 px-4 pb-4 sm:mx-0 sm:mt-12 sm:grid sm:grid-cols-2 sm:gap-8 sm:overflow-visible sm:px-0 lg:grid-cols-4">
+          {f.telas.map((t, i) => (
+            <Reveal as="li" key={t.tela} delay={i * 110} className="w-[62vw] max-w-[16rem] shrink-0 snap-start sm:w-auto sm:max-w-none">
+              <CelularReal tela={t.tela} alt={t.alt} sizes="(min-width: 1024px) 18vw, (min-width: 640px) 40vw, 62vw" className="mx-auto max-w-[15rem]" />
+              <p className="mt-5 flex items-baseline gap-2 font-display text-[1.2rem] tracking-[-0.02em]">
+                <span className="text-[0.85rem] text-muted-foreground">{String(i + 1).padStart(2, "0")}</span>
+                {t.t}
+              </p>
+              <p className="mt-1.5 text-[0.95rem] leading-relaxed text-muted-foreground">{t.d}</p>
+            </Reveal>
+          ))}
+        </ol>
       </div>
     </Secao>
   );
@@ -323,6 +420,7 @@ export function ProdutoPagina({ p }: { p: Produto }) {
       <Abas p={p} />
       <Banda p={p} />
       <Fatos p={p} />
+      <FluxoReal p={p} />
       <DemonstracaoPay p={p} />
       <Recursos p={p} />
       <Duvidas p={p} />

@@ -3,12 +3,11 @@
  * rodapé e a troca de fundo claro/escuro por seção, medida na sunday.
  */
 import { useEffect, useRef, type ReactNode } from "react";
-import { ArrowRight } from "lucide-react";
 import { LandingFooter, LandingHeader } from "@/components/tipe/landing/LandingChrome";
 import { Palavras } from "@/components/tipe/landing/motion";
 import { TRIAL_DAYS } from "@/lib/tipe/plans";
 import { cn } from "@/lib/utils";
-import { Fios } from "./Bigode";
+import { Fios, SetaFios } from "./Bigode";
 
 /** Liga o fundo da página ao tema da seção que cruza o meio da tela. */
 function useTemaPorSecao(raiz: React.RefObject<HTMLDivElement | null>) {
@@ -137,25 +136,31 @@ export function Titulo({
   );
 }
 
+/**
+ * CTA principal: seta com os fios da lebre. `vivo` faz os fios saltarem sozinhos a
+ * cada 4,5 s, de leve; use só no CTA principal da página (o do topo).
+ */
 export function BotaoPrincipal({
   href = "/teste-gratis",
   children = "Teste grátis",
   className,
+  vivo = false,
 }: {
   href?: string;
   children?: ReactNode;
   className?: string;
+  vivo?: boolean;
 }) {
   return (
     <a
       href={href}
       className={cn(
-        "btn-tema com-fios inline-flex h-13 min-h-12 items-center gap-2 rounded-full px-7 text-[1rem] font-medium",
+        "btn-tema com-fios inline-flex h-13 min-h-12 items-center gap-2.5 rounded-full pl-7 pr-6 text-[1rem] font-medium",
         className,
       )}
     >
       {children}
-      <Fios intensidade="forte" />
+      <SetaFios auto={vivo} />
     </a>
   );
 }
@@ -211,9 +216,9 @@ export function FaixaCta({
           <div className="flex flex-wrap gap-3">
             <a
               href="/teste-gratis"
-              className="inline-flex min-h-14 items-center gap-2 rounded-full bg-white px-8 text-lg font-medium text-[#021E34] hover:bg-white/90"
+              className="com-fios inline-flex min-h-14 items-center gap-2.5 rounded-full bg-white pl-8 pr-7 text-lg font-medium text-[#021E34] hover:bg-white/90"
             >
-              Começar o teste grátis <ArrowRight className="h-5 w-5" />
+              Começar o teste grátis <SetaFios />
             </a>
             <a
               href="/simulador"

@@ -1,15 +1,17 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { ArrowRight, ChevronDown, Instagram, Menu, MessageCircle, X } from "lucide-react";
 import logo from "@/assets/marca/tipe-logo.svg";
 import logoBranco from "@/assets/marca/tipe-logo-branco.svg";
-import { Fios } from "@/components/tipe/site/Bigode";
+import { Fios, Focinho, SetaFios } from "@/components/tipe/site/Bigode";
+import { LogoTipe } from "@/components/tipe/site/marca/LogoTipe";
 import { LUZ } from "@/components/tipe/site/CardProduto";
 import { fotoSrc } from "@/components/tipe/site/Foto";
 import { GRUPOS, PRODUTOS } from "@/components/tipe/site/produtos";
 import { PrivacyPreferences } from "@/components/tipe/PrivacyPreferences";
 import { COMPANY } from "@/lib/tipe/legal";
-import { WHATSAPP_SITE_MESSAGE, whatsappLink } from "@/lib/tipe/contact";
+import { TRIAL_DAYS } from "@/lib/tipe/plans";
+import { WHATSAPP_NUMBER, WHATSAPP_SITE_MESSAGE, whatsappLink } from "@/lib/tipe/contact";
 import { cn } from "@/lib/utils";
 import { useHeaderEscondido } from "./motion";
 
@@ -229,15 +231,17 @@ export function LandingHeader() {
           <div className="flex items-center gap-1.5">
             <Link
               to="/entrar"
-              className="hidden h-11 items-center rounded-full border border-border px-6 text-[0.95rem] font-medium text-foreground transition-colors hover:border-foreground/40 sm:inline-flex"
+              className="com-fios hidden h-11 items-center rounded-full border border-border px-6 text-[0.95rem] font-medium text-foreground transition-colors hover:border-foreground/40 sm:inline-flex"
             >
               Entrar
+              <SetaFios seta={false} />
             </Link>
             <a
               href="/teste-gratis"
-              className="btn-tema hidden h-11 items-center rounded-full px-6 text-[0.95rem] font-medium sm:inline-flex"
+              className="btn-tema com-fios hidden h-11 items-center gap-2 rounded-full pl-6 pr-5 text-[0.95rem] font-medium sm:inline-flex"
             >
               Teste grátis
+              <SetaFios />
             </a>
             <button
               ref={botaoMenu}
@@ -322,16 +326,18 @@ export function LandingHeader() {
               <Link
                 to="/entrar"
                 onClick={() => setMenu(false)}
-                className="flex h-12 items-center justify-center rounded-full border border-border bg-surface font-medium"
+                className="com-fios flex h-12 items-center justify-center rounded-full border border-border bg-surface font-medium"
               >
                 Entrar
+                <SetaFios seta={false} />
               </Link>
               <a
                 href="/teste-gratis"
                 onClick={() => setMenu(false)}
-                className="btn-tema flex h-12 items-center justify-center rounded-full font-medium"
+                className="btn-tema com-fios flex h-12 items-center justify-center gap-2 rounded-full font-medium"
               >
                 Teste grátis
+                <SetaFios />
               </a>
             </div>
           </div>
@@ -343,116 +349,226 @@ export function LandingHeader() {
         data-visivel={escondido || undefined}
         aria-hidden={!escondido}
         tabIndex={escondido ? undefined : -1}
-        className="cta-fixo btn-tema fixed right-4 top-3 z-40 inline-flex h-11 items-center rounded-full px-6 text-[0.95rem] font-medium shadow-lift sm:right-6"
+        className="cta-fixo btn-tema com-fios fixed right-4 top-3 z-40 inline-flex h-11 items-center gap-2 rounded-full pl-6 pr-5 text-[0.95rem] font-medium shadow-lift sm:right-6"
       >
         Teste grátis
+        <SetaFios />
       </a>
     </>
   );
 }
 
+/** (85) 98559-1062 a partir de 5585985591062. */
+function telefoneWhatsapp() {
+  const n = WHATSAPP_NUMBER.replace(/^55/, "");
+  return n.length === 11 ? `(${n.slice(0, 2)}) ${n.slice(2, 7)}-${n.slice(7)}` : "WhatsApp";
+}
+
+/**
+ * Rodapé: o fim da página como continuação da direção de arte. Fundo navy da marca,
+ * o "Pague. Sem esperar." com o focinho que se desenha ao entrar na tela, o CTA
+ * final, os links em quatro grupos e o logotipo grande, cujas letras sobem e as
+ * orelhas espiam ao aparecer.
+ */
 export function LandingFooter() {
-  const col = "space-y-2.5 text-sm";
-  const a = "block text-muted-foreground transition-colors hover:text-foreground";
+  const { pathname } = useLocation();
+  const noTeste = pathname.startsWith("/teste-gratis");
+  const grupo = "font-display text-[0.78rem] font-medium uppercase tracking-[0.14em] text-[#0FC9BD]";
+  const a =
+    "rodape-link inline-flex min-h-9 items-center text-[0.97rem] text-white/75 transition-colors duration-300 hover:text-white focus-visible:text-white";
+  const zap = whatsappLink(WHATSAPP_SITE_MESSAGE);
   return (
-    <footer data-tema="claro" className="border-t border-border">
-      <div className="container-page grid gap-10 py-14 sm:grid-cols-2 lg:grid-cols-[1.4fr_1fr_1fr_1fr]">
-        <div>
-          <Logo className="h-8 w-auto" />
-          <p className="mt-4 max-w-xs text-sm leading-relaxed text-muted-foreground">
-            Pagamento na mesa por QR Code para restaurantes, bares e cafeterias.
-          </p>
-          <div className="mt-5 flex gap-2">
+    <footer data-tema="escuro" className="rodape relative isolate overflow-hidden bg-[#021E34] text-white">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -right-40 -top-56 -z-10 h-[38rem] w-[38rem] rounded-full bg-[radial-gradient(closest-side,rgb(15_201_189/0.28),transparent)]"
+      />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute -bottom-72 -left-40 -z-10 h-[36rem] w-[36rem] rounded-full bg-[radial-gradient(closest-side,rgb(15_201_189/0.14),transparent)]"
+      />
+
+      <div className="container-page pt-20 sm:pt-28">
+        <div className="grid gap-10 lg:grid-cols-[1.3fr_1fr] lg:items-end">
+          <div>
+            <p className="inline-flex items-center gap-2.5 rounded-full bg-white/[0.07] px-4 py-1.5 text-sm text-white/85 ring-1 ring-inset ring-white/15">
+              <span aria-hidden className="rodape-vivo h-2 w-2 rounded-full bg-[#0FC9BD]" />
+              Pré-lançamento · {TRIAL_DAYS} dias grátis
+            </p>
+            <p className="com-focinho mt-7 font-display text-[clamp(2.9rem,1.4rem+5.4vw,6.6rem)] font-normal leading-[0.92] tracking-[-0.055em]">
+              Pague.
+              <br />
+              <span className="relative inline-block whitespace-nowrap">
+                Sem esperar.
+                <Focinho
+                  tom="escuro"
+                  quandoVisivel
+                  delay={350}
+                  className="absolute left-[calc(100%+0.12em)] top-[0.2em] h-[0.5em] w-[0.94em]"
+                />
+              </span>
+            </p>
+            <p className="mt-6 max-w-md text-[1.05rem] leading-relaxed text-white/70 sm:text-lg">
+              Pagamento na mesa por QR Code para restaurantes, bares e cafeterias. Sem aplicativo e sem esperar a
+              maquininha.
+            </p>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap lg:justify-end">
+            {!noTeste && (
+              <a
+                href="/teste-gratis"
+                className="com-fios inline-flex min-h-14 items-center justify-center gap-2.5 rounded-full bg-white pl-8 pr-7 text-lg font-medium text-[#021E34] transition-colors hover:bg-[#dff8f6]"
+              >
+                Começar o teste grátis
+                <SetaFios />
+              </a>
+            )}
             <a
-              href="https://instagram.com/tipe.digital"
+              href={zap}
               target="_blank"
               rel="noopener noreferrer"
-              aria-label="Instagram @tipe.digital"
-              className="grid h-9 w-9 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:text-foreground"
+              className="inline-flex min-h-14 items-center justify-center gap-2.5 rounded-full px-7 text-lg font-medium text-white ring-1 ring-inset ring-white/30 transition-colors hover:bg-white hover:text-[#021E34]"
             >
-              <Instagram className="h-4 w-4" />
-            </a>
-            <a
-              href={whatsappLink(WHATSAPP_SITE_MESSAGE)}
-              target="_blank"
-              rel="noopener noreferrer"
-              aria-label="WhatsApp da TIPE"
-              className="grid h-9 w-9 place-items-center rounded-full border border-border text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <MessageCircle className="h-4 w-4" />
+              <MessageCircle aria-hidden className="h-5 w-5" />
+              Falar no WhatsApp
             </a>
           </div>
         </div>
-        <div className={col}>
-          <p className="font-display font-medium">Produtos</p>
-          {PRODUTOS.map((p) => (
-            <a key={p.slug} href={`/produtos/${p.slug}`} className={a}>
-              {p.nome}
-            </a>
-          ))}
-          <a href="/integracoes" className={a}>
-            Integrações
-          </a>
-          <Link to="/simulador" className={a}>
-            Simulador
-          </Link>
-        </div>
-        <div className={col}>
-          <p className="font-display font-medium">Comercial</p>
-          <a href="/precos" className={a}>
-            Preços
-          </a>
-          <a href="/teste-gratis" className={a}>
-            Teste grátis
-          </a>
-          <a href="/#duvidas" className={a}>
-            Dúvidas frequentes
-          </a>
-          <a
-            href={whatsappLink(WHATSAPP_SITE_MESSAGE)}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={a}
-          >
-            Falar no WhatsApp
-          </a>
-          <Link to="/entrar" className={a}>
-            Entrar
-          </Link>
-        </div>
-        <div className={col}>
-          <p className="font-display font-medium">Jurídico</p>
-          <Link to="/legal/$livro" params={{ livro: "termos-de-uso" }} className={a}>
-            Termos de Uso
-          </Link>
-          <Link to="/legal/$livro" params={{ livro: "privacidade" }} className={a}>
-            Privacidade
-          </Link>
-          <Link to="/legal/$livro" params={{ livro: "cookies" }} className={a}>
-            Cookies
-          </Link>
-          <Link to="/legal/$livro" params={{ livro: "parceiros" }} className={a}>
-            Termos para Parceiros
-          </Link>
-          <Link
-            to="/legal/$livro"
-            params={{ livro: "seus-direitos" }}
-            hash="solicitacao"
-            className={a}
-          >
-            Seus direitos (LGPD)
-          </Link>
-          <PrivacyPreferences triggerClassName={a} />
-        </div>
+
+        <nav
+          aria-label="Rodapé"
+          className="mt-16 grid grid-cols-2 gap-x-6 gap-y-12 border-t border-white/12 pt-12 sm:mt-20 md:grid-cols-4 md:gap-x-10"
+        >
+          <div>
+            <p className={grupo}>Produtos</p>
+            <ul className="mt-4 space-y-0.5">
+              {PRODUTOS.map((p) => (
+                <li key={p.slug}>
+                  <a href={`/produtos/${p.slug}`} className={a}>
+                    {p.nome}
+                    {p.status === "em-breve" && (
+                      <span className="ml-2 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-medium text-white/70">
+                        Em breve
+                      </span>
+                    )}
+                  </a>
+                </li>
+              ))}
+              <li>
+                <Link to="/simulador" className={a}>
+                  Simulador
+                </Link>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <p className={grupo}>Empresa</p>
+            <ul className="mt-4 space-y-0.5">
+              <li>
+                <a href="/integracoes" className={a}>
+                  Integrações
+                </a>
+              </li>
+              <li>
+                <a href="/precos" className={a}>
+                  Preços
+                </a>
+              </li>
+              <li>
+                <a href="/teste-gratis" className={a}>
+                  Teste grátis
+                </a>
+              </li>
+              <li>
+                <a href="/#duvidas" className={a}>
+                  Dúvidas frequentes
+                </a>
+              </li>
+              <li>
+                <Link to="/entrar" className={a}>
+                  Entrar
+                </Link>
+              </li>
+            </ul>
+          </div>
+          <div>
+            <p className={grupo}>Legal</p>
+            <ul className="mt-4 space-y-0.5">
+              <li>
+                <Link to="/legal/$livro" params={{ livro: "termos-de-uso" }} className={a}>
+                  Termos de Uso
+                </Link>
+              </li>
+              <li>
+                <Link to="/legal/$livro" params={{ livro: "privacidade" }} className={a}>
+                  Privacidade
+                </Link>
+              </li>
+              <li>
+                <Link to="/legal/$livro" params={{ livro: "cookies" }} className={a}>
+                  Cookies
+                </Link>
+              </li>
+              <li>
+                <Link to="/legal/$livro" params={{ livro: "parceiros" }} className={a}>
+                  Termos para Parceiros
+                </Link>
+              </li>
+              <li>
+                <Link to="/legal/$livro" params={{ livro: "seus-direitos" }} hash="solicitacao" className={a}>
+                  Seus direitos (LGPD)
+                </Link>
+              </li>
+              <li>
+                <PrivacyPreferences triggerClassName={cn(a, "text-left")} />
+              </li>
+            </ul>
+          </div>
+          <div>
+            <p className={grupo}>Contato</p>
+            <ul className="mt-4 space-y-0.5">
+              <li>
+                <a href={zap} target="_blank" rel="noopener noreferrer" className={cn(a, "gap-2")}>
+                  <MessageCircle aria-hidden className="h-4 w-4 shrink-0" />
+                  <span>
+                    <span className="sr-only">WhatsApp </span>
+                    {telefoneWhatsapp()}
+                  </span>
+                </a>
+              </li>
+              <li>
+                <a
+                  href="https://instagram.com/tipe.digital"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={cn(a, "gap-2")}
+                >
+                  <Instagram aria-hidden className="h-4 w-4 shrink-0" />
+                  <span>
+                    <span className="sr-only">Instagram </span>@tipe.digital
+                  </span>
+                </a>
+              </li>
+              <li className="flex min-h-9 items-center text-[0.97rem] text-white/60">{COMPANY.city}</li>
+            </ul>
+          </div>
+        </nav>
       </div>
-      <div aria-hidden className="container-page overflow-hidden pb-4">
-        <img src={logo} alt="" width={462} height={141} loading="lazy" className="logo-claro w-full" />
-        <img src={logoBranco} alt="" width={462} height={141} loading="lazy" className="logo-escuro w-full" />
+
+      <div aria-hidden className="container-page mt-16 sm:mt-24">
+        <LogoTipe tom="escuro" animado titulo="" className="block h-auto w-full" />
       </div>
-      <div className="border-t border-border">
-        <p className="container-page py-5 text-xs text-muted-foreground">
-          © {new Date().getFullYear()} {COMPANY.legalName} · CNPJ {COMPANY.cnpj} · {COMPANY.city}
-        </p>
+
+      <div className="mt-8 border-t border-white/12 sm:mt-12">
+        <div className="container-page flex flex-col gap-3 py-6 text-xs leading-relaxed text-white/60 sm:flex-row sm:items-center sm:justify-between">
+          <p>
+            © {new Date().getFullYear()} {COMPANY.legalName} · CNPJ {COMPANY.cnpj} · {COMPANY.city}
+          </p>
+          <a href="#top" className="inline-flex min-h-9 items-center gap-1.5 self-start text-white/70 hover:text-white sm:self-auto">
+            Voltar ao topo
+            <ArrowRight aria-hidden className="h-3.5 w-3.5 -rotate-90" />
+          </a>
+        </div>
       </div>
     </footer>
   );

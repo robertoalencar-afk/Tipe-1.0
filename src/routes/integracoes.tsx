@@ -1,11 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { Foto } from "@/components/tipe/site/Foto";
-import { GradeIntegracoes, ListaIntegracoes } from "@/components/tipe/site/GradeIntegracoes";
-import { BotaoPrincipal, FaixaCta, Secao, SitePage, Titulo } from "@/components/tipe/site/Site";
+import { FaixaDuplaIntegracoes, HubIntegracoes, ListaIntegracoes } from "@/components/tipe/site/GradeIntegracoes";
+import { BotaoPrincipal, BotaoSecundario, FaixaCta, Secao, SitePage, Titulo } from "@/components/tipe/site/Site";
 
 const TITLE = "Integrações · Pix, Apple Pay, Google Pay e o seu PDV | Tipe";
 const DESC =
-  "O que a Tipe já conecta hoje (Pix, Apple Pay, Google Pay, Pagar.me, Lançamento TIPE e API TIPE) e os conectores de PDV que estão a caminho.";
+  "O que a Tipe já conecta hoje (Pix, Apple Pay, Google Pay, Pagar.me, Lançamento TIPE e API TIPE), o que está em desenvolvimento e o que está planejado.";
 
 export const Route = createFileRoute("/integracoes")({
   head: () => ({
@@ -25,25 +24,20 @@ function Integracoes() {
   return (
     <SitePage>
       <Secao tema="claro" className="-mt-16 !pt-32 sm:!pt-40">
-        <div className="container-page grid items-end gap-10 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="container-page grid items-end gap-8 lg:grid-cols-[1.15fr_0.85fr] lg:gap-10">
           <Titulo
             as="h1"
             rotulo="Integrações"
             titulo="A Tipe entra no jeito que você já trabalha."
-            texto="Use a Tipe completa, com o Lançamento TIPE no lugar de outro sistema, ou só o fechamento da conta junto do PDV que você já tem."
+            texto="Pix, Apple Pay e Google Pay pelo Pagar.me. Pedidos pelo Lançamento TIPE ou pela API TIPE. O que ainda está a caminho aparece separado."
           />
-          <div>
-            <BotaoPrincipal>Falar sobre o meu PDV</BotaoPrincipal>
+          <div className="flex flex-wrap gap-3 lg:justify-end">
+            <BotaoPrincipal>Teste grátis</BotaoPrincipal>
+            <BotaoSecundario href="#status">Ver o status de cada uma</BotaoSecundario>
           </div>
         </div>
-        <div className="container-page mt-14">
-          <Foto
-            nome="integracoes"
-            prioridade
-            alt="Caixa de um restaurante com computador, impressora e tablet"
-            sizes="100vw"
-            className="aspect-[16/10] rounded-[2rem] sm:aspect-[21/9]"
-          />
+        <div className="container-page mt-12 sm:mt-14">
+          <HubIntegracoes />
         </div>
       </Secao>
       <Secao tema="escuro">
@@ -51,14 +45,14 @@ function Integracoes() {
           <Titulo
             rotulo="Hoje e a caminho"
             titulo="O que já conecta, e o que vem aí."
-            texto="Mostramos com clareza o que funciona hoje. Os conectores para outros PDVs estão em desenvolvimento, com integração assistida pela nossa equipe."
+            texto="Em cima, o que funciona hoje. Embaixo, o que está em desenvolvimento ou planejado, sem promessa de data."
           />
-          <div className="mt-12">
-            <GradeIntegracoes />
-          </div>
+        </div>
+        <div className="mt-12 sm:mt-16">
+          <FaixaDuplaIntegracoes />
         </div>
       </Secao>
-      <Secao tema="claro">
+      <Secao tema="claro" id="status">
         <div className="container-page">
           <Titulo rotulo="Em detalhe" titulo="O que cada integração faz." className="mb-12" />
           <ListaIntegracoes />

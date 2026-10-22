@@ -1,117 +1,172 @@
 /**
  * Assinatura da lebre no site.
  *
- * Focinho: o nariz e três bigodes de cada lado, em SVG. Fareja de tempos em tempos
- * (o nariz contrai e os bigodes tremem com amplitudes diferentes de cada lado),
- * fareja mais rápido no hover e inclina os bigodes na direção do cursor.
+ * Focinho: nariz turquesa no centro exato do desenho (x = 60 no viewBox 120 × 64),
+ * boca em "Y" e três bigodes de cada lado. Mexe-se sozinho, sem depender do mouse:
+ * o nariz fareja em rajadas com pausa, os lados se abrem de leve a cada farejada e
+ * cada bigode oscila no seu próprio ritmo e amplitude, então os dois lados nunca
+ * ficam iguais. No hover os bigodes se abrem mais. Com movimento reduzido fica parado.
  *
- * Fios: o "Tipe Whisker Motion" dos botões e setas. Três traços curtos saem da
- * borda no hover, no foco do teclado e no toque. É só decoração: o botão diz o
- * que faz pelo texto, sem depender do movimento.
+ * Fios: a linguagem dos botões. Três traços curtos, como metade dos bigodes, que se
+ * desenham e somem. `Fios` nasce da borda do botão; `SetaFios` é a seta com os
+ * fios saindo da ponta (o CTA aprovado na prévia). Os dois respondem a hover,
+ * :focus-visible e toque; com `auto` saltam sozinhos a cada 4,5 s. É só decoração:
+ * o botão diz o que faz pelo texto.
  */
-import { useEffect, useRef, type CSSProperties } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { cn } from "@/lib/utils";
-import { reduzMovimento } from "./movimento";
 
-const BIGODES_ESQ = [
-  "M47 21 C 36 16, 22 12, 6 11",
-  "M46 25 C 33 24, 19 24, 3 26",
-  "M47 29 C 36 32, 23 37, 9 41",
-];
-const BIGODES_DIR = [
-  "M73 21 C 84 16, 98 12, 114 11",
-  "M74 25 C 87 24, 101 24, 117 26",
-  "M73 29 C 84 32, 97 37, 111 41",
-];
+/** Cada bigode: caminho, ritmo (s), defasagem (s), amplitude (graus) e quanto abre no hover. */
+const BIGODES = {
+  esq: [
+    { d: "M44 25 Q26 16 4 11", t: 3.9, f: -0.4, a: 7, h: 1 },
+    { d: "M43 30 Q24 29 1 31", t: 4.7, f: -1.9, a: 5, h: 0.25 },
+    { d: "M44 35 Q26 43 6 52", t: 5.3, f: -3.1, a: 8, h: -1 },
+  ],
+  dir: [
+    { d: "M76 25 Q94 16 116 11", t: 4.3, f: -2.6, a: 6, h: 1 },
+    { d: "M77 30 Q96 29 119 31", t: 3.6, f: -0.9, a: 5, h: 0.25 },
+    { d: "M76 35 Q94 43 114 52", t: 5.8, f: -4.2, a: 8, h: -1 },
+  ],
+} as const;
+
+/** Nariz em coração invertido arredondado, simétrico em torno de x = 60. */
+const NARIZ = "M45 18 Q60 10 75 18 Q71 32 60 35.5 Q49 32 45 18Z";
+const BOCA = "M60 35 V41 M60 41 Q54.5 47.5 48 44 M60 41 Q65.5 47.5 72 44";
+
+/** Marca o elemento quando entra na tela (uma vez). */
+function useApareceu<T extends Element>(ativo: boolean) {
+  const ref = useRef<T>(null);
+  const [visto, setVisto] = useState(!ativo);
+  useEffect(() => {
+    const el = ref.current;
+    if (!ativo || !el) return;
+    if (typeof IntersectionObserver === "undefined") return setVisto(true);
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e?.isIntersecting) {
+          setVisto(true);
+          io.disconnect();
+        }
+      },
+      { rootMargin: "0px 0px -10% 0px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [ativo]);
+  return [ref, visto] as const;
+}
 
 export function Focinho({
   className,
   delay = 900,
-  segueCursor = true,
+  tom = "auto",
+  quandoVisivel = false,
 }: {
   className?: string;
+  /** Atraso (ms) para os bigodes se desenharem na entrada. */
   delay?: number;
+  /** "claro": bigodes navy (fundo claro). "escuro": bigodes brancos. "auto": segue o tema da página. */
+  tom?: "auto" | "claro" | "escuro";
+  /** Só desenha os bigodes quando o focinho entra na tela (para usar fora da primeira dobra). */
+  quandoVisivel?: boolean;
+  /** @deprecated O focinho agora se mexe sozinho; mantido só para compatibilidade. */
   segueCursor?: boolean;
 }) {
-  const ref = useRef<SVGSVGElement>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || !segueCursor || reduzMovimento()) return;
-    if (!window.matchMedia("(hover: hover)").matches) return;
-    let quadro = 0;
-    let x = 0;
-    let y = 0;
-    const aplicar = () => {
-      quadro = 0;
-      const r = el.getBoundingClientRect();
-      const cx = r.left + r.width / 2;
-      const cy = r.top + r.height / 2;
-      const dx = Math.max(-1, Math.min(1, (x - cx) / 600));
-      const dy = Math.max(-1, Math.min(1, (y - cy) / 400));
-      el.style.setProperty("--ox", dx.toFixed(3));
-      el.style.setProperty("--oy", dy.toFixed(3));
-    };
-    const mover = (e: PointerEvent) => {
-      x = e.clientX;
-      y = e.clientY;
-      if (!quadro) quadro = requestAnimationFrame(aplicar);
-    };
-    window.addEventListener("pointermove", mover, { passive: true });
-    return () => {
-      cancelAnimationFrame(quadro);
-      window.removeEventListener("pointermove", mover);
-    };
-  }, [segueCursor]);
-
-  const fio = { strokeWidth: 1.5, strokeLinecap: "round", fill: "none", pathLength: 1 } as const;
+  const [ref, visto] = useApareceu<SVGSVGElement>(quandoVisivel);
+  const fio = { pathLength: 1, fill: "none" } as const;
   return (
     <svg
       ref={ref}
-      viewBox="0 0 120 48"
+      viewBox="0 0 120 64"
       aria-hidden
+      focusable="false"
+      data-tom={tom}
+      data-espera={visto ? undefined : ""}
       className={cn("focinho", className)}
       style={{ "--d": `${delay}ms` } as CSSProperties}
     >
-      <g className="focinho-lado focinho-esq">
-        {BIGODES_ESQ.map((d, i) => (
-          <path key={d} d={d} className="focinho-fio" style={{ "--i": i } as CSSProperties} {...fio} />
-        ))}
-      </g>
-      <g className="focinho-lado focinho-dir">
-        {BIGODES_DIR.map((d, i) => (
-          <path key={d} d={d} className="focinho-fio" style={{ "--i": i } as CSSProperties} {...fio} />
-        ))}
-      </g>
-      <g className="focinho-nariz">
-        <path d="M54.5 20.5 C 54.5 17.6, 65.5 17.6, 65.5 20.5 C 65.5 23.4, 62.2 26.6, 60 26.6 C 57.8 26.6, 54.5 23.4, 54.5 20.5 Z" />
-        <ellipse cx="57.6" cy="19.6" rx="1.6" ry="0.9" className="focinho-brilho" />
-      </g>
+      {(["esq", "dir"] as const).map((lado) => (
+        <g key={lado} className={`focinho-lado focinho-${lado}`}>
+          {BIGODES[lado].map((b, i) => (
+            <path
+              key={b.d}
+              d={b.d}
+              className="focinho-fio"
+              style={
+                {
+                  "--i": i,
+                  "--t": `${b.t}s`,
+                  "--f": `${b.f}s`,
+                  "--a": `${b.a}deg`,
+                  "--h": b.h,
+                } as CSSProperties
+              }
+              {...fio}
+            />
+          ))}
+        </g>
+      ))}
+      <path className="focinho-boca" d={BOCA} fill="none" />
+      <path className="focinho-nariz" d={NARIZ} />
     </svg>
   );
 }
 
 /**
- * Três fios curtos que saem da borda do elemento pai (que precisa ser relative e
- * ter a classe "com-fios"). intensidade "forte" usa os dois lados.
+ * Três fios curtos que nascem da borda do elemento pai (que precisa ter a classe
+ * "com-fios"). intensidade "forte" usa os dois lados. A cor vem de --fio.
  */
 export function Fios({
   intensidade = "media",
+  auto = false,
   className,
 }: {
   intensidade?: "leve" | "media" | "forte";
+  /** Salta sozinho de tempos em tempos, além do hover. */
+  auto?: boolean;
   className?: string;
 }) {
   const lados = intensidade === "forte" ? (["esq", "dir"] as const) : (["dir"] as const);
   return (
-    <span aria-hidden className={cn("fios", `fios-${intensidade}`, className)}>
+    <span aria-hidden className={cn("fios", `fios-${intensidade}`, auto && "fios-auto", className)}>
       {lados.map((lado) => (
-        <span key={lado} className={`fios-lado fios-${lado}`}>
-          <i style={{ "--i": 0 } as CSSProperties} />
-          <i style={{ "--i": 1 } as CSSProperties} />
-          <i style={{ "--i": 2 } as CSSProperties} />
-        </span>
+        <svg key={lado} viewBox="0 0 16 16" className={`fios-lado fios-${lado}`} focusable="false">
+          <path d="M1 8 L14 2" pathLength={1} style={{ "--i": 0 } as CSSProperties} />
+          <path d="M1 8 L15.5 8" pathLength={1} style={{ "--i": 1 } as CSSProperties} />
+          <path d="M1 8 L14 14" pathLength={1} style={{ "--i": 2 } as CSSProperties} />
+        </svg>
       ))}
     </span>
+  );
+}
+
+/**
+ * Seta com três fios saindo da ponta: o CTA aprovado. Fica dentro do botão (que
+ * precisa da classe "com-fios"). Sem `seta`, sobram só os fios, soltos na margem
+ * direita do botão (para links secundários como "Entrar").
+ */
+export function SetaFios({
+  auto = false,
+  seta = true,
+  className,
+}: {
+  /** Os fios saltam sozinhos a cada 4,5 s (só no CTA principal da página). */
+  auto?: boolean;
+  seta?: boolean;
+  className?: string;
+}) {
+  return (
+    <svg
+      viewBox={seta ? "0 0 28 16" : "12 0 16 16"}
+      aria-hidden
+      focusable="false"
+      className={cn("seta-fios", auto && "seta-fios-auto", !seta && "seta-fios-solto", className)}
+    >
+      <path className="sf-fio" d="M14 8 L26 2" pathLength={1} />
+      <path className="sf-fio" d="M14 8 L27 8" pathLength={1} />
+      <path className="sf-fio" d="M14 8 L26 14" pathLength={1} />
+      {seta && <path className="sf-seta" d="M3 8 H12 M8.5 4.5 12 8 8.5 11.5" />}
+    </svg>
   );
 }
