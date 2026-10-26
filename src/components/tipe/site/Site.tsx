@@ -114,10 +114,12 @@ export function Titulo({
         as={as}
         passo={90}
         className={cn(
-          "mt-3 block font-display font-normal leading-[0.98] tracking-[-0.045em] text-balance",
+          "mt-3 block font-display font-normal tracking-[-0.045em] text-balance",
           as === "h1"
             ? "text-[clamp(2.5rem,1.3rem+5vw,5.8rem)]"
             : "text-[clamp(2rem,1.2rem+3.6vw,4.4rem)]",
+          /* Depois do tamanho: o tailwind-merge descarta um leading que venha antes de text-[...]. */
+          "leading-[1.05]",
         )}
       >
         {titulo}

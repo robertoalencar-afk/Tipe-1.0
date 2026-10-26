@@ -13,7 +13,7 @@ import { LandingFooter, LandingHeader } from "@/components/tipe/landing/LandingC
 import { EditorialPhoto, type Scene } from "@/components/tipe/landing/EditorialPhoto";
 import { SimboloTipe } from "@/components/tipe/landing/Marcas";
 import { useVelocidadeFaixa } from "@/components/tipe/landing/motion";
-import mascotWaiting from "@/assets/mascot-waiting-hd.webp";
+import mascotWaiting from "@/assets/lebre/rosto-ola.webp";
 import { cn } from "@/lib/utils";
 
 const TITLE = `Teste grátis por ${TRIAL_DAYS} dias | TIPE`;

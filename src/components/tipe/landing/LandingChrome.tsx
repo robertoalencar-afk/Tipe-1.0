@@ -3,7 +3,7 @@ import { Link, useLocation } from "@tanstack/react-router";
 import { ArrowRight, ChevronDown, Instagram, Menu, MessageCircle, X } from "lucide-react";
 import logo from "@/assets/marca/tipe-logo.svg";
 import logoBranco from "@/assets/marca/tipe-logo-branco.svg";
-import { Fios, Focinho, SetaFios } from "@/components/tipe/site/Bigode";
+import { Focinho, SetaFios } from "@/components/tipe/site/Bigode";
 import { LogoTipe } from "@/components/tipe/site/marca/LogoTipe";
 import { LUZ } from "@/components/tipe/site/CardProduto";
 import { fotoSrc } from "@/components/tipe/site/Foto";
@@ -191,8 +191,7 @@ export function LandingHeader() {
                                       className="com-fios ml-auto grid h-8 w-8 shrink-0 place-items-center rounded-full opacity-0 transition-opacity duration-300 group-hover:opacity-100 group-focus-visible:opacity-100"
                                       style={{ "--fio": LUZ[p.slug] ?? "#0FC9BD" } as CSSProperties}
                                     >
-                                      <ArrowRight className="seta h-4 w-4" />
-                                      <Fios intensidade="leve" />
+                                      <SetaFios className="meio-focinho-redondo" />
                                     </span>
                                   </a>
                                 </li>
@@ -212,8 +211,8 @@ export function LandingHeader() {
                           className="absolute inset-0 h-full w-full object-cover opacity-55 transition-transform duration-1000 group-hover:scale-105"
                         />
                         <span className="relative text-sm text-white/80">Experimente agora</span>
-                        <span className="relative mt-1 font-display text-xl font-medium leading-tight">
-                          Pague a Mesa 12 no simulador →
+                        <span className="com-fios relative mt-1 font-display text-xl font-medium leading-tight">
+                          Pague a Mesa 12 no simulador <SetaFios />
                         </span>
                       </Link>
                     </div>
@@ -273,7 +272,11 @@ export function LandingHeader() {
                   </p>
                   <ul className="grid grid-cols-2 gap-2">
                     {PRODUTOS.filter((p) => p.grupo === g).map((p, pi) => (
-                      <li key={p.slug} className="menu-item" style={{ "--i": gi * 4 + pi + 1 } as CSSProperties}>
+                      <li
+                        key={p.slug}
+                        className="menu-item"
+                        style={{ "--i": gi * 4 + pi + 1 } as CSSProperties}
+                      >
                         <a
                           href={`/produtos/${p.slug}`}
                           onClick={() => setMenu(false)}
@@ -296,7 +299,9 @@ export function LandingHeader() {
                           <span className="min-w-0 text-sm font-medium leading-tight">
                             {p.nome}
                             {p.status === "em-breve" && (
-                              <span className="block text-[11px] font-normal text-muted-foreground">Em breve</span>
+                              <span className="block text-[11px] font-normal text-muted-foreground">
+                                Em breve
+                              </span>
                             )}
                           </span>
                         </a>
@@ -306,23 +311,28 @@ export function LandingHeader() {
                 </div>
               ))}
               <div className="mt-2">
-                {[...NAV.filter((n) => n.href !== "/produtos/ai"), { href: "/simulador", label: "Testar o simulador" }, { href: "/#duvidas", label: "Dúvidas" }].map(
-                  (n, k) => (
-                    <a
-                      key={n.href + n.label}
-                      href={n.href}
-                      onClick={() => setMenu(false)}
-                      className="menu-item flex items-center justify-between border-b border-border py-4 font-display text-[1.35rem] font-normal tracking-[-0.02em]"
-                      style={{ "--i": 12 + k } as CSSProperties}
-                    >
-                      {n.label}
-                      <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                    </a>
-                  ),
-                )}
+                {[
+                  ...NAV.filter((n) => n.href !== "/produtos/ai"),
+                  { href: "/simulador", label: "Testar o simulador" },
+                  { href: "/#duvidas", label: "Dúvidas" },
+                ].map((n, k) => (
+                  <a
+                    key={n.href + n.label}
+                    href={n.href}
+                    onClick={() => setMenu(false)}
+                    className="menu-item flex items-center justify-between border-b border-border py-4 font-display text-[1.35rem] font-normal tracking-[-0.02em]"
+                    style={{ "--i": 12 + k } as CSSProperties}
+                  >
+                    {n.label}
+                    <SetaFios className="text-muted-foreground" />
+                  </a>
+                ))}
               </div>
             </nav>
-            <div className="menu-item grid grid-cols-2 gap-2 border-t border-border bg-background px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3" style={{ "--i": 16 } as CSSProperties}>
+            <div
+              className="menu-item grid grid-cols-2 gap-2 border-t border-border bg-background px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-3"
+              style={{ "--i": 16 } as CSSProperties}
+            >
               <Link
                 to="/entrar"
                 onClick={() => setMenu(false)}
@@ -373,12 +383,16 @@ function telefoneWhatsapp() {
 export function LandingFooter() {
   const { pathname } = useLocation();
   const noTeste = pathname.startsWith("/teste-gratis");
-  const grupo = "font-display text-[0.78rem] font-medium uppercase tracking-[0.14em] text-[#0FC9BD]";
+  const grupo =
+    "font-display text-[0.78rem] font-medium uppercase tracking-[0.14em] text-[#0FC9BD]";
   const a =
     "rodape-link inline-flex min-h-9 items-center text-[0.97rem] text-white/75 transition-colors duration-300 hover:text-white focus-visible:text-white";
   const zap = whatsappLink(WHATSAPP_SITE_MESSAGE);
   return (
-    <footer data-tema="escuro" className="rodape relative isolate overflow-hidden bg-[#021E34] text-white">
+    <footer
+      data-tema="escuro"
+      className="rodape relative isolate overflow-hidden bg-[#021E34] text-white"
+    >
       <div
         aria-hidden
         className="pointer-events-none absolute -right-40 -top-56 -z-10 h-[38rem] w-[38rem] rounded-full bg-[radial-gradient(closest-side,rgb(15_201_189/0.28),transparent)]"
@@ -409,8 +423,8 @@ export function LandingFooter() {
               </span>
             </p>
             <p className="mt-6 max-w-md text-[1.05rem] leading-relaxed text-white/70 sm:text-lg">
-              Pagamento na mesa por QR Code para restaurantes, bares e cafeterias. Sem aplicativo e sem esperar a
-              maquininha.
+              Pagamento na mesa por QR Code para restaurantes, bares e cafeterias. Sem aplicativo e
+              sem esperar a maquininha.
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap lg:justify-end">
@@ -515,7 +529,12 @@ export function LandingFooter() {
                 </Link>
               </li>
               <li>
-                <Link to="/legal/$livro" params={{ livro: "seus-direitos" }} hash="solicitacao" className={a}>
+                <Link
+                  to="/legal/$livro"
+                  params={{ livro: "seus-direitos" }}
+                  hash="solicitacao"
+                  className={a}
+                >
                   Seus direitos (LGPD)
                 </Link>
               </li>
@@ -549,7 +568,9 @@ export function LandingFooter() {
                   </span>
                 </a>
               </li>
-              <li className="flex min-h-9 items-center text-[0.97rem] text-white/60">{COMPANY.city}</li>
+              <li className="flex min-h-9 items-center text-[0.97rem] text-white/60">
+                {COMPANY.city}
+              </li>
             </ul>
           </div>
         </nav>
@@ -564,7 +585,10 @@ export function LandingFooter() {
           <p>
             © {new Date().getFullYear()} {COMPANY.legalName} · CNPJ {COMPANY.cnpj} · {COMPANY.city}
           </p>
-          <a href="#top" className="inline-flex min-h-9 items-center gap-1.5 self-start text-white/70 hover:text-white sm:self-auto">
+          <a
+            href="#top"
+            className="inline-flex min-h-9 items-center gap-1.5 self-start text-white/70 hover:text-white sm:self-auto"
+          >
             Voltar ao topo
             <ArrowRight aria-hidden className="h-3.5 w-3.5 -rotate-90" />
           </a>

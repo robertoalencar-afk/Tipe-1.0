@@ -8,10 +8,10 @@ import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { Palavras, Reveal, useVelocidadeFaixa } from "@/components/tipe/landing/motion";
 import { TRIAL_DAYS } from "@/lib/tipe/plans";
 import { AbasDemo, type ItemAba } from "./AbasDemo";
-import { Focinho } from "./Bigode";
+import { Focinho, SetaFios } from "./Bigode";
 import { Foto, fotoSrc, type NomeFoto } from "./Foto";
 import { CardsPlanos } from "./Planos";
-import { CardProduto } from "./CardProduto";
+import { TrilhoProdutos } from "./TrilhoProdutos";
 import { CartaoInterface } from "./ProdutoPagina";
 import { PRODUTOS, produtoPorSlug } from "./produtos";
 import { BotaoPrincipal, BotaoSecundario, Secao, Titulo } from "./Site";
@@ -112,48 +112,17 @@ export function TopoHome() {
 /* ------------------------------------------------------------ Produtos */
 
 export function ProdutosHome() {
-  const trilho = useRef<HTMLDivElement>(null);
-  const andar = (dir: number) => {
-    const el = trilho.current;
-    if (!el) return;
-    el.scrollBy({ left: dir * Math.min(el.clientWidth * 0.8, 720), behavior: "smooth" });
-  };
   return (
     <Secao tema="escuro" id="produtos">
-      <div className="container-page flex flex-wrap items-end justify-between gap-6">
-        <Titulo
-          rotulo="Produtos"
-          titulo="Feita para o jeito que o seu restaurante já funciona."
-        />
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => andar(-1)}
-            aria-label="Produtos anteriores"
-            className="grid h-12 w-12 place-items-center rounded-full border border-border"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => andar(1)}
-            aria-label="Próximos produtos"
-            className="grid h-12 w-12 place-items-center rounded-full border border-border"
-          >
-            <ArrowRight className="h-5 w-5" />
-          </button>
-        </div>
-      </div>
-      <div
-        ref={trilho}
-        className="sem-barra mt-12 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-px-4 px-4 pb-2 sm:scroll-px-6 sm:px-6 lg:scroll-px-[max(1.5rem,calc((100vw-80rem)/2+1.5rem))] lg:px-[max(1.5rem,calc((100vw-80rem)/2+1.5rem))]"
-      >
-        {PRODUTOS.map((p, i) => (
-          <Reveal key={p.slug} delay={Math.min(i, 3) * 110} className="flex w-[80vw] max-w-[22rem] shrink-0 snap-start">
-            <CardProduto p={p} className="w-full" />
-          </Reveal>
-        ))}
-      </div>
+      <TrilhoProdutos
+        titulo={
+          <Titulo
+            rotulo="Produtos"
+            titulo="Feita para o jeito que o seu restaurante já funciona."
+          />
+        }
+        produtos={PRODUTOS}
+      />
     </Secao>
   );
 }
@@ -234,7 +203,12 @@ export function PessoasHome() {
       </div>
       <ul className="sem-barra mt-10 flex snap-x snap-mandatory gap-4 overflow-x-auto scroll-px-4 px-4 pb-2 sm:mt-14 md:container-page md:grid md:grid-cols-3 md:gap-5 md:overflow-visible">
         {PESSOAS.map((p, i) => (
-          <Reveal as="li" key={p.quem} delay={i * 140} className="w-[82vw] max-w-[24rem] shrink-0 snap-start md:w-auto md:max-w-none">
+          <Reveal
+            as="li"
+            key={p.quem}
+            delay={i * 140}
+            className="w-[82vw] max-w-[24rem] shrink-0 snap-start md:w-auto md:max-w-none"
+          >
             <a href={p.href} className="group block">
               <div className="relative overflow-hidden rounded-[1.75rem]">
                 <Foto
@@ -316,7 +290,9 @@ export function IntegracoesHome() {
       </div>
       <div className="container-page mt-10 flex flex-col items-center gap-3 text-center">
         <BotaoSecundario href="/integracoes">Ver todas as integrações</BotaoSecundario>
-        <p className="text-sm text-muted-foreground">Usa outro sistema? Conte qual na conversa de implantação.</p>
+        <p className="text-sm text-muted-foreground">
+          Usa outro sistema? Conte qual na conversa de implantação.
+        </p>
       </div>
     </Secao>
   );
@@ -335,8 +311,11 @@ export function PlanosHome() {
             titulo="Preço simples. Sem surpresa."
             texto={`Você paga pelo número de mesas, não por transação. ${TRIAL_DAYS} dias grátis, sem cartão de crédito.`}
           />
-          <a href="/precos" className="inline-flex items-center gap-2 font-medium">
-            Comparar os planos <ArrowRight className="h-4 w-4" />
+          <a
+            href="/precos"
+            className="com-fios inline-flex min-h-12 items-center gap-2 font-medium"
+          >
+            Comparar os planos <SetaFios />
           </a>
         </div>
         <div className="mt-12">

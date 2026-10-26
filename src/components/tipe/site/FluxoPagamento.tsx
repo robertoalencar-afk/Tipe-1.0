@@ -1,212 +1,561 @@
 /**
- * A experiência de pagamento em oito passos, com as telas reais da Tipe: do QR
- * Code da mesa até o caixa vendo a conta quitada. Passos controlados (não presos
- * à rolagem): avançam sozinhos quando a seção está na tela, param quando a pessoa
- * toca, e as setas e os números navegam também pelo teclado. Os dados são do
- * restaurante fictício "Maré Alta" e nada aqui cobra de verdade.
+ * "Como funciona": uma experiência guiada em oito passos, cada um com cena do casting ao
+ * fundo, o celular com a tela real do app do cliente à frente e um aviso do que acontece
+ * do lado do restaurante. No passo do pagamento aprovado entra o painel real do salão
+ * (salao-antes → salao), com a Mesa 12 atualizando sozinha.
+ *
+ * Avança sozinho só enquanto a seção está na tela e a aba está visível; para quando a pessoa
+ * navega (clique, setas do teclado, toque ou deslize). Com movimento reduzido nada anda
+ * sozinho e tudo troca na hora. Dados do restaurante fictício "Maré Alta"; nada cobra de verdade.
  */
-import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
-import { ArrowLeft, ArrowRight, Check, Pause, Play, ScanLine } from "lucide-react";
-import { useInView } from "@/components/tipe/landing/motion";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+  type KeyboardEvent,
+  type PointerEvent,
+  type ReactNode,
+} from "react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  BadgeCheck,
+  HandCoins,
+  Landmark,
+  LayoutGrid,
+  Pause,
+  Play,
+  ReceiptText,
+  ScanLine,
+  Star,
+  Users,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
-import totem360 from "@/assets/telas-v4/totem-360.webp";
-import totem720 from "@/assets/telas-v4/totem-720.webp";
+import salao560 from "@/assets/telas-reais/salao-560.webp";
+import salao1000 from "@/assets/telas-reais/salao-1000.webp";
+import salaoAntes560 from "@/assets/telas-reais/salao-antes-560.webp";
+import salaoAntes1000 from "@/assets/telas-reais/salao-antes-1000.webp";
 import { Fios } from "./Bigode";
-import { CelularReal, type EtapaCelular, type TelaReal } from "./CelularReal";
-import { Janela } from "./Dispositivo";
+import { CelularComo, type QuadroCelular } from "./como-funciona/CelularComo";
+import { fotoSrc, type NomeFoto } from "./Foto";
 import { reduzMovimento } from "./movimento";
 import { Secao, Titulo } from "./Site";
+import "./como-funciona/como-funciona.css";
 
 type Passo = {
   id: string;
-  quem: "Cliente" | "Restaurante";
+  quem: string;
   titulo: string;
   texto: string;
-  tela?: TelaReal;
-  alt: string;
-  toque?: { x: number; y: number };
-  chip?: ReactNode;
+  cena: NomeFoto;
+  /** object-position da cena no palco. */
+  foco: string;
+  quadro: QuadroCelular;
+  aviso: { rotulo: string; texto: ReactNode; icone: ReactNode };
+  salao?: boolean;
 };
 
-// Ordem real do app do cliente: a conta é paga primeiro e a gorjeta extra, opcional,
+// Ordem real do app do cliente: a conta é paga primeiro; a gorjeta extra, opcional,
 // vem depois como um segundo pagamento.
 const PASSOS: Passo[] = [
   {
     id: "qr",
     quem: "Cliente",
     titulo: "Aponta a câmera para o QR Code",
-    texto: "Cada mesa tem o seu código. A conta abre no navegador, sem baixar aplicativo.",
-    alt: "Totem da Mesa 12 do Maré Alta com o QR Code da Tipe",
+    texto:
+      "Cada mesa tem o seu totem. A conta abre no navegador, sem baixar aplicativo e sem chamar ninguém.",
+    cena: "cena-casal",
+    foco: "30% 40%",
+    quadro: {
+      tipo: "camera",
+      alt: "Câmera do celular enquadrando o QR Code do totem da Mesa 12 do Maré Alta",
+    },
+    aviso: { rotulo: "No salão", texto: "Mesa 12 abriu a conta pelo celular", icone: <ScanLine /> },
   },
   {
     id: "conta",
     quem: "Cliente",
     titulo: "Vê a conta ao vivo",
-    texto: "Os itens aparecem conforme o garçom lança, com a taxa de serviço do restaurante.",
-    tela: "conta",
-    alt: "Conta da Mesa 12 no celular: total de R$ 356,40 com a taxa de serviço",
-    toque: { x: 23, y: 42 },
-    chip: <>Mesa 12 · <span className="money">R$ 356,40</span></>,
+    texto: "Os itens aparecem conforme o garçom lança, já com a taxa de serviço do restaurante.",
+    cena: "cena-familia",
+    foco: "40% 45%",
+    quadro: {
+      tipo: "tela",
+      tela: "conta",
+      alt: "Conta da Mesa 12 no celular: total de R$ 356,40 com a taxa de serviço",
+      toque: { x: 28, y: 59 },
+    },
+    aviso: {
+      rotulo: "Para o garçom",
+      texto: "O que a Joyce lança aparece na conta na mesma hora",
+      icone: <ReceiptText />,
+    },
   },
   {
     id: "dividir",
     quem: "Cliente",
     titulo: "Divide do jeito da mesa",
-    texto: "Pagar tudo, partes iguais, por valor, por porcentagem ou só os próprios itens. O resto fica para quem ainda vai pagar.",
-    tela: "dividir",
-    alt: "Conta dividida em 3 partes, com a parte de R$ 118,79",
-    toque: { x: 50, y: 70 },
-    chip: <>Dividido em 3 · <span className="money">R$ 118,79</span> cada</>,
+    texto: "Pagar tudo, partes iguais, por valor, por porcentagem ou só os próprios itens.",
+    cena: "cena-amigos",
+    foco: "35% 40%",
+    quadro: {
+      tipo: "tela",
+      tela: "dividir",
+      alt: "Conta dividida em 3 partes, com a parte de R$ 118,79",
+      toque: { x: 50, y: 70 },
+    },
+    aviso: {
+      rotulo: "Na mesa",
+      texto: (
+        <>
+          <span className="money">R$ 237,61</span> seguem em aberto para os outros dois
+        </>
+      ),
+      icone: <Users />,
+    },
   },
   {
     id: "forma",
     quem: "Cliente",
     titulo: "Escolhe como pagar",
-    texto: "Pix, Apple Pay ou Google Pay pelo celular, ou pagar no estabelecimento.",
-    tela: "metodos",
-    alt: "Formas de pagamento: Pix, Apple Pay, Google Pay e pagar no estabelecimento",
-    toque: { x: 50, y: 89 },
+    texto:
+      "Pix, Apple Pay ou Google Pay direto no celular, ou pagar no estabelecimento, se preferir.",
+    cena: "cena-executiva",
+    foco: "45% 35%",
+    quadro: {
+      tipo: "tela",
+      tela: "metodos",
+      alt: "Formas de pagamento: Pix, Apple Pay, Google Pay e pagar no estabelecimento",
+      toque: { x: 50, y: 89 },
+    },
+    aviso: {
+      rotulo: "Para a equipe",
+      texto: "Ninguém precisa esperar o garçom para fechar a conta",
+      icone: <Landmark />,
+    },
   },
   {
-    id: "paga",
+    id: "pix",
     quem: "Cliente",
     titulo: "Paga em segundos",
-    texto: "No Pix, o banco confirma e a Tipe aprova sozinha. O dinheiro vai para a conta do restaurante.",
-    tela: "pix",
-    alt: "Tela do Pix com o valor de R$ 118,79 e o QR Code",
+    texto:
+      "No Pix, o banco confirma e a Tipe aprova sozinha. O dinheiro vai para a conta do restaurante.",
+    cena: "cena-executiva",
+    foco: "45% 35%",
+    quadro: { tipo: "tela", tela: "pix", alt: "Tela do Pix com o valor de R$ 118,79 e o QR Code" },
+    aviso: {
+      rotulo: "No banco",
+      texto: "Pagamento confirmado sem conferir comprovante",
+      icone: <BadgeCheck />,
+    },
   },
   {
-    id: "pronto",
-    quem: "Cliente",
-    titulo: "Recebe a confirmação",
-    texto: "A parte paga sai da mesa na hora. Dali o cliente pode pedir o comprovante por e-mail e avaliar o atendimento.",
-    tela: "pago",
-    alt: "Pagamento realizado, com o valor pago, o restaurante e a mesa",
-    toque: { x: 49, y: 75 },
-    chip: <>Pagamento realizado</>,
+    id: "pago",
+    quem: "Cliente e restaurante",
+    titulo: "Pago. A mesa atualiza no salão",
+    texto:
+      "Cada parte paga aparece no painel do restaurante. Quando a última cai, a mesa se encerra sozinha.",
+    cena: "cena-gerente",
+    foco: "40% 35%",
+    quadro: {
+      tipo: "tela",
+      tela: "pago",
+      alt: "Pagamento realizado, com o valor pago, o restaurante e a mesa",
+      toque: { x: 49, y: 75 },
+    },
+    aviso: {
+      rotulo: "No salão",
+      texto: "Mesa 12 passou para Encerrada no painel",
+      icone: <LayoutGrid />,
+    },
+    salao: true,
   },
   {
     id: "gorjeta",
     quem: "Cliente",
     titulo: "Se quiser, agradece com gorjeta",
-    texto: "Depois de pagar, a gorjeta extra é opcional e cobrada à parte, como um segundo pagamento. Nada vem marcado, e 70% vai para quem atendeu a mesa.",
-    tela: "gorjeta",
-    alt: "Gorjeta extra para a Joyce: 3%, 5% (sugerida) ou 8%, ou outro valor",
-    toque: { x: 62, y: 73 },
-    chip: <>Gorjeta para Joyce · <span className="money">R$ 6,00</span></>,
+    texto:
+      "Depois de pagar, a gorjeta extra é opcional e cobrada à parte, como um segundo pagamento.",
+    cena: "cena-garconete",
+    foco: "35% 40%",
+    quadro: {
+      tipo: "tela",
+      tela: "gorjeta-metodo",
+      alt: "Pagamento da gorjeta extra de R$ 6,00, cobrada à parte da conta, por Pix, Apple Pay ou Google Pay",
+      toque: { x: 50, y: 91 },
+    },
+    aviso: {
+      rotulo: "Para a Joyce",
+      texto: "70% da gorjeta extra vai para quem atendeu a mesa",
+      icone: <HandCoins />,
+    },
   },
   {
-    id: "caixa",
-    quem: "Restaurante",
-    titulo: "O restaurante vê tudo ao vivo",
-    texto: "O caixa recebe cada pagamento com nome, itens, valor e hora, e a mesa muda de status sozinha.",
-    alt: "Painel do caixa com a lista de pagamentos do dia",
+    id: "avaliacao",
+    quem: "Cliente",
+    titulo: "Avalia o atendimento",
+    texto:
+      "Uma nota de uma a cinco estrelas e um comentário, se quiser. A mesa fica livre para o próximo cliente.",
+    cena: "cena-mesa-liberada",
+    foco: "40% 40%",
+    quadro: {
+      tipo: "tela",
+      tela: "avaliacao",
+      alt: "Avaliação do atendimento com cinco estrelas e campo de comentário",
+    },
+    aviso: {
+      rotulo: "Para a gerência",
+      texto: "A nota chega para o restaurante e para quem atendeu",
+      icone: <Star />,
+    },
   },
 ];
 
-const ETAPAS_CELULAR: EtapaCelular[] = PASSOS.filter((p) => p.tela).map((p) => ({
-  tela: p.tela!,
-  alt: p.alt,
-  ...(p.toque ? { toque: p.toque } : {}),
-}));
+const QUADROS = PASSOS.map((p) => p.quadro);
+const CENAS = [...new Set(PASSOS.map((p) => p.cena))];
+const TEMPO = 4600;
+const TOTAL = PASSOS.length;
+const dois = (n: number) => String(n).padStart(2, "0");
 
-const TEMPO = 3600;
+/** Visível na tela agora (entra e sai), para pausar fora dela. */
+function useNaTela<T extends Element>() {
+  const ref = useRef<T>(null);
+  const [na, setNa] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver(([e]) => setNa(!!e?.isIntersecting), { threshold: 0.35 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
+  return [ref, na] as const;
+}
+
+function useAbaVisivel() {
+  const [v, setV] = useState(true);
+  useEffect(() => {
+    const f = () => setV(document.visibilityState !== "hidden");
+    f();
+    document.addEventListener("visibilitychange", f);
+    return () => document.removeEventListener("visibilitychange", f);
+  }, []);
+  return v;
+}
 
 export function FluxoPagamento() {
   const [ativo, setAtivo] = useState(0);
   const [auto, setAuto] = useState(true);
-  const [ref, visivel] = useInView<HTMLDivElement>("0px 0px -25% 0px");
-  const reduzido = useRef(false);
+  const [reduzido, setReduzido] = useState(false);
+  const [ref, naTela] = useNaTela<HTMLDivElement>();
+  const abaVisivel = useAbaVisivel();
+  const [carregar, setCarregar] = useState(false);
+  const [salaoDepois, setSalaoDepois] = useState(false);
+  const [tocar, setTocar] = useState(false);
+  const abas = useRef<(HTMLButtonElement | null)[]>([]);
+  const gesto = useRef<{ x: number; y: number; tipo: string } | null>(null);
 
   useEffect(() => {
-    reduzido.current = reduzMovimento();
-    if (reduzido.current) setAuto(false);
+    if (reduzMovimento()) {
+      setReduzido(true);
+      setAuto(false);
+    }
   }, []);
-
   useEffect(() => {
-    if (!auto || !visivel) return;
-    const t = window.setTimeout(() => setAtivo((a) => (a + 1) % PASSOS.length), TEMPO);
-    return () => window.clearTimeout(t);
-  }, [ativo, auto, visivel]);
+    if (naTela) setCarregar(true);
+  }, [naTela]);
 
-  const ir = (i: number) => {
-    setAuto(false);
-    setAtivo((i + PASSOS.length) % PASSOS.length);
-  };
+  const correndo = auto && naTela && abaVisivel && !reduzido;
   const passo = PASSOS[ativo]!;
 
+  // Avança sozinho.
+  useEffect(() => {
+    if (!correndo) return;
+    const t = window.setTimeout(() => setAtivo((a) => (a + 1) % TOTAL), TEMPO);
+    return () => window.clearTimeout(t);
+  }, [ativo, correndo]);
+
+  // Toque turquesa no botão perto do fim do passo, só quando anda sozinho.
+  useEffect(() => {
+    setTocar(false);
+    if (!correndo) return;
+    const t = window.setTimeout(() => setTocar(true), TEMPO - 900);
+    return () => window.clearTimeout(t);
+  }, [ativo, correndo]);
+
+  // Salão: mostra o antes e, em seguida, a Mesa 12 encerrada.
+  useEffect(() => {
+    setSalaoDepois(false);
+    if (!passo.salao) return;
+    if (reduzido) {
+      setSalaoDepois(true);
+      return;
+    }
+    const t = window.setTimeout(() => setSalaoDepois(true), 1100);
+    return () => window.clearTimeout(t);
+  }, [ativo, passo.salao, reduzido]);
+
+  const ir = useCallback((i: number, focar = false) => {
+    const n = (i + TOTAL) % TOTAL;
+    setAuto(false);
+    setAtivo(n);
+    if (focar) abas.current[n]?.focus();
+  }, []);
+
+  const teclas = (e: KeyboardEvent, focar: boolean) => {
+    const mapa: Record<string, number> = {
+      ArrowRight: ativo + 1,
+      ArrowDown: ativo + 1,
+      ArrowLeft: ativo - 1,
+      ArrowUp: ativo - 1,
+      Home: 0,
+      End: TOTAL - 1,
+    };
+    const alvo = mapa[e.key];
+    if (alvo === undefined) return;
+    e.preventDefault();
+    ir(alvo, focar);
+  };
+
+  const inicioGesto = (e: PointerEvent) => {
+    if (e.pointerType === "mouse" && e.button !== 0) return;
+    gesto.current = { x: e.clientX, y: e.clientY, tipo: e.pointerType };
+  };
+  const fimGesto = (e: PointerEvent) => {
+    const g = gesto.current;
+    gesto.current = null;
+    if (!g) return;
+    const dx = e.clientX - g.x;
+    const dy = e.clientY - g.y;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) {
+      ir(ativo + (dx < 0 ? 1 : -1));
+      return;
+    }
+    // Toque rápido no palco (só no toque): metade esquerda volta, direita avança.
+    if (g.tipo === "touch" && Math.abs(dx) < 10 && Math.abs(dy) < 10) {
+      const r = (e.currentTarget as HTMLElement).getBoundingClientRect();
+      ir(ativo + (e.clientX - r.left < r.width * 0.35 ? -1 : 1));
+    }
+  };
+
+  const tempoVar = { "--tempo": `${TEMPO}ms` } as CSSProperties;
+
   return (
-    <Secao tema="claro" id="como-funciona" ariaLabel="Como a Tipe funciona na mesa">
+    <Secao tema="claro" id="como-funciona" ariaLabel="Como a Tipe funciona na mesa" className="cf">
       <div className="container-page">
         <Titulo
           rotulo="Como funciona"
-          titulo="Da câmera ao caixa em oito passos."
-          texto="Com as telas reais do app do cliente. Toque num passo para ver de perto."
+          titulo="Da câmera à mesa liberada, em oito passos."
+          texto="As telas reais do app do cliente, com o que acontece do lado do restaurante a cada toque."
         />
       </div>
-      <div ref={ref} className="container-page mt-10 grid items-center gap-8 lg:mt-16 lg:grid-cols-[0.85fr_1.15fr] lg:gap-16">
-        {/* Passos */}
-        <div className="order-2 min-w-0 lg:order-1">
-          <ol role="tablist" aria-label="Passos do pagamento" aria-orientation="vertical" className="hidden lg:block">
+
+      <div
+        ref={ref}
+        className="container-page mt-10 grid items-center gap-6 sm:gap-8 lg:mt-16 lg:grid-cols-[minmax(0,0.82fr)_minmax(0,1.18fr)] lg:gap-14"
+      >
+        {/* Lista de passos (tela grande) */}
+        <div className="order-2 hidden min-w-0 lg:order-1 lg:block">
+          <div
+            role="tablist"
+            aria-label="Passos do pagamento"
+            aria-orientation="vertical"
+            onKeyDown={(e) => teclas(e, true)}
+          >
             {PASSOS.map((p, i) => (
-              <li key={p.id} role="presentation" className="border-t border-border last:border-b">
-                <button
-                  type="button"
-                  role="tab"
-                  id={`passo-${p.id}`}
-                  aria-selected={ativo === i}
-                  aria-controls="palco-pagamento"
-                  onClick={() => ir(i)}
-                  className={cn(
-                    "relative grid w-full grid-cols-[2.25rem_1fr] gap-x-3 py-4 text-left transition-colors duration-500",
-                    ativo === i ? "text-foreground" : "text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  <span className="money pt-0.5 text-sm">{String(i + 1).padStart(2, "0")}</span>
-                  <span>
-                    <span className="block font-display text-[1.25rem] leading-tight tracking-[-0.03em]">{p.titulo}</span>
-                    <span
-                      className={cn(
-                        "grid transition-[grid-template-rows,opacity] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]",
-                        ativo === i ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
-                      )}
-                    >
-                      <span className="min-h-0 overflow-hidden">
-                        <span className="block pt-2 text-[0.98rem] leading-relaxed text-muted-foreground">{p.texto}</span>
+              <button
+                key={p.id}
+                ref={(el) => {
+                  abas.current[i] = el;
+                }}
+                type="button"
+                role="tab"
+                id={`cf-aba-${p.id}`}
+                aria-selected={ativo === i}
+                aria-controls="cf-palco"
+                tabIndex={ativo === i ? 0 : -1}
+                onClick={() => ir(i)}
+                className={cn(
+                  "cf-aba relative grid w-full grid-cols-[2.25rem_1fr] gap-x-3 border-t border-border py-[0.9rem] text-left transition-colors duration-300 last:border-b",
+                  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0FC9BD]",
+                  ativo === i ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                <span className="money pt-1 text-sm">{dois(i + 1)}</span>
+                <span className="min-w-0">
+                  <span className="block font-display text-[1.2rem] leading-tight tracking-[-0.03em]">
+                    {p.titulo}
+                  </span>
+                  <span className="cf-aba-texto">
+                    <span className="min-h-0 overflow-hidden">
+                      <span className="block max-w-[46ch] pt-1.5 text-[0.95rem] leading-relaxed text-muted-foreground">
+                        {p.texto}
                       </span>
                     </span>
                   </span>
-                  <span aria-hidden className="absolute inset-x-0 -top-px h-[2px]">
-                    <span
-                      key={`${ativo}-${auto}-${visivel}`}
-                      className={cn(
-                        "block h-full origin-left bg-foreground",
-                        ativo === i ? (auto && visivel ? "aba-progresso" : "scale-x-100") : "scale-x-0",
-                      )}
-                      style={{ "--tempo": `${TEMPO}ms` } as CSSProperties}
-                    />
-                  </span>
-                </button>
-              </li>
+                </span>
+                <span
+                  aria-hidden
+                  className="cf-aba-barra text-foreground"
+                  data-correndo={correndo || undefined}
+                  style={tempoVar}
+                >
+                  <i key={`${ativo}-${correndo}`} />
+                </span>
+              </button>
             ))}
-          </ol>
+          </div>
+        </div>
 
-          {/* Celular: texto do passo, pontos e setas */}
-          <div className="lg:hidden">
-            <div key={passo.id} className="troca-in min-h-[8.5rem]">
-              <p className="text-sm text-muted-foreground">
-                <span className="money">{String(ativo + 1).padStart(2, "0")}</span> / 08 · {passo.quem}
+        {/* Palco */}
+        <div className="order-1 min-w-0 lg:order-2">
+          <div
+            id="cf-palco"
+            role="tabpanel"
+            aria-labelledby={`cf-aba-${passo.id}`}
+            aria-roledescription="demonstração"
+            tabIndex={0}
+            onKeyDown={(e) => teclas(e, false)}
+            onPointerDown={inicioGesto}
+            onPointerUp={fimGesto}
+            onPointerCancel={() => (gesto.current = null)}
+            data-salao={passo.salao || undefined}
+            className="cf-palco mx-auto w-full max-w-[34rem] lg:max-w-none"
+            style={tempoVar}
+          >
+            {CENAS.map((c) => {
+              const on = c === passo.cena;
+              const { src, srcSet } = fotoSrc(c);
+              const foco = PASSOS.find((p) => p.cena === c)!.foco;
+              return (
+                <img
+                  key={c}
+                  src={carregar || on ? src : undefined}
+                  srcSet={carregar || on ? srcSet : undefined}
+                  sizes="(min-width: 1024px) 760px, (min-width: 640px) 544px, 100vw"
+                  alt=""
+                  aria-hidden
+                  loading="lazy"
+                  decoding="async"
+                  draggable={false}
+                  data-on={on || undefined}
+                  className="cf-cena"
+                  style={{ objectPosition: foco }}
+                />
+              );
+            })}
+            <div className="cf-veu" aria-hidden />
+
+            <div className="cf-topo" aria-hidden>
+              <div className="cf-segs" style={{ "--n": TOTAL } as CSSProperties}>
+                {PASSOS.map((p, i) => (
+                  <span
+                    key={p.id}
+                    className="cf-seg"
+                    data-feito={i < ativo || undefined}
+                    data-ativo={i === ativo || undefined}
+                    data-correndo={correndo || undefined}
+                  >
+                    <i key={i === ativo ? `${ativo}-${correndo}` : undefined} />
+                  </span>
+                ))}
+              </div>
+              <div className="cf-meta">
+                <span className="cf-meta-quem">
+                  <span className="money">
+                    {dois(ativo + 1)}/{dois(TOTAL)}
+                  </span>
+                  {passo.quem}
+                </span>
+                <span className="cf-meta-selo">
+                  Telas reais<span className="hidden sm:inline"> · Maré Alta (fictício)</span>
+                </span>
+              </div>
+            </div>
+
+            {/* Lado do restaurante: o painel real do salão */}
+            <div
+              className="cf-salao"
+              data-on={passo.salao || undefined}
+              aria-hidden={!passo.salao || undefined}
+            >
+              <div className="cf-salao-tela">
+                {carregar && (
+                  <>
+                    <img
+                      src={salaoAntes560}
+                      srcSet={`${salaoAntes560} 560w, ${salaoAntes1000} 1000w`}
+                      sizes="(min-width: 1024px) 360px, 50vw"
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                      draggable={false}
+                    />
+                    <img
+                      src={salao560}
+                      srcSet={`${salao560} 560w, ${salao1000} 1000w`}
+                      sizes="(min-width: 1024px) 360px, 50vw"
+                      alt={
+                        passo.salao
+                          ? "Painel do salão do Maré Alta com a Mesa 12 encerrada e paga"
+                          : ""
+                      }
+                      loading="lazy"
+                      decoding="async"
+                      draggable={false}
+                      data-off={!salaoDepois || undefined}
+                    />
+                  </>
+                )}
+                <span className="cf-mesa12" data-on={(passo.salao && salaoDepois) || undefined} />
+              </div>
+            </div>
+
+            <div className="cf-cel">
+              <CelularComo
+                quadros={QUADROS}
+                indice={ativo}
+                tocar={tocar}
+                sizes="(min-width: 1024px) 250px, (min-width: 640px) 200px, 45vw"
+              />
+            </div>
+
+            <div
+              key={passo.id}
+              className="cf-aviso"
+              role="note"
+              aria-label={`${passo.aviso.rotulo}`}
+            >
+              <span className="cf-aviso-icone" aria-hidden>
+                {passo.aviso.icone}
+              </span>
+              <span>
+                <span className="cf-aviso-rotulo">{passo.aviso.rotulo}</span>
+                <span className="cf-aviso-texto">{passo.aviso.texto}</span>
+              </span>
+            </div>
+          </div>
+
+          {/* Texto do passo e controles (celular e tablet) */}
+          <div className="mx-auto mt-5 w-full max-w-[34rem] lg:hidden">
+            <div
+              key={passo.id}
+              className="cf-troca min-h-[7.5rem]"
+              aria-live={auto ? "off" : "polite"}
+            >
+              <p className="font-display text-[1.5rem] leading-[1.1] tracking-[-0.03em] text-balance">
+                {passo.titulo}
               </p>
-              <p className="mt-2 font-display text-[1.6rem] leading-[1.1] tracking-[-0.03em]">{passo.titulo}</p>
               <p className="mt-2 leading-relaxed text-muted-foreground">{passo.texto}</p>
             </div>
           </div>
-          <div className="mt-6 flex items-center gap-3">
+          <div className="mx-auto mt-4 flex w-full max-w-[34rem] items-center gap-2 lg:mt-6 lg:max-w-none">
             <button
               type="button"
               onClick={() => ir(ativo - 1)}
               aria-label="Passo anterior"
-              className="com-fios grid h-12 w-12 place-items-center rounded-full border border-border"
+              className="grid h-12 w-12 place-items-center rounded-full border border-border transition-colors duration-200 hover:bg-foreground/5 active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0FC9BD]"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
@@ -214,110 +563,39 @@ export function FluxoPagamento() {
               type="button"
               onClick={() => ir(ativo + 1)}
               aria-label="Próximo passo"
-              className="com-fios grid h-12 w-12 place-items-center rounded-full border border-border"
+              className="com-fios grid h-12 w-12 place-items-center rounded-full border border-border transition-colors duration-200 hover:bg-foreground/5 active:scale-[0.97] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0FC9BD]"
             >
               <ArrowRight className="seta h-5 w-5" />
               <Fios intensidade="leve" />
             </button>
-            <button
-              type="button"
-              onClick={() => setAuto((a) => !a)}
-              aria-label={auto ? "Pausar a demonstração" : "Continuar a demonstração"}
-              className="grid h-12 w-12 place-items-center rounded-full text-muted-foreground hover:text-foreground"
-            >
-              {auto ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
-            </button>
-            <div className="ml-auto flex gap-1.5 lg:hidden" aria-hidden>
+            {!reduzido && (
+              <button
+                type="button"
+                onClick={() => setAuto((a) => !a)}
+                aria-label={auto ? "Pausar a demonstração" : "Continuar a demonstração"}
+                aria-pressed={!auto}
+                className="grid h-12 w-12 place-items-center rounded-full text-muted-foreground transition-colors duration-200 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0FC9BD]"
+              >
+                {auto ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
+              </button>
+            )}
+            <div className="ml-auto flex lg:hidden">
               {PASSOS.map((p, i) => (
-                <span
+                <button
                   key={p.id}
-                  className={cn("h-1.5 rounded-full transition-all duration-500", i === ativo ? "w-5 bg-foreground" : "w-1.5 bg-foreground/25")}
-                />
+                  type="button"
+                  onClick={() => ir(i)}
+                  aria-label={`Passo ${i + 1}: ${p.titulo}`}
+                  aria-current={i === ativo ? "step" : undefined}
+                  className="cf-ponto text-foreground focus-visible:outline-2 focus-visible:outline-[#0FC9BD]"
+                >
+                  <i />
+                </button>
               ))}
             </div>
-          </div>
-        </div>
-
-        {/* Palco */}
-        <div
-          id="palco-pagamento"
-          role="tabpanel"
-          aria-labelledby={`passo-${passo.id}`}
-          aria-live="polite"
-          className="relative order-1 min-w-0 lg:order-2"
-        >
-          <div className="relative mx-auto aspect-[1/1] max-h-[78svh] overflow-hidden rounded-[2rem] bg-[radial-gradient(120%_90%_at_50%_100%,#d9f6f3_0%,#eef8f7_45%,var(--pg-soft)_75%)] sm:aspect-[5/4] lg:aspect-[1/1]">
-            <span className="absolute left-4 top-4 z-20 rounded-full bg-white/85 px-3 py-1 text-xs font-medium text-[oklch(0.3_0_0)] backdrop-blur">
-              Telas reais · dados de teste do Maré Alta (fictício)
-            </span>
-
-            {/* Passo 1: totem */}
-            <figure
-              className={cn(
-                "absolute left-1/2 top-[10%] w-[30%] -translate-x-1/2 transition-[opacity,transform] duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)]",
-                ativo === 0 ? "opacity-100" : "pointer-events-none -translate-y-6 opacity-0",
-              )}
-              aria-hidden={ativo !== 0 || undefined}
-            >
-              <img
-                src={totem360}
-                srcSet={`${totem360} 360w, ${totem720} 720w`}
-                sizes="240px"
-                alt={PASSOS[0]!.alt}
-                width={360}
-                height={720}
-                className="h-auto w-full drop-shadow-[0_30px_40px_rgb(2_30_52/0.3)]"
-              />
-              <span aria-hidden className="scan-line absolute inset-x-[8%] top-[34%] h-[2px] rounded-full bg-[#0FC9BD] shadow-[0_0_14px_#0FC9BD]" />
-              <figcaption className="absolute -right-[85%] top-[46%] flex items-center gap-2 rounded-2xl bg-white px-3 py-2 text-sm font-medium text-[oklch(0.2_0_0)] shadow-[0_20px_40px_-20px_rgb(0_0_0/0.4)]">
-                <ScanLine className="h-4 w-4 text-[#03665f]" /> Mesa 12 aberta
-              </figcaption>
-            </figure>
-
-            {/* Passos 2 a 7: o celular com as telas reais */}
-            <div
-              className={cn(
-                "absolute left-1/2 top-[6%] w-[44%] max-w-[16rem] -translate-x-1/2 transition-[opacity,transform] duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] sm:w-[32%]",
-                ativo === 0 && "pointer-events-none translate-y-[30%] opacity-0",
-                ativo === 7 && "pointer-events-none translate-x-[40%] scale-[0.8] opacity-0 sm:translate-x-[70%]",
-              )}
-              aria-hidden={ativo === 0 || ativo === 7 || undefined}
-            >
-              <CelularReal
-                etapas={ETAPAS_CELULAR}
-                indice={Math.min(Math.max(ativo - 1, 0), ETAPAS_CELULAR.length - 1)}
-                ms={TEMPO}
-                animando={auto && visivel && ativo > 0 && ativo < 7}
-                sizes="(min-width: 640px) 256px, 44vw"
-              />
-            </div>
-
-            {/* Passo 8: o caixa no computador */}
-            <div
-              className={cn(
-                "absolute left-[5%] top-[18%] w-[78%] transition-[opacity,transform] duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)] sm:w-[70%]",
-                ativo === 7 ? "opacity-100" : "pointer-events-none translate-y-8 opacity-0",
-              )}
-              aria-hidden={ativo !== 7 || undefined}
-            >
-              <Janela tela="caixa" alt="Caixa do restaurante com a lista de pagamentos do dia" sizes="(min-width: 1024px) 560px, 78vw" />
-            </div>
-
-            {/* Chip do passo */}
-            {passo.chip && (
-              <div className="absolute inset-x-0 bottom-[7%] z-10 flex justify-center px-4">
-                <div
-                  key={`chip-${passo.id}`}
-                  className="pop-in flex items-center gap-2 whitespace-nowrap rounded-full bg-[#021E34] px-4 py-2.5 text-sm font-medium text-white shadow-[0_20px_40px_-15px_rgb(2_30_52/0.6)]"
-                  style={{ "--d": "350ms" } as CSSProperties}
-                >
-                  <span className="grid h-5 w-5 place-items-center rounded-full bg-[#0FC9BD] text-[#021E34]">
-                    <Check className="h-3 w-3" strokeWidth={3} />
-                  </span>
-                  {passo.chip}
-                </div>
-              </div>
-            )}
+            <p className="ml-auto hidden text-sm text-muted-foreground lg:block">
+              Use as setas do teclado ou toque num passo.
+            </p>
           </div>
         </div>
       </div>

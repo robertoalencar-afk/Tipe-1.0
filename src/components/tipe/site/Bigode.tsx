@@ -8,8 +8,8 @@
  * ficam iguais. No hover os bigodes se abrem mais. Com movimento reduzido fica parado.
  *
  * Fios: a linguagem dos botões. Três traços curtos, como metade dos bigodes, que se
- * desenham e somem. `Fios` nasce da borda do botão; `SetaFios` é a seta com os
- * fios saindo da ponta (o CTA aprovado na prévia). Os dois respondem a hover,
+ * desenham e somem. `Fios` nasce da borda do botão; `SetaFios` é o meio focinho
+ * (pedido do Roberto em 22/10, no lugar da seta) com os bigodes saindo da bochecha. Os dois respondem a hover,
  * :focus-visible e toque; com `auto` saltam sozinhos a cada 4,5 s. É só decoração:
  * o botão diz o que faz pelo texto.
  */
@@ -93,7 +93,14 @@ export function Focinho({
               <path
                 d={b.d}
                 className="focinho-fio"
-                style={{ "--i": i, "--t": `${b.t}s`, "--f": `${b.f}s`, "--a": `${b.a}deg` } as CSSProperties}
+                style={
+                  {
+                    "--i": i,
+                    "--t": `${b.t}s`,
+                    "--f": `${b.f}s`,
+                    "--a": `${b.a}deg`,
+                  } as CSSProperties
+                }
                 {...fio}
               />
             </g>
@@ -135,31 +142,65 @@ export function Fios({
 }
 
 /**
- * Seta com três fios saindo da ponta: o CTA aprovado. Fica dentro do botão (que
- * precisa da classe "com-fios"). Sem `seta`, sobram só os fios, soltos na margem
- * direita do botão (para links secundários como "Entrar").
+ * Meio focinho: a metade direita do focinho da lebre (meio nariz turquesa e o lado
+ * direito da boca em "Y"), igual à do Focinho. A linha
+ * do corte fica no eixo do nariz, então o desenho aponta para a direita e faz o papel
+ * da seta nos CTAs. No hover, foco ou toque o nariz fareja, dá um passinho e os três
+ * bigodes saem da bochecha (os fios). Com movimento reduzido os bigodes só aparecem.
+ *
+ * É a metade direita exata do NARIZ e da BOCA do Focinho (deslocada 58 unidades), com o corte
+ * reto em x = 2. viewBox 20 × 38; os bigodes vão até x 36 por fora da caixa (overflow
+ * visível) e caem no respiro direito do botão.
+ */
+export const MEIO_NARIZ = "M2 14 Q9.5 14 17 18 Q13 32 2 35.5Z";
+export const MEIA_BOCA = "M2 35 V41 Q7.5 47.5 14 44";
+
+/**
+ * O ícone dos CTAs (substitui a seta). Fica dentro do botão (que precisa da classe
+ * "com-fios"). Sem `seta`, sobram só os fios, soltos na margem direita do botão (para
+ * links secundários como "Entrar").
  */
 export function SetaFios({
   auto = false,
   seta = true,
   className,
 }: {
-  /** Os fios saltam sozinhos a cada 4,5 s (só no CTA principal da página). */
+  /** Os bigodes saltam sozinhos a cada 4,5 s (só no CTA principal da página). */
   auto?: boolean;
   seta?: boolean;
   className?: string;
 }) {
+  if (!seta) {
+    return (
+      <svg
+        viewBox="12 0 16 16"
+        aria-hidden
+        focusable="false"
+        className={cn("seta-fios seta-fios-solto", auto && "seta-fios-auto", className)}
+      >
+        <path className="sf-fio" d="M14.5 5.4 Q20 3.2 26 2" pathLength={1} />
+        <path className="sf-fio" d="M15 8 Q21 7.7 27 8.4" pathLength={1} />
+        <path className="sf-fio" d="M14.5 10.6 Q20 12.8 26 14" pathLength={1} />
+      </svg>
+    );
+  }
   return (
     <svg
-      viewBox={seta ? "0 0 28 16" : "12 0 16 16"}
+      viewBox="0 12 20 38"
       aria-hidden
       focusable="false"
-      className={cn("seta-fios", auto && "seta-fios-auto", !seta && "seta-fios-solto", className)}
+      className={cn("seta-fios meio-focinho", auto && "seta-fios-auto", className)}
     >
-      <path className="sf-fio" d="M14.5 5.4 Q20 3.2 26 2" pathLength={1} />
-      <path className="sf-fio" d="M15 8 Q21 7.7 27 8.4" pathLength={1} />
-      <path className="sf-fio" d="M14.5 10.6 Q20 12.8 26 14" pathLength={1} />
-      {seta && <path className="sf-seta" d="M3 8 H12 M8.5 4.5 12 8 8.5 11.5" />}
+      <g className="mf-corpo">
+        <path className="sf-fio" d="M17 23 Q25 19 35 17" pathLength={1} />
+        <path className="sf-fio" d="M17.5 28.5 Q26 28 36 29.5" pathLength={1} />
+        <path className="sf-fio" d="M16 33.5 Q24 37.5 33 41" pathLength={1} />
+        <path className="mf-boca" d={MEIA_BOCA} />
+        <path className="mf-nariz" d={MEIO_NARIZ} />
+      </g>
     </svg>
   );
 }
+
+/** Alias com o nome novo, para quem preferir ler "MeioFocinho" no JSX. */
+export const MeioFocinho = SetaFios;

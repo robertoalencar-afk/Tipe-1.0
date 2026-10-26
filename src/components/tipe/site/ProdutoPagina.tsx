@@ -6,6 +6,7 @@
  */
 import type { CSSProperties } from "react";
 import { Check, ChevronDown, Clock } from "lucide-react";
+import { TrilhoProdutos } from "./TrilhoProdutos";
 import { MesaViva } from "@/components/tipe/MesaViva";
 import { Palavras, Reveal } from "@/components/tipe/landing/motion";
 import totemMesa from "@/assets/marca/totem-mesa.webp";
@@ -20,7 +21,13 @@ import { CelularLebre, ConversaLebre, PainelLebre, type ConversaId } from "./pro
 import { CelularReal, TabletSalao } from "./produto/TelaReal";
 import { TopoStaff } from "./produto/TopoStaff";
 
-export function SeloStatus({ status, className }: { status: Produto["status"]; className?: string }) {
+export function SeloStatus({
+  status,
+  className,
+}: {
+  status: Produto["status"];
+  className?: string;
+}) {
   if (status === "disponivel") return null;
   return (
     <span
@@ -105,8 +112,13 @@ function TextoTopo({ p }: { p: Produto }) {
       >
         {p.texto}
       </p>
-      <div className="hero-in mt-8 flex flex-wrap gap-3" style={{ "--d": "600ms" } as CSSProperties}>
-        <BotaoPrincipal>{p.status === "disponivel" ? "Começar o teste grátis" : "Quero saber primeiro"}</BotaoPrincipal>
+      <div
+        className="hero-in mt-8 flex flex-wrap gap-3"
+        style={{ "--d": "600ms" } as CSSProperties}
+      >
+        <BotaoPrincipal>
+          {p.status === "disponivel" ? "Começar o teste grátis" : "Quero saber primeiro"}
+        </BotaoPrincipal>
         <BotaoSecundario href="/simulador">Testar o simulador</BotaoSecundario>
       </div>
     </>
@@ -118,15 +130,28 @@ function SobreFoto({ p }: { p: Produto }) {
   const atraso = { "--d": "700ms" } as CSSProperties;
   if (p.slug === "ai")
     return (
-      <div className="pop-in absolute inset-x-4 bottom-4 sm:inset-x-auto sm:bottom-8 sm:left-8 sm:w-[min(84%,22rem)]" style={atraso}>
+      <div
+        className="pop-in absolute inset-x-4 bottom-4 sm:inset-x-auto sm:bottom-8 sm:left-8 sm:w-[min(84%,22rem)]"
+        style={atraso}
+      >
         <ConversaLebre id="salao" compacta />
-        <p className="mt-2 text-[0.72rem] text-white/80 [text-shadow:0_1px_8px_rgb(0_0_0/0.5)]">Conversa demonstrativa</p>
+        <p className="mt-2 text-[0.72rem] text-white/80 [text-shadow:0_1px_8px_rgb(0_0_0/0.5)]">
+          Conversa demonstrativa
+        </p>
       </div>
     );
   if (p.slug === "guest")
     return (
-      <div className="pop-in absolute bottom-[-10%] right-4 w-[38%] max-w-[12.5rem] sm:right-6" style={atraso}>
-        <CelularReal tela="pago" alt="Tela real de pagamento realizado, com os botões Agradecer Joyce com gorjeta e Avaliar atendimento" sizes="220px" prioridade />
+      <div
+        className="pop-in absolute bottom-[-10%] right-4 w-[38%] max-w-[12.5rem] sm:right-6"
+        style={atraso}
+      >
+        <CelularReal
+          tela="pago"
+          alt="Tela real de pagamento realizado, com os botões Agradecer Joyce com gorjeta e Avaliar atendimento"
+          sizes="220px"
+          prioridade
+        />
       </div>
     );
   return (
@@ -184,14 +209,26 @@ function Abas({ p }: { p: Produto }) {
     painel: b.painel ? <PainelLebre id={CONVERSA[b.painel]} /> : undefined,
     tela: b.telaReal,
     altTela: b.telaReal ? `Tela real do app do cliente: ${b.t.toLowerCase()}` : undefined,
-    extra: b.telaReal || b.painel ? undefined : b.tabletSalao ? (
-      <TabletSalao alt="Tela real do Salão no painel da Tipe: mesa 12 encerrada, 100% paga" className="ml-auto w-[78%] max-w-[16rem] sm:w-full" />
-    ) : b.emDesenvolvimento ? <CartaoEmDesenvolvimento titulo={b.t} /> : <CartaoInterface cartao={p.cartao} />,
+    extra:
+      b.telaReal || b.painel ? undefined : b.tabletSalao ? (
+        <TabletSalao
+          alt="Tela real do Salão no painel da Tipe: mesa 12 encerrada, 100% paga"
+          className="ml-auto w-[78%] max-w-[16rem] sm:w-full"
+        />
+      ) : b.emDesenvolvimento ? (
+        <CartaoEmDesenvolvimento titulo={b.t} />
+      ) : (
+        <CartaoInterface cartao={p.cartao} />
+      ),
   }));
   return (
     <Secao tema="claro" ariaLabel="Destaques" className="!pt-6 sm:!pt-10">
       <div className="container-page">
-        <Titulo rotulo="Na prática" titulo={`O que muda com o ${p.nome}.`} className="mb-10 lg:mb-14" />
+        <Titulo
+          rotulo="Na prática"
+          titulo={`O que muda com o ${p.nome}.`}
+          className="mb-10 lg:mb-14"
+        />
         <AbasProduto itens={itens} />
       </div>
     </Secao>
@@ -209,12 +246,13 @@ function Banda({ p }: { p: Produto }) {
           >
             {p.banda.titulo}
           </Palavras>
-          <p className="mt-5 max-w-md text-lg leading-relaxed text-[#021E34]/80">
-            {p.banda.texto}
-          </p>
+          <p className="mt-5 max-w-md text-lg leading-relaxed text-[#021E34]/80">{p.banda.texto}</p>
         </div>
         <div className="relative mx-auto flex h-full w-full max-w-md items-end justify-center gap-4 self-end lg:pt-14">
-          <Reveal className={cn("relative z-10 translate-y-6", p.banda.lebre ? "w-[62%]" : "w-[55%]")} delay={100}>
+          <Reveal
+            className={cn("relative z-10 translate-y-6", p.banda.lebre ? "w-[62%]" : "w-[55%]")}
+            delay={100}
+          >
             {p.banda.lebre ? (
               <CelularLebre />
             ) : (
@@ -283,7 +321,14 @@ function Fatos({ p }: { p: Produto }) {
             const deslocar = i === 1 && "mt-10";
             if (n === "lebre")
               return (
-                <div key={n + i} className={cn("overflow-hidden rounded-[1.5rem] [&_p]:text-[0.8rem] [&_div]:text-[0.8rem]", forma, deslocar)}>
+                <div
+                  key={n + i}
+                  className={cn(
+                    "overflow-hidden rounded-[1.5rem] [&_p]:text-[0.8rem] [&_div]:text-[0.8rem]",
+                    forma,
+                    deslocar,
+                  )}
+                >
                   <PainelLebre id="acao" className="!p-4 sm:!p-5" />
                 </div>
               );
@@ -313,10 +358,22 @@ function FluxoReal({ p }: { p: Produto }) {
         <Titulo rotulo="Telas reais" titulo={f.titulo} texto={f.texto} />
         <ol className="sem-barra -mx-4 mt-10 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-px-4 px-4 pb-4 sm:mx-0 sm:mt-12 sm:grid sm:grid-cols-2 sm:gap-8 sm:overflow-visible sm:px-0 lg:grid-cols-4">
           {f.telas.map((t, i) => (
-            <Reveal as="li" key={t.tela} delay={i * 110} className="w-[62vw] max-w-[16rem] shrink-0 snap-start sm:w-auto sm:max-w-none">
-              <CelularReal tela={t.tela} alt={t.alt} sizes="(min-width: 1024px) 18vw, (min-width: 640px) 40vw, 62vw" className="mx-auto max-w-[15rem]" />
+            <Reveal
+              as="li"
+              key={t.tela}
+              delay={i * 110}
+              className="w-[62vw] max-w-[16rem] shrink-0 snap-start sm:w-auto sm:max-w-none"
+            >
+              <CelularReal
+                tela={t.tela}
+                alt={t.alt}
+                sizes="(min-width: 1024px) 18vw, (min-width: 640px) 40vw, 62vw"
+                className="mx-auto max-w-[15rem]"
+              />
               <p className="mt-5 flex items-baseline gap-2 font-display text-[1.2rem] tracking-[-0.02em]">
-                <span className="text-[0.85rem] text-muted-foreground">{String(i + 1).padStart(2, "0")}</span>
+                <span className="text-[0.85rem] text-muted-foreground">
+                  {String(i + 1).padStart(2, "0")}
+                </span>
                 {t.t}
               </p>
               <p className="mt-1.5 text-[0.95rem] leading-relaxed text-muted-foreground">{t.d}</p>
@@ -404,14 +461,10 @@ function Relacionados({ p }: { p: Produto }) {
   const outros = PRODUTOS.filter((o) => o.slug !== p.slug).slice(0, 6);
   return (
     <Secao tema="escuro">
-      <div className="container-page">
-        <Titulo rotulo="Tudo conversa" titulo="Uma plataforma, da mesa ao caixa." />
-      </div>
-      <div className="sem-barra mt-12 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-px-4 px-4 pb-2 sm:scroll-px-6 sm:px-6 lg:scroll-px-[max(1.5rem,calc((100vw-80rem)/2+1.5rem))] lg:px-[max(1.5rem,calc((100vw-80rem)/2+1.5rem))]">
-        {outros.map((o) => (
-          <CardProduto key={o.slug} p={o} className="w-[80vw] max-w-[22rem] shrink-0 snap-start" />
-        ))}
-      </div>
+      <TrilhoProdutos
+        titulo={<Titulo rotulo="Tudo conversa" titulo="Uma plataforma, da mesa ao caixa." />}
+        produtos={outros}
+      />
     </Secao>
   );
 }

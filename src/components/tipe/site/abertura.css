@@ -1,21 +1,95 @@
 /* Abertura da home (proposta E, aprovada em 22/10): a mesa e o celular. */
-.ab-palco { --px: 0; --py: 0; position: relative; }
-.ab-camada { transition: transform 0.9s var(--ease-out-soft, cubic-bezier(0.16, 1, 0.3, 1)); will-change: transform; }
-.ab-foto-c { transform: translate3d(calc(var(--px) * -0.6%), calc(var(--py) * -0.6%), 0); }
-.ab-fone-c { transform: translate3d(calc(var(--px) * 1.6%), calc(var(--py) * 1.6%), 0); }
-.ab-aviso-c { transform: translate3d(calc(var(--px) * 1%), calc(var(--py) * 1%), 0); }
-.ab-kb img { animation: ab-kb 16s var(--ease-out-soft, cubic-bezier(0.16, 1, 0.3, 1)) infinite alternate; }
-@keyframes ab-kb { from { transform: scale(1.1) translate3d(1.2%, 0.8%, 0); } to { transform: scale(1) translate3d(0, 0, 0); } }
-.ab-abre { animation: ab-abre 1.4s var(--ease-out-soft, cubic-bezier(0.16, 1, 0.3, 1)) 0.15s both; }
-@keyframes ab-abre { from { clip-path: inset(6% 4% 6% 4% round 2rem); opacity: 0.4; } to { clip-path: inset(0 0 0 0 round 0); opacity: 1; } }
-.ab-entra-fone { animation: ab-entra 1.5s var(--ease-out-soft, cubic-bezier(0.16, 1, 0.3, 1)) 0.35s both; }
-@keyframes ab-entra { from { opacity: 0; transform: translate3d(0, 14%, 0) rotateX(18deg); } to { opacity: 1; transform: none; } }
-.ab-paira { animation: ab-paira 8s ease-in-out infinite; transform-style: preserve-3d; }
-@keyframes ab-paira { 0%, 100% { transform: perspective(1400px) rotateY(-9deg) rotateX(4deg); } 50% { transform: perspective(1400px) rotateY(-5deg) rotateX(2deg) translate3d(0, -1.2%, 0); } }
-.ab-aviso { animation: ab-aviso 0.7s var(--ease-out-soft, cubic-bezier(0.16, 1, 0.3, 1)) both; }
-@keyframes ab-aviso { from { opacity: 0; transform: translate3d(0, 0.8em, 0) scale(0.94); } to { opacity: 1; transform: none; } }
-.ab-passo { transition: color 0.4s ease, background-color 0.4s ease; }
+.ab-palco {
+  --px: 0;
+  --py: 0;
+  position: relative;
+}
+.ab-camada {
+  transition: transform 0.9s var(--ease-out-soft, cubic-bezier(0.16, 1, 0.3, 1));
+  will-change: transform;
+}
+.ab-foto-c {
+  transform: translate3d(calc(var(--px) * -0.6%), calc(var(--py) * -0.6%), 0);
+}
+.ab-fone-c {
+  transform: translate3d(calc(var(--px) * 1.6%), calc(var(--py) * 1.6%), 0);
+}
+.ab-aviso-c {
+  transform: translate3d(calc(var(--px) * 1%), calc(var(--py) * 1%), 0);
+}
+.ab-kb img {
+  animation: ab-kb 16s var(--ease-out-soft, cubic-bezier(0.16, 1, 0.3, 1)) infinite alternate;
+}
+@keyframes ab-kb {
+  from {
+    transform: scale(1.1) translate3d(1.2%, 0.8%, 0);
+  }
+  to {
+    transform: scale(1) translate3d(0, 0, 0);
+  }
+}
+.ab-abre {
+  animation: ab-abre 1.4s var(--ease-out-soft, cubic-bezier(0.16, 1, 0.3, 1)) 0.15s both;
+}
+@keyframes ab-abre {
+  from {
+    clip-path: inset(6% 4% 6% 4% round 2rem);
+    opacity: 0.4;
+  }
+  to {
+    clip-path: inset(0 0 0 0 round 0);
+    opacity: 1;
+  }
+}
+.ab-entra-fone {
+  animation: ab-entra 1.5s var(--ease-out-soft, cubic-bezier(0.16, 1, 0.3, 1)) 0.35s both;
+}
+@keyframes ab-entra {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14%, 0) rotateX(18deg);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.ab-paira {
+  animation: ab-paira 8s ease-in-out infinite;
+  transform-style: preserve-3d;
+}
+@keyframes ab-paira {
+  0%,
+  100% {
+    transform: perspective(1400px) rotateY(-9deg) rotateX(4deg);
+  }
+  50% {
+    transform: perspective(1400px) rotateY(-5deg) rotateX(2deg) translate3d(0, -1.2%, 0);
+  }
+}
+.ab-aviso {
+  animation: ab-aviso 0.7s var(--ease-out-soft, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+@keyframes ab-aviso {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 0.8em, 0) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
 @media (prefers-reduced-motion: reduce) {
-  .ab-camada { transition: none; transform: none !important; }
-  .ab-kb img, .ab-abre, .ab-entra-fone, .ab-paira, .ab-aviso { animation: none !important; }
+  .ab-camada {
+    transition: none;
+    transform: none !important;
+  }
+  .ab-kb img,
+  .ab-abre,
+  .ab-entra-fone,
+  .ab-paira,
+  .ab-aviso {
+    animation: none !important;
+  }
 }

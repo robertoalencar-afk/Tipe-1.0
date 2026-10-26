@@ -2,9 +2,9 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import wordmarkUrl from "@/assets/marca/tipe-logo-branco.svg";
 import simbolo from "@/assets/marca/tipe-simbolo.svg";
 import totemMesa from "@/assets/totem-tipe-mesa12.webp";
-import mascotWaiting from "@/assets/mascot-waiting-hd.webp";
-import mascotRating from "@/assets/mascot-rating-hd.webp";
-import mascotThanks from "@/assets/mascot-thanks-hd.webp";
+import mascotWaiting from "@/assets/lebre/rosto-ola.webp";
+import mascotRating from "@/assets/lebre/rosto-piscando.webp";
+import mascotThanks from "@/assets/lebre/rosto-feliz.webp";
 import {
   Check,
   ChevronRight,
@@ -490,7 +490,13 @@ export function MesaViva() {
         <div ref={root} className="relative mx-auto h-full max-w-7xl">
           {/* 0 */}
           <div className="layer invisible s0 absolute inset-0 flex flex-col items-center justify-center px-8 text-center">
-            <img src={wordmarkUrl} alt="Tipe" width={462} height={141} className="wm w-[min(70vw,460px)]" />
+            <img
+              src={wordmarkUrl}
+              alt="Tipe"
+              width={462}
+              height={141}
+              className="wm w-[min(70vw,460px)]"
+            />
             <p className="mt-8 max-w-xl text-sm font-medium leading-6 text-secondary-foreground/80 sm:text-base">
               Pagamento na mesa por QR Code. Sem app, sem fila, sem maquininha rodando.
             </p>
@@ -821,7 +827,13 @@ export function MesaViva() {
               ))}
               <div className="logo relative h-36 w-36 overflow-hidden rounded-full shadow-[0_0_50px_color-mix(in_oklab,var(--primary)_45%,transparent)] [clip-path:circle(50%)] sm:h-48 sm:w-48 lg:h-56 lg:w-56">
                 <span className="grid h-full w-full place-items-center rounded-full bg-[#021E34]">
-                  <img src={simbolo} alt="Tipe" width={141} height={138} className="h-[52%] w-auto" />
+                  <img
+                    src={simbolo}
+                    alt="Tipe"
+                    width={141}
+                    height={138}
+                    className="h-[52%] w-auto"
+                  />
                 </span>
               </div>
             </div>

@@ -4,7 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { Eyebrow } from "@/components/tipe/ds";
 import { LiveSimulator } from "@/components/tipe/landing/LiveSimulator";
 import { LineReveal, Reveal } from "@/components/tipe/landing/motion";
-import mascotThanks from "@/assets/mascot-thanks-hd.webp";
+import mascotThanks from "@/assets/lebre/rosto-feliz.webp";
 
 /* --------------------------------------------------------- Experimente */
 
@@ -16,7 +16,11 @@ export function Experimente() {
     "Pague, avalie e agradeça",
   ];
   return (
-    <section id="experimente" data-tema="claro" className="scroll-mt-16 overflow-hidden py-16 sm:py-28">
+    <section
+      id="experimente"
+      data-tema="claro"
+      className="scroll-mt-16 overflow-hidden py-16 sm:py-28"
+    >
       <div className="container-page grid items-center gap-14 lg:grid-cols-[1fr_auto] lg:gap-24">
         <div>
           <Eyebrow>Experimente agora</Eyebrow>
@@ -88,4 +92,3 @@ export function Experimente() {
     </section>
   );
 }
-
