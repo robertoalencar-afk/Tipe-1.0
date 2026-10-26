@@ -116,14 +116,14 @@ export const PRODUTOS: Produto[] = [
     },
     heroTelas: ["conta", "dividir", "metodos", "pix", "pago"],
     cenario: {
-      titulo: "Do jantar a dois à barraca de praia.",
+      titulo: "Da mesa ao caixa, sem fila.",
       texto:
         "Onde tem mesa e QR Code, a conta abre no celular de quem está sentado. Pagou, a mesa fica livre para o próximo cliente.",
       itens: [
         {
-          foto: "cena-praia",
-          posicao: "50% 45%",
-          legenda: "Barraca de praia: cada um paga a sua parte sem chamar ninguém.",
+          foto: "cena-caixa",
+          posicao: "50% 40%",
+          legenda: "No caixa: a mesa já aparece paga, sem fila para fechar a conta.",
         },
         {
           foto: "cena-mesa-liberada",

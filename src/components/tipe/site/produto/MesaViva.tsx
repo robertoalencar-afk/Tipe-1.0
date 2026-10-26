@@ -33,16 +33,18 @@ const CAPITULOS: Capitulo[] = [
   {
     nome: "Chega",
     titulo: "Aponta a câmera. A conta já está ali.",
-    texto: "O QR Code do totem abre a conta da mesa no navegador, com o que o garçom lançou até agora.",
-    cena: "cena-casal",
-    foco: "15% 45%",
+    texto:
+      "O QR Code do totem abre a conta da mesa no navegador, com o que o garçom lançou até agora.",
+    cena: "cena-praia",
+    foco: "30% 45%",
     telas: ["conta"],
     aviso: { rotulo: "No salão", texto: "Mesa 12 abriu a conta pelo celular", icone: <ScanLine /> },
   },
   {
     nome: "Divide",
     titulo: "Cada um paga a sua parte.",
-    texto: "Dividir por pessoas ou escolher os itens leva dois toques. Ninguém faz conta no guardanapo.",
+    texto:
+      "Dividir por pessoas ou escolher os itens leva dois toques. Ninguém faz conta no guardanapo.",
     cena: "cena-amigos",
     foco: "55% 45%",
     telas: ["dividir"],

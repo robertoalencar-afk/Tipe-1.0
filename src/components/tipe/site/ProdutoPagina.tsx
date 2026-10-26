@@ -15,7 +15,8 @@ import { Experimente } from "./Experimente";
 import { Foto, type NomeFoto } from "./Foto";
 import { CardProduto } from "./CardProduto";
 import { PRODUTOS, type Painel, type Produto } from "./produtos";
-import { BotaoPrincipal, BotaoSecundario, FaixaCta, Secao, Titulo } from "./Site";
+import { BotaoPrincipal, BotaoSecundario, Secao, Titulo } from "./Site";
+import { SequenciaCelular } from "./produto/SequenciaCelular";
 import { AbasProduto, type AbaProduto } from "./produto/AbasProduto";
 import { CelularLebre, ConversaLebre, PainelLebre, type ConversaId } from "./produto/Lebre";
 import { CelularReal, TabletSalao } from "./produto/TelaReal";
@@ -171,18 +172,29 @@ function Topo({ p }: { p: Produto }) {
       </TopoStaff>
     );
   return (
-    <section data-tema="claro" className="relative -mt-16 pt-16">
+    <section data-tema="claro" className="relative -mt-16 overflow-x-clip pt-16">
       <div className="container-page grid items-center gap-10 pb-14 pt-6 sm:pt-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-16 lg:pb-20">
-        <div className="relative order-2 overflow-hidden rounded-[2rem] lg:order-1">
-          <Foto
-            nome={p.foto}
-            prioridade
-            alt={p.altFoto}
-            posicao={p.posicao}
-            sizes="(min-width: 1024px) 52vw, 100vw"
-            className="aspect-[4/5] rounded-[2rem] sm:aspect-[5/5] lg:aspect-[4/5]"
-          />
-          <SobreFoto p={p} />
+        <div className="relative order-2 lg:order-1">
+          <div className="relative overflow-hidden rounded-[2rem]">
+            <Foto
+              nome={p.topo.foto}
+              prioridade
+              alt={p.topo.alt}
+              posicao={p.topo.posicao}
+              sizes="(min-width: 1024px) 52vw, 100vw"
+              className="aspect-[4/5] rounded-[2rem] sm:aspect-[5/5] lg:aspect-[4/5]"
+            />
+            {!p.heroTelas && <SobreFoto p={p} />}
+          </div>
+          {/* O celular sai da foto pelo canto, sem cobrir rosto: as telas reais em sequência. */}
+          {p.heroTelas && (
+            <div
+              className="pop-in absolute -bottom-8 right-3 w-[38%] max-w-[13.5rem] sm:right-6 lg:-right-8"
+              style={{ "--d": "700ms" } as CSSProperties}
+            >
+              <SequenciaCelular telas={p.heroTelas} legenda={false} prioridade sizes="220px" />
+            </div>
+          )}
         </div>
         <div className="order-1 lg:order-2">
           <TextoTopo p={p} />
@@ -283,65 +295,49 @@ function Banda({ p }: { p: Produto }) {
 }
 
 /**
- * Mosaico da seção escura. Sem repetir foto que já aparece no topo ou nas abas da
- * mesma página. "lebre" é um painel desenhado (conversa da Lebre) no lugar de foto.
+ * Seção escura própria de cada produto: onde ele acontece, com duas cenas grandes do
+ * casting (ou a conversa da Lebre) e os fatos do produto. Substitui o mosaico de fotos
+ * que se repetia igual em todas as páginas.
  */
-const MOSAICO: Record<string, (NomeFoto | "lebre")[]> = {
-  pay: ["boteco", "cafe", "pizzaria", "bistro"],
-  order: ["cafe", "boteco", "pizzaria", "japones"],
-  staff: ["bistro", "boteco", "japones", "cafe"],
-  kitchen: ["cafe", "pizzaria", "hamburgueria", "boteco"],
-  restaurant: ["mesa", "cafe", "bistro", "pizzaria"],
-  ai: ["gestor", "lebre"],
-  guest: ["pay", "amigos", "boteco", "bistro"],
-};
-
-function Fatos({ p }: { p: Produto }) {
-  const itens = MOSAICO[p.slug] ?? MOSAICO["pay"]!;
-  const dupla = itens.length === 2;
+function Cenario({ p }: { p: Produto }) {
+  const c = p.cenario;
   return (
     <Secao tema="escuro">
-      <div className="container-page grid gap-14 lg:grid-cols-[0.9fr_1.1fr] lg:gap-20">
-        <div>
-          <Titulo rotulo="Na prática" titulo="Mais tempo para o que importa no salão." />
-          <dl className="mt-12 grid grid-cols-2 gap-x-8 gap-y-10">
+      <div className="container-page">
+        <div className="grid gap-10 lg:grid-cols-[1fr_1fr] lg:items-end lg:gap-20">
+          <Titulo rotulo="Onde acontece" titulo={c.titulo} texto={c.texto} />
+          <dl className="grid grid-cols-2 gap-x-8 gap-y-8 sm:grid-cols-4 lg:grid-cols-2">
             {p.fatos.map((f, i) => (
-              <Reveal key={f.t} delay={i * 120}>
-                <dt className="font-display text-[clamp(2.6rem,1.6rem+3vw,4.2rem)] font-normal leading-none tracking-[-0.05em]">
+              <Reveal key={f.t} delay={i * 100}>
+                <dt className="font-display text-[clamp(2rem,1.4rem+2vw,3.2rem)] font-normal leading-none tracking-[-0.05em]">
                   {f.v}
                 </dt>
-                <dd className="mt-3 max-w-[16rem] text-[0.98rem] text-muted-foreground">{f.t}</dd>
+                <dd className="mt-2 max-w-[15rem] text-[0.92rem] text-muted-foreground">{f.t}</dd>
               </Reveal>
             ))}
           </dl>
         </div>
-        <div className="grid grid-cols-2 gap-3 sm:gap-4">
-          {itens.map((n, i) => {
-            const forma = dupla ? "aspect-[3/4.6]" : i % 3 === 0 ? "aspect-[3/4]" : "aspect-[4/5]";
-            const deslocar = i === 1 && "mt-10";
-            if (n === "lebre")
-              return (
-                <div
-                  key={n + i}
-                  className={cn(
-                    "overflow-hidden rounded-[1.5rem] [&_p]:text-[0.8rem] [&_div]:text-[0.8rem]",
-                    forma,
-                    deslocar,
-                  )}
-                >
-                  <PainelLebre id="acao" className="!p-4 sm:!p-5" />
-                </div>
-              );
-            return (
-              <Foto
-                key={n + i}
-                nome={n}
-                alt=""
-                sizes="(min-width: 1024px) 26vw, 46vw"
-                className={cn("rounded-[1.5rem]", forma, deslocar)}
-              />
-            );
-          })}
+        <div className="mt-12 grid gap-4 sm:grid-cols-2 sm:gap-5 lg:mt-16">
+          {c.itens.map((it, i) => (
+            <Reveal key={it.legenda} delay={i * 120} as="figure" className="m-0">
+              <div className="relative aspect-[4/5] overflow-hidden rounded-[1.75rem] sm:aspect-[5/6]">
+                {it.painel ? (
+                  <PainelLebre id={CONVERSA[it.painel]} className="h-full" />
+                ) : it.foto ? (
+                  <Foto
+                    nome={it.foto}
+                    alt=""
+                    posicao={it.posicao}
+                    sizes="(min-width: 640px) 46vw, 92vw"
+                    className="h-full w-full transition-transform duration-[1.2s] ease-[cubic-bezier(0.16,1,0.3,1)] hover:scale-[1.03]"
+                  />
+                ) : null}
+              </div>
+              <figcaption className="mt-4 max-w-md text-[0.98rem] leading-relaxed text-muted-foreground">
+                {it.legenda}
+              </figcaption>
+            </Reveal>
+          ))}
         </div>
       </div>
     </Secao>
@@ -475,13 +471,12 @@ export function ProdutoPagina({ p }: { p: Produto }) {
       <Topo p={p} />
       <Abas p={p} />
       <Banda p={p} />
-      <Fatos p={p} />
+      <Cenario p={p} />
       <FluxoReal p={p} />
       <DemonstracaoPay p={p} />
       <Recursos p={p} />
       <Duvidas p={p} />
       <Relacionados p={p} />
-      <FaixaCta />
     </>
   );
 }
