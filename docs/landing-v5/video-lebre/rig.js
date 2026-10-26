@@ -37,8 +37,8 @@ const RIGS = {
     { m: [392, 300, 82, 92], f: .3, piv: [372, 392], at: t => ({ a: 1.6 * osc(t, 3.1, .3) - 1.2 * win(t, 2.1, 3.6, .5), ty: 2.2 * win(t, 2.1, 3.6, .5) }) },
     { m: [470, 326, 36, 50], ang: 10, f: .45, piv: [452, 378], at: t => ({ a: 7 * osc(t, .62) * win(t, .5, 2.2, .3) + 2 * osc(t, 1.9) }) },
     { m: [628, 412, 68, 74], f: .3, piv: [628, 480], at: t => ({ a: 2.2 * Math.sin(t * 70) * (win(t, 1.25, 1.85, .08) + win(t, 2.95, 3.4, .08)) }) },
-    { blink: [398, 317, 30, 34, 10], k: t => blinkK(t, [[1.05, 2.4], [3.0, 2.2]]) },
-    { blink: [469, 312, 16, 30, 10], k: t => blinkK(t, [[1.05, 2.4], [3.0, 2.2]]) },
+    { blink: [398, 319, 22, 20, 9], k: t => blinkK(t, [[1.05, 2.4], [3.0, 2.2]]) },
+    { blink: [467, 314, 11, 18, 9], k: t => blinkK(t, [[1.05, 2.4], [3.0, 2.2]]) },
   ],
   /* a lebre com o celular: orelhas que batem, cabeça que balança, respiração, piscada,
      e o balão de "pago" flutuando */
@@ -86,7 +86,7 @@ uniform sampler2D T;uniform vec2 S;uniform int N;
 uniform vec4 A[16];uniform vec4 B[16];uniform vec4 C[16];uniform vec4 D[16];
 varying vec2 v;
 void main(){
-  vec2 p=v*S; vec2 d=vec2(0.);
+  vec2 p=v*S; vec2 d=vec2(0.); vec3 ovC=vec3(0.); float ovA=0.; float lineA=0.;
   for(int i=0;i<16;i++){
     if(i>=N) break;
     vec4 a=A[i],b=B[i],c=C[i],e=D[i];
@@ -98,13 +98,22 @@ void main(){
       vec2 src=c.xy+vec2(e.x*r.x+e.y*r.y,-e.y*r.x+e.x*r.y);
       d+=w*(src-p);
     } else {
+      /* piscada como pálpebra: dentro de uma elipse suave em volta do olho, a pele de
+         logo acima desce até a linha da pálpebra, com uma sombra fina na borda.
+         (26/10: a versão antiga esticava uma faixa e deixava um retângulo visível.) */
       vec2 q=p+d-a.xy;
-      float wx=1.-smoothstep(.7,1.,abs(q.x)/a.z);
-      float r=q.y<0.?c.y:c.z; float u=q.y/r;
-      if(abs(u)<1.){ float su=abs(u)<c.x?u/c.x:sign(u); d.y+=wx*(su-u)*r; }
+      float fecha=clamp((1.-c.x)/.94,0.,1.);
+      float ry=q.y<0.?c.y:c.z;
+      float m=1.-smoothstep(.5,1.,length(vec2(q.x/a.z,q.y/ry)));
+      float lid=mix(-c.y,c.z*.35,fecha);
+      float cobre=m*(1.-smoothstep(lid-1.4,lid+1.4,q.y))*step(.03,fecha);
+      if(cobre>ovA){ ovA=cobre; ovC=texture2D(T,(a.xy+vec2(q.x*.6,-c.y*1.05))/S).rgb; }
+      lineA=max(lineA,m*(1.-smoothstep(0.,1.8,abs(q.y-lid)))*step(.08,fecha)*.32);
     }
   }
-  gl_FragColor=texture2D(T,(p+d)/S);
+  vec4 col=texture2D(T,(p+d)/S);
+  col.rgb=mix(col.rgb,ovC,ovA)*(1.-lineA);
+  gl_FragColor=col;
 }`;
 const GL = {};
 async function initRigs() {
