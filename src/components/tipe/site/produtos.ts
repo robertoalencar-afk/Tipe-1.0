@@ -931,3 +931,51 @@ export const INTEGRACOES: { nome: string; tipo: string; status: Status; d: strin
     d: "O pagamento fecha o item no seu sistema.",
   },
 ];
+
+/**
+ * Dúvidas que valem para qualquer produto (mesmos textos do FAQ da home). Completam as
+ * dúvidas de cada página até pelo menos quatro, sem repetir pergunta.
+ */
+export const DUVIDAS_COMUNS: Record<string, [string, string]> = {
+  comecar: [
+    "Quanto tempo leva para começar?",
+    "A implantação é acompanhada: cadastramos as mesas, geramos os QR Codes para os totens e treinamos a equipe. Dá para começar por um salão e ampliar depois.",
+  ],
+  seguro: [
+    "É seguro?",
+    "Os pagamentos digitais são processados pelo Pagar.me e o dinheiro cai direto na conta do restaurante; a Tipe não retém o valor das contas. O sistema protege contra pagamento em duplicidade, confere o valor pago antes de aprovar e registra cada ação com data e responsável.",
+  ],
+  pdv: [
+    "Funciona com o meu PDV?",
+    "Você pode usar a Tipe completa, lançando os pedidos pelo Lançamento TIPE no próprio painel, ou enviar mesas e itens pela API TIPE. Conectores para outros PDVs estão em desenvolvimento, com integração assistida pela nossa equipe.",
+  ],
+  custo: [
+    "Quanto custa?",
+    "Assinatura mensal de acordo com o número de mesas, sem tarifa por transação nas contas; o restaurante paga apenas as tarifas do Pagar.me. Os valores serão divulgados no lançamento.",
+  ],
+  gorjeta: [
+    "Como funciona a gorjeta extra?",
+    "Ela vem depois que a conta está paga, como um segundo pagamento, separado. É opcional, nunca vem marcada, e o cliente vê o valor antes de confirmar. A Tipe separa 70% para quem atendeu e 30% como taxa da plataforma.",
+  ],
+};
+
+const ORDEM_COMUNS: Record<string, (keyof typeof DUVIDAS_COMUNS)[]> = {
+  pay: ["seguro", "gorjeta", "custo"],
+  order: ["pdv", "comecar", "custo"],
+  staff: ["gorjeta", "comecar", "custo"],
+  kitchen: ["pdv", "comecar", "custo"],
+  restaurant: ["pdv", "seguro", "custo"],
+  ai: ["comecar", "custo", "seguro"],
+  guest: ["gorjeta", "comecar", "custo"],
+};
+
+/** As dúvidas da página do produto, completadas até quatro com as comuns. */
+export function duvidasDe(p: Produto): [string, string][] {
+  const lista = [...p.faq];
+  for (const k of ORDEM_COMUNS[p.slug] ?? []) {
+    if (lista.length >= 4) break;
+    const d = DUVIDAS_COMUNS[k];
+    if (d && !lista.some(([q]) => q === d[0])) lista.push(d);
+  }
+  return lista;
+}

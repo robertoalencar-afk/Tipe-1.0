@@ -14,7 +14,7 @@ import { cn } from "@/lib/utils";
 import { Experimente } from "./Experimente";
 import { Foto, type NomeFoto } from "./Foto";
 import { CardProduto } from "./CardProduto";
-import { PRODUTOS, type Painel, type Produto } from "./produtos";
+import { duvidasDe, PRODUTOS, type Painel, type Produto } from "./produtos";
 import { BotaoPrincipal, BotaoSecundario, Secao, Titulo } from "./Site";
 import { SequenciaCelular } from "./produto/SequenciaCelular";
 import { AbasProduto, type AbaProduto } from "./produto/AbasProduto";
@@ -431,13 +431,14 @@ function Recursos({ p }: { p: Produto }) {
 }
 
 function Duvidas({ p }: { p: Produto }) {
-  if (!p.faq.length) return null;
+  const faq = duvidasDe(p);
+  if (!faq.length) return null;
   return (
     <Secao tema="claro" className="!pt-0">
       <div className="container-page grid gap-10 lg:grid-cols-[0.8fr_1.2fr]">
         <Titulo titulo="Dúvidas." />
         <div className="divide-y divide-border border-y border-border">
-          {p.faq.map(([q, a]) => (
+          {faq.map(([q, a]) => (
             <details key={q} className="group">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-4 py-5 font-display text-[1.2rem] font-medium tracking-[-0.02em] [&::-webkit-details-marker]:hidden">
                 {q}
