@@ -9,7 +9,7 @@ import { CelularReal, useSequencia, type EtapaCelular, type TelaReal } from "../
 import { useMovimentoReduzido, useVisivel } from "./useVisivel";
 import "./produto.css";
 
-const ETAPAS: Record<TelaReal, Omit<EtapaCelular, "tela">> = {
+export const ETAPAS_TELA: Record<TelaReal, Omit<EtapaCelular, "tela">> = {
   conta: {
     alt: "Conta da Mesa 12 no celular: total de R$ 356,40 com a taxa de serviço",
     toque: { x: 28, y: 59 },
@@ -65,7 +65,7 @@ export function SequenciaCelular({
   const reduz = useMovimentoReduzido();
   const anda = visivel && !reduz;
   const [i, setI] = useSequencia(telas.length, PASSO_MS, anda);
-  const etapas = telas.map((t) => ({ tela: t, ...ETAPAS[t] }));
+  const etapas = telas.map((t) => ({ tela: t, ...ETAPAS_TELA[t] }));
   return (
     <div ref={ref} className={cn("seq-rapida", className)}>
       <CelularReal

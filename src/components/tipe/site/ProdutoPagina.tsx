@@ -7,7 +7,7 @@
 import type { CSSProperties } from "react";
 import { Check, ChevronDown, Clock } from "lucide-react";
 import { TrilhoProdutos } from "./TrilhoProdutos";
-import { MesaViva } from "@/components/tipe/MesaViva";
+import { MesaViva } from "./produto/MesaViva";
 import { Palavras, Reveal } from "@/components/tipe/landing/motion";
 import totemMesa from "@/assets/marca/totem-mesa.webp";
 import { cn } from "@/lib/utils";

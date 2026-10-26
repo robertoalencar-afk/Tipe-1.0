@@ -9,6 +9,7 @@
  * sozinho e tudo troca na hora. Dados do restaurante fictício "Maré Alta"; nada cobra de verdade.
  */
 import {
+  Fragment,
   useCallback,
   useEffect,
   useRef,
@@ -214,6 +215,21 @@ const PASSOS: Passo[] = [
 ];
 
 const QUADROS = PASSOS.map((p) => p.quadro);
+
+/** Os oito passos em três atos: abre a conta, paga, agradece. */
+const ATOS = [
+  { nome: "Abre a conta", ate: "conta" },
+  { nome: "Paga", ate: "pago" },
+  { nome: "Agradece", ate: "avaliacao" },
+];
+const ATO_DE = PASSOS.map((p) => {
+  const fim = PASSOS.findIndex((q) => q.id === p.id);
+  return ATOS.findIndex((a) => PASSOS.findIndex((q) => q.id === a.ate) >= fim) + 1;
+});
+const ATO_INICIO: Record<number, { n: number; nome: string }> = {};
+ATO_DE.forEach((n, i) => {
+  if (i === 0 || ATO_DE[i - 1] !== n) ATO_INICIO[i] = { n, nome: ATOS[n - 1]!.nome };
+});
 const CENAS = [...new Set(PASSOS.map((p) => p.cena))];
 const TEMPO = 4600;
 const TOTAL = PASSOS.length;
@@ -346,7 +362,7 @@ export function FluxoPagamento() {
       <div className="container-page">
         <Titulo
           rotulo="Como funciona"
-          titulo="Da câmera à mesa liberada, em oito passos."
+          titulo="Três momentos na mesa. Nenhuma espera."
           texto="As telas reais do app do cliente, com o que acontece do lado do restaurante a cada toque."
         />
       </div>
@@ -364,46 +380,65 @@ export function FluxoPagamento() {
             onKeyDown={(e) => teclas(e, true)}
           >
             {PASSOS.map((p, i) => (
-              <button
-                key={p.id}
-                ref={(el) => {
-                  abas.current[i] = el;
-                }}
-                type="button"
-                role="tab"
-                id={`cf-aba-${p.id}`}
-                aria-selected={ativo === i}
-                aria-controls="cf-palco"
-                tabIndex={ativo === i ? 0 : -1}
-                onClick={() => ir(i)}
-                className={cn(
-                  "cf-aba relative grid w-full grid-cols-[2.25rem_1fr] gap-x-3 border-t border-border py-[0.9rem] text-left transition-colors duration-300 last:border-b",
-                  "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0FC9BD]",
-                  ativo === i ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+              <Fragment key={p.id}>
+                {ATO_INICIO[i] && (
+                  <div
+                    role="presentation"
+                    aria-hidden
+                    className={cn(
+                      "flex items-baseline gap-3 pb-2 text-sm",
+                      i > 0 && "mt-7",
+                      ATO_DE[ativo] === ATO_INICIO[i]!.n
+                        ? "text-[#0A9A90]"
+                        : "text-muted-foreground",
+                    )}
+                  >
+                    <span className="font-semibold uppercase tracking-[0.1em] text-[0.7rem]">
+                      Ato {ATO_INICIO[i]!.n}
+                    </span>
+                    <span className="font-medium">{ATO_INICIO[i]!.nome}</span>
+                  </div>
                 )}
-              >
-                <span className="money pt-1 text-sm">{dois(i + 1)}</span>
-                <span className="min-w-0">
-                  <span className="block font-display text-[1.2rem] leading-tight tracking-[-0.03em]">
-                    {p.titulo}
-                  </span>
-                  <span className="cf-aba-texto">
-                    <span className="min-h-0 overflow-hidden">
-                      <span className="block max-w-[46ch] pt-1.5 text-[0.95rem] leading-relaxed text-muted-foreground">
-                        {p.texto}
+                <button
+                  ref={(el) => {
+                    abas.current[i] = el;
+                  }}
+                  type="button"
+                  role="tab"
+                  id={`cf-aba-${p.id}`}
+                  aria-selected={ativo === i}
+                  aria-controls="cf-palco"
+                  tabIndex={ativo === i ? 0 : -1}
+                  onClick={() => ir(i)}
+                  className={cn(
+                    "cf-aba relative grid w-full grid-cols-[2.25rem_1fr] gap-x-3 border-t border-border py-[0.9rem] text-left transition-colors duration-300 last:border-b",
+                    "focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0FC9BD]",
+                    ativo === i ? "text-foreground" : "text-muted-foreground hover:text-foreground",
+                  )}
+                >
+                  <span className="money pt-1 text-sm">{dois(i + 1)}</span>
+                  <span className="min-w-0">
+                    <span className="block font-display text-[1.2rem] leading-tight tracking-[-0.03em]">
+                      {p.titulo}
+                    </span>
+                    <span className="cf-aba-texto">
+                      <span className="min-h-0 overflow-hidden">
+                        <span className="block max-w-[46ch] pt-1.5 text-[0.95rem] leading-relaxed text-muted-foreground">
+                          {p.texto}
+                        </span>
                       </span>
                     </span>
                   </span>
-                </span>
-                <span
-                  aria-hidden
-                  className="cf-aba-barra text-foreground"
-                  data-correndo={correndo || undefined}
-                  style={tempoVar}
-                >
-                  <i key={`${ativo}-${correndo}`} />
-                </span>
-              </button>
+                  <span
+                    aria-hidden
+                    className="cf-aba-barra text-foreground"
+                    data-correndo={correndo || undefined}
+                    style={tempoVar}
+                  >
+                    <i key={`${ativo}-${correndo}`} />
+                  </span>
+                </button>
+              </Fragment>
             ))}
           </div>
         </div>

@@ -236,3 +236,47 @@
     animation: none;
   }
 }
+
+/* Mesa Viva automática (26/10): cena em fusão, texto e aviso entram a cada capítulo. */
+.mv-capitulo-barra > span {
+  transition-property: transform;
+  transition-timing-function: linear;
+}
+.mv-cena {
+  opacity: 0;
+  transform: scale(1.06);
+  transition:
+    opacity 700ms ease,
+    transform 6s linear;
+}
+.mv-cena[data-on] {
+  opacity: 1;
+  transform: scale(1);
+}
+.mv-texto,
+.mv-aviso {
+  animation: mv-entra 450ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.mv-aviso {
+  animation-delay: 250ms;
+}
+@keyframes mv-entra {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mv-cena {
+    transition: none;
+    transform: none;
+  }
+  .mv-texto,
+  .mv-aviso {
+    animation: none;
+  }
+}
