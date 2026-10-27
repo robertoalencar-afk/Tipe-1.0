@@ -57,7 +57,7 @@ async function login(page, email) {
   await dismissCookies(page);
   await page.getByLabel("E-mail").fill(email);
   await page.getByLabel("Senha").fill("demo1234");
-  await page.getByRole("button", { name: /Entrar no back office/ }).click();
+  await page.getByRole("button", { name: /Entrar no CRM da Tipe/ }).click();
   await page.waitForURL(/\/crm\/?$/, { timeout: 15000 });
   await ready(page);
 }
@@ -87,22 +87,26 @@ await step("Senha errada mostra erro sem entrar", async () => {
   await dismissCookies(page);
   await page.getByLabel("E-mail").fill("helena@tipe.demo");
   await page.getByLabel("Senha").fill("errada");
-  await page.getByRole("button", { name: /Entrar no back office/ }).click();
+  await page.getByRole("button", { name: /Entrar no CRM da Tipe/ }).click();
   await expectText(page, /não conferem/);
   assert(page.url().includes("/crm/entrar"), "não deveria sair da tela de entrada");
 });
 
 await step("Login como proprietária e dashboard com indicadores", async () => {
   await login(page, "helena@tipe.demo");
+  await expectText(page, "Saúde da carteira");
+  await expectText(page, "Do lead ao restaurante ativo");
+  await shot(page, "01-painel");
+  await go(page, "/crm/comercial");
   await expectText(page, "Receita ganha");
   await expectText(page, "Funil de conversão");
-  await shot(page, "01-dashboard");
 });
 
 const ROUTES = [
+  ["/crm/comercial", "Painel comercial"], ["/crm/jornada", "Jornada integrada"], ["/crm/contas", "Contas de restaurante"], ["/crm/clientes", "Clientes"],
   ["/crm/contatos", "Contatos"], ["/crm/empresas", "Empresas"], ["/crm/leads", "Leads"], ["/crm/oportunidades", "Oportunidades"],
   ["/crm/funis", "Funis"], ["/crm/tarefas", "Tarefas"], ["/crm/calendario", "Calendário"], ["/crm/atendimento", "Atendimento"],
-  ["/crm/whatsapp", "WhatsApp"], ["/crm/suporte", "Suporte interno"], ["/crm/equipe", "Equipe"], ["/crm/organizacoes", "Organizações"],
+  ["/crm/whatsapp", "WhatsApp"], ["/crm/suporte", "Suporte"], ["/crm/equipe", "Equipe"], ["/crm/organizacoes", "Organizações"],
   ["/crm/gamificacao", "Gamificação"], ["/crm/relatorios", "Relatórios"], ["/crm/planos", "Planos"], ["/crm/financeiro", "Financeiro"],
   ["/crm/configuracoes", "Configurações"], ["/crm/perfil", "Perfil"], ["/crm/admin", "Administração"],
 ];
@@ -135,7 +139,7 @@ await step("Busca global encontra contato e abre", async () => {
   await page.getByPlaceholder(/Digite um nome/).fill("Maré Alta");
   await page.getByRole("option").first().click();
   await ready(page);
-  assert(/\/crm\/(contatos|empresas|oportunidades)/.test(page.url()), `abriu ${page.url()}`);
+  assert(/\/crm\/(contas|contatos|empresas|oportunidades)/.test(page.url()), `abriu ${page.url()}`);
 });
 
 // Fluxo comercial: lead → qualificar → converter → ganhar → XP
@@ -182,6 +186,70 @@ await step("Fluxo comercial: mover para Ganho atualiza dashboard e pontos", asyn
   assert(before !== after, `XP não mudou (${before})`);
   await expectText(page, /Oportunidade ganha/);
   // Reabrir e ganhar de novo não pode pontuar em dobro: conferido no teste unitário do motor.
+});
+
+await step("Camada B: negócio ganho vira conta em implantação, conclui etapas e ativa na primeira conta paga", async () => {
+  await go(page, "/crm/contas?visao=implantacao");
+  await page.getByRole("link", { name: new RegExp(LEAD) }).first().click();
+  await page.waitForURL(/\/crm\/contas\/[^/]+$/, { timeout: 10000 });
+  await ready(page);
+  await expectText(page, "Em implantação");
+  await page.getByRole("radio", { name: /Módulos e integrações/ }).click();
+  await page.getByLabel("Conta de recebimento").selectOption("aprovada");
+  await page.getByRole("radio", { name: /^Implantação/ }).click();
+  for (let i = 0; i < 6; i++) {
+    const btn = page.getByRole("button", { name: "Concluir", exact: true }).and(page.locator(":not([disabled])")).first();
+    if (!(await btn.isVisible().catch(() => false))) break;
+    await btn.click();
+    await page.waitForTimeout(400);
+  }
+  await shot(page, "05-conta-implantacao");
+  await page.getByRole("button", { name: /Simular conta paga/ }).click();
+  await expectText(page, /Conta ativada|Ativa/);
+  await page.getByRole("radio", { name: "Jornada" }).click();
+  await expectText(page, "Negócio ganho");
+  await expectText(page, "Primeira conta paga pela Tipe");
+  await shot(page, "06-conta-jornada");
+});
+
+await step("Jornada: cadastro no site entra como lead distribuído", async () => {
+  await go(page, "/crm/jornada");
+  const before = await page.locator("section", { hasText: "Comercial: vender a Tipe" }).first().innerText();
+  await page.getByRole("button", { name: /Simular cadastro no site/ }).click();
+  await page.waitForTimeout(600);
+  const after = await page.locator("section", { hasText: "Comercial: vender a Tipe" }).first().innerText();
+  assert(before !== after, "contagem de leads do site não mudou");
+  await shot(page, "07-jornada");
+});
+
+await step("Camada C: segmentos, perfil do cliente e campanha só com consentimento", async () => {
+  await go(page, "/crm/clientes");
+  await page.getByRole("radio", { name: /Sumidos/ }).click();
+  await page.locator("tbody tr").first().getByRole("button").click();
+  await expectText(page, /Visitas/);
+  await expectText(page, /aceitou|Não aceitou/i);
+  await page.waitForTimeout(700);
+  if (SHOTS) await page.screenshot({ path: `${SHOTS}/08-clientes-perfil.png` });
+  await page.keyboard.press("Escape");
+  await page.getByRole("radio", { name: /Campanhas/ }).click();
+  await page.getByLabel("Para quem").selectOption("todos");
+  await page.getByLabel("Nome da campanha").fill("Volta pra mesa E2E");
+  await page.getByLabel("Mensagem").fill("Sentimos sua falta! Sobremesa por nossa conta nesta semana.");
+  await page.getByRole("button", { name: /Registrar campanha/ }).click();
+  await expectText(page, "Volta pra mesa E2E");
+  await shot(page, "09-clientes-campanhas");
+});
+
+await step("Suporte: chamado ligado a um restaurante aparece na conta", async () => {
+  await go(page, "/crm/suporte");
+  await page.getByRole("button", { name: /Abrir chamado/ }).first().click();
+  const dlg = page.getByRole("dialog");
+  await dlg.getByLabel("Assunto").fill("QR da mesa 4 não abre");
+  await dlg.getByLabel("O que aconteceu").fill("Cliente leu o QR da mesa 4 e a conta não carregou.");
+  await dlg.getByLabel("Restaurante").selectOption({ index: 1 });
+  await dlg.getByRole("button", { name: "Abrir chamado" }).click();
+  await page.getByRole("radio", { name: /Restaurantes/ }).click();
+  await expectText(page, "QR da mesa 4 não abre");
 });
 
 await step("Atendimento: simular mensagem, atribuir, responder, criar oportunidade e encerrar", async () => {
@@ -322,7 +390,7 @@ const mobile = await newPage({ width: 390, height: 844 });
 await step("Celular: menu lateral, dashboard, funil e atendimento sem rolagem horizontal", async () => {
   await login(mobile, "marina@tipe.demo");
   const overflow = [];
-  for (const path of ["/crm", "/crm/contatos", "/crm/oportunidades", "/crm/atendimento", "/crm/tarefas", "/crm/gamificacao", "/crm/planos", "/crm/relatorios"]) {
+  for (const path of ["/crm", "/crm/jornada", "/crm/contas", "/crm/clientes", "/crm/contatos", "/crm/oportunidades", "/crm/atendimento", "/crm/tarefas", "/crm/gamificacao", "/crm/planos", "/crm/relatorios"]) {
     await go(mobile, path);
     const w = await mobile.evaluate(() => document.documentElement.scrollWidth);
     if (w > 392) overflow.push(`${path} (${w}px)`);

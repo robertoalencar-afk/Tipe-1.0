@@ -156,7 +156,7 @@ function Tarefas() {
             {t.title}
           </Link>
           <p className="flex flex-wrap items-center gap-x-2 text-[0.7rem] text-muted-foreground">
-            <span className={cn(late && "font-semibold text-[oklch(0.78_0.12_25)]")}>
+            <span className={cn(late && "font-semibold text-destructive")}>
               {late && <AlarmClock className="mr-0.5 inline h-3 w-3" />}
               {dateTimeBR(t.dueAt)} ({relative(t.dueAt)})
             </span>
@@ -223,7 +223,7 @@ function Tarefas() {
         <button
           type="button"
           onClick={() => setView("meu-dia")}
-          className="flex w-full items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-left text-xs text-[oklch(0.84_0.08_25)]"
+          className="flex w-full items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-left text-xs text-destructive"
         >
           <AlarmClock className="h-4 w-4 shrink-0" />
           Você tem {overdueMine.length}{" "}
@@ -261,7 +261,7 @@ function Tarefas() {
               <>
                 {overdueMine.length > 0 && (
                   <>
-                    <p className="border-b border-border bg-destructive/5 px-4 py-1.5 text-[0.68rem] font-semibold uppercase tracking-wide text-[oklch(0.8_0.1_25)]">
+                    <p className="border-b border-border bg-destructive/5 px-4 py-1.5 text-[0.68rem] font-semibold uppercase tracking-wide text-destructive">
                       Atrasadas · {overdueMine.length}
                     </p>
                     <ul className="divide-y divide-border">
@@ -299,7 +299,7 @@ function Tarefas() {
                   <p
                     className={cn(
                       "money font-display text-xl font-semibold",
-                      overdueMine.length && "text-[oklch(0.78_0.12_25)]",
+                      overdueMine.length && "text-destructive",
                     )}
                   >
                     {overdueMine.length}

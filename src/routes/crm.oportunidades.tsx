@@ -329,7 +329,7 @@ function Oportunidades() {
                               !t
                                 ? "text-warning"
                                 : late
-                                  ? "text-[oklch(0.78_0.12_25)]"
+                                  ? "text-destructive"
                                   : "text-muted-foreground",
                             )}
                           >

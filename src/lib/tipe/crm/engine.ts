@@ -1,11 +1,32 @@
 import { leadScore } from "../leads-score";
 import { can, PLANS, PLAN_ORDER, ROLE_LABEL, type Action } from "./permissions";
 import { goalProgress, metricValue, monthKey } from "./metrics";
+import {
+  campaignAudience,
+  consumerProfiles,
+  DEFAULT_MODULES,
+  DEMO_CONSUMERS,
+  DEMO_WAITERS,
+  menuFor,
+  METHOD_LABEL,
+  MODULES,
+  ONBOARDING,
+  planForTables,
+  RESTAURANT_PLAN_ORDER,
+  restaurantPlan,
+  SEGMENT_LABEL,
+  SITE_SAMPLES,
+  SITE_SOURCE,
+  stepDone,
+} from "./ecosystem";
 import type {
   Activity,
+  BillMethod,
   Challenge,
   Comment,
   Company,
+  Consumer,
+  ConsumerSegment,
   Contact,
   CrmState,
   Deal,
@@ -17,10 +38,16 @@ import type {
   LeadProfile,
   Membership,
   Message,
+  ModuleKey,
+  OnboardingKey,
   Org,
+  PagarmeStatus,
+  PdvStatus,
   Pipeline,
   PlanId,
   Priority,
+  RestaurantAccount,
+  RestaurantPlan,
   Role,
   Stage,
   Task,
@@ -111,6 +138,7 @@ export type Command =
       description: string;
       category: string;
       priority: Priority;
+      accountId?: ID | undefined;
     }
   | {
       type: "updateTicket";
@@ -150,7 +178,34 @@ export type Command =
       category: "UTILITY" | "MARKETING" | "AUTHENTICATION";
       body: string;
     }
-  | { type: "markNotificationsRead" };
+  | { type: "markNotificationsRead" }
+  // Ecossistema: entrada pelo site, contas de restaurante e clientes finais.
+  | { type: "simulateSiteLead" }
+  | { type: "completeOnboardingStep"; accountId: ID; key: OnboardingKey }
+  | { type: "reopenOnboardingStep"; accountId: ID; key: OnboardingKey }
+  | { type: "setAccountModule"; accountId: ID; module: ModuleKey; enabled: boolean }
+  | { type: "changeAccountPlan"; accountId: ID; plan: RestaurantPlan; tables: number }
+  | {
+      type: "setAccountIntegration";
+      accountId: ID;
+      pdv?: PdvStatus | undefined;
+      pagarme?: PagarmeStatus | undefined;
+    }
+  | {
+      type: "setAccountStatus";
+      accountId: ID;
+      status: "ativa" | "pausada" | "cancelada";
+      reason?: string | undefined;
+    }
+  | { type: "assignAccountCsm"; accountId: ID; userId: ID }
+  | { type: "simulateVisit"; accountId: ID }
+  | {
+      type: "createCampaign";
+      accountId: ID;
+      name: string;
+      segment: ConsumerSegment;
+      message: string;
+    };
 
 export type ContactInput = {
   name: string;
@@ -223,6 +278,13 @@ export function newId(prefix: string) {
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const clean = (v: string | undefined) => (v ?? "").trim();
 const digits = (v: string) => v.replace(/\D/g, "");
+export const slugify = (v: string) =>
+  v
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
 
 type Ctx = { s: CrmState; now: string; userId: ID; orgId: ID; role: Role; org: Org };
 
@@ -535,7 +597,164 @@ function dealWon(c: Ctx, d: Deal) {
     `${userName(c.s, d.ownerId)} ganhou ${d.title} (${brl(d.value)})`,
     `/crm/oportunidades?deal=${d.id}`,
   );
+  openAccount(c, d);
 }
+
+// ---------- Camada B: o negócio ganho vira conta de restaurante ----------
+
+/** Responsável de sucesso: quem cuida de menos implantações no time de Sucesso do cliente. */
+function csmFor(c: Ctx, fallback: ID) {
+  const success = new Set(
+    c.s.departments
+      .filter((d) => d.orgId === c.orgId && d.name.toLowerCase().includes("sucesso"))
+      .map((d) => d.id),
+  );
+  const people = c.s.memberships.filter(
+    (m) =>
+      m.orgId === c.orgId &&
+      m.status === "ativo" &&
+      m.role !== "viewer" &&
+      m.departmentId &&
+      success.has(m.departmentId),
+  );
+  if (!people.length) return fallback;
+  const load = (u: ID) =>
+    c.s.accounts.filter((a) => a.csmId === u && a.status === "implantacao").length;
+  return [...people].sort((a, b) => load(a.userId) - load(b.userId))[0]!.userId;
+}
+
+function openAccount(c: Ctx, d: Deal) {
+  const existing = c.s.accounts.find(
+    (a) =>
+      a.orgId === c.orgId &&
+      a.status !== "cancelada" &&
+      (a.dealId === d.id || (!!d.companyId && a.companyId === d.companyId)),
+  );
+  if (existing) return existing;
+  const company = c.s.companies.find((x) => x.id === d.companyId);
+  const contact = c.s.contacts.find((x) => x.id === d.contactId);
+  const lead = c.s.leads.find(
+    (l) => l.orgId === c.orgId && (l.id === d.leadId || l.dealId === d.id),
+  );
+  const { plan, tables } = planForTables(lead?.profile.tables_range ?? company?.size);
+  const csmId = csmFor(c, d.ownerId);
+  const name = company?.name ?? contact?.name ?? d.title;
+  const account: RestaurantAccount = {
+    id: newId("acc"),
+    orgId: c.orgId,
+    name,
+    slug: slugify(name),
+    segment: company?.segment ?? "Restaurante",
+    city: company?.city ?? "Fortaleza",
+    neighborhood: company?.neighborhood ?? "",
+    companyId: company?.id,
+    contactId: contact?.id,
+    dealId: d.id,
+    leadId: lead?.id,
+    csmId,
+    plan,
+    tables,
+    status: "implantacao",
+    onboarding: ONBOARDING.map((o) =>
+      o.key === "contrato" ? { key: o.key, doneAt: c.now, doneBy: d.ownerId } : { key: o.key },
+    ),
+    modules: [...DEFAULT_MODULES],
+    pdv: {
+      provider: company?.pdv || lead?.profile.pdv_system || "A definir",
+      status: "nao_iniciada",
+    },
+    pagarme: "pendente",
+    createdAt: c.now,
+    statusChangedAt: c.now,
+  };
+  c.s.accounts.push(account);
+  const due = (days: number) => new Date(new Date(c.now).getTime() + days * 864e5).toISOString();
+  const plan3: [string, Task["type"], number][] = [
+    ["Kickoff de implantação", "reuniao", 1],
+    ["Cadastrar cardápio, mesas e QR Codes", "tarefa", 3],
+    ["Treinar a equipe no salão", "reuniao", 7],
+  ];
+  for (const [title, type, days] of plan3)
+    c.s.tasks.push({
+      id: newId("tsk"),
+      orgId: c.orgId,
+      title: `${title}: ${name}`,
+      description: "Criada automaticamente quando o negócio foi ganho.",
+      type,
+      assigneeId: csmId,
+      createdBy: c.userId,
+      priority: days === 1 ? "alta" : "media",
+      status: "pendente",
+      dueAt: due(days),
+      contactId: contact?.id,
+      dealId: d.id,
+      accountId: account.id,
+      comments: [],
+      createdAt: c.now,
+    });
+  activity(
+    c,
+    "account.created",
+    `Conta ${name} criada: implantação iniciada com ${userName(c.s, csmId)}`,
+    { type: "account", id: account.id },
+    { contactId: contact?.id, dealId: d.id },
+  );
+  notify(c, [csmId], `Nova implantação para você: ${name}`, `/crm/contas/${account.id}`);
+  return account;
+}
+
+/** Reabrir um negócio ganho desfaz a conta só se a implantação ainda nem começou. */
+function dealReopened(c: Ctx, d: Deal) {
+  const a = c.s.accounts.find((x) => x.orgId === c.orgId && x.dealId === d.id);
+  if (!a || a.status !== "implantacao") return;
+  const started = a.onboarding.some((x) => x.doneAt && x.key !== "contrato");
+  if (started || c.s.visits.some((v) => v.accountId === a.id)) {
+    notify(
+      c,
+      [a.csmId],
+      `${d.title} foi reaberto no comercial: confira a implantação de ${a.name}`,
+      `/crm/contas/${a.id}`,
+    );
+    return;
+  }
+  c.s.accounts = c.s.accounts.filter((x) => x.id !== a.id);
+  c.s.tasks = c.s.tasks.filter((t) => t.accountId !== a.id || t.status === "concluida");
+  activity(c, "account.removed", `Implantação de ${a.name} desfeita: negócio reaberto`, {
+    type: "deal",
+    id: d.id,
+  });
+}
+
+function activateIfReady(c: Ctx, a: RestaurantAccount) {
+  if (a.status !== "implantacao" || !ONBOARDING.every((o) => stepDone(a, o.key))) return;
+  a.status = "ativa";
+  a.activatedAt = c.now;
+  a.statusChangedAt = c.now;
+  a.statusReason = undefined;
+  const deal = c.s.deals.find((d) => d.id === a.dealId);
+  activity(c, "account.activated", `${a.name} está ativa na Tipe`, { type: "account", id: a.id });
+  notify(
+    c,
+    [a.csmId, ...(deal ? [deal.ownerId] : []), ...managers(c)],
+    `${a.name} concluiu a implantação e está ativa`,
+    `/crm/contas/${a.id}`,
+  );
+}
+
+function accountStep(a: RestaurantAccount, key: OnboardingKey) {
+  const st = a.onboarding.find((x) => x.key === key);
+  if (st) return st;
+  const created = { key };
+  a.onboarding.push(created);
+  return created as RestaurantAccount["onboarding"][number];
+}
+
+const MODULE_OF: Record<BillMethod, ModuleKey> = {
+  pix: "pix",
+  apple_pay: "apple_pay",
+  google_pay: "google_pay",
+  estabelecimento: "pagar_no_estabelecimento",
+};
 
 const brl = (n: number) =>
   n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
@@ -1416,8 +1635,10 @@ function run(
         { contactId: deal.contactId, dealId: deal.id, changes: { etapa: [from.name, to.name] } },
       );
       if (to.kind === "ganho") dealWon(c, deal);
-      if (wasWon && to.kind !== "ganho")
+      if (wasWon && to.kind !== "ganho") {
         revoke(s, `deal:${deal.id}`, now, `Oportunidade reaberta: ${deal.title}`);
+        dealReopened(c, deal);
+      }
       settleGoals(s, c.orgId, [deal.ownerId], now);
       return;
     }
@@ -1903,6 +2124,7 @@ function run(
       if (clean(cmd.title).length < 4) throw new Invalid("Descreva o assunto do chamado.");
       if (clean(cmd.description).length < 10)
         throw new Invalid("Explique o que aconteceu em pelo menos 10 letras.");
+      const acc = cmd.accountId ? own(c, s.accounts, cmd.accountId, "Conta") : undefined;
       const t: Ticket = {
         id: newId("tkt"),
         orgId: c.orgId,
@@ -1910,6 +2132,7 @@ function run(
         description: clean(cmd.description),
         category: cmd.category,
         requesterId: c.userId,
+        accountId: acc?.id,
         priority: cmd.priority,
         status: "aberto",
         comments: [],
@@ -1918,14 +2141,17 @@ function run(
       s.tickets.push(t);
       notify(
         c,
-        s.memberships
-          .filter(
-            (m) =>
-              m.orgId === c.orgId &&
-              (m.role === "agent" || m.role === "admin" || m.role === "owner"),
-          )
-          .map((m) => m.userId),
-        `Novo chamado interno: ${t.title}`,
+        [
+          ...s.memberships
+            .filter(
+              (m) =>
+                m.orgId === c.orgId &&
+                (m.role === "agent" || m.role === "admin" || m.role === "owner"),
+            )
+            .map((m) => m.userId),
+          ...(acc ? [acc.csmId] : []),
+        ],
+        acc ? `Chamado de ${acc.name}: ${t.title}` : `Novo chamado interno: ${t.title}`,
         `/crm/suporte?chamado=${t.id}`,
       );
       activity(c, "ticket.created", `Chamado ${t.title} aberto`, { type: "ticket", id: t.id });
@@ -2168,6 +2394,351 @@ function run(
         if (n.userId === c.userId && n.orgId === c.orgId) n.read = true;
       });
       return;
+    }
+
+    // ---------- Entrada pelo site (lista de espera de tipe.digital) ----------
+    case "simulateSiteLead": {
+      need(c, "leads.write");
+      const n = s.leads.filter((l) => l.orgId === c.orgId && l.source === SITE_SOURCE).length;
+      const sample = SITE_SAMPLES[n % SITE_SAMPLES.length]!;
+      const round = Math.floor(n / SITE_SAMPLES.length);
+      const companyName = round ? `${sample.company} ${round + 1}` : sample.company;
+      // Distribui para quem vende e tem menos leads abertos.
+      const sellers = s.memberships.filter(
+        (m) =>
+          m.orgId === c.orgId &&
+          m.status === "ativo" &&
+          (m.role === "seller" || m.role === "manager"),
+      );
+      const openLeads = (u: ID) =>
+        s.leads.filter(
+          (l) =>
+            l.orgId === c.orgId &&
+            l.ownerId === u &&
+            (l.status === "novo" || l.status === "contatado"),
+        ).length;
+      const owner =
+        [...sellers].sort((a, b) => openLeads(a.userId) - openLeads(b.userId))[0]?.userId ??
+        c.userId;
+      const lead: Lead = {
+        id: newId("lea"),
+        orgId: c.orgId,
+        name: sample.name,
+        companyName,
+        email: `${slugify(sample.name).replace(/-/g, ".")}${round || ""}@exemplo.demo`,
+        phone: `(85) 90000-${String(7100 + n).padStart(4, "0")}`,
+        source: SITE_SOURCE,
+        status: "novo",
+        ownerId: owner,
+        profile: { ...sample.profile, city: "Fortaleza" },
+        createdAt: now,
+      };
+      s.leads.push(lead);
+      activity(c, "lead.created", `Novo cadastro no site: ${companyName}`, {
+        type: "lead",
+        id: lead.id,
+      });
+      notify(
+        c,
+        [owner],
+        `Novo lead do site para você: ${companyName} (${sample.neighborhood})`,
+        `/crm/leads?lead=${lead.id}`,
+      );
+      return {
+        id: lead.id,
+        message: `Cadastro de ${companyName} recebido do site e distribuído para ${userName(s, owner)}.`,
+      };
+    }
+
+    // ---------- Camada B: implantação, módulos, integrações e status ----------
+    case "completeOnboardingStep": {
+      need(c, "accounts.manage");
+      const a = own(c, s.accounts, cmd.accountId, "Conta");
+      if (a.status === "cancelada")
+        throw new Invalid("Conta cancelada: reative antes de continuar a implantação.");
+      const def = ONBOARDING.find((o) => o.key === cmd.key);
+      if (!def) throw new Invalid("Etapa desconhecida.");
+      if (def.auto)
+        throw new Invalid("Esta etapa é marcada sozinha quando a primeira conta é paga pela Tipe.");
+      if (cmd.key === "pagamentos" && a.pagarme !== "aprovada")
+        throw new Invalid(
+          "A conta de recebimento ainda não foi aprovada. Atualize em Módulos e integrações.",
+        );
+      const st = accountStep(a, cmd.key);
+      if (st.doneAt) return;
+      st.doneAt = now;
+      st.doneBy = c.userId;
+      activity(c, "account.step", `${a.name}: ${def.label}`, { type: "account", id: a.id });
+      activateIfReady(c, a);
+      return;
+    }
+    case "reopenOnboardingStep": {
+      need(c, "accounts.manage");
+      const a = own(c, s.accounts, cmd.accountId, "Conta");
+      if (a.status !== "implantacao")
+        throw new Invalid("Só dá para reabrir etapas durante a implantação.");
+      if (cmd.key === "contrato" || cmd.key === "primeira_conta")
+        throw new Invalid("Esta etapa vem de um fato registrado e não pode ser reaberta.");
+      const st = accountStep(a, cmd.key);
+      st.doneAt = undefined;
+      st.doneBy = undefined;
+      activity(c, "account.step_reopened", `${a.name}: etapa reaberta`, {
+        type: "account",
+        id: a.id,
+      });
+      return;
+    }
+    case "setAccountModule": {
+      need(c, "accounts.manage");
+      const a = own(c, s.accounts, cmd.accountId, "Conta");
+      const def = MODULES.find((m) => m.key === cmd.module);
+      if (!def) throw new Invalid("Módulo desconhecido.");
+      const has = a.modules.includes(cmd.module);
+      if (has === cmd.enabled) return;
+      if (
+        cmd.enabled &&
+        def.minPlan &&
+        RESTAURANT_PLAN_ORDER.indexOf(a.plan) < RESTAURANT_PLAN_ORDER.indexOf(def.minPlan)
+      )
+        throw new Invalid(
+          `${def.label} faz parte do plano ${restaurantPlan(def.minPlan).name}. Mude o plano da conta para ativar.`,
+        );
+      const next = cmd.enabled
+        ? [...a.modules, cmd.module]
+        : a.modules.filter((m) => m !== cmd.module);
+      if (!(Object.values(MODULE_OF) as ModuleKey[]).some((m) => next.includes(m)))
+        throw new Invalid("Deixe ao menos uma forma de pagar a conta ligada.");
+      a.modules = next;
+      activity(
+        c,
+        "account.module",
+        `${a.name}: ${def.label} ${cmd.enabled ? "ligado" : "desligado"}`,
+        { type: "account", id: a.id },
+      );
+      return;
+    }
+    case "changeAccountPlan": {
+      need(c, "accounts.manage");
+      const a = own(c, s.accounts, cmd.accountId, "Conta");
+      const plan = restaurantPlan(cmd.plan);
+      const tables = Math.round(cmd.tables);
+      if (!(tables >= 1)) throw new Invalid("Informe o número de mesas.");
+      if (tables > plan.maxTables)
+        throw new Invalid(`O plano ${plan.name} vai até ${plan.maxTables} mesas.`);
+      const blocked = MODULES.filter(
+        (m) =>
+          m.minPlan &&
+          a.modules.includes(m.key) &&
+          RESTAURANT_PLAN_ORDER.indexOf(cmd.plan) < RESTAURANT_PLAN_ORDER.indexOf(m.minPlan),
+      );
+      if (blocked.length)
+        throw new Invalid(
+          `Desligue ${blocked.map((m) => m.label).join(" e ")} antes de mudar para o ${plan.name}.`,
+        );
+      const changes = diff(a, { plan: cmd.plan, tables });
+      a.plan = cmd.plan;
+      a.tables = tables;
+      activity(
+        c,
+        "account.plan",
+        `${a.name}: plano ${plan.name} com ${tables} mesas`,
+        { type: "account", id: a.id },
+        { changes },
+      );
+      return;
+    }
+    case "setAccountIntegration": {
+      need(c, "accounts.manage");
+      const a = own(c, s.accounts, cmd.accountId, "Conta");
+      if (cmd.pdv) a.pdv.status = cmd.pdv;
+      if (cmd.pagarme) a.pagarme = cmd.pagarme;
+      activity(c, "account.integration", `${a.name}: integrações atualizadas`, {
+        type: "account",
+        id: a.id,
+      });
+      return;
+    }
+    case "setAccountStatus": {
+      need(c, "accounts.manage");
+      const a = own(c, s.accounts, cmd.accountId, "Conta");
+      if (a.status === cmd.status) return;
+      const reason = clean(cmd.reason);
+      if (cmd.status !== "ativa" && reason.length < 3) throw new Invalid("Informe o motivo.");
+      if (cmd.status === "pausada" && a.status !== "ativa")
+        throw new Invalid("Só contas ativas podem ser pausadas.");
+      if (cmd.status === "ativa" && !a.activatedAt)
+        throw new Invalid("Esta conta ainda não concluiu a implantação.");
+      const before = a.status;
+      a.status = cmd.status;
+      a.statusChangedAt = now;
+      a.statusReason = cmd.status === "ativa" ? undefined : reason;
+      const deal = s.deals.find((d) => d.id === a.dealId);
+      audit(
+        s,
+        now,
+        c.orgId,
+        c.userId,
+        "account.status",
+        `${a.name}: ${before} → ${cmd.status}`,
+        "ok",
+      );
+      activity(
+        c,
+        `account.${cmd.status}`,
+        cmd.status === "ativa"
+          ? `${a.name} reativada`
+          : `${a.name} ${cmd.status === "pausada" ? "pausada" : "cancelada"}: ${reason}`,
+        { type: "account", id: a.id },
+        { changes: { status: [before, cmd.status] } },
+      );
+      notify(
+        c,
+        [a.csmId, ...(deal ? [deal.ownerId] : []), ...managers(c)],
+        cmd.status === "ativa"
+          ? `${a.name} foi reativada`
+          : `${a.name} ${cmd.status === "pausada" ? "foi pausada" : "cancelou"}: ${reason}`,
+        `/crm/contas/${a.id}`,
+      );
+      return;
+    }
+    case "assignAccountCsm": {
+      need(c, "accounts.manage");
+      const a = own(c, s.accounts, cmd.accountId, "Conta");
+      memberOf(c, cmd.userId);
+      if (a.csmId === cmd.userId) return;
+      a.csmId = cmd.userId;
+      notify(c, [cmd.userId], `${a.name} agora é sua conta`, `/crm/contas/${a.id}`);
+      activity(c, "account.csm", `${a.name}: responsável agora é ${userName(s, cmd.userId)}`, {
+        type: "account",
+        id: a.id,
+      });
+      return;
+    }
+
+    // ---------- Camada C: conta paga no salão (simulada) e campanhas ----------
+    case "simulateVisit": {
+      need(c, "accounts.manage");
+      const a = own(c, s.accounts, cmd.accountId, "Conta");
+      if (a.status === "pausada" || a.status === "cancelada")
+        throw new Invalid("Conta pausada ou cancelada não recebe pagamentos.");
+      if (!stepDone(a, "mesas_qr") || !stepDone(a, "pagamentos"))
+        throw new Invalid(
+          "Conclua Mesas e QR Codes e Recebimentos ativos antes de receber a primeira conta.",
+        );
+      const methods = (Object.keys(MODULE_OF) as BillMethod[]).filter((m) =>
+        a.modules.includes(MODULE_OF[m]),
+      );
+      const r = Math.random;
+      const pick = <T>(list: readonly T[]) => list[Math.floor(r() * list.length)]!;
+      const pool = s.consumers.filter((x) => x.accountId === a.id);
+      let consumer: Consumer | undefined;
+      if (r() < 0.6) {
+        if (pool.length && r() < 0.55) consumer = pick(pool);
+        else {
+          const optIn = r() < 0.6;
+          consumer = {
+            id: newId("cli"),
+            orgId: c.orgId,
+            accountId: a.id,
+            name: pick(DEMO_CONSUMERS),
+            phoneLast4: String(1000 + Math.floor(r() * 9000)),
+            marketingOptIn: optIn,
+            optInAt: optIn ? now : undefined,
+            createdAt: now,
+          };
+          s.consumers.push(consumer);
+        }
+      }
+      const menu = menuFor(a.segment);
+      const amount = Math.round((55 + r() * 230) * 100) / 100;
+      const tip =
+        a.modules.includes("gorjeta") && r() < 0.45
+          ? Math.round(amount * pick([0.03, 0.05, 0.05, 0.08]) * 100) / 100
+          : 0;
+      const visit = {
+        id: newId("vis"),
+        orgId: c.orgId,
+        accountId: a.id,
+        consumerId: consumer?.id,
+        at: now,
+        table: String(1 + Math.floor(r() * a.tables)),
+        waiter: pick(DEMO_WAITERS),
+        amount,
+        serviceFee: Math.round(amount * 0.1 * 100) / 100,
+        tip,
+        method: pick(methods),
+        rating: a.modules.includes("avaliacao") && r() < 0.7 ? pick([5, 5, 5, 4, 4, 3]) : undefined,
+        items: Array.from({ length: 1 + Math.floor(r() * 3) }, () => pick(menu)),
+        source: "demo" as const,
+      };
+      s.visits.push(visit);
+      const first = !stepDone(a, "primeira_conta");
+      if (first) {
+        const st = accountStep(a, "primeira_conta");
+        st.doneAt = now;
+        st.doneBy = c.userId;
+        const deal = s.deals.find((d) => d.id === a.dealId);
+        notify(
+          c,
+          [a.csmId, ...(deal ? [deal.ownerId] : [])],
+          `${a.name} recebeu a primeira conta pela Tipe`,
+          `/crm/contas/${a.id}`,
+        );
+      }
+      activity(
+        c,
+        first ? "account.first_bill" : "visit.paid",
+        `${a.name}: mesa ${visit.table} pagou ${brl(amount)} com ${METHOD_LABEL[visit.method]}${tip ? ` e deixou gorjeta de ${brl(tip)}` : ""} (simulado)`,
+        { type: "account", id: a.id },
+      );
+      activateIfReady(c, a);
+      return {
+        id: visit.id,
+        message: first
+          ? `Primeira conta paga em ${a.name}. ${a.status === "ativa" ? "Implantação concluída: conta ativa!" : "Falta concluir as outras etapas da implantação."}`
+          : `Mesa ${visit.table} pagou com ${METHOD_LABEL[visit.method]} (simulado).`,
+      };
+    }
+    case "createCampaign": {
+      need(c, "campaigns.manage");
+      const a = own(c, s.accounts, cmd.accountId, "Conta");
+      const name = clean(cmd.name);
+      const message = clean(cmd.message);
+      if (name.length < 3) throw new Invalid("Dê um nome para a campanha.");
+      if (message.length < 10) throw new Invalid("Escreva a mensagem, com pelo menos 10 letras.");
+      if (!SEGMENT_LABEL[cmd.segment]) throw new Invalid("Escolha o grupo de clientes.");
+      const audience = campaignAudience(
+        consumerProfiles(s, c.orgId, now, a.id),
+        cmd.segment,
+      ).length;
+      if (!audience)
+        throw new Invalid(
+          "Ninguém deste grupo autorizou receber mensagens. A campanha só vai para quem deu consentimento.",
+        );
+      const campaign = {
+        id: newId("cpg"),
+        orgId: c.orgId,
+        accountId: a.id,
+        name,
+        segment: cmd.segment,
+        message,
+        channel: "whatsapp" as const,
+        status: "simulada" as const,
+        audience,
+        createdBy: c.userId,
+        createdAt: now,
+      };
+      s.campaigns.unshift(campaign);
+      activity(
+        c,
+        "campaign.created",
+        `Campanha ${name} de ${a.name} para ${audience} clientes (simulada)`,
+        { type: "campaign", id: campaign.id },
+      );
+      return {
+        id: campaign.id,
+        message: `Campanha simulada para ${audience} clientes com consentimento. Nenhuma mensagem foi enviada.`,
+      };
     }
   }
 }

@@ -81,9 +81,9 @@ returns boolean language sql stable security definer set search_path = public, p
   select case public.crm_role_in(_org)
     when 'owner' then true
     when 'admin' then _action <> 'org.billing'
-    when 'manager' then _action = any (array['contacts.write','contacts.delete','leads.write','deals.create','deals.write_any','deals.write_own','deals.delete','pipelines.manage','tasks.write','tasks.assign_others','inbox.reply','inbox.assign','inbox.simulate','tickets.write','goals.manage','reports.view','teams.manage'])
+    when 'manager' then _action = any (array['contacts.write','contacts.delete','leads.write','deals.create','deals.write_any','deals.write_own','deals.delete','pipelines.manage','tasks.write','tasks.assign_others','inbox.reply','inbox.assign','inbox.simulate','tickets.write','goals.manage','reports.view','teams.manage','accounts.manage','consumers.view','campaigns.manage'])
     when 'seller' then _action = any (array['contacts.write','leads.write','deals.create','deals.write_own','tasks.write','inbox.reply','inbox.simulate','tickets.write','reports.view'])
-    when 'agent' then _action = any (array['contacts.write','leads.write','deals.create','tasks.write','inbox.reply','inbox.assign','inbox.simulate','tickets.write','tickets.manage'])
+    when 'agent' then _action = any (array['contacts.write','leads.write','deals.create','tasks.write','inbox.reply','inbox.assign','inbox.simulate','tickets.write','tickets.manage','accounts.manage','consumers.view'])
     when 'viewer' then _action = 'reports.view'
     else false
   end
@@ -426,3 +426,127 @@ commit;
 --        id, created_at
 -- from public.restaurant_leads
 -- on conflict (restaurant_lead_id) do nothing;
+
+-- =======================================================================================
+-- Ecossistema: as três camadas ligadas (PROPOSTA, NÃO APLICADA)
+--   A. Comercial (tabelas acima) → B. Conta do restaurante → C. Clientes do restaurante
+-- Espelha RestaurantAccount, Consumer, Visit e Campaign de src/lib/tipe/crm/types.ts.
+-- =======================================================================================
+
+begin;
+
+-- Camada B: a conta nasce quando a oportunidade é ganha (função do servidor que repete
+-- openAccount do motor). platform_restaurant_id liga a conta ao restaurante real.
+create table public.crm_restaurant_accounts (
+  id uuid primary key default gen_random_uuid(),
+  org_id uuid not null references public.crm_orgs (id) on delete cascade,
+  name text not null, slug text not null,
+  segment text, city text, neighborhood text,
+  company_id uuid references public.crm_companies (id) on delete set null,
+  contact_id uuid references public.crm_contacts (id) on delete set null,
+  deal_id uuid references public.crm_deals (id) on delete set null,
+  lead_id uuid references public.crm_leads (id) on delete set null,
+  csm_id uuid not null references auth.users (id),
+  plan text not null check (plan in ('essencial', 'profissional', 'premium')),
+  tables int not null check (tables between 1 and 40),
+  status text not null default 'implantacao' check (status in ('implantacao', 'ativa', 'pausada', 'cancelada')),
+  -- [{ "key": "cardapio", "done_at": "...", "done_by": "..." }]: as 8 etapas de ONBOARDING
+  onboarding jsonb not null default '[]',
+  modules text[] not null default array['pix','apple_pay','google_pay','pagar_no_estabelecimento','gorjeta','avaliacao'],
+  pdv_provider text, pdv_status text not null default 'nao_iniciada'
+    check (pdv_status in ('nao_iniciada', 'em_homologacao', 'conectada', 'lancamento_tipe')),
+  pagarme_status text not null default 'pendente' check (pagarme_status in ('pendente', 'em_analise', 'aprovada')),
+  platform_restaurant_id uuid unique references public.restaurants (id) on delete set null,
+  created_at timestamptz not null default now(),
+  activated_at timestamptz,
+  status_changed_at timestamptz,
+  status_reason text check (status not in ('pausada', 'cancelada') or status_reason is not null),
+  -- Pelo menos uma forma de pagar a conta fica sempre ligada.
+  check (modules && array['pix','apple_pay','google_pay','pagar_no_estabelecimento'])
+);
+create unique index crm_accounts_deal on public.crm_restaurant_accounts (deal_id) where deal_id is not null and status <> 'cancelada';
+create index on public.crm_restaurant_accounts (org_id, status);
+
+alter table public.crm_tickets add column account_id uuid references public.crm_restaurant_accounts (id) on delete set null;
+alter table public.crm_tasks add column account_id uuid references public.crm_restaurant_accounts (id) on delete set null;
+
+-- Camada C: cliente final. Só os 4 últimos dígitos do telefone ficam visíveis para a Tipe;
+-- o número completo, quando existir, fica com o restaurante (fora deste esquema).
+create table public.crm_consumers (
+  id uuid primary key default gen_random_uuid(),
+  org_id uuid not null references public.crm_orgs (id) on delete cascade,
+  account_id uuid not null references public.crm_restaurant_accounts (id) on delete cascade,
+  name text not null,
+  phone_last4 text not null check (phone_last4 ~ '^[0-9]{4}$'),
+  phone_hash text,
+  marketing_opt_in boolean not null default false,
+  opt_in_at timestamptz check (not marketing_opt_in or opt_in_at is not null),
+  created_at timestamptz not null default now(),
+  unique (account_id, phone_hash)
+);
+
+-- Cada conta paga pela Tipe vira uma visita. Na produção, preenchida por gatilho ou job a
+-- partir de table_payment_requests aprovados (visitFromPayment em adapters.ts).
+create table public.crm_visits (
+  id uuid primary key default gen_random_uuid(),
+  org_id uuid not null references public.crm_orgs (id) on delete cascade,
+  account_id uuid not null references public.crm_restaurant_accounts (id) on delete cascade,
+  consumer_id uuid references public.crm_consumers (id) on delete set null,
+  payment_request_id uuid unique references public.table_payment_requests (id) on delete set null,
+  at timestamptz not null,
+  table_number text not null, waiter text,
+  amount numeric(12, 2) not null check (amount >= 0),
+  service_fee numeric(12, 2) not null default 0,
+  tip numeric(12, 2) not null default 0,
+  method text not null check (method in ('pix', 'apple_pay', 'google_pay', 'estabelecimento')),
+  rating int check (rating between 1 and 5),
+  items text[] not null default '{}'
+);
+create index on public.crm_visits (account_id, at);
+
+create table public.crm_campaigns (
+  id uuid primary key default gen_random_uuid(),
+  org_id uuid not null references public.crm_orgs (id) on delete cascade,
+  account_id uuid not null references public.crm_restaurant_accounts (id) on delete cascade,
+  name text not null, segment text not null check (segment in ('todos', 'novos', 'recorrentes', 'fieis', 'em_risco')),
+  message text not null, channel text not null default 'whatsapp',
+  status text not null default 'rascunho' check (status in ('rascunho', 'simulada', 'enviada')),
+  audience int not null check (audience >= 0),
+  created_by uuid not null references auth.users (id),
+  created_at timestamptz not null default now()
+);
+
+-- Uso diário por conta direto da plataforma real: contas aprovadas pagas ao restaurante.
+create or replace view public.crm_account_usage_daily with (security_invoker = true) as
+select a.org_id, a.id as account_id,
+       (p.created_at at time zone 'America/Fortaleza')::date as dia,
+       count(*) as contas,
+       sum(p.amount) as volume,
+       sum(coalesce(p.service_fee_amount, 0)) as taxa_servico,
+       count(distinct p.table_number) as mesas
+from public.crm_restaurant_accounts a
+join public.restaurants r on r.id = a.platform_restaurant_id
+join public.table_payment_requests p on p.restaurant_slug = r.slug
+where p.status = 'approved' and p.payment_target = 'restaurant'
+group by 1, 2, 3;
+
+do $$
+declare t text;
+begin
+  foreach t in array array['crm_restaurant_accounts','crm_consumers','crm_visits','crm_campaigns']
+  loop
+    execute format('alter table public.%I enable row level security', t);
+  end loop;
+end $$;
+
+create policy "membros leem contas" on public.crm_restaurant_accounts for select to authenticated using (public.crm_is_member(org_id));
+create policy "gerir contas" on public.crm_restaurant_accounts for update to authenticated using (public.crm_can(org_id, 'accounts.manage')) with check (public.crm_can(org_id, 'accounts.manage'));
+-- Clientes finais: só quem tem consumers.view (vendedor e leitura não veem).
+create policy "ver clientes" on public.crm_consumers for select to authenticated using (public.crm_can(org_id, 'consumers.view'));
+create policy "ver visitas" on public.crm_visits for select to authenticated using (public.crm_can(org_id, 'consumers.view'));
+create policy "ver campanhas" on public.crm_campaigns for select to authenticated using (public.crm_can(org_id, 'consumers.view'));
+create policy "criar campanhas" on public.crm_campaigns for insert to authenticated with check (public.crm_can(org_id, 'campaigns.manage') and created_by = auth.uid());
+-- Sem insert direto em contas e visitas: nascem por função do servidor (negócio ganho,
+-- pagamento aprovado), que confere crm_can e grava crm_activities.
+
+commit;

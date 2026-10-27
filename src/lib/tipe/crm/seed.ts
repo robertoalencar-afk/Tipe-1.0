@@ -1,5 +1,7 @@
 import { award, defaultSettings, settleGoals } from "./engine";
+import { SITE_SOURCE } from "./ecosystem";
 import { goalProgress } from "./metrics";
+import { seedAccountLinks, seedEcosystem } from "./seed-ecosystem";
 import type {
   Company,
   Contact,
@@ -18,12 +20,13 @@ import type {
 // Dados fictícios de demonstração. Nenhuma pessoa, telefone ou e-mail real:
 // telefones usam o prefixo 90000, e-mails o domínio reservado .demo.
 
-export const SEED_VERSION = 1;
+export const SEED_VERSION = 2;
 export const DEMO_PASSWORD = "demo1234";
 
 export const DEMO_ACCOUNTS = [
   { email: "helena@tipe.demo", name: "Helena Prado", role: "Proprietária e equipe da plataforma" },
   { email: "marina@tipe.demo", name: "Marina Lopes", role: "Gestora de vendas" },
+  { email: "caio@tipe.demo", name: "Caio Menezes", role: "Sucesso do cliente e implantação" },
   { email: "thiago@tipe.demo", name: "Thiago Ribeiro", role: "Vendedor" },
   { email: "davi@tipe.demo", name: "Davi Nogueira", role: "Atendente" },
   { email: "lia@tipe.demo", name: "Lia Santos", role: "Somente leitura" },
@@ -99,6 +102,10 @@ export function createSeed(nowIso = new Date().toISOString()): CrmState {
     waLogs: [],
     notifications: [],
     audit: [],
+    accounts: [],
+    consumers: [],
+    visits: [],
+    campaigns: [],
     session: null,
   };
 
@@ -303,7 +310,7 @@ export function createSeed(nowIso = new Date().toISOString()): CrmState {
   const SEG = ["Restaurante", "Bar", "Cafeteria", "Barraca de praia", "Hamburgueria", "Pizzaria"];
   const SIZE = ["Até 10 mesas", "11 a 20 mesas", "21 a 40 mesas", "Mais de 40 mesas"];
   const SOURCES = [
-    "Lista de espera",
+    SITE_SOURCE,
     "Indicação",
     "Instagram",
     "Visita da equipe",
@@ -1079,6 +1086,19 @@ export function createSeed(nowIso = new Date().toISOString()): CrmState {
   );
   ticket("Integração com Saipos para piloto", "Integração", marina, caio, "aberto", 0, "alta");
   ticket("Cliente pediu segunda via da fatura", "Financeiro", davi, lia, "resolvido", 15, "media");
+
+  // Camadas B e C: negócios ganhos viram contas de restaurante; contas ativas têm histórico
+  // de contas pagas pela Tipe, com clientes identificados, gorjetas e avaliações.
+  const eco = {
+    s,
+    now,
+    nowIso,
+    rand,
+    id,
+    personName: () => `${pick(FIRST)} ${pick(LAST)}`,
+    csm: [caio, davi],
+  };
+  seedAccountLinks(eco, seedEcosystem(eco, A));
 
   // Metas do mês atual e dos anteriores (para a evolução).
   const month = (offset: number) => {

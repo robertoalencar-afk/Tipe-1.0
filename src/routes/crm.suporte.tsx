@@ -34,21 +34,31 @@ export const Route = createFileRoute("/crm/suporte")({
   component: Suporte,
 });
 
-const CATEGORIES = ["Produto", "Integração", "Acesso", "Comercial", "Financeiro", "Outro"];
+const CATEGORIES = [
+  "Produto",
+  "Restaurante",
+  "Integração",
+  "Acesso",
+  "Comercial",
+  "Financeiro",
+  "Outro",
+];
 
 function Suporte() {
   const { chamado } = Route.useSearch();
   const navigate = useNavigate();
   const { user, me, members, can, run } = useCrm();
   const d = useOrgData();
-  const [view, setView] = useState<"abertos" | "meus" | "resolvidos">("abertos");
+  const [view, setView] = useState<"abertos" | "restaurantes" | "meus" | "resolvidos">("abertos");
+  const accName = (id?: string) => d.accounts.find((a) => a.id === id)?.name;
   const [creating, setCreating] = useState(false);
   const [reply, setReply] = useState("");
   const list = d.tickets
     .filter(
       (t) =>
         (view === "resolvidos" ? t.status === "resolvido" : t.status !== "resolvido") &&
-        (view !== "meus" || t.requesterId === me.id || t.assigneeId === me.id),
+        (view !== "meus" || t.requesterId === me.id || t.assigneeId === me.id) &&
+        (view !== "restaurantes" || !!t.accountId),
     )
     .sort(
       (a, b) =>
@@ -61,8 +71,9 @@ function Suporte() {
   return (
     <div className="space-y-4">
       <PageHeader
-        title="Suporte interno"
-        description="Chamados da equipe para produto, integrações, acessos e financeiro."
+        eyebrow="Camada B · Restaurantes"
+        title="Suporte"
+        description="Chamados dos restaurantes clientes e da equipe interna. Chamado de restaurante pesa na saúde da conta e avisa o responsável de sucesso."
         actions={
           <>
             <Segmented
@@ -73,6 +84,10 @@ function Suporte() {
                 {
                   value: "abertos",
                   label: `Em aberto (${d.tickets.filter((x) => x.status !== "resolvido").length})`,
+                },
+                {
+                  value: "restaurantes",
+                  label: `Restaurantes (${d.tickets.filter((x) => x.accountId && x.status !== "resolvido").length})`,
                 },
                 { value: "meus", label: "Meus" },
                 { value: "resolvidos", label: "Resolvidos" },
@@ -106,6 +121,7 @@ function Suporte() {
                   <span className="min-w-0">
                     <span className="block truncate text-sm font-medium">{x.title}</span>
                     <span className="text-xs text-muted-foreground">
+                      {accName(x.accountId) ? `${accName(x.accountId)} · ` : "Interno · "}
                       {x.category} · aberto por {user(x.requesterId)?.name.split(" ")[0]}{" "}
                       {relative(x.createdAt)} · {x.comments.length} respostas
                     </span>
@@ -130,6 +146,15 @@ function Suporte() {
               <SheetDescription className="text-xs">
                 {t.category} · {dateTimeBR(t.createdAt)} · {user(t.requesterId)?.name}
               </SheetDescription>
+              {t.accountId && accName(t.accountId) && (
+                <Link
+                  to="/crm/contas/$id"
+                  params={{ id: t.accountId }}
+                  className="mt-2 inline-flex rounded-full bg-primary/15 px-2.5 py-1 text-xs font-semibold text-primary hover:underline"
+                >
+                  Restaurante: {accName(t.accountId)}
+                </Link>
+              )}
               <p className="mt-3 whitespace-pre-line text-sm">{t.description}</p>
               <div className="mt-4 grid grid-cols-2 gap-2">
                 <Field label="Status">
@@ -231,11 +256,13 @@ function Suporte() {
 
 function NewTicket({ open, onOpenChange }: { open: boolean; onOpenChange: (o: boolean) => void }) {
   const { run } = useCrm();
+  const d = useOrgData();
   const [f, setF] = useState({
     title: "",
     description: "",
     category: "Produto",
     priority: "media" as Priority,
+    accountId: "",
   });
   const [touched, setTouched] = useState<{ title?: boolean; description?: boolean }>({});
   const errs = {
@@ -248,10 +275,13 @@ function NewTicket({ open, onOpenChange }: { open: boolean; onOpenChange: (o: bo
     setTouched({ title: true, description: true });
     if (errs.title || errs.description) return;
     if (
-      run({ type: "createTicket", ...f }, "Chamado aberto. A equipe de suporte foi avisada.").ok
+      run(
+        { type: "createTicket", ...f, accountId: f.accountId || undefined },
+        "Chamado aberto. A equipe de suporte foi avisada.",
+      ).ok
     ) {
       onOpenChange(false);
-      setF({ title: "", description: "", category: "Produto", priority: "media" });
+      setF({ title: "", description: "", category: "Produto", priority: "media", accountId: "" });
       setTouched({});
     }
   }
@@ -288,6 +318,25 @@ function NewTicket({ open, onOpenChange }: { open: boolean; onOpenChange: (o: bo
                 onBlur={() => setTouched({ ...touched, description: true })}
                 onChange={(e) => setF({ ...f, description: e.target.value })}
               />
+            )}
+          </Field>
+          <Field label="Restaurante" hint="Deixe em branco para um chamado interno.">
+            {(id, dd) => (
+              <Select
+                id={id}
+                aria-describedby={dd}
+                value={f.accountId}
+                onChange={(e) => setF({ ...f, accountId: e.target.value })}
+              >
+                <option value="">Chamado interno</option>
+                {d.accounts
+                  .filter((a) => a.status !== "cancelada")
+                  .map((a) => (
+                    <option key={a.id} value={a.id}>
+                      {a.name}
+                    </option>
+                  ))}
+              </Select>
             )}
           </Field>
           <div className="grid grid-cols-2 gap-2">

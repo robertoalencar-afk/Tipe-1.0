@@ -17,6 +17,7 @@ import {
   Select,
   UserChip,
 } from "@/components/tipe/crm/ui";
+import { accountOfCompany } from "@/lib/tipe/crm/ecosystem";
 import type { Company } from "@/lib/tipe/crm/types";
 
 export const Route = createFileRoute("/crm/empresas")({
@@ -27,7 +28,7 @@ export const Route = createFileRoute("/crm/empresas")({
 function Empresas() {
   const { empresa } = Route.useSearch();
   const navigate = useNavigate();
-  const { user, can, openCreate } = useCrm();
+  const { s, user, can, openCreate } = useCrm();
   const d = useOrgData();
   const [q, setQ] = useState("");
   const [segment, setSegment] = useState("");
@@ -137,6 +138,22 @@ function Empresas() {
                 {selected.segment} em {selected.neighborhood ? `${selected.neighborhood}, ` : ""}
                 {selected.city} · PDV {selected.pdv || "não informado"}
               </SheetDescription>
+              {(() => {
+                const acc = accountOfCompany(s, selected.id);
+                return acc ? (
+                  <Link
+                    to="/crm/contas/$id"
+                    params={{ id: acc.id }}
+                    className="mt-3 flex items-center justify-between rounded-2xl bg-primary/12 px-3 py-2 text-xs hover:bg-primary/20"
+                  >
+                    <span>
+                      <span className="block font-semibold">Já é cliente da Tipe</span>
+                      <span className="text-muted-foreground">Abrir a conta do restaurante</span>
+                    </span>
+                    <span className="font-semibold text-primary">{acc.name}</span>
+                  </Link>
+                ) : null;
+              })()}
               {can("contacts.write") && (
                 <Btn variant="outline" className="mt-3" onClick={() => setEditing(selected)}>
                   <Pencil className="h-3.5 w-3.5" />

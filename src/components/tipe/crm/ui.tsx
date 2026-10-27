@@ -18,8 +18,9 @@ import {
 import { cn } from "@/lib/utils";
 import type { Priority, User } from "@/lib/tipe/crm/types";
 
-// Kit visual do back office: compacto, denso e legível. Cantos de 8px, números tabulares,
-// destaques em turquesa/ciano e cores semânticas só onde há significado.
+// Kit visual do CRM da Tipe: a mesma marca do site e do painel do restaurante. Cartões brancos
+// de cantos generosos, turquesa como destaque, azul-marinho para texto e seleção, números
+// tabulares e cores semânticas só onde há significado.
 
 export const brl = (n: number, digits = 0) =>
   n.toLocaleString("pt-BR", {
@@ -124,7 +125,9 @@ export function PageHeader({
             {eyebrow}
           </p>
         )}
-        <h1 className="font-display text-xl font-bold tracking-tight sm:text-2xl">{title}</h1>
+        <h1 className="font-display text-2xl font-semibold tracking-tight sm:text-[1.75rem]">
+          {title}
+        </h1>
         {description && (
           <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{description}</p>
         )}
@@ -152,15 +155,19 @@ export function Panel({
   return (
     <section className={cn("crm-panel min-w-0", className)}>
       {(title || actions) && (
-        <header className="flex items-start justify-between gap-3 border-b border-border px-4 py-3">
+        <header className="flex items-start justify-between gap-3 px-5 pt-4">
           <div className="min-w-0">
-            {title && <h2 className="font-display text-sm font-semibold">{title}</h2>}
+            {title && (
+              <h2 className="font-display text-[0.95rem] font-semibold tracking-tight">{title}</h2>
+            )}
             {description && <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>}
           </div>
           {actions && <div className="flex shrink-0 items-center gap-1.5">{actions}</div>}
         </header>
       )}
-      <div className={cn("p-4", bodyClassName)}>{children}</div>
+      <div className={cn(title || actions ? "px-5 pb-5 pt-3" : "p-5", bodyClassName)}>
+        {children}
+      </div>
     </section>
   );
 }
@@ -191,7 +198,7 @@ export function Kpi({
           ? "text-success"
           : "text-primary";
   return (
-    <div className="crm-panel flex min-w-0 flex-col gap-2 p-3.5">
+    <div className="crm-panel flex min-w-0 flex-col gap-2.5 p-4">
       <div className="flex items-center justify-between gap-2">
         <span className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-muted-foreground">
           <Icon className={cn("h-3.5 w-3.5 shrink-0", toneCls)} aria-hidden />
@@ -201,27 +208,33 @@ export function Kpi({
         </span>
         {help && <Hint text={help} />}
       </div>
-      <div className="money font-display text-[1.35rem] font-semibold leading-none tracking-tight">
+      <div className="money font-display text-[1.6rem] font-semibold leading-none tracking-tight">
         {value}
       </div>
       <div className="flex min-h-4 items-center gap-2 text-[0.7rem] text-muted-foreground">
-        {delta && (
-          <span
-            className={cn(
-              "font-semibold",
-              delta.value === 0
-                ? "text-muted-foreground"
-                : delta.good
-                  ? "text-success"
-                  : "text-destructive",
-            )}
-          >
-            {delta.value > 0 ? "▲" : delta.value < 0 ? "▼" : "•"} {Math.abs(delta.value)}%
-          </span>
-        )}
+        {delta && <DeltaBadge value={delta.value} good={delta.good} />}
         {hint && <span className="truncate">{hint}</span>}
       </div>
     </div>
+  );
+}
+
+/** Selo de variação, como no painel: verde quando melhora, vermelho quando piora. */
+export function DeltaBadge({ value, good }: { value: number; good: boolean }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex h-[1.15rem] items-center rounded-full px-1.5 text-[0.65rem] font-bold tabular-nums",
+        value === 0
+          ? "bg-muted text-muted-foreground"
+          : good
+            ? "bg-success text-success-foreground"
+            : "bg-destructive text-destructive-foreground",
+      )}
+    >
+      {value > 0 ? "+" : value < 0 ? "−" : ""}
+      {Math.abs(value)}%
+    </span>
   );
 }
 
@@ -256,8 +269,8 @@ export function Empty({
   action?: ReactNode | undefined;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border px-6 py-10 text-center">
-      <span className="grid h-10 w-10 place-items-center rounded-lg bg-muted text-primary">
+    <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border px-6 py-10 text-center">
+      <span className="grid h-10 w-10 place-items-center rounded-full bg-accent text-primary">
         <Icon className="h-5 w-5" aria-hidden />
       </span>
       <p className="font-display text-sm font-semibold">{title}</p>
@@ -287,10 +300,10 @@ export function PageSkeleton() {
 type Tone = "neutral" | "primary" | "success" | "warning" | "danger" | "info";
 const TONE: Record<Tone, string> = {
   neutral: "bg-muted text-muted-foreground",
-  primary: "bg-primary/15 text-primary",
-  success: "bg-success/15 text-success",
-  warning: "bg-warning/15 text-warning",
-  danger: "bg-destructive/15 text-[oklch(0.78_0.12_25)]",
+  primary: "bg-primary/18 text-primary",
+  success: "bg-success/12 text-success",
+  warning: "bg-warning/12 text-warning",
+  danger: "bg-destructive/12 text-destructive",
   info: "bg-info/15 text-info",
 };
 export function Pill({
@@ -305,7 +318,7 @@ export function Pill({
   return (
     <span
       className={cn(
-        "inline-flex h-5 shrink-0 items-center gap-1 whitespace-nowrap rounded-md px-1.5 text-[0.68rem] font-semibold",
+        "inline-flex h-5 shrink-0 items-center gap-1 whitespace-nowrap rounded-full px-2 text-[0.68rem] font-semibold",
         TONE[tone],
         className,
       )}
@@ -336,7 +349,7 @@ export const Btn = forwardRef<HTMLButtonElement, ComponentProps<typeof Button>>(
     <Button
       ref={ref}
       size={size}
-      className={cn("rounded-lg", size === "sm" && "h-8 px-3 text-xs", className)}
+      className={cn("rounded-full", size === "sm" && "h-8 px-3.5 text-xs", className)}
       {...props}
     />
   );
@@ -364,7 +377,7 @@ export function IconBtn({
           disabled={disabled}
           aria-label={label}
           className={cn(
-            "grid h-8 w-8 place-items-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-40",
+            "grid h-8 w-8 place-items-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-40",
             className,
           )}
         >
@@ -379,7 +392,7 @@ export function IconBtn({
 }
 
 const FIELD =
-  "h-9 w-full rounded-lg border border-input bg-background/60 px-3 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-primary/25 disabled:opacity-60 aria-[invalid=true]:border-destructive";
+  "h-9 w-full rounded-xl border border-input bg-card px-3 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-primary/25 disabled:opacity-60 aria-[invalid=true]:border-destructive";
 
 export function Field({
   label,
@@ -403,7 +416,7 @@ export function Field({
       </label>
       {children(id, error || hint ? msgId : undefined)}
       {error ? (
-        <p id={msgId} role="alert" className="text-xs text-[oklch(0.78_0.12_25)]">
+        <p id={msgId} role="alert" className="text-xs text-destructive">
           {error}
         </p>
       ) : hint ? (
@@ -475,10 +488,10 @@ export function ConfirmAction({
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel className="rounded-lg">Manter</AlertDialogCancel>
+          <AlertDialogCancel className="rounded-full">Manter</AlertDialogCancel>
           <AlertDialogAction
             className={cn(
-              "rounded-lg",
+              "rounded-full",
               destructive && "bg-destructive text-destructive-foreground hover:bg-destructive/90",
             )}
             onClick={() => {
@@ -538,7 +551,7 @@ export function Segmented<T extends string>({
     <div
       role="radiogroup"
       aria-label={label}
-      className="inline-flex h-8 items-center rounded-lg border border-border bg-background/40 p-0.5"
+      className="inline-flex h-8 items-center rounded-full border border-border bg-card p-0.5"
     >
       {options.map((o) => (
         <button
@@ -548,8 +561,9 @@ export function Segmented<T extends string>({
           aria-checked={value === o.value}
           onClick={() => onChange(o.value)}
           className={cn(
-            "h-full rounded-md px-2.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground",
-            value === o.value && "bg-muted text-foreground shadow-xs",
+            "h-full rounded-full px-3 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground",
+            value === o.value &&
+              "bg-secondary text-secondary-foreground hover:text-secondary-foreground",
           )}
         >
           {o.label}
@@ -597,7 +611,7 @@ export function SearchInput({
 
 export function DemoNote({ children }: { children: ReactNode }) {
   return (
-    <p className="flex items-start gap-2 rounded-lg border border-info/25 bg-info/10 px-3 py-2 text-xs text-[oklch(0.85_0.06_245)]">
+    <p className="flex items-start gap-2 rounded-lg border border-info/25 bg-info/10 px-3 py-2 text-xs text-info">
       <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
       <span>{children}</span>
     </p>
@@ -608,13 +622,14 @@ export const chartTooltip = {
   contentStyle: {
     background: "var(--popover)",
     border: "1px solid var(--border)",
-    borderRadius: 8,
+    borderRadius: 12,
+    boxShadow: "0 12px 32px -16px oklch(0.2 0.04 250 / 0.3)",
     fontSize: 12,
     color: "var(--foreground)",
   },
   labelStyle: { color: "var(--muted-foreground)", marginBottom: 4 },
   itemStyle: { color: "var(--foreground)", padding: 0 },
-  cursor: { fill: "oklch(0.85 0.03 250 / 0.05)" },
+  cursor: { fill: "oklch(0.2 0.04 250 / 0.04)" },
 };
 export const axis = {
   fontSize: 11,

@@ -1,18 +1,18 @@
-import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
+import { CrmLogo } from "./eco";
 import {
   Bell,
   Building2,
   CalendarDays,
   ChartNoAxesCombined,
   Check,
-  ChevronsLeft,
-  ChevronsRight,
   ChevronsUpDown,
   CircleDollarSign,
   Contact as ContactIcon,
   Filter,
   Gauge,
+  HeartHandshake,
   Inbox,
   KanbanSquare,
   Layers,
@@ -23,9 +23,11 @@ import {
   MessageCircle,
   Plus,
   RotateCcw,
+  Route as RouteIcon,
   Search,
   Settings,
   ShieldCheck,
+  Store,
   Trophy,
   UserRound,
   Users,
@@ -51,7 +53,6 @@ import {
   CommandList,
 } from "@/components/ui/command";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { TipeSymbol } from "@/components/tipe/Logo";
 import { cn } from "@/lib/utils";
 import { ROLE_LABEL, type Action } from "@/lib/tipe/crm/permissions";
 import { resetDemo } from "@/lib/tipe/crm/store";
@@ -59,6 +60,10 @@ import { useCrm, useOrgData } from "./context";
 import { QuickCreate } from "./forms";
 import { Avatar, relative } from "./ui";
 
+// Moldura do CRM: logotipo oficial da Tipe, navegação em pílula por camada do ecossistema
+// (comercial, restaurantes, clientes) e, logo abaixo, as páginas da camada ativa.
+
+type Badges = ReturnType<typeof useBadges>;
 type NavItem = {
   to: string;
   label: string;
@@ -66,63 +71,91 @@ type NavItem = {
   perm?: Action | undefined;
   platform?: boolean | undefined;
   exact?: boolean | undefined;
-  badge?: (d: ReturnType<typeof useBadges>) => number;
+  badge?: ((b: Badges) => number) | undefined;
 };
-const NAV: { group: string; items: NavItem[] }[] = [
-  { group: "Visão", items: [{ to: "/crm", label: "Dashboard", icon: Gauge, exact: true }] },
+type Section = { key: string; label: string; items: NavItem[] };
+
+export const SECTIONS: Section[] = [
   {
-    group: "Comercial",
+    key: "visao",
+    label: "Visão geral",
     items: [
-      { to: "/crm/contatos", label: "Contatos", icon: ContactIcon },
-      { to: "/crm/empresas", label: "Empresas", icon: Building2 },
+      { to: "/crm", label: "Painel", icon: Gauge, exact: true },
+      { to: "/crm/jornada", label: "Jornada integrada", icon: RouteIcon },
+    ],
+  },
+  {
+    key: "comercial",
+    label: "Comercial",
+    items: [
+      { to: "/crm/comercial", label: "Painel comercial", icon: ChartNoAxesCombined, exact: true },
       { to: "/crm/leads", label: "Leads", icon: Filter, badge: (b) => b.newLeads },
       { to: "/crm/oportunidades", label: "Oportunidades", icon: KanbanSquare },
+      { to: "/crm/contatos", label: "Contatos", icon: ContactIcon },
+      { to: "/crm/empresas", label: "Empresas", icon: Building2 },
       { to: "/crm/funis", label: "Funis", icon: Workflow },
     ],
   },
   {
-    group: "Rotina",
+    key: "restaurantes",
+    label: "Restaurantes",
+    items: [
+      { to: "/crm/contas", label: "Contas", icon: Store, badge: (b) => b.onboarding },
+      { to: "/crm/suporte", label: "Suporte", icon: LifeBuoy, badge: (b) => b.tickets },
+    ],
+  },
+  {
+    key: "clientes",
+    label: "Clientes",
+    items: [
+      {
+        to: "/crm/clientes",
+        label: "Clientes dos restaurantes",
+        icon: HeartHandshake,
+        perm: "consumers.view",
+      },
+    ],
+  },
+  {
+    key: "rotina",
+    label: "Rotina",
     items: [
       { to: "/crm/tarefas", label: "Tarefas", icon: ListTodo, badge: (b) => b.overdue },
-      { to: "/crm/calendario", label: "Calendário", icon: CalendarDays },
-    ],
-  },
-  {
-    group: "Relacionamento",
-    items: [
+      { to: "/crm/calendario", label: "Agenda", icon: CalendarDays },
       { to: "/crm/atendimento", label: "Atendimento", icon: Inbox, badge: (b) => b.unread },
       { to: "/crm/whatsapp", label: "WhatsApp", icon: MessageCircle },
-      { to: "/crm/suporte", label: "Suporte", icon: LifeBuoy },
     ],
   },
   {
-    group: "Pessoas",
+    key: "equipe",
+    label: "Equipe",
     items: [
       { to: "/crm/equipe", label: "Equipe", icon: Users },
-      { to: "/crm/organizacoes", label: "Organizações", icon: Layers },
-      { to: "/crm/gamificacao", label: "Gamificação", icon: Trophy },
-    ],
-  },
-  {
-    group: "Gestão",
-    items: [
+      { to: "/crm/gamificacao", label: "Metas e gamificação", icon: Trophy },
       {
         to: "/crm/relatorios",
         label: "Relatórios",
         icon: ChartNoAxesCombined,
         perm: "reports.view",
       },
-      { to: "/crm/planos", label: "Planos", icon: CircleDollarSign },
-      { to: "/crm/financeiro", label: "Financeiro", icon: Wallet, perm: "finance.view" },
-      { to: "/crm/configuracoes", label: "Configurações", icon: Settings },
-      { to: "/crm/perfil", label: "Perfil", icon: UserRound },
     ],
   },
   {
-    group: "Plataforma",
-    items: [{ to: "/crm/admin", label: "Administração", icon: ShieldCheck, platform: true }],
+    key: "gestao",
+    label: "Gestão",
+    items: [
+      { to: "/crm/organizacoes", label: "Organizações", icon: Layers },
+      { to: "/crm/planos", label: "Plano do CRM", icon: CircleDollarSign },
+      { to: "/crm/financeiro", label: "Financeiro", icon: Wallet, perm: "finance.view" },
+      { to: "/crm/configuracoes", label: "Configurações", icon: Settings },
+      { to: "/crm/perfil", label: "Perfil", icon: UserRound },
+      { to: "/crm/admin", label: "Administração", icon: ShieldCheck, platform: true },
+    ],
   },
 ];
+
+const isActive = (item: NavItem, path: string) =>
+  item.exact ? path === item.to || path === `${item.to}/` : path.startsWith(item.to);
 
 function useBadges() {
   const { me } = useCrm();
@@ -134,121 +167,153 @@ function useBadges() {
       (t) => t.assigneeId === me.id && t.status !== "concluida" && t.dueAt < now,
     ).length,
     newLeads: d.leads.filter((l) => l.status === "novo").length,
+    onboarding: d.accounts.filter((a) => a.status === "implantacao").length,
+    tickets: d.tickets.filter((t) => t.accountId && t.status !== "resolvido").length,
   };
 }
 
-function NavLinks({ collapsed, onNavigate }: { collapsed: boolean; onNavigate?: () => void }) {
+function useSections() {
   const { me, can } = useCrm();
-  const badges = useBadges();
+  return SECTIONS.map((s) => ({
+    ...s,
+    items: s.items.filter((i) => (!i.perm || can(i.perm)) && (!i.platform || me.platformAdmin)),
+  })).filter((s) => s.items.length);
+}
+
+function SectionPills() {
+  const sections = useSections();
   const path = useRouterState({ select: (r) => r.location.pathname });
+  const active = sections.find((s) => s.items.some((i) => isActive(i, path)));
   return (
-    <nav aria-label="Menu do back office" className="flex flex-col gap-4">
-      {NAV.map((g) => {
-        const items = g.items.filter(
-          (i) => (!i.perm || can(i.perm)) && (!i.platform || me.platformAdmin),
-        );
-        if (!items.length) return null;
+    <nav
+      aria-label="Camadas do CRM"
+      className="hidden items-center gap-0.5 rounded-full bg-card p-1 shadow-xs ring-1 ring-border lg:flex"
+    >
+      {sections.map((s) => {
+        const on = s === active;
+        const first = s.items[0]!;
         return (
-          <div key={g.group}>
-            {!collapsed && (
-              <p className="mb-1 px-2.5 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-sidebar-foreground/45">
-                {g.group}
-              </p>
+          <Link
+            key={s.key}
+            to={first.to}
+            aria-current={on ? "page" : undefined}
+            className={cn(
+              "flex h-9 items-center rounded-full px-3.5 text-[0.8rem] font-medium text-muted-foreground transition-colors hover:text-foreground xl:px-4",
+              on && "bg-secondary text-secondary-foreground hover:text-secondary-foreground",
             )}
-            <ul className="space-y-0.5">
-              {items.map((item) => {
-                const active = item.exact
-                  ? path === item.to || path === `${item.to}/`
-                  : path.startsWith(item.to);
-                const count = item.badge?.(badges) ?? 0;
-                const link = (
-                  <Link
-                    to={item.to}
-                    onClick={onNavigate}
-                    aria-current={active ? "page" : undefined}
-                    className={cn(
-                      "group relative flex h-8 items-center gap-2.5 rounded-lg px-2.5 text-[0.8rem] font-medium text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
-                      active && "bg-sidebar-accent text-sidebar-accent-foreground",
-                      collapsed && "justify-center px-0",
-                    )}
-                  >
-                    {active && (
-                      <span
-                        aria-hidden
-                        className="absolute inset-y-1.5 left-0 w-0.5 rounded-full bg-primary"
-                      />
-                    )}
-                    <item.icon
-                      className={cn(
-                        "h-4 w-4 shrink-0",
-                        active
-                          ? "text-primary"
-                          : "text-sidebar-foreground/55 group-hover:text-sidebar-foreground",
-                      )}
-                      aria-hidden
-                    />
-                    {!collapsed && <span className="truncate">{item.label}</span>}
-                    {count > 0 &&
-                      (collapsed ? (
-                        <span
-                          aria-label={`${count} pendentes`}
-                          className="absolute right-1.5 top-1.5 h-1.5 w-1.5 rounded-full bg-primary"
-                        />
-                      ) : (
-                        <span className="ml-auto rounded-md bg-primary/15 px-1.5 text-[0.65rem] font-semibold text-primary">
-                          {count}
-                        </span>
-                      ))}
-                  </Link>
-                );
-                return (
-                  <li key={item.to}>
-                    {collapsed ? (
-                      <Tooltip>
-                        <TooltipTrigger asChild>{link}</TooltipTrigger>
-                        <TooltipContent
-                          side="right"
-                          className="bg-popover text-popover-foreground ring-1 ring-border"
-                        >
-                          {item.label}
-                          {count > 0 ? ` · ${count}` : ""}
-                        </TooltipContent>
-                      </Tooltip>
-                    ) : (
-                      link
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
+          >
+            {s.label}
+          </Link>
         );
       })}
     </nav>
   );
 }
 
-function OrgSwitcher() {
+function SubNav() {
+  const sections = useSections();
+  const badges = useBadges();
+  const path = useRouterState({ select: (r) => r.location.pathname });
+  const active = sections.find((s) => s.items.some((i) => isActive(i, path)));
+  if (!active) return null;
+  return (
+    <nav aria-label={`Páginas de ${active.label}`} className="min-w-0 flex-1 overflow-x-auto">
+      <ul className="flex items-center gap-1">
+        {active.items.map((item) => {
+          const on = isActive(item, path);
+          const count = item.badge?.(badges) ?? 0;
+          return (
+            <li key={item.to}>
+              <Link
+                to={item.to}
+                aria-current={on ? "page" : undefined}
+                className={cn(
+                  "flex h-8 items-center gap-1.5 whitespace-nowrap rounded-full px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-card hover:text-foreground",
+                  on && "bg-card text-foreground shadow-xs ring-1 ring-border",
+                )}
+              >
+                <item.icon className={cn("h-3.5 w-3.5", on ? "text-primary" : "")} aria-hidden />
+                {item.label}
+                {count > 0 && (
+                  <span className="grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[0.6rem] font-bold text-primary-foreground">
+                    {count}
+                  </span>
+                )}
+              </Link>
+            </li>
+          );
+        })}
+      </ul>
+    </nav>
+  );
+}
+
+function MobileNav({ onNavigate }: { onNavigate: () => void }) {
+  const sections = useSections();
+  const badges = useBadges();
+  const path = useRouterState({ select: (r) => r.location.pathname });
+  return (
+    <nav aria-label="Menu do CRM" className="flex flex-col gap-4">
+      {sections.map((s) => (
+        <div key={s.key}>
+          <p className="mb-1 px-2.5 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            {s.label}
+          </p>
+          <ul className="space-y-0.5">
+            {s.items.map((item) => {
+              const on = isActive(item, path);
+              const count = item.badge?.(badges) ?? 0;
+              return (
+                <li key={item.to}>
+                  <Link
+                    to={item.to}
+                    onClick={onNavigate}
+                    aria-current={on ? "page" : undefined}
+                    className={cn(
+                      "flex h-9 items-center gap-2.5 rounded-full px-3 text-[0.82rem] font-medium text-foreground/80 hover:bg-muted",
+                      on && "bg-secondary text-secondary-foreground hover:bg-secondary",
+                    )}
+                  >
+                    <item.icon className="h-4 w-4 shrink-0" aria-hidden />
+                    <span className="truncate">{item.label}</span>
+                    {count > 0 && (
+                      <span className="ml-auto rounded-full bg-primary px-1.5 text-[0.65rem] font-semibold text-primary-foreground">
+                        {count}
+                      </span>
+                    )}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
+    </nav>
+  );
+}
+
+function OrgSwitcher({ className }: { className?: string | undefined }) {
   const { org, orgs, run, role } = useCrm();
   const navigate = useNavigate();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        className="flex h-9 min-w-0 max-w-[15rem] items-center gap-2 rounded-lg border border-border bg-background/40 px-2.5 text-left hover:bg-muted"
+        className={cn(
+          "flex h-8 min-w-0 max-w-[16rem] items-center gap-2 rounded-full bg-card px-1.5 pr-2.5 text-left shadow-xs ring-1 ring-border hover:bg-muted",
+          className,
+        )}
         aria-label="Trocar de organização"
       >
-        <span className="grid h-6 w-6 shrink-0 place-items-center rounded-md bg-primary/15 font-display text-[0.65rem] font-bold text-primary">
+        <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-secondary font-display text-[0.55rem] font-bold text-secondary-foreground">
           {org.name.slice(0, 2).toUpperCase()}
         </span>
-        <span className="min-w-0">
-          <span className="block truncate text-xs font-semibold leading-tight">{org.name}</span>
-          <span className="block truncate text-[0.65rem] leading-tight text-muted-foreground">
-            {ROLE_LABEL[role]}
-          </span>
+        <span className="min-w-0 truncate text-xs font-semibold">{org.name}</span>
+        <span className="hidden truncate text-[0.68rem] text-muted-foreground sm:inline">
+          · {ROLE_LABEL[role]}
         </span>
         <ChevronsUpDown className="ml-auto h-3.5 w-3.5 shrink-0 text-muted-foreground" />
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-64">
+      <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuLabel className="text-xs text-muted-foreground">
           Suas organizações
         </DropdownMenuLabel>
@@ -263,7 +328,7 @@ function OrgSwitcher() {
             }}
             className="gap-2"
           >
-            <span className="grid h-6 w-6 place-items-center rounded-md bg-muted text-[0.6rem] font-bold">
+            <span className="grid h-6 w-6 place-items-center rounded-full bg-muted text-[0.6rem] font-bold">
               {o.org.name.slice(0, 2).toUpperCase()}
             </span>
             <span className="min-w-0 flex-1">
@@ -288,6 +353,9 @@ function OrgSwitcher() {
   );
 }
 
+/** Abre a busca global de qualquer lugar (o campo de busca do painel usa isto). */
+export const openGlobalSearch = () => window.dispatchEvent(new Event("crm:busca"));
+
 function GlobalSearch() {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
@@ -299,8 +367,13 @@ function GlobalSearch() {
         setOpen((o) => !o);
       }
     };
+    const onOpen = () => setOpen(true);
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("crm:busca", onOpen);
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("crm:busca", onOpen);
+    };
   }, []);
   const go = (to: string, search?: Record<string, string>) => {
     setOpen(false);
@@ -308,22 +381,38 @@ function GlobalSearch() {
   };
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="flex h-9 w-full min-w-0 items-center gap-2 rounded-lg border border-border bg-background/40 px-3 text-left text-xs text-muted-foreground hover:bg-muted md:max-w-sm"
-        aria-label="Busca global"
-      >
-        <Search className="h-4 w-4 shrink-0" />
-        <span className="truncate">Buscar contatos, empresas, negócios…</span>
-        <kbd className="ml-auto hidden rounded border border-border px-1.5 font-sans text-[0.65rem] sm:inline">
-          Ctrl K
-        </kbd>
-      </button>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            onClick={() => setOpen(true)}
+            className="grid h-10 w-10 place-items-center rounded-full bg-card text-foreground shadow-xs ring-1 ring-border hover:bg-muted"
+            aria-label="Busca global"
+          >
+            <Search className="h-4 w-4" />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent className="bg-popover text-popover-foreground ring-1 ring-border">
+          Buscar (Ctrl K)
+        </TooltipContent>
+      </Tooltip>
       <CommandDialog open={open} onOpenChange={setOpen}>
-        <CommandInput placeholder="Digite um nome, empresa, e-mail ou telefone" />
+        <CommandInput placeholder="Digite um nome, restaurante, e-mail ou telefone" />
         <CommandList className="max-h-[60vh]">
           <CommandEmpty>Nada encontrado nesta organização.</CommandEmpty>
+          <CommandGroup heading="Restaurantes">
+            {d.accounts.map((a) => (
+              <CommandItem
+                key={a.id}
+                value={`restaurante conta ${a.name} ${a.neighborhood}`}
+                onSelect={() => go(`/crm/contas/${a.id}`)}
+              >
+                <Store />
+                {a.name}
+                <span className="ml-auto text-xs text-muted-foreground">{a.neighborhood}</span>
+              </CommandItem>
+            ))}
+          </CommandGroup>
           <CommandGroup heading="Contatos">
             {d.contacts.slice(0, 200).map((c) => (
               <CommandItem
@@ -402,18 +491,18 @@ function Notifications() {
   return (
     <Popover>
       <PopoverTrigger
-        className="relative grid h-9 w-9 place-items-center rounded-lg text-muted-foreground hover:bg-muted hover:text-foreground"
+        className="relative grid h-10 w-10 place-items-center rounded-full bg-card text-foreground shadow-xs ring-1 ring-border hover:bg-muted"
         aria-label={`Notificações${unread ? `, ${unread} não lidas` : ""}`}
       >
         <Bell className="h-4 w-4" />
         {unread > 0 && (
-          <span className="absolute right-1 top-1 grid h-4 min-w-4 place-items-center rounded-full bg-primary px-1 text-[0.6rem] font-bold text-primary-foreground">
+          <span className="absolute -right-0.5 -top-0.5 grid h-4 min-w-4 place-items-center rounded-full bg-destructive px-1 text-[0.6rem] font-bold text-destructive-foreground ring-2 ring-background">
             {unread}
           </span>
         )}
       </PopoverTrigger>
-      <PopoverContent align="end" className="w-80 p-0">
-        <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
+      <PopoverContent align="end" className="w-80 rounded-2xl p-0">
+        <div className="flex items-center justify-between border-b border-border px-3.5 py-2.5">
           <p className="text-xs font-semibold">Notificações</p>
           {unread > 0 && (
             <button
@@ -436,7 +525,7 @@ function Notifications() {
               <button
                 type="button"
                 onClick={() => navigate({ to: n.href } as never)}
-                className="flex w-full gap-2 px-3 py-2.5 text-left hover:bg-muted"
+                className="flex w-full gap-2 px-3.5 py-2.5 text-left hover:bg-muted"
               >
                 <span
                   className={cn(
@@ -459,83 +548,27 @@ function Notifications() {
   );
 }
 
-function ActivityIndicator() {
-  const { s, org } = useCrm();
-  const last = s.activities.find((a) => a.orgId === org.id);
-  const [pulse, setPulse] = useState(false);
-  const first = useRef(true);
-  useEffect(() => {
-    if (first.current) {
-      first.current = false;
-      return;
-    }
-    setPulse(true);
-    const t = setTimeout(() => setPulse(false), 1400);
-    return () => clearTimeout(t);
-  }, [s]);
-  const [, force] = useState(0);
-  useEffect(() => {
-    const t = setInterval(() => force((n) => n + 1), 30000);
-    return () => clearInterval(t);
-  }, []);
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <span
-          className="hidden h-9 items-center gap-2 rounded-lg px-2 text-[0.7rem] text-muted-foreground lg:flex"
-          role="status"
-          aria-live="polite"
-        >
-          <span className="relative flex h-2 w-2">
-            <span
-              className={cn(
-                "absolute inline-flex h-full w-full rounded-full bg-success opacity-60",
-                pulse && "motion-safe:animate-ping",
-              )}
-            />
-            <span className="relative inline-flex h-2 w-2 rounded-full bg-success" />
-          </span>
-          {pulse ? "Salvo" : last ? `Atividade ${relative(last.at)}` : "Sincronizado"}
-        </span>
-      </TooltipTrigger>
-      <TooltipContent className="max-w-64 bg-popover text-popover-foreground ring-1 ring-border">
-        {last ? last.summary : "Sem atividade ainda"}
-      </TooltipContent>
-    </Tooltip>
-  );
-}
-
 function QuickActions() {
   const { openCreate, can } = useCrm();
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger
-        className="flex h-9 items-center gap-1.5 rounded-lg bg-primary px-3 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
-        aria-label="Ações rápidas"
-      >
-        <Plus className="h-4 w-4" />
-        <span className="hidden sm:inline">Criar</span>
-      </DropdownMenuTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger
+            className="grid h-10 w-10 place-items-center rounded-full bg-primary text-primary-foreground shadow-xs hover:bg-primary/90"
+            aria-label="Ações rápidas"
+          >
+            <Plus className="h-4 w-4" />
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent className="bg-popover text-popover-foreground ring-1 ring-border">
+          Criar
+        </TooltipContent>
+      </Tooltip>
       <DropdownMenuContent align="end" className="w-52">
         <DropdownMenuLabel className="text-xs text-muted-foreground">
           Ações rápidas
         </DropdownMenuLabel>
-        <DropdownMenuItem
-          disabled={!can("contacts.write")}
-          onSelect={() => openCreate("contact")}
-          className="gap-2 text-xs"
-        >
-          <ContactIcon className="h-3.5 w-3.5" />
-          Novo contato
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          disabled={!can("contacts.write")}
-          onSelect={() => openCreate("company")}
-          className="gap-2 text-xs"
-        >
-          <Building2 className="h-3.5 w-3.5" />
-          Nova empresa
-        </DropdownMenuItem>
         <DropdownMenuItem
           disabled={!can("leads.write")}
           onSelect={() => openCreate("lead")}
@@ -551,6 +584,22 @@ function QuickActions() {
         >
           <KanbanSquare className="h-3.5 w-3.5" />
           Nova oportunidade
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          disabled={!can("contacts.write")}
+          onSelect={() => openCreate("contact")}
+          className="gap-2 text-xs"
+        >
+          <ContactIcon className="h-3.5 w-3.5" />
+          Novo contato
+        </DropdownMenuItem>
+        <DropdownMenuItem
+          disabled={!can("contacts.write")}
+          onSelect={() => openCreate("company")}
+          className="gap-2 text-xs"
+        >
+          <Building2 className="h-3.5 w-3.5" />
+          Nova empresa
         </DropdownMenuItem>
         <DropdownMenuItem
           disabled={!can("tasks.write")}
@@ -570,8 +619,11 @@ function UserMenu() {
   const navigate = useNavigate();
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className="rounded-full" aria-label="Perfil e conta">
-        <Avatar name={me.name} className="h-8 w-8 text-xs" />
+      <DropdownMenuTrigger
+        className="rounded-full ring-2 ring-card shadow-xs"
+        aria-label="Perfil e conta"
+      >
+        <Avatar name={me.name} className="h-10 w-10 text-xs" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-60">
         <DropdownMenuLabel>
@@ -619,146 +671,75 @@ function UserMenu() {
   );
 }
 
-const COLLAPSE_KEY = "tipe-crm-menu-recolhido";
-
 export function Shell({ children }: { children: ReactNode }) {
-  const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
-  useEffect(() => {
-    try {
-      setCollapsed(localStorage.getItem(COLLAPSE_KEY) === "1");
-    } catch {
-      /* preferência opcional */
-    }
-  }, []);
-  const toggle = () =>
-    setCollapsed((c) => {
-      try {
-        localStorage.setItem(COLLAPSE_KEY, c ? "0" : "1");
-      } catch {
-        /* preferência opcional */
-      }
-      return !c;
-    });
   const { org } = useCrm();
   const path = useRouterState({ select: (r) => r.location.pathname });
   useEffect(() => setMobileOpen(false), [path]);
-  const brand = useMemo(
-    () => (
-      <Link
-        to="/crm"
-        className="flex h-9 items-center gap-2 rounded-lg px-1"
-        aria-label="Tipe, início do back office"
-      >
-        <TipeSymbol className="h-7 w-7 shrink-0" />
-        {!collapsed && (
-          <span className="min-w-0">
-            <span className="block font-display text-sm font-bold leading-none tracking-tight text-sidebar-foreground">
-              Tipe
-            </span>
-            <span className="block text-[0.62rem] leading-tight text-sidebar-foreground/50">
-              Back office · CRM
-            </span>
-          </span>
-        )}
-      </Link>
-    ),
-    [collapsed],
-  );
 
   return (
     <div className="min-h-dvh bg-background text-foreground">
       <a
         href="#conteudo"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[60] focus:rounded-lg focus:bg-primary focus:px-3 focus:py-2 focus:text-xs focus:font-semibold focus:text-primary-foreground"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[60] focus:rounded-full focus:bg-secondary focus:px-3 focus:py-2 focus:text-xs focus:font-semibold focus:text-secondary-foreground"
       >
         Pular para o conteúdo
       </a>
-      <aside
-        className={cn(
-          "fixed inset-y-0 left-0 z-30 hidden flex-col border-r border-sidebar-border bg-sidebar transition-[width] duration-200 ease-out md:flex",
-          collapsed ? "w-[60px]" : "w-[232px]",
-        )}
-      >
-        <div
-          className={cn(
-            "flex h-14 items-center border-b border-sidebar-border px-3",
-            collapsed && "justify-center px-2",
-          )}
-        >
-          {brand}
-        </div>
-        <div className="flex-1 overflow-y-auto px-2.5 py-3">
-          <NavLinks collapsed={collapsed} />
-        </div>
-        <button
-          type="button"
-          onClick={toggle}
-          className="flex h-10 items-center justify-center gap-2 border-t border-sidebar-border text-xs text-sidebar-foreground/55 hover:text-sidebar-foreground"
-          aria-label={collapsed ? "Expandir menu" : "Recolher menu"}
-          aria-expanded={!collapsed}
-        >
-          {collapsed ? (
-            <ChevronsRight className="h-4 w-4" />
-          ) : (
-            <>
-              <ChevronsLeft className="h-4 w-4" />
-              Recolher
-            </>
-          )}
-        </button>
-      </aside>
-
-      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-        <SheetContent side="left" className="w-[272px] border-sidebar-border bg-sidebar p-0">
-          <SheetTitle className="sr-only">Menu</SheetTitle>
-          <div className="flex h-14 items-center border-b border-sidebar-border px-3">{brand}</div>
-          <div className="h-[calc(100dvh-3.5rem)] overflow-y-auto px-2.5 py-3">
-            <NavLinks collapsed={false} onNavigate={() => setMobileOpen(false)} />
+      <header className="sticky top-0 z-30 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/75">
+        <div className="mx-auto flex h-[4.25rem] w-full max-w-[1480px] items-center gap-2 px-3 sm:gap-3 sm:px-5 lg:px-6">
+          <button
+            type="button"
+            className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-card shadow-xs ring-1 ring-border lg:hidden"
+            onClick={() => setMobileOpen(true)}
+            aria-label="Abrir menu"
+          >
+            <Menu className="h-4 w-4" />
+          </button>
+          <Link
+            to="/crm"
+            className="flex h-10 shrink-0 items-center rounded-full bg-card px-4 shadow-xs ring-1 ring-border"
+            aria-label="Tipe, início do CRM"
+          >
+            <CrmLogo className="h-6" />
+          </Link>
+          <div className="flex min-w-0 flex-1 justify-center">
+            <SectionPills />
           </div>
-        </SheetContent>
-      </Sheet>
-
-      <div
-        className={cn(
-          "min-w-0 transition-[padding] duration-200 ease-out",
-          collapsed ? "md:pl-[60px]" : "md:pl-[232px]",
-        )}
-      >
-        <header className="sticky top-0 z-20 border-b border-border bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
-          <div className="flex h-14 items-center gap-2 px-3 sm:px-5">
-            <button
-              type="button"
-              className="grid h-9 w-9 shrink-0 place-items-center rounded-lg text-muted-foreground hover:bg-muted md:hidden"
-              onClick={() => setMobileOpen(true)}
-              aria-label="Abrir menu"
-            >
-              <Menu className="h-5 w-5" />
-            </button>
-            <div className="hidden sm:block">
-              <OrgSwitcher />
-            </div>
-            <div className="min-w-0 flex-1 sm:px-2">
-              <GlobalSearch />
-            </div>
-            <ActivityIndicator />
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+            <GlobalSearch />
             <QuickActions />
             <Notifications />
             <UserMenu />
           </div>
-          <div className="flex items-center gap-2 border-t border-border px-3 py-1.5 sm:hidden">
-            <OrgSwitcher />
-          </div>
-        </header>
-        <div className="border-b border-info/15 bg-info/[0.06] px-3 py-1.5 text-center text-[0.68rem] text-muted-foreground sm:px-5">
-          Ambiente de demonstração de{" "}
-          <strong className="font-semibold text-foreground">{org.name}</strong>: dados fictícios,
-          mensagens e cobranças simuladas.
         </div>
-        <main id="conteudo" className="mx-auto w-full max-w-[1480px] px-3 py-5 sm:px-5 lg:px-6">
-          {children}
-        </main>
-      </div>
+        <div className="mx-auto flex w-full max-w-[1480px] items-center gap-3 px-3 pb-2 sm:px-5 lg:px-6">
+          <SubNav />
+          <span
+            className="hidden shrink-0 items-center gap-1.5 rounded-full bg-highlight/15 px-2.5 py-1 text-[0.65rem] font-semibold text-foreground md:inline-flex"
+            title={`Ambiente de demonstração de ${org.name}: dados fictícios, mensagens e cobranças simuladas.`}
+          >
+            <span className="h-1.5 w-1.5 rounded-full bg-highlight" aria-hidden />
+            Demonstração · dados fictícios
+          </span>
+          <OrgSwitcher className="shrink-0" />
+        </div>
+      </header>
+
+      <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
+        <SheetContent side="left" className="w-[280px] border-border bg-card p-0">
+          <SheetTitle className="sr-only">Menu</SheetTitle>
+          <div className="flex h-16 items-center border-b border-border px-4">
+            <CrmLogo className="h-6" />
+          </div>
+          <div className="h-[calc(100dvh-4rem)] overflow-y-auto px-2.5 py-3">
+            <MobileNav onNavigate={() => setMobileOpen(false)} />
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      <main id="conteudo" className="mx-auto w-full max-w-[1480px] px-3 pb-10 pt-3 sm:px-5 lg:px-6">
+        {children}
+      </main>
       <QuickCreate />
     </div>
   );

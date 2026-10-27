@@ -28,7 +28,10 @@ export type Action =
   | "goals.manage"
   | "reports.view"
   | "finance.view"
-  | "whatsapp.manage";
+  | "whatsapp.manage"
+  | "accounts.manage"
+  | "consumers.view"
+  | "campaigns.manage";
 
 const ALL: Action[] = [
   "org.settings",
@@ -55,6 +58,9 @@ const ALL: Action[] = [
   "reports.view",
   "finance.view",
   "whatsapp.manage",
+  "accounts.manage",
+  "consumers.view",
+  "campaigns.manage",
 ];
 
 const MATRIX: Record<Role, Action[]> = {
@@ -78,6 +84,9 @@ const MATRIX: Record<Role, Action[]> = {
     "goals.manage",
     "reports.view",
     "teams.manage",
+    "accounts.manage",
+    "consumers.view",
+    "campaigns.manage",
   ],
   seller: [
     "contacts.write",
@@ -100,6 +109,8 @@ const MATRIX: Record<Role, Action[]> = {
     "inbox.simulate",
     "tickets.write",
     "tickets.manage",
+    "accounts.manage",
+    "consumers.view",
   ],
   viewer: ["reports.view"],
 };
@@ -120,9 +131,9 @@ export const ROLE_LABEL: Record<Role, string> = {
 export const ROLE_HINT: Record<Role, string> = {
   owner: "Tudo, inclusive plano e cobrança.",
   admin: "Tudo, menos plano e cobrança.",
-  manager: "Comercial e atendimento de toda a equipe, metas e funis.",
+  manager: "Comercial, contas de restaurante, campanhas, metas e funis de toda a equipe.",
   seller: "Os próprios contatos, leads, oportunidades e tarefas.",
-  agent: "Caixa de entrada, contatos e suporte.",
+  agent: "Atendimento, suporte e implantação das contas de restaurante.",
   viewer: "Consulta painéis e relatórios, sem alterar nada.",
 };
 

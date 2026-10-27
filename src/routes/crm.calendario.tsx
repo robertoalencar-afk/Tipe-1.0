@@ -63,7 +63,7 @@ function Calendario() {
         t.status === "concluida"
           ? "bg-muted text-muted-foreground line-through"
           : t.dueAt < nowIso
-            ? "bg-destructive/15 text-[oklch(0.82_0.1_25)]"
+            ? "bg-destructive/15 text-destructive"
             : t.type === "reuniao"
               ? "bg-info/15 text-info"
               : "bg-primary/12 text-primary",

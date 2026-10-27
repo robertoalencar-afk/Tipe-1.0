@@ -1,4 +1,6 @@
-# CRM comercial da Tipe (`/crm`)
+# CRM da Tipe (`/crm`)
+
+> **Revisão de 27/10/2026:** o CRM agora liga três camadas: **A. Comercial** (vender a Tipe), **B. Conta do restaurante** (implantação, módulos, uso, saúde e suporte) e **C. Clientes do restaurante** (quem paga a conta, frequência, gorjetas, avaliações e campanhas). Mapa do processo, arquitetura e o que funciona ou depende de módulo externo: [`ecossistema.md`](./ecossistema.md).
 
 Back office comercial multiempresa: contatos, empresas, leads, funil de vendas, tarefas, atendimento por WhatsApp, suporte interno, equipe e permissões, gamificação, relatórios, planos e financeiro. Roda hoje em **modo demonstração**: os dados são fictícios e ficam no navegador de quem acessa.
 
@@ -50,7 +52,12 @@ Este documento descreve só o que foi entregue e testado nesta etapa.
 | Rota | Conteúdo |
 | --- | --- |
 | `/crm/entrar` | Entrada com as contas de demonstração |
-| `/crm` | Dashboard |
+| `/crm` | Painel: saúde da carteira, lista de espera do site, agenda, mapa por bairro, jornada, semana e pulso da operação |
+| `/crm/jornada` | Jornada integrada: mapa das três camadas com contagens ao vivo e rastro de cada conta |
+| `/crm/comercial` | Painel comercial (camada A), o antigo dashboard |
+| `/crm/contas`, `/crm/contas?visao=implantacao` | Carteira de restaurantes e fila de implantação (camada B) |
+| `/crm/contas/$id` | Conta do restaurante: visão geral, implantação, módulos e integrações, clientes, suporte e jornada |
+| `/crm/clientes`, `/crm/clientes?conta=…` | Clientes dos restaurantes, segmentos, campanhas e hábitos (camada C) |
 | `/crm/contatos`, `/crm/contatos/$id` | Contatos e ficha do contato |
 | `/crm/empresas` | Empresas |
 | `/crm/leads` | Leads |
@@ -60,7 +67,7 @@ Este documento descreve só o que foi entregue e testado nesta etapa.
 | `/crm/calendario` | Calendário |
 | `/crm/atendimento` | Caixa de entrada |
 | `/crm/whatsapp` | Números, modelos e eventos do WhatsApp |
-| `/crm/suporte` | Suporte interno |
+| `/crm/suporte` | Chamados dos restaurantes e internos |
 | `/crm/equipe` | Pessoas, papéis, convites, equipes |
 | `/crm/organizacoes` | Organizações |
 | `/crm/gamificacao` | Metas, desafios, ranking, conquistas |
@@ -100,7 +107,11 @@ node tests/e2e/crm.e2e.mjs           # ponta a ponta, com o servidor de desenvol
 npx tsc --noEmit                     # tipagem estrita do projeto
 ```
 
-Resultado em 27/10/2026:
+Resultado em 27/10/2026, depois da revisão das três camadas:
+- Vitest: 25 de 25 testes passando (os 14 abaixo mais 11 do ecossistema: negócio ganho vira conta com tarefas e responsável, reabrir desfaz, implantação completa e ativação na primeira conta paga, regras de módulos e plano, campanhas só com consentimento e negadas ao vendedor, isolamento, distribuição dos leads do site e adaptadores do Supabase).
+- Playwright: 22 de 22 passos passando e nenhum erro de console, incluindo a conta criada pelo negócio ganho até a ativação, o cadastro simulado no site, segmentos e campanha de clientes e chamado ligado a um restaurante.
+
+Resultado anterior, da primeira entrega:
 - Vitest: 14 de 14 testes passando (consistência dos dados, fluxo comercial com pontos uma única vez, motivo obrigatório na perda, recusa e auditoria para quem não tem permissão, vendedor sem acesso a oportunidade alheia, isolamento entre organizações, fluxo de organização com convite, limite e troca de plano, proteção do último proprietário, fluxo de atendimento, anti-abuso de tarefas, webhook e assinatura do WhatsApp).
 - Playwright: 18 de 18 passos passando e nenhum erro de console. Cobre entrada e senha errada, dashboard, as 19 páginas do menu, links internos, busca global, o fluxo comercial completo (lead, qualificação, conversão, ganho e pontos), atendimento (mensagem simulada, atribuição, resposta, oportunidade e encerramento), tarefa no Meu dia, organização (criar, convidar, papel, limite do plano, dados isolados), troca de plano com fatura fictícia, permissões de Somente leitura e Vendedor, isolamento entre organizações e celular (390 px, sem rolagem horizontal).
 - TypeScript: zero erros com a configuração estrita do projeto. ESLint: sem erros nos arquivos do CRM.
@@ -117,7 +128,7 @@ Resultado em 27/10/2026:
 ## Integrações preparadas, ainda não conectadas
 
 - **WhatsApp Business Platform (Cloud API):** `src/lib/tipe/crm/whatsapp.ts` e `src/routes/api/public/whatsapp.webhook.ts`. Para ligar: criar o app na Meta, cadastrar o número, configurar `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_APP_SECRET` e o token de acesso como segredos do servidor (nunca no `.env` versionado), apontar o webhook para `/api/public/whatsapp/webhook` e gravar os eventos em `crm_messages` (o campo `wa_message_id` único evita duplicidade).
-- **Supabase:** `docs/crm/supabase-crm.sql` cria 27 tabelas `crm_*`, as funções `crm_role_in`, `crm_is_member` e `crm_can` e 54 políticas de RLS. Foi validado num Postgres 16 local com esquema `auth` simulado. Inclui a carga opcional da lista de espera (`restaurant_leads`) como leads.
+- **Supabase:** `docs/crm/supabase-crm.sql` cria 31 tabelas `crm_*` (inclui contas de restaurante, clientes, visitas e campanhas, e a view `crm_account_usage_daily` sobre `table_payment_requests`), as funções `crm_role_in`, `crm_is_member` e `crm_can` e 60 políticas de RLS. Foi validado num Postgres 16 local com esquema `auth` simulado. Inclui a carga opcional da lista de espera (`restaurant_leads`) como leads.
 - **Gateway de cobrança:** o modelo de assinatura e faturas está pronto para receber um provedor; hoje tudo é simulado.
 
 ## Recomendações para produção

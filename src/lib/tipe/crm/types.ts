@@ -179,6 +179,8 @@ export type Task = {
   dueAt: ISO;
   contactId?: ID | undefined;
   dealId?: ID | undefined;
+  /** Tarefa de implantação ou sucesso ligada a uma conta de restaurante. */
+  accountId?: ID | undefined;
   comments: Comment[];
   createdAt: ISO;
   completedAt?: ISO | undefined;
@@ -207,7 +209,10 @@ export type EntityRef = {
     | "member"
     | "subscription"
     | "pipeline"
-    | "goal";
+    | "goal"
+    | "account"
+    | "consumer"
+    | "campaign";
   id: ID;
 };
 
@@ -269,6 +274,8 @@ export type Ticket = {
   category: string;
   requesterId: ID;
   assigneeId?: ID | undefined;
+  /** Chamado de um restaurante cliente (camada B). Sem conta, é um chamado interno. */
+  accountId?: ID | undefined;
   priority: Priority;
   status: TicketStatus;
   comments: Comment[];
@@ -411,6 +418,130 @@ export type AuditEntry = {
 
 export type Session = { userId: ID; orgId: ID };
 
+// ---------------------------------------------------------------------------------------
+// Camada B: conta do restaurante. Nasce quando uma oportunidade da camada A é ganha e
+// acompanha implantação, módulos, integrações, uso e suporte. Em produção espelha
+// restaurants, restaurant_subscriptions e restaurant_tables (ver adapters.ts).
+// ---------------------------------------------------------------------------------------
+
+/** Mesmos ids de src/lib/tipe/plans.ts (planos por número de mesas). */
+export type RestaurantPlan = "essencial" | "profissional" | "premium";
+export type AccountStatus = "implantacao" | "ativa" | "pausada" | "cancelada";
+export type OnboardingKey =
+  | "contrato"
+  | "cadastro"
+  | "cardapio"
+  | "mesas_qr"
+  | "pagamentos"
+  | "equipe"
+  | "treinamento"
+  | "primeira_conta";
+export type OnboardingStep = {
+  key: OnboardingKey;
+  doneAt?: ISO | undefined;
+  doneBy?: ID | undefined;
+};
+export type ModuleKey =
+  | "pix"
+  | "apple_pay"
+  | "google_pay"
+  | "pagar_no_estabelecimento"
+  | "gorjeta"
+  | "avaliacao"
+  | "pedido_na_mesa"
+  | "kds"
+  | "totem"
+  | "lebre";
+export type PdvStatus = "nao_iniciada" | "em_homologacao" | "conectada" | "lancamento_tipe";
+export type PagarmeStatus = "pendente" | "em_analise" | "aprovada";
+
+export type RestaurantAccount = {
+  id: ID;
+  orgId: ID;
+  name: string;
+  slug: string;
+  segment: string;
+  city: string;
+  neighborhood: string;
+  /** Rastro da camada A: de onde esta conta veio. */
+  companyId?: ID | undefined;
+  contactId?: ID | undefined;
+  dealId?: ID | undefined;
+  leadId?: ID | undefined;
+  /** Responsável de sucesso do cliente (implantação e saúde da conta). */
+  csmId: ID;
+  plan: RestaurantPlan;
+  tables: number;
+  status: AccountStatus;
+  onboarding: OnboardingStep[];
+  modules: ModuleKey[];
+  pdv: { provider: string; status: PdvStatus };
+  pagarme: PagarmeStatus;
+  /** restaurants.id no Supabase quando a conta estiver ligada à plataforma real. */
+  platformRestaurantId?: string | undefined;
+  createdAt: ISO;
+  activatedAt?: ISO | undefined;
+  statusChangedAt?: ISO | undefined;
+  statusReason?: string | undefined;
+};
+
+// ---------------------------------------------------------------------------------------
+// Camada C: clientes do restaurante. Cada conta paga pela Tipe vira uma visita; quem se
+// identifica (telefone para recibo ou fidelidade) vira um cliente com histórico.
+// ---------------------------------------------------------------------------------------
+
+/** Formas de pagar a conta pelo QR: as mesmas de table_payment_requests (sem cartão digitado). */
+export type BillMethod = "pix" | "apple_pay" | "google_pay" | "estabelecimento";
+
+export type Consumer = {
+  id: ID;
+  orgId: ID;
+  accountId: ID;
+  name: string;
+  /** Só os 4 últimos dígitos: a equipe da Tipe não precisa do número completo. */
+  phoneLast4: string;
+  /** Consentimento LGPD para receber campanhas do restaurante. */
+  marketingOptIn: boolean;
+  optInAt?: ISO | undefined;
+  createdAt: ISO;
+};
+
+export type Visit = {
+  id: ID;
+  orgId: ID;
+  accountId: ID;
+  /** Sem cliente quando a pessoa pagou sem se identificar. */
+  consumerId?: ID | undefined;
+  at: ISO;
+  table: string;
+  waiter: string;
+  amount: number;
+  serviceFee: number;
+  /** Gorjeta extra, paga depois da conta, em um segundo pagamento. */
+  tip: number;
+  method: BillMethod;
+  rating?: number | undefined;
+  items: string[];
+  /** "demo" no navegador; "tipe" quando vier de table_payment_requests. */
+  source: "demo" | "tipe";
+};
+
+export type ConsumerSegment = "todos" | "novos" | "recorrentes" | "fieis" | "em_risco";
+
+export type Campaign = {
+  id: ID;
+  orgId: ID;
+  accountId: ID;
+  name: string;
+  segment: ConsumerSegment;
+  message: string;
+  channel: "whatsapp";
+  status: "simulada";
+  audience: number;
+  createdBy: ID;
+  createdAt: ISO;
+};
+
 export type CrmState = {
   version: number;
   seededAt: ISO;
@@ -442,5 +573,9 @@ export type CrmState = {
   waLogs: WaLog[];
   notifications: Notification[];
   audit: AuditEntry[];
+  accounts: RestaurantAccount[];
+  consumers: Consumer[];
+  visits: Visit[];
+  campaigns: Campaign[];
   session: Session | null;
 };

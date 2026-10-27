@@ -2,7 +2,7 @@ import { useState, type FormEvent } from "react";
 import { z } from "zod";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, KeyRound } from "lucide-react";
-import { TipeSymbol } from "@/components/tipe/Logo";
+import { CrmLogo } from "@/components/tipe/crm/eco";
 import { Btn, Field, TextInput } from "@/components/tipe/crm/ui";
 import { DEMO_ACCOUNTS, DEMO_PASSWORD } from "@/lib/tipe/crm/seed";
 import { runCommand, useCrmState } from "@/lib/tipe/crm/store";
@@ -10,7 +10,7 @@ import { runCommand, useCrmState } from "@/lib/tipe/crm/store";
 export const Route = createFileRoute("/crm/entrar")({
   validateSearch: z.object({ voltar: z.string().startsWith("/crm").optional().catch(undefined) }),
   head: () => ({
-    meta: [{ title: "Entrar no back office | Tipe" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Entrar no CRM | Tipe" }, { name: "robots", content: "noindex" }],
   }),
   component: Entrar,
 });
@@ -38,25 +38,22 @@ function Entrar() {
   }
 
   return (
-    <div className="crm-grid-bg grid min-h-dvh place-items-center px-4 py-10">
-      <div className="w-full max-w-[920px] overflow-hidden rounded-2xl border border-border bg-card/90 shadow-2xl md:grid md:grid-cols-[1fr_1.05fr]">
-        <section className="border-b border-border p-6 sm:p-8 md:border-b-0 md:border-r">
-          <div className="flex items-center gap-2.5">
-            <TipeSymbol className="h-8 w-8" />
-            <div>
-              <p className="font-display text-base font-bold leading-none">Tipe</p>
-              <p className="text-xs text-muted-foreground">Back office comercial</p>
-            </div>
-          </div>
-          <h1 className="mt-8 font-display text-2xl font-bold tracking-tight">Entrar</h1>
+    <div className="grid min-h-dvh place-items-center bg-background px-4 py-10">
+      <div className="crm-panel w-full max-w-[960px] overflow-hidden md:grid md:grid-cols-[1fr_1.05fr]">
+        <section className="p-6 sm:p-9">
+          <CrmLogo className="h-8" />
+          <h1 className="mt-10 font-display text-[1.75rem] font-semibold tracking-tight">
+            Entrar no CRM
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Ambiente de demonstração com dados fictícios.
+            Vendas, restaurantes e clientes da Tipe no mesmo lugar. Ambiente de demonstração com
+            dados fictícios.
           </p>
           <form noValidate onSubmit={submit} className="mt-6 space-y-4">
             {error && (
               <p
                 role="alert"
-                className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-[oklch(0.82_0.1_25)]"
+                className="rounded-lg border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive"
               >
                 {error}
               </p>
@@ -92,23 +89,38 @@ function Entrar() {
                 />
               )}
             </Field>
-            <Btn type="submit" size="default" className="h-10 w-full" disabled={!s}>
-              Entrar no back office
+            <Btn type="submit" size="default" className="h-11 w-full" disabled={!s}>
+              Entrar no CRM da Tipe
               <ArrowRight className="h-4 w-4" />
             </Btn>
           </form>
         </section>
-        <section className="p-6 sm:p-8">
-          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-primary">
-            <KeyRound className="h-3.5 w-3.5" />
+        <section className="bg-secondary p-6 text-secondary-foreground sm:p-9">
+          <ol className="mb-7 grid grid-cols-3 gap-2 text-[0.68rem]">
+            {[
+              ["A", "Comercial", "Vender a Tipe"],
+              ["B", "Restaurantes", "Implantar e cuidar"],
+              ["C", "Clientes", "Quem paga na mesa"],
+            ].map(([k, t, d]) => (
+              <li key={k} className="rounded-2xl bg-white/[0.06] p-3 ring-1 ring-white/10">
+                <span className="grid h-6 w-6 place-items-center rounded-full bg-primary font-display text-[0.7rem] font-bold text-primary-foreground">
+                  {k}
+                </span>
+                <span className="mt-2 block font-display text-[0.8rem] font-semibold">{t}</span>
+                <span className="block text-white/60">{d}</span>
+              </li>
+            ))}
+          </ol>
+          <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.14em] text-primary-foreground/90">
+            <KeyRound className="h-3.5 w-3.5 text-[var(--brand-primary)]" />
             Contas de demonstração
           </p>
-          <p className="mt-2 text-xs text-muted-foreground">
+          <p className="mt-2 text-xs text-white/65">
             Senha de todas:{" "}
-            <code className="rounded bg-muted px-1.5 py-0.5 text-foreground">{DEMO_PASSWORD}</code>.
+            <code className="rounded bg-white/10 px-1.5 py-0.5 text-white">{DEMO_PASSWORD}</code>.
             Cada papel vê e altera coisas diferentes.
           </p>
-          <ul className="mt-4 divide-y divide-border rounded-lg border border-border">
+          <ul className="mt-4 divide-y divide-white/10 overflow-hidden rounded-2xl ring-1 ring-white/10">
             {DEMO_ACCOUNTS.map((a) => (
               <li key={a.email}>
                 <button
@@ -118,14 +130,14 @@ function Entrar() {
                     setPassword(DEMO_PASSWORD);
                     setError(null);
                   }}
-                  className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left hover:bg-muted"
+                  className="flex w-full items-center justify-between gap-3 px-3.5 py-2.5 text-left hover:bg-white/[0.06]"
                   aria-label={`Usar a conta de ${a.name}`}
                 >
                   <span className="min-w-0">
                     <span className="block truncate text-sm font-medium">{a.name}</span>
-                    <span className="block truncate text-xs text-muted-foreground">{a.email}</span>
+                    <span className="block truncate text-xs text-white/55">{a.email}</span>
                   </span>
-                  <span className="shrink-0 rounded-md bg-muted px-2 py-0.5 text-[0.68rem] text-muted-foreground">
+                  <span className="shrink-0 rounded-full bg-white/10 px-2 py-0.5 text-[0.68rem] text-white/75">
                     {a.role}
                   </span>
                 </button>

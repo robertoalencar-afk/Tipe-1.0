@@ -124,6 +124,10 @@ export function useOrgData() {
       waLogs: f(s.waLogs),
       teams: f(s.teams),
       departments: f(s.departments),
+      accounts: f(s.accounts),
+      consumers: f(s.consumers),
+      visits: f(s.visits),
+      campaigns: f(s.campaigns),
       invites: s.invites.filter((i) => i.orgId === org.id),
       subscription: s.subscriptions.find((x) => x.orgId === org.id),
     };

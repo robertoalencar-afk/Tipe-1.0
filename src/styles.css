@@ -437,74 +437,88 @@
 }
 
 /* ------------------------------------------------------------------
- * Back office / CRM: tema escuro (azul-marinho e grafite) com destaques
- * no turquesa da marca e no ciano. Aplicado em <html class="crm-theme">
+ * CRM da Tipe: mesma identidade do site e do painel do restaurante.
+ * Fundo claro, cartões brancos, turquesa da marca como destaque e azul-marinho
+ * como cor de texto e de superfícies escuras. Aplicado em <html class="crm-theme">
  * para que diálogos, menus e avisos em portal herdem as mesmas cores.
  * ------------------------------------------------------------------ */
 .crm-theme {
-  color-scheme: dark;
-  --background: oklch(0.165 0.026 256);
-  --foreground: oklch(0.955 0.008 250);
-  --card: oklch(0.205 0.03 256);
-  --card-foreground: oklch(0.955 0.008 250);
-  --popover: oklch(0.225 0.032 256);
-  --popover-foreground: oklch(0.955 0.008 250);
-  --primary: oklch(0.8 0.125 188);
-  --primary-foreground: oklch(0.18 0.03 256);
-  --secondary: oklch(0.26 0.035 256);
-  --secondary-foreground: oklch(0.955 0.008 250);
-  --muted: oklch(0.245 0.032 256);
-  --muted-foreground: oklch(0.73 0.025 252);
-  --accent: oklch(0.28 0.042 245);
-  --accent-foreground: oklch(0.97 0.005 250);
-  --success: oklch(0.76 0.15 155);
-  --success-foreground: oklch(0.18 0.03 256);
-  --warning: oklch(0.81 0.14 75);
-  --warning-foreground: oklch(0.18 0.03 256);
-  --highlight: oklch(0.81 0.14 75);
-  --info: oklch(0.7 0.13 245);
-  --destructive: oklch(0.66 0.17 25);
-  --destructive-foreground: oklch(0.98 0 0);
-  --border: oklch(0.85 0.03 250 / 0.11);
-  --input: oklch(0.85 0.03 250 / 0.16);
-  --ring: oklch(0.8 0.125 188);
-  --focus-ring: oklch(0.82 0.12 195);
-  --chart-1: oklch(0.8 0.125 188);
-  --chart-2: oklch(0.68 0.14 248);
-  --chart-3: oklch(0.81 0.14 75);
-  --chart-4: oklch(0.76 0.15 155);
-  --chart-5: oklch(0.6 0.03 255);
-  --sidebar: oklch(0.145 0.024 256);
-  --sidebar-foreground: oklch(0.9 0.01 250);
-  --sidebar-primary: oklch(0.8 0.125 188);
-  --sidebar-primary-foreground: oklch(0.18 0.03 256);
-  --sidebar-accent: oklch(0.23 0.035 252);
-  --sidebar-accent-foreground: oklch(0.98 0.005 250);
-  --sidebar-border: oklch(0.85 0.03 250 / 0.09);
-  --sidebar-ring: oklch(0.8 0.125 188);
+  color-scheme: light;
+  --background: oklch(0.958 0.006 240);
+  --foreground: oklch(0.2 0.04 250);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2 0.04 250);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2 0.04 250);
+  --primary: oklch(0.77 0.14 178);
+  --primary-foreground: oklch(0.2 0.04 250);
+  --secondary: oklch(0.2 0.04 250);
+  --secondary-foreground: oklch(0.98 0 0);
+  --muted: oklch(0.955 0.006 245);
+  --muted-foreground: oklch(0.47 0.03 255);
+  --accent: oklch(0.94 0.05 175);
+  --accent-foreground: oklch(0.2 0.04 250);
+  --success: oklch(0.58 0.14 155);
+  --success-foreground: oklch(0.99 0 0);
+  --warning: oklch(0.64 0.16 52);
+  --warning-foreground: oklch(0.99 0 0);
+  --highlight: oklch(0.74 0.17 50);
+  --info: oklch(0.52 0.16 258);
+  --destructive: oklch(0.58 0.2 27);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.915 0.008 250);
+  --input: oklch(0.88 0.01 250);
+  --ring: oklch(0.77 0.14 178);
+  --focus-ring: oklch(0.55 0.11 182);
+  --chart-1: oklch(0.74 0.14 180);
+  --chart-2: oklch(0.27 0.05 250);
+  --chart-3: oklch(0.74 0.17 50);
+  --chart-4: oklch(0.88 0.08 175);
+  --chart-5: oklch(0.72 0.02 250);
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.2 0.04 250);
+  --sidebar-primary: oklch(0.77 0.14 178);
+  --sidebar-primary-foreground: oklch(0.2 0.04 250);
+  --sidebar-accent: oklch(0.955 0.006 245);
+  --sidebar-accent-foreground: oklch(0.2 0.04 250);
+  --sidebar-border: oklch(0.915 0.008 250);
+  --sidebar-ring: oklch(0.77 0.14 178);
   --surface: var(--card);
   --surface-elevated: var(--popover);
-  --background-muted: oklch(0.25 0.032 256);
-  --brand-primary-soft: oklch(0.3 0.06 200);
-  --brand-primary-strong: oklch(0.84 0.11 190);
-  --ink: oklch(0.955 0.008 250);
-  --shadow-xs: 0 1px 2px 0 oklch(0 0 0 / 0.3);
+  --background-muted: oklch(0.965 0.005 250);
+  --brand-primary-soft: oklch(0.95 0.04 178);
+  --brand-primary-strong: oklch(0.5 0.1 182);
+  --shadow-xs: 0 1px 2px 0 oklch(0.2 0.04 250 / 0.06);
   background-color: var(--background);
 }
 
 .crm-theme body { background-color: var(--background); }
 
-/* Linha fina de destaque no topo de painéis do CRM, sem brilho nem neon. */
+/* Turquesa da marca como texto precisa do tom forte para ter contraste no fundo claro. */
+.crm-theme .text-primary { color: var(--brand-primary-strong); }
+
+/* Cartão do CRM: branco, cantos generosos e sombra mínima. */
 @utility crm-panel {
   background-color: var(--card);
   border: 1px solid var(--border);
-  border-radius: 0.75rem;
-  box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.03);
+  border-radius: 1.25rem;
+  box-shadow:
+    0 1px 2px oklch(0.2 0.04 250 / 0.04),
+    0 12px 32px -24px oklch(0.2 0.04 250 / 0.25);
+}
+
+/* Barras hachuradas (previsão) nos gráficos do painel. */
+@utility crm-hatch {
+  background-image: repeating-linear-gradient(
+    135deg,
+    oklch(0.2 0.04 250 / 0.14) 0 1.5px,
+    transparent 1.5px 7px
+  );
 }
 
 @utility crm-grid-bg {
   background-image:
-    linear-gradient(oklch(0.85 0.03 250 / 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, oklch(0.85 0.03 250 / 0.035) 1px, transparent 1px);
+    linear-gradient(oklch(0.2 0.04 250 / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(0.2 0.04 250 / 0.035) 1px, transparent 1px);
   background-size: 32px 32px;
 }

@@ -32,6 +32,8 @@ import { Route as CrmIndexRouteImport } from './routes/crm.index'
 import { Route as CrmAdminRouteImport } from './routes/crm.admin'
 import { Route as CrmAtendimentoRouteImport } from './routes/crm.atendimento'
 import { Route as CrmCalendarioRouteImport } from './routes/crm.calendario'
+import { Route as CrmClientesRouteImport } from './routes/crm.clientes'
+import { Route as CrmComercialRouteImport } from './routes/crm.comercial'
 import { Route as CrmConfiguracoesRouteImport } from './routes/crm.configuracoes'
 import { Route as CrmEmpresasRouteImport } from './routes/crm.empresas'
 import { Route as CrmEntrarRouteImport } from './routes/crm.entrar'
@@ -39,6 +41,7 @@ import { Route as CrmEquipeRouteImport } from './routes/crm.equipe'
 import { Route as CrmFinanceiroRouteImport } from './routes/crm.financeiro'
 import { Route as CrmFunisRouteImport } from './routes/crm.funis'
 import { Route as CrmGamificacaoRouteImport } from './routes/crm.gamificacao'
+import { Route as CrmJornadaRouteImport } from './routes/crm.jornada'
 import { Route as CrmLeadsRouteImport } from './routes/crm.leads'
 import { Route as CrmOportunidadesRouteImport } from './routes/crm.oportunidades'
 import { Route as CrmOrganizacoesRouteImport } from './routes/crm.organizacoes'
@@ -58,6 +61,8 @@ import { Route as PrivacidadeSolicitacaoRouteImport } from './routes/privacidade
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin.leads'
 import { Route as ApiPublicCspReportRouteImport } from './routes/api/public/csp-report'
+import { Route as CrmContasIndexRouteImport } from './routes/crm.contas.index'
+import { Route as CrmContasIdRouteImport } from './routes/crm.contas.$id'
 import { Route as CrmContatosIndexRouteImport } from './routes/crm.contatos.index'
 import { Route as CrmContatosIdRouteImport } from './routes/crm.contatos.$id'
 import { Route as LegalVersoesArquivoRouteImport } from './routes/legal.versoes_.$arquivo'
@@ -186,6 +191,16 @@ const CrmCalendarioRoute = CrmCalendarioRouteImport.update({
   path: '/calendario',
   getParentRoute: () => CrmRoute,
 } as any)
+const CrmClientesRoute = CrmClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmComercialRoute = CrmComercialRouteImport.update({
+  id: '/comercial',
+  path: '/comercial',
+  getParentRoute: () => CrmRoute,
+} as any)
 const CrmConfiguracoesRoute = CrmConfiguracoesRouteImport.update({
   id: '/configuracoes',
   path: '/configuracoes',
@@ -219,6 +234,11 @@ const CrmFunisRoute = CrmFunisRouteImport.update({
 const CrmGamificacaoRoute = CrmGamificacaoRouteImport.update({
   id: '/gamificacao',
   path: '/gamificacao',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmJornadaRoute = CrmJornadaRouteImport.update({
+  id: '/jornada',
+  path: '/jornada',
   getParentRoute: () => CrmRoute,
 } as any)
 const CrmLeadsRoute = CrmLeadsRouteImport.update({
@@ -316,6 +336,16 @@ const ApiPublicCspReportRoute = ApiPublicCspReportRouteImport.update({
   path: '/api/public/csp-report',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CrmContasIndexRoute = CrmContasIndexRouteImport.update({
+  id: '/contas/',
+  path: '/contas/',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmContasIdRoute = CrmContasIdRouteImport.update({
+  id: '/contas/$id',
+  path: '/contas/$id',
+  getParentRoute: () => CrmRoute,
+} as any)
 const CrmContatosIndexRoute = CrmContatosIndexRouteImport.update({
   id: '/contatos/',
   path: '/contatos/',
@@ -403,6 +433,8 @@ export interface FileRoutesByFullPath {
   '/crm/admin': typeof CrmAdminRoute
   '/crm/atendimento': typeof CrmAtendimentoRoute
   '/crm/calendario': typeof CrmCalendarioRoute
+  '/crm/clientes': typeof CrmClientesRoute
+  '/crm/comercial': typeof CrmComercialRoute
   '/crm/configuracoes': typeof CrmConfiguracoesRoute
   '/crm/empresas': typeof CrmEmpresasRoute
   '/crm/entrar': typeof CrmEntrarRoute
@@ -410,6 +442,7 @@ export interface FileRoutesByFullPath {
   '/crm/financeiro': typeof CrmFinanceiroRoute
   '/crm/funis': typeof CrmFunisRoute
   '/crm/gamificacao': typeof CrmGamificacaoRoute
+  '/crm/jornada': typeof CrmJornadaRoute
   '/crm/leads': typeof CrmLeadsRoute
   '/crm/oportunidades': typeof CrmOportunidadesRoute
   '/crm/organizacoes': typeof CrmOrganizacoesRoute
@@ -431,9 +464,11 @@ export interface FileRoutesByFullPath {
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
+  '/crm/contas/$id': typeof CrmContasIdRoute
   '/crm/contatos/$id': typeof CrmContatosIdRoute
   '/legal/versoes/$arquivo': typeof LegalVersoesArquivoRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
+  '/crm/contas/': typeof CrmContasIndexRoute
   '/crm/contatos/': typeof CrmContatosIndexRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/payments/reconcile': typeof ApiPublicPaymentsReconcileRoute
@@ -464,6 +499,8 @@ export interface FileRoutesByTo {
   '/crm/admin': typeof CrmAdminRoute
   '/crm/atendimento': typeof CrmAtendimentoRoute
   '/crm/calendario': typeof CrmCalendarioRoute
+  '/crm/clientes': typeof CrmClientesRoute
+  '/crm/comercial': typeof CrmComercialRoute
   '/crm/configuracoes': typeof CrmConfiguracoesRoute
   '/crm/empresas': typeof CrmEmpresasRoute
   '/crm/entrar': typeof CrmEntrarRoute
@@ -471,6 +508,7 @@ export interface FileRoutesByTo {
   '/crm/financeiro': typeof CrmFinanceiroRoute
   '/crm/funis': typeof CrmFunisRoute
   '/crm/gamificacao': typeof CrmGamificacaoRoute
+  '/crm/jornada': typeof CrmJornadaRoute
   '/crm/leads': typeof CrmLeadsRoute
   '/crm/oportunidades': typeof CrmOportunidadesRoute
   '/crm/organizacoes': typeof CrmOrganizacoesRoute
@@ -492,9 +530,11 @@ export interface FileRoutesByTo {
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
+  '/crm/contas/$id': typeof CrmContasIdRoute
   '/crm/contatos/$id': typeof CrmContatosIdRoute
   '/legal/versoes/$arquivo': typeof LegalVersoesArquivoRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
+  '/crm/contas': typeof CrmContasIndexRoute
   '/crm/contatos': typeof CrmContatosIndexRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/payments/reconcile': typeof ApiPublicPaymentsReconcileRoute
@@ -528,6 +568,8 @@ export interface FileRoutesById {
   '/crm/admin': typeof CrmAdminRoute
   '/crm/atendimento': typeof CrmAtendimentoRoute
   '/crm/calendario': typeof CrmCalendarioRoute
+  '/crm/clientes': typeof CrmClientesRoute
+  '/crm/comercial': typeof CrmComercialRoute
   '/crm/configuracoes': typeof CrmConfiguracoesRoute
   '/crm/empresas': typeof CrmEmpresasRoute
   '/crm/entrar': typeof CrmEntrarRoute
@@ -535,6 +577,7 @@ export interface FileRoutesById {
   '/crm/financeiro': typeof CrmFinanceiroRoute
   '/crm/funis': typeof CrmFunisRoute
   '/crm/gamificacao': typeof CrmGamificacaoRoute
+  '/crm/jornada': typeof CrmJornadaRoute
   '/crm/leads': typeof CrmLeadsRoute
   '/crm/oportunidades': typeof CrmOportunidadesRoute
   '/crm/organizacoes': typeof CrmOrganizacoesRoute
@@ -556,9 +599,11 @@ export interface FileRoutesById {
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
+  '/crm/contas/$id': typeof CrmContasIdRoute
   '/crm/contatos/$id': typeof CrmContatosIdRoute
   '/legal/versoes_/$arquivo': typeof LegalVersoesArquivoRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
+  '/crm/contas/': typeof CrmContasIndexRoute
   '/crm/contatos/': typeof CrmContatosIndexRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/payments/reconcile': typeof ApiPublicPaymentsReconcileRoute
@@ -592,6 +637,8 @@ export interface FileRouteTypes {
     | '/crm/admin'
     | '/crm/atendimento'
     | '/crm/calendario'
+    | '/crm/clientes'
+    | '/crm/comercial'
     | '/crm/configuracoes'
     | '/crm/empresas'
     | '/crm/entrar'
@@ -599,6 +646,7 @@ export interface FileRouteTypes {
     | '/crm/financeiro'
     | '/crm/funis'
     | '/crm/gamificacao'
+    | '/crm/jornada'
     | '/crm/leads'
     | '/crm/oportunidades'
     | '/crm/organizacoes'
@@ -620,9 +668,11 @@ export interface FileRouteTypes {
     | '/.lovable/oauth/consent'
     | '/admin/leads'
     | '/api/public/csp-report'
+    | '/crm/contas/$id'
     | '/crm/contatos/$id'
     | '/legal/versoes/$arquivo'
     | '/mesa/$restaurante/$mesa'
+    | '/crm/contas/'
     | '/crm/contatos/'
     | '/api/public/pagarme/webhook'
     | '/api/public/payments/reconcile'
@@ -653,6 +703,8 @@ export interface FileRouteTypes {
     | '/crm/admin'
     | '/crm/atendimento'
     | '/crm/calendario'
+    | '/crm/clientes'
+    | '/crm/comercial'
     | '/crm/configuracoes'
     | '/crm/empresas'
     | '/crm/entrar'
@@ -660,6 +712,7 @@ export interface FileRouteTypes {
     | '/crm/financeiro'
     | '/crm/funis'
     | '/crm/gamificacao'
+    | '/crm/jornada'
     | '/crm/leads'
     | '/crm/oportunidades'
     | '/crm/organizacoes'
@@ -681,9 +734,11 @@ export interface FileRouteTypes {
     | '/.lovable/oauth/consent'
     | '/admin/leads'
     | '/api/public/csp-report'
+    | '/crm/contas/$id'
     | '/crm/contatos/$id'
     | '/legal/versoes/$arquivo'
     | '/mesa/$restaurante/$mesa'
+    | '/crm/contas'
     | '/crm/contatos'
     | '/api/public/pagarme/webhook'
     | '/api/public/payments/reconcile'
@@ -716,6 +771,8 @@ export interface FileRouteTypes {
     | '/crm/admin'
     | '/crm/atendimento'
     | '/crm/calendario'
+    | '/crm/clientes'
+    | '/crm/comercial'
     | '/crm/configuracoes'
     | '/crm/empresas'
     | '/crm/entrar'
@@ -723,6 +780,7 @@ export interface FileRouteTypes {
     | '/crm/financeiro'
     | '/crm/funis'
     | '/crm/gamificacao'
+    | '/crm/jornada'
     | '/crm/leads'
     | '/crm/oportunidades'
     | '/crm/organizacoes'
@@ -744,9 +802,11 @@ export interface FileRouteTypes {
     | '/.lovable/oauth/consent'
     | '/_authenticated/admin/leads'
     | '/api/public/csp-report'
+    | '/crm/contas/$id'
     | '/crm/contatos/$id'
     | '/legal/versoes_/$arquivo'
     | '/mesa/$restaurante/$mesa'
+    | '/crm/contas/'
     | '/crm/contatos/'
     | '/api/public/pagarme/webhook'
     | '/api/public/payments/reconcile'
@@ -959,6 +1019,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CrmCalendarioRouteImport
       parentRoute: typeof CrmRoute
     }
+    '/crm/clientes': {
+      id: '/crm/clientes'
+      path: '/clientes'
+      fullPath: '/crm/clientes'
+      preLoaderRoute: typeof CrmClientesRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/comercial': {
+      id: '/crm/comercial'
+      path: '/comercial'
+      fullPath: '/crm/comercial'
+      preLoaderRoute: typeof CrmComercialRouteImport
+      parentRoute: typeof CrmRoute
+    }
     '/crm/configuracoes': {
       id: '/crm/configuracoes'
       path: '/configuracoes'
@@ -1006,6 +1080,13 @@ declare module '@tanstack/react-router' {
       path: '/gamificacao'
       fullPath: '/crm/gamificacao'
       preLoaderRoute: typeof CrmGamificacaoRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/jornada': {
+      id: '/crm/jornada'
+      path: '/jornada'
+      fullPath: '/crm/jornada'
+      preLoaderRoute: typeof CrmJornadaRouteImport
       parentRoute: typeof CrmRoute
     }
     '/crm/leads': {
@@ -1141,6 +1222,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCspReportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/crm/contas/': {
+      id: '/crm/contas/'
+      path: '/contas'
+      fullPath: '/crm/contas/'
+      preLoaderRoute: typeof CrmContasIndexRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/contas/$id': {
+      id: '/crm/contas/$id'
+      path: '/contas/$id'
+      fullPath: '/crm/contas/$id'
+      preLoaderRoute: typeof CrmContasIdRouteImport
+      parentRoute: typeof CrmRoute
+    }
     '/crm/contatos/': {
       id: '/crm/contatos/'
       path: '/contatos'
@@ -1249,6 +1344,8 @@ interface CrmRouteChildren {
   CrmAdminRoute: typeof CrmAdminRoute
   CrmAtendimentoRoute: typeof CrmAtendimentoRoute
   CrmCalendarioRoute: typeof CrmCalendarioRoute
+  CrmClientesRoute: typeof CrmClientesRoute
+  CrmComercialRoute: typeof CrmComercialRoute
   CrmConfiguracoesRoute: typeof CrmConfiguracoesRoute
   CrmEmpresasRoute: typeof CrmEmpresasRoute
   CrmEntrarRoute: typeof CrmEntrarRoute
@@ -1256,6 +1353,7 @@ interface CrmRouteChildren {
   CrmFinanceiroRoute: typeof CrmFinanceiroRoute
   CrmFunisRoute: typeof CrmFunisRoute
   CrmGamificacaoRoute: typeof CrmGamificacaoRoute
+  CrmJornadaRoute: typeof CrmJornadaRoute
   CrmLeadsRoute: typeof CrmLeadsRoute
   CrmOportunidadesRoute: typeof CrmOportunidadesRoute
   CrmOrganizacoesRoute: typeof CrmOrganizacoesRoute
@@ -1266,7 +1364,9 @@ interface CrmRouteChildren {
   CrmTarefasRoute: typeof CrmTarefasRoute
   CrmWhatsappRoute: typeof CrmWhatsappRoute
   CrmIndexRoute: typeof CrmIndexRoute
+  CrmContasIdRoute: typeof CrmContasIdRoute
   CrmContatosIdRoute: typeof CrmContatosIdRoute
+  CrmContasIndexRoute: typeof CrmContasIndexRoute
   CrmContatosIndexRoute: typeof CrmContatosIndexRoute
 }
 
@@ -1274,6 +1374,8 @@ const CrmRouteChildren: CrmRouteChildren = {
   CrmAdminRoute: CrmAdminRoute,
   CrmAtendimentoRoute: CrmAtendimentoRoute,
   CrmCalendarioRoute: CrmCalendarioRoute,
+  CrmClientesRoute: CrmClientesRoute,
+  CrmComercialRoute: CrmComercialRoute,
   CrmConfiguracoesRoute: CrmConfiguracoesRoute,
   CrmEmpresasRoute: CrmEmpresasRoute,
   CrmEntrarRoute: CrmEntrarRoute,
@@ -1281,6 +1383,7 @@ const CrmRouteChildren: CrmRouteChildren = {
   CrmFinanceiroRoute: CrmFinanceiroRoute,
   CrmFunisRoute: CrmFunisRoute,
   CrmGamificacaoRoute: CrmGamificacaoRoute,
+  CrmJornadaRoute: CrmJornadaRoute,
   CrmLeadsRoute: CrmLeadsRoute,
   CrmOportunidadesRoute: CrmOportunidadesRoute,
   CrmOrganizacoesRoute: CrmOrganizacoesRoute,
@@ -1291,7 +1394,9 @@ const CrmRouteChildren: CrmRouteChildren = {
   CrmTarefasRoute: CrmTarefasRoute,
   CrmWhatsappRoute: CrmWhatsappRoute,
   CrmIndexRoute: CrmIndexRoute,
+  CrmContasIdRoute: CrmContasIdRoute,
   CrmContatosIdRoute: CrmContatosIdRoute,
+  CrmContasIndexRoute: CrmContasIndexRoute,
   CrmContatosIndexRoute: CrmContatosIndexRoute,
 }
 
