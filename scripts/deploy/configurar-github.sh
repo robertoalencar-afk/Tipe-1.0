@@ -42,6 +42,18 @@ save_secret() {
     if [[ "$name" == "CRON_SECRET" || "$name" == "TIPE_ENCRYPTION_KEY" ]]; then
       value="$(openssl rand -hex 32)"
       echo "Gerando $name. Nao altere a chave de criptografia depois de cadastrar dados reais."
+      if [[ "$name" == "TIPE_ENCRYPTION_KEY" ]]; then
+        if [[ "$(uname -s)" == "Darwin" ]] && command -v security >/dev/null 2>&1; then
+          if ! security add-generic-password -a "$(id -un)" -s "tipe-production-TIPE_ENCRYPTION_KEY" -w "$value" -U >/dev/null; then
+            echo "Nao foi possivel salvar a chave no Chaves do macOS. Interrompido."
+            exit 1
+          fi
+          echo "Chave de criptografia preservada no Chaves do macOS."
+        else
+          echo "Sem Chaves do macOS: crie e armazene TIPE_ENCRYPTION_KEY no seu cofre de senhas antes de continuar."
+          exit 1
+        fi
+      fi
     else
       echo "Falta $name. Cole o valor existente (entrada oculta)."
       case "$name" in
