@@ -19,6 +19,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
+      - name: Verificar sintaxe do configurador (sem acessar segredos)
+        run: bash -n scripts/deploy/configurar-github.sh
       - run: bunx tsc --noEmit -p .
       - run: bunx vitest run
       - name: Build
