@@ -1,0 +1,12 @@
+// Worker principal da TIPE (Cloudflare). O build (`bun run build`) junta este
+// arquivo com o que o Nitro gera em .output/server/wrangler.json.
+// Segredos não ficam aqui: veja docs/deploy/README.md.
+{
+  "name": "tipe",
+  "compatibility_flags": ["nodejs_compat"],
+  "routes": [
+    { "pattern": "tipe.digital", "custom_domain": true },
+    { "pattern": "www.tipe.digital", "custom_domain": true }
+  ],
+  "observability": { "enabled": true }
+}

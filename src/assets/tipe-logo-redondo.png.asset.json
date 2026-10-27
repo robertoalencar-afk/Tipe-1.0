@@ -1,11 +1,6 @@
 {
   "version": 1,
-  "asset_id": "702edacf-4438-4472-9693-7bb419095c42",
-  "project_id": "109e2366-b3e7-4b22-b1bb-eec1756f0b89",
-  "url": "/__l5e/assets-v1/702edacf-4438-4472-9693-7bb419095c42/tipe-logo-redondo.png",
-  "r2_key": "a/v1/109e2366-b3e7-4b22-b1bb-eec1756f0b89/702edacf-4438-4472-9693-7bb419095c42/tipe-logo-redondo.png",
+  "url": "/marca/tipe-logo-redondo.png",
   "original_filename": "tipe-logo-redondo.png",
-  "size": 481760,
-  "content_type": "image/png",
-  "created_at": "2026-10-06T22:23:06Z"
+  "content_type": "image/png"
 }

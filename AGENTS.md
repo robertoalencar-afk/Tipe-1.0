@@ -1,13 +1,6 @@
-<!-- LOVABLE:BEGIN -->
-> [!IMPORTANT]
-> This project is connected to [Lovable](https://lovable.dev). Avoid rewriting
-> published git history — force pushing, or rebasing/amending/squashing commits
-> that are already pushed — as it rewrites history on Lovable's side and the
-> user will likely lose their project history.
->
-> Commits you push to the connected branch sync back to Lovable and show up in
-> the editor, so keep the branch in a working state.
-<!-- LOVABLE:END -->
+- Hosting: Cloudflare Workers (worker "tipe", custom domain tipe.digital), deployed by .github/workflows/deploy.yml on every push to main; scheduled jobs live in cron-worker/. Database/auth: Supabase. No Lovable: do not reintroduce @lovable.dev packages, /__l5e asset URLs or LOVABLE_* env vars. Why: the project left Lovable on 2026-10-27. Setup steps in docs/deploy/README.md.
+- Database changes: new SQL files in drizzle/migrations (next number), applied by scripts/db/aplicar-migracoes.sh (tracked in tipe_meta.migracoes). Never edit an applied migration.
+- AI: Lebre and split suggestion call Claude through src/lib/tipe/claude.server.ts (ANTHROPIC_API_KEY); audio transcription uses Cloudflare Workers AI Whisper.
 
 - Preserve customer identity locally per restaurant/table so repeat QR scans resume the account.
 - Table activity shows bill payments only; extra tips stay outside restaurant bill history.

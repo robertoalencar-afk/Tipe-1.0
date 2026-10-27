@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 
 const TITLE = "TIPE | A conta chegou. A espera acabou. | Pagamento na mesa por QR Code";
 const DESCRIPTION = "Com o TIPE, o cliente confere a conta, divide o que consumiu e paga pelo celular, direto na mesa. Sem aplicativo e sem esperar a maquininha. Pré-lançamento com 30 dias grátis para restaurantes.";
-const OG_IMAGE = "https://tipe.digital/__l5e/assets-v1/702edacf-4438-4472-9693-7bb419095c42/tipe-logo-redondo.png";
+const OG_IMAGE = "https://tipe.digital/marca/tipe-logo-redondo.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({

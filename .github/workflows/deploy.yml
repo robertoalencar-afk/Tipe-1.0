@@ -1,0 +1,80 @@
+# Publica a TIPE na Cloudflare a cada push no main (e manualmente pela aba Actions).
+# Configuração em docs/deploy/README.md.
+name: Publicar
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  testar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bunx tsc --noEmit -p .
+      - run: bunx vitest run
+      - name: Build
+        run: bun run build
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ vars.VITE_SUPABASE_PROJECT_ID }}
+
+  publicar:
+    needs: testar
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: producao
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Migrações do banco
+        if: env.DATABASE_URL != ''
+        run: scripts/db/aplicar-migracoes.sh
+      - name: Build
+        run: bun run build
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ vars.VITE_SUPABASE_PROJECT_ID }}
+      - name: Publicar o site
+        run: |
+          bunx wrangler deploy
+          node scripts/deploy/segredos.mjs app | bunx wrangler secret bulk
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          EMAIL_FROM: ${{ vars.EMAIL_FROM }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          TIPE_ENCRYPTION_KEY: ${{ secrets.TIPE_ENCRYPTION_KEY }}
+          PAGARME_SECRET_KEY: ${{ secrets.PAGARME_SECRET_KEY }}
+          PAGARME_PUBLIC_KEY: ${{ secrets.PAGARME_PUBLIC_KEY }}
+          PAGARME_WEBHOOK_SECRET: ${{ secrets.PAGARME_WEBHOOK_SECRET }}
+          PAGARME_TIPE_RECIPIENT_ID: ${{ secrets.PAGARME_TIPE_RECIPIENT_ID }}
+          TIPE_PLATFORM_FEE_PERCENT: ${{ vars.TIPE_PLATFORM_FEE_PERCENT }}
+          CLOUDFLARE_AI_TOKEN: ${{ secrets.CLOUDFLARE_AI_TOKEN }}
+      - name: Publicar as rotinas agendadas
+        run: |
+          bunx wrangler deploy --config cron-worker/wrangler.jsonc
+          node scripts/deploy/segredos.mjs cron | bunx wrangler secret bulk --config cron-worker/wrangler.jsonc
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}

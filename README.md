@@ -19,7 +19,8 @@ Site: [tipe.digital](https://tipe.digital) · Instagram: [@tipe.digital](https:/
 7. [Privacidade e LGPD](#privacidade-e-lgpd)
 8. [Estrutura do repositório](#estrutura-do-repositório)
 9. [Desenvolvimento local](#desenvolvimento-local)
-10. [Informações legais](#informações-legais)
+10. [Publicação](#publicação)
+11. [Informações legais](#informações-legais)
 
 ---
 
@@ -155,8 +156,14 @@ Scripts:
 | `bun run build` | Build de produção |
 | `bun run lint` | Análise estática |
 | `bun run format` | Formatação do código |
+| `bun run db:migrate` | Aplica as migrações pendentes no banco de `DATABASE_URL` |
+| `bun run db:seed` | Cria as duas empresas virtuais de teste |
 
-Variáveis de ambiente públicas ficam no arquivo `.env`. Chaves privadas (provedor de pagamento, criptografia) são configuradas apenas no ambiente do servidor e nunca devem ser versionadas. Sem a chave do provedor, os pagamentos digitais rodam em modo de simulação.
+Copie `.env.example` para `.env` e preencha. O `.env` nunca é versionado. Chaves privadas (pagamento, criptografia, IA, e-mail) ficam só como segredos do servidor.
+
+## Publicação
+
+O site roda na Cloudflare (Workers) com banco e login no Supabase. Cada push no `main` testa, aplica as migrações e publica em [tipe.digital](https://tipe.digital). Passo a passo de configuração: [docs/deploy/README.md](docs/deploy/README.md).
 
 ## Informações legais
 

@@ -15,7 +15,6 @@ import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as FundadorRouteImport } from './routes/fundador'
-import { Route as McpRouteImport } from './routes/mcp'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SimuladorRouteImport } from './routes/simulador'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
@@ -23,7 +22,6 @@ import { Route as TermosRouteImport } from './routes/termos'
 import { Route as TermosParceirosRouteImport } from './routes/termos-parceiros'
 import { Route as RestauranteIndexRouteImport } from './routes/$restaurante.index'
 import { Route as RestauranteMesaRouteImport } from './routes/$restaurante.$mesa'
-import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AuthenticatedBackofficeRouteImport } from './routes/_authenticated/backoffice'
 import { Route as AuthenticatedGarcomRouteImport } from './routes/_authenticated/garcom'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
@@ -34,7 +32,6 @@ import { Route as LegalGlossarioRouteImport } from './routes/legal.glossario'
 import { Route as LegalVersoesRouteImport } from './routes/legal.versoes'
 import { Route as PrivacidadeIndexRouteImport } from './routes/privacidade.index'
 import { Route as PrivacidadeSolicitacaoRouteImport } from './routes/privacidade.solicitacao'
-import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin.leads'
 import { Route as ApiPublicCspReportRouteImport } from './routes/api/public/csp-report'
 import { Route as LegalVersoesArquivoRouteImport } from './routes/legal.versoes_.$arquivo'
@@ -43,7 +40,6 @@ import { Route as ApiPublicPagarmeWebhookRouteImport } from './routes/api/public
 import { Route as ApiPublicPaymentsReconcileRouteImport } from './routes/api/public/payments.reconcile'
 import { Route as ApiPublicPdvSyncRouteImport } from './routes/api/public/pdv.sync'
 import { Route as ApiPublicPosSlugRouteImport } from './routes/api/public/pos.$slug'
-import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as ApiPublicPagarmeRestauranteSlugRouteImport } from './routes/api/public/pagarme/restaurante.$slug'
 import { Route as ApiPublicPdvAdapterWebhookRouteImport } from './routes/api/public/pdv.$adapter.webhook'
 
@@ -74,11 +70,6 @@ const EntrarRoute = EntrarRouteImport.update({
 const FundadorRoute = FundadorRouteImport.update({
   id: '/fundador',
   path: '/fundador',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const McpRoute = McpRouteImport.update({
-  id: '/mcp',
-  path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -116,12 +107,6 @@ const RestauranteMesaRoute = RestauranteMesaRouteImport.update({
   path: '/$restaurante/$mesa',
   getParentRoute: () => rootRouteImport,
 } as any)
-const Char91DotwellKnownChar93OauthProtectedResourceRoute =
-  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
-    id: '/.well-known/oauth-protected-resource',
-    path: '/.well-known/oauth-protected-resource',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const AuthenticatedBackofficeRoute = AuthenticatedBackofficeRouteImport.update({
   id: '/backoffice',
   path: '/backoffice',
@@ -172,11 +157,6 @@ const PrivacidadeSolicitacaoRoute = PrivacidadeSolicitacaoRouteImport.update({
   path: '/privacidade/solicitacao',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
-  id: '/.lovable/oauth/consent',
-  path: '/.lovable/oauth/consent',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const AuthenticatedAdminLeadsRoute = AuthenticatedAdminLeadsRouteImport.update({
   id: '/admin/leads',
   path: '/admin/leads',
@@ -218,12 +198,6 @@ const ApiPublicPosSlugRoute = ApiPublicPosSlugRouteImport.update({
   path: '/api/public/pos/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LovableEmailTransactionalPreviewRoute =
-  LovableEmailTransactionalPreviewRouteImport.update({
-    id: '/lovable/email/transactional/preview',
-    path: '/lovable/email/transactional/preview',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const ApiPublicPagarmeRestauranteSlugRoute =
   ApiPublicPagarmeRestauranteSlugRouteImport.update({
     id: '/api/public/pagarme/restaurante/$slug',
@@ -243,14 +217,12 @@ export interface FileRoutesByFullPath {
   '/cookies': typeof CookiesRoute
   '/entrar': typeof EntrarRoute
   '/fundador': typeof FundadorRoute
-  '/mcp': typeof McpRoute
   '/reset-password': typeof ResetPasswordRoute
   '/simulador': typeof SimuladorRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/termos': typeof TermosRoute
   '/termos-parceiros': typeof TermosParceirosRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
-  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/backoffice': typeof AuthenticatedBackofficeRoute
   '/garcom': typeof AuthenticatedGarcomRoute
   '/painel': typeof AuthenticatedPainelRoute
@@ -262,7 +234,6 @@ export interface FileRoutesByFullPath {
   '/$restaurante/': typeof RestauranteIndexRoute
   '/legal/': typeof LegalIndexRoute
   '/privacidade/': typeof PrivacidadeIndexRoute
-  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
   '/legal/versoes/$arquivo': typeof LegalVersoesArquivoRoute
@@ -271,7 +242,6 @@ export interface FileRoutesByFullPath {
   '/api/public/payments/reconcile': typeof ApiPublicPaymentsReconcileRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
-  '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/api/public/pagarme/restaurante/$slug': typeof ApiPublicPagarmeRestauranteSlugRoute
   '/api/public/pdv/$adapter/webhook': typeof ApiPublicPdvAdapterWebhookRoute
 }
@@ -281,14 +251,12 @@ export interface FileRoutesByTo {
   '/cookies': typeof CookiesRoute
   '/entrar': typeof EntrarRoute
   '/fundador': typeof FundadorRoute
-  '/mcp': typeof McpRoute
   '/reset-password': typeof ResetPasswordRoute
   '/simulador': typeof SimuladorRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/termos': typeof TermosRoute
   '/termos-parceiros': typeof TermosParceirosRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
-  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/backoffice': typeof AuthenticatedBackofficeRoute
   '/garcom': typeof AuthenticatedGarcomRoute
   '/painel': typeof AuthenticatedPainelRoute
@@ -300,7 +268,6 @@ export interface FileRoutesByTo {
   '/$restaurante': typeof RestauranteIndexRoute
   '/legal': typeof LegalIndexRoute
   '/privacidade': typeof PrivacidadeIndexRoute
-  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
   '/legal/versoes/$arquivo': typeof LegalVersoesArquivoRoute
@@ -309,7 +276,6 @@ export interface FileRoutesByTo {
   '/api/public/payments/reconcile': typeof ApiPublicPaymentsReconcileRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
-  '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/api/public/pagarme/restaurante/$slug': typeof ApiPublicPagarmeRestauranteSlugRoute
   '/api/public/pdv/$adapter/webhook': typeof ApiPublicPdvAdapterWebhookRoute
 }
@@ -321,14 +287,12 @@ export interface FileRoutesById {
   '/cookies': typeof CookiesRoute
   '/entrar': typeof EntrarRoute
   '/fundador': typeof FundadorRoute
-  '/mcp': typeof McpRoute
   '/reset-password': typeof ResetPasswordRoute
   '/simulador': typeof SimuladorRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/termos': typeof TermosRoute
   '/termos-parceiros': typeof TermosParceirosRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
-  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/backoffice': typeof AuthenticatedBackofficeRoute
   '/_authenticated/garcom': typeof AuthenticatedGarcomRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
@@ -340,7 +304,6 @@ export interface FileRoutesById {
   '/$restaurante/': typeof RestauranteIndexRoute
   '/legal/': typeof LegalIndexRoute
   '/privacidade/': typeof PrivacidadeIndexRoute
-  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
   '/legal/versoes_/$arquivo': typeof LegalVersoesArquivoRoute
@@ -349,7 +312,6 @@ export interface FileRoutesById {
   '/api/public/payments/reconcile': typeof ApiPublicPaymentsReconcileRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
-  '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/api/public/pagarme/restaurante/$slug': typeof ApiPublicPagarmeRestauranteSlugRoute
   '/api/public/pdv/$adapter/webhook': typeof ApiPublicPdvAdapterWebhookRoute
 }
@@ -361,14 +323,12 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/entrar'
     | '/fundador'
-    | '/mcp'
     | '/reset-password'
     | '/simulador'
     | '/sitemap.xml'
     | '/termos'
     | '/termos-parceiros'
     | '/$restaurante/$mesa'
-    | '/.well-known/oauth-protected-resource'
     | '/backoffice'
     | '/garcom'
     | '/painel'
@@ -380,7 +340,6 @@ export interface FileRouteTypes {
     | '/$restaurante/'
     | '/legal/'
     | '/privacidade/'
-    | '/.lovable/oauth/consent'
     | '/admin/leads'
     | '/api/public/csp-report'
     | '/legal/versoes/$arquivo'
@@ -389,7 +348,6 @@ export interface FileRouteTypes {
     | '/api/public/payments/reconcile'
     | '/api/public/pdv/sync'
     | '/api/public/pos/$slug'
-    | '/lovable/email/transactional/preview'
     | '/api/public/pagarme/restaurante/$slug'
     | '/api/public/pdv/$adapter/webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -399,14 +357,12 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/entrar'
     | '/fundador'
-    | '/mcp'
     | '/reset-password'
     | '/simulador'
     | '/sitemap.xml'
     | '/termos'
     | '/termos-parceiros'
     | '/$restaurante/$mesa'
-    | '/.well-known/oauth-protected-resource'
     | '/backoffice'
     | '/garcom'
     | '/painel'
@@ -418,7 +374,6 @@ export interface FileRouteTypes {
     | '/$restaurante'
     | '/legal'
     | '/privacidade'
-    | '/.lovable/oauth/consent'
     | '/admin/leads'
     | '/api/public/csp-report'
     | '/legal/versoes/$arquivo'
@@ -427,7 +382,6 @@ export interface FileRouteTypes {
     | '/api/public/payments/reconcile'
     | '/api/public/pdv/sync'
     | '/api/public/pos/$slug'
-    | '/lovable/email/transactional/preview'
     | '/api/public/pagarme/restaurante/$slug'
     | '/api/public/pdv/$adapter/webhook'
   id:
@@ -438,14 +392,12 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/entrar'
     | '/fundador'
-    | '/mcp'
     | '/reset-password'
     | '/simulador'
     | '/sitemap.xml'
     | '/termos'
     | '/termos-parceiros'
     | '/$restaurante/$mesa'
-    | '/.well-known/oauth-protected-resource'
     | '/_authenticated/backoffice'
     | '/_authenticated/garcom'
     | '/_authenticated/painel'
@@ -457,7 +409,6 @@ export interface FileRouteTypes {
     | '/$restaurante/'
     | '/legal/'
     | '/privacidade/'
-    | '/.lovable/oauth/consent'
     | '/_authenticated/admin/leads'
     | '/api/public/csp-report'
     | '/legal/versoes_/$arquivo'
@@ -466,7 +417,6 @@ export interface FileRouteTypes {
     | '/api/public/payments/reconcile'
     | '/api/public/pdv/sync'
     | '/api/public/pos/$slug'
-    | '/lovable/email/transactional/preview'
     | '/api/public/pagarme/restaurante/$slug'
     | '/api/public/pdv/$adapter/webhook'
   fileRoutesById: FileRoutesById
@@ -478,14 +428,12 @@ export interface RootRouteChildren {
   CookiesRoute: typeof CookiesRoute
   EntrarRoute: typeof EntrarRoute
   FundadorRoute: typeof FundadorRoute
-  McpRoute: typeof McpRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SimuladorRoute: typeof SimuladorRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermosRoute: typeof TermosRoute
   TermosParceirosRoute: typeof TermosParceirosRoute
   RestauranteMesaRoute: typeof RestauranteMesaRoute
-  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   LegalLivroRoute: typeof LegalLivroRoute
   LegalCompletaRoute: typeof LegalCompletaRoute
   LegalGlossarioRoute: typeof LegalGlossarioRoute
@@ -494,7 +442,6 @@ export interface RootRouteChildren {
   RestauranteIndexRoute: typeof RestauranteIndexRoute
   LegalIndexRoute: typeof LegalIndexRoute
   PrivacidadeIndexRoute: typeof PrivacidadeIndexRoute
-  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   ApiPublicCspReportRoute: typeof ApiPublicCspReportRoute
   LegalVersoesArquivoRoute: typeof LegalVersoesArquivoRoute
   MesaRestauranteMesaRoute: typeof MesaRestauranteMesaRoute
@@ -502,7 +449,6 @@ export interface RootRouteChildren {
   ApiPublicPaymentsReconcileRoute: typeof ApiPublicPaymentsReconcileRoute
   ApiPublicPdvSyncRoute: typeof ApiPublicPdvSyncRoute
   ApiPublicPosSlugRoute: typeof ApiPublicPosSlugRoute
-  LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
   ApiPublicPagarmeRestauranteSlugRoute: typeof ApiPublicPagarmeRestauranteSlugRoute
   ApiPublicPdvAdapterWebhookRoute: typeof ApiPublicPdvAdapterWebhookRoute
 }
@@ -549,13 +495,6 @@ declare module '@tanstack/react-router' {
       path: '/fundador'
       fullPath: '/fundador'
       preLoaderRoute: typeof FundadorRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/mcp': {
-      id: '/mcp'
-      path: '/mcp'
-      fullPath: '/mcp'
-      preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -605,13 +544,6 @@ declare module '@tanstack/react-router' {
       path: '/$restaurante/$mesa'
       fullPath: '/$restaurante/$mesa'
       preLoaderRoute: typeof RestauranteMesaRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/.well-known/oauth-protected-resource': {
-      id: '/.well-known/oauth-protected-resource'
-      path: '/.well-known/oauth-protected-resource'
-      fullPath: '/.well-known/oauth-protected-resource'
-      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/backoffice': {
@@ -684,13 +616,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivacidadeSolicitacaoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/.lovable/oauth/consent': {
-      id: '/.lovable/oauth/consent'
-      path: '/.lovable/oauth/consent'
-      fullPath: '/.lovable/oauth/consent'
-      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated/admin/leads': {
       id: '/_authenticated/admin/leads'
       path: '/admin/leads'
@@ -747,13 +672,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPosSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lovable/email/transactional/preview': {
-      id: '/lovable/email/transactional/preview'
-      path: '/lovable/email/transactional/preview'
-      fullPath: '/lovable/email/transactional/preview'
-      preLoaderRoute: typeof LovableEmailTransactionalPreviewRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/pagarme/restaurante/$slug': {
       id: '/api/public/pagarme/restaurante/$slug'
       path: '/api/public/pagarme/restaurante/$slug'
@@ -795,15 +713,12 @@ const rootRouteChildren: RootRouteChildren = {
   CookiesRoute: CookiesRoute,
   EntrarRoute: EntrarRoute,
   FundadorRoute: FundadorRoute,
-  McpRoute: McpRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SimuladorRoute: SimuladorRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermosRoute: TermosRoute,
   TermosParceirosRoute: TermosParceirosRoute,
   RestauranteMesaRoute: RestauranteMesaRoute,
-  Char91DotwellKnownChar93OauthProtectedResourceRoute:
-    Char91DotwellKnownChar93OauthProtectedResourceRoute,
   LegalLivroRoute: LegalLivroRoute,
   LegalCompletaRoute: LegalCompletaRoute,
   LegalGlossarioRoute: LegalGlossarioRoute,
@@ -812,7 +727,6 @@ const rootRouteChildren: RootRouteChildren = {
   RestauranteIndexRoute: RestauranteIndexRoute,
   LegalIndexRoute: LegalIndexRoute,
   PrivacidadeIndexRoute: PrivacidadeIndexRoute,
-  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   ApiPublicCspReportRoute: ApiPublicCspReportRoute,
   LegalVersoesArquivoRoute: LegalVersoesArquivoRoute,
   MesaRestauranteMesaRoute: MesaRestauranteMesaRoute,
@@ -820,7 +734,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicPaymentsReconcileRoute: ApiPublicPaymentsReconcileRoute,
   ApiPublicPdvSyncRoute: ApiPublicPdvSyncRoute,
   ApiPublicPosSlugRoute: ApiPublicPosSlugRoute,
-  LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
   ApiPublicPagarmeRestauranteSlugRoute: ApiPublicPagarmeRestauranteSlugRoute,
   ApiPublicPdvAdapterWebhookRoute: ApiPublicPdvAdapterWebhookRoute,
 }

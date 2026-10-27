@@ -632,7 +632,7 @@ function MesasQr({ slug, restaurante, tables, podeDono, onDone }: { slug: string
   const ativas = tables.filter((t) => t.active).length;
   const plano = useQuery({ queryKey: ["table-plan", slug, ativas, tables.length], queryFn: () => fetchPlan({ data: { slug } }) });
   const noLimite = !!plano.data && plano.data.active >= plano.data.limit;
-  const base = typeof window !== "undefined" && !window.location.hostname.includes("lovable") && !window.location.hostname.includes("localhost") ? window.location.origin : "https://tipe.digital";
+  const base = typeof window !== "undefined" && !window.location.hostname.endsWith(".workers.dev") && !window.location.hostname.includes("localhost") ? window.location.origin : "https://tipe.digital";
   const link = (t: PdvData["tables"][number]) => `${base}/${slug}/${t.code}?t=${t.access_token}`;
   async function run(fn: () => Promise<unknown>, ok: string) {
     try { await fn(); toast.success(ok); onDone(); } catch (e) { toast.error((e as Error).message); }
