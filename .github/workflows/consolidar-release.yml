@@ -83,10 +83,13 @@ jobs:
           from pathlib import Path
           path=Path('src/routes/_authenticated/backoffice.tsx')
           content=path.read_text()
-          marker='Abrir lista de espera completa\\n                      </Link>'
-          if marker not in content: raise SystemExit('Nao achei ancora para CRM no backoffice; correcao manual necessaria')
+          marker='Abrir lista de espera completa'
+          start=content.find(marker)
+          end=content.find('</Link>', start)
+          if start < 0 or end < 0: raise SystemExit('Nao achei link da lista de espera no backoffice')
           if '<Link to="/crm"' not in content:
-              content=content.replace(marker,marker+'\\n                      <Link to="/crm" className="mb-4 flex h-10 items-center justify-center rounded-full border border-border text-sm font-medium">Abrir CRM comercial</Link>',1)
+              end+=len('</Link>')
+              content=content[:end]+'\\n                      <Link to="/crm" className="mb-4 flex h-10 items-center justify-center rounded-full border border-border text-sm font-medium">Abrir CRM comercial</Link>'+content[end:]
           assert '<LaunchStatesAdmin />' in content, 'Tipe Order perdeu estados de lancamento'
           path.write_text(content)
           PY
