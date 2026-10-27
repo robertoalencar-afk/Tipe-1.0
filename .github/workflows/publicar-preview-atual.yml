@@ -1,0 +1,94 @@
+name: Publicar preview TIPE atualizada (main)
+on:
+  push:
+    branches:
+      - preview/tipe-atual-20261027
+    paths:
+      - .github/workflows/publicar-preview-atual.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    environment: producao
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      STAGING_URL: https://nduqqnevstlidmxbghcj.supabase.co
+      STAGING_KEY: sb_publishable__qAGcFon-Jc8HGtY0vWaKA_aQoUT7Yz
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Confirmar login da ultima release e validar codigo
+        shell: bash
+        run: |
+          set -euo pipefail
+          grep -q 'EditorialPhoto' src/routes/entrar.tsx
+          grep -q 'signInWithOAuth' src/routes/entrar.tsx
+          if grep -q 'lovable.auth' src/routes/entrar.tsx; then
+            echo "::error::Login legado Lovable detectado. Preview bloqueada."
+            exit 1
+          fi
+          bunx tsc --noEmit -p .
+          bunx vitest run
+      - name: Build isolado com Supabase de staging
+        run: bun run build
+        env:
+          VITE_SUPABASE_URL: https://nduqqnevstlidmxbghcj.supabase.co
+          VITE_SUPABASE_PROJECT_ID: nduqqnevstlidmxbghcj
+          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable__qAGcFon-Jc8HGtY0vWaKA_aQoUT7Yz
+      - name: Criar Worker de preview sem rota em tipe.digital
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('.output/server/wrangler.json')
+          data=json.loads(p.read_text())
+          data['name']='tipe-candidato-20261027'
+          for key in ['route','routes']:
+              data.pop(key,None)
+          data['workers_dev']=True
+          data['preview_urls']=True
+          data['vars']={
+              **data.get('vars',{}),
+              'SUPABASE_URL':'https://nduqqnevstlidmxbghcj.supabase.co',
+              'SUPABASE_PUBLISHABLE_KEY':'sb_publishable__qAGcFon-Jc8HGtY0vWaKA_aQoUT7Yz',
+              'TIPE_PREVIEW_MODE':'true',
+          }
+          p.write_text(json.dumps(data,indent=2)+'\n')
+          assert 'routes' not in data and 'route' not in data
+          assert data['name']=='tipe-candidato-20261027'
+          print('Cloudflare Worker de preview sem dominio customizado e sem segredos de producao.')
+          PY
+          bunx wrangler deploy --config .output/server/wrangler.json
+          echo "### TIPE Preview" >> "$GITHUB_STEP_SUMMARY"
+          echo "Worker: tipe-candidato-20261027" >> "$GITHUB_STEP_SUMMARY"
+          echo "Banco: staging (dados de teste, sem pagamentos reais, autenticação de staging ainda requer configuração)." >> "$GITHUB_STEP_SUMMARY"
+          echo "Domínio principal tipe.digital: não alterado." >> "$GITHUB_STEP_SUMMARY"
+          echo "Login: código de entrada da main de 27/10, sem Lovable." >> "$GITHUB_STEP_SUMMARY"
+      - name: Testar resposta HTTP da preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="https://tipe-candidato-20261027.robertoalencar.workers.dev/"
+          ok=0
+          for attempt in 1 2 3 4; do
+            code="$(curl --silent --show-error --max-time 30 --output /tmp/tipe-preview-body --write-out '%{http_code}' "$url" || true)"
+            if [[ "$code" == "200" ]]; then ok=1; break; fi
+            echo "Tentativa $attempt: HTTP $code"
+            sleep 4
+          done
+          [[ "$ok" == "1" ]] || { echo "::error::Preview nao respondeu HTTP 200."; exit 1; }
+          if ! grep -qi 'tipe' /tmp/tipe-preview-body; then
+            echo "::error::HTML inesperado da landing Tipe."
+            exit 1
+          fi
+          echo "Preview respondendo HTTP 200 e HTML da marca Tipe." >> "$GITHUB_STEP_SUMMARY"
+
