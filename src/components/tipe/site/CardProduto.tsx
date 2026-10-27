@@ -80,7 +80,9 @@ function Vitrine({ p }: { p: Produto }) {
             <Selo cor={cor} />
             <span>
               <span className="block text-white/60">Mesa 5 · sua parte</span>
-              Pix aprovado <span className="money">R$ 163,10</span>
+              <span className="whitespace-nowrap">
+                Pix aprovado <span className="money">R$ 163,10</span>
+              </span>
             </span>
           </Aviso>
         </>

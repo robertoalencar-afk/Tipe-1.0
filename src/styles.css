@@ -1303,84 +1303,81 @@
   }
 }
 
-/* Meio focinho (V5, 22/10): a metade direita do focinho no lugar da seta dos CTAs.
-   viewBox 20 × 38; o nariz é turquesa, a boca segue a cor do texto. No hover, foco ou
-   toque o corpo dá um passinho, o nariz fareja e os bigodes (sf-fio) saem da bochecha. */
-.seta-fios {
-  flex-shrink: 0;
-  width: 0.875em;
-  height: 1em;
-  overflow: visible;
+/* Seta de bigodes (V6.1, 27/10): no lugar do meio focinho. O nariz é a cauda e três
+   bigodes formam a ponta da seta. A cor mistura o turquesa com a cor do texto do botão,
+   então fica legível no botão escuro, no claro e sobre o turquesa. Só transform anima:
+   a caixa do ícone é fixa (1,25 em) e a largura do botão não muda. */
+.seta-bigodes {
+  --sb: var(--fio-cor, color-mix(in oklab, var(--fio, #0fc9bd) 80%, currentColor));
+  width: 1.25em;
+  height: 1.25em;
+  margin-right: -0.1em;
 }
-.meio-focinho {
-  width: 0.74em;
-  height: 1.4em;
-  margin-right: 0.55em;
-}
-.meio-focinho .mf-nariz {
-  fill: #0fc9bd;
-  transform-box: view-box;
-  transform-origin: 2px 24px;
-}
-.meio-focinho .mf-boca {
+.seta-bigodes .sb-fio {
   fill: none;
-  stroke: currentColor;
-  stroke-width: 3;
+  stroke: var(--sb);
+  stroke-width: 1.8;
   stroke-linecap: round;
-  stroke-linejoin: round;
 }
-.meio-focinho .mf-corpo {
+.seta-bigodes .sb-nariz {
+  fill: var(--sb);
+}
+.seta-bigodes * {
   transform-box: view-box;
 }
-.meio-focinho .sf-fio {
-  stroke-width: 2.6;
+.seta-bigodes .sb-corpo {
+  transition: transform 500ms var(--ease-expo);
 }
-.seta-fios-auto .mf-corpo {
-  animation: fios-passo 4.5s var(--ease-expo) 2.4s infinite;
+.seta-bigodes .sb-nariz {
+  transform-origin: 5px 12px;
 }
-.seta-fios-auto .mf-nariz {
-  animation: mf-fareja 4.5s ease-in-out 2.4s infinite;
+.seta-bigodes .sb-cima,
+.seta-bigodes .sb-baixo {
+  transform-origin: 20.4px 12px;
 }
-.com-fios:is(:hover, :focus-visible, :active) .mf-corpo,
-.group:is(:hover, :focus-visible) .com-fios .mf-corpo {
-  animation: fios-passo-hover 1100ms var(--ease-expo) both;
+.com-fios:is(:hover, :focus-visible, :active) .sb-corpo,
+.group:is(:hover, :focus-visible) .com-fios .sb-corpo {
+  transform: translateX(2px);
 }
-.com-fios:is(:hover, :focus-visible, :active) .mf-nariz,
-.group:is(:hover, :focus-visible) .com-fios .mf-nariz {
-  animation: mf-fareja-hover 1100ms ease-in-out both;
+.com-fios:is(:hover, :focus-visible, :active) .sb-nariz,
+.group:is(:hover, :focus-visible) .com-fios .sb-nariz {
+  animation: sb-fareja 1100ms ease-in-out both;
 }
-@keyframes fios-passo {
+.com-fios:is(:hover, :focus-visible, :active) .sb-cima,
+.group:is(:hover, :focus-visible) .com-fios .sb-cima {
+  animation: sb-vibra 1100ms ease-in-out both;
+}
+.com-fios:is(:hover, :focus-visible, :active) .sb-baixo,
+.group:is(:hover, :focus-visible) .com-fios .sb-baixo {
+  animation: sb-vibra 1100ms ease-in-out both reverse;
+}
+.seta-fios-auto .sb-nariz {
+  animation: sb-fareja-auto 4.5s ease-in-out 2.4s infinite;
+}
+@keyframes sb-fareja {
   0%,
-  55%,
+  50%,
   100% {
     transform: none;
   }
-  64% {
-    transform: translateX(1.5px);
+  14% {
+    transform: scale(1.16, 0.86);
   }
-  76% {
+  26% {
     transform: none;
   }
-}
-@keyframes fios-passo-hover {
-  0% {
-    transform: none;
-  }
-  30% {
-    transform: translateX(2px);
-  }
-  100% {
-    transform: translateX(1px);
+  38% {
+    transform: scale(1.1, 0.9);
   }
 }
-@keyframes mf-fareja {
+@keyframes sb-fareja-auto {
   0%,
   55%,
   100% {
     transform: none;
   }
   59% {
-    transform: scale(1.12, 0.88);
+    transform: scale(1.14, 0.88);
   }
   63% {
     transform: none;
@@ -1392,22 +1389,16 @@
     transform: none;
   }
 }
-@keyframes mf-fareja-hover {
+@keyframes sb-vibra {
   0%,
   100% {
     transform: none;
   }
-  12% {
-    transform: scale(1.14, 0.86);
+  25% {
+    transform: rotate(-5deg);
   }
-  24% {
-    transform: none;
-  }
-  36% {
-    transform: scale(1.1, 0.9);
-  }
-  48% {
-    transform: none;
+  55% {
+    transform: rotate(2deg);
   }
 }
 /* Sem o focinho: os fios ficam soltos na margem direita do botão ("Entrar"). */
@@ -1419,11 +1410,11 @@
   height: 0.85em;
   margin: -0.425em 0 0;
 }
-/* Botão redondo só com o meio focinho (cards de produto, menu): um pouco maior. */
+/* Botão redondo só com a seta de bigodes (cards de produto, menu). */
 .meio-focinho-redondo {
-  width: 0.84em;
-  height: 1.6em;
-  margin: 0 0.35em 0 0.25em;
+  width: 1.15em;
+  height: 1.15em;
+  margin: 0;
 }
 
 /* A seta lucide dos botões redondos anda junto com os fios. */
@@ -1462,8 +1453,7 @@
   .group:is(:hover, :focus-visible) .com-fios :is(.fios path, .sf-fio) {
     opacity: 1;
   }
-  .meio-focinho .mf-corpo,
-  .meio-focinho .mf-nariz,
+  .seta-bigodes *,
   .com-fios .seta {
     animation: none !important;
     transition: none;

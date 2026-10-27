@@ -1,8 +1,8 @@
 /**
  * Topo do Tipe Staff, na montagem do Staff app da sunday (referência só visual): a foto
  * vertical da garçonete com cantos arredondados e três avisos de vidro escuro translúcido
- * empilhados no alto, saindo pela borda de cima. A foto é ancorada embaixo para o rosto
- * ficar abaixo da pilha, nunca sob ela. Entram um a um; com movimento
+ * empilhados à direita, na altura do balcão, saindo pela borda direita. O rosto (no alto,
+ * à esquerda) e o celular ficam sempre fora da pilha. Entram um a um; com movimento
  * reduzido aparecem parados. Valores demonstrativos, ditos na legenda.
  */
 import type { CSSProperties, ReactNode } from "react";

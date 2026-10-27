@@ -71,7 +71,7 @@ export function Experimente() {
           />
           <p
             aria-hidden
-            className="pointer-events-none absolute -right-4 top-24 hidden rotate-[8deg] font-display text-xl font-medium text-brand-strong lg:-right-28 lg:block"
+            className="pointer-events-none absolute -right-4 top-24 hidden rotate-[8deg] whitespace-nowrap font-display text-xl font-medium text-brand-strong lg:-right-16 lg:block 2xl:-right-28"
           >
             toque no QR!
             <svg

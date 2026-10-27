@@ -76,6 +76,11 @@ export function CartaoInterface({
         <Check className="h-4 w-4" strokeWidth={3} />
         {cartao.rodape}
       </p>
+      {cartao.ilustracao && (
+        <p className="mt-2 text-center text-[0.7rem] text-[oklch(0.5_0_0)]">
+          Ilustração · em breve
+        </p>
+      )}
     </div>
   );
 }
