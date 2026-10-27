@@ -1737,3 +1737,85 @@
     clip-path: none !important;
   }
 }
+
+/* Rodapé E "Focinho vivo" (V6): focinho grande no palco turquesa. Vira um pouco na
+   direção do cursor (--rx/--ry, ligados em LandingChrome) e abre os bigodes quando o
+   cursor ou o foco chegam aos botões (data-aberto). */
+.focinho[data-tom="palco"] {
+  --focinho-fio: #021e34;
+}
+.focinho[data-tom="palco"] .focinho-nariz {
+  fill: #fff;
+  stroke: #021e34;
+  stroke-width: 2.2;
+  stroke-linejoin: round;
+}
+.rodape-focinho {
+  transform: perspective(900px) translate3d(calc(var(--rx, 0) * 14px), calc(var(--ry, 0) * 8px), 0)
+    rotateY(calc(var(--rx, 0) * 16deg)) rotateX(calc(var(--ry, 0) * -10deg));
+  transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.rodape-palco[data-aberto] .focinho-leque {
+  transform: rotate(calc(var(--s) * var(--h) * 12deg));
+}
+.rodape-palco[data-aberto] .focinho-nariz {
+  animation-duration: 700ms, 1.2s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rodape-focinho {
+    transform: none;
+    transition: none;
+  }
+}
+
+/* Histórias por papel (V6, carrossel 2): foto em fusão, texto sobe, chip com o tempo. */
+.hist-foto {
+  opacity: 0;
+  transform: scale(1.06);
+  transition:
+    opacity 800ms ease,
+    transform 6.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hist-foto[data-on] {
+  opacity: 1;
+  transform: none;
+}
+.hist-texto {
+  animation: hist-entra 600ms cubic-bezier(0.22, 1, 0.36, 1) both 150ms;
+}
+@keyframes hist-entra {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.hist-progresso {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 3px;
+  background: #0fc9bd;
+  transform-origin: left;
+  transform: scaleX(0);
+}
+.hist-progresso[data-anda] {
+  animation: hist-tempo var(--ms, 6s) linear forwards;
+}
+@keyframes hist-tempo {
+  to {
+    transform: scaleX(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hist-foto {
+    transition: none;
+    transform: none;
+  }
+  .hist-texto,
+  .hist-progresso[data-anda] {
+    animation: none;
+  }
+}

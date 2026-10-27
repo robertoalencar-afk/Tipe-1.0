@@ -80,7 +80,7 @@ export function Secao({
       id={id}
       data-tema={tema}
       aria-label={ariaLabel}
-      className={cn("relative scroll-mt-16 py-16 sm:py-24 lg:py-32", className)}
+      className={cn("relative scroll-mt-16 py-14 sm:py-20 lg:py-28", className)}
     >
       {children}
     </section>

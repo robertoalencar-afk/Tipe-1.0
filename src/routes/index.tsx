@@ -8,7 +8,6 @@ import { LineReveal, Reveal } from "@/components/tipe/landing/motion";
 import { IntegracoesHome, PlanosHome, ProdutosHome } from "@/components/tipe/site/Home";
 import { AberturaMesa } from "@/components/tipe/site/AberturaMesa";
 import { CarrosselHistorias } from "@/components/tipe/site/CarrosselHistorias";
-import { CtaVibrante } from "@/components/tipe/site/CtaVibrante";
 import { FluxoPagamento } from "@/components/tipe/site/FluxoPagamento";
 import { ImpactoECalculadora } from "@/components/tipe/site/CalculadoraGiro";
 import { StaffHome } from "@/components/tipe/site/StaffHome";
@@ -54,7 +53,6 @@ function LandingPage() {
       <ImpactoECalculadora />
       <PlanosHome />
       <Duvidas />
-      <CtaVibrante />
     </SitePage>
   );
 }
@@ -108,7 +106,7 @@ const FAQ: { label: string; faqs: [string, string][] }[] = [
       ],
       [
         "De onde vêm os números da página?",
-        "Os números de \"O impacto de cada minuto\" são resultados publicados pelo Sunday, empresa de pagamento na mesa, com o link de cada fonte ao lado. Não são resultados da Tipe, que está em pré-lançamento. A calculadora usa os dados que você preenche e mostra a conta e as premissas de cada cenário.",
+        'Os números de "O impacto de cada minuto" são resultados publicados pelo Sunday, empresa de pagamento na mesa, com o link de cada fonte ao lado. Não são resultados da Tipe, que está em pré-lançamento. A calculadora usa os dados que você preenche e mostra a conta e as premissas de cada cenário.',
       ],
       [
         "E se um pagamento sair errado?",
@@ -162,4 +160,3 @@ function Duvidas() {
     </section>
   );
 }
-

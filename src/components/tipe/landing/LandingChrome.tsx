@@ -375,10 +375,11 @@ function telefoneWhatsapp() {
 }
 
 /**
- * Rodapé: o fim da página como continuação da direção de arte. Fundo navy da marca,
- * o "Pague. Sem esperar." com o focinho que se desenha ao entrar na tela, o CTA
- * final, os links em quatro grupos e o logotipo grande, cujas letras sobem e as
- * orelhas espiam ao aparecer.
+ * Rodapé E "Focinho vivo" (escolhido pelo Roberto em 26/10). O CTA final e o rodapé
+ * viram uma peça só: um palco turquesa com o focinho grande da lebre, que fareja
+ * sozinho, vira um pouco na direção do cursor e abre os bigodes quando o cursor ou o
+ * foco chegam aos botões. Embaixo, o corpo navy com os links em quatro grupos e a
+ * assinatura com o logotipo animado e a linha legal. Com movimento reduzido nada vira.
  */
 export function LandingFooter() {
   const { pathname } = useLocation();
@@ -388,70 +389,54 @@ export function LandingFooter() {
   const a =
     "rodape-link inline-flex min-h-9 items-center text-[0.97rem] text-white/75 transition-colors duration-300 hover:text-white focus-visible:text-white";
   const zap = whatsappLink(WHATSAPP_SITE_MESSAGE);
+  const palco = usePalcoFocinho();
   return (
-    <footer
-      data-tema="escuro"
-      className="rodape relative isolate overflow-hidden bg-[#021E34] text-white"
-    >
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -right-40 -top-56 -z-10 h-[38rem] w-[38rem] rounded-full bg-[radial-gradient(closest-side,rgb(15_201_189/0.28),transparent)]"
-      />
-      <div
-        aria-hidden
-        className="pointer-events-none absolute -bottom-72 -left-40 -z-10 h-[36rem] w-[36rem] rounded-full bg-[radial-gradient(closest-side,rgb(15_201_189/0.14),transparent)]"
-      />
-
-      <div className="container-page pt-20 sm:pt-28">
-        <div className="grid gap-10 lg:grid-cols-[1.3fr_1fr] lg:items-end">
-          <div>
-            <p className="inline-flex items-center gap-2.5 rounded-full bg-white/[0.07] px-4 py-1.5 text-sm text-white/85 ring-1 ring-inset ring-white/15">
-              <span aria-hidden className="rodape-vivo h-2 w-2 rounded-full bg-[#0FC9BD]" />
-              Pré-lançamento · {TRIAL_DAYS} dias grátis
-            </p>
-            <p className="com-focinho mt-7 font-display text-[clamp(2.9rem,1.4rem+5.4vw,6.6rem)] font-normal leading-[0.92] tracking-[-0.055em]">
-              Pague.
-              <br />
-              <span className="relative inline-block whitespace-nowrap">
-                Sem esperar.
-                <Focinho
-                  tom="escuro"
-                  quandoVisivel
-                  delay={350}
-                  className="absolute left-[calc(100%+0.12em)] top-[0.2em] h-[0.5em] w-[0.94em]"
-                />
-              </span>
-            </p>
-            <p className="mt-6 max-w-md text-[1.05rem] leading-relaxed text-white/70 sm:text-lg">
-              Pagamento na mesa por QR Code para restaurantes, bares e cafeterias. Sem aplicativo e
-              sem esperar a maquininha.
-            </p>
-          </div>
-          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap lg:justify-end">
-            {!noTeste && (
-              <a
-                href="/teste-gratis"
-                className="com-fios inline-flex min-h-14 items-center justify-center gap-2.5 rounded-full bg-white pl-8 pr-7 text-lg font-medium text-[#021E34] transition-colors hover:bg-[#dff8f6]"
-              >
-                Começar o teste grátis
-                <SetaFios />
-              </a>
-            )}
-            <a
-              href={zap}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex min-h-14 items-center justify-center gap-2.5 rounded-full px-7 text-lg font-medium text-white ring-1 ring-inset ring-white/30 transition-colors hover:bg-white hover:text-[#021E34]"
-            >
-              <MessageCircle aria-hidden className="h-5 w-5" />
-              Falar no WhatsApp
-            </a>
-          </div>
+    <footer data-tema="escuro" className="rodape relative isolate bg-[#021E34] text-white">
+      <section
+        ref={palco}
+        aria-labelledby="rodape-titulo"
+        className="rodape-palco relative overflow-hidden bg-[#0FC9BD] px-5 pb-14 pt-14 text-center text-[#021E34] sm:px-8 sm:pb-20 sm:pt-20"
+      >
+        <div className="rodape-focinho mx-auto w-[min(82vw,30rem)]">
+          <Focinho tom="palco" delay={200} className="block h-auto w-full" />
         </div>
+        <h2
+          id="rodape-titulo"
+          className="mt-6 font-display text-[clamp(3rem,1.6rem+6vw,7.4rem)] font-normal leading-[0.92] tracking-[-0.055em]"
+        >
+          Pague. <br className="sm:hidden" />
+          Sem esperar.
+        </h2>
+        <p className="mx-auto mt-6 max-w-[36ch] text-[1.05rem] leading-relaxed text-[#021E34]/75 sm:text-lg">
+          Pagamento na mesa por QR Code para restaurantes, bares e cafeterias. {TRIAL_DAYS} dias
+          grátis no pré-lançamento.
+        </p>
+        <div className="rodape-ctas mx-auto mt-8 flex max-w-sm flex-col gap-3 sm:max-w-none sm:flex-row sm:justify-center">
+          {!noTeste && (
+            <a
+              href="/teste-gratis"
+              className="com-fios inline-flex min-h-14 items-center justify-center gap-2.5 rounded-full bg-[#021E34] pl-8 pr-7 text-lg font-medium text-white transition-colors hover:bg-[#06304f]"
+            >
+              Começar o teste grátis
+              <SetaFios />
+            </a>
+          )}
+          <a
+            href={zap}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex min-h-14 items-center justify-center gap-2.5 rounded-full px-7 text-lg font-medium text-[#021E34] ring-[1.5px] ring-inset ring-[#021E34]/40 transition-colors hover:bg-white/30"
+          >
+            <MessageCircle aria-hidden className="h-5 w-5" />
+            Falar no WhatsApp
+          </a>
+        </div>
+      </section>
 
+      <div className="container-page pt-14 sm:pt-20">
         <nav
           aria-label="Rodapé"
-          className="mt-16 grid grid-cols-2 gap-x-6 gap-y-12 border-t border-white/12 pt-12 sm:mt-20 md:grid-cols-4 md:gap-x-10"
+          className="grid grid-cols-2 gap-x-6 gap-y-10 md:grid-cols-4 md:gap-x-10"
         >
           <div>
             <p className={grupo}>Produtos</p>
@@ -576,15 +561,15 @@ export function LandingFooter() {
         </nav>
       </div>
 
-      <div aria-hidden className="container-page mt-16 sm:mt-24">
-        <LogoTipe tom="escuro" animado titulo="" className="block h-auto w-full" />
-      </div>
-
-      <div className="mt-8 border-t border-white/12 sm:mt-12">
-        <div className="container-page flex flex-col gap-3 py-6 text-xs leading-relaxed text-white/60 sm:flex-row sm:items-center sm:justify-between">
-          <p>
-            © {new Date().getFullYear()} {COMPANY.legalName} · CNPJ {COMPANY.cnpj} · {COMPANY.city}
-          </p>
+      <div className="container-page">
+        <div className="mt-14 flex flex-col gap-5 border-t border-white/12 py-7 text-xs leading-relaxed text-white/60 sm:mt-20 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
+            <LogoTipe tom="escuro" titulo="Tipe" className="block h-auto w-24 shrink-0" />
+            <p>
+              © {new Date().getFullYear()} {COMPANY.legalName} · CNPJ {COMPANY.cnpj} ·{" "}
+              {COMPANY.city}
+            </p>
+          </div>
           <a
             href="#top"
             className="inline-flex min-h-9 items-center gap-1.5 self-start text-white/70 hover:text-white sm:self-auto"
@@ -596,4 +581,52 @@ export function LandingFooter() {
       </div>
     </footer>
   );
+}
+
+/**
+ * Liga o palco do rodapé: --rx/--ry (-1 a 1) seguem o cursor para o focinho virar um
+ * pouco; data-aberto quando o cursor ou o foco estão nos botões (bigodes abertos).
+ */
+function usePalcoFocinho() {
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const reduz = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const ctas = el.querySelector(".rodape-ctas");
+    let quadro = 0;
+    const mover = (e: PointerEvent) => {
+      if (reduz || quadro) return;
+      quadro = requestAnimationFrame(() => {
+        quadro = 0;
+        const r = el.getBoundingClientRect();
+        const x = (e.clientX - (r.left + r.width / 2)) / (r.width / 2);
+        const y = (e.clientY - (r.top + r.height * 0.3)) / (r.height / 2);
+        el.style.setProperty("--rx", Math.max(-1, Math.min(1, x)).toFixed(3));
+        el.style.setProperty("--ry", Math.max(-1, Math.min(1, y)).toFixed(3));
+      });
+    };
+    const sair = () => {
+      el.style.setProperty("--rx", "0");
+      el.style.setProperty("--ry", "0");
+    };
+    const abrir = () => el.setAttribute("data-aberto", "");
+    const fechar = () => el.removeAttribute("data-aberto");
+    el.addEventListener("pointermove", mover);
+    el.addEventListener("pointerleave", sair);
+    ctas?.addEventListener("pointerover", abrir);
+    ctas?.addEventListener("pointerout", fechar);
+    ctas?.addEventListener("focusin", abrir);
+    ctas?.addEventListener("focusout", fechar);
+    return () => {
+      cancelAnimationFrame(quadro);
+      el.removeEventListener("pointermove", mover);
+      el.removeEventListener("pointerleave", sair);
+      ctas?.removeEventListener("pointerover", abrir);
+      ctas?.removeEventListener("pointerout", fechar);
+      ctas?.removeEventListener("focusin", abrir);
+      ctas?.removeEventListener("focusout", fechar);
+    };
+  }, []);
+  return ref;
 }

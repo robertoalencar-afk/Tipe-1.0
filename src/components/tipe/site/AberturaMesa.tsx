@@ -147,7 +147,7 @@ export function AberturaMesa() {
 
   return (
     <section data-tema="claro" className="relative -mt-16 overflow-hidden pt-16">
-      <div className="container-page grid items-center gap-10 pb-14 pt-8 sm:pt-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)] lg:gap-8 lg:pb-20 lg:pt-16">
+      <div className="container-page grid items-center gap-10 pb-14 pt-8 sm:pt-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)] lg:gap-8 lg:pb-12 lg:pt-16">
         <div className="text-center lg:text-left">
           <Palavras
             as="p"

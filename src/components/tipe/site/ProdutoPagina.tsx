@@ -21,6 +21,7 @@ import { AbasProduto, type AbaProduto } from "./produto/AbasProduto";
 import { CelularLebre, ConversaLebre, PainelLebre, type ConversaId } from "./produto/Lebre";
 import { CelularReal, TabletSalao } from "./produto/TelaReal";
 import { TopoStaff } from "./produto/TopoStaff";
+import { BaixaAutomatica } from "./produto/BaixaAutomatica";
 
 export function SeloStatus({
   status,
@@ -272,7 +273,13 @@ function Banda({ p }: { p: Produto }) {
             )}
           </Reveal>
           {/* O suporte de mesa só faz sentido ao lado da conta do cliente, não da Lebre */}
-          <Reveal className={cn("mb-10 w-[46%] shrink-0", p.banda.lebre && "hidden")} delay={300}>
+          <Reveal
+            className={cn(
+              "mb-10 w-[46%] shrink-0",
+              (p.banda.lebre || (p.banda.telaReal ?? "conta") !== "conta") && "hidden",
+            )}
+            delay={300}
+          >
             <div className="rotate-[-4deg]">
               <img
                 src={totemMesa}
@@ -381,12 +388,16 @@ function FluxoReal({ p }: { p: Produto }) {
   );
 }
 
-/** Só no Tipe Pay: a história da mesa (Mesa Viva) e o simulador real para tocar. */
+/**
+ * Só no Tipe Pay (V6): a história da mesa (Mesa Viva), o lado do restaurante (baixa
+ * automática e pagamentos do caixa) e o simulador real para tocar.
+ */
 function DemonstracaoPay({ p }: { p: Produto }) {
   if (p.slug !== "pay") return null;
   return (
     <>
       <MesaViva />
+      <BaixaAutomatica p={p} />
       <Experimente />
     </>
   );
@@ -472,9 +483,14 @@ export function ProdutoPagina({ p }: { p: Produto }) {
       <Topo p={p} />
       <Abas p={p} />
       <Banda p={p} />
-      <Cenario p={p} />
-      <FluxoReal p={p} />
-      <DemonstracaoPay p={p} />
+      {p.slug === "pay" ? (
+        <DemonstracaoPay p={p} />
+      ) : (
+        <>
+          <Cenario p={p} />
+          <FluxoReal p={p} />
+        </>
+      )}
       <Recursos p={p} />
       <Duvidas p={p} />
       <Relacionados p={p} />

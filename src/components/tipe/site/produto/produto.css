@@ -280,3 +280,42 @@
     animation: none;
   }
 }
+
+/* Tipe Pay, lado do restaurante (V6): salão antes/depois, aviso do Pix e a Mesa 12 marcada. */
+.baixa-depois {
+  opacity: 0;
+  transition: opacity 600ms ease;
+}
+.baixa-depois[data-on] {
+  opacity: 1;
+}
+.baixa-alvo {
+  box-shadow: 0 0 0 3px #0fc9bd, 0 0 0 9px rgb(15 201 189 / 0.22);
+  opacity: 0;
+  transform: scale(1.06);
+  transition:
+    opacity 350ms ease,
+    transform 450ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.baixa-alvo[data-on] {
+  opacity: 1;
+  transform: none;
+}
+.baixa-aviso {
+  opacity: 0;
+  transform: translate3d(0, -12px, 0) scale(0.97);
+  transition:
+    opacity 350ms ease,
+    transform 450ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.baixa-aviso[data-on] {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .baixa-depois,
+  .baixa-alvo,
+  .baixa-aviso {
+    transition: none;
+  }
+}

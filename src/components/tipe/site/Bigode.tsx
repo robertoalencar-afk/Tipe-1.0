@@ -66,8 +66,8 @@ export function Focinho({
   className?: string;
   /** Atraso (ms) para os bigodes se desenharem na entrada. */
   delay?: number;
-  /** "claro": bigodes navy (fundo claro). "escuro": bigodes brancos. "auto": segue o tema da página. */
-  tom?: "auto" | "claro" | "escuro";
+  /** "claro": bigodes navy (fundo claro). "escuro": bigodes brancos. "palco": fundo turquesa (bigodes navy, nariz branco). "auto": segue o tema da página. */
+  tom?: "auto" | "claro" | "escuro" | "palco";
   /** Só desenha os bigodes quando o focinho entra na tela (para usar fora da primeira dobra). */
   quandoVisivel?: boolean;
   /** @deprecated O focinho agora se mexe sozinho; mantido só para compatibilidade. */

@@ -176,11 +176,11 @@ export const PRODUTOS: Produto[] = [
       },
     ],
     banda: {
-      titulo: "Aponte a câmera. A conta está ali.",
+      titulo: "Pix, Apple Pay ou Google Pay. Pago em segundos.",
       texto:
-        "Cada mesa tem o seu QR Code no suporte da Tipe. Os pedidos lançados aparecem na conta em tempo real e os itens pagos saem na hora para todo mundo.",
-      telaReal: "conta",
-      altTela: "Conta da Mesa 12 do Maré Alta aberta no celular, com o total de R$ 356,40",
+        "O cliente escolhe como pagar no próprio celular. O Pix já sai com o código pronto para copiar, e a confirmação aparece sozinha na tela.",
+      telaReal: "pix",
+      altTela: "Tela de pagamento por Pix da Mesa 12 do Maré Alta, com o código para copiar",
     },
     fatos: [
       { v: "0", t: "aplicativos para baixar" },
