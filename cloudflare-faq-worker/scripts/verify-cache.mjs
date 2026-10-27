@@ -68,6 +68,13 @@ async function gatewayLog(logId) {
 
 console.log(`Verificando ${baseUrl}/faq/refund (chamadas sequenciais)`);
 const first = await callWorker(1);
+// O cache do AI Gateway é gravado de forma assíncrona e é volátil: uma pausa curta
+// evita que a segunda chamada chegue antes da gravação. Ajuste com VERIFY_DELAY_MS.
+const delayMs = Number(process.env.VERIFY_DELAY_MS ?? 3000);
+if (delayMs > 0) {
+  console.log(`\nAguardando ${delayMs} ms antes da segunda chamada...`);
+  await new Promise((r) => setTimeout(r, delayMs));
+}
 const second = await callWorker(2); // só começa depois que a primeira terminou
 
 console.log("\nResultados");
