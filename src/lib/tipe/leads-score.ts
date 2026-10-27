@@ -1,14 +1,14 @@
 // Pontuação simples de prioridade do lead (0 a 100).
 export type LeadScoreInput = {
-  peak_queue?: string | null;
-  close_time?: string | null;
-  tables_range?: string | null;
-  contact_role?: string | null;
-  city?: string | null;
-  stage2_completed_at?: string | null;
-  referred_by_code?: string | null;
-  discovery_source?: string | null;
-  has_pagarme?: string | null;
+  peak_queue?: string | null | undefined;
+  close_time?: string | null | undefined;
+  tables_range?: string | null | undefined;
+  contact_role?: string | null | undefined;
+  city?: string | null | undefined;
+  stage2_completed_at?: string | null | undefined;
+  referred_by_code?: string | null | undefined;
+  discovery_source?: string | null | undefined;
+  has_pagarme?: string | null | undefined;
 };
 
 const FORTALEZA_RM = ["fortaleza", "caucaia", "maracanau", "maranguape", "pacatuba", "aquiraz", "eusebio", "itaitinga", "horizonte", "pacajus", "guaiuba", "cascavel", "chorozinho", "pindoretama", "sao goncalo do amarante", "paracuru", "paraipaba", "trairi", "sao luis do curu"];

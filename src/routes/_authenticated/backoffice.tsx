@@ -499,7 +499,7 @@ function Backoffice() {
                         className="mb-4 flex h-10 items-center justify-center rounded-full bg-foreground text-sm font-medium text-background"
                       >
                         Abrir lista de espera completa
-                      </Link>
+                      </Link>\n                      <Link to="/crm" className="mb-4 flex h-10 items-center justify-center rounded-full border border-border text-sm font-medium">Abrir CRM comercial</Link>
                       {overview.leads.length === 0 ? (
                         <Empty text="Nenhum contato recebido." />
                       ) : (
