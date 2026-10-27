@@ -73,6 +73,23 @@ jobs:
           echo "Banco: staging (dados de teste, sem pagamentos reais, autenticação de staging ainda requer configuração)." >> "$GITHUB_STEP_SUMMARY"
           echo "Domínio principal tipe.digital: não alterado." >> "$GITHUB_STEP_SUMMARY"
           echo "Login: código de entrada da main de 27/10, sem Lovable." >> "$GITHUB_STEP_SUMMARY"
+      - name: Configurar acesso administrativo somente no staging (opcional)
+        if: ${{ secrets.SUPABASE_STAGING_SECRET_KEY != '' }}
+        shell: bash
+        env:
+          SUPABASE_STAGING_SECRET_KEY: ${{ secrets.SUPABASE_STAGING_SECRET_KEY }}
+        run: |
+          set -euo pipefail
+          # Recusar chaves que não funcionem no projeto de testes; nunca usar a de produção.
+          status="$(curl --silent --show-error --max-time 20 --output /dev/null --write-out '%{http_code}' \
+            -H "apikey: $SUPABASE_STAGING_SECRET_KEY" \
+            "https://nduqqnevstlidmxbghcj.supabase.co/rest/v1/restaurants?select=id&limit=0")"
+          if [[ "$status" != "200" ]]; then
+            echo "::error::Chave administrativa do staging não validada (HTTP $status). Nenhuma credencial instalada."
+            exit 1
+          fi
+          node -e "process.stdout.write(JSON.stringify({SUPABASE_SERVICE_ROLE_KEY:process.env.SUPABASE_STAGING_SECRET_KEY}))" | bunx wrangler secret bulk --config .output/server/wrangler.json
+          echo "Servidor do staging: segredo administrativo instalado sem expor valores ou vincular o domínio." >> "$GITHUB_STEP_SUMMARY"
       - name: Testar resposta HTTP da preview
         shell: bash
         run: |
