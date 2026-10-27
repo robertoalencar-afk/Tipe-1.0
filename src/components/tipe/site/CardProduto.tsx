@@ -12,6 +12,7 @@ import avatarLebre from "@/assets/lebre/avatar-ola.webp";
 import { SetaFios } from "./Bigode";
 import { Celular, Janela, Tablet } from "./Dispositivo";
 import type { Produto } from "./produtos";
+import { seloDoProduto, useEstadosLancamento } from "./useLancamento";
 
 export const LUZ: Record<string, string> = {
   pay: "#0FC9BD",
@@ -176,10 +177,11 @@ function Vitrine({ p }: { p: Produto }) {
 
 export function CardProduto({ p, className }: { p: Produto; className?: string }) {
   const cor = LUZ[p.slug] ?? "#0FC9BD";
+  const selo = seloDoProduto(p, useEstadosLancamento());
   return (
     <a
       href={`/produtos/${p.slug}`}
-      aria-label={`${p.nome}${p.status === "em-breve" ? " (em breve)" : ""}: ${p.resumo}`}
+      aria-label={`${p.nome}${selo ? ` (${selo.toLowerCase()})` : ""}: ${p.resumo}`}
       className={cn(
         "group relative flex flex-col overflow-hidden rounded-[1.75rem] bg-[oklch(0.16_0_0)] text-white ring-1 ring-white/[0.07] transition-[transform,box-shadow] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 hover:ring-white/15 focus-visible:-translate-y-1",
         className,
@@ -190,9 +192,9 @@ export function CardProduto({ p, className }: { p: Produto; className?: string }
         <p className="flex h-7 items-center gap-2 text-[0.95rem] text-white/65">
           <span className="h-2 w-2 rounded-full" style={{ background: cor }} />
           {p.nome}
-          {p.status === "em-breve" && (
+          {selo && (
             <span className="rounded-full border border-white/25 px-2 py-0.5 text-[11px] text-white/80">
-              Em breve
+              {selo}
             </span>
           )}
         </p>

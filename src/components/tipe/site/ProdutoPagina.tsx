@@ -23,6 +23,8 @@ import { CelularReal, TabletSalao } from "./produto/TelaReal";
 import { TopoStaff } from "./produto/TopoStaff";
 import { Tablet } from "./Dispositivo";
 import { BaixaAutomatica } from "./produto/BaixaAutomatica";
+import { PaginaOrder } from "./order/PaginaOrder";
+import { LANCAMENTO_PADRAO, type EstadoLancamento } from "@/lib/tipe/launch-state";
 
 export function SeloStatus({
   status,
@@ -461,7 +463,11 @@ function Recursos({ p }: { p: Produto }) {
 }
 
 function Duvidas({ p }: { p: Produto }) {
-  const faq = duvidasDe(p);
+  return <ListaDuvidas faq={duvidasDe(p)} />;
+}
+
+/** Lista de dúvidas no formato da página de produto (também usada pela página do Tipe Order). */
+export function ListaDuvidas({ faq }: { faq: [string, string][] }) {
   if (!faq.length) return null;
   return (
     <Secao tema="claro" className="!pt-0">
@@ -484,7 +490,7 @@ function Duvidas({ p }: { p: Produto }) {
 }
 
 /** Card de produto no formato da sunday: nome e promessa em cima, foto com a tela real embaixo. */
-function Relacionados({ p }: { p: Produto }) {
+export function Relacionados({ p }: { p: Produto }) {
   const outros = PRODUTOS.filter((o) => o.slug !== p.slug).slice(0, 6);
   return (
     <Secao tema="escuro">
@@ -496,7 +502,8 @@ function Relacionados({ p }: { p: Produto }) {
   );
 }
 
-export function ProdutoPagina({ p }: { p: Produto }) {
+export function ProdutoPagina({ p, estado }: { p: Produto; estado?: EstadoLancamento | null }) {
+  if (p.slug === "order") return <PaginaOrder p={p} estado={estado ?? LANCAMENTO_PADRAO["order"] ?? "em-desenvolvimento"} />;
   return (
     <>
       <Topo p={p} />

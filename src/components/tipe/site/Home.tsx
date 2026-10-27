@@ -4,6 +4,7 @@
  * integrações no escuro e planos.
  */
 import { useRef, type CSSProperties, type ReactNode } from "react";
+import { seloDoProduto, useEstadosLancamento } from "./useLancamento";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { Palavras, Reveal, useVelocidadeFaixa } from "@/components/tipe/landing/motion";
 import { TRIAL_DAYS } from "@/lib/tipe/plans";
@@ -240,12 +241,14 @@ export function PessoasHome() {
 const ABAS = ["pay", "order", "staff", "kitchen", "restaurant", "ai"] as const;
 
 export function AbasHome() {
+  const lancamento = useEstadosLancamento();
   const itens: ItemAba[] = ABAS.map((slug) => {
     const p = produtoPorSlug(slug)!;
     const tela = p.beneficios.find((b) => b.tela)?.tela;
+    const selo = seloDoProduto(p, lancamento);
     return {
       id: slug,
-      rotulo: p.nome + (p.status === "em-breve" ? " · em breve" : ""),
+      rotulo: p.nome + (selo ? ` · ${selo.toLowerCase()}` : ""),
       titulo: p.titulo,
       texto: p.texto,
       foto: p.foto,

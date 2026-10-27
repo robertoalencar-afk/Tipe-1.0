@@ -260,7 +260,7 @@ export const PRODUTOS: Produto[] = [
     cenario: {
       titulo: "Pediu, comeu, pagou. Na mesma mesa.",
       texto:
-        "O pedido pelo celular está em fase final. Até lá, a conta e o pagamento já funcionam pelo mesmo QR Code.",
+        "O pedido pelo celular está em desenvolvimento. Enquanto isso, a conta e o pagamento já funcionam pelo mesmo QR Code.",
       itens: [
         {
           foto: "cena-amigos",
@@ -270,14 +270,14 @@ export const PRODUTOS: Produto[] = [
         {
           foto: "cena-bartender",
           posicao: "50% 35%",
-          legenda: "No bar, o drinque sai na ordem em que foi pedido.",
+          legenda: "No balcão do bar, o pedido chega escrito, sem papel.",
         },
       ],
     },
     rotulo: "Tipe Order",
-    titulo: "O pedido sai da mesa sem esperar o garçom.",
+    titulo: "Peça sem esperar.",
     texto:
-      "O mesmo QR Code que mostra a conta abre o cardápio. O cliente escolhe, pede e acompanha; o pedido vai para a cozinha e entra na conta da mesa.",
+      "O mesmo QR Code da conta abre o cardápio. O cliente escolhe, pede pelo celular e o pedido vai para a cozinha e entra na conta da mesa. Módulo adicional do Tipe Pay.",
     cartao: {
       titulo: "Mesa 7 · novo pedido",
       linhas: [
@@ -288,7 +288,7 @@ export const PRODUTOS: Produto[] = [
     },
     beneficios: [
       {
-        t: "Cardápio com fotos",
+        t: "Cardápio no celular",
         d: "Sempre atualizado, sem reimprimir nada.",
         foto: "cena-familia",
         posicao: "50% 40%",
@@ -319,13 +319,12 @@ export const PRODUTOS: Produto[] = [
     fatos: [
       { v: "1", t: "QR Code para pedir e pagar" },
       { v: "0", t: "aplicativos para baixar" },
-      { v: "Ao vivo", t: "o pedido aparece na conta da mesa" },
     ],
     recursos: [
       {
         icone: ClipboardList,
         t: "Cardápio do restaurante",
-        d: "Categorias, fotos e observações por item.",
+        d: "Categorias, busca e observação por item.",
       },
       {
         icone: ChefHat,
@@ -338,10 +337,15 @@ export const PRODUTOS: Produto[] = [
         d: "O que foi pedido entra na conta da mesa, sem digitação.",
       },
     ],
+    // A pergunta "Quando estará disponível?" vem do estado de lançamento (launch-state.ts).
     faq: [
       [
-        "Quando o Tipe Order fica disponível?",
-        "Está em fase final de implantação. Quem entrar no teste grátis recebe a novidade primeiro.",
+        "Preciso do Tipe Pay para usar o Order?",
+        "Sim. O Order é um módulo adicional do Tipe Pay: o mesmo QR Code da mesa abre o cardápio para pedir e a conta para pagar.",
+      ],
+      [
+        "Como o cliente paga o que pediu?",
+        "Pela conta da mesa, como no Tipe Pay: divide se quiser e paga com Apple Pay, Google Pay, Pix ou no estabelecimento. A gorjeta extra é opcional e vem depois, como um segundo pagamento.",
       ],
     ],
   },

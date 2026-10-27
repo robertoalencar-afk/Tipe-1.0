@@ -3,6 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { LebreLimits } from "@/components/tipe/LebreLimits";
+import { LaunchStatesAdmin } from "@/components/tipe/LaunchStatesAdmin";
 import { PlansAdmin } from "@/components/tipe/PlansAdmin";
 import { Layers } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -634,6 +635,7 @@ function Backoffice() {
                     </DataPanel>
                   </div>
                   <LebreLimits />
+                  <LaunchStatesAdmin />
                   <DataPanel
                     title="Equipe de atendimento"
                     subtitle="Visão consolidada de acessos e gorjetas"
