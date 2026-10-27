@@ -75,6 +75,7 @@ import { grantWaiterAccess } from "@/lib/tipe/waiter.functions";
 import { Landmark } from "lucide-react";
 import { DesempenhoGarcons } from "@/components/tipe/DesempenhoGarcons";
 import { OnboardingPdv } from "@/components/tipe/OnboardingPdv";
+import { PrecisaDeVoce } from "@/components/tipe/PrecisaDeVoce";
 import { LebreAssistant } from "@/components/tipe/LebreAssistant";
 import { EmptyState, PageHeader, StatusBadge, type Tone } from "@/components/tipe/ds";
 import { cn } from "@/lib/utils";
@@ -670,7 +671,7 @@ export function RestaurantPanel({
           className="print:hidden"
         />
 
-        {syncErro && (
+        {syncErro && aba !== "inicio" && (
           <div
             role="alert"
             className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-destructive/30 bg-destructive/[0.06] p-4 text-sm"
@@ -684,7 +685,7 @@ export function RestaurantPanel({
             </Button>
           </div>
         )}
-        {d.pdvAlerts[0] && (
+        {d.pdvAlerts[0] && aba !== "inicio" && (
           <div
             role="alert"
             className="mb-4 rounded-2xl border border-warning/50 bg-warning/10 p-4 text-sm"
@@ -692,7 +693,7 @@ export function RestaurantPanel({
             <strong>Atenção no cancelamento:</strong> {d.pdvAlerts[0].detail}
           </div>
         )}
-        {aba !== "caixa" && (
+        {aba !== "caixa" && aba !== "inicio" && (
           <AvisoPendencias slug={slug} enabled={podeConfirmar} onOpen={() => ir("caixa")} />
         )}
         {aba === "inicio" && (
@@ -702,6 +703,24 @@ export function RestaurantPanel({
             emAberto={abertas.reduce((s, m) => s + m.total - m.pago, 0)}
             pendentes={pendentes.length}
             onGo={ir}
+            agora={
+              <PrecisaDeVoce
+                slug={slug}
+                podeConfirmar={podeConfirmar}
+                entrada={{
+                  pendentes,
+                  syncErro: !!syncErro,
+                  alertasCancelamento: d.pdvAlerts,
+                  quitadas: mesas
+                    .filter((m) => m.status === "encerrada" && m.pago >= m.total - 0.005)
+                    .map((m) => ({ number: m.number, total: m.total })),
+                }}
+                ocupado={ocupado}
+                onConfirmar={(id) => agir(id, "confirm")}
+                onGo={ir}
+                onMesa={setMesaAberta}
+              />
+            }
           />
         )}
 

@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cashAction, getOpsData, getReports, saveSettings, setItemStatus } from "@/lib/tipe/admin.functions";
 import { FechamentoDia } from "@/components/tipe/FechamentoDia";
+import { PagamentosRelatorio } from "@/components/tipe/PagamentosRelatorio";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const hora = (s: string) => new Date(s).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
@@ -45,7 +46,7 @@ function Segmentado<T extends string | number>({ value, onChange, options, label
 }
 
 // ---------------- Início ----------------
-export function Inicio({ slug, mesasAbertas, emAberto, pendentes, onGo }: { slug: string; mesasAbertas: number; emAberto: number; pendentes: number; onGo: (s: string) => void }) {
+export function Inicio({ slug, mesasAbertas, emAberto, pendentes, onGo, agora }: { slug: string; mesasAbertas: number; emAberto: number; pendentes: number; onGo: (s: string) => void; agora?: React.ReactNode }) {
   const rep = useReports(slug, 1);
   const vendas = rep.data?.items.reduce((s, i) => s + i.price * i.qty, 0) ?? 0;
   const pedidos = new Set(rep.data?.items.map((i) => `${i.table}-${i.at}`)).size;
@@ -58,6 +59,7 @@ export function Inicio({ slug, mesasAbertas, emAberto, pendentes, onGo }: { slug
   const maxTop = Math.max(1, ...top.map(([, q]) => q));
   return (
     <div className="space-y-4">
+      {agora}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Kpi icon={TrendingUp} label="Vendas lançadas (24h)" value={brl(vendas)} />
         <Kpi icon={LayoutGrid} label="Mesas abertas" value={String(mesasAbertas)} hint={`${brl(emAberto)} em aberto`} />
@@ -279,6 +281,7 @@ export function Relatorios({ slug }: { slug: string }) {
             <Lista t="Por forma de pagamento" rows={porMetodo} />
             <Lista t={`Taxa de serviço recebida: ${brl(taxaTotal)}`} rows={taxaPorGarcom} />
           </div>
+          {d && <PagamentosRelatorio slug={slug} days={days} pagamentos={d.billPayments} garcons={d.waiters} />}
           <Card>
             <h3 className="mb-3 font-display font-semibold">Taxas de serviço removidas: {brl(d?.feeWaivers.reduce((s, w) => s + w.amount, 0) ?? 0)}</h3>
             {!d?.feeWaivers.length ? <p className="text-sm text-muted-foreground">Nenhuma taxa removida no período.</p> : (
