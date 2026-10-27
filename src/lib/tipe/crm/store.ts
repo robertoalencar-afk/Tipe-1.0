@@ -51,7 +51,10 @@ function ensureChannel() {
     emit();
   };
   window.addEventListener("storage", (e) => {
-    if (e.key === KEY) { state = read(); emit(); }
+    if (e.key === KEY) {
+      state = read();
+      emit();
+    }
   });
 }
 

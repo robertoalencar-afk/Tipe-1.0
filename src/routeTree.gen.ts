@@ -29,14 +29,25 @@ import { Route as AuthenticatedBackofficeRouteImport } from './routes/_authentic
 import { Route as AuthenticatedGarcomRouteImport } from './routes/_authenticated/garcom'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as CrmIndexRouteImport } from './routes/crm.index'
+import { Route as CrmAdminRouteImport } from './routes/crm.admin'
 import { Route as CrmAtendimentoRouteImport } from './routes/crm.atendimento'
 import { Route as CrmCalendarioRouteImport } from './routes/crm.calendario'
+import { Route as CrmConfiguracoesRouteImport } from './routes/crm.configuracoes'
 import { Route as CrmEmpresasRouteImport } from './routes/crm.empresas'
 import { Route as CrmEntrarRouteImport } from './routes/crm.entrar'
+import { Route as CrmEquipeRouteImport } from './routes/crm.equipe'
+import { Route as CrmFinanceiroRouteImport } from './routes/crm.financeiro'
 import { Route as CrmFunisRouteImport } from './routes/crm.funis'
+import { Route as CrmGamificacaoRouteImport } from './routes/crm.gamificacao'
 import { Route as CrmLeadsRouteImport } from './routes/crm.leads'
 import { Route as CrmOportunidadesRouteImport } from './routes/crm.oportunidades'
+import { Route as CrmOrganizacoesRouteImport } from './routes/crm.organizacoes'
+import { Route as CrmPerfilRouteImport } from './routes/crm.perfil'
+import { Route as CrmPlanosRouteImport } from './routes/crm.planos'
+import { Route as CrmRelatoriosRouteImport } from './routes/crm.relatorios'
+import { Route as CrmSuporteRouteImport } from './routes/crm.suporte'
 import { Route as CrmTarefasRouteImport } from './routes/crm.tarefas'
+import { Route as CrmWhatsappRouteImport } from './routes/crm.whatsapp'
 import { Route as LegalIndexRouteImport } from './routes/legal.index'
 import { Route as LegalLivroRouteImport } from './routes/legal.$livro'
 import { Route as LegalCompletaRouteImport } from './routes/legal.completa'
@@ -160,6 +171,11 @@ const CrmIndexRoute = CrmIndexRouteImport.update({
   path: '/',
   getParentRoute: () => CrmRoute,
 } as any)
+const CrmAdminRoute = CrmAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => CrmRoute,
+} as any)
 const CrmAtendimentoRoute = CrmAtendimentoRouteImport.update({
   id: '/atendimento',
   path: '/atendimento',
@@ -168,6 +184,11 @@ const CrmAtendimentoRoute = CrmAtendimentoRouteImport.update({
 const CrmCalendarioRoute = CrmCalendarioRouteImport.update({
   id: '/calendario',
   path: '/calendario',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmConfiguracoesRoute = CrmConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
   getParentRoute: () => CrmRoute,
 } as any)
 const CrmEmpresasRoute = CrmEmpresasRouteImport.update({
@@ -180,9 +201,24 @@ const CrmEntrarRoute = CrmEntrarRouteImport.update({
   path: '/entrar',
   getParentRoute: () => CrmRoute,
 } as any)
+const CrmEquipeRoute = CrmEquipeRouteImport.update({
+  id: '/equipe',
+  path: '/equipe',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmFinanceiroRoute = CrmFinanceiroRouteImport.update({
+  id: '/financeiro',
+  path: '/financeiro',
+  getParentRoute: () => CrmRoute,
+} as any)
 const CrmFunisRoute = CrmFunisRouteImport.update({
   id: '/funis',
   path: '/funis',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmGamificacaoRoute = CrmGamificacaoRouteImport.update({
+  id: '/gamificacao',
+  path: '/gamificacao',
   getParentRoute: () => CrmRoute,
 } as any)
 const CrmLeadsRoute = CrmLeadsRouteImport.update({
@@ -195,9 +231,39 @@ const CrmOportunidadesRoute = CrmOportunidadesRouteImport.update({
   path: '/oportunidades',
   getParentRoute: () => CrmRoute,
 } as any)
+const CrmOrganizacoesRoute = CrmOrganizacoesRouteImport.update({
+  id: '/organizacoes',
+  path: '/organizacoes',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmPerfilRoute = CrmPerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmPlanosRoute = CrmPlanosRouteImport.update({
+  id: '/planos',
+  path: '/planos',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmRelatoriosRoute = CrmRelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmSuporteRoute = CrmSuporteRouteImport.update({
+  id: '/suporte',
+  path: '/suporte',
+  getParentRoute: () => CrmRoute,
+} as any)
 const CrmTarefasRoute = CrmTarefasRouteImport.update({
   id: '/tarefas',
   path: '/tarefas',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmWhatsappRoute = CrmWhatsappRouteImport.update({
+  id: '/whatsapp',
+  path: '/whatsapp',
   getParentRoute: () => CrmRoute,
 } as any)
 const LegalIndexRoute = LegalIndexRouteImport.update({
@@ -334,14 +400,25 @@ export interface FileRoutesByFullPath {
   '/backoffice': typeof AuthenticatedBackofficeRoute
   '/garcom': typeof AuthenticatedGarcomRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/crm/admin': typeof CrmAdminRoute
   '/crm/atendimento': typeof CrmAtendimentoRoute
   '/crm/calendario': typeof CrmCalendarioRoute
+  '/crm/configuracoes': typeof CrmConfiguracoesRoute
   '/crm/empresas': typeof CrmEmpresasRoute
   '/crm/entrar': typeof CrmEntrarRoute
+  '/crm/equipe': typeof CrmEquipeRoute
+  '/crm/financeiro': typeof CrmFinanceiroRoute
   '/crm/funis': typeof CrmFunisRoute
+  '/crm/gamificacao': typeof CrmGamificacaoRoute
   '/crm/leads': typeof CrmLeadsRoute
   '/crm/oportunidades': typeof CrmOportunidadesRoute
+  '/crm/organizacoes': typeof CrmOrganizacoesRoute
+  '/crm/perfil': typeof CrmPerfilRoute
+  '/crm/planos': typeof CrmPlanosRoute
+  '/crm/relatorios': typeof CrmRelatoriosRoute
+  '/crm/suporte': typeof CrmSuporteRoute
   '/crm/tarefas': typeof CrmTarefasRoute
+  '/crm/whatsapp': typeof CrmWhatsappRoute
   '/legal/$livro': typeof LegalLivroRoute
   '/legal/completa': typeof LegalCompletaRoute
   '/legal/glossario': typeof LegalGlossarioRoute
@@ -384,14 +461,25 @@ export interface FileRoutesByTo {
   '/backoffice': typeof AuthenticatedBackofficeRoute
   '/garcom': typeof AuthenticatedGarcomRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/crm/admin': typeof CrmAdminRoute
   '/crm/atendimento': typeof CrmAtendimentoRoute
   '/crm/calendario': typeof CrmCalendarioRoute
+  '/crm/configuracoes': typeof CrmConfiguracoesRoute
   '/crm/empresas': typeof CrmEmpresasRoute
   '/crm/entrar': typeof CrmEntrarRoute
+  '/crm/equipe': typeof CrmEquipeRoute
+  '/crm/financeiro': typeof CrmFinanceiroRoute
   '/crm/funis': typeof CrmFunisRoute
+  '/crm/gamificacao': typeof CrmGamificacaoRoute
   '/crm/leads': typeof CrmLeadsRoute
   '/crm/oportunidades': typeof CrmOportunidadesRoute
+  '/crm/organizacoes': typeof CrmOrganizacoesRoute
+  '/crm/perfil': typeof CrmPerfilRoute
+  '/crm/planos': typeof CrmPlanosRoute
+  '/crm/relatorios': typeof CrmRelatoriosRoute
+  '/crm/suporte': typeof CrmSuporteRoute
   '/crm/tarefas': typeof CrmTarefasRoute
+  '/crm/whatsapp': typeof CrmWhatsappRoute
   '/legal/$livro': typeof LegalLivroRoute
   '/legal/completa': typeof LegalCompletaRoute
   '/legal/glossario': typeof LegalGlossarioRoute
@@ -437,14 +525,25 @@ export interface FileRoutesById {
   '/_authenticated/backoffice': typeof AuthenticatedBackofficeRoute
   '/_authenticated/garcom': typeof AuthenticatedGarcomRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
+  '/crm/admin': typeof CrmAdminRoute
   '/crm/atendimento': typeof CrmAtendimentoRoute
   '/crm/calendario': typeof CrmCalendarioRoute
+  '/crm/configuracoes': typeof CrmConfiguracoesRoute
   '/crm/empresas': typeof CrmEmpresasRoute
   '/crm/entrar': typeof CrmEntrarRoute
+  '/crm/equipe': typeof CrmEquipeRoute
+  '/crm/financeiro': typeof CrmFinanceiroRoute
   '/crm/funis': typeof CrmFunisRoute
+  '/crm/gamificacao': typeof CrmGamificacaoRoute
   '/crm/leads': typeof CrmLeadsRoute
   '/crm/oportunidades': typeof CrmOportunidadesRoute
+  '/crm/organizacoes': typeof CrmOrganizacoesRoute
+  '/crm/perfil': typeof CrmPerfilRoute
+  '/crm/planos': typeof CrmPlanosRoute
+  '/crm/relatorios': typeof CrmRelatoriosRoute
+  '/crm/suporte': typeof CrmSuporteRoute
   '/crm/tarefas': typeof CrmTarefasRoute
+  '/crm/whatsapp': typeof CrmWhatsappRoute
   '/legal/$livro': typeof LegalLivroRoute
   '/legal/completa': typeof LegalCompletaRoute
   '/legal/glossario': typeof LegalGlossarioRoute
@@ -490,14 +589,25 @@ export interface FileRouteTypes {
     | '/backoffice'
     | '/garcom'
     | '/painel'
+    | '/crm/admin'
     | '/crm/atendimento'
     | '/crm/calendario'
+    | '/crm/configuracoes'
     | '/crm/empresas'
     | '/crm/entrar'
+    | '/crm/equipe'
+    | '/crm/financeiro'
     | '/crm/funis'
+    | '/crm/gamificacao'
     | '/crm/leads'
     | '/crm/oportunidades'
+    | '/crm/organizacoes'
+    | '/crm/perfil'
+    | '/crm/planos'
+    | '/crm/relatorios'
+    | '/crm/suporte'
     | '/crm/tarefas'
+    | '/crm/whatsapp'
     | '/legal/$livro'
     | '/legal/completa'
     | '/legal/glossario'
@@ -540,14 +650,25 @@ export interface FileRouteTypes {
     | '/backoffice'
     | '/garcom'
     | '/painel'
+    | '/crm/admin'
     | '/crm/atendimento'
     | '/crm/calendario'
+    | '/crm/configuracoes'
     | '/crm/empresas'
     | '/crm/entrar'
+    | '/crm/equipe'
+    | '/crm/financeiro'
     | '/crm/funis'
+    | '/crm/gamificacao'
     | '/crm/leads'
     | '/crm/oportunidades'
+    | '/crm/organizacoes'
+    | '/crm/perfil'
+    | '/crm/planos'
+    | '/crm/relatorios'
+    | '/crm/suporte'
     | '/crm/tarefas'
+    | '/crm/whatsapp'
     | '/legal/$livro'
     | '/legal/completa'
     | '/legal/glossario'
@@ -592,14 +713,25 @@ export interface FileRouteTypes {
     | '/_authenticated/backoffice'
     | '/_authenticated/garcom'
     | '/_authenticated/painel'
+    | '/crm/admin'
     | '/crm/atendimento'
     | '/crm/calendario'
+    | '/crm/configuracoes'
     | '/crm/empresas'
     | '/crm/entrar'
+    | '/crm/equipe'
+    | '/crm/financeiro'
     | '/crm/funis'
+    | '/crm/gamificacao'
     | '/crm/leads'
     | '/crm/oportunidades'
+    | '/crm/organizacoes'
+    | '/crm/perfil'
+    | '/crm/planos'
+    | '/crm/relatorios'
+    | '/crm/suporte'
     | '/crm/tarefas'
+    | '/crm/whatsapp'
     | '/legal/$livro'
     | '/legal/completa'
     | '/legal/glossario'
@@ -806,6 +938,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CrmIndexRouteImport
       parentRoute: typeof CrmRoute
     }
+    '/crm/admin': {
+      id: '/crm/admin'
+      path: '/admin'
+      fullPath: '/crm/admin'
+      preLoaderRoute: typeof CrmAdminRouteImport
+      parentRoute: typeof CrmRoute
+    }
     '/crm/atendimento': {
       id: '/crm/atendimento'
       path: '/atendimento'
@@ -818,6 +957,13 @@ declare module '@tanstack/react-router' {
       path: '/calendario'
       fullPath: '/crm/calendario'
       preLoaderRoute: typeof CrmCalendarioRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/configuracoes': {
+      id: '/crm/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/crm/configuracoes'
+      preLoaderRoute: typeof CrmConfiguracoesRouteImport
       parentRoute: typeof CrmRoute
     }
     '/crm/empresas': {
@@ -834,11 +980,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CrmEntrarRouteImport
       parentRoute: typeof CrmRoute
     }
+    '/crm/equipe': {
+      id: '/crm/equipe'
+      path: '/equipe'
+      fullPath: '/crm/equipe'
+      preLoaderRoute: typeof CrmEquipeRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/financeiro': {
+      id: '/crm/financeiro'
+      path: '/financeiro'
+      fullPath: '/crm/financeiro'
+      preLoaderRoute: typeof CrmFinanceiroRouteImport
+      parentRoute: typeof CrmRoute
+    }
     '/crm/funis': {
       id: '/crm/funis'
       path: '/funis'
       fullPath: '/crm/funis'
       preLoaderRoute: typeof CrmFunisRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/gamificacao': {
+      id: '/crm/gamificacao'
+      path: '/gamificacao'
+      fullPath: '/crm/gamificacao'
+      preLoaderRoute: typeof CrmGamificacaoRouteImport
       parentRoute: typeof CrmRoute
     }
     '/crm/leads': {
@@ -855,11 +1022,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CrmOportunidadesRouteImport
       parentRoute: typeof CrmRoute
     }
+    '/crm/organizacoes': {
+      id: '/crm/organizacoes'
+      path: '/organizacoes'
+      fullPath: '/crm/organizacoes'
+      preLoaderRoute: typeof CrmOrganizacoesRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/perfil': {
+      id: '/crm/perfil'
+      path: '/perfil'
+      fullPath: '/crm/perfil'
+      preLoaderRoute: typeof CrmPerfilRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/planos': {
+      id: '/crm/planos'
+      path: '/planos'
+      fullPath: '/crm/planos'
+      preLoaderRoute: typeof CrmPlanosRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/relatorios': {
+      id: '/crm/relatorios'
+      path: '/relatorios'
+      fullPath: '/crm/relatorios'
+      preLoaderRoute: typeof CrmRelatoriosRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/suporte': {
+      id: '/crm/suporte'
+      path: '/suporte'
+      fullPath: '/crm/suporte'
+      preLoaderRoute: typeof CrmSuporteRouteImport
+      parentRoute: typeof CrmRoute
+    }
     '/crm/tarefas': {
       id: '/crm/tarefas'
       path: '/tarefas'
       fullPath: '/crm/tarefas'
       preLoaderRoute: typeof CrmTarefasRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/whatsapp': {
+      id: '/crm/whatsapp'
+      path: '/whatsapp'
+      fullPath: '/crm/whatsapp'
+      preLoaderRoute: typeof CrmWhatsappRouteImport
       parentRoute: typeof CrmRoute
     }
     '/legal/': {
@@ -1037,28 +1246,50 @@ const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 interface CrmRouteChildren {
+  CrmAdminRoute: typeof CrmAdminRoute
   CrmAtendimentoRoute: typeof CrmAtendimentoRoute
   CrmCalendarioRoute: typeof CrmCalendarioRoute
+  CrmConfiguracoesRoute: typeof CrmConfiguracoesRoute
   CrmEmpresasRoute: typeof CrmEmpresasRoute
   CrmEntrarRoute: typeof CrmEntrarRoute
+  CrmEquipeRoute: typeof CrmEquipeRoute
+  CrmFinanceiroRoute: typeof CrmFinanceiroRoute
   CrmFunisRoute: typeof CrmFunisRoute
+  CrmGamificacaoRoute: typeof CrmGamificacaoRoute
   CrmLeadsRoute: typeof CrmLeadsRoute
   CrmOportunidadesRoute: typeof CrmOportunidadesRoute
+  CrmOrganizacoesRoute: typeof CrmOrganizacoesRoute
+  CrmPerfilRoute: typeof CrmPerfilRoute
+  CrmPlanosRoute: typeof CrmPlanosRoute
+  CrmRelatoriosRoute: typeof CrmRelatoriosRoute
+  CrmSuporteRoute: typeof CrmSuporteRoute
   CrmTarefasRoute: typeof CrmTarefasRoute
+  CrmWhatsappRoute: typeof CrmWhatsappRoute
   CrmIndexRoute: typeof CrmIndexRoute
   CrmContatosIdRoute: typeof CrmContatosIdRoute
   CrmContatosIndexRoute: typeof CrmContatosIndexRoute
 }
 
 const CrmRouteChildren: CrmRouteChildren = {
+  CrmAdminRoute: CrmAdminRoute,
   CrmAtendimentoRoute: CrmAtendimentoRoute,
   CrmCalendarioRoute: CrmCalendarioRoute,
+  CrmConfiguracoesRoute: CrmConfiguracoesRoute,
   CrmEmpresasRoute: CrmEmpresasRoute,
   CrmEntrarRoute: CrmEntrarRoute,
+  CrmEquipeRoute: CrmEquipeRoute,
+  CrmFinanceiroRoute: CrmFinanceiroRoute,
   CrmFunisRoute: CrmFunisRoute,
+  CrmGamificacaoRoute: CrmGamificacaoRoute,
   CrmLeadsRoute: CrmLeadsRoute,
   CrmOportunidadesRoute: CrmOportunidadesRoute,
+  CrmOrganizacoesRoute: CrmOrganizacoesRoute,
+  CrmPerfilRoute: CrmPerfilRoute,
+  CrmPlanosRoute: CrmPlanosRoute,
+  CrmRelatoriosRoute: CrmRelatoriosRoute,
+  CrmSuporteRoute: CrmSuporteRoute,
   CrmTarefasRoute: CrmTarefasRoute,
+  CrmWhatsappRoute: CrmWhatsappRoute,
   CrmIndexRoute: CrmIndexRoute,
   CrmContatosIdRoute: CrmContatosIdRoute,
   CrmContatosIndexRoute: CrmContatosIndexRoute,

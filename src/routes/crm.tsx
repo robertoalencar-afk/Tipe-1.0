@@ -12,7 +12,10 @@ export const Route = createFileRoute("/crm")({
   head: () => ({
     meta: [
       { title: "Back office comercial | Tipe" },
-      { name: "description", content: "CRM da Tipe: contatos, leads, funil, atendimento, equipe e assinaturas." },
+      {
+        name: "description",
+        content: "CRM da Tipe: contatos, leads, funil, atendimento, equipe e assinaturas.",
+      },
       { name: "robots", content: "noindex" },
     ],
   }),
@@ -23,7 +26,11 @@ function CrmLayout() {
   const s = useCrmState();
   const path = useRouterState({ select: (r) => r.location.pathname });
   const navigate = useNavigate();
-  const isLogin = path.startsWith("/crm/entrar");
+  // Decide pela rota casada, não pelo caminho: na troca de rota o caminho muda antes do
+  // Outlet, e a página anterior seria desenhada fora do provedor por um instante.
+  const isLogin = useRouterState({
+    select: (r) => r.matches.some((m) => m.routeId === "/crm/entrar"),
+  });
 
   useEffect(() => {
     const html = document.documentElement;
@@ -32,16 +39,31 @@ function CrmLayout() {
   }, []);
 
   useEffect(() => {
-    if (s && !s.session && !isLogin) navigate({ to: "/crm/entrar", search: { voltar: path }, replace: true });
+    if (s && !s.session && !isLogin && !path.startsWith("/crm/entrar"))
+      navigate({ to: "/crm/entrar", search: { voltar: path }, replace: true });
   }, [s, isLogin, path, navigate]);
 
   return (
     <div className="crm-theme min-h-dvh bg-background text-foreground">
       <TooltipProvider delayDuration={250}>
-        {isLogin ? <Outlet /> : !s?.session ? <div className="p-6"><PageSkeleton /></div> : (
+        {s?.session ? (
+          // Com sessão, o provedor envolve até a tela de entrada: durante a troca de rota
+          // o roteador pode desenhar a próxima página antes de o caminho atualizar.
           <CrmProvider s={s}>
-            <Shell><Outlet /></Shell>
+            {isLogin ? (
+              <Outlet />
+            ) : (
+              <Shell>
+                <Outlet />
+              </Shell>
+            )}
           </CrmProvider>
+        ) : isLogin ? (
+          <Outlet />
+        ) : (
+          <div className="p-6">
+            <PageSkeleton />
+          </div>
         )}
       </TooltipProvider>
     </div>

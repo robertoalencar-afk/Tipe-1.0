@@ -2,8 +2,33 @@ import { leadScore } from "../leads-score";
 import { can, PLANS, PLAN_ORDER, ROLE_LABEL, type Action } from "./permissions";
 import { goalProgress, metricValue, monthKey } from "./metrics";
 import type {
-  Activity, Challenge, Comment, Company, Contact, CrmState, Deal, EntityRef, Goal, GoalMetric, ID, Lead, LeadProfile,
-  Membership, Message, Org, Pipeline, PlanId, Priority, Role, Stage, Task, TaskStatus, TaskType, Ticket, TicketStatus, XpKind,
+  Activity,
+  Challenge,
+  Comment,
+  Company,
+  Contact,
+  CrmState,
+  Deal,
+  EntityRef,
+  Goal,
+  GoalMetric,
+  ID,
+  Lead,
+  LeadProfile,
+  Membership,
+  Message,
+  Org,
+  Pipeline,
+  PlanId,
+  Priority,
+  Role,
+  Stage,
+  Task,
+  TaskStatus,
+  TaskType,
+  Ticket,
+  TicketStatus,
+  XpKind,
 } from "./types";
 
 // Motor do CRM: a única camada que escreve no estado. Cada comando confere sessão,
@@ -16,13 +41,24 @@ export type Command =
   | { type: "logout" }
   | { type: "switchOrg"; orgId: ID }
   | { type: "createOrg"; name: string; segment: string }
-  | { type: "updateOrgSettings"; name?: string | undefined; responseSlaMin?: number | undefined; dailyTaskXpCap?: number | undefined; xp?: Partial<Record<XpKind, number>> }
+  | {
+      type: "updateOrgSettings";
+      name?: string | undefined;
+      responseSlaMin?: number | undefined;
+      dailyTaskXpCap?: number | undefined;
+      xp?: Partial<Record<XpKind, number>>;
+    }
   | { type: "updateProfile"; name: string; title: string }
   | { type: "inviteMember"; email: string; name: string; role: Role; teamId?: ID | undefined }
   | { type: "acceptInvite"; inviteId: ID }
   | { type: "revokeInvite"; inviteId: ID }
   | { type: "changeRole"; membershipId: ID; role: Role }
-  | { type: "setMemberTeam"; membershipId: ID; teamId?: ID | undefined; departmentId?: ID | undefined }
+  | {
+      type: "setMemberTeam";
+      membershipId: ID;
+      teamId?: ID | undefined;
+      departmentId?: ID | undefined;
+    }
   | { type: "removeMember"; membershipId: ID }
   | { type: "createTeam"; name: string }
   | { type: "createDepartment"; name: string }
@@ -48,38 +84,132 @@ export type Command =
   | { type: "setTaskStatus"; id: ID; status: TaskStatus }
   | { type: "commentTask"; id: ID; text: string }
   | { type: "deleteTask"; id: ID }
-  | { type: "simulateInbound"; contactId?: ID | undefined; name?: string | undefined; phone?: string | undefined; text: string }
+  | {
+      type: "simulateInbound";
+      contactId?: ID | undefined;
+      name?: string | undefined;
+      phone?: string | undefined;
+      text: string;
+    }
   | { type: "sendMessage"; conversationId: ID; text: string }
   | { type: "addInternalNote"; conversationId: ID; text: string }
   | { type: "assignConversation"; conversationId: ID; userId: ID }
-  | { type: "setConversationStatus"; conversationId: ID; status: "aberta" | "pendente" | "encerrada" }
+  | {
+      type: "setConversationStatus";
+      conversationId: ID;
+      status: "aberta" | "pendente" | "encerrada";
+    }
   | { type: "setConversationTags"; conversationId: ID; tags: string[] }
   | { type: "markConversationRead"; conversationId: ID }
   | { type: "createDealFromConversation"; conversationId: ID; title: string; value: number }
   | { type: "createLeadFromConversation"; conversationId: ID }
   | { type: "createQuickReply"; shortcut: string; text: string }
   | { type: "deleteQuickReply"; id: ID }
-  | { type: "createTicket"; title: string; description: string; category: string; priority: Priority }
-  | { type: "updateTicket"; id: ID; status?: TicketStatus | undefined; assigneeId?: ID | undefined; priority?: Priority | undefined }
+  | {
+      type: "createTicket";
+      title: string;
+      description: string;
+      category: string;
+      priority: Priority;
+    }
+  | {
+      type: "updateTicket";
+      id: ID;
+      status?: TicketStatus | undefined;
+      assigneeId?: ID | undefined;
+      priority?: Priority | undefined;
+    }
   | { type: "commentTicket"; id: ID; text: string }
-  | { type: "createGoal"; scope: "individual" | "equipe"; userId?: ID | undefined; teamId?: ID | undefined; metric: GoalMetric; target: number; period: string }
+  | {
+      type: "createGoal";
+      scope: "individual" | "equipe";
+      userId?: ID | undefined;
+      teamId?: ID | undefined;
+      metric: GoalMetric;
+      target: number;
+      period: string;
+    }
   | { type: "deleteGoal"; id: ID }
-  | { type: "createChallenge"; title: string; description: string; metric: Challenge["metric"]; target: number; days: number; reward: number }
+  | {
+      type: "createChallenge";
+      title: string;
+      description: string;
+      metric: Challenge["metric"];
+      target: number;
+      days: number;
+      reward: number;
+    }
   | { type: "changePlan"; planId: PlanId }
   | { type: "cancelSubscription" }
   | { type: "reactivateSubscription" }
   | { type: "payInvoice"; id: ID }
   | { type: "createWaInstance"; name: string; phone: string }
-  | { type: "createWaTemplate"; name: string; category: "UTILITY" | "MARKETING" | "AUTHENTICATION"; body: string }
+  | {
+      type: "createWaTemplate";
+      name: string;
+      category: "UTILITY" | "MARKETING" | "AUTHENTICATION";
+      body: string;
+    }
   | { type: "markNotificationsRead" };
 
-export type ContactInput = { name: string; companyId?: ID | undefined; phone: string; whatsapp: string; email: string; jobTitle: string; source: string; ownerId: ID; status: Contact["status"]; tags: string[]; notes: string };
-export type CompanyInput = { name: string; segment: string; city: string; neighborhood: string; size: string; pdv: string; ownerId: ID; tags: string[] };
-export type LeadInput = { name: string; companyName: string; email: string; phone: string; source: string; ownerId: ID; profile: LeadProfile };
-export type DealInput = { title: string; contactId: ID; companyId?: ID | undefined; value: number; ownerId: ID; probability: number; priority: Priority; expectedClose: string; pipelineId: ID; stageId: ID };
-export type TaskInput = { title: string; description: string; type: TaskType; assigneeId: ID; priority: Priority; dueAt: string; contactId?: ID | undefined; dealId?: ID | undefined };
+export type ContactInput = {
+  name: string;
+  companyId?: ID | undefined;
+  phone: string;
+  whatsapp: string;
+  email: string;
+  jobTitle: string;
+  source: string;
+  ownerId: ID;
+  status: Contact["status"];
+  tags: string[];
+  notes: string;
+};
+export type CompanyInput = {
+  name: string;
+  segment: string;
+  city: string;
+  neighborhood: string;
+  size: string;
+  pdv: string;
+  ownerId: ID;
+  tags: string[];
+};
+export type LeadInput = {
+  name: string;
+  companyName: string;
+  email: string;
+  phone: string;
+  source: string;
+  ownerId: ID;
+  profile: LeadProfile;
+};
+export type DealInput = {
+  title: string;
+  contactId: ID;
+  companyId?: ID | undefined;
+  value: number;
+  ownerId: ID;
+  probability: number;
+  priority: Priority;
+  expectedClose: string;
+  pipelineId: ID;
+  stageId: ID;
+};
+export type TaskInput = {
+  title: string;
+  description: string;
+  type: TaskType;
+  assigneeId: ID;
+  priority: Priority;
+  dueAt: string;
+  contactId?: ID | undefined;
+  dealId?: ID | undefined;
+};
 
-export type Result = { ok: true; state: CrmState; id?: ID | undefined; message?: string | undefined } | { ok: false; state: CrmState; error: string };
+export type Result =
+  | { ok: true; state: CrmState; id?: ID | undefined; message?: string | undefined }
+  | { ok: false; state: CrmState; error: string };
 
 class Denied extends Error {}
 class Invalid extends Error {}
@@ -99,13 +229,23 @@ type Ctx = { s: CrmState; now: string; userId: ID; orgId: ID; role: Role; org: O
 function ctxOf(s: CrmState, now: string): Ctx {
   if (!s.session) throw new Denied("Entre com um usuário para continuar.");
   const { userId, orgId } = s.session;
-  const m = s.memberships.find((x) => x.userId === userId && x.orgId === orgId && x.status === "ativo");
+  const m = s.memberships.find(
+    (x) => x.userId === userId && x.orgId === orgId && x.status === "ativo",
+  );
   const org = s.orgs.find((o) => o.id === orgId);
   if (!m || !org) throw new Denied("Você não participa desta organização.");
   return { s, now, userId, orgId, role: m.role, org };
 }
 
-function audit(s: CrmState, now: string, orgId: ID | null, actorId: ID | null, action: string, target: string, result: "ok" | "negado") {
+function audit(
+  s: CrmState,
+  now: string,
+  orgId: ID | null,
+  actorId: ID | null,
+  action: string,
+  target: string,
+  result: "ok" | "negado",
+) {
   s.audit.unshift({ id: newId("aud"), orgId, actorId, action, target, result, at: now });
   if (s.audit.length > 500) s.audit.length = 500;
 }
@@ -115,34 +255,74 @@ function need(c: Ctx, action: Action) {
 }
 
 /** Busca um registro garantindo que ele pertence à organização da sessão. */
-function own<T extends { id: ID; orgId: ID }>(c: Ctx, list: T[], id: ID | undefined, label: string): T {
+function own<T extends { id: ID; orgId: ID }>(
+  c: Ctx,
+  list: T[],
+  id: ID | undefined,
+  label: string,
+): T {
   const item = list.find((x) => x.id === id);
-  if (!item || item.orgId !== c.orgId) throw new Denied(`${label} não encontrado nesta organização.`);
+  if (!item || item.orgId !== c.orgId)
+    throw new Denied(`${label} não encontrado nesta organização.`);
   return item;
 }
 
 function memberOf(c: Ctx, userId: ID | undefined, label = "Responsável") {
-  if (!userId || !c.s.memberships.some((m) => m.orgId === c.orgId && m.userId === userId && m.status === "ativo")) throw new Invalid(`${label} precisa fazer parte da organização.`);
+  if (
+    !userId ||
+    !c.s.memberships.some((m) => m.orgId === c.orgId && m.userId === userId && m.status === "ativo")
+  )
+    throw new Invalid(`${label} precisa fazer parte da organização.`);
 }
 
-function activity(c: Ctx, kind: string, summary: string, entity: EntityRef, extra: Partial<Activity> = {}) {
-  c.s.activities.unshift({ id: newId("act"), orgId: c.orgId, at: c.now, actorId: c.userId, kind, summary, entity, ...extra });
+function activity(
+  c: Ctx,
+  kind: string,
+  summary: string,
+  entity: EntityRef,
+  extra: Partial<Activity> = {},
+) {
+  c.s.activities.unshift({
+    id: newId("act"),
+    orgId: c.orgId,
+    at: c.now,
+    actorId: c.userId,
+    kind,
+    summary,
+    entity,
+    ...extra,
+  });
   if (c.s.activities.length > 2000) c.s.activities.length = 2000;
 }
 
 function notify(c: Ctx, userIds: ID[], text: string, href: string) {
   for (const userId of new Set(userIds)) {
     if (userId === c.userId) continue;
-    c.s.notifications.unshift({ id: newId("ntf"), orgId: c.orgId, userId, text, href, at: c.now, read: false });
+    c.s.notifications.unshift({
+      id: newId("ntf"),
+      orgId: c.orgId,
+      userId,
+      text,
+      href,
+      at: c.now,
+      read: false,
+    });
   }
   if (c.s.notifications.length > 400) c.s.notifications.length = 400;
 }
 
 function managers(c: Ctx) {
-  return c.s.memberships.filter((m) => m.orgId === c.orgId && m.status === "ativo" && (m.role === "owner" || m.role === "admin" || m.role === "manager")).map((m) => m.userId);
+  return c.s.memberships
+    .filter(
+      (m) =>
+        m.orgId === c.orgId &&
+        m.status === "ativo" &&
+        (m.role === "owner" || m.role === "admin" || m.role === "manager"),
+    )
+    .map((m) => m.userId);
 }
 
-function diff<T extends object>(before: T, patch: Partial<T>) {
+function diff<T extends object>(before: T, patch: { [K in keyof T]?: T[K] | undefined }) {
   const changes: Record<string, [unknown, unknown]> = {};
   for (const k of Object.keys(patch) as (keyof T)[]) {
     const a = before[k];
@@ -158,12 +338,27 @@ function netXp(s: CrmState, ref: string) {
   return s.xp.filter((e) => e.ref === ref).reduce((a, e) => a + e.points, 0);
 }
 
-export function award(s: CrmState, orgId: ID, userId: ID, kind: XpKind, ref: string, reason: string, now: string) {
+export function award(
+  s: CrmState,
+  orgId: ID,
+  userId: ID,
+  kind: XpKind,
+  ref: string,
+  reason: string,
+  now: string,
+) {
   const org = s.orgs.find((o) => o.id === orgId);
   if (!org || netXp(s, ref) > 0) return false;
   if (kind === "tarefa_concluida" || kind === "reuniao_realizada") {
     const day = now.slice(0, 10);
-    const today = s.xp.filter((e) => e.orgId === orgId && e.userId === userId && (e.kind === "tarefa_concluida" || e.kind === "reuniao_realizada") && e.at.slice(0, 10) === day && e.points > 0).length;
+    const today = s.xp.filter(
+      (e) =>
+        e.orgId === orgId &&
+        e.userId === userId &&
+        (e.kind === "tarefa_concluida" || e.kind === "reuniao_realizada") &&
+        e.at.slice(0, 10) === day &&
+        e.points > 0,
+    ).length;
     if (today >= org.settings.dailyTaskXpCap) return false;
   }
   const points = org.settings.xp[kind];
@@ -184,7 +379,14 @@ export function settleGoals(s: CrmState, orgId: ID, userIds: ID[], now: string) 
   const affected = new Set(userIds);
   for (const g of s.goals) {
     if (g.orgId !== orgId) continue;
-    const users = g.scope === "individual" ? (g.userId ? [g.userId] : []) : s.memberships.filter((m) => m.orgId === orgId && m.teamId === g.teamId).map((m) => m.userId);
+    const users =
+      g.scope === "individual"
+        ? g.userId
+          ? [g.userId]
+          : []
+        : s.memberships
+            .filter((m) => m.orgId === orgId && m.teamId === g.teamId)
+            .map((m) => m.userId);
     if (!users.some((u) => affected.has(u))) continue;
     const { hit } = goalProgress(s, g);
     for (const u of users) {
@@ -196,10 +398,23 @@ export function settleGoals(s: CrmState, orgId: ID, userIds: ID[], now: string) 
   for (const ch of s.challenges) {
     if (ch.orgId !== orgId || now < ch.startsAt || now > ch.endsAt) continue;
     for (const u of affected) {
-      const value = metricValue(s, orgId, new Set([u]), ch.metric, { from: ch.startsAt, to: ch.endsAt });
+      const value = metricValue(s, orgId, new Set([u]), ch.metric, {
+        from: ch.startsAt,
+        to: ch.endsAt,
+      });
       const ref = `desafio:${ch.id}:${u}`;
       if (value >= ch.target) {
-        if (netXp(s, ref) <= 0) s.xp.push({ id: newId("xp"), orgId, userId: u, kind: "desafio_concluido", points: ch.reward, ref, at: now, reason: `Desafio: ${ch.title}` });
+        if (netXp(s, ref) <= 0)
+          s.xp.push({
+            id: newId("xp"),
+            orgId,
+            userId: u,
+            kind: "desafio_concluido",
+            points: ch.reward,
+            ref,
+            at: now,
+            reason: `Desafio: ${ch.title}`,
+          });
       } else revoke(s, ref, now, "Desafio deixou de estar concluído");
     }
   }
@@ -213,7 +428,9 @@ function subOf(s: CrmState, orgId: ID) {
 
 export function usage(s: CrmState, orgId: ID) {
   return {
-    users: s.memberships.filter((m) => m.orgId === orgId && m.status === "ativo").length + s.invites.filter((i) => i.orgId === orgId && i.status === "pendente").length,
+    users:
+      s.memberships.filter((m) => m.orgId === orgId && m.status === "ativo").length +
+      s.invites.filter((i) => i.orgId === orgId && i.status === "pendente").length,
     contacts: s.contacts.filter((x) => x.orgId === orgId).length,
     pipelines: s.pipelines.filter((x) => x.orgId === orgId).length,
     whatsappInstances: s.waInstances.filter((x) => x.orgId === orgId).length,
@@ -222,18 +439,32 @@ export function usage(s: CrmState, orgId: ID) {
 
 function limit(c: Ctx, key: keyof ReturnType<typeof usage>, label: string) {
   const sub = subOf(c.s, c.orgId);
-  if (!sub || sub.status === "cancelada") throw new Invalid("A assinatura desta organização está cancelada. Reative um plano para continuar.");
+  if (!sub || sub.status === "cancelada")
+    throw new Invalid(
+      "A assinatura desta organização está cancelada. Reative um plano para continuar.",
+    );
   const max = PLANS[sub.planId].limits[key];
-  if (usage(c.s, c.orgId)[key] >= max) throw new Invalid(`O plano ${PLANS[sub.planId].name} permite até ${max} ${label}. Mude de plano em Planos para continuar.`);
+  if (usage(c.s, c.orgId)[key] >= max)
+    throw new Invalid(
+      `O plano ${PLANS[sub.planId].name} permite até ${max} ${label}. Mude de plano em Planos para continuar.`,
+    );
 }
 
 // ---------- Validações ----------
 
 function validateContact(c: Ctx, d: Partial<ContactInput>, full: boolean) {
-  if (full || d.name !== undefined) if (clean(d.name).length < 2) throw new Invalid("Informe o nome do contato.");
-  if (d.email && !EMAIL.test(clean(d.email))) throw new Invalid("O e-mail não parece válido. Confira e tente de novo.");
-  for (const [k, v] of [["telefone", d.phone], ["WhatsApp", d.whatsapp]] as const) if (v && digits(v).length > 0 && (digits(v).length < 10 || digits(v).length > 13)) throw new Invalid(`O ${k} precisa ter DDD e número.`);
-  if (full && !clean(d.email) && !digits(d.phone ?? "") && !digits(d.whatsapp ?? "")) throw new Invalid("Informe ao menos um e-mail, telefone ou WhatsApp.");
+  if (full || d.name !== undefined)
+    if (clean(d.name).length < 2) throw new Invalid("Informe o nome do contato.");
+  if (d.email && !EMAIL.test(clean(d.email)))
+    throw new Invalid("O e-mail não parece válido. Confira e tente de novo.");
+  for (const [k, v] of [
+    ["telefone", d.phone],
+    ["WhatsApp", d.whatsapp],
+  ] as const)
+    if (v && digits(v).length > 0 && (digits(v).length < 10 || digits(v).length > 13))
+      throw new Invalid(`O ${k} precisa ter DDD e número.`);
+  if (full && !clean(d.email) && !digits(d.phone ?? "") && !digits(d.whatsapp ?? ""))
+    throw new Invalid("Informe ao menos um e-mail, telefone ou WhatsApp.");
   if (d.ownerId !== undefined) memberOf(c, d.ownerId);
   if (d.companyId) own(c, c.s.companies, d.companyId, "Empresa");
 }
@@ -252,7 +483,8 @@ function canEditDeal(c: Ctx, d: Deal) {
 
 function canEditTask(c: Ctx, t: Task) {
   need(c, "tasks.write");
-  if (t.assigneeId === c.userId || t.createdBy === c.userId || can(c.role, "tasks.assign_others")) return;
+  if (t.assigneeId === c.userId || t.createdBy === c.userId || can(c.role, "tasks.assign_others"))
+    return;
   throw new Denied("Esta tarefa é de outra pessoa.");
 }
 
@@ -273,36 +505,115 @@ export function defaultSettings(): Org["settings"] {
     timezone: "America/Fortaleza",
     responseSlaMin: 15,
     dailyTaskXpCap: 12,
-    xp: { lead_qualificado: 30, tarefa_concluida: 10, reuniao_realizada: 40, oportunidade_ganha: 150, meta_atingida: 300, desafio_concluido: 0 },
+    xp: {
+      lead_qualificado: 30,
+      tarefa_concluida: 10,
+      reuniao_realizada: 40,
+      oportunidade_ganha: 150,
+      meta_atingida: 300,
+      desafio_concluido: 0,
+    },
   };
 }
 
 /** Pontos de uma oportunidade ganha: base fixa, nunca proporcional ao valor (evita inflar valores). */
 function dealWon(c: Ctx, d: Deal) {
-  award(c.s, c.orgId, d.ownerId, "oportunidade_ganha", `deal:${d.id}`, `Oportunidade ganha: ${d.title}`, c.now);
+  award(
+    c.s,
+    c.orgId,
+    d.ownerId,
+    "oportunidade_ganha",
+    `deal:${d.id}`,
+    `Oportunidade ganha: ${d.title}`,
+    c.now,
+  );
   const contact = c.s.contacts.find((x) => x.id === d.contactId);
   if (contact && contact.status !== "cliente") contact.status = "cliente";
-  notify(c, [...managers(c), d.ownerId], `${userName(c.s, d.ownerId)} ganhou ${d.title} (${brl(d.value)})`, `/crm/oportunidades?deal=${d.id}`);
+  notify(
+    c,
+    [...managers(c), d.ownerId],
+    `${userName(c.s, d.ownerId)} ganhou ${d.title} (${brl(d.value)})`,
+    `/crm/oportunidades?deal=${d.id}`,
+  );
 }
 
-const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
-const userName = (s: CrmState, id: ID | undefined) => s.users.find((u) => u.id === id)?.name.split(" ")[0] ?? "Alguém";
+const brl = (n: number) =>
+  n.toLocaleString("pt-BR", { style: "currency", currency: "BRL", maximumFractionDigits: 0 });
+const userName = (s: CrmState, id: ID | undefined) =>
+  s.users.find((u) => u.id === id)?.name.split(" ")[0] ?? "Alguém";
 
-function upsertContactFrom(c: Ctx, name: string, email: string, phone: string, companyName: string, source: string, ownerId: ID) {
-  const byEmail = email ? c.s.contacts.find((x) => x.orgId === c.orgId && x.email.toLowerCase() === email.toLowerCase()) : undefined;
-  const byPhone = phone ? c.s.contacts.find((x) => x.orgId === c.orgId && (digits(x.whatsapp) === digits(phone) || digits(x.phone) === digits(phone))) : undefined;
+function upsertContactFrom(
+  c: Ctx,
+  name: string,
+  email: string,
+  phone: string,
+  companyName: string,
+  source: string,
+  ownerId: ID,
+) {
+  const byEmail = email
+    ? c.s.contacts.find((x) => x.orgId === c.orgId && x.email.toLowerCase() === email.toLowerCase())
+    : undefined;
+  const byPhone = phone
+    ? c.s.contacts.find(
+        (x) =>
+          x.orgId === c.orgId &&
+          (digits(x.whatsapp) === digits(phone) || digits(x.phone) === digits(phone)),
+      )
+    : undefined;
   let contact = byEmail ?? byPhone;
-  let company = companyName ? c.s.companies.find((x) => x.orgId === c.orgId && x.name.toLowerCase() === companyName.toLowerCase()) : undefined;
+  let company = companyName
+    ? c.s.companies.find(
+        (x) => x.orgId === c.orgId && x.name.toLowerCase() === companyName.toLowerCase(),
+      )
+    : undefined;
   if (companyName && !company) {
-    company = { id: newId("cmp"), orgId: c.orgId, name: companyName, segment: "Restaurante", city: "Fortaleza", neighborhood: "", size: "", pdv: "", ownerId, tags: [], createdAt: c.now };
+    company = {
+      id: newId("cmp"),
+      orgId: c.orgId,
+      name: companyName,
+      segment: "Restaurante",
+      city: "Fortaleza",
+      neighborhood: "",
+      size: "",
+      pdv: "",
+      ownerId,
+      tags: [],
+      createdAt: c.now,
+    };
     c.s.companies.push(company);
-    activity(c, "company.created", `Empresa ${company.name} criada`, { type: "company", id: company.id });
+    activity(c, "company.created", `Empresa ${company.name} criada`, {
+      type: "company",
+      id: company.id,
+    });
   }
   if (!contact) {
     limit(c, "contacts", "contatos");
-    contact = { id: newId("ctt"), orgId: c.orgId, name, companyId: company?.id, phone, whatsapp: phone, email, jobTitle: "", source, ownerId, status: "ativo", tags: [], notes: "", createdAt: c.now, updatedAt: c.now };
+    contact = {
+      id: newId("ctt"),
+      orgId: c.orgId,
+      name,
+      companyId: company?.id,
+      phone,
+      whatsapp: phone,
+      email,
+      jobTitle: "",
+      source,
+      ownerId,
+      status: "ativo",
+      tags: [],
+      notes: "",
+      createdAt: c.now,
+      updatedAt: c.now,
+    };
     c.s.contacts.push(contact);
-    activity(c, "contact.created", `Contato ${name} criado`, { type: "contact", id: contact.id }, { contactId: contact.id });
+    activity(
+      c,
+      "contact.created",
+      `Contato ${name} criado`,
+      { type: "contact", id: contact.id },
+      { contactId: contact.id },
+    );
   }
   return { contact, company };
 }
@@ -314,19 +625,45 @@ function conversationContact(c: Ctx, conversationId: ID) {
 }
 
 function firstPipeline(c: Ctx, pipelineId?: ID) {
-  const p = pipelineId ? own(c, c.s.pipelines, pipelineId, "Funil") : c.s.pipelines.find((x) => x.orgId === c.orgId);
+  const p = pipelineId
+    ? own(c, c.s.pipelines, pipelineId, "Funil")
+    : c.s.pipelines.find((x) => x.orgId === c.orgId);
   if (!p) throw new Invalid("Crie um funil antes de criar oportunidades.");
   return p;
 }
 
-function msg(c: Ctx, conversationId: ID, direction: Message["direction"], text: string, authorId?: ID): Message {
-  const m: Message = { id: newId("msg"), orgId: c.orgId, conversationId, direction, authorId, text, at: c.now, status: "simulada", simulated: true };
+function msg(
+  c: Ctx,
+  conversationId: ID,
+  direction: Message["direction"],
+  text: string,
+  authorId?: ID,
+): Message {
+  const m: Message = {
+    id: newId("msg"),
+    orgId: c.orgId,
+    conversationId,
+    direction,
+    authorId,
+    text,
+    at: c.now,
+    status: "simulada",
+    simulated: true,
+  };
   c.s.messages.push(m);
   return m;
 }
 
 function waLog(c: Ctx, direction: "webhook" | "envio", event: string, detail: string) {
-  c.s.waLogs.unshift({ id: newId("wal"), orgId: c.orgId, at: c.now, direction, event, status: "simulado", detail });
+  c.s.waLogs.unshift({
+    id: newId("wal"),
+    orgId: c.orgId,
+    at: c.now,
+    direction,
+    event,
+    status: "simulado",
+    detail,
+  });
   if (c.s.waLogs.length > 300) c.s.waLogs.length = 300;
 }
 
@@ -341,7 +678,15 @@ export function dispatch(state: CrmState, cmd: Command, now = new Date().toISOSt
     if (e instanceof Denied || e instanceof Invalid) {
       if (e instanceof Denied) {
         const failed = structuredClone(state);
-        audit(failed, now, state.session?.orgId ?? null, state.session?.userId ?? null, cmd.type, e.message, "negado");
+        audit(
+          failed,
+          now,
+          state.session?.orgId ?? null,
+          state.session?.userId ?? null,
+          cmd.type,
+          e.message,
+          "negado",
+        );
         return { ok: false, state: failed, error: e.message };
       }
       return { ok: false, state, error: e.message };
@@ -350,23 +695,33 @@ export function dispatch(state: CrmState, cmd: Command, now = new Date().toISOSt
   }
 }
 
-function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; message?: string | undefined } | void {
+function run(
+  s: CrmState,
+  cmd: Command,
+  now: string,
+): { id?: ID | undefined; message?: string | undefined } | void {
   if (cmd.type === "login") {
     const u = s.users.find((x) => x.email.toLowerCase() === clean(cmd.email).toLowerCase());
-    if (!u || u.password !== cmd.password) throw new Invalid("E-mail ou senha não conferem. Use uma das contas de demonstração.");
+    if (!u || u.password !== cmd.password)
+      throw new Invalid("E-mail ou senha não conferem. Use uma das contas de demonstração.");
     const m = s.memberships.find((x) => x.userId === u.id && x.status === "ativo");
     if (!m) throw new Invalid("Esta conta ainda não participa de nenhuma organização.");
     s.session = { userId: u.id, orgId: m.orgId };
     audit(s, now, m.orgId, u.id, "login", u.email, "ok");
     return;
   }
-  if (cmd.type === "logout") { s.session = null; return; }
+  if (cmd.type === "logout") {
+    s.session = null;
+    return;
+  }
 
   const c = ctxOf(s, now);
 
   switch (cmd.type) {
     case "switchOrg": {
-      const m = s.memberships.find((x) => x.userId === c.userId && x.orgId === cmd.orgId && x.status === "ativo");
+      const m = s.memberships.find(
+        (x) => x.userId === c.userId && x.orgId === cmd.orgId && x.status === "ativo",
+      );
       if (!m) throw new Denied("Você não participa desta organização.");
       s.session = { userId: c.userId, orgId: cmd.orgId };
       audit(s, now, cmd.orgId, c.userId, "org.switch", cmd.orgId, "ok");
@@ -374,30 +729,106 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
     }
     case "createOrg": {
       const name = clean(cmd.name);
-      if (name.length < 3) throw new Invalid("Dê um nome com pelo menos 3 letras para a organização.");
-      const slug = name.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-      if (s.orgs.some((o) => o.slug === slug)) throw new Invalid("Já existe uma organização com esse nome.");
-      const org: Org = { id: newId("org"), name, slug, segment: clean(cmd.segment) || "Comercial", createdAt: now, status: "ativa", settings: defaultSettings() };
+      if (name.length < 3)
+        throw new Invalid("Dê um nome com pelo menos 3 letras para a organização.");
+      const slug = name
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[̀-ͯ]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-|-$/g, "");
+      if (s.orgs.some((o) => o.slug === slug))
+        throw new Invalid("Já existe uma organização com esse nome.");
+      const org: Org = {
+        id: newId("org"),
+        name,
+        slug,
+        segment: clean(cmd.segment) || "Comercial",
+        createdAt: now,
+        status: "ativa",
+        settings: defaultSettings(),
+      };
       s.orgs.push(org);
-      s.memberships.push({ id: newId("mem"), orgId: org.id, userId: c.userId, role: "owner", status: "ativo", joinedAt: now });
-      s.pipelines.push({ id: newId("pip"), orgId: org.id, name: "Funil comercial", stages: defaultStages(), createdAt: now });
+      s.memberships.push({
+        id: newId("mem"),
+        orgId: org.id,
+        userId: c.userId,
+        role: "owner",
+        status: "ativo",
+        joinedAt: now,
+      });
+      s.pipelines.push({
+        id: newId("pip"),
+        orgId: org.id,
+        name: "Funil comercial",
+        stages: defaultStages(),
+        createdAt: now,
+      });
       const trialEnds = new Date(new Date(now).getTime() + 14 * 864e5).toISOString();
-      s.subscriptions.push({ orgId: org.id, planId: "starter", status: "teste", cycle: "mensal", startedAt: now, renewsAt: trialEnds, trialEndsAt: trialEnds });
-      s.waInstances.push({ id: newId("wai"), orgId: org.id, name: "Número de demonstração", phone: "+55 85 90000-0000", provider: "demo", status: "demonstracao", createdAt: now });
-      s.quickReplies.push({ id: newId("qr"), orgId: org.id, shortcut: "/ola", text: "Olá! Obrigado pelo contato. Como posso ajudar?" });
+      s.subscriptions.push({
+        orgId: org.id,
+        planId: "starter",
+        status: "teste",
+        cycle: "mensal",
+        startedAt: now,
+        renewsAt: trialEnds,
+        trialEndsAt: trialEnds,
+      });
+      s.waInstances.push({
+        id: newId("wai"),
+        orgId: org.id,
+        name: "Número de demonstração",
+        phone: "+55 85 90000-0000",
+        provider: "demo",
+        status: "demonstracao",
+        createdAt: now,
+      });
+      s.quickReplies.push({
+        id: newId("qr"),
+        orgId: org.id,
+        shortcut: "/ola",
+        text: "Olá! Obrigado pelo contato. Como posso ajudar?",
+      });
       s.session = { userId: c.userId, orgId: org.id };
       audit(s, now, org.id, c.userId, "org.create", name, "ok");
-      s.activities.unshift({ id: newId("act"), orgId: org.id, at: now, actorId: c.userId, kind: "org.created", summary: `Organização ${name} criada`, entity: { type: "org", id: org.id } });
+      s.activities.unshift({
+        id: newId("act"),
+        orgId: org.id,
+        at: now,
+        actorId: c.userId,
+        kind: "org.created",
+        summary: `Organização ${name} criada`,
+        entity: { type: "org", id: org.id },
+      });
       return { id: org.id, message: `${name} criada com teste grátis de 14 dias no Starter.` };
     }
     case "updateOrgSettings": {
       need(c, "org.settings");
-      if (cmd.name !== undefined) { if (clean(cmd.name).length < 3) throw new Invalid("Dê um nome com pelo menos 3 letras."); c.org.name = clean(cmd.name); }
-      if (cmd.responseSlaMin !== undefined) { if (cmd.responseSlaMin < 1 || cmd.responseSlaMin > 1440) throw new Invalid("O prazo de resposta vai de 1 a 1440 minutos."); c.org.settings.responseSlaMin = cmd.responseSlaMin; }
-      if (cmd.dailyTaskXpCap !== undefined) { if (cmd.dailyTaskXpCap < 0 || cmd.dailyTaskXpCap > 100) throw new Invalid("O limite diário vai de 0 a 100 tarefas."); c.org.settings.dailyTaskXpCap = cmd.dailyTaskXpCap; }
-      if (cmd.xp) for (const [k, v] of Object.entries(cmd.xp)) { if (v === undefined || v < 0 || v > 2000) throw new Invalid("Os pontos por evento vão de 0 a 2000."); c.org.settings.xp[k as XpKind] = v; }
+      if (cmd.name !== undefined) {
+        if (clean(cmd.name).length < 3) throw new Invalid("Dê um nome com pelo menos 3 letras.");
+        c.org.name = clean(cmd.name);
+      }
+      if (cmd.responseSlaMin !== undefined) {
+        if (cmd.responseSlaMin < 1 || cmd.responseSlaMin > 1440)
+          throw new Invalid("O prazo de resposta vai de 1 a 1440 minutos.");
+        c.org.settings.responseSlaMin = cmd.responseSlaMin;
+      }
+      if (cmd.dailyTaskXpCap !== undefined) {
+        if (cmd.dailyTaskXpCap < 0 || cmd.dailyTaskXpCap > 100)
+          throw new Invalid("O limite diário vai de 0 a 100 tarefas.");
+        c.org.settings.dailyTaskXpCap = cmd.dailyTaskXpCap;
+      }
+      if (cmd.xp)
+        for (const [k, v] of Object.entries(cmd.xp)) {
+          if (v === undefined || v < 0 || v > 2000)
+            throw new Invalid("Os pontos por evento vão de 0 a 2000.");
+          c.org.settings.xp[k as XpKind] = v;
+        }
       audit(s, now, c.orgId, c.userId, "org.settings", c.org.name, "ok");
-      activity(c, "org.updated", "Configurações da organização atualizadas", { type: "org", id: c.orgId });
+      activity(c, "org.updated", "Configurações da organização atualizadas", {
+        type: "org",
+        id: c.orgId,
+      });
       return;
     }
     case "updateProfile": {
@@ -412,28 +843,75 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
       const email = clean(cmd.email).toLowerCase();
       if (!EMAIL.test(email)) throw new Invalid("O e-mail do convite não parece válido.");
       if (clean(cmd.name).length < 2) throw new Invalid("Informe o nome de quem será convidado.");
-      if (cmd.role === "owner" && c.role !== "owner") throw new Denied("Só o proprietário pode convidar outro proprietário.");
+      if (cmd.role === "owner" && c.role !== "owner")
+        throw new Denied("Só o proprietário pode convidar outro proprietário.");
       const existing = s.users.find((u) => u.email.toLowerCase() === email);
-      if (existing && s.memberships.some((m) => m.orgId === c.orgId && m.userId === existing.id && m.status === "ativo")) throw new Invalid("Essa pessoa já faz parte da organização.");
-      if (s.invites.some((i) => i.orgId === c.orgId && i.email === email && i.status === "pendente")) throw new Invalid("Já existe um convite pendente para esse e-mail.");
+      if (
+        existing &&
+        s.memberships.some(
+          (m) => m.orgId === c.orgId && m.userId === existing.id && m.status === "ativo",
+        )
+      )
+        throw new Invalid("Essa pessoa já faz parte da organização.");
+      if (
+        s.invites.some((i) => i.orgId === c.orgId && i.email === email && i.status === "pendente")
+      )
+        throw new Invalid("Já existe um convite pendente para esse e-mail.");
       if (cmd.teamId) own(c, s.teams, cmd.teamId, "Equipe");
       limit(c, "users", "usuários");
-      const inv = { id: newId("inv"), orgId: c.orgId, email, name: clean(cmd.name), role: cmd.role, teamId: cmd.teamId, status: "pendente" as const, invitedBy: c.userId, createdAt: now };
+      const inv = {
+        id: newId("inv"),
+        orgId: c.orgId,
+        email,
+        name: clean(cmd.name),
+        role: cmd.role,
+        teamId: cmd.teamId,
+        status: "pendente" as const,
+        invitedBy: c.userId,
+        createdAt: now,
+      };
       s.invites.push(inv);
       audit(s, now, c.orgId, c.userId, "member.invite", email, "ok");
-      activity(c, "member.invited", `Convite enviado para ${inv.name}`, { type: "member", id: inv.id });
-      return { id: inv.id, message: "Convite registrado. No modo demonstração nenhum e-mail é enviado." };
+      activity(c, "member.invited", `Convite enviado para ${inv.name}`, {
+        type: "member",
+        id: inv.id,
+      });
+      return {
+        id: inv.id,
+        message: "Convite registrado. No modo demonstração nenhum e-mail é enviado.",
+      };
     }
     case "acceptInvite": {
       need(c, "members.invite");
       const inv = own(c, s.invites, cmd.inviteId, "Convite");
       if (inv.status !== "pendente") throw new Invalid("Este convite não está mais pendente.");
       let user = s.users.find((u) => u.email.toLowerCase() === inv.email);
-      if (!user) { user = { id: newId("usr"), name: inv.name, email: inv.email, password: "demo1234", title: "", createdAt: now }; s.users.push(user); }
-      s.memberships.push({ id: newId("mem"), orgId: c.orgId, userId: user.id, role: inv.role, teamId: inv.teamId, status: "ativo", joinedAt: now });
+      if (!user) {
+        user = {
+          id: newId("usr"),
+          name: inv.name,
+          email: inv.email,
+          password: "demo1234",
+          title: "",
+          createdAt: now,
+        };
+        s.users.push(user);
+      }
+      s.memberships.push({
+        id: newId("mem"),
+        orgId: c.orgId,
+        userId: user.id,
+        role: inv.role,
+        teamId: inv.teamId,
+        status: "ativo",
+        joinedAt: now,
+      });
       inv.status = "aceito";
       audit(s, now, c.orgId, user.id, "member.join", inv.email, "ok");
-      activity(c, "member.joined", `${user.name} entrou como ${ROLE_LABEL[inv.role]}`, { type: "member", id: user.id });
+      activity(c, "member.joined", `${user.name} entrou como ${ROLE_LABEL[inv.role]}`, {
+        type: "member",
+        id: user.id,
+      });
       return { id: user.id, message: `${user.name} entrou. Senha de demonstração: demo1234.` };
     }
     case "revokeInvite": {
@@ -446,12 +924,34 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
     case "changeRole": {
       need(c, "members.role");
       const m = own(c, s.memberships, cmd.membershipId, "Membro") as Membership;
-      if ((m.role === "owner" || cmd.role === "owner") && c.role !== "owner") throw new Denied("Só o proprietário altera o papel de proprietário.");
-      if (m.role === "owner" && cmd.role !== "owner" && s.memberships.filter((x) => x.orgId === c.orgId && x.role === "owner" && x.status === "ativo").length <= 1) throw new Invalid("A organização precisa de pelo menos um proprietário.");
+      if ((m.role === "owner" || cmd.role === "owner") && c.role !== "owner")
+        throw new Denied("Só o proprietário altera o papel de proprietário.");
+      if (
+        m.role === "owner" &&
+        cmd.role !== "owner" &&
+        s.memberships.filter(
+          (x) => x.orgId === c.orgId && x.role === "owner" && x.status === "ativo",
+        ).length <= 1
+      )
+        throw new Invalid("A organização precisa de pelo menos um proprietário.");
       const before = m.role;
       m.role = cmd.role;
-      audit(s, now, c.orgId, c.userId, "member.role", `${userName(s, m.userId)}: ${ROLE_LABEL[before]} → ${ROLE_LABEL[cmd.role]}`, "ok");
-      activity(c, "member.role", `${userName(s, m.userId)} agora é ${ROLE_LABEL[cmd.role]}`, { type: "member", id: m.userId }, { changes: { role: [before, cmd.role] } });
+      audit(
+        s,
+        now,
+        c.orgId,
+        c.userId,
+        "member.role",
+        `${userName(s, m.userId)}: ${ROLE_LABEL[before]} → ${ROLE_LABEL[cmd.role]}`,
+        "ok",
+      );
+      activity(
+        c,
+        "member.role",
+        `${userName(s, m.userId)} agora é ${ROLE_LABEL[cmd.role]}`,
+        { type: "member", id: m.userId },
+        { changes: { role: [before, cmd.role] } },
+      );
       notify(c, [m.userId], `Seu papel em ${c.org.name} mudou`, "/crm/perfil");
       return;
     }
@@ -462,17 +962,24 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
       if (cmd.departmentId) own(c, s.departments, cmd.departmentId, "Departamento");
       m.teamId = cmd.teamId;
       m.departmentId = cmd.departmentId;
-      activity(c, "member.team", `${userName(s, m.userId)} mudou de equipe`, { type: "member", id: m.userId });
+      activity(c, "member.team", `${userName(s, m.userId)} mudou de equipe`, {
+        type: "member",
+        id: m.userId,
+      });
       return;
     }
     case "removeMember": {
       need(c, "members.role");
       const m = own(c, s.memberships, cmd.membershipId, "Membro") as Membership;
       if (m.userId === c.userId) throw new Invalid("Você não pode remover a si mesmo.");
-      if (m.role === "owner" && c.role !== "owner") throw new Denied("Só o proprietário remove outro proprietário.");
+      if (m.role === "owner" && c.role !== "owner")
+        throw new Denied("Só o proprietário remove outro proprietário.");
       m.status = "suspenso";
       audit(s, now, c.orgId, c.userId, "member.remove", userName(s, m.userId), "ok");
-      activity(c, "member.removed", `${userName(s, m.userId)} perdeu o acesso`, { type: "member", id: m.userId });
+      activity(c, "member.removed", `${userName(s, m.userId)} perdeu o acesso`, {
+        type: "member",
+        id: m.userId,
+      });
       return;
     }
     case "createTeam":
@@ -481,7 +988,8 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
       const name = clean(cmd.name);
       if (name.length < 2) throw new Invalid("Informe o nome.");
       const list = cmd.type === "createTeam" ? s.teams : s.departments;
-      if (list.some((t) => t.orgId === c.orgId && t.name.toLowerCase() === name.toLowerCase())) throw new Invalid("Esse nome já existe.");
+      if (list.some((t) => t.orgId === c.orgId && t.name.toLowerCase() === name.toLowerCase()))
+        throw new Invalid("Esse nome já existe.");
       const item = { id: newId(cmd.type === "createTeam" ? "tm" : "dep"), orgId: c.orgId, name };
       list.push(item);
       return { id: item.id };
@@ -492,42 +1000,101 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
       validateContact(c, cmd.data, true);
       limit(c, "contacts", "contatos");
       const d = cmd.data;
-      const dupe = d.email && s.contacts.find((x) => x.orgId === c.orgId && x.email.toLowerCase() === clean(d.email).toLowerCase());
+      const dupe =
+        d.email &&
+        s.contacts.find(
+          (x) => x.orgId === c.orgId && x.email.toLowerCase() === clean(d.email).toLowerCase(),
+        );
       if (dupe) throw new Invalid(`Já existe um contato com esse e-mail: ${dupe.name}.`);
-      const contact: Contact = { id: newId("ctt"), orgId: c.orgId, name: clean(d.name), companyId: d.companyId || undefined, phone: clean(d.phone), whatsapp: clean(d.whatsapp), email: clean(d.email).toLowerCase(), jobTitle: clean(d.jobTitle), source: d.source || "Manual", ownerId: d.ownerId, status: d.status ?? "ativo", tags: d.tags ?? [], notes: clean(d.notes), createdAt: now, updatedAt: now };
+      const contact: Contact = {
+        id: newId("ctt"),
+        orgId: c.orgId,
+        name: clean(d.name),
+        companyId: d.companyId || undefined,
+        phone: clean(d.phone),
+        whatsapp: clean(d.whatsapp),
+        email: clean(d.email).toLowerCase(),
+        jobTitle: clean(d.jobTitle),
+        source: d.source || "Manual",
+        ownerId: d.ownerId,
+        status: d.status ?? "ativo",
+        tags: d.tags ?? [],
+        notes: clean(d.notes),
+        createdAt: now,
+        updatedAt: now,
+      };
       s.contacts.push(contact);
-      activity(c, "contact.created", `Contato ${contact.name} criado`, { type: "contact", id: contact.id }, { contactId: contact.id });
-      if (contact.ownerId !== c.userId) notify(c, [contact.ownerId], `Novo contato para você: ${contact.name}`, `/crm/contatos/${contact.id}`);
+      activity(
+        c,
+        "contact.created",
+        `Contato ${contact.name} criado`,
+        { type: "contact", id: contact.id },
+        { contactId: contact.id },
+      );
+      if (contact.ownerId !== c.userId)
+        notify(
+          c,
+          [contact.ownerId],
+          `Novo contato para você: ${contact.name}`,
+          `/crm/contatos/${contact.id}`,
+        );
       return { id: contact.id };
     }
     case "updateContact": {
       need(c, "contacts.write");
       const contact = own(c, s.contacts, cmd.id, "Contato");
       validateContact(c, cmd.data, false);
-      const patch = { ...cmd.data, ...(cmd.data.email !== undefined ? { email: clean(cmd.data.email).toLowerCase() } : {}) };
+      const patch = {
+        ...cmd.data,
+        ...(cmd.data.email !== undefined ? { email: clean(cmd.data.email).toLowerCase() } : {}),
+      };
       const changes = diff(contact, patch);
       if (!Object.keys(changes).length) return;
       Object.assign(contact, patch, { updatedAt: now });
-      activity(c, "contact.updated", `Contato ${contact.name} atualizado`, { type: "contact", id: contact.id }, { contactId: contact.id, changes });
+      activity(
+        c,
+        "contact.updated",
+        `Contato ${contact.name} atualizado`,
+        { type: "contact", id: contact.id },
+        { contactId: contact.id, changes },
+      );
       return;
     }
     case "deleteContact": {
       need(c, "contacts.delete");
       const contact = own(c, s.contacts, cmd.id, "Contato");
-      if (s.deals.some((d) => d.contactId === contact.id && d.status === "aberta")) throw new Invalid("Este contato tem oportunidades abertas. Encerre ou transfira antes de excluir.");
+      if (s.deals.some((d) => d.contactId === contact.id && d.status === "aberta"))
+        throw new Invalid(
+          "Este contato tem oportunidades abertas. Encerre ou transfira antes de excluir.",
+        );
       s.contacts = s.contacts.filter((x) => x.id !== contact.id);
-      s.tasks.forEach((t) => { if (t.contactId === contact.id) t.contactId = undefined; });
+      s.tasks.forEach((t) => {
+        if (t.contactId === contact.id) t.contactId = undefined;
+      });
       audit(s, now, c.orgId, c.userId, "contact.delete", contact.name, "ok");
-      activity(c, "contact.deleted", `Contato ${contact.name} excluído`, { type: "contact", id: contact.id });
+      activity(c, "contact.deleted", `Contato ${contact.name} excluído`, {
+        type: "contact",
+        id: contact.id,
+      });
       return;
     }
     case "createCompany": {
       need(c, "contacts.write");
       const name = clean(cmd.data.name);
       if (name.length < 2) throw new Invalid("Informe o nome da empresa.");
-      if (s.companies.some((x) => x.orgId === c.orgId && x.name.toLowerCase() === name.toLowerCase())) throw new Invalid("Já existe uma empresa com esse nome.");
+      if (
+        s.companies.some((x) => x.orgId === c.orgId && x.name.toLowerCase() === name.toLowerCase())
+      )
+        throw new Invalid("Já existe uma empresa com esse nome.");
       memberOf(c, cmd.data.ownerId);
-      const company: Company = { id: newId("cmp"), orgId: c.orgId, ...cmd.data, name, tags: cmd.data.tags ?? [], createdAt: now };
+      const company: Company = {
+        id: newId("cmp"),
+        orgId: c.orgId,
+        ...cmd.data,
+        name,
+        tags: cmd.data.tags ?? [],
+        createdAt: now,
+      };
       s.companies.push(company);
       activity(c, "company.created", `Empresa ${name} criada`, { type: "company", id: company.id });
       return { id: company.id };
@@ -535,11 +1102,18 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
     case "updateCompany": {
       need(c, "contacts.write");
       const company = own(c, s.companies, cmd.id, "Empresa");
-      if (cmd.data.name !== undefined && clean(cmd.data.name).length < 2) throw new Invalid("Informe o nome da empresa.");
+      if (cmd.data.name !== undefined && clean(cmd.data.name).length < 2)
+        throw new Invalid("Informe o nome da empresa.");
       if (cmd.data.ownerId) memberOf(c, cmd.data.ownerId);
       const changes = diff(company, cmd.data);
       Object.assign(company, cmd.data);
-      activity(c, "company.updated", `Empresa ${company.name} atualizada`, { type: "company", id: company.id }, { changes });
+      activity(
+        c,
+        "company.updated",
+        `Empresa ${company.name} atualizada`,
+        { type: "company", id: company.id },
+        { changes },
+      );
       return;
     }
     case "addNote": {
@@ -548,9 +1122,23 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
       if (!text) throw new Invalid("Escreva a anotação.");
       if (cmd.contactId) own(c, s.contacts, cmd.contactId, "Contato");
       if (cmd.dealId) own(c, s.deals, cmd.dealId, "Oportunidade");
-      const note = { id: newId("not"), orgId: c.orgId, contactId: cmd.contactId, dealId: cmd.dealId, userId: c.userId, text, at: now };
+      const note = {
+        id: newId("not"),
+        orgId: c.orgId,
+        contactId: cmd.contactId,
+        dealId: cmd.dealId,
+        userId: c.userId,
+        text,
+        at: now,
+      };
       s.notes.push(note);
-      activity(c, "note.added", "Anotação registrada", { type: cmd.dealId ? "deal" : "contact", id: (cmd.dealId ?? cmd.contactId)! }, { contactId: cmd.contactId, dealId: cmd.dealId });
+      activity(
+        c,
+        "note.added",
+        "Anotação registrada",
+        { type: cmd.dealId ? "deal" : "contact", id: (cmd.dealId ?? cmd.contactId)! },
+        { contactId: cmd.contactId, dealId: cmd.dealId },
+      );
       return { id: note.id };
     }
 
@@ -558,10 +1146,23 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
       need(c, "leads.write");
       const d = cmd.data;
       if (clean(d.name).length < 2) throw new Invalid("Informe o nome do lead.");
-      if (!clean(d.email) && !digits(d.phone)) throw new Invalid("Informe e-mail ou telefone para poder contatar o lead.");
+      if (!clean(d.email) && !digits(d.phone))
+        throw new Invalid("Informe e-mail ou telefone para poder contatar o lead.");
       if (d.email && !EMAIL.test(clean(d.email))) throw new Invalid("O e-mail não parece válido.");
       memberOf(c, d.ownerId);
-      const lead: Lead = { id: newId("lea"), orgId: c.orgId, name: clean(d.name), companyName: clean(d.companyName), email: clean(d.email).toLowerCase(), phone: clean(d.phone), source: d.source || "Manual", status: "novo", ownerId: d.ownerId, profile: d.profile ?? {}, createdAt: now };
+      const lead: Lead = {
+        id: newId("lea"),
+        orgId: c.orgId,
+        name: clean(d.name),
+        companyName: clean(d.companyName),
+        email: clean(d.email).toLowerCase(),
+        phone: clean(d.phone),
+        source: d.source || "Manual",
+        status: "novo",
+        ownerId: d.ownerId,
+        profile: d.profile ?? {},
+        createdAt: now,
+      };
       s.leads.push(lead);
       activity(c, "lead.created", `Lead ${lead.name} criado`, { type: "lead", id: lead.id });
       notify(c, [lead.ownerId], `Novo lead para você: ${lead.name}`, `/crm/leads?lead=${lead.id}`);
@@ -570,25 +1171,50 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
     case "updateLead": {
       need(c, "leads.write");
       const lead = own(c, s.leads, cmd.id, "Lead");
-      if (lead.status === "convertido") throw new Invalid("Lead convertido: edite o contato ou a oportunidade.");
+      if (lead.status === "convertido")
+        throw new Invalid("Lead convertido: edite o contato ou a oportunidade.");
       if (cmd.data.ownerId) memberOf(c, cmd.data.ownerId);
-      if (cmd.data.email && !EMAIL.test(clean(cmd.data.email))) throw new Invalid("O e-mail não parece válido.");
+      if (cmd.data.email && !EMAIL.test(clean(cmd.data.email)))
+        throw new Invalid("O e-mail não parece válido.");
       const changes = diff(lead, cmd.data);
       Object.assign(lead, cmd.data);
-      if (lead.status === "novo" && changes.profile) lead.status = "contatado";
-      activity(c, "lead.updated", `Lead ${lead.name} atualizado`, { type: "lead", id: lead.id }, { changes });
+      if (lead.status === "novo" && changes["profile"]) lead.status = "contatado";
+      activity(
+        c,
+        "lead.updated",
+        `Lead ${lead.name} atualizado`,
+        { type: "lead", id: lead.id },
+        { changes },
+      );
       return;
     }
     case "qualifyLead": {
       need(c, "leads.write");
       const lead = own(c, s.leads, cmd.id, "Lead");
-      if (lead.status === "convertido" || lead.status === "qualificado") throw new Invalid("Este lead já foi qualificado.");
+      if (lead.status === "convertido" || lead.status === "qualificado")
+        throw new Invalid("Este lead já foi qualificado.");
       const filled = Object.values(lead.profile).filter(Boolean).length;
-      if (filled < 3) throw new Invalid("Preencha pelo menos 3 informações do perfil (mesas, PDV, fila…) antes de qualificar.");
+      if (filled < 3)
+        throw new Invalid(
+          "Preencha pelo menos 3 informações do perfil (mesas, PDV, fila…) antes de qualificar.",
+        );
       lead.status = "qualificado";
       lead.qualifiedAt = now;
-      activity(c, "lead.qualified", `Lead ${lead.name} qualificado (pontuação ${leadScore(lead.profile)})`, { type: "lead", id: lead.id });
-      award(s, c.orgId, lead.ownerId, "lead_qualificado", `lead:${lead.id}`, `Lead qualificado: ${lead.name}`, now);
+      activity(
+        c,
+        "lead.qualified",
+        `Lead ${lead.name} qualificado (pontuação ${leadScore(lead.profile)})`,
+        { type: "lead", id: lead.id },
+      );
+      award(
+        s,
+        c.orgId,
+        lead.ownerId,
+        "lead_qualificado",
+        `lead:${lead.id}`,
+        `Lead qualificado: ${lead.name}`,
+        now,
+      );
       settleGoals(s, c.orgId, [lead.ownerId], now);
       return;
     }
@@ -599,7 +1225,10 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
       if (lead.status === "convertido") throw new Invalid("Lead já convertido.");
       lead.status = "desqualificado";
       lead.disqualifyReason = cmd.reason;
-      activity(c, "lead.disqualified", `Lead ${lead.name} desqualificado: ${cmd.reason}`, { type: "lead", id: lead.id });
+      activity(c, "lead.disqualified", `Lead ${lead.name} desqualificado: ${cmd.reason}`, {
+        type: "lead",
+        id: lead.id,
+      });
       return;
     }
     case "convertLead": {
@@ -612,17 +1241,58 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
       const p = firstPipeline(c, cmd.pipelineId);
       if (!lead.qualifiedAt) {
         lead.qualifiedAt = now;
-        award(s, c.orgId, lead.ownerId, "lead_qualificado", `lead:${lead.id}`, `Lead qualificado: ${lead.name}`, now);
+        award(
+          s,
+          c.orgId,
+          lead.ownerId,
+          "lead_qualificado",
+          `lead:${lead.id}`,
+          `Lead qualificado: ${lead.name}`,
+          now,
+        );
       }
-      const { contact, company } = upsertContactFrom(c, lead.name, lead.email, lead.phone, lead.companyName, lead.source, lead.ownerId);
-      const stage = p.stages.find((st) => st.name === "Qualificação") ?? p.stages.find((st) => st.kind === "aberta")!;
-      const deal: Deal = { id: newId("dea"), orgId: c.orgId, pipelineId: p.id, stageId: stage.id, title: clean(cmd.title) || `${lead.companyName || lead.name}: assinatura Tipe`, contactId: contact.id, companyId: company?.id, leadId: lead.id, value: Math.round(cmd.value), ownerId: lead.ownerId, probability: stage.probability, priority: "media", status: "aberta", expectedClose: new Date(new Date(now).getTime() + 30 * 864e5).toISOString(), createdAt: now, updatedAt: now };
+      const { contact, company } = upsertContactFrom(
+        c,
+        lead.name,
+        lead.email,
+        lead.phone,
+        lead.companyName,
+        lead.source,
+        lead.ownerId,
+      );
+      const stage =
+        p.stages.find((st) => st.name === "Qualificação") ??
+        p.stages.find((st) => st.kind === "aberta")!;
+      const deal: Deal = {
+        id: newId("dea"),
+        orgId: c.orgId,
+        pipelineId: p.id,
+        stageId: stage.id,
+        title: clean(cmd.title) || `${lead.companyName || lead.name}: assinatura Tipe`,
+        contactId: contact.id,
+        companyId: company?.id,
+        leadId: lead.id,
+        value: Math.round(cmd.value),
+        ownerId: lead.ownerId,
+        probability: stage.probability,
+        priority: "media",
+        status: "aberta",
+        expectedClose: new Date(new Date(now).getTime() + 30 * 864e5).toISOString(),
+        createdAt: now,
+        updatedAt: now,
+      };
       s.deals.push(deal);
       lead.status = "convertido";
       lead.convertedAt = now;
       lead.contactId = contact.id;
       lead.dealId = deal.id;
-      activity(c, "lead.converted", `Lead ${lead.name} convertido em oportunidade`, { type: "deal", id: deal.id }, { contactId: contact.id, dealId: deal.id });
+      activity(
+        c,
+        "lead.converted",
+        `Lead ${lead.name} convertido em oportunidade`,
+        { type: "deal", id: deal.id },
+        { contactId: contact.id, dealId: deal.id },
+      );
       settleGoals(s, c.orgId, [lead.ownerId], now);
       return { id: deal.id };
     }
@@ -632,39 +1302,84 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
       const d = cmd.data;
       if (clean(d.title).length < 3) throw new Invalid("Dê um título para a oportunidade.");
       if (!(d.value >= 0)) throw new Invalid("O valor não pode ser negativo.");
-      if (d.probability < 0 || d.probability > 100) throw new Invalid("A probabilidade vai de 0 a 100%.");
+      if (d.probability < 0 || d.probability > 100)
+        throw new Invalid("A probabilidade vai de 0 a 100%.");
       own(c, s.contacts, d.contactId, "Cliente");
       if (d.companyId) own(c, s.companies, d.companyId, "Empresa");
       memberOf(c, d.ownerId);
-      if (d.ownerId !== c.userId && !can(c.role, "deals.write_any") && c.role !== "agent") throw new Denied("Você só pode criar oportunidades para si.");
+      if (d.ownerId !== c.userId && !can(c.role, "deals.write_any") && c.role !== "agent")
+        throw new Denied("Você só pode criar oportunidades para si.");
       const p = own(c, s.pipelines, d.pipelineId, "Funil");
       const st = stageOf(p, d.stageId);
-      if (st.kind !== "aberta") throw new Invalid("Crie a oportunidade numa etapa aberta e mova depois.");
-      const deal: Deal = { id: newId("dea"), orgId: c.orgId, ...d, title: clean(d.title), value: Math.round(d.value), status: "aberta", createdAt: now, updatedAt: now };
+      if (st.kind !== "aberta")
+        throw new Invalid("Crie a oportunidade numa etapa aberta e mova depois.");
+      const deal: Deal = {
+        id: newId("dea"),
+        orgId: c.orgId,
+        ...d,
+        title: clean(d.title),
+        value: Math.round(d.value),
+        status: "aberta",
+        createdAt: now,
+        updatedAt: now,
+      };
       s.deals.push(deal);
-      activity(c, "deal.created", `Oportunidade ${deal.title} criada`, { type: "deal", id: deal.id }, { contactId: deal.contactId, dealId: deal.id });
-      notify(c, [deal.ownerId], `Nova oportunidade para você: ${deal.title}`, `/crm/oportunidades?deal=${deal.id}`);
+      activity(
+        c,
+        "deal.created",
+        `Oportunidade ${deal.title} criada`,
+        { type: "deal", id: deal.id },
+        { contactId: deal.contactId, dealId: deal.id },
+      );
+      notify(
+        c,
+        [deal.ownerId],
+        `Nova oportunidade para você: ${deal.title}`,
+        `/crm/oportunidades?deal=${deal.id}`,
+      );
       return { id: deal.id };
     }
     case "updateDeal": {
       const deal = own(c, s.deals, cmd.id, "Oportunidade");
       canEditDeal(c, deal);
       const d = cmd.data;
-      if (d.title !== undefined && clean(d.title).length < 3) throw new Invalid("Dê um título para a oportunidade.");
-      if (d.value !== undefined && !(d.value >= 0)) throw new Invalid("O valor não pode ser negativo.");
-      if (d.probability !== undefined && (d.probability < 0 || d.probability > 100)) throw new Invalid("A probabilidade vai de 0 a 100%.");
-      if (d.ownerId) { memberOf(c, d.ownerId); if (d.ownerId !== deal.ownerId && !can(c.role, "deals.write_any")) throw new Denied("Só gestores transferem oportunidades."); }
+      if (d.title !== undefined && clean(d.title).length < 3)
+        throw new Invalid("Dê um título para a oportunidade.");
+      if (d.value !== undefined && !(d.value >= 0))
+        throw new Invalid("O valor não pode ser negativo.");
+      if (d.probability !== undefined && (d.probability < 0 || d.probability > 100))
+        throw new Invalid("A probabilidade vai de 0 a 100%.");
+      if (d.ownerId) {
+        memberOf(c, d.ownerId);
+        if (d.ownerId !== deal.ownerId && !can(c.role, "deals.write_any"))
+          throw new Denied("Só gestores transferem oportunidades.");
+      }
       if (d.contactId) own(c, s.contacts, d.contactId, "Cliente");
-      if (d.stageId && d.stageId !== deal.stageId) throw new Invalid("Use o funil para mudar a etapa.");
+      if (d.stageId && d.stageId !== deal.stageId)
+        throw new Invalid("Use o funil para mudar a etapa.");
       const changes = diff(deal, d);
       const prevOwner = deal.ownerId;
       Object.assign(deal, d, { updatedAt: now });
-      if (deal.status === "ganha" && (changes.ownerId || changes.value)) {
+      if (deal.status === "ganha" && (changes["ownerId"] || changes["value"])) {
         revoke(s, `deal:${deal.id}`, now, "Oportunidade ganha alterada");
-        award(s, c.orgId, deal.ownerId, "oportunidade_ganha", `deal:${deal.id}`, `Oportunidade ganha: ${deal.title}`, now);
+        award(
+          s,
+          c.orgId,
+          deal.ownerId,
+          "oportunidade_ganha",
+          `deal:${deal.id}`,
+          `Oportunidade ganha: ${deal.title}`,
+          now,
+        );
         settleGoals(s, c.orgId, [prevOwner, deal.ownerId], now);
       }
-      activity(c, "deal.updated", `Oportunidade ${deal.title} atualizada`, { type: "deal", id: deal.id }, { contactId: deal.contactId, dealId: deal.id, changes });
+      activity(
+        c,
+        "deal.updated",
+        `Oportunidade ${deal.title} atualizada`,
+        { type: "deal", id: deal.id },
+        { contactId: deal.contactId, dealId: deal.id, changes },
+      );
       return;
     }
     case "moveDeal": {
@@ -674,17 +1389,35 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
       const from = stageOf(p, deal.stageId);
       const to = stageOf(p, cmd.stageId);
       if (from.id === to.id) return;
-      if (to.kind === "perdido" && !clean(cmd.lostReason)) throw new Invalid("Informe o motivo da perda.");
+      if (to.kind === "perdido" && !clean(cmd.lostReason))
+        throw new Invalid("Informe o motivo da perda.");
       const wasWon = deal.status === "ganha";
       deal.stageId = to.id;
       deal.updatedAt = now;
       deal.probability = to.probability;
-      if (to.kind === "ganho") { deal.status = "ganha"; deal.closedAt = now; deal.lostReason = undefined; }
-      else if (to.kind === "perdido") { deal.status = "perdida"; deal.closedAt = now; deal.lostReason = clean(cmd.lostReason); }
-      else { deal.status = "aberta"; deal.closedAt = undefined; deal.lostReason = undefined; }
-      activity(c, to.kind === "ganho" ? "deal.won" : to.kind === "perdido" ? "deal.lost" : "deal.moved", `${deal.title}: ${from.name} → ${to.name}`, { type: "deal", id: deal.id }, { contactId: deal.contactId, dealId: deal.id, changes: { etapa: [from.name, to.name] } });
+      if (to.kind === "ganho") {
+        deal.status = "ganha";
+        deal.closedAt = now;
+        deal.lostReason = undefined;
+      } else if (to.kind === "perdido") {
+        deal.status = "perdida";
+        deal.closedAt = now;
+        deal.lostReason = clean(cmd.lostReason);
+      } else {
+        deal.status = "aberta";
+        deal.closedAt = undefined;
+        deal.lostReason = undefined;
+      }
+      activity(
+        c,
+        to.kind === "ganho" ? "deal.won" : to.kind === "perdido" ? "deal.lost" : "deal.moved",
+        `${deal.title}: ${from.name} → ${to.name}`,
+        { type: "deal", id: deal.id },
+        { contactId: deal.contactId, dealId: deal.id, changes: { etapa: [from.name, to.name] } },
+      );
       if (to.kind === "ganho") dealWon(c, deal);
-      if (wasWon && to.kind !== "ganho") revoke(s, `deal:${deal.id}`, now, `Oportunidade reaberta: ${deal.title}`);
+      if (wasWon && to.kind !== "ganho")
+        revoke(s, `deal:${deal.id}`, now, `Oportunidade reaberta: ${deal.title}`);
       settleGoals(s, c.orgId, [deal.ownerId], now);
       return;
     }
@@ -693,17 +1426,31 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
       const deal = own(c, s.deals, cmd.id, "Oportunidade");
       revoke(s, `deal:${deal.id}`, now, "Oportunidade excluída");
       s.deals = s.deals.filter((d) => d.id !== deal.id);
-      s.tasks.forEach((t) => { if (t.dealId === deal.id) t.dealId = undefined; });
+      s.tasks.forEach((t) => {
+        if (t.dealId === deal.id) t.dealId = undefined;
+      });
       settleGoals(s, c.orgId, [deal.ownerId], now);
       audit(s, now, c.orgId, c.userId, "deal.delete", deal.title, "ok");
-      activity(c, "deal.deleted", `Oportunidade ${deal.title} excluída`, { type: "deal", id: deal.id }, { contactId: deal.contactId });
+      activity(
+        c,
+        "deal.deleted",
+        `Oportunidade ${deal.title} excluída`,
+        { type: "deal", id: deal.id },
+        { contactId: deal.contactId },
+      );
       return;
     }
     case "createPipeline": {
       need(c, "pipelines.manage");
       if (clean(cmd.name).length < 3) throw new Invalid("Dê um nome ao funil.");
       limit(c, "pipelines", "funis");
-      const p: Pipeline = { id: newId("pip"), orgId: c.orgId, name: clean(cmd.name), stages: defaultStages(), createdAt: now };
+      const p: Pipeline = {
+        id: newId("pip"),
+        orgId: c.orgId,
+        name: clean(cmd.name),
+        stages: defaultStages(),
+        createdAt: now,
+      };
       s.pipelines.push(p);
       activity(c, "pipeline.created", `Funil ${p.name} criado`, { type: "pipeline", id: p.id });
       return { id: p.id };
@@ -713,14 +1460,26 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
       const p = own(c, s.pipelines, cmd.pipelineId, "Funil");
       const stages = cmd.stages.map((st) => ({ ...st, name: clean(st.name) }));
       if (stages.some((st) => st.name.length < 2)) throw new Invalid("Toda etapa precisa de nome.");
-      if (stages.filter((st) => st.kind === "ganho").length !== 1 || stages.filter((st) => st.kind === "perdido").length !== 1) throw new Invalid("O funil precisa de exatamente uma etapa de ganho e uma de perda.");
-      if (stages.filter((st) => st.kind === "aberta").length < 1) throw new Invalid("O funil precisa de ao menos uma etapa aberta.");
-      if (stages.some((st) => st.probability < 0 || st.probability > 100)) throw new Invalid("A probabilidade vai de 0 a 100%.");
+      if (
+        stages.filter((st) => st.kind === "ganho").length !== 1 ||
+        stages.filter((st) => st.kind === "perdido").length !== 1
+      )
+        throw new Invalid("O funil precisa de exatamente uma etapa de ganho e uma de perda.");
+      if (stages.filter((st) => st.kind === "aberta").length < 1)
+        throw new Invalid("O funil precisa de ao menos uma etapa aberta.");
+      if (stages.some((st) => st.probability < 0 || st.probability > 100))
+        throw new Invalid("A probabilidade vai de 0 a 100%.");
       const removed = p.stages.filter((st) => !stages.some((n) => n.id === st.id));
       const blocked = removed.find((st) => s.deals.some((d) => d.stageId === st.id));
-      if (blocked) throw new Invalid(`A etapa ${blocked.name} ainda tem oportunidades. Mova-as antes de remover.`);
+      if (blocked)
+        throw new Invalid(
+          `A etapa ${blocked.name} ainda tem oportunidades. Mova-as antes de remover.`,
+        );
       p.stages = stages.map((st) => ({ ...st, id: st.id || newId("stg") }));
-      activity(c, "pipeline.updated", `Etapas do funil ${p.name} atualizadas`, { type: "pipeline", id: p.id });
+      activity(c, "pipeline.updated", `Etapas do funil ${p.name} atualizadas`, {
+        type: "pipeline",
+        id: p.id,
+      });
       return;
     }
 
@@ -730,26 +1489,70 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
       if (clean(d.title).length < 3) throw new Invalid("Descreva a tarefa em pelo menos 3 letras.");
       if (!d.dueAt || Number.isNaN(Date.parse(d.dueAt))) throw new Invalid("Escolha o prazo.");
       memberOf(c, d.assigneeId);
-      if (d.assigneeId !== c.userId && !can(c.role, "tasks.assign_others")) throw new Denied("Seu papel só permite criar tarefas para você.");
+      if (d.assigneeId !== c.userId && !can(c.role, "tasks.assign_others"))
+        throw new Denied("Seu papel só permite criar tarefas para você.");
       if (d.contactId) own(c, s.contacts, d.contactId, "Contato");
       if (d.dealId) own(c, s.deals, d.dealId, "Oportunidade");
-      const task: Task = { id: newId("tsk"), orgId: c.orgId, title: clean(d.title), description: clean(d.description), type: d.type, assigneeId: d.assigneeId, createdBy: c.userId, priority: d.priority, status: "pendente", dueAt: d.dueAt, contactId: d.contactId || undefined, dealId: d.dealId || undefined, comments: [], createdAt: now };
+      const task: Task = {
+        id: newId("tsk"),
+        orgId: c.orgId,
+        title: clean(d.title),
+        description: clean(d.description),
+        type: d.type,
+        assigneeId: d.assigneeId,
+        createdBy: c.userId,
+        priority: d.priority,
+        status: "pendente",
+        dueAt: d.dueAt,
+        contactId: d.contactId || undefined,
+        dealId: d.dealId || undefined,
+        comments: [],
+        createdAt: now,
+      };
       s.tasks.push(task);
-      activity(c, "task.created", `Tarefa ${task.title} criada`, { type: "task", id: task.id }, { contactId: task.contactId, dealId: task.dealId });
-      notify(c, [task.assigneeId], `${userName(s, c.userId)} atribuiu a você: ${task.title}`, `/crm/tarefas?tarefa=${task.id}`);
+      activity(
+        c,
+        "task.created",
+        `Tarefa ${task.title} criada`,
+        { type: "task", id: task.id },
+        { contactId: task.contactId, dealId: task.dealId },
+      );
+      notify(
+        c,
+        [task.assigneeId],
+        `${userName(s, c.userId)} atribuiu a você: ${task.title}`,
+        `/crm/tarefas?tarefa=${task.id}`,
+      );
       return { id: task.id };
     }
     case "updateTask": {
       const task = own(c, s.tasks, cmd.id, "Tarefa");
       canEditTask(c, task);
       const d = cmd.data;
-      if (d.title !== undefined && clean(d.title).length < 3) throw new Invalid("Descreva a tarefa em pelo menos 3 letras.");
-      if (d.assigneeId && d.assigneeId !== task.assigneeId) { memberOf(c, d.assigneeId); if (!can(c.role, "tasks.assign_others") && d.assigneeId !== c.userId) throw new Denied("Seu papel não permite passar tarefas para outra pessoa."); notify(c, [d.assigneeId], `${userName(s, c.userId)} atribuiu a você: ${task.title}`, `/crm/tarefas?tarefa=${task.id}`); }
+      if (d.title !== undefined && clean(d.title).length < 3)
+        throw new Invalid("Descreva a tarefa em pelo menos 3 letras.");
+      if (d.assigneeId && d.assigneeId !== task.assigneeId) {
+        memberOf(c, d.assigneeId);
+        if (!can(c.role, "tasks.assign_others") && d.assigneeId !== c.userId)
+          throw new Denied("Seu papel não permite passar tarefas para outra pessoa.");
+        notify(
+          c,
+          [d.assigneeId],
+          `${userName(s, c.userId)} atribuiu a você: ${task.title}`,
+          `/crm/tarefas?tarefa=${task.id}`,
+        );
+      }
       if (d.contactId) own(c, s.contacts, d.contactId, "Contato");
       if (d.dealId) own(c, s.deals, d.dealId, "Oportunidade");
       const changes = diff(task, d);
       Object.assign(task, d);
-      activity(c, "task.updated", `Tarefa ${task.title} atualizada`, { type: "task", id: task.id }, { contactId: task.contactId, dealId: task.dealId, changes });
+      activity(
+        c,
+        "task.updated",
+        `Tarefa ${task.title} atualizada`,
+        { type: "task", id: task.id },
+        { contactId: task.contactId, dealId: task.dealId, changes },
+      );
       return;
     }
     case "setTaskStatus": {
@@ -763,14 +1566,45 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
         task.completedAt = now;
         // Anti-fraude: tarefa criada e concluída em menos de 5 minutos pela própria pessoa,
         // sem vínculo com contato ou oportunidade, não gera pontos.
-        const quick = new Date(now).getTime() - new Date(task.createdAt).getTime() < 5 * 60000 && task.createdBy === task.assigneeId && !task.contactId && !task.dealId;
-        if (!quick) award(s, c.orgId, task.assigneeId, task.type === "reuniao" ? "reuniao_realizada" : "tarefa_concluida", ref, `${task.type === "reuniao" ? "Reunião realizada" : "Tarefa concluída"}: ${task.title}`, now);
-        activity(c, task.type === "reuniao" ? "meeting.done" : "task.done", `${task.type === "reuniao" ? "Reunião realizada" : "Tarefa concluída"}: ${task.title}`, { type: "task", id: task.id }, { contactId: task.contactId, dealId: task.dealId });
-        if (task.createdBy !== task.assigneeId) notify(c, [task.createdBy], `${userName(s, task.assigneeId)} concluiu: ${task.title}`, `/crm/tarefas?tarefa=${task.id}`);
+        const quick =
+          new Date(now).getTime() - new Date(task.createdAt).getTime() < 5 * 60000 &&
+          task.createdBy === task.assigneeId &&
+          !task.contactId &&
+          !task.dealId;
+        if (!quick)
+          award(
+            s,
+            c.orgId,
+            task.assigneeId,
+            task.type === "reuniao" ? "reuniao_realizada" : "tarefa_concluida",
+            ref,
+            `${task.type === "reuniao" ? "Reunião realizada" : "Tarefa concluída"}: ${task.title}`,
+            now,
+          );
+        activity(
+          c,
+          task.type === "reuniao" ? "meeting.done" : "task.done",
+          `${task.type === "reuniao" ? "Reunião realizada" : "Tarefa concluída"}: ${task.title}`,
+          { type: "task", id: task.id },
+          { contactId: task.contactId, dealId: task.dealId },
+        );
+        if (task.createdBy !== task.assigneeId)
+          notify(
+            c,
+            [task.createdBy],
+            `${userName(s, task.assigneeId)} concluiu: ${task.title}`,
+            `/crm/tarefas?tarefa=${task.id}`,
+          );
       } else {
         task.completedAt = undefined;
         if (was === "concluida") revoke(s, ref, now, `Tarefa reaberta: ${task.title}`);
-        activity(c, "task.status", `Tarefa ${task.title}: ${cmd.status.replace("_", " ")}`, { type: "task", id: task.id }, { contactId: task.contactId, dealId: task.dealId });
+        activity(
+          c,
+          "task.status",
+          `Tarefa ${task.title}: ${cmd.status.replace("_", " ")}`,
+          { type: "task", id: task.id },
+          { contactId: task.contactId, dealId: task.dealId },
+        );
       }
       settleGoals(s, c.orgId, [task.assigneeId], now);
       return;
@@ -779,9 +1613,19 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
       const task = own(c, s.tasks, cmd.id, "Tarefa");
       need(c, "tasks.write");
       if (!clean(cmd.text)) throw new Invalid("Escreva o comentário.");
-      const comment: Comment = { id: newId("cmt"), userId: c.userId, text: clean(cmd.text), at: now };
+      const comment: Comment = {
+        id: newId("cmt"),
+        userId: c.userId,
+        text: clean(cmd.text),
+        at: now,
+      };
       task.comments.push(comment);
-      notify(c, [task.assigneeId, task.createdBy], `${userName(s, c.userId)} comentou em ${task.title}`, `/crm/tarefas?tarefa=${task.id}`);
+      notify(
+        c,
+        [task.assigneeId, task.createdBy],
+        `${userName(s, c.userId)} comentou em ${task.title}`,
+        `/crm/tarefas?tarefa=${task.id}`,
+      );
       return;
     }
     case "deleteTask": {
@@ -790,7 +1634,13 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
       revoke(s, `task:${task.id}`, now, "Tarefa excluída");
       s.tasks = s.tasks.filter((t) => t.id !== task.id);
       settleGoals(s, c.orgId, [task.assigneeId], now);
-      activity(c, "task.deleted", `Tarefa ${task.title} excluída`, { type: "task", id: task.id }, { contactId: task.contactId, dealId: task.dealId });
+      activity(
+        c,
+        "task.deleted",
+        `Tarefa ${task.title} excluída`,
+        { type: "task", id: task.id },
+        { contactId: task.contactId, dealId: task.dealId },
+      );
       return;
     }
 
@@ -801,14 +1651,41 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
       let contact = cmd.contactId ? own(c, s.contacts, cmd.contactId, "Contato") : undefined;
       if (!contact) {
         const phone = clean(cmd.phone);
-        if (digits(phone).length < 10) throw new Invalid("Informe o telefone com DDD de quem enviou.");
-        contact = s.contacts.find((x) => x.orgId === c.orgId && (digits(x.whatsapp) === digits(phone) || digits(x.phone) === digits(phone)));
-        if (!contact) contact = upsertContactFrom(c, clean(cmd.name) || `WhatsApp ${phone}`, "", phone, "", "WhatsApp", c.userId).contact;
+        if (digits(phone).length < 10)
+          throw new Invalid("Informe o telefone com DDD de quem enviou.");
+        contact = s.contacts.find(
+          (x) =>
+            x.orgId === c.orgId &&
+            (digits(x.whatsapp) === digits(phone) || digits(x.phone) === digits(phone)),
+        );
+        if (!contact)
+          contact = upsertContactFrom(
+            c,
+            clean(cmd.name) || `WhatsApp ${phone}`,
+            "",
+            phone,
+            "",
+            "WhatsApp",
+            c.userId,
+          ).contact;
       }
-      let conv = s.conversations.find((x) => x.orgId === c.orgId && x.contactId === contact!.id && x.status !== "encerrada");
+      let conv = s.conversations.find(
+        (x) => x.orgId === c.orgId && x.contactId === contact!.id && x.status !== "encerrada",
+      );
       if (!conv) {
         const inst = s.waInstances.find((w) => w.orgId === c.orgId);
-        conv = { id: newId("cnv"), orgId: c.orgId, contactId: contact.id, channel: "whatsapp", instanceId: inst?.id, status: "aberta", tags: [], unread: 0, createdAt: now, lastMessageAt: now };
+        conv = {
+          id: newId("cnv"),
+          orgId: c.orgId,
+          contactId: contact.id,
+          channel: "whatsapp",
+          instanceId: inst?.id,
+          status: "aberta",
+          tags: [],
+          unread: 0,
+          createdAt: now,
+          lastMessageAt: now,
+        };
         s.conversations.push(conv);
       }
       conv.unread += 1;
@@ -816,8 +1693,19 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
       if (conv.status === "pendente") conv.status = "aberta";
       msg(c, conv.id, "entrada", text);
       waLog(c, "webhook", "messages", `Mensagem simulada recebida de ${contact.name}`);
-      notify(c, conv.assigneeId ? [conv.assigneeId] : managers(c), `Nova mensagem de ${contact.name}`, `/crm/atendimento?conversa=${conv.id}`);
-      activity(c, "conversation.in", `Mensagem recebida de ${contact.name} (simulada)`, { type: "conversation", id: conv.id }, { contactId: contact.id });
+      notify(
+        c,
+        conv.assigneeId ? [conv.assigneeId] : managers(c),
+        `Nova mensagem de ${contact.name}`,
+        `/crm/atendimento?conversa=${conv.id}`,
+      );
+      activity(
+        c,
+        "conversation.in",
+        `Mensagem recebida de ${contact.name} (simulada)`,
+        { type: "conversation", id: conv.id },
+        { contactId: contact.id },
+      );
       return { id: conv.id };
     }
     case "sendMessage": {
@@ -830,8 +1718,19 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
       msg(c, conv.id, "saida", text, c.userId);
       conv.lastMessageAt = now;
       conv.unread = 0;
-      waLog(c, "envio", "messages.send", `Envio simulado para ${contact.name}: nenhuma mensagem saiu para o WhatsApp`);
-      activity(c, "conversation.out", `Resposta para ${contact.name} (simulada)`, { type: "conversation", id: conv.id }, { contactId: contact.id });
+      waLog(
+        c,
+        "envio",
+        "messages.send",
+        `Envio simulado para ${contact.name}: nenhuma mensagem saiu para o WhatsApp`,
+      );
+      activity(
+        c,
+        "conversation.out",
+        `Resposta para ${contact.name} (simulada)`,
+        { type: "conversation", id: conv.id },
+        { contactId: contact.id },
+      );
       return;
     }
     case "addInternalNote": {
@@ -847,9 +1746,28 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
       memberOf(c, cmd.userId, "Atendente");
       const before = conv.assigneeId;
       conv.assigneeId = cmd.userId;
-      msg(c, conv.id, "nota", before ? `Transferida de ${userName(s, before)} para ${userName(s, cmd.userId)} por ${userName(s, c.userId)}` : `Atribuída a ${userName(s, cmd.userId)} por ${userName(s, c.userId)}`, c.userId);
-      notify(c, [cmd.userId], `Conversa com ${contact.name} atribuída a você`, `/crm/atendimento?conversa=${conv.id}`);
-      activity(c, before ? "conversation.transfer" : "conversation.assign", `Conversa com ${contact.name} ${before ? "transferida" : "atribuída"} para ${userName(s, cmd.userId)}`, { type: "conversation", id: conv.id }, { contactId: contact.id });
+      msg(
+        c,
+        conv.id,
+        "nota",
+        before
+          ? `Transferida de ${userName(s, before)} para ${userName(s, cmd.userId)} por ${userName(s, c.userId)}`
+          : `Atribuída a ${userName(s, cmd.userId)} por ${userName(s, c.userId)}`,
+        c.userId,
+      );
+      notify(
+        c,
+        [cmd.userId],
+        `Conversa com ${contact.name} atribuída a você`,
+        `/crm/atendimento?conversa=${conv.id}`,
+      );
+      activity(
+        c,
+        before ? "conversation.transfer" : "conversation.assign",
+        `Conversa com ${contact.name} ${before ? "transferida" : "atribuída"} para ${userName(s, cmd.userId)}`,
+        { type: "conversation", id: conv.id },
+        { contactId: contact.id },
+      );
       return;
     }
     case "setConversationStatus": {
@@ -858,7 +1776,13 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
       conv.status = cmd.status;
       conv.closedAt = cmd.status === "encerrada" ? now : undefined;
       if (cmd.status === "encerrada") conv.unread = 0;
-      activity(c, `conversation.${cmd.status}`, `Atendimento de ${contact.name}: ${cmd.status}`, { type: "conversation", id: conv.id }, { contactId: contact.id });
+      activity(
+        c,
+        `conversation.${cmd.status}`,
+        `Atendimento de ${contact.name}: ${cmd.status}`,
+        { type: "conversation", id: conv.id },
+        { contactId: contact.id },
+      );
       return;
     }
     case "setConversationTags": {
@@ -878,30 +1802,92 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
       if (!(cmd.value > 0)) throw new Invalid("Informe o valor estimado.");
       const p = firstPipeline(c);
       const stage = p.stages.find((st) => st.kind === "aberta")!;
-      const owner = can(c.role, "deals.write_own") || can(c.role, "deals.write_any") ? c.userId : contact.ownerId;
-      const deal: Deal = { id: newId("dea"), orgId: c.orgId, pipelineId: p.id, stageId: stage.id, title: clean(cmd.title) || `${contact.name}: assinatura Tipe`, contactId: contact.id, companyId: contact.companyId, conversationId: conv.id, value: Math.round(cmd.value), ownerId: owner, probability: stage.probability, priority: "media", status: "aberta", expectedClose: new Date(new Date(now).getTime() + 30 * 864e5).toISOString(), createdAt: now, updatedAt: now };
+      const owner =
+        can(c.role, "deals.write_own") || can(c.role, "deals.write_any")
+          ? c.userId
+          : contact.ownerId;
+      const deal: Deal = {
+        id: newId("dea"),
+        orgId: c.orgId,
+        pipelineId: p.id,
+        stageId: stage.id,
+        title: clean(cmd.title) || `${contact.name}: assinatura Tipe`,
+        contactId: contact.id,
+        companyId: contact.companyId,
+        conversationId: conv.id,
+        value: Math.round(cmd.value),
+        ownerId: owner,
+        probability: stage.probability,
+        priority: "media",
+        status: "aberta",
+        expectedClose: new Date(new Date(now).getTime() + 30 * 864e5).toISOString(),
+        createdAt: now,
+        updatedAt: now,
+      };
       s.deals.push(deal);
       msg(c, conv.id, "nota", `Oportunidade criada: ${deal.title} (${brl(deal.value)})`, c.userId);
-      activity(c, "deal.created", `Oportunidade ${deal.title} criada no atendimento`, { type: "deal", id: deal.id }, { contactId: contact.id, dealId: deal.id });
-      notify(c, [owner], `Nova oportunidade do atendimento: ${deal.title}`, `/crm/oportunidades?deal=${deal.id}`);
+      activity(
+        c,
+        "deal.created",
+        `Oportunidade ${deal.title} criada no atendimento`,
+        { type: "deal", id: deal.id },
+        { contactId: contact.id, dealId: deal.id },
+      );
+      notify(
+        c,
+        [owner],
+        `Nova oportunidade do atendimento: ${deal.title}`,
+        `/crm/oportunidades?deal=${deal.id}`,
+      );
       return { id: deal.id };
     }
     case "createLeadFromConversation": {
       need(c, "leads.write");
       const { conv, contact } = conversationContact(c, cmd.conversationId);
-      if (s.leads.some((l) => l.orgId === c.orgId && l.contactId === contact.id && l.status !== "desqualificado" && l.status !== "convertido")) throw new Invalid("Já existe um lead aberto para este contato.");
+      if (
+        s.leads.some(
+          (l) =>
+            l.orgId === c.orgId &&
+            l.contactId === contact.id &&
+            l.status !== "desqualificado" &&
+            l.status !== "convertido",
+        )
+      )
+        throw new Invalid("Já existe um lead aberto para este contato.");
       const company = s.companies.find((x) => x.id === contact.companyId);
-      const lead: Lead = { id: newId("lea"), orgId: c.orgId, name: contact.name, companyName: company?.name ?? "", email: contact.email, phone: contact.whatsapp || contact.phone, source: "WhatsApp", status: "contatado", ownerId: c.userId, profile: {}, contactId: contact.id, createdAt: now };
+      const lead: Lead = {
+        id: newId("lea"),
+        orgId: c.orgId,
+        name: contact.name,
+        companyName: company?.name ?? "",
+        email: contact.email,
+        phone: contact.whatsapp || contact.phone,
+        source: "WhatsApp",
+        status: "contatado",
+        ownerId: c.userId,
+        profile: {},
+        contactId: contact.id,
+        createdAt: now,
+      };
       s.leads.push(lead);
       msg(c, conv.id, "nota", `Lead criado para ${contact.name}`, c.userId);
-      activity(c, "lead.created", `Lead ${lead.name} criado no atendimento`, { type: "lead", id: lead.id }, { contactId: contact.id });
+      activity(
+        c,
+        "lead.created",
+        `Lead ${lead.name} criado no atendimento`,
+        { type: "lead", id: lead.id },
+        { contactId: contact.id },
+      );
       return { id: lead.id };
     }
     case "createQuickReply": {
       need(c, "inbox.assign");
-      const shortcut = clean(cmd.shortcut).startsWith("/") ? clean(cmd.shortcut) : `/${clean(cmd.shortcut)}`;
+      const shortcut = clean(cmd.shortcut).startsWith("/")
+        ? clean(cmd.shortcut)
+        : `/${clean(cmd.shortcut)}`;
       if (shortcut.length < 3 || !clean(cmd.text)) throw new Invalid("Informe atalho e texto.");
-      if (s.quickReplies.some((q) => q.orgId === c.orgId && q.shortcut === shortcut)) throw new Invalid("Esse atalho já existe.");
+      if (s.quickReplies.some((q) => q.orgId === c.orgId && q.shortcut === shortcut))
+        throw new Invalid("Esse atalho já existe.");
       s.quickReplies.push({ id: newId("qr"), orgId: c.orgId, shortcut, text: clean(cmd.text) });
       return;
     }
@@ -915,23 +1901,64 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
     case "createTicket": {
       need(c, "tickets.write");
       if (clean(cmd.title).length < 4) throw new Invalid("Descreva o assunto do chamado.");
-      if (clean(cmd.description).length < 10) throw new Invalid("Explique o que aconteceu em pelo menos 10 letras.");
-      const t: Ticket = { id: newId("tkt"), orgId: c.orgId, title: clean(cmd.title), description: clean(cmd.description), category: cmd.category, requesterId: c.userId, priority: cmd.priority, status: "aberto", comments: [], createdAt: now };
+      if (clean(cmd.description).length < 10)
+        throw new Invalid("Explique o que aconteceu em pelo menos 10 letras.");
+      const t: Ticket = {
+        id: newId("tkt"),
+        orgId: c.orgId,
+        title: clean(cmd.title),
+        description: clean(cmd.description),
+        category: cmd.category,
+        requesterId: c.userId,
+        priority: cmd.priority,
+        status: "aberto",
+        comments: [],
+        createdAt: now,
+      };
       s.tickets.push(t);
-      notify(c, s.memberships.filter((m) => m.orgId === c.orgId && (m.role === "agent" || m.role === "admin" || m.role === "owner")).map((m) => m.userId), `Novo chamado interno: ${t.title}`, `/crm/suporte?chamado=${t.id}`);
+      notify(
+        c,
+        s.memberships
+          .filter(
+            (m) =>
+              m.orgId === c.orgId &&
+              (m.role === "agent" || m.role === "admin" || m.role === "owner"),
+          )
+          .map((m) => m.userId),
+        `Novo chamado interno: ${t.title}`,
+        `/crm/suporte?chamado=${t.id}`,
+      );
       activity(c, "ticket.created", `Chamado ${t.title} aberto`, { type: "ticket", id: t.id });
       return { id: t.id };
     }
     case "updateTicket": {
       const t = own(c, s.tickets, cmd.id, "Chamado");
-      if (!can(c.role, "tickets.manage") && t.requesterId !== c.userId) throw new Denied("Só a equipe de suporte altera chamados de outras pessoas.");
-      if (cmd.assigneeId) { need(c, "tickets.manage"); memberOf(c, cmd.assigneeId, "Atendente"); }
-      const changes = diff(t, { status: cmd.status, assigneeId: cmd.assigneeId, priority: cmd.priority });
-      if (cmd.status) { t.status = cmd.status; t.resolvedAt = cmd.status === "resolvido" ? now : undefined; }
+      if (!can(c.role, "tickets.manage") && t.requesterId !== c.userId)
+        throw new Denied("Só a equipe de suporte altera chamados de outras pessoas.");
+      if (cmd.assigneeId) {
+        need(c, "tickets.manage");
+        memberOf(c, cmd.assigneeId, "Atendente");
+      }
+      const changes = diff(t, {
+        status: cmd.status,
+        assigneeId: cmd.assigneeId,
+        priority: cmd.priority,
+      });
+      if (cmd.status) {
+        t.status = cmd.status;
+        t.resolvedAt = cmd.status === "resolvido" ? now : undefined;
+      }
       if (cmd.assigneeId) t.assigneeId = cmd.assigneeId;
       if (cmd.priority) t.priority = cmd.priority;
-      if (cmd.status === "resolvido") notify(c, [t.requesterId], `Chamado resolvido: ${t.title}`, `/crm/suporte?chamado=${t.id}`);
-      activity(c, "ticket.updated", `Chamado ${t.title} atualizado`, { type: "ticket", id: t.id }, { changes });
+      if (cmd.status === "resolvido")
+        notify(c, [t.requesterId], `Chamado resolvido: ${t.title}`, `/crm/suporte?chamado=${t.id}`);
+      activity(
+        c,
+        "ticket.updated",
+        `Chamado ${t.title} atualizado`,
+        { type: "ticket", id: t.id },
+        { changes },
+      );
       return;
     }
     case "commentTicket": {
@@ -940,7 +1967,12 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
       if (!clean(cmd.text)) throw new Invalid("Escreva a resposta.");
       t.comments.push({ id: newId("cmt"), userId: c.userId, text: clean(cmd.text), at: now });
       if (t.status === "aberto" && can(c.role, "tickets.manage")) t.status = "em_andamento";
-      notify(c, [t.requesterId, t.assigneeId ?? ""].filter(Boolean), `Nova resposta em ${t.title}`, `/crm/suporte?chamado=${t.id}`);
+      notify(
+        c,
+        [t.requesterId, t.assigneeId ?? ""].filter(Boolean),
+        `Nova resposta em ${t.title}`,
+        `/crm/suporte?chamado=${t.id}`,
+      );
       return;
     }
 
@@ -950,25 +1982,56 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
       if (!/^\d{4}-\d{2}$/.test(cmd.period)) throw new Invalid("Escolha o mês da meta.");
       if (cmd.scope === "individual") memberOf(c, cmd.userId, "Pessoa");
       else own(c, s.teams, cmd.teamId, "Equipe");
-      const g: Goal = { id: newId("gol"), orgId: c.orgId, scope: cmd.scope, userId: cmd.scope === "individual" ? cmd.userId : undefined, teamId: cmd.scope === "equipe" ? cmd.teamId : undefined, metric: cmd.metric, target: cmd.target, period: cmd.period };
+      const g: Goal = {
+        id: newId("gol"),
+        orgId: c.orgId,
+        scope: cmd.scope,
+        userId: cmd.scope === "individual" ? cmd.userId : undefined,
+        teamId: cmd.scope === "equipe" ? cmd.teamId : undefined,
+        metric: cmd.metric,
+        target: cmd.target,
+        period: cmd.period,
+      };
       s.goals.push(g);
-      settleGoals(s, c.orgId, cmd.scope === "individual" ? [cmd.userId!] : s.memberships.filter((m) => m.orgId === c.orgId && m.teamId === cmd.teamId).map((m) => m.userId), now);
+      settleGoals(
+        s,
+        c.orgId,
+        cmd.scope === "individual"
+          ? [cmd.userId!]
+          : s.memberships
+              .filter((m) => m.orgId === c.orgId && m.teamId === cmd.teamId)
+              .map((m) => m.userId),
+        now,
+      );
       activity(c, "goal.created", "Meta criada", { type: "goal", id: g.id });
       return { id: g.id };
     }
     case "deleteGoal": {
       need(c, "goals.manage");
       const g = own(c, s.goals, cmd.id, "Meta");
-      for (const e of s.xp.filter((x) => x.ref.startsWith(`meta:${g.id}:`))) revoke(s, e.ref, now, "Meta removida");
+      for (const e of s.xp.filter((x) => x.ref.startsWith(`meta:${g.id}:`)))
+        revoke(s, e.ref, now, "Meta removida");
       s.goals = s.goals.filter((x) => x.id !== g.id);
       return;
     }
     case "createChallenge": {
       need(c, "goals.manage");
       if (clean(cmd.title).length < 4) throw new Invalid("Dê um nome ao desafio.");
-      if (!(cmd.target > 0) || !(cmd.days > 0) || cmd.days > 90) throw new Invalid("Defina alvo e duração (até 90 dias).");
-      if (cmd.reward < 0 || cmd.reward > 2000) throw new Invalid("A recompensa vai de 0 a 2000 pontos.");
-      const ch: Challenge = { id: newId("chl"), orgId: c.orgId, title: clean(cmd.title), description: clean(cmd.description), metric: cmd.metric, target: cmd.target, startsAt: now, endsAt: new Date(new Date(now).getTime() + cmd.days * 864e5).toISOString(), reward: cmd.reward };
+      if (!(cmd.target > 0) || !(cmd.days > 0) || cmd.days > 90)
+        throw new Invalid("Defina alvo e duração (até 90 dias).");
+      if (cmd.reward < 0 || cmd.reward > 2000)
+        throw new Invalid("A recompensa vai de 0 a 2000 pontos.");
+      const ch: Challenge = {
+        id: newId("chl"),
+        orgId: c.orgId,
+        title: clean(cmd.title),
+        description: clean(cmd.description),
+        metric: cmd.metric,
+        target: cmd.target,
+        startsAt: now,
+        endsAt: new Date(new Date(now).getTime() + cmd.days * 864e5).toISOString(),
+        reward: cmd.reward,
+      };
       s.challenges.push(ch);
       return { id: ch.id };
     }
@@ -977,11 +2040,17 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
       need(c, "org.billing");
       const sub = subOf(s, c.orgId);
       if (!sub) throw new Invalid("Organização sem assinatura.");
-      if (sub.planId === cmd.planId && sub.status === "ativa") throw new Invalid("Este já é o plano atual.");
+      if (sub.planId === cmd.planId && sub.status === "ativa")
+        throw new Invalid("Este já é o plano atual.");
       const plan = PLANS[cmd.planId];
       const u = usage(s, c.orgId);
-      const over = (Object.keys(plan.limits) as (keyof typeof plan.limits)[]).find((k) => u[k] > plan.limits[k]);
-      if (over) throw new Invalid(`O uso atual passa do limite do ${plan.name} (${over}). Reduza o uso antes de mudar.`);
+      const over = (Object.keys(plan.limits) as (keyof typeof plan.limits)[]).find(
+        (k) => u[k] > plan.limits[k],
+      );
+      if (over)
+        throw new Invalid(
+          `O uso atual passa do limite do ${plan.name} (${over}). Reduza o uso antes de mudar.`,
+        );
       const before = sub.planId;
       sub.planId = cmd.planId;
       sub.status = "ativa";
@@ -989,10 +2058,29 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
       sub.canceledAt = undefined;
       sub.renewsAt = new Date(new Date(now).getTime() + 30 * 864e5).toISOString();
       const n = s.invoices.filter((i) => i.orgId === c.orgId).length + 1;
-      s.invoices.unshift({ id: newId("fat"), orgId: c.orgId, number: `DEMO-${c.org.slug.slice(0, 6).toUpperCase()}-${String(n).padStart(4, "0")}`, description: `Plano ${plan.name}: mensalidade (${PLAN_ORDER.indexOf(cmd.planId) > PLAN_ORDER.indexOf(before) ? "upgrade" : "mudança"})`, amount: plan.priceMonthly, status: "paga", issuedAt: now, dueAt: now, paidAt: now, simulated: true });
+      s.invoices.unshift({
+        id: newId("fat"),
+        orgId: c.orgId,
+        number: `DEMO-${c.org.slug.slice(0, 6).toUpperCase()}-${String(n).padStart(4, "0")}`,
+        description: `Plano ${plan.name}: mensalidade (${PLAN_ORDER.indexOf(cmd.planId) > PLAN_ORDER.indexOf(before) ? "upgrade" : "mudança"})`,
+        amount: plan.priceMonthly,
+        status: "paga",
+        issuedAt: now,
+        dueAt: now,
+        paidAt: now,
+        simulated: true,
+      });
       audit(s, now, c.orgId, c.userId, "subscription.change", `${before} → ${cmd.planId}`, "ok");
-      activity(c, "subscription.changed", `Plano alterado para ${plan.name} (contratação simulada)`, { type: "subscription", id: c.orgId }, { changes: { plano: [before, cmd.planId] } });
-      return { message: `Plano ${plan.name} contratado em modo demonstração. Nenhum pagamento real foi processado.` };
+      activity(
+        c,
+        "subscription.changed",
+        `Plano alterado para ${plan.name} (contratação simulada)`,
+        { type: "subscription", id: c.orgId },
+        { changes: { plano: [before, cmd.planId] } },
+      );
+      return {
+        message: `Plano ${plan.name} contratado em modo demonstração. Nenhum pagamento real foi processado.`,
+      };
     }
     case "cancelSubscription": {
       need(c, "org.billing");
@@ -1001,7 +2089,10 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
       sub.status = "cancelada";
       sub.canceledAt = now;
       audit(s, now, c.orgId, c.userId, "subscription.cancel", sub.planId, "ok");
-      activity(c, "subscription.canceled", "Assinatura cancelada (simulação)", { type: "subscription", id: c.orgId });
+      activity(c, "subscription.canceled", "Assinatura cancelada (simulação)", {
+        type: "subscription",
+        id: c.orgId,
+      });
       return;
     }
     case "reactivateSubscription": {
@@ -1021,29 +2112,61 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; mes
       inv.status = "paga";
       inv.paidAt = now;
       const sub = subOf(s, c.orgId);
-      if (sub?.status === "em_atraso" && !s.invoices.some((i) => i.orgId === c.orgId && i.status === "vencida")) sub.status = "ativa";
+      if (
+        sub?.status === "em_atraso" &&
+        !s.invoices.some((i) => i.orgId === c.orgId && i.status === "vencida")
+      )
+        sub.status = "ativa";
       audit(s, now, c.orgId, c.userId, "invoice.pay", inv.number, "ok");
       return { message: "Pagamento simulado registrado. Nenhum valor foi cobrado." };
     }
     case "createWaInstance": {
       need(c, "whatsapp.manage");
-      if (clean(cmd.name).length < 2 || digits(cmd.phone).length < 12) throw new Invalid("Informe nome e número com código do país e DDD.");
+      if (clean(cmd.name).length < 2 || digits(cmd.phone).length < 12)
+        throw new Invalid("Informe nome e número com código do país e DDD.");
       limit(c, "whatsappInstances", "números de WhatsApp");
-      s.waInstances.push({ id: newId("wai"), orgId: c.orgId, name: clean(cmd.name), phone: clean(cmd.phone), provider: "cloud_api", status: "aguardando_credenciais", createdAt: now });
+      s.waInstances.push({
+        id: newId("wai"),
+        orgId: c.orgId,
+        name: clean(cmd.name),
+        phone: clean(cmd.phone),
+        provider: "cloud_api",
+        status: "aguardando_credenciais",
+        createdAt: now,
+      });
       audit(s, now, c.orgId, c.userId, "whatsapp.instance", clean(cmd.phone), "ok");
       return;
     }
     case "createWaTemplate": {
       need(c, "whatsapp.manage");
-      const name = clean(cmd.name).toLowerCase().replace(/[^a-z0-9_]+/g, "_");
-      if (name.length < 3 || clean(cmd.body).length < 5) throw new Invalid("Informe nome e texto do modelo.");
-      if (s.waTemplates.some((t) => t.orgId === c.orgId && t.name === name)) throw new Invalid("Já existe um modelo com esse nome.");
-      s.waTemplates.push({ id: newId("wat"), orgId: c.orgId, name, category: cmd.category, language: "pt_BR", body: clean(cmd.body), status: "pendente" });
-      waLog(c, "envio", "message_templates.create", `Modelo ${name} registrado localmente. A aprovação real acontece na Meta.`);
+      const name = clean(cmd.name)
+        .toLowerCase()
+        .replace(/[^a-z0-9_]+/g, "_");
+      if (name.length < 3 || clean(cmd.body).length < 5)
+        throw new Invalid("Informe nome e texto do modelo.");
+      if (s.waTemplates.some((t) => t.orgId === c.orgId && t.name === name))
+        throw new Invalid("Já existe um modelo com esse nome.");
+      s.waTemplates.push({
+        id: newId("wat"),
+        orgId: c.orgId,
+        name,
+        category: cmd.category,
+        language: "pt_BR",
+        body: clean(cmd.body),
+        status: "pendente",
+      });
+      waLog(
+        c,
+        "envio",
+        "message_templates.create",
+        `Modelo ${name} registrado localmente. A aprovação real acontece na Meta.`,
+      );
       return;
     }
     case "markNotificationsRead": {
-      s.notifications.forEach((n) => { if (n.userId === c.userId && n.orgId === c.orgId) n.read = true; });
+      s.notifications.forEach((n) => {
+        if (n.userId === c.userId && n.orgId === c.orgId) n.read = true;
+      });
       return;
     }
   }

@@ -184,9 +184,32 @@ export type Task = {
   completedAt?: ISO | undefined;
 };
 
-export type Note = { id: ID; orgId: ID; contactId?: ID | undefined; dealId?: ID | undefined; userId: ID; text: string; at: ISO };
+export type Note = {
+  id: ID;
+  orgId: ID;
+  contactId?: ID | undefined;
+  dealId?: ID | undefined;
+  userId: ID;
+  text: string;
+  at: ISO;
+};
 
-export type EntityRef = { type: "contact" | "company" | "lead" | "deal" | "task" | "conversation" | "ticket" | "org" | "member" | "subscription" | "pipeline" | "goal"; id: ID };
+export type EntityRef = {
+  type:
+    | "contact"
+    | "company"
+    | "lead"
+    | "deal"
+    | "task"
+    | "conversation"
+    | "ticket"
+    | "org"
+    | "member"
+    | "subscription"
+    | "pipeline"
+    | "goal";
+  id: ID;
+};
 
 export type Activity = {
   id: ID;
@@ -253,7 +276,8 @@ export type Ticket = {
   resolvedAt?: ISO | undefined;
 };
 
-export type GoalMetric = "receita" | "negocios_ganhos" | "tarefas_concluidas" | "leads_qualificados";
+export type GoalMetric =
+  "receita" | "negocios_ganhos" | "tarefas_concluidas" | "leads_qualificados";
 
 export type Goal = {
   id: ID;
@@ -267,7 +291,13 @@ export type Goal = {
   period: string;
 };
 
-export type XpKind = "lead_qualificado" | "tarefa_concluida" | "reuniao_realizada" | "oportunidade_ganha" | "meta_atingida" | "desafio_concluido";
+export type XpKind =
+  | "lead_qualificado"
+  | "tarefa_concluida"
+  | "reuniao_realizada"
+  | "oportunidade_ganha"
+  | "meta_atingida"
+  | "desafio_concluido";
 
 export type XpEvent = {
   id: ID;
@@ -359,9 +389,25 @@ export type WaLog = {
   detail: string;
 };
 
-export type Notification = { id: ID; orgId: ID; userId: ID; text: string; href: string; at: ISO; read: boolean };
+export type Notification = {
+  id: ID;
+  orgId: ID;
+  userId: ID;
+  text: string;
+  href: string;
+  at: ISO;
+  read: boolean;
+};
 
-export type AuditEntry = { id: ID; orgId: ID | null; actorId: ID | null; action: string; target: string; result: "ok" | "negado"; at: ISO };
+export type AuditEntry = {
+  id: ID;
+  orgId: ID | null;
+  actorId: ID | null;
+  action: string;
+  target: string;
+  result: "ok" | "negado";
+  at: ISO;
+};
 
 export type Session = { userId: ID; orgId: ID };
 
