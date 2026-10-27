@@ -109,6 +109,16 @@ jobs:
               git commit -m "release: integrar $branch no candidato cloudflare"
             fi
           done
+      - name: Recuperar recursos obrigatorios removidos por branches antigas
+        shell: bash
+        run: |
+          set -euo pipefail
+          git fetch --quiet origin infra/sair-da-lovable
+          if [[ ! -f src/assets/lebre-ai-official.svg ]]; then
+            git checkout FETCH_HEAD -- src/assets/lebre-ai-official.svg
+            git commit -m "fix: preservar SVG oficial da Lebre no login" || true
+            echo "SVG oficial da Lebre recuperado no candidato." >> "$GITHUB_STEP_SUMMARY"
+          fi
       - name: Instalar dependencias
         run: bun install --frozen-lockfile
       - name: Build do candidato
