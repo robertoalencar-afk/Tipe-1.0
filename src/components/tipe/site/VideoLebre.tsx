@@ -1,8 +1,8 @@
 /**
- * O filme curto da lebre e da tartaruga (15 s, sem som, em loop). Feito em casa:
- * uma animação HTML renderizada quadro a quadro com Playwright (60 quadros/s, juntados
- * em 30 com desfoque de movimento) e codificada com ffmpeg (fonte em
- * docs/landing-v5/video-lebre/; movimentos refeitos na V6). No computador usa a versão
+ * O filme curto da lebre e da tartaruga (15 s, sem som, em loop). V7: composição
+ * HyperFrames com os personagens articulados (cabeça, orelhas, braços e pálpebras
+ * recortados da ilustração, cada um girando no seu pivô), renderizada a 60 quadros/s e
+ * juntada em 30 com desfoque de movimento (fonte em docs/landing-v7/video-lebre/). No computador usa a versão
  * 16:9 e no celular a 4:5. Só toca quando está na tela; com movimento reduzido
  * fica o pôster e a pessoa decide se quer ver.
  */
