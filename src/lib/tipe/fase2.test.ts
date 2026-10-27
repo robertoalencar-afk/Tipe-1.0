@@ -1,19 +1,45 @@
 import { describe, expect, it } from "vitest";
-import { isGoogleReviewUrl, suggestedTips } from "./rules";
+import { isGoogleReviewUrl, lerValor, suggestedTips, validarGorjeta } from "./rules";
 import { buildDailyClose, businessDayRange, dailyCloseCsv, type ClosePayment } from "./daily-close";
 import { buildReceipt, maskEmail, portionLabel } from "./receipt";
 import { proximoEstadoBaixa } from "./pdv/outbox";
 import { MAX_TENTATIVAS } from "./pdv/contract";
 
-describe("gorjeta sugerida em %", () => {
-  it("5%, 10% e 15% do que foi pago, arredondados a R$ 0,50", () => {
-    expect(suggestedTips(126)).toEqual([{ label: "5%", amount: 6.5 }, { label: "10%", amount: 12.5 }, { label: "15%", amount: 19 }]);
+describe("gorjeta extra sugerida", () => {
+  it("3%, 5% e 8% da conta, arredondados a R$ 0,50, com 5% em destaque", () => {
+    expect(suggestedTips(126)).toEqual([
+      { label: "3%", amount: 4, sugerida: false },
+      { label: "5%", amount: 6.5, sugerida: true },
+      { label: "8%", amount: 10, sugerida: false },
+    ]);
   });
-  it("mínimo de R$ 1,00", () => expect(suggestedTips(21)[0]).toEqual({ label: "5%", amount: 1 }));
-  it("conta pequena (ou desconhecida) usa valores fixos", () => {
-    expect(suggestedTips(15).map((s) => s.amount)).toEqual([2, 5, 10]);
-    expect(suggestedTips(0).map((s) => s.amount)).toEqual([2, 5, 10]);
-    expect(suggestedTips(Number.NaN).map((s) => s.amount)).toEqual([2, 5, 10]);
+  it("conta pequena usa R$ 2, R$ 3 e R$ 5, sem passar do valor da conta", () => {
+    expect(suggestedTips(50).map((s) => s.amount)).toEqual([2, 3, 5]);
+    expect(suggestedTips(4).map((s) => s.amount)).toEqual([2, 3]);
+  });
+  it("sem conta (ou abaixo do mínimo) não sugere nada", () => {
+    expect(suggestedTips(0)).toEqual([]);
+    expect(suggestedTips(1.99)).toEqual([]);
+    expect(suggestedTips(Number.NaN)).toEqual([]);
+  });
+  it("percentual nunca fica abaixo de R$ 2,00", () => {
+    expect(suggestedTips(70)[0]).toEqual({ label: "3%", amount: 2, sugerida: false });
+  });
+});
+
+describe("outro valor de gorjeta", () => {
+  it("lê valores em reais", () => {
+    expect(lerValor("12,50")).toBe(12.5);
+    expect(lerValor("R$ 1.234,56")).toBe(1234.56);
+    expect(lerValor("7.5")).toBe(7.5);
+    expect(lerValor("")).toBeNull();
+  });
+  it("mínimo de R$ 2,00 e máximo igual ao valor da conta", () => {
+    expect(validarGorjeta(1.99, 100)).toMatch(/mínimo/);
+    expect(validarGorjeta(2, 100)).toBeNull();
+    expect(validarGorjeta(100, 100)).toBeNull();
+    expect(validarGorjeta(100.01, 100)).toMatch(/máximo/);
+    expect(validarGorjeta(null, 100)).toBe("Digite um valor");
   });
 });
 

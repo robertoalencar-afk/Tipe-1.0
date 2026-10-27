@@ -36,3 +36,10 @@
 - [x] Parte 2: limite de mesas por plano
 - [ ] Parte 3: desempenho, região e GitHub
 - [ ] Partes 4 e 5: logo de e-mail e Central Jurídica (anexos recebidos, aguardam a vez)
+
+## Paridade com o Colibri (out/2026)
+Referência: colibri.com.br (venda em qualquer canal → centralização → KDS → painel de senhas → gestão).
+- [x] Fase 1: ciclo único do pedido com canal (mesa/balcão), venda no balcão com senha e troco, KDS por pedido com cronômetro verde/laranja/vermelho, som e tela cheia, painel de senhas para TV
+- [x] Fase 2: garçom lança pedido pelo celular (aba Atender) e cardápio digital em que o cliente pede pela mesa (opção que o restaurante liga nas Configurações)
+- [x] Fase 3: totem de autoatendimento (cliente monta o pedido e recebe senha; o pedido vai para a cozinha quando o caixa cobra). Reaproveita senha e KDS do balcão; opção que o restaurante liga
+- [ ] Fase 4: hub de delivery (iFood, Rappi), estoque por ficha técnica, NFC-e e operação offline

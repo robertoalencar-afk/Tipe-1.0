@@ -1,4 +1,5 @@
 import { AreaShell } from "@/components/tipe/AreaShell";
+import { AvisosCelular } from "@/components/tipe/AvisosCelular";
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -51,6 +52,7 @@ function AreaRestaurante() {
     <AreaShell eyebrow="Área do restaurante"
       actions={<>
         {access.data?.isFounder && <Button asChild size="sm" variant="ghost"><Link to="/backoffice">Voltar ao Backoffice</Link></Button>}
+        {(myRoles.includes("owner") || myRoles.includes("cashier")) && <AvisosCelular papel="gestao" />}
         <Button size="sm" variant="ghost" onClick={sair} className="text-muted-foreground"><LogOut className="h-4 w-4" />Sair</Button>
       </>}>
       <div>

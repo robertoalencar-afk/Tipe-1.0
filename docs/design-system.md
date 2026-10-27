@@ -1,122 +1,116 @@
-# TIPE — Design system e redesign premium
+# TIPE: design system (redesign v3, out/2026)
 
-Documento de referência do redesign (out/2026). Reúne a auditoria do projeto, os princípios extraídos da sunday, os tokens e componentes do design system e o registro do que mudou em cada etapa.
+Referência visual: sunday (sundayapp.com), estudada só de forma passiva, por capturas e navegação nas páginas públicas (home, digital-bill, staff-app e pricing) com o REA. Nenhum arquivo, código, imagem ou texto da sunday foi reutilizado. A identidade continua sendo da TIPE: turquesa e azul-marinho, logotipo oficial, lebres oficiais e a proposta comercial do produto.
 
 ---
 
-## 1. Auditoria do projeto
+## 1. O que a sunday faz, e o que adaptamos
 
-**Stack.** TanStack Start (React 19, SSR) + Vite 8, Tailwind CSS 4 (tokens em `src/styles.css`), componentes shadcn/Radix em `src/components/ui`, Supabase (auth, Postgres, realtime), Pagar.me (Pix e cartão para a gorjeta), React Query, Recharts (área do garçom). Projeto conectado ao Lovable.
+| Observado na sunday | Como ficou na TIPE |
+|---|---|
+| Fundo branco puro, texto quase preto e cinzas neutros; a cor de marca aparece pouco e em pontos de destaque | Tokens neutros (`--background` branco, `--foreground` `oklch(0.15 0.005 250)`). O turquesa ficou para o que é ação de pagamento, progresso e brilhos de marca |
+| Uma só família grotesca, títulos enormes em peso ~500 (não negrito) e entreletra negativa | Inter Tight variável (100–900), sem Sora, Bricolage nem Manrope. Títulos em `font-medium`, `tracking` de −0,025 a −0,035 em e `text-wrap: balance` |
+| Botões em pílula: o principal preto e o secundário com contorno fino | `Button` com `rounded-full`. `default` em preto (`bg-foreground`), `outline` com borda de 15% e `brand` em turquesa quando a ação é pagar |
+| Cartões grandes, cantos de 20 a 36 px, sem sombra e só com borda ou fundo cinza | `surface-card` e `Card` com `rounded-[1.25rem]`, sem sombra. Os painéis de destaque usam 1,75 a 2,25 rem |
+| Rótulo pequeno acima do título, sem caixa-alta | `eyebrow` com 0,875 rem, peso 500 e sem `uppercase` |
+| Seleção marcada com contorno preto, sem cor | Opções selecionadas (divisão, forma de pagamento, gorjeta e planos) usam anel ou contorno preto |
+| Vídeo com celular inclinado em 3D, moedas, palco preto arredondado e barra branca de passos | `PalcoCelular` (`components/tipe/landing/PalcoCelular.tsx`), feito em CSS do zero. Mostra as telas reais da TIPE, o celular gira com a rolagem, as moedas em turquesa têm paralaxe e a barra de passos é clicável |
+| Toasts de vidro sobre fotos no hero | `Toast` (`landing/Toast.tsx`) com textos de eventos reais da TIPE ("Mesa 7 pagou", "Dinheiro na Mesa 3") |
+| Fotos de pessoas reais trabalhando, recortadas em cartões arredondados | Fotos de restaurantes brasileiros, com o totem real da TIPE no suporte de madeira e nunca uma maquininha |
+| Gorjeta em cartões grandes com emoji | Cartões de 2×2 (simulador) ou 3 colunas (conta real) com 🙂 😊 😍 🤩. Nenhum vem pré-selecionado, e "Agora não" tem o mesmo peso |
+| Navegação lateral escura e item ativo em pílula clara | Painel do restaurante com o item ativo em pílula preta. O backoffice tem barra lateral quase preta e o item ativo em pílula branca. No celular, as abas viram pílulas roláveis |
+| Planos em cartões grandes centrados, com selo "mais popular" | Cartões por número de mesas (`plans.ts`). O selecionado ganha contorno preto |
 
-**Marca (preservada, não alterar os tons-base).**
+### Medidas lidas da sunday (getComputedStyle, 1440 e 390 px)
+
+| Elemento | Desktop | Celular |
+|---|---|---|
+| Título do hero | 64 px, peso 400, entrelinha 0,95, entreletra −0,05em | 32 px |
+| Título de seção | 48 px, peso 400, −0,05em | 28 px |
+| Título de cartão | 32 px, peso 400 ou 500, −0,03em | 24 px |
+| Texto | 16 px / 24 px, peso 400 | igual |
+| Botões | pílula, 16 px peso 500, ~48–52 px de altura, 28 px de respiro lateral | igual |
+| Seções | 112 px de respiro vertical | 72 px |
+| Margem lateral | 56 px, conteúdo quase na largura total | 28 px |
+| Cartões | cinza ~#f2f2f2, raio 16–24 px, sem sombra | igual |
+
+A sunday usa só os pesos 400 e 500 e alterna seções brancas com seções pretas puras. Na TIPE, os títulos da landing passaram para peso 400 com entreletra de −0,045em, os negritos viraram 500 e o conteúdo ficou mais largo (84rem, com margem de 56 px no desktop). A seção da Mesa Viva continua em azul-marinho, por decisão anterior.
+
+Não adaptado de propósito: prova social com logos e números de clientes (a TIPE só mostra quando houver dados reais), ranking de desempenho de garçons e sugestão de gorjeta por IA.
+
+---
+
+## 2. Tokens (`src/styles.css`)
+
+**Marca (não alterar os tons-base)**
 
 | Papel | Token | Valor |
 |---|---|---|
-| Primária, turquesa | `--brand-primary` / `--primary` | `oklch(0.77 0.14 178)` |
-| Secundária, azul-marinho | `--brand-secondary` / `--secondary` | `oklch(0.2 0.04 250)` |
-| Destaque, laranja (estrelas, alertas) | `--highlight` | `oklch(0.74 0.17 50)` |
-| Turquesa claro (acento) | `--accent` | `oklch(0.9 0.09 165)` |
+| Turquesa | `--brand-primary`, `--primary` | `oklch(0.77 0.14 178)` |
+| Turquesa para texto em fundo claro (AA) | `--brand-primary-strong` | `oklch(0.5 0.1 182)` |
+| Turquesa suave | `--brand-primary-soft` | `oklch(0.95 0.04 178)` |
+| Azul-marinho | `--brand-secondary`, `--secondary` | `oklch(0.2 0.04 250)` |
+| Laranja (alertas, estrelas) | `--highlight` | `oklch(0.74 0.17 50)` |
 
-Fontes: **Sora** (títulos, `font-display`) e **Manrope** (texto, `font-sans`), via Google Fonts em `__root.tsx`. Logotipo em duas versões (`TipeLogo variant="light"` para fundo escuro e `"dark"` para fundo claro), símbolo `TipeSymbol`, mascote lebre em quatro poses (`src/assets/mascot-*.webp`) e o ícone de traço `HareOutline`.
+**Neutros**
 
-**Inventário de telas.**
-
-| Área | Rota | Arquivo principal |
+| Token | Valor | Uso |
 |---|---|---|
-| Landing | `/` | `routes/index.tsx` + `components/tipe/landing/*` |
-| Simulador comercial | `/simulador` | `SimulatorExperience.tsx` (estado local, Mesa 12 fixa) |
-| Conta do cliente | `/$restaurante/$mesa?t=` | `routes/$restaurante.$mesa.tsx` |
-| Área do restaurante | `/$restaurante` | `RestaurantPanel.tsx`, `AdminSections.tsx` |
-| Área do garçom | `/garcom` | `routes/_authenticated/garcom.tsx` |
-| Backoffice TIPE (fundadores) | `/backoffice`, `/admin/leads` | `backoffice.tsx`, `admin.leads.tsx` |
-| Cadastro e login | `/cadastro`, `/entrar`, `/reset-password` | rotas homônimas |
-| Central Jurídica | `/legal/*` | `LegalPage.tsx`, conteúdo em `src/content/legal` |
+| `--background` | `oklch(1 0 0)` | Página |
+| `--background-muted` | `oklch(0.968 0.002 250)` | Faixas, total da conta, hover |
+| `--foreground` | `oklch(0.15 0.005 250)` | Texto, botão principal, seleção |
+| `--muted-foreground` | `oklch(0.47 0.008 250)` | Texto de apoio |
+| `--border` | `oklch(0.915 0.003 250)` | Bordas de cartões e campos |
+| `--sidebar` | `oklch(0.15 0.005 250)` | Barra lateral do backoffice |
 
-**Recursos reais confirmados no código** (e por isso podem aparecer na comunicação): Pix via Pagar.me com aprovação automática; pagamento no estabelecimento (dinheiro ou maquininha) confirmado pelo caixa via `resolve_table_payment`; divisão por item, frações, partes iguais, valor e porcentagem; taxa de serviço configurável e removível por conta; gorjeta extra opcional após o pagamento (70% equipe / 30% TIPE); avaliação do atendimento; mapa do salão em tempo real; lançamento de pedidos (Lançamento TIPE); cozinha e bar (KDS); caixa com abertura, sangria, reforço e fechamento; relatórios de 1, 7 e 30 dias com exportação CSV; histórico com auditoria; QR Codes rotativos e Totem Studio; planos por número de mesas; área do garçom com saldo quinzenal e saque por Pix; assistente Lebre.
+**Forma:** o `--radius` base é 1 rem. Botões e abas em pílula, campos com 0,9 rem, cartões com 1,25 rem e palcos e painéis de destaque com 1,75 a 2,25 rem.
 
-**Não ativo** (só pode aparecer como "em breve" ou "planejado"): Apple Pay e Google Pay (o servidor recusa esses métodos), conectores de PDV de terceiros, baixa automática no PDV, recibo por e-mail, conciliação financeira.
+**Tipografia** (uma família só, `/fonts/inter-tight-latin-var.woff2`, com preload em `__root.tsx`):
 
----
-
-## 2. Análise da sunday
-
-Páginas estudadas: home, digital-bill, staff-app, business-analytics, staff-performance, accounting, end-of-shift, tips-booster, branding, pricing e digital-tab.
-
-**Limitação registrada:** o navegador automatizado deste ambiente não conseguiu abrir sundayapp.com (conexão recusada pela rede), então a análise se baseou no conteúdo textual e na estrutura das páginas, não em capturas de tela. Cores e espaçamentos exatos da sunday não foram observados. Nada da sunday foi reutilizado: nem imagens, nem textos, nem código.
-
-**Princípios observados e como foram aplicados ao TIPE:**
-
-1. **Uma frase por seção.** Títulos curtos e diretos, com uma ou duas linhas de apoio. → `SectionHeading`: eyebrow, título forte e no máximo duas linhas.
-2. **O produto é a ilustração.** Celulares e painéis aparecem no lugar de fotos genéricas. → telas da jornada (`ProductScreens`) e prévias do painel e do garçom (`PanelPreviews`) montadas com os componentes reais e dados fictícios identificados.
-3. **Jornada em passos numerados** (escanear, dividir, gorjeta, pagar, avaliar). → "Escaneie. Confira. Pague. Pronto." Na ordem real do TIPE, a gorjeta extra vem **depois** do pagamento.
-4. **Público em camadas:** restaurante, cliente e equipe, cada um com sua seção. → seções Para restaurantes, Para clientes e Para garçons.
-5. **Prova social densa.** → Não aplicado de propósito: o TIPE está em pré-lançamento e o bloco `SocialProof` só aparece quando houver dados reais.
-6. **Painel do gerente centrado em "o que falta pagar"** e em ações rápidas (estorno, recibo). → Mesa com barra de progresso pago/total; ações da mesa agrupadas no detalhe.
-7. **Relatórios por turno e por pessoa**, com cuidado ao ranquear (a sunday ranqueia desempenho). → Relatórios e equipe mostram valores por garçom sem ranking nem nota de desempenho.
-8. **Preços claros em cards** com selo de recomendado e um bloco "incluso em todos os planos". → Cards por número de mesas com dados de `plans.ts`. Os preços ficam ocultos enquanto `SHOW_PLAN_PRICES` estiver desligado.
-9. **Gorjeta em um toque.** A sunday usa sugestão por IA. → O TIPE mantém valores fixos, opção "Agora não" com o mesmo peso visual e nenhum valor pré-selecionado.
-
----
-
-## 3. Tokens
-
-Todos em `src/styles.css`. Os tons de marca são a base; os demais são derivados.
-
-| Token semântico | Classe Tailwind | Uso |
+| Uso | Tamanho | Peso / entreletra |
 |---|---|---|
-| `--brand-primary` | `bg-brand`, `text-brand` | CTA de pagamento, progresso, foco de marca |
-| `--brand-primary-strong` | `text-brand-strong` | Texto turquesa legível sobre fundo claro (contraste AA) |
-| `--brand-primary-soft` | `bg-brand-soft` | Selecionado, chips de marca |
-| `--brand-secondary` | `bg-ink`, `text-ink` | CTA institucional, superfícies escuras |
-| `--background` / `--background-muted` | `bg-background`, `bg-background-muted` | Página, faixas alternadas |
-| `--surface` / `--surface-elevated` | `bg-surface` | Cartões |
-| `--border` | `border-border` | Divisórias e contornos |
-| `--text-primary` / `--text-secondary` | `text-foreground`, `text-muted-foreground` | Texto |
-| `--success` / `--warning` / `--error` | `bg-success`, `bg-warning`, `bg-destructive` | Estados |
-| `--focus-ring` | `ring-focus-ring` | Foco visível em todos os controles |
+| Hero da landing | `clamp` até ~6 rem | 500 / −0,04 em |
+| Título de página interna (`PageHeader`) | `clamp(2rem, 1.6rem + 1.2vw, 2.75rem)` | 500 / −0,035 em |
+| Título de passo (simulador e conta) | 1,9 rem | 500 / −0,035 em |
+| Título de painel (`Panel`) | 1,05 rem | 500 |
+| Corpo | 0,95 a 1 rem | 400 |
+| Rótulo (`eyebrow`, rótulos de campo) | 0,875 rem | 500, sem caixa-alta |
+| Números (`money`) | algarismos tabulares | 500 / −0,035 em |
 
-Escala tipográfica fluida: `text-display` (hero), `text-headline` (seções), `text-title`. Utilitários: `container-page`, `eyebrow`, `money` (números tabulares) e `surface-card`. Sombras: `shadow-xs`, `shadow-soft`, `shadow-lift` e `shadow-device`.
-
-> O `cn()` (`src/lib/utils.ts`) foi estendido para que o tailwind-merge reconheça esses tokens. Antes, `text-headline` era descartado quando vinha junto de uma cor de texto.
+**Movimento:** transições de 200 a 500 ms em opacidade e transform. Rolagem com `requestAnimationFrame` e variável CSS `--p` (sem biblioteca no palco). Com `prefers-reduced-motion`, nada se move e os passos trocam por botão.
 
 ---
 
-## 4. Componentes
+## 3. Componentes
 
-`src/components/tipe/ds.tsx`: `Eyebrow`, `SectionHeading`, `StatusBadge` (vocabulário único de estado: success, warning, error, neutral, brand, info), `StatCard` (com estado vazio honesto), `EmptyState`, `PhoneFrame`, `PageHeader`, `Panel` e `brl()`.
-
-`src/components/ui`: `Button` ganhou as variantes `ink` e `soft`, cantos arredondados e foco visível; `Badge` ganhou variantes de estado; `Card` ficou mais leve.
+- `components/ui/button.tsx`: em pílula, nas variantes `default` (preto), `brand` (turquesa), `outline`, `ghost` e `link`, com tamanhos `sm` h-9, padrão h-11 e `lg` h-14.
+- `components/ui/input.tsx`: h-12, cantos de 0,9 rem e foco com borda preta.
+- `components/tipe/ds.tsx`: `PageHeader`, `StatCard` (valor com tamanho por container query, `@container`, para não estourar em grades estreitas), `Panel`, `EmptyState`, `StatusBadge` e `brl()`.
+- `components/tipe/landing/`: `PalcoCelular`, `PhoneShot` (capturas reais em WebP 390/780), `Toast`, `Marcas` (bigodes do título e símbolo oficial) e `EditorialPhoto`.
+- `components/tipe/MesaViva.tsx`: a mesa animada da landing.
 
 Regras:
-- Cada estado tem uma cor e um texto. Não usamos cor sozinha.
-- Valores financeiros sempre com `money` e `brl()`.
-- Sem dado real: `StatCard empty` ou `EmptyState`, nunca número inventado.
-- Ação sem backend: não vira botão. Recurso futuro aparece como `StatusBadge tone="neutral"` "Em breve".
+- Cada estado tem cor e texto; não usamos cor sozinha.
+- Valores em dinheiro sempre com `money` e `brl()`.
+- Sem dado real, o componente mostra `EmptyState`, nunca um número inventado.
+- Só aparecem recursos que existem. Decisão do Roberto (15/10): Apple Pay e Google Pay aparecem como formas de pagamento disponíveis.
+- Todos os CTAs comerciais levam a `/teste-gratis`.
 
 ---
 
-## 5. Registro por etapa
+## 4. Onde está aplicado
 
-Branch `redesign-premium`, um commit por etapa. Todas as mudanças são de apresentação: estado, efeitos, chamadas ao servidor, permissões e regras financeiras não foram alterados. As exceções intencionais estão marcadas com ⚑.
-
-| Etapa | O que mudou |
+| Área | Estado |
 |---|---|
-| Design system + landing | Tokens, `ds.tsx`, `Button`/`Badge`/`Card`, landing completa (header, hero com jornada, seções por público, prévia do painel, integrações por status, preços por mesas, FAQ, rodapé). Correção no `cn()`, que antes descartava os tamanhos customizados. |
-| Conta do cliente (`/$restaurante/$mesa`) | Topo leve com progresso Conta → Pagamento → Pronto; itens em cartões; ação principal fixa no rodapé; formas de pagamento como opções de rádio; Pix com retorno de "copiado"; confirmação "Pagamento realizado!" com recibo montado só com dados do servidor; gorjeta sem valor pré-selecionado e com a divisão 70/30 visível; esqueleto de carregamento; tema escuro dos novos tokens. ⚑ Apple Pay e Google Pay aparecem como "Em breve" e não podem ser escolhidos, porque o servidor recusa esses métodos. ⚑ Na gorjeta, cartão só aparece quando há chave pública para tokenizar. |
-| Painel do restaurante (`/$restaurante`) | Barra superior clara; navegação agrupada (Operação, Financeiro, Equipe, Configurações); navegação móvel com quatro atalhos e "Mais"; cabeçalho por seção; salão com estados consistentes e progresso pago/total; caixa, histórico, KDS, relatórios e início com `StatCard`, seletor segmentado, estados vazios e esqueletos. |
-| Área do garçom (`/garcom`) | Saldo em destaque, abas segmentadas, gráfico nas cores da marca, passos de saque numerados e status com `StatusBadge`. `/painel` usa a mesma moldura. |
-| Simulador (`/simulador`) | Mesmo visual da conta real. ⚑ As carteiras aparecem como "Em breve", como na conta real. |
-| Base | `Input`, `Textarea` e `Dialog` alinhados ao design system; `TipeLogo` mescla classes com `cn()`; preconnect para `fonts.gstatic.com`. |
+| Landing (`/`) | Hero "Pague. Sem esperar.", Mesa Viva, palco do celular, foto da dona no tablet e foto do garçom na gorjeta extra |
+| Entrar e cadastro | Foto com toasts à esquerda e formulário à direita (`/entrar`); cartões de plano com contorno preto (`/cadastro`) |
+| Simulador (`/simulador`) e conta da mesa | Títulos grandes em peso 500, total em cartão cinza, gorjeta em cartões com emoji e seleção em preto |
+| Painel do restaurante | Navegação com item ativo em pílula preta, `PageHeader` grande e indicadores sem ícone colorido |
+| Área do garçom | Saldo em cartão preto com número de 3,2 rem e abas em pílula |
+| Backoffice | Barra lateral quase preta com item ativo em pílula branca, indicadores no novo `Kpi` e abas em pílula no celular |
 
-### Como foi verificado
+## 5. Como verificar
 
-- O ambiente de desenvolvimento não tinha acesso ao registro npm, então `vite build`, `tsc` completo, ESLint e Vitest **não puderam ser executados**. Rode `bun run build` e `bun run lint` antes do merge.
-- Checagem de tipos parcial: `tsc` com as mesmas opções estritas do projeto, com pacotes externos tipados como `any`. Ela detecta nomes inexistentes, propriedades erradas e `exactOptionalPropertyTypes` no código local. Todos os arquivos alterados passaram.
-- Renderização real com React 19 e Tailwind 4 de cada tela alterada, com dados fictícios, em 1440 px e 390 px, em tema claro e escuro (conta do cliente), percorrendo a jornada completa com Playwright: identificação, conta, divisão, pagamento, presencial, Pix, confirmação, avaliação, gorjeta e pagamento da gorjeta.
-
-### Pendências e próximos passos
-
-1. **Performance não medida.** As metas (Lighthouse 90+, LCP ≤ 2,5 s, INP ≤ 200 ms, CLS ≤ 0,1) precisam ser medidas no deploy de preview. Pontos de atenção: o logotipo PNG tem cerca de 116 KB (vale uma versão SVG ou WebP) e há duas famílias de fonte com sete pesos.
-2. Telas não tocadas nesta rodada: backoffice dos fundadores, `/admin/leads`, cadastro e login, Central Jurídica, cardápio, integrações, configurações, recebimentos e assinatura. Elas já herdam os componentes base, mas a composição continua a antiga.
-3. Prova social: o bloco existe na landing, mas está oculto até haver restaurantes e depoimentos reais.
-4. Recibo por e-mail, conciliação e Apple Pay/Google Pay continuam como "planejado" ou "em breve" em toda a comunicação.
+- `npx tsc --noEmit`, `npx eslint`, `npx vitest run` e `bun run build`.
+- Capturas com Playwright em 1440×900 e 390×844. O harness de telas autenticadas, com dados fictícios do "Maré Alta", fica fora do repositório.
+- Comparação lado a lado com as capturas da sunday, feitas nas páginas públicas.

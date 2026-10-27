@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import logo from "@/assets/logo-dark.png.asset.json";
+import logo from "@/assets/marca/tipe-logo.svg";
 
 export type LegalSection = { title: string; paragraphs?: string[]; bullets?: string[]; extra?: ReactNode };
 
@@ -10,7 +10,7 @@ export function LegalPage({ title, version, effective, intro, sections, children
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-6 sm:py-12">
         <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">← Voltar para a página inicial</Link>
         <article className="mt-6 rounded-3xl border bg-card p-5 shadow-sm sm:p-10">
-          <img src={logo.url} alt="TIPE" className="h-10 w-auto object-contain sm:h-12" />
+          <img src={logo} alt="TIPE" className="h-10 w-auto object-contain sm:h-12" />
           <h1 className="mt-6 font-display text-2xl font-bold sm:text-4xl">{title}</h1>
           <p className="mt-2 text-sm text-muted-foreground">Versão {version} · vigente desde {effective}</p>
           {intro && <p className="mt-4 text-sm leading-relaxed text-foreground/90">{intro}</p>}

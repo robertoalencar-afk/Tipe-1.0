@@ -27,7 +27,7 @@ const ORIENTACAO: Record<PaymentIncident["kind"], string> = {
   pdv_writeback_failed: "O pagamento foi aprovado, mas não foi possível dar baixa no seu sistema. Dê baixa manual.",
 };
 
-function useIncidents(slug: string, enabled: boolean) {
+export function useIncidents(slug: string, enabled: boolean) {
   const fetchIncidents = useServerFn(getPaymentIncidents);
   return useQuery({ queryKey: ["incidents", slug], queryFn: () => fetchIncidents({ data: { slug } }), enabled, refetchInterval: 30000 });
 }

@@ -428,6 +428,64 @@ export type Database = {
           },
         ]
       }
+      totem_tokens: {
+        Row: {
+          restaurant_id: string
+          rotated_at: string
+          rotated_by: string | null
+          token: string
+        }
+        Insert: {
+          restaurant_id: string
+          rotated_at?: string
+          rotated_by?: string | null
+          token: string
+        }
+        Update: {
+          restaurant_id?: string
+          rotated_at?: string
+          rotated_by?: string | null
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "totem_tokens_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: true
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      order_display_tokens: {
+        Row: {
+          restaurant_id: string
+          rotated_at: string
+          rotated_by: string | null
+          token: string
+        }
+        Insert: {
+          restaurant_id: string
+          rotated_at?: string
+          rotated_by?: string | null
+          token: string
+        }
+        Update: {
+          restaurant_id?: string
+          rotated_at?: string
+          rotated_by?: string | null
+          token?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_display_tokens_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: true
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       pdv_events: {
         Row: {
           adapter: string
@@ -626,30 +684,82 @@ export type Database = {
       }
       pdv_orders: {
         Row: {
+          called_at: string | null
+          cancel_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          cash_received: number | null
+          cash_session_id: string | null
+          change_due: number | null
+          channel: string
           created_at: string
           created_by: string | null
+          customer_name: string | null
           id: string
+          payment_method: string | null
+          picked_up_at: string | null
+          request_id: string | null
           restaurant_id: string
-          table_number: string
+          service_day: string | null
+          table_number: string | null
+          ticket_number: number | null
+          total: number | null
           waiter_id: string | null
         }
         Insert: {
+          called_at?: string | null
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          cash_received?: number | null
+          cash_session_id?: string | null
+          change_due?: number | null
+          channel?: string
           created_at?: string
           created_by?: string | null
+          customer_name?: string | null
           id?: string
+          payment_method?: string | null
+          picked_up_at?: string | null
+          request_id?: string | null
           restaurant_id: string
-          table_number: string
+          service_day?: string | null
+          table_number?: string | null
+          ticket_number?: number | null
+          total?: number | null
           waiter_id?: string | null
         }
         Update: {
+          called_at?: string | null
+          cancel_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          cash_received?: number | null
+          cash_session_id?: string | null
+          change_due?: number | null
+          channel?: string
           created_at?: string
           created_by?: string | null
+          customer_name?: string | null
           id?: string
+          payment_method?: string | null
+          picked_up_at?: string | null
+          request_id?: string | null
           restaurant_id?: string
-          table_number?: string
+          service_day?: string | null
+          table_number?: string | null
+          ticket_number?: number | null
+          total?: number | null
           waiter_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "pdv_orders_cash_session_id_fkey"
+            columns: ["cash_session_id"]
+            isOneToOne: false
+            referencedRelation: "cash_sessions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "pdv_orders_restaurant_id_fkey"
             columns: ["restaurant_id"]
@@ -1421,6 +1531,8 @@ export type Database = {
           phone: string | null
           pos_mode: string
           pos_provider: string
+          self_order_enabled: boolean
+          totem_enabled: boolean
           service_rate: number
           slug: string
           updated_at: string
@@ -1438,8 +1550,10 @@ export type Database = {
           phone?: string | null
           pos_mode?: string
           pos_provider?: string
+          self_order_enabled?: boolean
           service_rate?: number
           slug: string
+          totem_enabled?: boolean
           updated_at?: string
         }
         Update: {
@@ -1455,8 +1569,10 @@ export type Database = {
           phone?: string | null
           pos_mode?: string
           pos_provider?: string
+          self_order_enabled?: boolean
           service_rate?: number
           slug?: string
+          totem_enabled?: boolean
           updated_at?: string
         }
         Relationships: []
@@ -2090,6 +2206,35 @@ export type Database = {
         }
         Returns: string
       }
+      pdv_counter_cancel: {
+        Args: { p_order: string; p_reason: string }
+        Returns: undefined
+      }
+      pdv_counter_sale: {
+        Args: {
+          p_cash_received: number
+          p_customer: string
+          p_items: Json
+          p_method: string
+          p_request_id: string
+          p_slug: string
+        }
+        Returns: Json
+      }
+      pdv_customer_order: {
+        Args: {
+          p_customer: string
+          p_items: Json
+          p_request_id: string
+          p_slug: string
+          p_table: string
+        }
+        Returns: Json
+      }
+      pdv_display_token: {
+        Args: { p_rotate?: boolean; p_slug: string }
+        Returns: string
+      }
       pdv_launch_order: {
         Args: {
           p_items: Json
@@ -2124,6 +2269,29 @@ export type Database = {
           isOneToOne: false
           isSetofReturn: true
         }
+      }
+      pdv_order_bump: {
+        Args: { p_order: string; p_sector?: string; p_status: string }
+        Returns: undefined
+      }
+      pdv_order_call: { Args: { p_order: string }; Returns: undefined }
+      pdv_service_day: { Args: never; Returns: string }
+      pdv_settle_totem_order: {
+        Args: { p_cash_received: number; p_method: string; p_order: string }
+        Returns: Json
+      }
+      pdv_totem_order: {
+        Args: {
+          p_customer: string
+          p_items: Json
+          p_request_id: string
+          p_slug: string
+        }
+        Returns: Json
+      }
+      pdv_totem_token: {
+        Args: { p_rotate?: boolean; p_slug: string }
+        Returns: string
       }
       pdv_set_item_status: {
         Args: { p_item: string; p_status: string }
