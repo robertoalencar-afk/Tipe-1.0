@@ -55,6 +55,26 @@ jobs:
                     else
                       git checkout --ours -- "$file"; resolution=mantida
                     fi ;;
+                  drizzle/migrations/meta/_journal.json)
+                    git show ":2:$file" > /tmp/journal-ours.json
+                    git show ":3:$file" > /tmp/journal-theirs.json
+                    python3 - <<'PY'
+          import json
+          from pathlib import Path
+          a=json.loads(Path('/tmp/journal-ours.json').read_text())
+          b=json.loads(Path('/tmp/journal-theirs.json').read_text())
+          merged={e['tag']:e for e in a['entries']}
+          for entry in b['entries']:
+              if entry['tag'] in merged and {k:v for k,v in entry.items() if k!='idx'} != {k:v for k,v in merged[entry['tag']].items() if k!='idx'}:
+                  raise ValueError('Conflito semantico em migracao: '+entry['tag'])
+              merged[entry['tag']]=entry
+          items=sorted(merged.values(),key=lambda e:(int(e['tag'].split('_',1)[0]),e['tag']))
+          for i,e in enumerate(items): e['idx']=i
+          a['entries']=items
+          Path('drizzle/migrations/meta/_journal.json').write_text(json.dumps(a,indent=2,ensure_ascii=False)+'\\n')
+          print('Drizzle journal integrado:',len(items),'migracoes')
+          PY
+                    resolution=journal-preservado ;;
                   src/routeTree.gen.ts)
                     git checkout --theirs -- "$file"; resolution=gerado ;;
                   *)
