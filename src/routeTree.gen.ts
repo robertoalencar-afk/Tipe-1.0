@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as CookiesRouteImport } from './routes/cookies'
+import { Route as CrmRouteImport } from './routes/crm'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as FundadorRouteImport } from './routes/fundador'
 import { Route as McpRouteImport } from './routes/mcp'
@@ -27,6 +28,12 @@ import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } fr
 import { Route as AuthenticatedBackofficeRouteImport } from './routes/_authenticated/backoffice'
 import { Route as AuthenticatedGarcomRouteImport } from './routes/_authenticated/garcom'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
+import { Route as CrmIndexRouteImport } from './routes/crm.index'
+import { Route as CrmEmpresasRouteImport } from './routes/crm.empresas'
+import { Route as CrmEntrarRouteImport } from './routes/crm.entrar'
+import { Route as CrmFunisRouteImport } from './routes/crm.funis'
+import { Route as CrmLeadsRouteImport } from './routes/crm.leads'
+import { Route as CrmOportunidadesRouteImport } from './routes/crm.oportunidades'
 import { Route as LegalIndexRouteImport } from './routes/legal.index'
 import { Route as LegalLivroRouteImport } from './routes/legal.$livro'
 import { Route as LegalCompletaRouteImport } from './routes/legal.completa'
@@ -37,6 +44,8 @@ import { Route as PrivacidadeSolicitacaoRouteImport } from './routes/privacidade
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin.leads'
 import { Route as ApiPublicCspReportRouteImport } from './routes/api/public/csp-report'
+import { Route as CrmContatosIndexRouteImport } from './routes/crm.contatos.index'
+import { Route as CrmContatosIdRouteImport } from './routes/crm.contatos.$id'
 import { Route as LegalVersoesArquivoRouteImport } from './routes/legal.versoes_.$arquivo'
 import { Route as MesaRestauranteMesaRouteImport } from './routes/mesa.$restaurante.$mesa'
 import { Route as ApiPublicPagarmeWebhookRouteImport } from './routes/api/public/pagarme/webhook'
@@ -64,6 +73,11 @@ const CadastroRoute = CadastroRouteImport.update({
 const CookiesRoute = CookiesRouteImport.update({
   id: '/cookies',
   path: '/cookies',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CrmRoute = CrmRouteImport.update({
+  id: '/crm',
+  path: '/crm',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EntrarRoute = EntrarRouteImport.update({
@@ -137,6 +151,36 @@ const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
   path: '/painel',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const CrmIndexRoute = CrmIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmEmpresasRoute = CrmEmpresasRouteImport.update({
+  id: '/empresas',
+  path: '/empresas',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmEntrarRoute = CrmEntrarRouteImport.update({
+  id: '/entrar',
+  path: '/entrar',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmFunisRoute = CrmFunisRouteImport.update({
+  id: '/funis',
+  path: '/funis',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmLeadsRoute = CrmLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmOportunidadesRoute = CrmOportunidadesRouteImport.update({
+  id: '/oportunidades',
+  path: '/oportunidades',
+  getParentRoute: () => CrmRoute,
+} as any)
 const LegalIndexRoute = LegalIndexRouteImport.update({
   id: '/legal/',
   path: '/legal/',
@@ -186,6 +230,16 @@ const ApiPublicCspReportRoute = ApiPublicCspReportRouteImport.update({
   id: '/api/public/csp-report',
   path: '/api/public/csp-report',
   getParentRoute: () => rootRouteImport,
+} as any)
+const CrmContatosIndexRoute = CrmContatosIndexRouteImport.update({
+  id: '/contatos/',
+  path: '/contatos/',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmContatosIdRoute = CrmContatosIdRouteImport.update({
+  id: '/contatos/$id',
+  path: '/contatos/$id',
+  getParentRoute: () => CrmRoute,
 } as any)
 const LegalVersoesArquivoRoute = LegalVersoesArquivoRouteImport.update({
   id: '/legal/versoes_/$arquivo',
@@ -241,6 +295,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cadastro': typeof CadastroRoute
   '/cookies': typeof CookiesRoute
+  '/crm': typeof CrmRouteWithChildren
   '/entrar': typeof EntrarRoute
   '/fundador': typeof FundadorRoute
   '/mcp': typeof McpRoute
@@ -254,19 +309,27 @@ export interface FileRoutesByFullPath {
   '/backoffice': typeof AuthenticatedBackofficeRoute
   '/garcom': typeof AuthenticatedGarcomRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/crm/empresas': typeof CrmEmpresasRoute
+  '/crm/entrar': typeof CrmEntrarRoute
+  '/crm/funis': typeof CrmFunisRoute
+  '/crm/leads': typeof CrmLeadsRoute
+  '/crm/oportunidades': typeof CrmOportunidadesRoute
   '/legal/$livro': typeof LegalLivroRoute
   '/legal/completa': typeof LegalCompletaRoute
   '/legal/glossario': typeof LegalGlossarioRoute
   '/legal/versoes': typeof LegalVersoesRoute
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
   '/$restaurante/': typeof RestauranteIndexRoute
+  '/crm/': typeof CrmIndexRoute
   '/legal/': typeof LegalIndexRoute
   '/privacidade/': typeof PrivacidadeIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
+  '/crm/contatos/$id': typeof CrmContatosIdRoute
   '/legal/versoes/$arquivo': typeof LegalVersoesArquivoRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
+  '/crm/contatos/': typeof CrmContatosIndexRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/payments/reconcile': typeof ApiPublicPaymentsReconcileRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
@@ -292,19 +355,27 @@ export interface FileRoutesByTo {
   '/backoffice': typeof AuthenticatedBackofficeRoute
   '/garcom': typeof AuthenticatedGarcomRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/crm/empresas': typeof CrmEmpresasRoute
+  '/crm/entrar': typeof CrmEntrarRoute
+  '/crm/funis': typeof CrmFunisRoute
+  '/crm/leads': typeof CrmLeadsRoute
+  '/crm/oportunidades': typeof CrmOportunidadesRoute
   '/legal/$livro': typeof LegalLivroRoute
   '/legal/completa': typeof LegalCompletaRoute
   '/legal/glossario': typeof LegalGlossarioRoute
   '/legal/versoes': typeof LegalVersoesRoute
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
   '/$restaurante': typeof RestauranteIndexRoute
+  '/crm': typeof CrmIndexRoute
   '/legal': typeof LegalIndexRoute
   '/privacidade': typeof PrivacidadeIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
+  '/crm/contatos/$id': typeof CrmContatosIdRoute
   '/legal/versoes/$arquivo': typeof LegalVersoesArquivoRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
+  '/crm/contatos': typeof CrmContatosIndexRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/payments/reconcile': typeof ApiPublicPaymentsReconcileRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
@@ -319,6 +390,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/cadastro': typeof CadastroRoute
   '/cookies': typeof CookiesRoute
+  '/crm': typeof CrmRouteWithChildren
   '/entrar': typeof EntrarRoute
   '/fundador': typeof FundadorRoute
   '/mcp': typeof McpRoute
@@ -332,19 +404,27 @@ export interface FileRoutesById {
   '/_authenticated/backoffice': typeof AuthenticatedBackofficeRoute
   '/_authenticated/garcom': typeof AuthenticatedGarcomRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
+  '/crm/empresas': typeof CrmEmpresasRoute
+  '/crm/entrar': typeof CrmEntrarRoute
+  '/crm/funis': typeof CrmFunisRoute
+  '/crm/leads': typeof CrmLeadsRoute
+  '/crm/oportunidades': typeof CrmOportunidadesRoute
   '/legal/$livro': typeof LegalLivroRoute
   '/legal/completa': typeof LegalCompletaRoute
   '/legal/glossario': typeof LegalGlossarioRoute
   '/legal/versoes': typeof LegalVersoesRoute
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
   '/$restaurante/': typeof RestauranteIndexRoute
+  '/crm/': typeof CrmIndexRoute
   '/legal/': typeof LegalIndexRoute
   '/privacidade/': typeof PrivacidadeIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
+  '/crm/contatos/$id': typeof CrmContatosIdRoute
   '/legal/versoes_/$arquivo': typeof LegalVersoesArquivoRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
+  '/crm/contatos/': typeof CrmContatosIndexRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/payments/reconcile': typeof ApiPublicPaymentsReconcileRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
@@ -359,6 +439,7 @@ export interface FileRouteTypes {
     | '/'
     | '/cadastro'
     | '/cookies'
+    | '/crm'
     | '/entrar'
     | '/fundador'
     | '/mcp'
@@ -372,19 +453,27 @@ export interface FileRouteTypes {
     | '/backoffice'
     | '/garcom'
     | '/painel'
+    | '/crm/empresas'
+    | '/crm/entrar'
+    | '/crm/funis'
+    | '/crm/leads'
+    | '/crm/oportunidades'
     | '/legal/$livro'
     | '/legal/completa'
     | '/legal/glossario'
     | '/legal/versoes'
     | '/privacidade/solicitacao'
     | '/$restaurante/'
+    | '/crm/'
     | '/legal/'
     | '/privacidade/'
     | '/.lovable/oauth/consent'
     | '/admin/leads'
     | '/api/public/csp-report'
+    | '/crm/contatos/$id'
     | '/legal/versoes/$arquivo'
     | '/mesa/$restaurante/$mesa'
+    | '/crm/contatos/'
     | '/api/public/pagarme/webhook'
     | '/api/public/payments/reconcile'
     | '/api/public/pdv/sync'
@@ -410,19 +499,27 @@ export interface FileRouteTypes {
     | '/backoffice'
     | '/garcom'
     | '/painel'
+    | '/crm/empresas'
+    | '/crm/entrar'
+    | '/crm/funis'
+    | '/crm/leads'
+    | '/crm/oportunidades'
     | '/legal/$livro'
     | '/legal/completa'
     | '/legal/glossario'
     | '/legal/versoes'
     | '/privacidade/solicitacao'
     | '/$restaurante'
+    | '/crm'
     | '/legal'
     | '/privacidade'
     | '/.lovable/oauth/consent'
     | '/admin/leads'
     | '/api/public/csp-report'
+    | '/crm/contatos/$id'
     | '/legal/versoes/$arquivo'
     | '/mesa/$restaurante/$mesa'
+    | '/crm/contatos'
     | '/api/public/pagarme/webhook'
     | '/api/public/payments/reconcile'
     | '/api/public/pdv/sync'
@@ -436,6 +533,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/cadastro'
     | '/cookies'
+    | '/crm'
     | '/entrar'
     | '/fundador'
     | '/mcp'
@@ -449,19 +547,27 @@ export interface FileRouteTypes {
     | '/_authenticated/backoffice'
     | '/_authenticated/garcom'
     | '/_authenticated/painel'
+    | '/crm/empresas'
+    | '/crm/entrar'
+    | '/crm/funis'
+    | '/crm/leads'
+    | '/crm/oportunidades'
     | '/legal/$livro'
     | '/legal/completa'
     | '/legal/glossario'
     | '/legal/versoes'
     | '/privacidade/solicitacao'
     | '/$restaurante/'
+    | '/crm/'
     | '/legal/'
     | '/privacidade/'
     | '/.lovable/oauth/consent'
     | '/_authenticated/admin/leads'
     | '/api/public/csp-report'
+    | '/crm/contatos/$id'
     | '/legal/versoes_/$arquivo'
     | '/mesa/$restaurante/$mesa'
+    | '/crm/contatos/'
     | '/api/public/pagarme/webhook'
     | '/api/public/payments/reconcile'
     | '/api/public/pdv/sync'
@@ -476,6 +582,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   CadastroRoute: typeof CadastroRoute
   CookiesRoute: typeof CookiesRoute
+  CrmRoute: typeof CrmRouteWithChildren
   EntrarRoute: typeof EntrarRoute
   FundadorRoute: typeof FundadorRoute
   McpRoute: typeof McpRoute
@@ -535,6 +642,13 @@ declare module '@tanstack/react-router' {
       path: '/cookies'
       fullPath: '/cookies'
       preLoaderRoute: typeof CookiesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/crm': {
+      id: '/crm'
+      path: '/crm'
+      fullPath: '/crm'
+      preLoaderRoute: typeof CrmRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/entrar': {
@@ -635,6 +749,48 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedPainelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/crm/': {
+      id: '/crm/'
+      path: '/'
+      fullPath: '/crm/'
+      preLoaderRoute: typeof CrmIndexRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/empresas': {
+      id: '/crm/empresas'
+      path: '/empresas'
+      fullPath: '/crm/empresas'
+      preLoaderRoute: typeof CrmEmpresasRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/entrar': {
+      id: '/crm/entrar'
+      path: '/entrar'
+      fullPath: '/crm/entrar'
+      preLoaderRoute: typeof CrmEntrarRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/funis': {
+      id: '/crm/funis'
+      path: '/funis'
+      fullPath: '/crm/funis'
+      preLoaderRoute: typeof CrmFunisRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/leads': {
+      id: '/crm/leads'
+      path: '/leads'
+      fullPath: '/crm/leads'
+      preLoaderRoute: typeof CrmLeadsRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/oportunidades': {
+      id: '/crm/oportunidades'
+      path: '/oportunidades'
+      fullPath: '/crm/oportunidades'
+      preLoaderRoute: typeof CrmOportunidadesRouteImport
+      parentRoute: typeof CrmRoute
+    }
     '/legal/': {
       id: '/legal/'
       path: '/legal'
@@ -704,6 +860,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/public/csp-report'
       preLoaderRoute: typeof ApiPublicCspReportRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/crm/contatos/': {
+      id: '/crm/contatos/'
+      path: '/contatos'
+      fullPath: '/crm/contatos/'
+      preLoaderRoute: typeof CrmContatosIndexRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/contatos/$id': {
+      id: '/crm/contatos/$id'
+      path: '/contatos/$id'
+      fullPath: '/crm/contatos/$id'
+      preLoaderRoute: typeof CrmContatosIdRouteImport
+      parentRoute: typeof CrmRoute
     }
     '/legal/versoes_/$arquivo': {
       id: '/legal/versoes_/$arquivo'
@@ -788,11 +958,36 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface CrmRouteChildren {
+  CrmEmpresasRoute: typeof CrmEmpresasRoute
+  CrmEntrarRoute: typeof CrmEntrarRoute
+  CrmFunisRoute: typeof CrmFunisRoute
+  CrmLeadsRoute: typeof CrmLeadsRoute
+  CrmOportunidadesRoute: typeof CrmOportunidadesRoute
+  CrmIndexRoute: typeof CrmIndexRoute
+  CrmContatosIdRoute: typeof CrmContatosIdRoute
+  CrmContatosIndexRoute: typeof CrmContatosIndexRoute
+}
+
+const CrmRouteChildren: CrmRouteChildren = {
+  CrmEmpresasRoute: CrmEmpresasRoute,
+  CrmEntrarRoute: CrmEntrarRoute,
+  CrmFunisRoute: CrmFunisRoute,
+  CrmLeadsRoute: CrmLeadsRoute,
+  CrmOportunidadesRoute: CrmOportunidadesRoute,
+  CrmIndexRoute: CrmIndexRoute,
+  CrmContatosIdRoute: CrmContatosIdRoute,
+  CrmContatosIndexRoute: CrmContatosIndexRoute,
+}
+
+const CrmRouteWithChildren = CrmRoute._addFileChildren(CrmRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   CadastroRoute: CadastroRoute,
   CookiesRoute: CookiesRoute,
+  CrmRoute: CrmRouteWithChildren,
   EntrarRoute: EntrarRoute,
   FundadorRoute: FundadorRoute,
   McpRoute: McpRoute,
