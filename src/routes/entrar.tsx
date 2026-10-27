@@ -6,13 +6,20 @@ import { toast } from "sonner";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { TipeLogo } from "@/components/tipe/Logo";
-import lebre from "@/assets/lebre-ai-official.svg";
+import { EditorialPhoto } from "@/components/tipe/landing/EditorialPhoto";
+import { Toast } from "@/components/tipe/landing/Toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { CheckCircle2, ShieldCheck, Zap } from "lucide-react";
+import { Check, HandCoins } from "lucide-react";
 
 export const Route = createFileRoute("/entrar")({
-  validateSearch: z.object({ r: z.string().regex(/^\/[a-z0-9-]+$/).optional().catch(undefined) }),
+  validateSearch: z.object({
+    r: z
+      .string()
+      .regex(/^\/[a-z0-9-]+$/)
+      .optional()
+      .catch(undefined),
+  }),
   head: () => ({
     meta: [
       { title: "Entrar — Área do restaurante TIPE" },
@@ -37,9 +44,17 @@ function Entrar() {
     try {
       const a = await fetchAccess();
       if (a.isFounder) return navigate({ to: "/backoffice", replace: true });
-      if (a.roles.length > 0 && a.roles.every((x) => x.role === "waiter")) return navigate({ to: "/garcom", replace: true });
-      if (a.restaurants.length === 1) return navigate({ to: "/$restaurante", params: { restaurante: a.restaurants[0]!.slug }, replace: true });
-    } catch { /* fallback abaixo */ }
+      if (a.roles.length > 0 && a.roles.every((x) => x.role === "waiter"))
+        return navigate({ to: "/garcom", replace: true });
+      if (a.restaurants.length === 1)
+        return navigate({
+          to: "/$restaurante",
+          params: { restaurante: a.restaurants[0]!.slug },
+          replace: true,
+        });
+    } catch {
+      /* fallback abaixo */
+    }
     return navigate({ to: "/painel", replace: true });
   };
   const [modo, setModo] = useState<Modo>("entrar");
@@ -48,8 +63,12 @@ function Entrar() {
   const [carregando, setCarregando] = useState(false);
 
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => { if (data.session) destino(); });
-    const { data } = supabase.auth.onAuthStateChange((e, s) => { if (e === "SIGNED_IN" && s) destino(); });
+    supabase.auth.getSession().then(({ data }) => {
+      if (data.session) destino();
+    });
+    const { data } = supabase.auth.onAuthStateChange((e, s) => {
+      if (e === "SIGNED_IN" && s) destino();
+    });
     return () => data.subscription.unsubscribe();
   }, [navigate, r]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -61,12 +80,23 @@ function Entrar() {
         const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
         if (error) throw new Error("E-mail ou senha incorretos");
       } else if (modo === "criar") {
-        const { error } = await supabase.auth.signUp({ email, password: senha, options: { emailRedirectTo: `${window.location.origin}${r ?? "/painel"}` } });
-        if (error) throw new Error(error.message.includes("pwned") || error.message.toLowerCase().includes("weak") ? "Essa senha é fraca ou já vazou. Escolha outra." : "Não foi possível criar a conta");
+        const { error } = await supabase.auth.signUp({
+          email,
+          password: senha,
+          options: { emailRedirectTo: `${window.location.origin}${r ?? "/painel"}` },
+        });
+        if (error)
+          throw new Error(
+            error.message.includes("pwned") || error.message.toLowerCase().includes("weak")
+              ? "Essa senha é fraca ou já vazou. Escolha outra."
+              : "Não foi possível criar a conta",
+          );
         toast.success("Conta criada! Confirme pelo link enviado ao seu e-mail.");
         setModo("entrar");
       } else {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` });
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+          redirectTo: `${window.location.origin}/reset-password`,
+        });
         if (error) throw new Error("Não foi possível enviar o e-mail");
         toast.success("Enviamos um link para redefinir sua senha.");
         setModo("entrar");
@@ -79,93 +109,172 @@ function Entrar() {
   }
 
   async function google() {
-    const { error } = await supabase.auth.signInWithOAuth({ provider: "google", options: { redirectTo: `${window.location.origin}/entrar${r ? `?r=${encodeURIComponent(r)}` : ""}` } });
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/entrar${r ? `?r=${encodeURIComponent(r)}` : ""}` },
+    });
     if (error) toast.error("Não foi possível entrar com Google");
   }
 
-  const titulo = modo === "entrar" ? "Área do restaurante" : modo === "criar" ? "Criar conta da equipe" : "Recuperar senha";
-  const subtitulo = modo === "entrar" ? "Entre com seu e-mail e senha para acessar o painel." : modo === "criar" ? "Crie sua conta para fazer parte da equipe." : "Informe seu e-mail e enviamos o link de recuperação.";
-
-  const perks = [
-    { icon: Zap, text: "Acompanhe mesas e pedidos em tempo real" },
-    { icon: CheckCircle2, text: "Confirme pagamentos no estabelecimento com um toque" },
-    { icon: ShieldCheck, text: "Conectado ao PDV que você já usa" },
-  ];
+  const titulo =
+    modo === "entrar"
+      ? "Área do restaurante"
+      : modo === "criar"
+        ? "Criar conta da equipe"
+        : "Recuperar senha";
+  const subtitulo =
+    modo === "entrar"
+      ? "Entre com seu e-mail e senha para acessar o painel."
+      : modo === "criar"
+        ? "Crie sua conta para fazer parte da equipe."
+        : "Informe seu e-mail e enviamos o link de recuperação.";
 
   return (
-    <main className="min-h-screen text-foreground" style={{ background: "var(--gradient-brand)" }}>
-      <div className="mx-auto grid min-h-screen w-full max-w-6xl items-center gap-10 px-5 py-10 lg:grid-cols-2 lg:gap-16 lg:py-0">
-        {/* Painel de marca */}
-        <section className="flex flex-col items-center text-center text-secondary-foreground lg:items-start lg:text-left">
-          <TipeLogo className="h-14 sm:h-16" />
-          <h1 className="mt-6 font-display text-3xl font-extrabold leading-tight sm:text-4xl">
-            O restaurante inteiro na sua mão
-          </h1>
-          <p className="mt-4 max-w-md text-sm leading-relaxed text-secondary-foreground/85 sm:text-base">
-            A conta atualiza na hora, o cliente paga na mesa e você acompanha cada pagamento de onde estiver.
-          </p>
-          <ul className="mt-8 w-full max-w-md space-y-3">
-            {perks.map((p) => (
-              <li key={p.text} className="flex items-center gap-3 rounded-2xl bg-secondary-foreground/10 px-4 py-3 text-left text-sm font-medium backdrop-blur-sm">
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-primary text-primary-foreground shadow-md">
-                  <p.icon className="h-4 w-4" />
-                </span>
-                {p.text}
-              </li>
-            ))}
-          </ul>
-          <img src={lebre} alt="Lebre TIPE" className="mt-8 hidden h-56 object-contain drop-shadow-2xl sm:h-64 lg:block" />
+    <main className="min-h-screen bg-background text-foreground">
+      <div className="mx-auto grid min-h-screen w-full max-w-[84rem] gap-10 px-4 py-4 sm:px-6 lg:grid-cols-[1.05fr_1fr] lg:gap-16 lg:py-6">
+        {/* Foto da operação, no formato das páginas de produto */}
+        <section className="relative hidden lg:block">
+          <EditorialPhoto
+            scene="gestor"
+            alt="Dona de restaurante conferindo as mesas no painel da Tipe pelo tablet, no balcão"
+            aspect="auto"
+            className="h-full"
+            sizes="50vw"
+            position="40% 45%"
+            radius="2rem"
+            priority
+          />
+          <div className="absolute left-6 top-6 w-[min(80%,21rem)] space-y-2.5">
+            <Toast
+              tone="dark"
+              icon={<Check className="h-4 w-4" strokeWidth={3} />}
+              title="Mesa 7 pagou R$ 186,40"
+              text="Pix aprovado, conta fechada no PDV"
+            />
+            <Toast
+              tone="dark"
+              icon={<HandCoins className="h-4 w-4" />}
+              title="Dinheiro na Mesa 3"
+              text="Confirme no painel quando receber"
+            />
+          </div>
         </section>
 
         {/* Formulário */}
-        <section className="mx-auto w-full max-w-md">
-          <div className="overflow-hidden rounded-3xl border border-border bg-card shadow-2xl">
-            <form onSubmit={enviar} className="space-y-5 p-7 sm:p-9">
-              <div className="text-center">
-                <h2 className="font-display text-2xl font-extrabold">{titulo}</h2>
-                <p className="mt-1.5 text-sm text-muted-foreground">{subtitulo}</p>
-              </div>
+        <section className="flex flex-col">
+          <Link to="/" aria-label="TIPE, voltar ao site" className="w-fit pt-2">
+            <TipeLogo variant="dark" className="h-9" />
+          </Link>
+          <div className="mx-auto flex w-full max-w-[26rem] flex-1 flex-col justify-center py-12">
+            <h1 className="text-[clamp(2.2rem,1.6rem+2vw,3.2rem)] font-medium leading-[1.02] tracking-[-0.04em]">
+              {titulo}
+            </h1>
+            <p className="mt-3 text-[1.05rem] leading-relaxed text-muted-foreground">{subtitulo}</p>
+            <form onSubmit={enviar} className="mt-9 space-y-5">
               <div className="space-y-2">
-                <label htmlFor="email" className="ms-1 block text-xs font-bold text-muted-foreground">E-mail</label>
-                <Input id="email" type="email" required placeholder="voce@email.com" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" className="h-11 rounded-xl" />
+                <label htmlFor="email" className="block text-sm font-medium">
+                  E-mail
+                </label>
+                <Input
+                  id="email"
+                  type="email"
+                  required
+                  placeholder="voce@email.com"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                />
               </div>
               {modo !== "esqueci" && (
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label htmlFor="senha" className="ms-1 text-xs font-bold text-muted-foreground">Senha</label>
+                    <label htmlFor="senha" className="text-sm font-medium">
+                      Senha
+                    </label>
                     {modo === "entrar" && (
-                      <button type="button" onClick={() => setModo("esqueci")} className="text-xs font-semibold text-primary hover:underline">Esqueci a senha</button>
+                      <button
+                        type="button"
+                        onClick={() => setModo("esqueci")}
+                        className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                      >
+                        Esqueci a senha
+                      </button>
                     )}
                   </div>
-                  <Input id="senha" type="password" required minLength={8} placeholder="••••••••" value={senha} onChange={(e) => setSenha(e.target.value)} autoComplete={modo === "criar" ? "new-password" : "current-password"} className="h-11 rounded-xl" />
-                  {modo === "criar" && <p className="ms-1 text-[11px] text-muted-foreground">Mínimo de 8 caracteres</p>}
+                  <Input
+                    id="senha"
+                    type="password"
+                    required
+                    minLength={8}
+                    placeholder="••••••••"
+                    value={senha}
+                    onChange={(e) => setSenha(e.target.value)}
+                    autoComplete={modo === "criar" ? "new-password" : "current-password"}
+                  />
+                  {modo === "criar" && (
+                    <p className="text-xs text-muted-foreground">Mínimo de 8 caracteres</p>
+                  )}
                 </div>
               )}
-              <Button type="submit" size="lg" className="h-12 w-full rounded-xl text-base font-bold" disabled={carregando}>
-                {carregando ? "Aguarde..." : modo === "entrar" ? "Entrar" : modo === "criar" ? "Criar conta" : "Enviar link"}
+              <Button type="submit" size="lg" className="w-full" disabled={carregando}>
+                {carregando
+                  ? "Aguarde..."
+                  : modo === "entrar"
+                    ? "Entrar"
+                    : modo === "criar"
+                      ? "Criar conta"
+                      : "Enviar link"}
               </Button>
               {modo !== "esqueci" && (
                 <>
-                  <div className="flex items-center gap-3 py-1">
+                  <div className="flex items-center gap-3">
                     <span className="h-px flex-1 bg-border" />
-                    <span className="text-[11px] font-semibold text-muted-foreground">ou</span>
+                    <span className="text-xs text-muted-foreground">ou</span>
                     <span className="h-px flex-1 bg-border" />
                   </div>
-                  <Button type="button" variant="outline" size="lg" className="h-11 w-full rounded-xl font-semibold" onClick={google}>Continuar com Google</Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="lg"
+                    className="w-full"
+                    onClick={google}
+                  >
+                    Continuar com Google
+                  </Button>
                 </>
               )}
-              <div className="pt-1 text-center text-sm">
-                {modo === "entrar" ? (
-                  <button type="button" className="font-semibold text-primary hover:underline" onClick={() => setModo("criar")}>Não tem conta? Criar agora</button>
-                ) : (
-                  <button type="button" className="font-semibold text-primary hover:underline" onClick={() => setModo("entrar")}>Voltar para entrar</button>
-                )}
-              </div>
             </form>
+            <p className="mt-8 text-[0.95rem] text-muted-foreground">
+              {modo === "entrar" ? (
+                <>
+                  Seu restaurante ainda não usa a Tipe?{" "}
+                  <Link
+                    to="/teste-gratis"
+                    className="font-medium text-foreground underline underline-offset-4"
+                  >
+                    Teste grátis
+                  </Link>
+                  . Faz parte da equipe?{" "}
+                  <button
+                    type="button"
+                    className="font-medium text-foreground underline underline-offset-4"
+                    onClick={() => setModo("criar")}
+                  >
+                    Crie sua conta
+                  </button>
+                  .
+                </>
+              ) : (
+                <button
+                  type="button"
+                  className="font-medium text-foreground underline underline-offset-4"
+                  onClick={() => setModo("entrar")}
+                >
+                  Voltar para entrar
+                </button>
+              )}
+            </p>
           </div>
-          <Link to="/" className="mt-5 flex items-center justify-center gap-1.5 text-sm font-medium text-secondary-foreground/80 hover:text-secondary-foreground">
-            Voltar ao site
-          </Link>
         </section>
       </div>
     </main>

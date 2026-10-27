@@ -197,6 +197,13 @@
       "when": 1791972228310,
       "tag": "0028_product_launch_states",
       "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1791972229310,
+      "tag": "0030_restrict_internal_rpc_execution",
+      "breakpoints": true
     }
   ]
-}\n
+}

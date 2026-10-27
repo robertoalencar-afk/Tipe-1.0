@@ -1499,7 +1499,7 @@ function MesasQr({
   const noLimite = !!plano.data && plano.data.active >= plano.data.limit;
   const base =
     typeof window !== "undefined" &&
-    !window.location.hostname.includes("lovable") &&
+    !window.location.hostname.endsWith(".workers.dev") &&
     !window.location.hostname.includes("localhost")
       ? window.location.origin
       : "https://tipe.digital";

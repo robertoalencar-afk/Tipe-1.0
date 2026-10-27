@@ -18,7 +18,7 @@ const TITLE = "Tipe | Pague. Sem esperar. | Pagamento na mesa por QR Code";
 const DESCRIPTION =
   "Com a Tipe, o cliente confere a conta, divide o que consumiu e paga com Pix pelo celular, direto na mesa. Sem aplicativo e sem esperar a maquininha. Pré-lançamento com 30 dias grátis para restaurantes.";
 const OG_IMAGE =
-  "https://tipe.digital/__l5e/assets-v1/702edacf-4438-4472-9693-7bb419095c42/tipe-logo-redondo.png";
+  "https://tipe.digital/marca/tipe-logo-redondo.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
