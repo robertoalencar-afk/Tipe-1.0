@@ -49,6 +49,14 @@ case "$CF_GATEWAY_TOKEN" in
     echo "Crie um API token (prefixo cfut_ ou cfat_) em https://dash.cloudflare.com/profile/api-tokens"
     exit 1
     ;;
+  *" "* | "")
+    echo "O valor colado não parece um token (está vazio ou tem espaços). Copie só o token e rode de novo."
+    exit 1
+    ;;
+  cfut_* | cfat_*) ;;
+  *)
+    echo "Aviso: o valor não começa com cfut_ ou cfat_. Tentando mesmo assim..."
+    ;;
 esac
 
 umask 077
