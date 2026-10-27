@@ -56,7 +56,6 @@ html,body{background:#021E34;overflow:hidden}
   <!-- cenas (pratos estendidos a partir de cada metade do díptico) -->
   <div class="layer" id="scT"><canvas class="plate" id="pT" data-src="__T-cliente__"></canvas></div>
   <div class="layer" id="scH1"><canvas class="plate" id="pH1" data-src="__H-cliente__"></canvas></div>
-  <div class="layer" id="scH2"><canvas class="plate" id="pH2" data-src="__H-amigos__"></canvas></div>
   <div class="layer" id="scH3"><canvas class="plate" id="pH3" data-src="__H-gorjeta__"></canvas></div>
 
   <!-- cena do celular -->
@@ -101,7 +100,7 @@ html,body{background:#021E34;overflow:hidden}
 const META = __META__;
 const params = new URLSearchParams(location.search);
 const AR = params.get('ar') === '4x5' ? '4x5' : '16x9';
-const DUR = 13;
+const DUR = 14.85;
 
 /* ---------- layout por proporção ---------- */
 const L = AR === '16x9' ? {
@@ -258,7 +257,8 @@ function fadeEl(el, t, a, b, out, dy=10){
 
 __RIG__
 /* ---------- render(t) ---------- */
-const T_WIPE0=3.5, T_WIPE1=4.3, T_H2=5.55, T_H3=6.8, T_PH=7.85, T_IRIS=11.1, T_LOOP=12.5;
+// V6: cenas mais longas (cada lebre fica ~3 s na tela), sem a cena dos três amigos e com fusão entre as lebres.
+const T_WIPE0=3.9, T_WIPE1=4.7, T_H2=7.6, T_PH=9.7, T_IRIS=12.95, T_LOOP=14.35;
 
 function render(tReal){
   const t = tReal >= T_LOOP ? 0 : tReal;   // na volta, a cena base é o primeiro quadro
@@ -275,17 +275,21 @@ function render(tReal){
   show($('scT'), swapped ? 0 : 1);
 
   // --- lebres ---
-  const hk=[['scH1','pH1','H-cliente',L.H1, T_WIPE0+0.4, T_H2+0.2],
-            ['scH2','pH2','H-amigos', L.H2, T_H2, T_H3+0.2],
-            ['scH3','pH3','H-gorjeta',L.H3, T_H3, T_PH+0.6]];
+  const hk=[['scH1','pH1','H-cliente',L.H1, T_WIPE0+0.4, T_H2+0.5],
+            ['scH3','pH3','H-gorjeta',L.H3, T_H2, T_PH+0.6]];
   hk.forEach(([sc,img,key,c,a,b],i)=>{
     const local = P(t, a, b);
     const s = lerp(c.s0, c.s1, E(local));
     place($(img), key, s, c.ax, c.ay, lerp(c.sx0, c.sx1, local), c.sy);
     let o;
-    if (i===0) o = swapped && t < T_H2+0.2 ? 1 : 0;
-    else o = P(t, a, a+0.18);
+    // V6: da lebre do celular para a da gorjeta, fusão com desfoque curto (0,5 s): a cena que
+    // sai desfoca e a que entra foca, então as duas lebres nunca aparecem nítidas ao mesmo tempo.
+    const q = IO(P(t, T_H2, T_H2+0.5));
+    if (i===0) o = swapped && t < T_H2+0.5 ? 1 : 0;
+    else o = q;
     if (t >= b) o = 0;
+    const blur = i===0 ? q*16 : (1-q)*16;
+    $(sc).style.filter = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : 'none';
     show($(sc), o);
     if (o > 0) drawRig(img, key, t);
   });
@@ -293,7 +297,7 @@ function render(tReal){
   // --- textos tartaruga ---
   fadeEl($('eb1'), t, 0.05, 0.6, null);
   revealWords(w1, t, 0.3, 0.2, 0.7, null);
-  const stretch = E(P(t, 1.7, 3.4));
+  const stretch = E(P(t, 1.9, 3.8));
   dem.style.letterSpacing = lerp(-0.045, 0.045, stretch).toFixed(4)+'em';
   const mins = 14 + Math.floor(clamp(t-0.9,0,9)/0.8);
   $('st1').textContent = `Esperando a conta · há ${Math.min(mins,17)} min`;
@@ -303,15 +307,15 @@ function render(tReal){
 
   // --- textos lebre ---
   const outH=[T_PH-0.05, T_PH+0.25];
-  fadeEl($('eb2'), t, 4.2, 4.6, outH);
-  revealWords(w2, t, 4.25, 0.075, 0.55, outH);
-  horaUl.style.width = (E(P(t,4.95,5.45))*100).toFixed(2)+'%';
-  fadeEl($('st2'), t, 4.7, 5.1, outH);
+  fadeEl($('eb2'), t, 4.6, 5.0, outH);
+  revealWords(w2, t, 4.65, 0.08, 0.6, outH);
+  horaUl.style.width = (E(P(t,5.4,5.95))*100).toFixed(2)+'%';
+  fadeEl($('st2'), t, 5.1, 5.5, outH);
 
   // --- barra de progresso ---
   const bf=$('barFill');
   if (!swapped){ bf.style.background='rgba(2,30,52,.42)'; bf.style.width=(clamp(t/T_WIPE0)*13).toFixed(3)+'%'; }
-  else { bf.style.background='#0FC9BD'; bf.style.width=(E(P(t,4.35,5.0))*100).toFixed(3)+'%'; }
+  else { bf.style.background='#0FC9BD'; bf.style.width=(E(P(t,4.75,T_PH))*100).toFixed(3)+'%'; }
   $('bar').style.background='rgba(2,30,52,.08)';
   show($('bar'), 1-IO(P(t, T_PH, T_PH+0.3)));
 
@@ -324,35 +328,35 @@ function render(tReal){
   const rise = E(P(t, T_PH+0.1, T_PH+1.0));
   const floatY = Math.sin((t-T_PH)*1.6)*4*rise;
   $('phoneWrap').style.transform = `translateY(${((1-rise)*H*0.75 + floatY).toFixed(2)}px) rotate(${((1-rise)*-7).toFixed(3)}deg)`;
-  const nav = E(P(t, 9.05, 9.5)) + E(P(t, 9.85, 10.3));
+  const nav = E(P(t, 10.9, 11.35)) + E(P(t, 11.7, 12.15));
   ['s0','s1','s2'].forEach((id,i)=>{
     const x=(i-nav)*100;
     $(id).style.transform=`translateX(${x.toFixed(3)}%)`;
     $(id).style.visibility = Math.abs(x)<100 ? 'visible':'hidden';
   });
   // toques
-  const tap=$('tap'); const taps=[[8.72,0.48,0.524],[9.58,0.5,0.899]];
+  const tap=$('tap'); const taps=[[10.57,0.48,0.524],[11.43,0.5,0.899]];
   let tapO=0; for(const [tt,x,y] of taps){ const q=P(t,tt,tt+0.42); if(q>0&&q<1){
     const sz=lerp(scrW*0.10,scrW*0.24,E(q)); tap.style.width=tap.style.height=sz+'px';
     tap.style.left=(x*scrW)+'px'; tap.style.top=(y*scrH)+'px'; tapO=Math.sin(q*Math.PI); } }
   show(tap, tapO);
   // selo de aprovado
-  const bp = P(t, 10.3, 10.75);
+  const bp = P(t, 12.15, 12.6);
   $('badge').style.transform = `scale(${bp>0?backOut(bp).toFixed(4):0})`;
   show($('badge'), bp>0?1:0);
-  $('chk').setAttribute('stroke-dashoffset', (1-E(P(t,10.48,10.9))).toFixed(4));
-  const rp = P(t, 10.42, 11.1);
+  $('chk').setAttribute('stroke-dashoffset', (1-E(P(t,12.33,12.75))).toFixed(4));
+  const rp = P(t, 12.27, 12.95);
   $('ring').style.transform = `scale(${lerp(1,2.8,E(rp)).toFixed(4)})`;
   show($('ring'), rp>0 && rp<1 ? (1-rp)*0.9 : 0);
   // textos do celular
   fadeEl($('eb3'), t, T_PH+0.25, T_PH+0.7, null);
-  const act = t<9.05?0 : t<9.85?1 : 2;
+  const act = t<10.9?0 : t<11.7?1 : 2;
   w3.forEach((w,i)=>{
     const p=E(P(t, T_PH+0.32+i*0.09, T_PH+0.32+i*0.09+0.6));
     const on = i===act;
-    const k = E(P(t, [0,9.05,9.85][i], [0,9.05,9.85][i]+0.3));
+    const k = E(P(t, [0,10.9,11.7][i], [0,10.9,11.7][i]+0.3));
     const lvl = i===0 ? (act===0?1:0.22) : (i<=act ? lerp(0.22,1,k) : 0.22);
-    const lv = (i===0 && act>0) ? lerp(1,0.22,E(P(t,9.05,9.35))) : (i===1 && act>1) ? lerp(1,0.22,E(P(t,9.85,10.15))) : lvl;
+    const lv = (i===0 && act>0) ? lerp(1,0.22,E(P(t,10.9,11.2))) : (i===1 && act>1) ? lerp(1,0.22,E(P(t,11.7,12))) : lvl;
     w.style.color = (i===2 && act===2) ? `rgba(2,30,52,1)` : `rgba(2,30,52,${lv.toFixed(3)})`;
     w.style.opacity = p.toFixed(3);
     w.style.transform = `translateY(${((1-p)*0.4).toFixed(3)}em)`;

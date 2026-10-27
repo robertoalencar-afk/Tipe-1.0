@@ -10,8 +10,11 @@ import path from 'path';
 import { execFileSync } from 'child_process';
 
 const [,, W, onlyAr, onlyTimes] = process.argv;
-const FPS = 30;
-const POSTER_T = 5.3; // a lebre com o celular, título completo
+// V6: renderiza a 60 quadros/s e junta cada par (tmix) num vídeo de 30 quadros/s: o movimento
+// ganha um desfoque de movimento natural, como uma câmera de verdade, em vez de saltar.
+const FPS = 60;
+const OUT_FPS = 30;
+const POSTER_T = 6.3; // a lebre com o celular, título completo (V6)
 const html = 'file://' + path.join(W, 'animacao.html');
 const out = path.join(W, 'out');
 fs.mkdirSync(out, { recursive: true });
@@ -46,8 +49,9 @@ for (const ar of onlyAr ? [onlyAr] : ['16x9', '4x5']) {
   console.log(ar, 'quadros em', dir);
   if (onlyTimes) continue;
   const name = `lebre-tartaruga-${ar}`;
+  const vf = `tmix=frames=2,fps=${OUT_FPS}` + (ar === '4x5' ? ',scale=864:1080:flags=lanczos' : '');
   const scale = ar === '4x5' ? ['-vf', 'scale=864:1080:flags=lanczos'] : [];
-  const inp = ['-framerate', String(FPS), '-i', `${dir}/f%04d.png`, ...scale];
+  const inp = ['-framerate', String(FPS), '-i', `${dir}/f%04d.png`, '-vf', vf];
   ff(...inp, '-c:v', 'libx264', '-preset', 'veryslow', '-crf', process.env.CRF264 || '23', '-pix_fmt', 'yuv420p', '-tune', 'animation', '-movflags', '+faststart', '-an', path.join(out, name + '.mp4'));
   ff(...inp, '-c:v', 'libvpx-vp9', '-b:v', '0', '-crf', process.env.CRF9 || '34', '-row-mt', '1', '-deadline', 'good', '-cpu-used', '1', '-pix_fmt', 'yuv420p', '-an', path.join(out, name + '.webm'));
   ff('-i', `${dir}/poster.png`, ...scale, '-c:v', 'libwebp', '-quality', '80', path.join(out, `poster-${ar}.webp`));

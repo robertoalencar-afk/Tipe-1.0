@@ -1,7 +1,8 @@
 /**
- * O filme curto da lebre e da tartaruga (13 s, sem som, em loop). Feito em casa:
- * uma animação HTML renderizada quadro a quadro com Playwright e codificada com
- * ffmpeg (fonte em landing-v3/v4/video/animacao.html). No computador usa a versão
+ * O filme curto da lebre e da tartaruga (15 s, sem som, em loop). Feito em casa:
+ * uma animação HTML renderizada quadro a quadro com Playwright (60 quadros/s, juntados
+ * em 30 com desfoque de movimento) e codificada com ffmpeg (fonte em
+ * docs/landing-v5/video-lebre/; movimentos refeitos na V6). No computador usa a versão
  * 16:9 e no celular a 4:5. Só toca quando está na tela; com movimento reduzido
  * fica o pôster e a pessoa decide se quer ver.
  */
@@ -68,7 +69,12 @@ export function VideoLebre({ className }: { className?: string }) {
 
   const f = FORMATOS[formato];
   return (
-    <div className={cn("relative overflow-hidden rounded-[1.75rem] bg-[#e9ecef] sm:rounded-[2.25rem]", className)}>
+    <div
+      className={cn(
+        "relative overflow-hidden rounded-[1.75rem] bg-[#e9ecef] sm:rounded-[2.25rem]",
+        className,
+      )}
+    >
       <video
         ref={video}
         key={formato}

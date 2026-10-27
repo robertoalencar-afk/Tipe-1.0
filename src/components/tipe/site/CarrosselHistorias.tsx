@@ -112,17 +112,17 @@ export function CarrosselHistorias() {
   return (
     <Secao tema="claro" id="historias" ariaLabel="A Tipe na mesa" className="!pt-6 sm:!pt-10">
       <div ref={ref} className="container-page">
-        <div className="grid gap-5 lg:grid-cols-12 lg:gap-6">
-          <div className="lg:col-span-5">
+        <div className="grid gap-5 md:grid-cols-12 lg:gap-6">
+          <div className="md:col-span-5">
             <VideoProduto />
           </div>
 
           <div
-            className="flex min-w-0 flex-col gap-5 lg:col-span-7"
+            className="flex min-w-0 flex-col gap-5 md:col-span-7"
             onPointerEnter={(e) => e.pointerType === "mouse" && setPausado(true)}
             onPointerLeave={() => setPausado(false)}
           >
-            <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4 pt-4 lg:pt-0">
+            <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4 pt-4 md:pt-0">
               <h2 className="max-w-[16ch] font-display text-[clamp(1.75rem,1.2rem+1.8vw,2.75rem)] font-normal leading-[1.02] tracking-[-0.045em]">
                 Quem ganha tempo com a Tipe
               </h2>
@@ -168,7 +168,7 @@ export function CarrosselHistorias() {
               id="hist-painel"
               role="tabpanel"
               aria-labelledby={`hist-tab-${i}`}
-              className="relative aspect-[4/5] overflow-hidden rounded-[1.75rem] bg-[#dfe7ea] sm:aspect-[4/3] lg:aspect-auto lg:min-h-0 lg:flex-1"
+              className="relative aspect-[4/5] overflow-hidden rounded-[1.75rem] bg-[#dfe7ea] sm:aspect-[4/3] md:aspect-auto md:min-h-0 md:flex-1"
             >
               {HISTORIAS.map((k, n) => {
                 const f = fotoSrc(k.cena);

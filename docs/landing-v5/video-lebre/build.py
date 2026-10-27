@@ -12,7 +12,7 @@ rep = {'__RIG__': open(os.path.join(HERE, 'rig.js')).read(),
        '__logo__': uri(A + 'marca/tipe-logo.svg', 'image/svg+xml'),
        '__logoBranco__': uri(A + 'marca/tipe-logo-branco.svg', 'image/svg+xml'),
        '__META__': open(f'{W}/plates/meta.json').read()}
-for k in ['T-cliente', 'H-cliente', 'H-amigos', 'H-gorjeta']:
+for k in ['T-cliente', 'H-cliente', 'H-gorjeta']:   # V6: sem a cena dos três amigos
     rep[f'__{k}__'] = uri(f'{W}/plates/{k}.jpg', 'image/jpeg')
 for k in ['conta', 'metodos', 'pago']:   # telas reais do app (sem o mascote antigo)
     rep[f'__{k}__'] = uri(A + f'telas-reais/{k}-780.webp', 'image/webp')
