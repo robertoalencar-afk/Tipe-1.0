@@ -30,6 +30,7 @@ import { DashboardPreview, WaiterPreview } from "@/components/tipe/landing/Panel
 import { MesaViva } from "@/components/tipe/MesaViva";
 import { LiveSimulator } from "@/components/tipe/landing/LiveSimulator";
 import { PalcoCelular } from "@/components/tipe/landing/PalcoCelular";
+import { LebreTartaruga } from "@/components/tipe/landing/LebreTartaruga";
 import { Toast } from "@/components/tipe/landing/Toast";
 import { PhoneShot, type Tela } from "@/components/tipe/landing/PhoneShot";
 import { Bigodes, SimboloTipe } from "@/components/tipe/landing/Marcas";
@@ -80,6 +81,7 @@ function LandingPage() {
         <span id="principal" aria-hidden />
         <Hero />
         <Problema />
+        <LebreTartaruga />
         <Faixas />
         <MesaViva />
         <Experimente />

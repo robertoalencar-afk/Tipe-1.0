@@ -148,7 +148,7 @@ export const resolveWithdrawal = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     await requireFounder(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: cur } = await supabaseAdmin.from("waiter_withdrawals").select("waiter_id, blocked_until, scheduled_for").eq("id", data.id).maybeSingle();
+    const { data: cur } = await supabaseAdmin.from("waiter_withdrawals").select("waiter_id, restaurant_id, blocked_until, scheduled_for").eq("id", data.id).maybeSingle();
     if (!cur) throw new Error("Saque inexistente");
     if (data.action === "paid") {
       await supabaseAdmin.rpc("promote_pending_pix", { p_waiter: cur.waiter_id, p_force: false });
@@ -164,6 +164,8 @@ export const resolveWithdrawal = createServerFn({ method: "POST" })
     await supabaseAdmin.from("waiter_withdrawal_events").insert({ withdrawal_id: data.id, waiter_id: cur.waiter_id, action: data.action, amount: rows[0]!.amount, pix_key_masked: rows[0]!.pix_key, actor_id: context.userId });
     const { logSecurityEvent } = await import("./security.server");
     await logSecurityEvent({ action: `withdrawal_${data.action}`, resource: `waiter_withdrawals:${data.id}`, actorId: context.userId });
+    const { avisarSaque } = await import("./avisos-equipe.server");
+    await avisarSaque(supabaseAdmin, { id: data.id, waiterId: cur.waiter_id, restaurantId: cur.restaurant_id, valor: Number(rows[0]!.amount) }, data.action, data.note);
     return { ok: true };
   });
 

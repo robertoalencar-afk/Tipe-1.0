@@ -23,10 +23,10 @@ import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import mascotThanks from "@/assets/mascot-thanks-hd.webp";
-import mascotRating from "@/assets/mascot-rating-hd.webp";
-import mascotWaiting from "@/assets/mascot-waiting-hd.webp";
-import mascotTableClosed from "@/assets/mascot-table-closed-hd.webp";
+import mascotThanks from "@/assets/lebre/rosto-feliz.webp";
+import mascotRating from "@/assets/lebre/rosto-piscando.webp";
+import mascotWaiting from "@/assets/lebre/rosto-ola.webp";
+import mascotTableClosed from "@/assets/lebre/rosto-dormindo.webp";
 
 type Stage =
   | "totem"
@@ -715,8 +715,8 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
         <Centered>
           <img
             src={mascotWaiting}
-            alt="Mascote TIPE aguardando"
-            className="mx-auto mb-3 h-44 w-44 object-contain"
+            alt="Lebre da TIPE aguardando"
+            className="mx-auto mb-3 h-32 w-32 object-contain"
           />
           <p className="text-sm font-semibold text-highlight">Pendente de confirmação</p>
           <h1 className="mt-2 text-[1.9rem] font-medium leading-[1.06] tracking-[-0.035em]">
@@ -762,8 +762,8 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
         <Centered>
           <img
             src={mascotThanks}
-            alt="Mascote TIPE comemorando o pagamento aprovado"
-            className="mx-auto mb-3 h-44 w-44 object-contain"
+            alt="Lebre da TIPE sorrindo com o pagamento aprovado"
+            className="mx-auto mb-3 h-32 w-32 object-contain"
           />
           <p className="eyebrow text-brand-strong">Conta paga</p>
           <h1 className="mt-2 text-[1.9rem] font-medium leading-[1.06] tracking-[-0.035em]">
@@ -784,8 +784,8 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
         <main className="flex flex-1 flex-col px-6 pb-10">
           <img
             src={mascotRating}
-            alt="Mascote TIPE com uma estrela"
-            className="mx-auto mb-3 h-28 w-28 object-contain"
+            alt="Lebre da TIPE piscando"
+            className="mx-auto mb-3 h-24 w-24 object-contain"
           />
           <h1 className="text-center text-[1.9rem] font-medium leading-[1.06] tracking-[-0.035em]">
             Como foi seu atendimento?
@@ -942,8 +942,8 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
         <Centered>
           <img
             src={mascotTableClosed}
-            alt="Mascote TIPE ao lado da conta encerrada"
-            className="mx-auto h-52 w-52 object-contain"
+            alt="Lebre da TIPE dormindo: a conta está encerrada"
+            className="mx-auto h-36 w-36 object-contain"
           />
           <p className="mt-4 eyebrow text-brand-strong">Tudo confirmado</p>
           <h1 className="mt-2 text-[1.9rem] font-medium leading-[1.06] tracking-[-0.035em]">
@@ -964,8 +964,8 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
         <Centered>
           <img
             src={mascotThanks}
-            alt="Mascote TIPE agradecendo"
-            className="mx-auto h-48 w-48 object-contain"
+            alt="Lebre da TIPE sorrindo"
+            className="mx-auto h-36 w-36 object-contain"
           />
           <p className="mt-5 eyebrow text-brand-strong">Tudo certo, {name.trim()}!</p>
           <h1 className="mt-2 text-[1.9rem] font-medium leading-[1.06] tracking-[-0.035em]">

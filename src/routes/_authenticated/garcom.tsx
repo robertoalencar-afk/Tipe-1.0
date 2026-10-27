@@ -18,6 +18,7 @@ import { EmptyState, StatCard, StatusBadge, type Tone } from "@/components/tipe/
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { AreaShell } from "@/components/tipe/AreaShell";
+import { AvisosCelular } from "@/components/tipe/AvisosCelular";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -113,10 +114,13 @@ function AreaGarcom() {
       title={d ? `Olá, ${d.waiter.name.split(" ")[0]}!` : "Área do garçom"}
       subtitle={d ? `${d.waiter.restaurant} · código ${d.waiter.code}` : undefined}
       actions={
-        <Button size="sm" variant="ghost" onClick={sair} className="text-muted-foreground">
-          <LogOut className="h-4 w-4" />
-          Sair
-        </Button>
+        <>
+          {d && <AvisosCelular />}
+          <Button size="sm" variant="ghost" onClick={sair} className="text-muted-foreground">
+            <LogOut className="h-4 w-4" />
+            Sair
+          </Button>
+        </>
       }
     >
       <div className="space-y-4">
