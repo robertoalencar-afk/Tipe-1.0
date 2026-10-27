@@ -8,6 +8,7 @@ import { LogoTipe } from "@/components/tipe/site/marca/LogoTipe";
 import { LUZ } from "@/components/tipe/site/CardProduto";
 import { fotoSrc } from "@/components/tipe/site/Foto";
 import { GRUPOS, PRODUTOS } from "@/components/tipe/site/produtos";
+import { seloDoProduto, useEstadosLancamento } from "@/components/tipe/site/useLancamento";
 import { PrivacyPreferences } from "@/components/tipe/PrivacyPreferences";
 import { COMPANY } from "@/lib/tipe/legal";
 import { TRIAL_DAYS } from "@/lib/tipe/plans";
@@ -39,6 +40,7 @@ function Logo({ className }: { className?: string }) {
 }
 
 export function LandingHeader() {
+  const lancamento = useEstadosLancamento();
   const [scrolled, setScrolled] = useState(false);
   const [menu, setMenu] = useState(false);
   const [solucoes, setSolucoes] = useState(false);
@@ -176,9 +178,9 @@ export function LandingHeader() {
                                           style={{ background: LUZ[p.slug] ?? "#0FC9BD" }}
                                         />
                                         {p.nome}
-                                        {p.status === "em-breve" && (
+                                        {seloDoProduto(p, lancamento) && (
                                           <span className="rounded-full bg-background-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                                            Em breve
+                                            {seloDoProduto(p, lancamento)}
                                           </span>
                                         )}
                                       </span>
@@ -298,9 +300,9 @@ export function LandingHeader() {
                           </span>
                           <span className="min-w-0 text-sm font-medium leading-tight">
                             {p.nome}
-                            {p.status === "em-breve" && (
+                            {seloDoProduto(p, lancamento) && (
                               <span className="block text-[11px] font-normal text-muted-foreground">
-                                Em breve
+                                {seloDoProduto(p, lancamento)}
                               </span>
                             )}
                           </span>
@@ -382,6 +384,7 @@ function telefoneWhatsapp() {
  * assinatura com o logotipo animado e a linha legal. Com movimento reduzido nada vira.
  */
 export function LandingFooter() {
+  const lancamento = useEstadosLancamento();
   const { pathname } = useLocation();
   const noTeste = pathname.startsWith("/teste-gratis");
   const grupo =
@@ -445,9 +448,9 @@ export function LandingFooter() {
                 <li key={p.slug}>
                   <a href={`/produtos/${p.slug}`} className={a}>
                     {p.nome}
-                    {p.status === "em-breve" && (
+                    {seloDoProduto(p, lancamento) && (
                       <span className="ml-2 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-medium text-white/70">
-                        Em breve
+                        {seloDoProduto(p, lancamento)}
                       </span>
                     )}
                   </a>

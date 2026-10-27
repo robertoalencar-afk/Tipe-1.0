@@ -22,7 +22,9 @@ export type TelaReal =
   | "gorjeta"
   | "gorjeta-metodo"
   | "gorjeta-pix"
-  | "avaliacao";
+  | "avaliacao"
+  | "cardapio"
+  | "pedido";
 
 export function telaReal(nome: TelaReal) {
   const u = (w: number) => ARQUIVOS[`/src/assets/telas-reais/${nome}-${w}.webp`] ?? "";

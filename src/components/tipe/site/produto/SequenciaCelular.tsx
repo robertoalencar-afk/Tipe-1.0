@@ -31,6 +31,14 @@ export const ETAPAS_TELA: Record<TelaReal, Omit<EtapaCelular, "tela">> = {
   "gorjeta-metodo": { alt: "Forma de pagamento da gorjeta extra" },
   "gorjeta-pix": { alt: "Pix da gorjeta extra" },
   avaliacao: { alt: "Avaliação do atendimento com cinco estrelas e campo de comentário" },
+  cardapio: {
+    alt: "Cardápio da Mesa 12 no celular, com busca, categorias e o botão de adicionar cada item (dados de exemplo)",
+    toque: { x: 86, y: 54 },
+  },
+  pedido: {
+    alt: "Pedido montado no celular: 2 pastéis e 1 isca de peixe, com o botão Enviar 3 itens por R$ 118,00 (dados de exemplo)",
+    toque: { x: 50, y: 93 },
+  },
 };
 
 const ROTULO: Record<TelaReal, string> = {
@@ -43,6 +51,8 @@ const ROTULO: Record<TelaReal, string> = {
   "gorjeta-metodo": "Gorjeta",
   "gorjeta-pix": "Pix",
   avaliacao: "Avaliar",
+  cardapio: "Cardápio",
+  pedido: "Pedido",
 };
 
 export const PASSO_MS = 2300;

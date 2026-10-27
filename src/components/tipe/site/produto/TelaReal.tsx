@@ -24,6 +24,12 @@ import gorjetaPix390 from "@/assets/telas-reais/gorjeta-pix-390.webp";
 import gorjetaPix780 from "@/assets/telas-reais/gorjeta-pix-780.webp";
 import avaliacao390 from "@/assets/telas-reais/avaliacao-390.webp";
 import avaliacao780 from "@/assets/telas-reais/avaliacao-780.webp";
+// Cardápio e pedido do Tipe Order: captura do componente MesaPedido do PR #8
+// (branch integracao/colibri-c-pedido-mesa, ainda fora do main), com cardápio de exemplo.
+import cardapio390 from "@/assets/telas-reais/cardapio-390.webp";
+import cardapio780 from "@/assets/telas-reais/cardapio-780.webp";
+import pedido390 from "@/assets/telas-reais/pedido-390.webp";
+import pedido780 from "@/assets/telas-reais/pedido-780.webp";
 import salao560 from "@/assets/telas-reais/salao-560.webp";
 import salao1000 from "@/assets/telas-reais/salao-1000.webp";
 
@@ -37,6 +43,8 @@ export const TELAS_REAIS = {
   "gorjeta-metodo": [gorjetaMetodo390, gorjetaMetodo780],
   "gorjeta-pix": [gorjetaPix390, gorjetaPix780],
   avaliacao: [avaliacao390, avaliacao780],
+  cardapio: [cardapio390, cardapio780],
+  pedido: [pedido390, pedido780],
 } as const;
 
 export type TelaReal = keyof typeof TELAS_REAIS;
