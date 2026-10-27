@@ -68,7 +68,7 @@ export function createSeed(nowIso = new Date().toISOString()): CrmState {
   );
   s.teams.push({ id: "tm_fortaleza", orgId: A, name: "Vendas Fortaleza" }, { id: "tm_atendimento", orgId: A, name: "Atendimento" }, { id: "tm_recife", orgId: B, name: "Vendas Recife" });
   s.departments.push({ id: "dep_comercial", orgId: A, name: "Comercial" }, { id: "dep_sucesso", orgId: A, name: "Sucesso do cliente" }, { id: "dep_recife", orgId: B, name: "Comercial" });
-  const mem = (orgId: ID, userId: ID, role: CrmState["memberships"][number]["role"], teamId?: ID, departmentId?: ID, days = 230) =>
+  const mem = (orgId: ID, userId: ID, role: CrmState["memberships"][number]["role"], teamId?: ID | undefined, departmentId?: ID | undefined, days = 230) =>
     s.memberships.push({ id: `mem_${orgId}_${userId}`, orgId, userId, role, teamId, departmentId, status: "ativo", joinedAt: at(days) });
   mem(A, helena, "owner", undefined, "dep_comercial");
   mem(A, caio, "admin", undefined, "dep_sucesso");
@@ -126,7 +126,7 @@ export function createSeed(nowIso = new Date().toISOString()): CrmState {
   const contactsB = companiesB.map((co, i) => contact(B, co, co.ownerId, 7 - i, "Proprietário"));
 
   // Oportunidades: valor anual da assinatura (mesas × meses), sem preço público.
-  type DealSpec = { c: Contact; stage: string; value: number; owner: ID; created: number; closed?: number; lost?: string; prio?: Priority };
+  type DealSpec = { c: Contact; stage: string; value: number; owner: ID; created: number; closed?: number | undefined; lost?: string | undefined; prio?: Priority | undefined };
   const dealsSpec: DealSpec[] = [];
   const valueFor = (co?: Company) => co?.size === "Mais de 40 mesas" ? 18000 + Math.round(rand() * 12) * 1000 : co?.size === "21 a 40 mesas" ? 9600 + Math.round(rand() * 6) * 600 : co?.size === "11 a 20 mesas" ? 5400 + Math.round(rand() * 5) * 600 : 2400 + Math.round(rand() * 4) * 600;
   const comp = (c: Contact) => s.companies.find((x) => x.id === c.companyId);
@@ -183,7 +183,7 @@ export function createSeed(nowIso = new Date().toISOString()): CrmState {
   // Tarefas: concluídas (histórico), abertas, atrasadas e de hoje.
   const TASKS: [string, TaskType][] = [["Ligar para apresentar a Tipe", "ligacao"], ["Demonstração no salão", "reuniao"], ["Enviar proposta", "email"], ["Confirmar PDV e número de mesas", "tarefa"], ["Reunião de negociação", "reuniao"], ["Treinar equipe de garçons", "reuniao"], ["Cobrar retorno da proposta", "ligacao"], ["Visitar no horário de pico", "reuniao"]];
   const allTaskPeople = [thiago, bruna, marina, davi];
-  const mkTask = (orgId: ID, i: number, assigneeId: ID, due: string, done: boolean, deal?: Deal, createdBy = marina): Task => {
+  const mkTask = (orgId: ID, i: number, assigneeId: ID, due: string, done: boolean, deal?: Deal | undefined, createdBy = marina): Task => {
     const [title, type] = TASKS[i % TASKS.length];
     const c = deal ? s.contacts.find((x) => x.id === deal.contactId) : undefined;
     const created = new Date(new Date(due).getTime() - (3 + (i % 5)) * 864e5).toISOString();
@@ -222,7 +222,7 @@ export function createSeed(nowIso = new Date().toISOString()): CrmState {
   for (const l of s.leads.filter((x) => x.qualifiedAt)) s.activities.push({ id: id("act"), orgId: l.orgId, at: l.qualifiedAt!, actorId: l.ownerId, kind: "lead.qualified", summary: `Lead ${l.name} qualificado`, entity: { type: "lead", id: l.id }, contactId: l.contactId });
 
   // Atendimento: conversas com histórico de mensagens simuladas.
-  const CONV: { c: Contact; who?: ID; status: "aberta" | "pendente" | "encerrada"; unread: number; lines: [("entrada" | "saida" | "nota"), string, number][]; tags: string[] }[] = [
+  const CONV: { c: Contact; who?: ID | undefined; status: "aberta" | "pendente" | "encerrada"; unread: number; lines: [("entrada" | "saida" | "nota"), string, number][]; tags: string[] }[] = [
     { c: contactsA[26], who: davi, status: "aberta", unread: 2, tags: ["Novo cliente"], lines: [["entrada", "Oi! Vi a Tipe no Instagram. Funciona com o Colibri?", 50], ["saida", "Olá! Funciona sim, a Tipe se conecta ao PDV que você já usa. Quantas mesas vocês têm?", 44], ["entrada", "Umas 30 mesas. Dá pra fazer uma demonstração essa semana?", 12], ["entrada", "De preferência à tarde.", 11]] },
     { c: contactsA[27], who: thiago, status: "aberta", unread: 1, tags: ["Proposta"], lines: [["entrada", "Recebi a proposta. O cliente consegue pagar com Apple Pay e Google Pay?", 180], ["saida", "Consegue! Pix, Apple Pay e Google Pay direto no celular, sem baixar app.", 172], ["nota", "Cliente sensível a prazo de implantação. Oferecer piloto de 30 dias.", 170], ["entrada", "Ótimo. E a gorjeta vai toda para o garçom?", 30]] },
     { c: contactsA[22], status: "aberta", unread: 1, tags: [], lines: [["entrada", "Boa tarde, queria entender os planos para um bar pequeno.", 7]] },
@@ -249,7 +249,7 @@ export function createSeed(nowIso = new Date().toISOString()): CrmState {
   );
 
   // Suporte interno.
-  const ticket = (title: string, category: string, requesterId: ID, assigneeId: ID | undefined, status: "aberto" | "em_andamento" | "resolvido", days: number, priority: Priority, comment?: [ID, string]) =>
+  const ticket = (title: string, category: string, requesterId: ID, assigneeId: ID | undefined, status: "aberto" | "em_andamento" | "resolvido", days: number, priority: Priority, comment?: [ID | undefined, string]) =>
     s.tickets.push({ id: id("tkt"), orgId: A, title, description: `${title}. Detalhes registrados pela equipe comercial para acompanhamento interno.`, category, requesterId, assigneeId, priority, status, comments: comment ? [{ id: id("cmt"), userId: comment[0], text: comment[1], at: at(Math.max(0, days - 1)) }] : [], createdAt: at(days), resolvedAt: status === "resolvido" ? at(Math.max(0, days - 2)) : undefined });
   ticket("QR da mesa 7 abre a conta da mesa 8", "Produto", davi, caio, "em_andamento", 1, "alta", [caio, "Reproduzido. Corrigindo o cadastro das mesas do cliente."]);
   ticket("Acesso ao relatório de comissões", "Acesso", thiago, caio, "aberto", 2, "media");

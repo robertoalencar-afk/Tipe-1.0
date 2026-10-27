@@ -4,7 +4,7 @@ import type { CrmState, Deal, Goal, GoalMetric, ID, Pipeline, User } from "./typ
 // contatos, tarefas e conversas). Nenhum número do painel existe fora destas funções.
 
 export type Range = { from: string; to: string };
-export type Scope = { orgId: ID; ownerId?: ID; teamId?: ID };
+export type Scope = { orgId: ID; ownerId?: ID | undefined; teamId?: ID | undefined };
 
 const inRange = (iso: string | undefined, r: Range) => !!iso && iso >= r.from && iso <= r.to;
 export const monthKey = (iso: string) => iso.slice(0, 7);
@@ -251,3 +251,56 @@ export const METRIC_LABEL: Record<GoalMetric | "reunioes", string> = {
   leads_qualificados: "Leads qualificados",
   reunioes: "Reuniões realizadas",
 };
+
+// ---------- Relatórios ----------
+
+export function lostReasons(s: CrmState, scope: Scope, r: Range) {
+  const counts = new Map<string, { quantidade: number; valor: number }>();
+  for (const d of orgDeals(s, scope)) {
+    if (d.status !== "perdida" || !inRange(d.closedAt, r)) continue;
+    const k = d.lostReason || "Sem motivo";
+    const cur = counts.get(k) ?? { quantidade: 0, valor: 0 };
+    counts.set(k, { quantidade: cur.quantidade + 1, valor: cur.valor + d.value });
+  }
+  return [...counts.entries()].map(([motivo, v]) => ({ motivo, ...v })).sort((a, b) => b.quantidade - a.quantidade);
+}
+
+export function leadsBySource(s: CrmState, scope: Scope, r: Range) {
+  const f = ownerFilter(s, scope);
+  const rows = new Map<string, { recebidos: number; qualificados: number; convertidos: number; receita: number }>();
+  for (const l of s.leads) {
+    if (l.orgId !== scope.orgId || !f(l.ownerId) || !inRange(l.createdAt, r)) continue;
+    const row = rows.get(l.source) ?? { recebidos: 0, qualificados: 0, convertidos: 0, receita: 0 };
+    row.recebidos++;
+    if (l.qualifiedAt || l.status === "convertido") row.qualificados++;
+    if (l.status === "convertido") row.convertidos++;
+    const deal = l.dealId ? s.deals.find((d) => d.id === l.dealId) : undefined;
+    if (deal?.status === "ganha") row.receita += deal.value;
+    rows.set(l.source, row);
+  }
+  return [...rows.entries()].map(([origem, v]) => ({ origem, ...v, taxa: v.recebidos ? Math.round((v.convertidos / v.recebidos) * 100) : 0 })).sort((a, b) => b.recebidos - a.recebidos);
+}
+
+/** Dias médios entre criar e ganhar uma oportunidade no período. */
+export function salesCycleDays(s: CrmState, scope: Scope, r: Range): number | null {
+  const won = orgDeals(s, scope).filter((d) => d.status === "ganha" && inRange(d.closedAt, r));
+  if (!won.length) return null;
+  return Math.round(won.reduce((a, d) => a + (new Date(d.closedAt!).getTime() - new Date(d.createdAt).getTime()) / 864e5, 0) / won.length);
+}
+
+/** Conversas do período cuja primeira resposta passou do prazo da organização (ou ainda não veio). */
+export function slaReport(s: CrmState, orgId: ID, r: Range, slaMin: number, now: string) {
+  let total = 0;
+  let late = 0;
+  for (const c of s.conversations) {
+    if (c.orgId !== orgId) continue;
+    const msgs = s.messages.filter((m) => m.conversationId === c.id && m.direction !== "nota").sort((a, b) => a.at.localeCompare(b.at));
+    const firstIn = msgs.find((m) => m.direction === "entrada");
+    if (!firstIn || !inRange(firstIn.at, r)) continue;
+    total++;
+    const reply = msgs.find((m) => m.direction === "saida" && m.at >= firstIn.at);
+    const end = reply ? reply.at : now;
+    if ((new Date(end).getTime() - new Date(firstIn.at).getTime()) / 60000 > slaMin) late++;
+  }
+  return { total, late, onTime: total - late, pct: total ? Math.round(((total - late) / total) * 100) : null };
+}

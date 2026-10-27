@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from "react";
+import { z } from "zod";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, KeyRound } from "lucide-react";
 import { TipeSymbol } from "@/components/tipe/Logo";
@@ -7,7 +8,7 @@ import { DEMO_ACCOUNTS, DEMO_PASSWORD } from "@/lib/tipe/crm/seed";
 import { runCommand, useCrmState } from "@/lib/tipe/crm/store";
 
 export const Route = createFileRoute("/crm/entrar")({
-  validateSearch: (s: Record<string, unknown>) => ({ voltar: typeof s.voltar === "string" && s.voltar.startsWith("/crm") ? s.voltar : undefined }),
+  validateSearch: z.object({ voltar: z.string().startsWith("/crm").optional().catch(undefined) }),
   head: () => ({ meta: [{ title: "Entrar no back office | Tipe" }, { name: "robots", content: "noindex" }] }),
   component: Entrar,
 });

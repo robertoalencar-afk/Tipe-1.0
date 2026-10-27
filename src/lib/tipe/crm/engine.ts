@@ -1,5 +1,5 @@
 import { leadScore } from "../leads-score";
-import { can, PLANS, PLAN_ORDER, type Action } from "./permissions";
+import { can, PLANS, PLAN_ORDER, ROLE_LABEL, type Action } from "./permissions";
 import { goalProgress, metricValue, monthKey } from "./metrics";
 import type {
   Activity, Challenge, Comment, Company, Contact, CrmState, Deal, EntityRef, Goal, GoalMetric, ID, Lead, LeadProfile,
@@ -16,13 +16,13 @@ export type Command =
   | { type: "logout" }
   | { type: "switchOrg"; orgId: ID }
   | { type: "createOrg"; name: string; segment: string }
-  | { type: "updateOrgSettings"; name?: string; responseSlaMin?: number; dailyTaskXpCap?: number; xp?: Partial<Record<XpKind, number>> }
+  | { type: "updateOrgSettings"; name?: string | undefined; responseSlaMin?: number | undefined; dailyTaskXpCap?: number | undefined; xp?: Partial<Record<XpKind, number>> }
   | { type: "updateProfile"; name: string; title: string }
-  | { type: "inviteMember"; email: string; name: string; role: Role; teamId?: ID }
+  | { type: "inviteMember"; email: string; name: string; role: Role; teamId?: ID | undefined }
   | { type: "acceptInvite"; inviteId: ID }
   | { type: "revokeInvite"; inviteId: ID }
   | { type: "changeRole"; membershipId: ID; role: Role }
-  | { type: "setMemberTeam"; membershipId: ID; teamId?: ID; departmentId?: ID }
+  | { type: "setMemberTeam"; membershipId: ID; teamId?: ID | undefined; departmentId?: ID | undefined }
   | { type: "removeMember"; membershipId: ID }
   | { type: "createTeam"; name: string }
   | { type: "createDepartment"; name: string }
@@ -31,15 +31,15 @@ export type Command =
   | { type: "deleteContact"; id: ID }
   | { type: "createCompany"; data: CompanyInput }
   | { type: "updateCompany"; id: ID; data: Partial<CompanyInput> }
-  | { type: "addNote"; contactId?: ID; dealId?: ID; text: string }
+  | { type: "addNote"; contactId?: ID | undefined; dealId?: ID | undefined; text: string }
   | { type: "createLead"; data: LeadInput }
   | { type: "updateLead"; id: ID; data: Partial<LeadInput> }
   | { type: "qualifyLead"; id: ID }
   | { type: "disqualifyLead"; id: ID; reason: string }
-  | { type: "convertLead"; id: ID; title: string; value: number; pipelineId?: ID }
+  | { type: "convertLead"; id: ID; title: string; value: number; pipelineId?: ID | undefined }
   | { type: "createDeal"; data: DealInput }
   | { type: "updateDeal"; id: ID; data: Partial<DealInput> }
-  | { type: "moveDeal"; id: ID; stageId: ID; lostReason?: string }
+  | { type: "moveDeal"; id: ID; stageId: ID; lostReason?: string | undefined }
   | { type: "deleteDeal"; id: ID }
   | { type: "createPipeline"; name: string }
   | { type: "updateStages"; pipelineId: ID; stages: Stage[] }
@@ -48,7 +48,7 @@ export type Command =
   | { type: "setTaskStatus"; id: ID; status: TaskStatus }
   | { type: "commentTask"; id: ID; text: string }
   | { type: "deleteTask"; id: ID }
-  | { type: "simulateInbound"; contactId?: ID; name?: string; phone?: string; text: string }
+  | { type: "simulateInbound"; contactId?: ID | undefined; name?: string | undefined; phone?: string | undefined; text: string }
   | { type: "sendMessage"; conversationId: ID; text: string }
   | { type: "addInternalNote"; conversationId: ID; text: string }
   | { type: "assignConversation"; conversationId: ID; userId: ID }
@@ -60,9 +60,9 @@ export type Command =
   | { type: "createQuickReply"; shortcut: string; text: string }
   | { type: "deleteQuickReply"; id: ID }
   | { type: "createTicket"; title: string; description: string; category: string; priority: Priority }
-  | { type: "updateTicket"; id: ID; status?: TicketStatus; assigneeId?: ID; priority?: Priority }
+  | { type: "updateTicket"; id: ID; status?: TicketStatus | undefined; assigneeId?: ID | undefined; priority?: Priority | undefined }
   | { type: "commentTicket"; id: ID; text: string }
-  | { type: "createGoal"; scope: "individual" | "equipe"; userId?: ID; teamId?: ID; metric: GoalMetric; target: number; period: string }
+  | { type: "createGoal"; scope: "individual" | "equipe"; userId?: ID | undefined; teamId?: ID | undefined; metric: GoalMetric; target: number; period: string }
   | { type: "deleteGoal"; id: ID }
   | { type: "createChallenge"; title: string; description: string; metric: Challenge["metric"]; target: number; days: number; reward: number }
   | { type: "changePlan"; planId: PlanId }
@@ -73,13 +73,13 @@ export type Command =
   | { type: "createWaTemplate"; name: string; category: "UTILITY" | "MARKETING" | "AUTHENTICATION"; body: string }
   | { type: "markNotificationsRead" };
 
-export type ContactInput = { name: string; companyId?: ID; phone: string; whatsapp: string; email: string; jobTitle: string; source: string; ownerId: ID; status: Contact["status"]; tags: string[]; notes: string };
+export type ContactInput = { name: string; companyId?: ID | undefined; phone: string; whatsapp: string; email: string; jobTitle: string; source: string; ownerId: ID; status: Contact["status"]; tags: string[]; notes: string };
 export type CompanyInput = { name: string; segment: string; city: string; neighborhood: string; size: string; pdv: string; ownerId: ID; tags: string[] };
 export type LeadInput = { name: string; companyName: string; email: string; phone: string; source: string; ownerId: ID; profile: LeadProfile };
-export type DealInput = { title: string; contactId: ID; companyId?: ID; value: number; ownerId: ID; probability: number; priority: Priority; expectedClose: string; pipelineId: ID; stageId: ID };
-export type TaskInput = { title: string; description: string; type: TaskType; assigneeId: ID; priority: Priority; dueAt: string; contactId?: ID; dealId?: ID };
+export type DealInput = { title: string; contactId: ID; companyId?: ID | undefined; value: number; ownerId: ID; probability: number; priority: Priority; expectedClose: string; pipelineId: ID; stageId: ID };
+export type TaskInput = { title: string; description: string; type: TaskType; assigneeId: ID; priority: Priority; dueAt: string; contactId?: ID | undefined; dealId?: ID | undefined };
 
-export type Result = { ok: true; state: CrmState; id?: ID; message?: string } | { ok: false; state: CrmState; error: string };
+export type Result = { ok: true; state: CrmState; id?: ID | undefined; message?: string | undefined } | { ok: false; state: CrmState; error: string };
 
 class Denied extends Error {}
 class Invalid extends Error {}
@@ -350,7 +350,7 @@ export function dispatch(state: CrmState, cmd: Command, now = new Date().toISOSt
   }
 }
 
-function run(s: CrmState, cmd: Command, now: string): { id?: ID; message?: string } | void {
+function run(s: CrmState, cmd: Command, now: string): { id?: ID | undefined; message?: string | undefined } | void {
   if (cmd.type === "login") {
     const u = s.users.find((x) => x.email.toLowerCase() === clean(cmd.email).toLowerCase());
     if (!u || u.password !== cmd.password) throw new Invalid("E-mail ou senha não conferem. Use uma das contas de demonstração.");
@@ -433,7 +433,7 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID; message?: strin
       s.memberships.push({ id: newId("mem"), orgId: c.orgId, userId: user.id, role: inv.role, teamId: inv.teamId, status: "ativo", joinedAt: now });
       inv.status = "aceito";
       audit(s, now, c.orgId, user.id, "member.join", inv.email, "ok");
-      activity(c, "member.joined", `${user.name} entrou como ${inv.role}`, { type: "member", id: user.id });
+      activity(c, "member.joined", `${user.name} entrou como ${ROLE_LABEL[inv.role]}`, { type: "member", id: user.id });
       return { id: user.id, message: `${user.name} entrou. Senha de demonstração: demo1234.` };
     }
     case "revokeInvite": {
@@ -450,8 +450,8 @@ function run(s: CrmState, cmd: Command, now: string): { id?: ID; message?: strin
       if (m.role === "owner" && cmd.role !== "owner" && s.memberships.filter((x) => x.orgId === c.orgId && x.role === "owner" && x.status === "ativo").length <= 1) throw new Invalid("A organização precisa de pelo menos um proprietário.");
       const before = m.role;
       m.role = cmd.role;
-      audit(s, now, c.orgId, c.userId, "member.role", `${userName(s, m.userId)}: ${before} → ${cmd.role}`, "ok");
-      activity(c, "member.role", `${userName(s, m.userId)} agora é ${cmd.role}`, { type: "member", id: m.userId }, { changes: { role: [before, cmd.role] } });
+      audit(s, now, c.orgId, c.userId, "member.role", `${userName(s, m.userId)}: ${ROLE_LABEL[before]} → ${ROLE_LABEL[cmd.role]}`, "ok");
+      activity(c, "member.role", `${userName(s, m.userId)} agora é ${ROLE_LABEL[cmd.role]}`, { type: "member", id: m.userId }, { changes: { role: [before, cmd.role] } });
       notify(c, [m.userId], `Seu papel em ${c.org.name} mudou`, "/crm/perfil");
       return;
     }

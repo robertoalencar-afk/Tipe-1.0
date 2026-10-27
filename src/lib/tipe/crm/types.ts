@@ -16,7 +16,7 @@ export type User = {
   password: string;
   title: string;
   /** Equipe da plataforma Tipe: única que enxerga a Administração global. */
-  platformAdmin?: boolean;
+  platformAdmin?: boolean | undefined;
   createdAt: ISO;
 };
 
@@ -25,8 +25,8 @@ export type Membership = {
   orgId: ID;
   userId: ID;
   role: Role;
-  teamId?: ID;
-  departmentId?: ID;
+  teamId?: ID | undefined;
+  departmentId?: ID | undefined;
   status: "ativo" | "suspenso";
   joinedAt: ISO;
 };
@@ -37,7 +37,7 @@ export type Invite = {
   email: string;
   name: string;
   role: Role;
-  teamId?: ID;
+  teamId?: ID | undefined;
   status: "pendente" | "aceito" | "revogado";
   invitedBy: ID;
   createdAt: ISO;
@@ -86,7 +86,7 @@ export type Contact = {
   id: ID;
   orgId: ID;
   name: string;
-  companyId?: ID;
+  companyId?: ID | undefined;
   phone: string;
   whatsapp: string;
   email: string;
@@ -104,14 +104,14 @@ export type LeadStatus = "novo" | "contatado" | "qualificado" | "desqualificado"
 
 /** Perfil do restaurante, os mesmos campos da lista de espera (restaurant_leads). */
 export type LeadProfile = {
-  tables_range?: string;
-  peak_queue?: string;
-  close_time?: string;
-  contact_role?: string;
-  city?: string;
-  pdv_system?: string;
-  has_pagarme?: string;
-  discovery_source?: string;
+  tables_range?: string | undefined;
+  peak_queue?: string | undefined;
+  close_time?: string | undefined;
+  contact_role?: string | undefined;
+  city?: string | undefined;
+  pdv_system?: string | undefined;
+  has_pagarme?: string | undefined;
+  discovery_source?: string | undefined;
 };
 
 export type Lead = {
@@ -125,12 +125,12 @@ export type Lead = {
   status: LeadStatus;
   ownerId: ID;
   profile: LeadProfile;
-  contactId?: ID;
-  dealId?: ID;
-  disqualifyReason?: string;
+  contactId?: ID | undefined;
+  dealId?: ID | undefined;
+  disqualifyReason?: string | undefined;
   createdAt: ISO;
-  qualifiedAt?: ISO;
-  convertedAt?: ISO;
+  qualifiedAt?: ISO | undefined;
+  convertedAt?: ISO | undefined;
 };
 
 export type StageKind = "aberta" | "ganho" | "perdido";
@@ -146,19 +146,19 @@ export type Deal = {
   stageId: ID;
   title: string;
   contactId: ID;
-  companyId?: ID;
-  leadId?: ID;
-  conversationId?: ID;
+  companyId?: ID | undefined;
+  leadId?: ID | undefined;
+  conversationId?: ID | undefined;
   value: number;
   ownerId: ID;
   probability: number;
   priority: Priority;
   status: DealStatus;
-  lostReason?: string;
+  lostReason?: string | undefined;
   expectedClose: ISO;
   createdAt: ISO;
   updatedAt: ISO;
-  closedAt?: ISO;
+  closedAt?: ISO | undefined;
 };
 
 export type TaskStatus = "pendente" | "em_andamento" | "concluida";
@@ -177,14 +177,14 @@ export type Task = {
   priority: Priority;
   status: TaskStatus;
   dueAt: ISO;
-  contactId?: ID;
-  dealId?: ID;
+  contactId?: ID | undefined;
+  dealId?: ID | undefined;
   comments: Comment[];
   createdAt: ISO;
-  completedAt?: ISO;
+  completedAt?: ISO | undefined;
 };
 
-export type Note = { id: ID; orgId: ID; contactId?: ID; dealId?: ID; userId: ID; text: string; at: ISO };
+export type Note = { id: ID; orgId: ID; contactId?: ID | undefined; dealId?: ID | undefined; userId: ID; text: string; at: ISO };
 
 export type EntityRef = { type: "contact" | "company" | "lead" | "deal" | "task" | "conversation" | "ticket" | "org" | "member" | "subscription" | "pipeline" | "goal"; id: ID };
 
@@ -196,8 +196,8 @@ export type Activity = {
   kind: string;
   summary: string;
   entity: EntityRef;
-  contactId?: ID;
-  dealId?: ID;
+  contactId?: ID | undefined;
+  dealId?: ID | undefined;
   /** Histórico de alterações: campo → [antes, depois]. */
   changes?: Record<string, [unknown, unknown]>;
 };
@@ -209,14 +209,14 @@ export type Conversation = {
   orgId: ID;
   contactId: ID;
   channel: "whatsapp" | "site";
-  instanceId?: ID;
+  instanceId?: ID | undefined;
   status: ConversationStatus;
-  assigneeId?: ID;
+  assigneeId?: ID | undefined;
   tags: string[];
   unread: number;
   createdAt: ISO;
   lastMessageAt: ISO;
-  closedAt?: ISO;
+  closedAt?: ISO | undefined;
 };
 
 export type MessageStatus = "simulada" | "enviada" | "entregue" | "lida" | "falhou";
@@ -226,7 +226,7 @@ export type Message = {
   orgId: ID;
   conversationId: ID;
   direction: "entrada" | "saida" | "nota";
-  authorId?: ID;
+  authorId?: ID | undefined;
   text: string;
   at: ISO;
   status: MessageStatus;
@@ -245,12 +245,12 @@ export type Ticket = {
   description: string;
   category: string;
   requesterId: ID;
-  assigneeId?: ID;
+  assigneeId?: ID | undefined;
   priority: Priority;
   status: TicketStatus;
   comments: Comment[];
   createdAt: ISO;
-  resolvedAt?: ISO;
+  resolvedAt?: ISO | undefined;
 };
 
 export type GoalMetric = "receita" | "negocios_ganhos" | "tarefas_concluidas" | "leads_qualificados";
@@ -259,8 +259,8 @@ export type Goal = {
   id: ID;
   orgId: ID;
   scope: "individual" | "equipe";
-  userId?: ID;
-  teamId?: ID;
+  userId?: ID | undefined;
+  teamId?: ID | undefined;
   metric: GoalMetric;
   target: number;
   /** Mês no formato AAAA-MM. */
@@ -311,8 +311,8 @@ export type Subscription = {
   cycle: "mensal";
   startedAt: ISO;
   renewsAt: ISO;
-  trialEndsAt?: ISO;
-  canceledAt?: ISO;
+  trialEndsAt?: ISO | undefined;
+  canceledAt?: ISO | undefined;
 };
 
 export type Invoice = {
@@ -324,7 +324,7 @@ export type Invoice = {
   status: "paga" | "aberta" | "vencida" | "cancelada";
   issuedAt: ISO;
   dueAt: ISO;
-  paidAt?: ISO;
+  paidAt?: ISO | undefined;
   /** Cobrança fictícia: nenhum pagamento real é processado. */
   simulated: true;
 };

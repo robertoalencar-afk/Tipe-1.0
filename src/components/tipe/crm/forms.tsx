@@ -34,7 +34,7 @@ function useForm<T extends Record<string, unknown>>(initial: T, rules: Rules<T>)
   return { v, setV, bind, show, valid: Object.keys(errors).length === 0, submit: () => setSubmitted(true), serverError, setServerError, reset: () => { setV(initial); setTouched({}); setSubmitted(false); setServerError(null); } };
 }
 
-function FormDialog({ open, onOpenChange, title, description, children, onSubmit, submitLabel, error }: { open: boolean; onOpenChange: (o: boolean) => void; title: string; description?: string; children: ReactNode; onSubmit: (e: FormEvent) => void; submitLabel: string; error?: string | null }) {
+function FormDialog({ open, onOpenChange, title, description, children, onSubmit, submitLabel, error }: { open: boolean; onOpenChange: (o: boolean) => void; title: string; description?: string | undefined; children: ReactNode; onSubmit: (e: FormEvent) => void; submitLabel: string; error?: string | null | undefined }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[92vh] max-w-xl gap-0 overflow-y-auto rounded-xl p-0">
@@ -55,7 +55,7 @@ function FormDialog({ open, onOpenChange, title, description, children, onSubmit
   );
 }
 
-function OwnerSelect({ id, value, onChange, label = "Responsável" }: { id: string; value: string; onChange: (e: { target: { value: string } }) => void; label?: string }) {
+function OwnerSelect({ id, value, onChange, label = "Responsável" }: { id: string; value: string; onChange: (e: { target: { value: string } }) => void; label?: string | undefined }) {
   const { members } = useCrm();
   return <Select id={id} value={value} onChange={onChange} aria-label={label}>{members.filter((m) => m.membership.role !== "viewer").map(({ user }) => <option key={user.id} value={user.id}>{user.name}</option>)}</Select>;
 }
@@ -70,7 +70,7 @@ const contactRules: Rules<ContactForm> = {
   whatsapp: (v) => (phoneOk(v.whatsapp) ? undefined : "Use DDD e número, por exemplo (85) 90000-0000."),
 };
 
-export function ContactDialog({ open, onOpenChange, editing, preset, onSaved }: { open: boolean; onOpenChange: (o: boolean) => void; editing?: Contact; preset?: CreatePreset; onSaved?: (id: ID) => void }) {
+export function ContactDialog({ open, onOpenChange, editing, preset, onSaved }: { open: boolean; onOpenChange: (o: boolean) => void; editing?: Contact | undefined; preset?: CreatePreset | undefined; onSaved?: (id: ID) => void }) {
   const { me, run } = useCrm();
   const { companies } = useOrgData();
   const init: ContactForm = editing
@@ -112,7 +112,7 @@ export function ContactDialog({ open, onOpenChange, editing, preset, onSaved }: 
 type CompanyForm = { name: string; segment: string; city: string; neighborhood: string; size: string; pdv: string; ownerId: string };
 const companyRules: Rules<CompanyForm> = { name: (v) => (v.name.trim().length < 2 ? "Informe o nome da empresa." : undefined) };
 
-export function CompanyDialog({ open, onOpenChange, editing }: { open: boolean; onOpenChange: (o: boolean) => void; editing?: Company }) {
+export function CompanyDialog({ open, onOpenChange, editing }: { open: boolean; onOpenChange: (o: boolean) => void; editing?: Company | undefined }) {
   const { me, run } = useCrm();
   const init: CompanyForm = editing ? { name: editing.name, segment: editing.segment, city: editing.city, neighborhood: editing.neighborhood, size: editing.size, pdv: editing.pdv, ownerId: editing.ownerId } : { name: "", segment: "Restaurante", city: "Fortaleza", neighborhood: "", size: "11 a 20 mesas", pdv: "", ownerId: me.id };
   const f = useForm(init, companyRules);
@@ -147,7 +147,7 @@ const leadRules: Rules<LeadForm> = {
   phone: (v) => (phoneOk(v.phone) ? undefined : "Use DDD e número."),
 };
 
-export function LeadDialog({ open, onOpenChange, editing }: { open: boolean; onOpenChange: (o: boolean) => void; editing?: Lead }) {
+export function LeadDialog({ open, onOpenChange, editing }: { open: boolean; onOpenChange: (o: boolean) => void; editing?: Lead | undefined }) {
   const { me, run } = useCrm();
   const p = editing?.profile ?? {};
   const init: LeadForm = { name: editing?.name ?? "", companyName: editing?.companyName ?? "", email: editing?.email ?? "", phone: editing?.phone ?? "", source: editing?.source ?? "Lista de espera", ownerId: editing?.ownerId ?? me.id, tables_range: p.tables_range ?? "", pdv_system: p.pdv_system ?? "", peak_queue: p.peak_queue ?? "", close_time: p.close_time ?? "", contact_role: p.contact_role ?? "", has_pagarme: p.has_pagarme ?? "" };
@@ -195,7 +195,7 @@ const dealRules: Rules<DealForm> = {
   probability: (v) => (Number(v.probability) < 0 || Number(v.probability) > 100 || v.probability === "" ? "Use de 0 a 100." : undefined),
 };
 
-export function DealDialog({ open, onOpenChange, editing, preset }: { open: boolean; onOpenChange: (o: boolean) => void; editing?: Deal; preset?: CreatePreset }) {
+export function DealDialog({ open, onOpenChange, editing, preset }: { open: boolean; onOpenChange: (o: boolean) => void; editing?: Deal | undefined; preset?: CreatePreset | undefined }) {
   const { me, run, can } = useCrm();
   const { contacts, pipelines } = useOrgData();
   const pipe = pipelines.find((p) => p.id === editing?.pipelineId) ?? pipelines[0];
@@ -241,7 +241,7 @@ const taskRules: Rules<TaskForm> = {
 };
 const localInput = (iso: string) => { const d = new Date(iso); const p = (n: number) => String(n).padStart(2, "0"); return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`; };
 
-export function TaskDialog({ open, onOpenChange, editing, preset }: { open: boolean; onOpenChange: (o: boolean) => void; editing?: Task; preset?: CreatePreset }) {
+export function TaskDialog({ open, onOpenChange, editing, preset }: { open: boolean; onOpenChange: (o: boolean) => void; editing?: Task | undefined; preset?: CreatePreset | undefined }) {
   const { me, run, can } = useCrm();
   const { contacts, deals } = useOrgData();
   const deal = deals.find((d) => d.id === preset?.dealId);

@@ -29,11 +29,14 @@ import { Route as AuthenticatedBackofficeRouteImport } from './routes/_authentic
 import { Route as AuthenticatedGarcomRouteImport } from './routes/_authenticated/garcom'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
 import { Route as CrmIndexRouteImport } from './routes/crm.index'
+import { Route as CrmAtendimentoRouteImport } from './routes/crm.atendimento'
+import { Route as CrmCalendarioRouteImport } from './routes/crm.calendario'
 import { Route as CrmEmpresasRouteImport } from './routes/crm.empresas'
 import { Route as CrmEntrarRouteImport } from './routes/crm.entrar'
 import { Route as CrmFunisRouteImport } from './routes/crm.funis'
 import { Route as CrmLeadsRouteImport } from './routes/crm.leads'
 import { Route as CrmOportunidadesRouteImport } from './routes/crm.oportunidades'
+import { Route as CrmTarefasRouteImport } from './routes/crm.tarefas'
 import { Route as LegalIndexRouteImport } from './routes/legal.index'
 import { Route as LegalLivroRouteImport } from './routes/legal.$livro'
 import { Route as LegalCompletaRouteImport } from './routes/legal.completa'
@@ -52,6 +55,7 @@ import { Route as ApiPublicPagarmeWebhookRouteImport } from './routes/api/public
 import { Route as ApiPublicPaymentsReconcileRouteImport } from './routes/api/public/payments.reconcile'
 import { Route as ApiPublicPdvSyncRouteImport } from './routes/api/public/pdv.sync'
 import { Route as ApiPublicPosSlugRouteImport } from './routes/api/public/pos.$slug'
+import { Route as ApiPublicWhatsappWebhookRouteImport } from './routes/api/public/whatsapp.webhook'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
 import { Route as ApiPublicPagarmeRestauranteSlugRouteImport } from './routes/api/public/pagarme/restaurante.$slug'
 import { Route as ApiPublicPdvAdapterWebhookRouteImport } from './routes/api/public/pdv.$adapter.webhook'
@@ -156,6 +160,16 @@ const CrmIndexRoute = CrmIndexRouteImport.update({
   path: '/',
   getParentRoute: () => CrmRoute,
 } as any)
+const CrmAtendimentoRoute = CrmAtendimentoRouteImport.update({
+  id: '/atendimento',
+  path: '/atendimento',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmCalendarioRoute = CrmCalendarioRouteImport.update({
+  id: '/calendario',
+  path: '/calendario',
+  getParentRoute: () => CrmRoute,
+} as any)
 const CrmEmpresasRoute = CrmEmpresasRouteImport.update({
   id: '/empresas',
   path: '/empresas',
@@ -179,6 +193,11 @@ const CrmLeadsRoute = CrmLeadsRouteImport.update({
 const CrmOportunidadesRoute = CrmOportunidadesRouteImport.update({
   id: '/oportunidades',
   path: '/oportunidades',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmTarefasRoute = CrmTarefasRouteImport.update({
+  id: '/tarefas',
+  path: '/tarefas',
   getParentRoute: () => CrmRoute,
 } as any)
 const LegalIndexRoute = LegalIndexRouteImport.update({
@@ -272,6 +291,12 @@ const ApiPublicPosSlugRoute = ApiPublicPosSlugRouteImport.update({
   path: '/api/public/pos/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicWhatsappWebhookRoute =
+  ApiPublicWhatsappWebhookRouteImport.update({
+    id: '/api/public/whatsapp/webhook',
+    path: '/api/public/whatsapp/webhook',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const LovableEmailTransactionalPreviewRoute =
   LovableEmailTransactionalPreviewRouteImport.update({
     id: '/lovable/email/transactional/preview',
@@ -309,11 +334,14 @@ export interface FileRoutesByFullPath {
   '/backoffice': typeof AuthenticatedBackofficeRoute
   '/garcom': typeof AuthenticatedGarcomRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/crm/atendimento': typeof CrmAtendimentoRoute
+  '/crm/calendario': typeof CrmCalendarioRoute
   '/crm/empresas': typeof CrmEmpresasRoute
   '/crm/entrar': typeof CrmEntrarRoute
   '/crm/funis': typeof CrmFunisRoute
   '/crm/leads': typeof CrmLeadsRoute
   '/crm/oportunidades': typeof CrmOportunidadesRoute
+  '/crm/tarefas': typeof CrmTarefasRoute
   '/legal/$livro': typeof LegalLivroRoute
   '/legal/completa': typeof LegalCompletaRoute
   '/legal/glossario': typeof LegalGlossarioRoute
@@ -334,6 +362,7 @@ export interface FileRoutesByFullPath {
   '/api/public/payments/reconcile': typeof ApiPublicPaymentsReconcileRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
+  '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/api/public/pagarme/restaurante/$slug': typeof ApiPublicPagarmeRestauranteSlugRoute
   '/api/public/pdv/$adapter/webhook': typeof ApiPublicPdvAdapterWebhookRoute
@@ -355,11 +384,14 @@ export interface FileRoutesByTo {
   '/backoffice': typeof AuthenticatedBackofficeRoute
   '/garcom': typeof AuthenticatedGarcomRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/crm/atendimento': typeof CrmAtendimentoRoute
+  '/crm/calendario': typeof CrmCalendarioRoute
   '/crm/empresas': typeof CrmEmpresasRoute
   '/crm/entrar': typeof CrmEntrarRoute
   '/crm/funis': typeof CrmFunisRoute
   '/crm/leads': typeof CrmLeadsRoute
   '/crm/oportunidades': typeof CrmOportunidadesRoute
+  '/crm/tarefas': typeof CrmTarefasRoute
   '/legal/$livro': typeof LegalLivroRoute
   '/legal/completa': typeof LegalCompletaRoute
   '/legal/glossario': typeof LegalGlossarioRoute
@@ -380,6 +412,7 @@ export interface FileRoutesByTo {
   '/api/public/payments/reconcile': typeof ApiPublicPaymentsReconcileRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
+  '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/api/public/pagarme/restaurante/$slug': typeof ApiPublicPagarmeRestauranteSlugRoute
   '/api/public/pdv/$adapter/webhook': typeof ApiPublicPdvAdapterWebhookRoute
@@ -404,11 +437,14 @@ export interface FileRoutesById {
   '/_authenticated/backoffice': typeof AuthenticatedBackofficeRoute
   '/_authenticated/garcom': typeof AuthenticatedGarcomRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
+  '/crm/atendimento': typeof CrmAtendimentoRoute
+  '/crm/calendario': typeof CrmCalendarioRoute
   '/crm/empresas': typeof CrmEmpresasRoute
   '/crm/entrar': typeof CrmEntrarRoute
   '/crm/funis': typeof CrmFunisRoute
   '/crm/leads': typeof CrmLeadsRoute
   '/crm/oportunidades': typeof CrmOportunidadesRoute
+  '/crm/tarefas': typeof CrmTarefasRoute
   '/legal/$livro': typeof LegalLivroRoute
   '/legal/completa': typeof LegalCompletaRoute
   '/legal/glossario': typeof LegalGlossarioRoute
@@ -429,6 +465,7 @@ export interface FileRoutesById {
   '/api/public/payments/reconcile': typeof ApiPublicPaymentsReconcileRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
+  '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
   '/api/public/pagarme/restaurante/$slug': typeof ApiPublicPagarmeRestauranteSlugRoute
   '/api/public/pdv/$adapter/webhook': typeof ApiPublicPdvAdapterWebhookRoute
@@ -453,11 +490,14 @@ export interface FileRouteTypes {
     | '/backoffice'
     | '/garcom'
     | '/painel'
+    | '/crm/atendimento'
+    | '/crm/calendario'
     | '/crm/empresas'
     | '/crm/entrar'
     | '/crm/funis'
     | '/crm/leads'
     | '/crm/oportunidades'
+    | '/crm/tarefas'
     | '/legal/$livro'
     | '/legal/completa'
     | '/legal/glossario'
@@ -478,6 +518,7 @@ export interface FileRouteTypes {
     | '/api/public/payments/reconcile'
     | '/api/public/pdv/sync'
     | '/api/public/pos/$slug'
+    | '/api/public/whatsapp/webhook'
     | '/lovable/email/transactional/preview'
     | '/api/public/pagarme/restaurante/$slug'
     | '/api/public/pdv/$adapter/webhook'
@@ -499,11 +540,14 @@ export interface FileRouteTypes {
     | '/backoffice'
     | '/garcom'
     | '/painel'
+    | '/crm/atendimento'
+    | '/crm/calendario'
     | '/crm/empresas'
     | '/crm/entrar'
     | '/crm/funis'
     | '/crm/leads'
     | '/crm/oportunidades'
+    | '/crm/tarefas'
     | '/legal/$livro'
     | '/legal/completa'
     | '/legal/glossario'
@@ -524,6 +568,7 @@ export interface FileRouteTypes {
     | '/api/public/payments/reconcile'
     | '/api/public/pdv/sync'
     | '/api/public/pos/$slug'
+    | '/api/public/whatsapp/webhook'
     | '/lovable/email/transactional/preview'
     | '/api/public/pagarme/restaurante/$slug'
     | '/api/public/pdv/$adapter/webhook'
@@ -547,11 +592,14 @@ export interface FileRouteTypes {
     | '/_authenticated/backoffice'
     | '/_authenticated/garcom'
     | '/_authenticated/painel'
+    | '/crm/atendimento'
+    | '/crm/calendario'
     | '/crm/empresas'
     | '/crm/entrar'
     | '/crm/funis'
     | '/crm/leads'
     | '/crm/oportunidades'
+    | '/crm/tarefas'
     | '/legal/$livro'
     | '/legal/completa'
     | '/legal/glossario'
@@ -572,6 +620,7 @@ export interface FileRouteTypes {
     | '/api/public/payments/reconcile'
     | '/api/public/pdv/sync'
     | '/api/public/pos/$slug'
+    | '/api/public/whatsapp/webhook'
     | '/lovable/email/transactional/preview'
     | '/api/public/pagarme/restaurante/$slug'
     | '/api/public/pdv/$adapter/webhook'
@@ -609,6 +658,7 @@ export interface RootRouteChildren {
   ApiPublicPaymentsReconcileRoute: typeof ApiPublicPaymentsReconcileRoute
   ApiPublicPdvSyncRoute: typeof ApiPublicPdvSyncRoute
   ApiPublicPosSlugRoute: typeof ApiPublicPosSlugRoute
+  ApiPublicWhatsappWebhookRoute: typeof ApiPublicWhatsappWebhookRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
   ApiPublicPagarmeRestauranteSlugRoute: typeof ApiPublicPagarmeRestauranteSlugRoute
   ApiPublicPdvAdapterWebhookRoute: typeof ApiPublicPdvAdapterWebhookRoute
@@ -756,6 +806,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CrmIndexRouteImport
       parentRoute: typeof CrmRoute
     }
+    '/crm/atendimento': {
+      id: '/crm/atendimento'
+      path: '/atendimento'
+      fullPath: '/crm/atendimento'
+      preLoaderRoute: typeof CrmAtendimentoRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/calendario': {
+      id: '/crm/calendario'
+      path: '/calendario'
+      fullPath: '/crm/calendario'
+      preLoaderRoute: typeof CrmCalendarioRouteImport
+      parentRoute: typeof CrmRoute
+    }
     '/crm/empresas': {
       id: '/crm/empresas'
       path: '/empresas'
@@ -789,6 +853,13 @@ declare module '@tanstack/react-router' {
       path: '/oportunidades'
       fullPath: '/crm/oportunidades'
       preLoaderRoute: typeof CrmOportunidadesRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/tarefas': {
+      id: '/crm/tarefas'
+      path: '/tarefas'
+      fullPath: '/crm/tarefas'
+      preLoaderRoute: typeof CrmTarefasRouteImport
       parentRoute: typeof CrmRoute
     }
     '/legal/': {
@@ -917,6 +988,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPosSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/whatsapp/webhook': {
+      id: '/api/public/whatsapp/webhook'
+      path: '/api/public/whatsapp/webhook'
+      fullPath: '/api/public/whatsapp/webhook'
+      preLoaderRoute: typeof ApiPublicWhatsappWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/lovable/email/transactional/preview': {
       id: '/lovable/email/transactional/preview'
       path: '/lovable/email/transactional/preview'
@@ -959,22 +1037,28 @@ const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
 interface CrmRouteChildren {
+  CrmAtendimentoRoute: typeof CrmAtendimentoRoute
+  CrmCalendarioRoute: typeof CrmCalendarioRoute
   CrmEmpresasRoute: typeof CrmEmpresasRoute
   CrmEntrarRoute: typeof CrmEntrarRoute
   CrmFunisRoute: typeof CrmFunisRoute
   CrmLeadsRoute: typeof CrmLeadsRoute
   CrmOportunidadesRoute: typeof CrmOportunidadesRoute
+  CrmTarefasRoute: typeof CrmTarefasRoute
   CrmIndexRoute: typeof CrmIndexRoute
   CrmContatosIdRoute: typeof CrmContatosIdRoute
   CrmContatosIndexRoute: typeof CrmContatosIndexRoute
 }
 
 const CrmRouteChildren: CrmRouteChildren = {
+  CrmAtendimentoRoute: CrmAtendimentoRoute,
+  CrmCalendarioRoute: CrmCalendarioRoute,
   CrmEmpresasRoute: CrmEmpresasRoute,
   CrmEntrarRoute: CrmEntrarRoute,
   CrmFunisRoute: CrmFunisRoute,
   CrmLeadsRoute: CrmLeadsRoute,
   CrmOportunidadesRoute: CrmOportunidadesRoute,
+  CrmTarefasRoute: CrmTarefasRoute,
   CrmIndexRoute: CrmIndexRoute,
   CrmContatosIdRoute: CrmContatosIdRoute,
   CrmContatosIndexRoute: CrmContatosIndexRoute,
@@ -1015,6 +1099,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicPaymentsReconcileRoute: ApiPublicPaymentsReconcileRoute,
   ApiPublicPdvSyncRoute: ApiPublicPdvSyncRoute,
   ApiPublicPosSlugRoute: ApiPublicPosSlugRoute,
+  ApiPublicWhatsappWebhookRoute: ApiPublicWhatsappWebhookRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
   ApiPublicPagarmeRestauranteSlugRoute: ApiPublicPagarmeRestauranteSlugRoute,
   ApiPublicPdvAdapterWebhookRoute: ApiPublicPdvAdapterWebhookRoute,

@@ -17,7 +17,7 @@ import { useCrm, useOrgData } from "./context";
 import { QuickCreate } from "./forms";
 import { Avatar, relative } from "./ui";
 
-type NavItem = { to: string; label: string; icon: typeof Gauge; perm?: Action; platform?: boolean; exact?: boolean; badge?: (d: ReturnType<typeof useBadges>) => number };
+type NavItem = { to: string; label: string; icon: typeof Gauge; perm?: Action | undefined; platform?: boolean | undefined; exact?: boolean | undefined; badge?: (d: ReturnType<typeof useBadges>) => number };
 const NAV: { group: string; items: NavItem[] }[] = [
   { group: "Visão", items: [{ to: "/crm", label: "Dashboard", icon: Gauge, exact: true }] },
   { group: "Comercial", items: [

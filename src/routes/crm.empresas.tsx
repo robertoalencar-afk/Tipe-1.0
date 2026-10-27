@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { z } from "zod";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { Building2, Pencil, Plus } from "lucide-react";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
@@ -9,7 +10,7 @@ import { Btn, brl, brlShort, Empty, PageHeader, Pill, SearchInput, Select, UserC
 import type { Company } from "@/lib/tipe/crm/types";
 
 export const Route = createFileRoute("/crm/empresas")({
-  validateSearch: (s: Record<string, unknown>) => ({ empresa: typeof s.empresa === "string" ? s.empresa : undefined }),
+  validateSearch: z.object({ empresa: z.string().optional().catch(undefined) }),
   component: Empresas,
 });
 

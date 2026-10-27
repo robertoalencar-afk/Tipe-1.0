@@ -38,17 +38,17 @@ export const initials = (name: string) => name.split(" ").filter(Boolean).slice(
 
 const AVATAR_TONES = ["bg-[oklch(0.42_0.08_190)]", "bg-[oklch(0.42_0.09_250)]", "bg-[oklch(0.45_0.08_160)]", "bg-[oklch(0.45_0.08_70)]", "bg-[oklch(0.4_0.06_290)]", "bg-[oklch(0.42_0.05_220)]"];
 
-export function Avatar({ name, className }: { name: string; className?: string }) {
+export function Avatar({ name, className }: { name: string; className?: string | undefined }) {
   const tone = AVATAR_TONES[[...name].reduce((a, c) => a + c.charCodeAt(0), 0) % AVATAR_TONES.length];
   return <span aria-hidden className={cn("inline-grid h-7 w-7 shrink-0 place-items-center rounded-full text-[0.65rem] font-bold text-white", tone, className)}>{initials(name)}</span>;
 }
 
-export function UserChip({ user, className }: { user?: Pick<User, "name">; className?: string }) {
+export function UserChip({ user, className }: { user?: Pick<User, "name">; className?: string | undefined }) {
   if (!user) return <span className="text-xs text-muted-foreground">Sem responsável</span>;
   return <span className={cn("inline-flex min-w-0 items-center gap-1.5", className)}><Avatar name={user.name} className="h-5 w-5 text-[0.55rem]" /><span className="truncate text-xs">{user.name.split(" ")[0]}</span></span>;
 }
 
-export function PageHeader({ title, description, actions, eyebrow }: { title: string; description?: string; actions?: ReactNode; eyebrow?: string }) {
+export function PageHeader({ title, description, actions, eyebrow }: { title: string; description?: string | undefined; actions?: ReactNode | undefined; eyebrow?: string | undefined }) {
   return (
     <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
       <div className="min-w-0">
@@ -61,7 +61,7 @@ export function PageHeader({ title, description, actions, eyebrow }: { title: st
   );
 }
 
-export function Panel({ title, description, actions, children, className, bodyClassName }: { title?: ReactNode; description?: string; actions?: ReactNode; children: ReactNode; className?: string; bodyClassName?: string }) {
+export function Panel({ title, description, actions, children, className, bodyClassName }: { title?: ReactNode | undefined; description?: string | undefined; actions?: ReactNode | undefined; children: ReactNode; className?: string | undefined; bodyClassName?: string | undefined }) {
   return (
     <section className={cn("crm-panel min-w-0", className)}>
       {(title || actions) && (
@@ -78,7 +78,7 @@ export function Panel({ title, description, actions, children, className, bodyCl
   );
 }
 
-export function Kpi({ icon: Icon, label, value, hint, delta, tone = "default", help }: { icon: LucideIcon; label: string; value: string; hint?: string; delta?: { value: number; good: boolean } | null; tone?: "default" | "warning" | "danger" | "success"; help?: string }) {
+export function Kpi({ icon: Icon, label, value, hint, delta, tone = "default", help }: { icon: LucideIcon; label: string; value: string; hint?: string | undefined; delta?: { value: number; good: boolean } | null; tone?: "default" | "warning" | "danger" | "success" | undefined; help?: string | undefined }) {
   const toneCls = tone === "warning" ? "text-warning" : tone === "danger" ? "text-destructive" : tone === "success" ? "text-success" : "text-primary";
   return (
     <div className="crm-panel flex min-w-0 flex-col gap-2 p-3.5">
@@ -104,7 +104,7 @@ export function Hint({ text }: { text: string }) {
   );
 }
 
-export function Empty({ icon: Icon, title, text, action }: { icon: LucideIcon; title: string; text: string; action?: ReactNode }) {
+export function Empty({ icon: Icon, title, text, action }: { icon: LucideIcon; title: string; text: string; action?: ReactNode | undefined }) {
   return (
     <div className="flex flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border px-6 py-10 text-center">
       <span className="grid h-10 w-10 place-items-center rounded-lg bg-muted text-primary"><Icon className="h-5 w-5" aria-hidden /></span>
@@ -134,7 +134,7 @@ const TONE: Record<Tone, string> = {
   danger: "bg-destructive/15 text-[oklch(0.78_0.12_25)]",
   info: "bg-info/15 text-info",
 };
-export function Pill({ tone = "neutral", children, className }: { tone?: Tone; children: ReactNode; className?: string }) {
+export function Pill({ tone = "neutral", children, className }: { tone?: Tone | undefined; children: ReactNode; className?: string | undefined }) {
   return <span className={cn("inline-flex h-5 shrink-0 items-center gap-1 whitespace-nowrap rounded-md px-1.5 text-[0.68rem] font-semibold", TONE[tone], className)}>{children}</span>;
 }
 
@@ -147,7 +147,7 @@ export const Btn = forwardRef<HTMLButtonElement, ComponentProps<typeof Button>>(
   return <Button ref={ref} size={size} className={cn("rounded-lg", size === "sm" && "h-8 px-3 text-xs", className)} {...props} />;
 });
 
-export function IconBtn({ label, icon: Icon, onClick, className, disabled }: { label: string; icon: LucideIcon; onClick?: () => void; className?: string; disabled?: boolean }) {
+export function IconBtn({ label, icon: Icon, onClick, className, disabled }: { label: string; icon: LucideIcon; onClick?: () => void; className?: string | undefined; disabled?: boolean | undefined }) {
   return (
     <Tooltip>
       <TooltipTrigger asChild>
@@ -160,7 +160,7 @@ export function IconBtn({ label, icon: Icon, onClick, className, disabled }: { l
 
 const FIELD = "h-9 w-full rounded-lg border border-input bg-background/60 px-3 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-primary/60 focus:outline-none focus:ring-2 focus:ring-primary/25 disabled:opacity-60 aria-[invalid=true]:border-destructive";
 
-export function Field({ label, error, hint, children, className }: { label: string; error?: string; hint?: string; children: (id: string, describedBy?: string) => ReactNode; className?: string }) {
+export function Field({ label, error, hint, children, className }: { label: string; error?: string | undefined; hint?: string | undefined; children: (id: string, describedBy?: string) => ReactNode; className?: string | undefined }) {
   const id = useId();
   const msgId = `${id}-msg`;
   return (
@@ -184,7 +184,7 @@ export const Select = forwardRef<HTMLSelectElement, ComponentProps<"select">>(fu
   return <select ref={ref} className={cn(FIELD, "appearance-none bg-[length:12px] bg-[right_0.7rem_center] bg-no-repeat pr-8", "bg-[url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2394a3b8' stroke-width='2'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E\")]", className)} {...props}>{children}</select>;
 });
 
-export function ConfirmAction({ trigger, title, description, confirmLabel, onConfirm, destructive = true }: { trigger: ReactNode; title: string; description: string; confirmLabel: string; onConfirm: () => void; destructive?: boolean }) {
+export function ConfirmAction({ trigger, title, description, confirmLabel, onConfirm, destructive = true }: { trigger: ReactNode; title: string; description: string; confirmLabel: string; onConfirm: () => void; destructive?: boolean | undefined }) {
   const [open, setOpen] = useState(false);
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
@@ -203,7 +203,7 @@ export function ConfirmAction({ trigger, title, description, confirmLabel, onCon
   );
 }
 
-export function Progress({ value, tone = "primary", className, label }: { value: number; tone?: "primary" | "success" | "warning"; className?: string; label?: string }) {
+export function Progress({ value, tone = "primary", className, label }: { value: number; tone?: "primary" | "success" | "warning" | undefined; className?: string | undefined; label?: string | undefined }) {
   const bar = tone === "success" ? "bg-success" : tone === "warning" ? "bg-warning" : "bg-primary";
   return (
     <div className={cn("h-1.5 w-full overflow-hidden rounded-full bg-muted", className)} role="progressbar" aria-valuenow={Math.round(value)} aria-valuemin={0} aria-valuemax={100} aria-label={label}>
@@ -222,7 +222,7 @@ export function Segmented<T extends string>({ value, onChange, options, label }:
   );
 }
 
-export function SearchInput({ value, onChange, placeholder, className }: { value: string; onChange: (v: string) => void; placeholder: string; className?: string }) {
+export function SearchInput({ value, onChange, placeholder, className }: { value: string; onChange: (v: string) => void; placeholder: string; className?: string | undefined }) {
   return (
     <div className={cn("relative min-w-0", className)}>
       <svg aria-hidden viewBox="0 0 24 24" className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="m20 20-3.5-3.5" /></svg>
@@ -242,3 +242,7 @@ export const chartTooltip = {
   cursor: { fill: "oklch(0.85 0.03 250 / 0.05)" },
 };
 export const axis = { fontSize: 11, tickLine: false, axisLine: false, stroke: "var(--muted-foreground)" } as const;
+
+export function NoAccessInline({ text }: { text: string }) {
+  return <p className="mt-3 border-t border-border pt-3 text-xs text-muted-foreground">{text}</p>;
+}

@@ -1,4 +1,5 @@
 import { useMemo, useState, type FormEvent } from "react";
+import { z } from "zod";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRightLeft, BadgeCheck, Ban, Filter, Pencil, Plus } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -11,7 +12,7 @@ import { CLOSE_TIMES, PAGARME, QUEUES, ROLE_LABEL as LEAD_ROLE, TABLES, leadScor
 import type { Lead, LeadStatus } from "@/lib/tipe/crm/types";
 
 export const Route = createFileRoute("/crm/leads")({
-  validateSearch: (s: Record<string, unknown>) => ({ lead: typeof s.lead === "string" ? s.lead : undefined }),
+  validateSearch: z.object({ lead: z.string().optional().catch(undefined) }),
   component: Leads,
 });
 

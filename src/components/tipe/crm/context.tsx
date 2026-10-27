@@ -6,7 +6,7 @@ import { runCommand } from "@/lib/tipe/crm/store";
 import type { CrmState, ID, Membership, Org, Role, User } from "@/lib/tipe/crm/types";
 
 export type CreateKind = "contact" | "company" | "lead" | "deal" | "task";
-export type CreatePreset = { contactId?: ID; dealId?: ID; companyId?: ID; stageId?: ID; dueAt?: string };
+export type CreatePreset = { contactId?: ID | undefined; dealId?: ID | undefined; companyId?: ID | undefined; stageId?: ID | undefined; dueAt?: string | undefined };
 
 type CrmCtx = {
   s: CrmState;
@@ -20,7 +20,7 @@ type CrmCtx = {
   can: (a: Action) => boolean;
   run: (cmd: Command, success?: string) => Result;
   openCreate: (kind: CreateKind, preset?: CreatePreset) => void;
-  creating: { kind: CreateKind; preset?: CreatePreset } | null;
+  creating: { kind: CreateKind; preset?: CreatePreset | undefined } | null;
   closeCreate: () => void;
 };
 

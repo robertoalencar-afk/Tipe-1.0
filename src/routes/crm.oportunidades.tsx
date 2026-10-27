@@ -1,4 +1,5 @@
 import { useMemo, useState, type DragEvent } from "react";
+import { z } from "zod";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { AlarmClock, CalendarClock, GripVertical, KanbanSquare, ListTodo, MoreHorizontal, NotebookPen, Pencil, Plus, Trash2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -12,7 +13,7 @@ import { cn } from "@/lib/utils";
 import type { Deal, Stage } from "@/lib/tipe/crm/types";
 
 export const Route = createFileRoute("/crm/oportunidades")({
-  validateSearch: (s: Record<string, unknown>) => ({ deal: typeof s.deal === "string" ? s.deal : undefined, funil: typeof s.funil === "string" ? s.funil : undefined }),
+  validateSearch: z.object({ deal: z.string().optional().catch(undefined), funil: z.string().optional().catch(undefined) }),
   component: Oportunidades,
 });
 
@@ -152,7 +153,7 @@ function LostDialog({ value, onClose }: { value: { deal: Deal; stage: Stage } | 
   );
 }
 
-function DealSheet({ deal, onClose, onMove }: { deal?: Deal; onClose: () => void; onMove: (d: Deal, s: Stage) => void }) {
+function DealSheet({ deal, onClose, onMove }: { deal?: Deal | undefined; onClose: () => void; onMove: (d: Deal, s: Stage) => void }) {
   const { user, can, run, openCreate, me } = useCrm();
   const d = useOrgData();
   const [editing, setEditing] = useState(false);
