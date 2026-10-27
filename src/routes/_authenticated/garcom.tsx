@@ -27,6 +27,7 @@ import {
   requestWithdrawal,
   saveWaiterPix,
 } from "@/lib/tipe/waiter.functions";
+import { GarcomAtender } from "@/components/tipe/GarcomAtender";
 
 export const Route = createFileRoute("/_authenticated/garcom")({
   head: () => ({
@@ -81,7 +82,7 @@ function AreaGarcom() {
   const pedir = useServerFn(requestWithdrawal);
   const cancelar = useServerFn(cancelWithdrawal);
   const q = useQuery({ queryKey: ["waiter"], queryFn: () => fetchDash(), refetchInterval: 30000 });
-  const [aba, setAba] = useState<"inicio" | "saque">("inicio");
+  const [aba, setAba] = useState<"atender" | "inicio" | "saque">("atender");
   const [busy, setBusy] = useState(false);
 
   const serie = useMemo(() => {
@@ -146,43 +147,14 @@ function AreaGarcom() {
         )}
         {d && (
           <>
-            <section className="relative overflow-hidden rounded-[1.75rem] bg-foreground p-7 text-background">
-              <div
-                aria-hidden
-                className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-brand/25 blur-3xl"
-              />
-              <p className="relative text-sm text-white/65">Disponível para saque</p>
-              <p className="money relative mt-2 text-[3.2rem] font-medium leading-none tracking-[-0.045em]">
-                {brl(d.balance.available)}
-              </p>
-              <div className="relative mt-5 flex flex-wrap items-end justify-between gap-3">
-                <p className="text-xs leading-5 text-white/65">
-                  Nesta quinzena:{" "}
-                  <span className="money font-semibold text-white">
-                    {brl(d.balance.currentCycle)}
-                  </span>
-                  <br />
-                  Próximo repasse: {proximoPagamento().toLocaleDateString("pt-BR")}
-                </p>
-                {aba === "inicio" && (
-                  <Button
-                    size="sm"
-                    onClick={() => setAba("saque")}
-                    className="bg-brand text-ink hover:bg-brand/90"
-                  >
-                    Saques e Pix <ArrowRight />
-                  </Button>
-                )}
-              </div>
-            </section>
-
             <div
               role="tablist"
               aria-label="Área do garçom"
-              className="grid grid-cols-2 gap-1 rounded-full border border-border bg-surface p-1 shadow-xs"
+              className="grid grid-cols-3 gap-1 rounded-full border border-border bg-surface p-1 shadow-xs"
             >
               {(
                 [
+                  ["atender", "Atender"],
                   ["inicio", "Resumo"],
                   ["saque", "Saques e Pix"],
                 ] as const
@@ -204,6 +176,40 @@ function AreaGarcom() {
                 </button>
               ))}
             </div>
+
+            {aba === "atender" && <GarcomAtender />}
+
+            {aba !== "atender" && (
+              <section className="relative overflow-hidden rounded-[1.75rem] bg-foreground p-7 text-background">
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-brand/25 blur-3xl"
+                />
+                <p className="relative text-sm text-white/65">Disponível para saque</p>
+                <p className="money relative mt-2 text-[3.2rem] font-medium leading-none tracking-[-0.045em]">
+                  {brl(d.balance.available)}
+                </p>
+                <div className="relative mt-5 flex flex-wrap items-end justify-between gap-3">
+                  <p className="text-xs leading-5 text-white/65">
+                    Nesta quinzena:{" "}
+                    <span className="money font-semibold text-white">
+                      {brl(d.balance.currentCycle)}
+                    </span>
+                    <br />
+                    Próximo repasse: {proximoPagamento().toLocaleDateString("pt-BR")}
+                  </p>
+                  {aba === "inicio" && (
+                    <Button
+                      size="sm"
+                      onClick={() => setAba("saque")}
+                      className="bg-brand text-ink hover:bg-brand/90"
+                    >
+                      Saques e Pix <ArrowRight />
+                    </Button>
+                  )}
+                </div>
+              </section>
+            )}
 
             {aba === "inicio" && (
               <>

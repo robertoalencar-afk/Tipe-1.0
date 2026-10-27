@@ -16,6 +16,7 @@ import {
   Smartphone,
   Star,
   Users,
+  UtensilsCrossed,
   WalletCards,
   WifiOff,
 } from "lucide-react";
@@ -26,6 +27,7 @@ import { SplitPicker } from "@/components/tipe/SplitPicker";
 import { DividirConta } from "@/components/tipe/DividirConta";
 import { remainingSubtotal, selectionSubtotal, type ShareItem } from "@/lib/tipe/bill-math";
 import { PAYMENT_STATUS_LABEL } from "@/lib/tipe/payment-state";
+import { MesaPedido } from "@/components/tipe/MesaPedido";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -95,7 +97,7 @@ type Etapa =
   | "pagamento-gorjeta"
   | "mesa-encerrada"
   | "fim";
-type Aba = "conta" | "atividade";
+type Aba = "conta" | "atividade" | "cardapio";
 type Metodo = "pix" | "card" | "apple_pay" | "google_pay" | "at_establishment";
 type MetodoEstabelecimento = "cash" | "card_terminal";
 
@@ -193,6 +195,7 @@ function MesaPage() {
   const [pagamentos, setPagamentos] = useState<SharedPayment[]>([]);
   const [mesaSincronizada, setMesaSincronizada] = useState(false);
   const [sessaoMesa, setSessaoMesa] = useState("");
+  const [selfOrder, setSelfOrder] = useState(false);
   const [cartao, setCartao] = useState<CardInput>({ number: "", holder: "", exp: "", cvv: "" });
   const [chavePublica, setChavePublica] = useState<string | null>(null);
   const [pix, setPix] = useState<{
@@ -290,6 +293,7 @@ function MesaPage() {
       );
       setPagamentos(estado.payments);
       setSessaoMesa(estado.session);
+      setSelfOrder(estado.selfOrder);
       setQtds((atuais) =>
         Object.fromEntries(
           itensMesa.map((item) => {
@@ -736,17 +740,8 @@ function MesaPage() {
             )}
           </p>
 
-          <div
-            role="tablist"
-            aria-label="Conta da mesa"
-            className="mt-5 grid grid-cols-2 gap-1 rounded-full bg-muted p-1"
-          >
-            {(
-              [
-                ["conta", "Conta", ReceiptText],
-                ["atividade", "Atividade", ClipboardList],
-              ] as const
-            ).map(([id, rotulo, Icone]) => (
+          <div role="tablist" aria-label="Conta da mesa" className={`mt-5 grid gap-1 rounded-full bg-muted p-1 ${selfOrder ? "grid-cols-3" : "grid-cols-2"}`}>
+            {([...(selfOrder ? [["cardapio", "Cardápio", UtensilsCrossed] as const] : []), ["conta", "Conta", ReceiptText] as const, ["atividade", "Atividade", ClipboardList] as const]).map(([id, rotulo, Icone]) => (
               <button
                 key={id}
                 type="button"
@@ -759,6 +754,12 @@ function MesaPage() {
               </button>
             ))}
           </div>
+
+          {aba === "cardapio" && selfOrder && (
+            <div className="mt-6 pb-8">
+              <MesaPedido slug={restaurante} code={codigoMesa} session={sessaoMesa} nome={nome} onPlaced={atualizarMesa} />
+            </div>
+          )}
 
           {aba === "conta" && (
             <>

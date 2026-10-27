@@ -59,14 +59,8 @@ import {
   importMenuCsv,
 } from "@/lib/tipe/pdv-integrations.functions";
 import { PixGarcons } from "@/components/tipe/PixGarcons";
-import {
-  Caixa,
-  Configuracoes,
-  Cozinha,
-  Inicio,
-  Integracoes,
-  Relatorios,
-} from "@/components/tipe/AdminSections";
+import { Caixa, Configuracoes, Inicio, Integracoes, Relatorios } from "@/components/tipe/AdminSections";
+import { Cozinha } from "@/components/tipe/Kds";
 import { TotemStudio } from "@/components/tipe/TotemStudio";
 import { Assinatura } from "@/components/tipe/Assinatura";
 import { Recebimentos } from "@/components/tipe/Recebimentos";
@@ -77,6 +71,7 @@ import { DesempenhoGarcons } from "@/components/tipe/DesempenhoGarcons";
 import { OnboardingPdv } from "@/components/tipe/OnboardingPdv";
 import { PrecisaDeVoce } from "@/components/tipe/PrecisaDeVoce";
 import { LebreAssistant } from "@/components/tipe/LebreAssistant";
+import { BalcaoCheckout, VendasBalcao } from "@/components/tipe/Balcao";
 import { EmptyState, PageHeader, StatusBadge, type Tone } from "@/components/tipe/ds";
 import { cn } from "@/lib/utils";
 
@@ -160,17 +155,17 @@ const secoes = [
   },
   {
     k: "pdv",
-    l: "Lançamento TIPE",
+    l: "Lançamento e balcão",
     i: ShoppingCart,
     g: "Operação",
-    d: "Lance pedidos nas mesas pelo próprio painel.",
+    d: "Lance pedidos nas mesas ou venda no balcão com senha.",
   },
   {
     k: "cozinha",
     l: "Cozinha e bar",
     i: ChefHat,
     g: "Operação",
-    d: "Pedidos por setor, do recebido ao entregue.",
+    d: "Pedidos por setor, do recebido ao entregue, e o painel de senhas.",
   },
   {
     k: "caixa",
@@ -809,22 +804,9 @@ export function RestaurantPanel({
           </>
         )}
 
-        {aba === "pdv" && (
-          <LancarPedido
-            slug={slug}
-            pdv={pdv.data}
-            mesa={mesaPedido}
-            setMesa={setMesaPedido}
-            onDone={refresh}
-          />
-        )}
-        {aba === "cozinha" && <Cozinha slug={slug} />}
-        {aba === "caixa" && (
-          <>
-            <PendenciasFinanceiras slug={slug} enabled={podeConfirmar} />
-            <Caixa slug={slug} podeCaixa={podeConfirmar} confirmacoes={confirmacoes} />
-          </>
-        )}
+        {aba === "pdv" && <LancarPedido slug={slug} pdv={pdv.data} mesa={mesaPedido} setMesa={setMesaPedido} podeBalcao={podeConfirmar} onDone={refresh} />}
+        {aba === "cozinha" && <Cozinha slug={slug} podePainel={podeConfirmar} />}
+        {aba === "caixa" && <><PendenciasFinanceiras slug={slug} enabled={podeConfirmar} /><Caixa slug={slug} podeCaixa={podeConfirmar} confirmacoes={confirmacoes} /></>}
 
         {aba === "historico" && (
           <div className="space-y-4">
@@ -1200,19 +1182,7 @@ function MesaDetalhe({
   );
 }
 
-function LancarPedido({
-  slug,
-  pdv,
-  mesa,
-  setMesa,
-  onDone,
-}: {
-  slug: string;
-  pdv: PdvData;
-  mesa: string;
-  setMesa: (m: string) => void;
-  onDone: () => void;
-}) {
+function LancarPedido({ slug, pdv, mesa, setMesa, podeBalcao, onDone }: { slug: string; pdv: PdvData; mesa: string; setMesa: (m: string) => void; podeBalcao: boolean; onDone: () => void }) {
   const launch = useServerFn(launchOrder);
   const fetchTop = useServerFn(getTopItems);
   const top = useQuery({
@@ -1226,6 +1196,9 @@ function LancarPedido({
   const [obs, setObs] = useState<Record<string, string>>({});
   const [cat, setCat] = useState<string>("");
   const [enviando, setEnviando] = useState(false);
+  // Mesa: lança na conta da mesa. Balcão: cobra na hora e gera senha (fast-food, retirada).
+  const [modo, setModo] = useState<"mesa" | "balcao">("mesa");
+  const balcao = modo === "balcao" && podeBalcao;
   const ativos = pdv.waiters.filter((w) => w.active);
   const mesasAtivas = pdv.tables.filter((t) => t.active);
 
@@ -1354,28 +1327,26 @@ function LancarPedido({
         })}
       </div>
       <aside className="h-fit space-y-3 surface-card p-4 sm:p-5 lg:sticky lg:top-4">
-        <h3 className="font-display font-semibold">Comanda</h3>
-        <select className={selectCls} value={mesa} onChange={(e) => setMesa(e.target.value)}>
-          <option value="">Escolha a mesa</option>
-          {mesasAtivas.map((t) => (
-            <option key={t.id} value={t.number}>
-              Mesa {t.number}
-            </option>
-          ))}
-        </select>
-        <select className={selectCls} value={garcom} onChange={(e) => setGarcom(e.target.value)}>
-          <option value="">Escolha o garçom</option>
-          {ativos.map((w) => (
-            <option key={w.id} value={w.id}>
-              {w.code} · {w.name}
-            </option>
-          ))}
-        </select>
-        {linhas.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Toque nos itens do cardápio para adicionar.
-          </p>
-        ) : (
+        {podeBalcao ? (
+          <div className="grid grid-cols-2 gap-1 rounded-xl bg-muted p-1" role="tablist" aria-label="Tipo de venda">
+            {([["mesa", "Mesa"], ["balcao", "Balcão / senha"]] as const).map(([k, l]) => (
+              <button key={k} role="tab" aria-selected={modo === k} onClick={() => setModo(k)} className={cn("rounded-lg px-2 py-1.5 text-sm transition-colors", modo === k ? "bg-card font-semibold shadow-xs" : "text-muted-foreground hover:text-foreground")}>{l}</button>
+            ))}
+          </div>
+        ) : <h3 className="font-display font-semibold">Comanda</h3>}
+        {!balcao && (
+          <>
+            <select className={selectCls} value={mesa} onChange={(e) => setMesa(e.target.value)}>
+              <option value="">Escolha a mesa</option>
+              {mesasAtivas.map((t) => <option key={t.id} value={t.number}>Mesa {t.number}</option>)}
+            </select>
+            <select className={selectCls} value={garcom} onChange={(e) => setGarcom(e.target.value)}>
+              <option value="">Escolha o garçom</option>
+              {ativos.map((w) => <option key={w.id} value={w.id}>{w.code} · {w.name}</option>)}
+            </select>
+          </>
+        )}
+        {linhas.length === 0 ? <p className="text-sm text-muted-foreground">Toque nos itens do cardápio para adicionar.</p> : (
           <ul className="space-y-2 text-sm">
             {linhas.map(([code, n]) => {
               const it = pdv.items.find((i) => i.code === code);
@@ -1415,19 +1386,16 @@ function LancarPedido({
             })}
           </ul>
         )}
-        <div className="flex items-baseline justify-between border-t border-border pt-3">
-          <span className="font-semibold">Total</span>
-          <span className="money font-display text-lg font-semibold">{brl(total)}</span>
-        </div>
-        <Button
-          variant="ink"
-          className="h-11 w-full"
-          disabled={!mesa || !garcom || !linhas.length || enviando}
-          onClick={enviar}
-        >
-          {enviando ? "Enviando…" : "Enviar pedido"}
-        </Button>
+        <div className="flex items-baseline justify-between border-t border-border pt-3"><span className="font-semibold">Total</span><span className="money font-display text-lg font-semibold">{brl(total)}</span></div>
+        {balcao ? (
+          <BalcaoCheckout slug={slug} total={total}
+            linhas={linhas.map(([code, qty]) => ({ code, qty, ...(obs[code]?.trim() ? { notes: obs[code]!.trim() } : {}) }))}
+            onSold={() => { setCarrinho({}); setObs({}); onDone(); }} />
+        ) : (
+          <Button variant="ink" className="h-11 w-full" disabled={!mesa || !garcom || !linhas.length || enviando} onClick={enviar}>{enviando ? "Enviando…" : "Enviar pedido"}</Button>
+        )}
       </aside>
+      {balcao && <div className="lg:col-span-2"><VendasBalcao slug={slug} podeCancelar={podeBalcao} /></div>}
     </div>
   );
 }

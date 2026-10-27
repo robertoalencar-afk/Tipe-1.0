@@ -145,7 +145,7 @@ export const getTopItems = createServerFn({ method: "GET" })
     const { data: r } = await sb.from("restaurants").select("id").eq("slug", data.slug).maybeSingle();
     if (!r) return [] as string[];
     const since = new Date(Date.now() - 30 * 86400000).toISOString();
-    const { data: rows } = await sb.from("pdv_order_items").select("item_code, quantity").eq("restaurant_id", r.id).gte("created_at", since).limit(5000);
+    const { data: rows } = await sb.from("pdv_order_items").select("item_code, quantity").eq("restaurant_id", r.id).neq("status", "cancelled").gte("created_at", since).limit(5000);
     const m = new Map<string, number>();
     (rows ?? []).forEach((x: { item_code: string; quantity: number }) => m.set(x.item_code, (m.get(x.item_code) ?? 0) + x.quantity));
     return [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8).map(([c]) => c);
