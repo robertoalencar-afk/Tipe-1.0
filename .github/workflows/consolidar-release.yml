@@ -1,0 +1,90 @@
+name: Consolidar candidato Tipe sem publicar
+on:
+  push:
+    branches:
+      - release/candidato-cloudflare-20261027
+    paths:
+      - .github/workflows/consolidar-release.yml
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  integrar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+      - uses: oven-sh/setup-bun@v2
+      - name: Integrar branches com protecao dos arquivos de infraestrutura
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.email "ci@tipe.digital"
+          git config user.name "TIPE release integrator"
+          echo "## Candidato de release: integracao sem deploy" >> "$GITHUB_STEP_SUMMARY"
+          for branch in order/base order/landing correcao-visual-v6 crm/backoffice-saas infra/staging-seguro-supabase; do
+            echo "### Integrando $branch"
+            git fetch --quiet origin "$branch"
+            if git merge --no-ff --no-commit FETCH_HEAD; then
+              echo "Merge automatico: $branch" >> "$GITHUB_STEP_SUMMARY"
+            else
+              mapfile -t conflicts < <(git diff --name-only --diff-filter=U)
+              if (( ${#conflicts[@]} == 0 )); then
+                echo "::error::Falha nao classificada no merge de $branch."
+                exit 1
+              fi
+              echo "Conflitos de $branch:" >> "$GITHUB_STEP_SUMMARY"
+              for file in "${conflicts[@]}"; do
+                case "$file" in
+                  src/routes/entrar.tsx|src/lib/tipe/lebre.functions.ts|src/lib/tipe/split-ai.functions.ts|src/integrations/supabase/client.ts|.github/workflows/deploy.yml|wrangler.jsonc|cron-worker/wrangler.jsonc|scripts/db/*|scripts/deploy/*)
+                    git checkout --ours -- "$file"; resolution=infra ;;
+                  src/routes/index.tsx)
+                    if [[ "$branch" == "order/landing" || "$branch" == "correcao-visual-v6" ]]; then
+                      git checkout --theirs -- "$file"; resolution=visual
+                    else
+                      git checkout --ours -- "$file"; resolution=mantida
+                    fi ;;
+                  src/components/tipe/RestaurantPanel.tsx)
+                    if [[ "$branch" == "order/base" ]]; then
+                      git checkout --theirs -- "$file"; resolution=order
+                    else
+                      git checkout --ours -- "$file"; resolution=mantida
+                    fi ;;
+                  src/routeTree.gen.ts)
+                    git checkout --theirs -- "$file"; resolution=gerado ;;
+                  *)
+                    echo "::error::Conflito nao autorizado automaticamente em $file (branch $branch)."
+                    exit 1 ;;
+                esac
+                echo "- $file: resolucao $resolution" >> "$GITHUB_STEP_SUMMARY"
+                git add -- "$file"
+              done
+            fi
+            git add -A
+            if git rev-parse -q --verify MERGE_HEAD >/dev/null; then
+              git commit -m "release: integrar $branch no candidato cloudflare"
+            fi
+          done
+      - name: Instalar dependencias
+        run: bun install --frozen-lockfile
+      - name: Verificar TypeScript
+        run: bunx tsc --noEmit -p .
+      - name: Rodar testes
+        run: bunx vitest run
+      - name: Build do candidato
+        run: bun run build
+        env:
+          VITE_SUPABASE_URL: https://bnggnbwmihqexvihrqvy.supabase.co
+          VITE_SUPABASE_PROJECT_ID: bnggnbwmihqexvihrqvy
+          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_VBd0grDcguwpR_gyqa2nEw_kW40dW4s
+      - name: Guardar candidato integrado no GitHub (sem deploy)
+        shell: bash
+        run: |
+          set -euo pipefail
+          git push origin "HEAD:refs/heads/release/candidato-cloudflare-20261027"
+          echo "Integracao e testes aprovados; alterada apenas a branch candidata. Dominios e producao intactos." >> "$GITHUB_STEP_SUMMARY"
