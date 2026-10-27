@@ -71,7 +71,7 @@ for _ in $(seq 1 40); do
   curl -s -o /dev/null http://localhost:8787/ 2>/dev/null && break
   sleep 1
 done
-node scripts/verify-cache.mjs http://localhost:8787 ${EXTRA[@]+"${EXTRA[@]}"} || LOCAL_FAIL=1
+node scripts/verify-cache.mjs http://localhost:8787 --allow-warm ${EXTRA[@]+"${EXTRA[@]}"} || LOCAL_FAIL=1
 kill $DEV_PID 2>/dev/null || true
 
 if [ "$DEPLOY" = "1" ] && [ -n "${LOCAL_FAIL:-}" ]; then

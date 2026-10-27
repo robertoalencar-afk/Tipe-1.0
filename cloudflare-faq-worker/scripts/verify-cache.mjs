@@ -19,6 +19,8 @@ const baseUrl = (args.find((a) => !a.startsWith("--")) ?? "http://localhost:8787
 const runExpiry = args.includes("--expiry");
 // --warm: a chave já foi aquecida antes (ex.: teste local), então o esperado é HIT/HIT.
 const expectWarm = args.includes("--warm");
+// --allow-warm: aceita a chamada 1 como MISS (cache vazio) ou HIT (aquecido há menos de 1 h).
+const allowWarm = args.includes("--allow-warm");
 const { CLOUDFLARE_ACCOUNT_ID: accountId, CF_GATEWAY_TOKEN: token } = process.env;
 const gatewayId = process.env.AI_GATEWAY_ID || "default";
 const CF = "https://api.cloudflare.com/client/v4";
@@ -89,7 +91,9 @@ for (const [i, c] of [first, second].entries()) {
     `chamada ${i + 1}: header = cache.status do JSON`,
   );
 }
-if (expectWarm) {
+if (allowWarm && first.header === "HIT") {
+  console.log("ℹ chamada 1 = HIT: a chave já estava no cache (gravada há menos de 1 h).");
+} else if (expectWarm) {
   check(first.header === "HIT", "chamada 1 = HIT (cache aquecido antes)", String(first.header));
 } else {
   check(
