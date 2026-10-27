@@ -74,12 +74,15 @@ jobs:
           echo "Domínio principal tipe.digital: não alterado." >> "$GITHUB_STEP_SUMMARY"
           echo "Login: código de entrada da main de 27/10, sem Lovable." >> "$GITHUB_STEP_SUMMARY"
       - name: Configurar acesso administrativo somente no staging (opcional)
-        if: ${{ secrets.SUPABASE_STAGING_SECRET_KEY != '' }}
         shell: bash
         env:
           SUPABASE_STAGING_SECRET_KEY: ${{ secrets.SUPABASE_STAGING_SECRET_KEY }}
         run: |
           set -euo pipefail
+          if [[ -z "${SUPABASE_STAGING_SECRET_KEY:-}" ]]; then
+            echo "SUPABASE_STAGING_SECRET_KEY ainda não cadastrado: apenas interface da preview ficará disponível." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
           # Recusar chaves que não funcionem no projeto de testes; nunca usar a de produção.
           status="$(curl --silent --show-error --max-time 20 --output /dev/null --write-out '%{http_code}' \
             -H "apikey: $SUPABASE_STAGING_SECRET_KEY" \
