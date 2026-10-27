@@ -190,6 +190,13 @@
       "when": 1792412400000,
       "tag": "0026_staff_push_subscriptions",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1792413000000,
+      "tag": "0031_pagarme_account_id_wallets",
+      "breakpoints": true
     }
   ]
 }
