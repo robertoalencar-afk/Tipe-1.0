@@ -75,8 +75,24 @@ jobs:
           print('Drizzle journal integrado:',len(items),'migracoes')
           PY
                     resolution=journal-preservado ;;
+                  src/assets/marca/*.svg)
+                    git checkout --ours -- "$file"; resolution=logo-visual-mais-recente ;;
+                  src/routes/_authenticated/backoffice.tsx)
+                    git checkout --ours -- "$file"
+                    python3 - <<'PY'
+          from pathlib import Path
+          path=Path('src/routes/_authenticated/backoffice.tsx')
+          content=path.read_text()
+          marker='Abrir lista de espera completa\\n                      </Link>'
+          if marker not in content: raise SystemExit('Nao achei ancora para CRM no backoffice; correcao manual necessaria')
+          if '<Link to="/crm"' not in content:
+              content=content.replace(marker,marker+'\\n                      <Link to="/crm" className="mb-4 flex h-10 items-center justify-center rounded-full border border-border text-sm font-medium">Abrir CRM comercial</Link>',1)
+          assert '<LaunchStatesAdmin />' in content, 'Tipe Order perdeu estados de lancamento'
+          path.write_text(content)
+          PY
+                    resolution=crm-link-e-produtos-preservados ;;
                   src/routeTree.gen.ts)
-                    git checkout --theirs -- "$file"; resolution=gerado ;;
+                    git checkout --ours -- "$file"; resolution=gerado-no-build ;;
                   *)
                     echo "::error::Conflito nao autorizado automaticamente em $file (branch $branch)."
                     exit 1 ;;
@@ -92,16 +108,16 @@ jobs:
           done
       - name: Instalar dependencias
         run: bun install --frozen-lockfile
-      - name: Verificar TypeScript
-        run: bunx tsc --noEmit -p .
-      - name: Rodar testes
-        run: bunx vitest run
       - name: Build do candidato
         run: bun run build
         env:
           VITE_SUPABASE_URL: https://bnggnbwmihqexvihrqvy.supabase.co
           VITE_SUPABASE_PROJECT_ID: bnggnbwmihqexvihrqvy
           VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable_VBd0grDcguwpR_gyqa2nEw_kW40dW4s
+      - name: Verificar TypeScript
+        run: bunx tsc --noEmit -p .
+      - name: Rodar testes
+        run: bunx vitest run
       - name: Guardar candidato integrado no GitHub (sem deploy)
         shell: bash
         run: |
