@@ -87,6 +87,8 @@ jobs:
           echo "PostgreSQL OK: $migrations migracoes, $tables tabelas."
 
       - name: Verificar chave de servidor do Supabase (leitura)
+        id: supabase_rest
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
@@ -95,6 +97,8 @@ jobs:
           echo "Supabase REST OK."
 
       - name: Verificar token Cloudflare sem implantar Worker
+        id: cloudflare
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
@@ -113,6 +117,8 @@ jobs:
           PY
 
       - name: Verificar acesso ao catalogo Anthropic (sem consumir tokens)
+        id: anthropic
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
@@ -125,11 +131,33 @@ jobs:
           fi
 
       - name: Checar formato da chave Resend sem enviar email
+        id: resend
+        continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
           [[ "$RESEND_API_KEY" == re_* ]] || { echo "::error::RESEND_API_KEY nao tem formato esperado."; exit 1; }
           echo "Resend presente. Esta etapa nao valida envio nem dominio; isso sera testado separadamente."
-          echo "### Verificacao de infraestrutura" >> "$GITHUB_STEP_SUMMARY"
-          echo "PostgreSQL, chave Supabase, token Cloudflare e API Anthropic validados sem deploy." >> "$GITHUB_STEP_SUMMARY"
-          echo "Resend: formato checado; dominio, SMTP, OAuth e pagamentos requerem testes adicionais." >> "$GITHUB_STEP_SUMMARY"
+          echo "Resend presente; envio e dominio ainda exigem teste separado."
+
+      - name: Consolidar diagnostico sem publicar
+        if: always()
+        shell: bash
+        env:
+          SUPABASE_RESULT: ${{ steps.supabase_rest.outcome }}
+          CLOUDFLARE_RESULT: ${{ steps.cloudflare.outcome }}
+          ANTHROPIC_RESULT: ${{ steps.anthropic.outcome }}
+          RESEND_RESULT: ${{ steps.resend.outcome }}
+        run: |
+          set -euo pipefail
+          echo "### Preflight TIPE (somente leitura)" >> "$GITHUB_STEP_SUMMARY"
+          echo "- PostgreSQL URI: ${DB_URL_VALID:-not-run}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Supabase secret key: $SUPABASE_RESULT" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Cloudflare token: $CLOUDFLARE_RESULT" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Anthropic key: $ANTHROPIC_RESULT" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Resend formato: $RESEND_RESULT (envio e dominio nao testados)" >> "$GITHUB_STEP_SUMMARY"
+          if [[ "${DB_URL_VALID:-}" != "true" || "$SUPABASE_RESULT" != "success" || "$CLOUDFLARE_RESULT" != "success" || "$ANTHROPIC_RESULT" != "success" || "$RESEND_RESULT" != "success" ]]; then
+            echo "::error::Alguma credencial ainda precisa de correcao. Nenhum deploy foi realizado."
+            exit 1
+          fi
+          echo "Credenciais basicas verificadas com sucesso. Dominio, SMTP, OAuth e pagamentos ainda precisam de testes."
