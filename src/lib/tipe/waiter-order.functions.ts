@@ -48,6 +48,7 @@ export type WaiterTable = {
 export type WaiterPos = {
   waiter: { name: string; code: string };
   restaurantName: string;
+  restaurantSlug: string;
   categories: { id: string; name: string }[];
   items: {
     id: string;
@@ -164,6 +165,7 @@ export const getWaiterPos = createServerFn({ method: "GET" })
     return {
       waiter: { name: w.name, code: w.code },
       restaurantName: w.restaurants.name,
+      restaurantSlug: slug,
       categories: (cats.data ?? []).map((c) => ({ id: c.id, name: c.name })),
       items: (items.data ?? []).map((i) => ({
         id: i.id,

@@ -17,15 +17,17 @@ export type PublicTable = {
   serviceWaived: boolean;
   /** Link de avaliação no Google definido pelo restaurante (ou null). */
   googleReviewUrl: string | null;
-  /** Restaurante permite que o cliente peça pela mesa (cardápio digital). */
+  /** Tipe Order ativo e pedido pela mesa ligado: a tela mostra Pedir e Pagar. Sem isso, só a conta (Pay). */
   selfOrder: boolean;
+  /** Com o Order: se este celular pode pedir agora, se a mesa ainda não foi liberada ou se falta o código. */
+  ordering: "open" | "closed" | "code" | null;
   items: { item_code: string; item_name: string; unit_price: number; ordered_quantity: number; reserved_portion: number; paid_portion: number; ordered_at: string }[];
   payments: { id: string; customer_name: string; payment_method: string; status: import("./payment-state").PaymentStatus; amount: number; item_quantities: Record<string, number>; created_at: string; establishment_method: string | null; cash_received: number | null; change_due: number | null }[];
 };
 
 // Leitura pública da mesa pelo cliente (link do QR). Nunca expõe dados da equipe.
 export const getPublicTable = createServerFn({ method: "GET" })
-  .inputValidator((d) => z.object({ slug: Slug, code: z.string().min(1).max(32), token: z.string().max(64).optional(), session: z.string().max(96).optional() }).parse(d))
+  .inputValidator((d) => z.object({ slug: Slug, code: z.string().min(1).max(32), token: z.string().max(64).optional(), session: z.string().max(96).optional(), device: z.string().max(96).optional() }).parse(d))
   .handler(async ({ data }): Promise<PublicTable | { error: "not_found" | "invalid_token" | "inactive" }> => {
     const { enforceRate, clientIp, safeEqual, logSecurityEvent } = await import("./security.server");
     // Limite generoso: vários clientes podem compartilhar o Wi-Fi do restaurante (mesmo IP).
@@ -43,7 +45,7 @@ export const getPublicTable = createServerFn({ method: "GET" })
       await logSecurityEvent({ action: "table_token_denied", resource: `mesa:${t.number}`, result: "denied", restaurantSlug: data.slug, restaurantId: r.id, detail: `ip=${clientIp()}` });
       return { error: "invalid_token" };
     }
-    const [items, payments, waiter, waiver, account, review, selfOrderRow] = await Promise.all([
+    const [items, payments, waiter, waiver, account, review, orderBlock] = await Promise.all([
       supabaseAdmin.from("table_bill_items").select("item_code, item_name, unit_price, ordered_quantity, reserved_portion, paid_portion, ordered_at")
         .eq("restaurant_slug", data.slug).eq("table_number", t.number).order("ordered_at"),
       supabaseAdmin.from("table_payment_requests").select("id, customer_name, payment_method, status, amount, item_quantities, created_at, establishment_method, cash_received, change_due")
@@ -54,9 +56,12 @@ export const getPublicTable = createServerFn({ method: "GET" })
       supabaseAdmin.from("restaurant_pagarme_accounts").select("status").eq("restaurant_id", r.id).maybeSingle(),
       // Consulta separada: se a coluna ainda não existir (migração pendente), a mesa abre normalmente.
       supabaseAdmin.from("restaurants").select("google_review_url").eq("id", r.id).maybeSingle(),
-      // Idem para o pedido pela mesa (migração 0024).
-      supabaseAdmin.from("restaurants").select("self_order_enabled" as never).eq("id", r.id).maybeSingle(),
+      // Order: módulo, opção do restaurante e liberação da mesa decididos no banco (migração 0027).
+      // Se a migração ainda não existir, dá erro e a mesa abre só com a conta, como antes.
+      supabaseAdmin.rpc("table_ordering_block", { p_rid: r.id, p_table: t.number, p_device: data.device ?? null }),
     ]);
+    const block = orderBlock.error ? "module" : (orderBlock.data as string | null);
+    const selfOrder = block === null || block === "closed" || block === "code";
     const { usableBillMethods } = await import("./pagarme.server");
     if (items.error || payments.error) throw new Error("Não foi possível atualizar a mesa");
     if (!(items.data ?? []).length) {
@@ -72,7 +77,8 @@ export const getPublicTable = createServerFn({ method: "GET" })
       serviceRate: Number((r as { service_rate?: number }).service_rate ?? 0.1),
       serviceWaived: (waiver.data ?? []).length > 0,
       googleReviewUrl: review.error ? null : ((review.data as { google_review_url?: string | null } | null)?.google_review_url ?? null),
-      selfOrder: selfOrderRow.error ? false : ((selfOrderRow.data as { self_order_enabled?: boolean } | null)?.self_order_enabled ?? false),
+      selfOrder,
+      ordering: !selfOrder ? null : block === null ? "open" : (block as "closed" | "code"),
       waiterName: (waiter.data as { name: string } | null)?.name?.split(" ")[0] ?? "",
       items: (items.data ?? []).map((i) => ({ ...i, unit_price: Number(i.unit_price), ordered_quantity: Number(i.ordered_quantity), reserved_portion: Number(i.reserved_portion), paid_portion: Number(i.paid_portion) })),
       payments: (payments.data ?? []).map((p) => ({ ...p, amount: Number(p.amount), cash_received: p.cash_received === null ? null : Number(p.cash_received), change_due: p.change_due === null ? null : Number(p.change_due), item_quantities: (p.item_quantities ?? {}) as Record<string, number> })) as PublicTable["payments"],

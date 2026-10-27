@@ -62,6 +62,7 @@ import { PixGarcons } from "@/components/tipe/PixGarcons";
 import { Caixa, Configuracoes, Inicio, Integracoes, Relatorios } from "@/components/tipe/AdminSections";
 import { Cozinha } from "@/components/tipe/Kds";
 import { TotemStudio } from "@/components/tipe/TotemStudio";
+import { LiberarPedidosMesa } from "@/components/tipe/LiberarPedidosMesa";
 import { Assinatura } from "@/components/tipe/Assinatura";
 import { Recebimentos } from "@/components/tipe/Recebimentos";
 import { AvisoPendencias, PendenciasFinanceiras } from "@/components/tipe/PendenciasFinanceiras";
@@ -976,6 +977,7 @@ function MesaDetalhe({
         </DialogTitle>
         {mesa.garcom && <p className="text-sm text-muted-foreground">Garçom: {mesa.garcom}</p>}
       </DialogHeader>
+      <LiberarPedidosMesa slug={slug} table={mesa.number} />
       {mesa.itens.length === 0 ? (
         <p className="rounded-xl bg-background-muted px-4 py-6 text-center text-sm text-muted-foreground">
           Nenhum pedido nesta mesa.

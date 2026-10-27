@@ -25,8 +25,8 @@ import { Route as TesteGratisRouteImport } from './routes/teste-gratis'
 import { Route as RestauranteIndexRouteImport } from './routes/$restaurante.index'
 import { Route as RestauranteMesaRouteImport } from './routes/$restaurante.$mesa'
 import { Route as RestauranteCozinhaRouteImport } from './routes/$restaurante.cozinha'
-import { Route as RestauranteTotemRouteImport } from './routes/$restaurante.totem'
 import { Route as RestauranteSenhasRouteImport } from './routes/$restaurante.senhas'
+import { Route as RestauranteTotemRouteImport } from './routes/$restaurante.totem'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AuthenticatedBackofficeRouteImport } from './routes/_authenticated/backoffice'
 import { Route as AuthenticatedGarcomRouteImport } from './routes/_authenticated/garcom'
@@ -130,14 +130,14 @@ const RestauranteCozinhaRoute = RestauranteCozinhaRouteImport.update({
   path: '/$restaurante/cozinha',
   getParentRoute: () => rootRouteImport,
 } as any)
-const RestauranteTotemRoute = RestauranteTotemRouteImport.update({
-  id: '/$restaurante/totem',
-  path: '/$restaurante/totem',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const RestauranteSenhasRoute = RestauranteSenhasRouteImport.update({
   id: '/$restaurante/senhas',
   path: '/$restaurante/senhas',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RestauranteTotemRoute = RestauranteTotemRouteImport.update({
+  id: '/$restaurante/totem',
+  path: '/$restaurante/totem',
   getParentRoute: () => rootRouteImport,
 } as any)
 const Char91DotwellKnownChar93OauthProtectedResourceRoute =
@@ -276,8 +276,8 @@ export interface FileRoutesByFullPath {
   '/teste-gratis': typeof TesteGratisRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
   '/$restaurante/cozinha': typeof RestauranteCozinhaRoute
-  '/$restaurante/totem': typeof RestauranteTotemRoute
   '/$restaurante/senhas': typeof RestauranteSenhasRoute
+  '/$restaurante/totem': typeof RestauranteTotemRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/backoffice': typeof AuthenticatedBackofficeRoute
   '/garcom': typeof AuthenticatedGarcomRoute
@@ -318,8 +318,8 @@ export interface FileRoutesByTo {
   '/teste-gratis': typeof TesteGratisRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
   '/$restaurante/cozinha': typeof RestauranteCozinhaRoute
-  '/$restaurante/totem': typeof RestauranteTotemRoute
   '/$restaurante/senhas': typeof RestauranteSenhasRoute
+  '/$restaurante/totem': typeof RestauranteTotemRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/backoffice': typeof AuthenticatedBackofficeRoute
   '/garcom': typeof AuthenticatedGarcomRoute
@@ -362,8 +362,8 @@ export interface FileRoutesById {
   '/teste-gratis': typeof TesteGratisRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
   '/$restaurante/cozinha': typeof RestauranteCozinhaRoute
-  '/$restaurante/totem': typeof RestauranteTotemRoute
   '/$restaurante/senhas': typeof RestauranteSenhasRoute
+  '/$restaurante/totem': typeof RestauranteTotemRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/backoffice': typeof AuthenticatedBackofficeRoute
   '/_authenticated/garcom': typeof AuthenticatedGarcomRoute
@@ -406,8 +406,8 @@ export interface FileRouteTypes {
     | '/teste-gratis'
     | '/$restaurante/$mesa'
     | '/$restaurante/cozinha'
-    | '/$restaurante/totem'
     | '/$restaurante/senhas'
+    | '/$restaurante/totem'
     | '/.well-known/oauth-protected-resource'
     | '/backoffice'
     | '/garcom'
@@ -448,8 +448,8 @@ export interface FileRouteTypes {
     | '/teste-gratis'
     | '/$restaurante/$mesa'
     | '/$restaurante/cozinha'
-    | '/$restaurante/totem'
     | '/$restaurante/senhas'
+    | '/$restaurante/totem'
     | '/.well-known/oauth-protected-resource'
     | '/backoffice'
     | '/garcom'
@@ -491,8 +491,8 @@ export interface FileRouteTypes {
     | '/teste-gratis'
     | '/$restaurante/$mesa'
     | '/$restaurante/cozinha'
-    | '/$restaurante/totem'
     | '/$restaurante/senhas'
+    | '/$restaurante/totem'
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/backoffice'
     | '/_authenticated/garcom'
@@ -535,8 +535,8 @@ export interface RootRouteChildren {
   TesteGratisRoute: typeof TesteGratisRoute
   RestauranteMesaRoute: typeof RestauranteMesaRoute
   RestauranteCozinhaRoute: typeof RestauranteCozinhaRoute
-  RestauranteTotemRoute: typeof RestauranteTotemRoute
   RestauranteSenhasRoute: typeof RestauranteSenhasRoute
+  RestauranteTotemRoute: typeof RestauranteTotemRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   LegalLivroRoute: typeof LegalLivroRoute
   LegalCompletaRoute: typeof LegalCompletaRoute
@@ -673,18 +673,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RestauranteCozinhaRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/$restaurante/totem': {
-      id: '/$restaurante/totem'
-      path: '/$restaurante/totem'
-      fullPath: '/$restaurante/totem'
-      preLoaderRoute: typeof RestauranteTotemRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/$restaurante/senhas': {
       id: '/$restaurante/senhas'
       path: '/$restaurante/senhas'
       fullPath: '/$restaurante/senhas'
       preLoaderRoute: typeof RestauranteSenhasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$restaurante/totem': {
+      id: '/$restaurante/totem'
+      path: '/$restaurante/totem'
+      fullPath: '/$restaurante/totem'
+      preLoaderRoute: typeof RestauranteTotemRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.well-known/oauth-protected-resource': {
@@ -884,8 +884,8 @@ const rootRouteChildren: RootRouteChildren = {
   TesteGratisRoute: TesteGratisRoute,
   RestauranteMesaRoute: RestauranteMesaRoute,
   RestauranteCozinhaRoute: RestauranteCozinhaRoute,
-  RestauranteTotemRoute: RestauranteTotemRoute,
   RestauranteSenhasRoute: RestauranteSenhasRoute,
+  RestauranteTotemRoute: RestauranteTotemRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   LegalLivroRoute: LegalLivroRoute,
