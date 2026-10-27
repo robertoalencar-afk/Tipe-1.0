@@ -30,7 +30,9 @@ jobs:
 
   publicar:
     needs: testar
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    # Ativação explícita impede publicar em tipe.digital antes do Supabase e dos segredos estarem prontos.
+    # Defina a repository variable TIPE_PRODUCTION_READY=true somente no momento do go-live.
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && vars.TIPE_PRODUCTION_READY == 'true'
     runs-on: ubuntu-latest
     environment: producao
     env:
@@ -39,8 +41,34 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
+      - name: Validar ambiente de produção antes de tocar no banco ou publicar
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ vars.VITE_SUPABASE_PROJECT_ID }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          TIPE_ENCRYPTION_KEY: ${{ secrets.TIPE_ENCRYPTION_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          missing=0
+          required=(DATABASE_URL VITE_SUPABASE_URL VITE_SUPABASE_PUBLISHABLE_KEY VITE_SUPABASE_PROJECT_ID SUPABASE_SERVICE_ROLE_KEY CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID ANTHROPIC_API_KEY RESEND_API_KEY CRON_SECRET TIPE_ENCRYPTION_KEY)
+          for name in "${required[@]}"; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error title=Configuração incompleta::Variável obrigatória ausente: ${name}"
+              missing=1
+            fi
+          done
+          if [[ "$missing" -ne 0 ]]; then
+            echo "Deploy bloqueado; nenhuma migração executada e nenhum Worker publicado."
+            exit 1
+          fi
       - name: Migrações do banco
-        if: env.DATABASE_URL != ''
         run: scripts/db/aplicar-migracoes.sh
       - name: Build
         run: bun run build

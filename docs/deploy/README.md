@@ -1,5 +1,16 @@
 # Publicação da TIPE sem a Lovable
 
+> **Proteção de produção:** o pipeline de deploy foi colocado atrás da variável de repositório
+> `TIPE_PRODUCTION_READY=true`. Enquanto ela não existir, os testes do PR/branch executam,
+> mas **não há migração nem publicação automática**. Para o primeiro go-live, confirme a
+> configuração do Supabase, autenticação, pagamentos de teste, e-mail, DNS e as credenciais
+> no ambiente GitHub `producao`. Depois crie essa variável e execute `Actions → Publicar
+> → Run workflow` em `main`. Com a variável ativa, pushes posteriores em `main` publicam
+> automaticamente. A etapa de validação interrompe o deploy se faltarem segredos obrigatórios.
+> **Cuidado:** a publicação usa domínios personalizados `tipe.digital` e `www.tipe.digital`;
+> confirme previamente o plano de reversão e mantenha a Lovable funcional até a aceitação dos testes.
+
+
 Como o sistema roda depois da saída da Lovable e o passo a passo para colocar no ar em **tipe.digital**.
 
 ## Como fica
@@ -86,9 +97,12 @@ Os segredos ficam só no GitHub: a cada deploy o Actions envia para os Workers (
 
 ### 7. Publicar
 
-1. Faça o merge do PR "Sair da Lovable" no `main`.
-2. Em **Actions → Publicar**, acompanhe: testes, migrações do banco, publicação do Worker `tipe` e do `tipe-cron`.
-3. Quando terminar e o DNS já estiver na Cloudflare, `https://tipe.digital` abre o site novo.
+1. Revise e faça merge do PR "Sair da Lovable" no `main`. Com `TIPE_PRODUCTION_READY` ausente, esse merge roda os testes mas **não publica**.
+2. Confirme todos os segredos do ambiente `producao` e as variáveis de repositório descritos acima. A variável `DATABASE_URL` é obrigatória, e o workflow falhará se ela estiver ausente: não é permitido publicar uma aplicação sem executar as migrações.
+3. Confirme a zona `tipe.digital` no Cloudflare, o domínio atual e um plano de reversão. O primeiro deploy pode vincular domínios personalizados; não corte o tráfego do site antigo até confirmar a aplicação no novo provedor.
+4. Em **GitHub → Settings → Secrets and variables → Actions → Variables**, crie a variável de repositório `TIPE_PRODUCTION_READY` com o valor `true`.
+5. Em **Actions → Publicar → Run workflow**, selecione `main` e execute. Confira a validação de ambiente, migrações, build, Worker `tipe` e Worker `tipe-cron`.
+6. Valide `https://tipe.digital` e `https://www.tipe.digital`, login, mesas, pagamentos de teste, Lebre e e-mail antes de desativar a Lovable. Se houver falha, volte `TIPE_PRODUCTION_READY` para `false` para bloquear novos deploys; isso **não** restaura automaticamente DNS ou banco.
 
 ### 8. Empresas de teste
 
