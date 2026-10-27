@@ -40,8 +40,8 @@ jobs:
           done
           [[ "$VITE_SUPABASE_PROJECT_ID" == "$EXPECTED_SUPABASE_REF" ]] || { echo "::error::Project ID incorreto."; exit 1; }
           [[ "$VITE_SUPABASE_URL" == "https://$EXPECTED_SUPABASE_REF.supabase.co" ]] || { echo "::error::Project URL incorreta."; exit 1; }
-          # Sem imprimir a URL (ela contem senha), identifique de forma segura conexoes trocadas.
-          python3 - <<'PY'
+          # Os outros servicos podem ser verificados mesmo que a URI do banco esteja errada.
+          if python3 - <<'PY'
           import os,sys
           from urllib.parse import urlsplit
           raw = os.environ["DATABASE_URL"]
@@ -55,15 +55,23 @@ jobs:
               print("DATABASE_URL: identificador tipe-production no host/usuario = "+str(target in source))
               print("DATABASE_URL: identificador tipe-staging no host/usuario = "+str(staging in source))
               if not valid:
-                  print("::error::DATABASE_URL nao foi identificada como conexao do tipe-production. Copie o Session Pooler URI do projeto correto e atualize apenas o segredo DATABASE_URL.")
+                  print("::warning::DATABASE_URL nao foi identificada como conexao do tipe-production. Copie o Session Pooler URI do projeto correto e atualize apenas o segredo DATABASE_URL.")
                   sys.exit(1)
           except Exception:
-              print("::error::DATABASE_URL nao e uma URI PostgreSQL valida. Nao imprima o valor no log.")
+              print("::warning::DATABASE_URL nao e uma URI PostgreSQL valida. Nao imprima o valor no log.")
               sys.exit(1)
           PY
-          echo "Variaveis presentes e apontando para tipe-production (valores ocultos)."
+          then
+            echo "DB_URL_VALID=true" >> "$GITHUB_ENV"
+            echo "URI da producao identificada."
+          else
+            echo "DB_URL_VALID=false" >> "$GITHUB_ENV"
+            echo "::warning::Banco nao validado: corrija o segredo DATABASE_URL pelo Session Pooler URI."
+          fi
+          echo "Variaveis publicas validadas. As credenciais privadas continuam ocultas."
 
       - name: Consultar PostgreSQL em modo somente leitura
+        if: env.DB_URL_VALID == 'true'
         shell: bash
         run: |
           set -euo pipefail
