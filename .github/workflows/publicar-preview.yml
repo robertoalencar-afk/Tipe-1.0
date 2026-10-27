@@ -50,7 +50,7 @@ jobs:
               'SUPABASE_PUBLISHABLE_KEY':'sb_publishable__qAGcFon-Jc8HGtY0vWaKA_aQoUT7Yz',
               'TIPE_PREVIEW_MODE':'true',
           }
-          p.write_text(json.dumps(data,indent=2)+'\\n')
+          p.write_text(json.dumps(data,indent=2)+'\n')
           assert 'routes' not in data and 'route' not in data
           assert data['name']=='tipe-candidato-20261027'
           print('Cloudflare Worker de preview sem dominio customizado e sem segredos de producao.')
