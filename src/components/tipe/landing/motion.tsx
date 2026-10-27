@@ -70,9 +70,80 @@ export function Reveal({
   );
 }
 
+/** Separa um texto em palavras animáveis; os espaços ficam fora dos spans. */
+function quebrar(node: ReactNode, inicio: number, passo: number, base: number) {
+  if (typeof node !== "string") {
+    return {
+      itens: [
+        <span
+          key={inicio}
+          className="palavra"
+          style={{ "--d": `${base + inicio * passo}ms` } as CSSProperties}
+        >
+          {node}
+        </span>,
+      ],
+      fim: inicio + 1,
+    };
+  }
+  const partes = node.split(/(\s+)/).filter(Boolean);
+  let i = inicio;
+  const itens = partes.map((parte, k) =>
+    /^\s+$/.test(parte) ? (
+      parte
+    ) : (
+      <span
+        key={`${inicio}-${k}`}
+        className="palavra"
+        style={{ "--d": `${base + i++ * passo}ms` } as CSSProperties}
+      >
+        {parte}
+      </span>
+    ),
+  );
+  return { itens, fim: i };
+}
+
 /**
- * Título com entrada por linha: cada linha sobe de dentro de uma máscara.
- * O texto continua inteiro para leitores de tela.
+ * Texto que aparece palavra por palavra (sobe 15% da altura e ganha opacidade,
+ * 1,5 s em expo-out). Medido na sunday: 140 ms entre palavras nos títulos.
+ * `imediato` anima ao carregar (hero); senão, quando entra na tela.
+ */
+export function Palavras({
+  children,
+  className,
+  as: Tag = "span",
+  delay = 0,
+  passo = 140,
+  imediato = false,
+  style,
+}: {
+  children: string;
+  className?: string;
+  as?: ElementType;
+  delay?: number;
+  passo?: number;
+  imediato?: boolean;
+  style?: CSSProperties;
+}) {
+  const [ref, inView] = useInView<HTMLElement>("0px 0px -8% 0px");
+  const { itens } = quebrar(children, 0, passo, delay);
+  return (
+    <Tag
+      ref={ref}
+      data-palavras=""
+      data-in={imediato || inView || undefined}
+      className={className}
+      style={style}
+    >
+      {itens}
+    </Tag>
+  );
+}
+
+/**
+ * Título com entrada palavra por palavra, linha a linha. A contagem continua
+ * entre as linhas, como um texto só. O texto fica inteiro para leitores de tela.
  */
 export function LineReveal({
   lines,
@@ -86,20 +157,71 @@ export function LineReveal({
   delay?: number;
 }) {
   const [ref, inView] = useInView<HTMLElement>("0px 0px -8% 0px");
+  let n = 0;
   return (
-    <Tag ref={ref} data-in={inView || undefined} className={cn("line-reveal", className)}>
-      {lines.map((l, i) => (
-        <span key={i} className="block overflow-hidden pb-[0.08em] -mb-[0.08em]">
-          <span
-            className="line-reveal-inner block"
-            style={{ "--d": `${delay + i * 90}ms` } as CSSProperties}
-          >
-            {l}
+    <Tag
+      ref={ref}
+      data-palavras=""
+      data-in={inView || undefined}
+      className={cn("line-reveal", className)}
+    >
+      {lines.map((l, i) => {
+        const { itens, fim } = quebrar(l, n, 140, delay);
+        n = fim;
+        return (
+          <span key={i} className="block">
+            {itens}
           </span>
-        </span>
-      ))}
+        );
+      })}
     </Tag>
   );
+}
+
+/**
+ * Cabeçalho que some ao rolar para baixo depois de 300 px (como na sunday) e
+ * volta ao rolar para cima. Devolve se está escondido.
+ */
+export function useHeaderEscondido(limite = 300) {
+  const [escondido, setEscondido] = useState(false);
+  useEffect(() => {
+    let ultimo = window.scrollY;
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const y = window.scrollY;
+      if (Math.abs(y - ultimo) < 6) return;
+      setEscondido(y > limite && y > ultimo);
+      ultimo = y;
+    };
+    const on = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    window.addEventListener("scroll", on, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", on);
+      cancelAnimationFrame(frame);
+    };
+  }, [limite]);
+  return escondido;
+}
+
+/** Faixa infinita em velocidade constante (px/s), medida na sunday: 50 px/s. */
+export function useVelocidadeFaixa<T extends HTMLElement>(pxPorSegundo = 50) {
+  const ref = useRef<T>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const ajustar = () => {
+      const metade = el.scrollWidth / 2;
+      if (metade > 0) el.style.animationDuration = `${(metade / pxPorSegundo).toFixed(1)}s`;
+    };
+    ajustar();
+    const ro = new ResizeObserver(ajustar);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [pxPorSegundo]);
+  return ref;
 }
 
 /**

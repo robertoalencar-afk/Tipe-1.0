@@ -151,7 +151,7 @@ function RootComponent() {
     // Página da mesa do cliente fica sem scripts de medição para carregar rápido no 4G fraco.
     if (
       /^\/(mesa\/)?[^/]+\/[^/]+$/.test(window.location.pathname) &&
-      !/^\/(legal|privacidade|_authenticated)\//.test(window.location.pathname)
+      !/^\/(legal|privacidade|produtos|_authenticated)\//.test(window.location.pathname)
     )
       return;
     loadMeasurement();
