@@ -40,7 +40,27 @@ jobs:
           done
           [[ "$VITE_SUPABASE_PROJECT_ID" == "$EXPECTED_SUPABASE_REF" ]] || { echo "::error::Project ID incorreto."; exit 1; }
           [[ "$VITE_SUPABASE_URL" == "https://$EXPECTED_SUPABASE_REF.supabase.co" ]] || { echo "::error::Project URL incorreta."; exit 1; }
-          [[ "$DATABASE_URL" == *"$EXPECTED_SUPABASE_REF"* ]] || { echo "::error::DATABASE_URL nao aponta para tipe-production."; exit 1; }
+          # Sem imprimir a URL (ela contem senha), identifique de forma segura conexoes trocadas.
+          python3 - <<'PY'
+          import os,sys
+          from urllib.parse import urlsplit
+          raw = os.environ["DATABASE_URL"]
+          target = os.environ["EXPECTED_SUPABASE_REF"]
+          staging = "nduqqnevstlidmxbghcj"
+          try:
+              parsed=urlsplit(raw)
+              source=(parsed.username or "")+" "+(parsed.hostname or "")
+              valid=parsed.scheme in ("postgres","postgresql") and target in source
+              print("DATABASE_URL: formato PostgreSQL = "+str(parsed.scheme in ("postgres","postgresql")))
+              print("DATABASE_URL: identificador tipe-production no host/usuario = "+str(target in source))
+              print("DATABASE_URL: identificador tipe-staging no host/usuario = "+str(staging in source))
+              if not valid:
+                  print("::error::DATABASE_URL nao foi identificada como conexao do tipe-production. Copie o Session Pooler URI do projeto correto e atualize apenas o segredo DATABASE_URL.")
+                  sys.exit(1)
+          except Exception:
+              print("::error::DATABASE_URL nao e uma URI PostgreSQL valida. Nao imprima o valor no log.")
+              sys.exit(1)
+          PY
           echo "Variaveis presentes e apontando para tipe-production (valores ocultos)."
 
       - name: Consultar PostgreSQL em modo somente leitura
