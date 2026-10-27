@@ -190,6 +190,13 @@
       "when": 1792412400000,
       "tag": "0026_staff_push_subscriptions",
       "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1791972228310,
+      "tag": "0028_product_launch_states",
+      "breakpoints": true
     }
   ]
-}
+}\n

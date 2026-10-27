@@ -77,7 +77,19 @@ Não adaptado de propósito: prova social com logos e números de clientes (a TI
 | Rótulo (`eyebrow`, rótulos de campo) | 0,875 rem | 500, sem caixa-alta |
 | Números (`money`) | algarismos tabulares | 500 / −0,035 em |
 
-**Movimento:** transições de 200 a 500 ms em opacidade e transform. Rolagem com `requestAnimationFrame` e variável CSS `--p` (sem biblioteca no palco). Com `prefers-reduced-motion`, nada se move e os passos trocam por botão.
+**Movimento** (medido na sunday em 20/10, só observando as páginas públicas; detalhes em `/mnt/project-files/sunday-analise/movimento/README.md`):
+
+| Uso | Valor |
+|---|---|
+| Curva principal (`--ease-expo`) | `cubic-bezier(0.16, 1, 0.3, 1)` |
+| Texto entrando (`Palavras`, `LineReveal`) | palavra por palavra, sobe 15% e aparece em 1,5 s; 140 ms entre palavras nos títulos (35 ms no parágrafo do hero) |
+| Blocos (`Reveal`) | 16 px e opacidade, 1,2 a 1,5 s |
+| Botões em pílula da landing | 0,4 s; o contornado se preenche de preto no hover |
+| Menus (`.menu-in`) | 0,75 s, opacidade e descida de 8 px |
+| Cabeçalho | some ao rolar para baixo depois de 300 px e volta ao subir; o "Teste grátis" fica fixo no topo |
+| Faixas infinitas (`useVelocidadeFaixa`) | velocidade constante de 50 px/s |
+
+Como na sunday, não há biblioteca de animação, smooth scroll nem paralaxe forte. Rolagem com `requestAnimationFrame` e variável CSS `--p` no palco do celular. Com `prefers-reduced-motion`, nada se move.
 
 ---
 
@@ -114,3 +126,9 @@ Regras:
 - `npx tsc --noEmit`, `npx eslint`, `npx vitest run` e `bun run build`.
 - Capturas com Playwright em 1440×900 e 390×844. O harness de telas autenticadas, com dados fictícios do "Maré Alta", fica fora do repositório.
 - Comparação lado a lado com as capturas da sunday, feitas nas páginas públicas.
+
+## Site no estilo sunday (20/10)
+
+- Moldura: `src/components/tipe/site/Site.tsx` (`SitePage`, `Secao tema="claro|escuro"`, `Titulo`, `FaixaCta`). Quando uma seção escura cruza o meio da tela, a página inteira passa para preto em 0,5 s (variáveis `--pg-*` registradas com `@property`); o logo troca para a versão branca e `.btn-tema` inverte.
+- Fotos: `Foto` (src/assets/produtos/<nome>-<800|1600>.webp) entra ampliada 1,12× e assenta em 2,4 s; hover de card aproxima 1,05× em 1,2 s. Fotos geradas com /mnt/project-files/landing-v3/fotos-ia/gerar-produtos.py.
+- Produtos: catálogo em `site/produtos.ts` → páginas `/produtos/<slug>` (pay, order, staff, kitchen, restaurant, ai, guest). Status "em-breve" aparece como selo. Também `/precos` e `/integracoes`.
