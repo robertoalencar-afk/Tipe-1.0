@@ -1,0 +1,62 @@
+name: Publicar preview independente Cloudflare
+on:
+  push:
+    branches:
+      - release/candidato-cloudflare-20261027
+    paths:
+      - .github/workflows/publicar-preview.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: ubuntu-latest
+    environment: producao
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      STAGING_URL: https://nduqqnevstlidmxbghcj.supabase.co
+      STAGING_KEY: sb_publishable__qAGcFon-Jc8HGtY0vWaKA_aQoUT7Yz
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Build isolado com Supabase de staging
+        run: bun run build
+        env:
+          VITE_SUPABASE_URL: https://nduqqnevstlidmxbghcj.supabase.co
+          VITE_SUPABASE_PROJECT_ID: nduqqnevstlidmxbghcj
+          VITE_SUPABASE_PUBLISHABLE_KEY: sb_publishable__qAGcFon-Jc8HGtY0vWaKA_aQoUT7Yz
+      - name: Criar Worker de preview sem rota em tipe.digital
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('.output/server/wrangler.json')
+          data=json.loads(p.read_text())
+          data['name']='tipe-candidato-20261027'
+          for key in ['route','routes']:
+              data.pop(key,None)
+          data['workers_dev']=True
+          data['preview_urls']=True
+          data['vars']={
+              **data.get('vars',{}),
+              'SUPABASE_URL':'https://nduqqnevstlidmxbghcj.supabase.co',
+              'SUPABASE_PUBLISHABLE_KEY':'sb_publishable__qAGcFon-Jc8HGtY0vWaKA_aQoUT7Yz',
+              'TIPE_PREVIEW_MODE':'true',
+          }
+          p.write_text(json.dumps(data,indent=2)+'\\n')
+          assert 'routes' not in data and 'route' not in data
+          assert data['name']=='tipe-candidato-20261027'
+          print('Cloudflare Worker de preview sem dominio customizado e sem segredos de producao.')
+          PY
+          bunx wrangler deploy --config .output/server/wrangler.json
+          echo "### TIPE Preview" >> "$GITHUB_STEP_SUMMARY"
+          echo "Worker: tipe-candidato-20261027" >> "$GITHUB_STEP_SUMMARY"
+          echo "Banco: staging (dados de teste, sem pagamentos reais, sem SMTP/OAuth)." >> "$GITHUB_STEP_SUMMARY"
+          echo "Dominio principal tipe.digital: nao alterado." >> "$GITHUB_STEP_SUMMARY"
