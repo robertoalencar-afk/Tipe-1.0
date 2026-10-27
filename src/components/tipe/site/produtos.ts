@@ -71,6 +71,8 @@ export type Produto = {
     emDesenvolvimento?: boolean;
     /** Tablet com a captura real do Salão do painel (src/assets/telas-reais/salao-*). */
     tabletSalao?: boolean;
+    /** Tablet com a tela da cozinha e do bar (KDS) sobre a foto. */
+    tabletKds?: boolean;
     /** @deprecated Telas antigas do PhoneShot; não use. Mantido só para o tipo da Home. */
     tela?: Tela;
   }[];
@@ -85,7 +87,15 @@ export type Produto = {
     itens: { foto?: NomeFoto; posicao?: string; painel?: Painel; legenda: string }[];
   };
   /** Faixa na cor da marca com o celular (tela real) ou a conversa da Lebre. */
-  banda: { titulo: string; texto: string; telaReal?: TelaReal; lebre?: boolean; altTela: string };
+  banda: {
+    titulo: string;
+    texto: string;
+    telaReal?: TelaReal;
+    lebre?: boolean;
+    /** Tablet no lugar do celular (telas do restaurante). */
+    tablet?: "kds" | "salao";
+    altTela: string;
+  };
   /** Fatos verdadeiros do produto (sem números de mercado inventados). */
   fatos: { v: string; t: string }[];
   /** Sequência de telas reais do app do cliente, com legenda. */
@@ -243,9 +253,9 @@ export const PRODUTOS: Produto[] = [
     posicao: "50% 50%",
     altFoto: "Colegas de trabalho no almoço; um deles aponta o celular para o QR Code da Tipe",
     topo: {
-      foto: "cena-amigos",
-      posicao: "50% 40%",
-      alt: "Amigos numa mesa de calçada à noite mostrando a conta no celular, com o suporte da Tipe na mesa",
+      foto: "cena-praia",
+      posicao: "40% 45%",
+      alt: "Amigos numa barraca de praia com água de coco; um deles mostra o celular, com o suporte da Tipe na mesa",
     },
     cenario: {
       titulo: "Pediu, comeu, pagou. Na mesma mesa.",
@@ -253,14 +263,14 @@ export const PRODUTOS: Produto[] = [
         "O pedido pelo celular está em fase final. Até lá, a conta e o pagamento já funcionam pelo mesmo QR Code.",
       itens: [
         {
-          foto: "cena-praia",
-          posicao: "50% 45%",
-          legenda: "Na barraca, sem esperar alguém passar com o cardápio.",
+          foto: "cena-amigos",
+          posicao: "50% 40%",
+          legenda: "Na mesa grande, cada um pede do próprio celular.",
         },
         {
-          foto: "cena-casal",
-          posicao: "50% 40%",
-          legenda: "No jantar, a conversa não para para chamar o garçom.",
+          foto: "cena-bartender",
+          posicao: "50% 35%",
+          legenda: "No bar, o drinque sai na ordem em que foi pedido.",
         },
       ],
     },
@@ -458,9 +468,9 @@ export const PRODUTOS: Produto[] = [
         "Quanto mais mesas, mais importa saber o que entrou primeiro. A tela mostra a fila de cada setor, sem grito no passe.",
       itens: [
         {
-          foto: "cena-amigos",
+          foto: "cena-familia",
           posicao: "50% 40%",
-          legenda: "Sexta à noite: a fila aparece por ordem de chegada.",
+          legenda: "Almoço de domingo: a fila aparece por ordem de chegada.",
         },
         {
           foto: "cena-mesa-liberada",
@@ -486,14 +496,16 @@ export const PRODUTOS: Produto[] = [
       {
         t: "Por ordem de chegada",
         d: "Cada pedido com o tempo que está esperando.",
-        foto: "cena-garcom",
-        posicao: "40% 30%",
+        foto: "kitchen",
+        posicao: "50% 40%",
+        tabletKds: true,
       },
       {
         t: "Cozinha e bar",
         d: "Cada setor vê só o que é seu.",
         foto: "cena-bartender",
         posicao: "50% 35%",
+        tabletKds: true,
       },
       {
         t: "Pronto para servir",
@@ -506,8 +518,8 @@ export const PRODUTOS: Produto[] = [
       titulo: "Do salão para a cozinha sem papel.",
       texto:
         "O pedido lançado no salão vai direto para a tela do setor certo. Quando fica pronto, o salão sabe.",
-      telaReal: "conta",
-      altTela: "Conta da Mesa 12 com os itens lançados",
+      tablet: "kds",
+      altTela: "Tela da cozinha da Tipe com os pedidos em preparo por mesa e o tempo de cada um",
     },
     fatos: [
       { v: "0", t: "comandas de papel" },
@@ -602,8 +614,8 @@ export const PRODUTOS: Produto[] = [
       titulo: "Saiba quem pagou sem atravessar o salão.",
       texto:
         "Os pagamentos digitais aparecem aprovados na hora. Os presenciais ficam esperando a confirmação do caixa, com nome, itens, valor e horário.",
-      telaReal: "pago",
-      altTela: "Tela real de pagamento realizado no celular do cliente",
+      tablet: "salao",
+      altTela: "Tela real do Salão no painel da Tipe: cada mesa com o valor pago e o que falta",
     },
     fatos: [
       { v: "Ao vivo", t: "mesas e pagamentos no painel" },
@@ -760,9 +772,9 @@ export const PRODUTOS: Produto[] = [
     altFoto:
       "Casal num restaurante à luz de vela; ela confere a conta no celular, com o QR Code da Tipe na mesa",
     topo: {
-      foto: "cena-casal",
-      posicao: "50% 40%",
-      alt: "Casal rindo à mesa de um restaurante; ele mostra a conta no celular, com o suporte da Tipe ao lado",
+      foto: "cena-executiva",
+      posicao: "50% 35%",
+      alt: "Cliente sorrindo e avaliando o atendimento no celular, com o suporte da Tipe na mesa",
     },
     heroTelas: ["pago", "gorjeta", "avaliacao"],
     cenario: {
@@ -805,7 +817,7 @@ export const PRODUTOS: Produto[] = [
       {
         t: "Nome lembrado no aparelho",
         d: "Na próxima visita à mesma mesa, a conta abre com “Olá, Lucas”. O nome fica guardado no celular do cliente, sem cadastro.",
-        foto: "cena-executiva",
+        foto: "cena-casal",
         posicao: "50% 35%",
         telaReal: "conta",
       },
@@ -821,9 +833,8 @@ export const PRODUTOS: Produto[] = [
       titulo: "Um obrigado vira uma visita de volta.",
       texto:
         "Logo depois do pagamento, quando a experiência ainda está fresca, o cliente pode agradecer quem atendeu com uma gorjeta extra e avaliar o atendimento.",
-      telaReal: "gorjeta",
-      altTela:
-        "Tela real de gorjeta extra: Agradeça à Joyce com uma gorjeta, com opções de 3, 5 e 8 por cento",
+      telaReal: "avaliacao",
+      altTela: "Tela real de avaliação do atendimento depois de pagar a conta",
     },
     fatos: [
       { v: "Depois", t: "do pagamento: a avaliação aparece na hora" },

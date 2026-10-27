@@ -21,6 +21,7 @@ import { AbasProduto, type AbaProduto } from "./produto/AbasProduto";
 import { CelularLebre, ConversaLebre, PainelLebre, type ConversaId } from "./produto/Lebre";
 import { CelularReal, TabletSalao } from "./produto/TelaReal";
 import { TopoStaff } from "./produto/TopoStaff";
+import { Tablet } from "./Dispositivo";
 import { BaixaAutomatica } from "./produto/BaixaAutomatica";
 
 export function SeloStatus({
@@ -223,7 +224,14 @@ function Abas({ p }: { p: Produto }) {
     tela: b.telaReal,
     altTela: b.telaReal ? `Tela real do app do cliente: ${b.t.toLowerCase()}` : undefined,
     extra:
-      b.telaReal || b.painel ? undefined : b.tabletSalao ? (
+      b.telaReal || b.painel ? undefined : b.tabletKds ? (
+        <Tablet
+          tela="kds"
+          alt="Tela da cozinha da Tipe com os pedidos por mesa e o tempo de cada um"
+          className="ml-auto w-[82%] max-w-[18rem] sm:w-full"
+          sizes="18rem"
+        />
+      ) : b.tabletSalao ? (
         <TabletSalao
           alt="Tela real do Salão no painel da Tipe: mesa 12 encerrada, 100% paga"
           className="ml-auto w-[78%] max-w-[16rem] sm:w-full"
@@ -263,11 +271,16 @@ function Banda({ p }: { p: Produto }) {
         </div>
         <div className="relative mx-auto flex h-full w-full max-w-md items-end justify-center gap-4 self-end lg:pt-14">
           <Reveal
-            className={cn("relative z-10 translate-y-6", p.banda.lebre ? "w-[62%]" : "w-[55%]")}
+            className={cn(
+              "relative z-10 translate-y-6",
+              p.banda.tablet ? "w-full" : p.banda.lebre ? "w-[62%]" : "w-[55%]",
+            )}
             delay={100}
           >
             {p.banda.lebre ? (
               <CelularLebre />
+            ) : p.banda.tablet ? (
+              <Tablet tela={p.banda.tablet} alt={p.banda.altTela} sizes="28rem" />
             ) : (
               <CelularReal tela={p.banda.telaReal ?? "conta"} alt={p.banda.altTela} sizes="240px" />
             )}
@@ -276,7 +289,8 @@ function Banda({ p }: { p: Produto }) {
           <Reveal
             className={cn(
               "mb-10 w-[46%] shrink-0",
-              (p.banda.lebre || (p.banda.telaReal ?? "conta") !== "conta") && "hidden",
+              (p.banda.lebre || p.banda.tablet || (p.banda.telaReal ?? "conta") !== "conta") &&
+                "hidden",
             )}
             delay={300}
           >
@@ -415,7 +429,12 @@ function Recursos({ p }: { p: Produto }) {
     <Secao tema="claro">
       <div className="container-page">
         <Titulo rotulo="Recursos" titulo="Feito para o turno ficar mais leve." />
-        <ul className="sem-barra -mx-4 mt-10 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-4 px-4 pb-2 sm:mx-0 sm:mt-12 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0 lg:grid-cols-3">
+        <ul
+          className={cn(
+            "sem-barra -mx-4 mt-10 flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-4 px-4 pb-2 sm:mx-0 sm:mt-12 sm:grid sm:grid-cols-2 sm:gap-4 sm:overflow-visible sm:px-0",
+            p.recursos.length === 4 ? "lg:grid-cols-4" : "lg:grid-cols-3",
+          )}
+        >
           {p.recursos.map((r, i) => (
             <Reveal
               as="li"
