@@ -62,6 +62,12 @@ for nome, c in CENAS.items():
     for poly in REMENDOS.get(nome, []):
         limpa = preencher(limpa, raster(poly, W, H) > 0.01)
     alfas = {}
+    parede_x = []
+    if c.get('fundo'):
+        # quanto cada pixel parece fundo de estúdio (parede azul-clara): 1 = parede, 0 = personagem
+        g = src[..., 1]; br = src[..., 2]-src[..., 0]
+        fundo_suave = np.clip((g-200)/12, 0, 1)*np.clip((br+1)/4, 0, 1)
+        fundo_suave = feather(fundo_suave, 0.6)
     uniao = np.zeros((H, W), bool)
     for p in c['partes']:
         a = feather(raster(p['poly'], W, H), p['fe'])
@@ -77,13 +83,26 @@ for nome, c in CENAS.items():
             alfas[p['id']] = a
             uniao |= dilata(obj > 0.3, 2)
             continue
+        if 'menos' in p:
+            # o que outra parte (filha) desenha sai desta: atrás dela aparece a base (parede)
+            a = a*(1-feather(raster(p['menos'], W, H), 2))
+        if 'sem' in p:
+            # o que é de outra parte (ex.: o queixo atrás da mão) não viaja com esta
+            outra = next(o for o in c['partes'] if o['id'] == p['sem'])
+            a = a*(1-dilata(raster(outra['poly'], W, H) > 0.01, 1))
+        if p.get('erode'):
+            a = np.asarray(Image.fromarray((a*255).astype('uint8')).filter(ImageFilter.MinFilter(2*p['erode']+1))).astype(float)/255
+        if p.get('parede'):
+            parede_x.append((raster(p['poly'], W, H) > 0.01, p['parede']))
         if 'fadeY' in p:
             # a base do antebraço se funde com a imagem original (o cotovelo quase não se move)
             y0f, y1f = p['fadeY']; yy = np.arange(H)[:, None]
             a = a*np.clip((y1f-yy)/(y1f-y0f), 0, 1)
             m = dilata(raster(p['poly'], W, H) > 0.01, int(p['fe']*2+3)); m[y0f:] = False
+            if c.get('fundo'): a = a*(1-fundo_suave)
             alfas[p['id']] = a; uniao |= m
             continue
+        if c.get('fundo'): a = a*(1-fundo_suave)
         alfas[p['id']] = a
         uniao |= dilata(raster(p['poly'], W, H) > 0.01, int(p['fe']*2+3))
     # ponteiros do relógio
@@ -98,8 +117,20 @@ for nome, c in CENAS.items():
     if c.get('fundo'):
         # fundo de estúdio (azul-claro) fica como está: só os pixels do personagem são preenchidos
         fundo = (src[..., 2]-src[..., 0] >= 2) & (src[..., 1] > 208)
+        # a borda clara do personagem (antialias) não conta como parede: senão fica o contorno-fantasma
+        fundo &= ~dilata((~fundo).astype(float), 2)
         uniao &= ~fundo
     limpa = preencher(limpa, uniao)
+    cab_T = raster(c['partes'][0]['poly'], W, H) > 0.01
+    if c.get('fundo') and parede_x:
+        # atrás do antebraço e da mão, do lado do relógio, só existe parede: interpola só o fundo
+        caixa = np.zeros((H, W), bool); caixa[290:470, 360:600] = True
+        desconhecido = caixa & ~fundo
+        parede = preencher(src, desconhecido)
+        for m, x0p in parede_x:
+            sel = dilata(m.astype(float), 4); sel[:, :x0p] = False; sel[432:] = False
+            sel &= ~dilata(cab_T, 3)   # atrás do queixo é pescoço, não parede
+            limpa[sel] = parede[sel]
     # prato estendido (mesma lógica de plates.py)
     h = Image.fromarray(np.clip(limpa[:, c['x0']:c['x1']], 0, 255).astype('uint8'))
     a = np.asarray(h); pp = np.pad(a, ((PY, PY), (PX, PX), (0, 0)), mode='edge')
@@ -132,8 +163,18 @@ for nome, c in CENAS.items():
         faixa = src[y0-hh-dy:y0-dy, x0+dx:x1+dx]
         if 'pele' in t:
             # pálpebra = a pele que estaria ali sem o olho (interpolada do contorno)
-            mm = raster(t['pele'], W, H) > 0.01
+            mm = raster(t['poly'] if t['pele'] is True else t['pele'], W, H) > 0.01
+            if t['pele'] is True: mm = dilata(mm.astype(float), 2)
+            if c.get('fundo'):
+                # perto da borda da cabeça, a pele vem só da pele (o fundo não entra na interpolação)
+                perto = dilata(mm.astype(float), 10)
+                mm = mm | (perto & (fundo_suave > 0.3))
             faixa = preencher(src, mm)[y0:y1, x0:x1]
+        if t.get('sombra'):
+            # pálpebra com volume: escurece para baixo e termina na linha dos cílios
+            g = np.linspace(1.0, 0.8, hh)[:, None, None]
+            faixa = faixa*g
+            faixa[-2:] = faixa[-2:]*0.35 + np.array([40, 40, 38])*0.65
         Image.fromarray(faixa.clip(0, 255).astype('uint8')).save(f'{OUT}/assets/partes/{t["id"]}.png')
         bx, by = caixas[t['pai']]
         info['tampas'].append({'id': t['id'], 'pai': t['pai'], 'x': x0-bx, 'y': y0-by, 'w': x1-x0, 'h': hh,

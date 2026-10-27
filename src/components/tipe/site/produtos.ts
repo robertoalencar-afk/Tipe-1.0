@@ -53,7 +53,12 @@ export type Produto = {
   titulo: string;
   texto: string;
   /** Card de interface que flutua sobre a foto do topo. */
-  cartao: { titulo: string; linhas: [string, string][]; rodape: string };
+  cartao: {
+    titulo: string;
+    linhas: [string, string][];
+    rodape: string;
+    ilustracao?: boolean | undefined;
+  };
   /** Grupo no menu Produtos (como "Take payments" / "Power your business" na sunday). */
   grupo: Grupo;
   /**
@@ -285,6 +290,7 @@ export const PRODUTOS: Produto[] = [
         ["1× Chope 300 ml", "R$ 14,00"],
       ],
       rodape: "Enviado para a cozinha",
+      ilustracao: true,
     },
     beneficios: [
       {
