@@ -53,7 +53,12 @@ export type Produto = {
   titulo: string;
   texto: string;
   /** Card de interface que flutua sobre a foto do topo. */
-  cartao: { titulo: string; linhas: [string, string][]; rodape: string; ilustracao?: boolean | undefined };
+  cartao: {
+    titulo: string;
+    linhas: [string, string][];
+    rodape: string;
+    ilustracao?: boolean | undefined;
+  };
   /** Grupo no menu Produtos (como "Take payments" / "Power your business" na sunday). */
   grupo: Grupo;
   /**

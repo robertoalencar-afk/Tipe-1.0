@@ -75,7 +75,9 @@ export function CartaoInterface({
         {cartao.rodape}
       </p>
       {cartao.ilustracao && (
-        <p className="mt-2 text-center text-[0.7rem] text-[oklch(0.5_0_0)]">Ilustração · em breve</p>
+        <p className="mt-2 text-center text-[0.7rem] text-[oklch(0.5_0_0)]">
+          Ilustração · em breve
+        </p>
       )}
     </div>
   );
