@@ -60,3 +60,22 @@ jobs:
           echo "Worker: tipe-candidato-20261027" >> "$GITHUB_STEP_SUMMARY"
           echo "Banco: staging (dados de teste, sem pagamentos reais, sem SMTP/OAuth)." >> "$GITHUB_STEP_SUMMARY"
           echo "Dominio principal tipe.digital: nao alterado." >> "$GITHUB_STEP_SUMMARY"
+      - name: Testar resposta HTTP da preview
+        shell: bash
+        run: |
+          set -euo pipefail
+          url="https://tipe-candidato-20261027.robertoalencar.workers.dev/"
+          ok=0
+          for attempt in 1 2 3 4; do
+            code="$(curl --silent --show-error --max-time 30 --output /tmp/tipe-preview-body --write-out '%{http_code}' "$url" || true)"
+            if [[ "$code" == "200" ]]; then ok=1; break; fi
+            echo "Tentativa $attempt: HTTP $code"
+            sleep 4
+          done
+          [[ "$ok" == "1" ]] || { echo "::error::Preview nao respondeu HTTP 200."; exit 1; }
+          if ! grep -qi 'tipe' /tmp/tipe-preview-body; then
+            echo "::error::HTML inesperado da landing Tipe."
+            exit 1
+          fi
+          echo "Preview respondendo HTTP 200 e HTML da marca Tipe." >> "$GITHUB_STEP_SUMMARY"
+
