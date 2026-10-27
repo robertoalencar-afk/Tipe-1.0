@@ -74,6 +74,7 @@ PDV do restaurante ──► TIPE (conta da mesa) ──► QR Code na mesa
 
 ### Administração TIPE
 - Backoffice com métricas agregadas de operação e finanças, sem acesso às contas privadas dos restaurantes
+- CRM comercial em `/crm` (modo demonstração): contatos, leads, funil, atendimento por WhatsApp, equipe e permissões, gamificação, planos e relatórios. Detalhes, contas de teste e limitações em [docs/crm/README.md](docs/crm/README.md)
 
 ### Simulador
 - Demonstração pública e isolada da experiência do cliente, executada inteiramente no navegador
