@@ -1,0 +1,2 @@
+{"caminho":"/p/carlos","vapid":true,"ttl":"600","urgencia":"high","msg":{"title":"Mesa 12 pagou tudo","body":"Último pagamento de R$ 255,20. A mesa pode ser liberada.","url":"/garcom","tag":"quitada-12"}}
+{"caminho":"/p/dona","vapid":true,"ttl":"600","urgencia":"high","msg":{"title":"Mesa 12 pagou tudo","body":"Último pagamento de R$ 255,20. A mesa pode ser liberada.","url":"/teste-tipe","tag":"quitada-12"}}

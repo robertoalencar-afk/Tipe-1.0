@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { ArrowUp, BookOpen, Cookie, Receipt, ShieldCheck, Sparkles, Store, UserCheck } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
-import logo from "@/assets/logo-dark.png.asset.json";
+import logo from "@/assets/marca/tipe-logo-branco.svg";
 import { COMPANY } from "@/lib/tipe/legal";
 
 export const BOOK_ICONS: Record<string, typeof Receipt> = { receipt: Receipt, store: Store, shield: ShieldCheck, cookie: Cookie, sparkles: Sparkles, "user-check": UserCheck };
@@ -36,7 +36,7 @@ export function LegalShell({ children }: { children: ReactNode }) {
       <header data-noprint className="border-b border-border bg-secondary text-secondary-foreground">
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between gap-3 px-4">
           <Link to="/legal" className="flex items-center gap-3 rounded focus-visible:outline-2 focus-visible:outline-ring" aria-label="Central Jurídica TIPE">
-            <img src={logo.url} alt="TIPE" className="h-7 w-auto brightness-0 invert" />
+            <img src={logo} alt="TIPE" width={462} height={141} className="h-7 w-auto" />
             <span className="hidden border-l border-secondary-foreground/25 pl-3 font-display text-sm font-semibold sm:inline">Central Jurídica</span>
           </Link>
           <Link to="/" className="text-sm text-secondary-foreground/80 hover:text-secondary-foreground">Voltar ao site</Link>

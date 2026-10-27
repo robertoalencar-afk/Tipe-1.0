@@ -9,8 +9,10 @@ import { getPdvEvents, getPdvIntegration, setPdvAdapter, testPdvConnection } fro
 import { whatsappLink } from "@/lib/tipe/contact";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { cashAction, getOpsData, getReports, saveSettings, setItemStatus } from "@/lib/tipe/admin.functions";
+import { cashAction, getOpsData, getReports, saveSettings } from "@/lib/tipe/admin.functions";
 import { FechamentoDia } from "@/components/tipe/FechamentoDia";
+import { PagamentosRelatorio } from "@/components/tipe/PagamentosRelatorio";
+import { TotemACobrar, TotemConfig } from "@/components/tipe/Totem";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const hora = (s: string) => new Date(s).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
@@ -45,7 +47,7 @@ function Segmentado<T extends string | number>({ value, onChange, options, label
 }
 
 // ---------------- Início ----------------
-export function Inicio({ slug, mesasAbertas, emAberto, pendentes, onGo }: { slug: string; mesasAbertas: number; emAberto: number; pendentes: number; onGo: (s: string) => void }) {
+export function Inicio({ slug, mesasAbertas, emAberto, pendentes, onGo, agora }: { slug: string; mesasAbertas: number; emAberto: number; pendentes: number; onGo: (s: string) => void; agora?: React.ReactNode }) {
   const rep = useReports(slug, 1);
   const vendas = rep.data?.items.reduce((s, i) => s + i.price * i.qty, 0) ?? 0;
   const pedidos = new Set(rep.data?.items.map((i) => `${i.table}-${i.at}`)).size;
@@ -58,6 +60,7 @@ export function Inicio({ slug, mesasAbertas, emAberto, pendentes, onGo }: { slug
   const maxTop = Math.max(1, ...top.map(([, q]) => q));
   return (
     <div className="space-y-4">
+      {agora}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Kpi icon={TrendingUp} label="Vendas lançadas (24h)" value={brl(vendas)} />
         <Kpi icon={LayoutGrid} label="Mesas abertas" value={String(mesasAbertas)} hint={`${brl(emAberto)} em aberto`} />
@@ -98,45 +101,6 @@ export function Inicio({ slug, mesasAbertas, emAberto, pendentes, onGo }: { slug
   );
 }
 
-// ---------------- Cozinha e bar (KDS) ----------------
-const kdsNext: Record<string, { to: "preparing" | "ready" | "delivered"; label: string }> = {
-  received: { to: "preparing", label: "Iniciar preparo" }, preparing: { to: "ready", label: "Marcar pronto" }, ready: { to: "delivered", label: "Entregue" },
-};
-const kdsCols = [["received", "Recebido"], ["preparing", "Preparando"], ["ready", "Pronto"]] as const;
-export function Cozinha({ slug }: { slug: string }) {
-  const ops = useOps(slug);
-  const set = useServerFn(setItemStatus);
-  const qc = useQueryClient();
-  const [setor, setSetor] = useState<"all" | "kitchen" | "bar">("all");
-  const itens = (ops.data?.kds ?? []).filter((k) => setor === "all" || k.sector === setor);
-  async function mover(id: string, to: "preparing" | "ready" | "delivered") {
-    try { await set({ data: { id, status: to } }); qc.invalidateQueries({ queryKey: ["ops", slug] }); } catch (e) { toast.error((e as Error).message); }
-  }
-  return (
-    <div>
-      <div className="mb-4"><Segmentado label="Setor" value={setor} onChange={setSetor} options={[["all", "Todos"], ["kitchen", "Cozinha"], ["bar", "Bar"]] as const} /></div>
-      <div className="grid gap-3 md:grid-cols-3">
-        {kdsCols.map(([st, label]) => (
-          <div key={st} className="rounded-2xl border border-border bg-background p-3">
-            <h3 className="mb-3 flex items-center justify-between px-1 text-sm font-semibold">{label}<span className="rounded-full bg-surface px-2 py-0.5 text-xs text-muted-foreground shadow-xs">{itens.filter((i) => i.status === st).length}</span></h3>
-            {itens.filter((i) => i.status === st).length === 0 && <p className="px-1 pb-2 text-xs text-muted-foreground">Nenhum pedido.</p>}
-            <div className="space-y-2">
-              {itens.filter((i) => i.status === st).map((i) => (
-                <Card key={i.id} className="p-3">
-                  <div className="flex justify-between text-xs text-muted-foreground"><span>Mesa {i.table} · {i.sector === "bar" ? "Bar" : "Cozinha"}</span><span>{new Date(i.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}</span></div>
-                  <div className="mt-1 font-display font-semibold">{i.quantity}× {i.item_name}</div>
-                  {i.notes && <div className="mt-2 rounded-lg bg-warning/15 px-2 py-1 text-xs">Obs.: {i.notes}</div>}
-                  <Button size="sm" variant={st === "ready" ? "outline" : "ink"} className="mt-3 w-full" onClick={() => mover(i.id, kdsNext[st]!.to)}>{kdsNext[st]!.label}</Button>
-                </Card>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 // ---------------- Caixa ----------------
 export function Caixa({ slug, podeCaixa, confirmacoes }: { slug: string; podeCaixa: boolean; confirmacoes: React.ReactNode }) {
   const ops = useOps(slug);
@@ -149,7 +113,11 @@ export function Caixa({ slug, podeCaixa, confirmacoes }: { slug: string; podeCai
   const mov = ops.data?.movements ?? [];
   const reforco = mov.filter((m) => m.kind === "deposit").reduce((a, m) => a + m.amount, 0);
   const sangria = mov.filter((m) => m.kind === "withdrawal").reduce((a, m) => a + m.amount, 0);
-  const esperado = (s?.opening_amount ?? 0) + reforco - sangria;
+  const balcao = ops.data?.counter ?? { total: 0, cash: 0, card: 0, pix: 0, count: 0 };
+  // Dinheiro físico na gaveta: troco inicial, reforços, sangrias e vendas do balcão em dinheiro.
+  const esperado = (s?.opening_amount ?? 0) + reforco - sangria + balcao.cash;
+  // Cartão e Pix do balcão entram como comprovantes, junto com os pagamentos no estabelecimento.
+  const comprovantes = balcao.card + balcao.pix + (ops.data?.received ?? 0);
   async function run(data: CashInput, ok: string) {
     try { await act({ data }); toast.success(ok); qc.invalidateQueries({ queryKey: ["ops", slug] }); return true; } catch (e) { toast.error((e as Error).message); return false; }
   }
@@ -173,8 +141,11 @@ export function Caixa({ slug, podeCaixa, confirmacoes }: { slug: string; podeCai
                 <div className="flex justify-between"><dt>Troco inicial</dt><dd>{brl(s.opening_amount)}</dd></div>
                 <div className="flex justify-between"><dt>Reforços</dt><dd>+ {brl(reforco)}</dd></div>
                 <div className="flex justify-between"><dt>Sangrias</dt><dd>− {brl(sangria)}</dd></div>
-                <div className="flex justify-between border-t border-border pt-2 font-semibold"><dt>Esperado em espécie (sem vendas)</dt><dd>{brl(esperado)}</dd></div>
-                <div className="flex justify-between text-muted-foreground"><dt>Recebido no estabelecimento</dt><dd>{brl(ops.data?.received ?? 0)}</dd></div>
+                <div className="flex justify-between"><dt>Balcão em dinheiro</dt><dd>+ {brl(balcao.cash)}</dd></div>
+                <div className="flex justify-between border-t border-border pt-2 font-semibold"><dt>Esperado em espécie</dt><dd>{brl(esperado)}</dd></div>
+                <div className="flex justify-between text-muted-foreground"><dt>Balcão em cartão e Pix</dt><dd>{brl(balcao.card + balcao.pix)}</dd></div>
+                <div className="flex justify-between text-muted-foreground"><dt>Recebido nas mesas (no estabelecimento)</dt><dd>{brl(ops.data?.received ?? 0)}</dd></div>
+                <div className="flex justify-between text-muted-foreground"><dt>Vendas no balcão</dt><dd>{balcao.count} · {brl(balcao.total)}</dd></div>
               </dl>
             </Card>
             {podeCaixa && (
@@ -193,12 +164,12 @@ export function Caixa({ slug, podeCaixa, confirmacoes }: { slug: string; podeCai
                 <h3 className="mb-3 font-display font-semibold">Fechar caixa</h3>
                 <form className="space-y-2" onSubmit={(e) => {
                   e.preventDefault();
-                  const total = esperado + (ops.data?.received ?? 0);
+                  const total = esperado + comprovantes;
                   if (!window.confirm(`Fechar o caixa com ${brl(Number(contado || 0))} contados? Esperado: ${brl(total)}.`)) return;
                   void run({ action: "close", slug, counted: Number(contado || 0), expected: total, notes: "" }, "Caixa fechado").then((ok) => ok && setContado(""));
                 }}>
                   <Input required type="number" step="0.01" min={0} placeholder="Valor contado (espécie + comprovantes)" value={contado} onChange={(e) => setContado(e.target.value)} />
-                  {contado && <p className="text-xs text-muted-foreground">Diferença: {brl(Number(contado) - esperado - (ops.data?.received ?? 0))}</p>}
+                  {contado && <p className="text-xs text-muted-foreground">Diferença: {brl(Number(contado) - esperado - comprovantes)}</p>}
                   <Button type="submit" variant="ink" className="w-full">Fechar caixa</Button>
                 </form>
               </Card>
@@ -209,7 +180,7 @@ export function Caixa({ slug, podeCaixa, confirmacoes }: { slug: string; podeCai
           <Card><h3 className="mb-3 font-display font-semibold">Movimentos</h3><ul className="space-y-1 text-sm">{mov.map((m) => <li key={m.id} className="flex justify-between"><span>{m.kind === "deposit" ? "Reforço" : "Sangria"}{m.reason ? ` · ${m.reason}` : ""}</span><span>{brl(m.amount)}</span></li>)}</ul></Card>
         )}
       </div>
-      <div><h3 className="mb-3 font-display font-semibold">Pagamentos para confirmar</h3>{confirmacoes}</div>
+      <div className="space-y-4"><TotemACobrar slug={slug} podeCobrar={podeCaixa} /><div><h3 className="mb-3 font-display font-semibold">Pagamentos para confirmar</h3>{confirmacoes}</div></div>
     </div>
   );
 }
@@ -279,6 +250,7 @@ export function Relatorios({ slug }: { slug: string }) {
             <Lista t="Por forma de pagamento" rows={porMetodo} />
             <Lista t={`Taxa de serviço recebida: ${brl(taxaTotal)}`} rows={taxaPorGarcom} />
           </div>
+          {d && <PagamentosRelatorio slug={slug} days={days} pagamentos={d.billPayments} garcons={d.waiters} />}
           <Card>
             <h3 className="mb-3 font-display font-semibold">Taxas de serviço removidas: {brl(d?.feeWaivers.reduce((s, w) => s + w.amount, 0) ?? 0)}</h3>
             {!d?.feeWaivers.length ? <p className="text-sm text-muted-foreground">Nenhuma taxa removida no período.</p> : (
@@ -394,14 +366,14 @@ export function Configuracoes({ slug, podeDono }: { slug: string; podeDono: bool
   const save = useServerFn(saveSettings);
   const qc = useQueryClient();
   const r = ops.data?.restaurant;
-  const [f, setF] = useState<null | { name: string; rate: string; phone: string; address: string; hours: string; methods: string[]; review: string }>(null);
+  const [f, setF] = useState<null | { name: string; rate: string; phone: string; address: string; hours: string; methods: string[]; review: string; selfOrder: boolean; totem: boolean }>(null);
   if (!r) return <p className="text-muted-foreground">Carregando…</p>;
-  const v = f ?? { name: r.name, rate: String(Math.round(r.service_rate * 100)), phone: r.phone ?? "", address: r.address ?? "", hours: r.opening_hours ?? "", methods: r.bill_payment_methods ?? ["pix", "apple_pay", "google_pay", "at_establishment"], review: r.google_review_url ?? "" };
+  const v = f ?? { name: r.name, rate: String(Math.round(r.service_rate * 100)), phone: r.phone ?? "", address: r.address ?? "", hours: r.opening_hours ?? "", methods: r.bill_payment_methods ?? ["pix", "apple_pay", "google_pay", "at_establishment"], review: r.google_review_url ?? "", selfOrder: r.self_order_enabled ?? false, totem: r.totem_enabled ?? false };
   return (
     <form className="max-w-xl space-y-3" onSubmit={async (e) => {
       e.preventDefault();
       try {
-        await save({ data: { slug, name: v.name, serviceRate: Number(v.rate) / 100, phone: v.phone, address: v.address, openingHours: v.hours, billMethods: v.methods as ("pix" | "apple_pay" | "google_pay" | "at_establishment")[], googleReviewUrl: v.review.trim() } });
+        await save({ data: { slug, name: v.name, serviceRate: Number(v.rate) / 100, phone: v.phone, address: v.address, openingHours: v.hours, billMethods: v.methods as ("pix" | "apple_pay" | "google_pay" | "at_establishment")[], googleReviewUrl: v.review.trim(), selfOrder: v.selfOrder, totem: v.totem } });
         toast.success("Configurações salvas"); setF(null);
         qc.invalidateQueries({ queryKey: ["ops", slug] }); qc.invalidateQueries({ queryKey: ["panel", slug] });
       } catch (err) { toast.error((err as Error).message); }
@@ -431,6 +403,28 @@ export function Configuracoes({ slug, podeDono }: { slug: string; podeDono: bool
           );
         })}
         <p className="text-xs text-muted-foreground">Pelo menos uma opção precisa ficar ativa.</p>
+      </Card>
+      <Card className="space-y-3">
+        <div>
+          <h3 className="font-display font-bold">Pedido pela mesa (cardápio digital)</h3>
+          <p className="text-sm text-muted-foreground">Quando ligado, o cliente pode pedir pelo cardápio no próprio celular, lendo o QR da mesa. O pedido vai direto para a cozinha e entra na conta.</p>
+        </div>
+        <label className="flex items-center gap-3 text-sm">
+          <input type="checkbox" className="h-4 w-4 accent-primary" disabled={!podeDono} checked={v.selfOrder} onChange={() => setF({ ...v, selfOrder: !v.selfOrder })} />
+          Permitir que o cliente faça o pedido pela mesa
+        </label>
+        <p className="text-xs text-muted-foreground">O pagamento da conta continua igual: o cliente paga pelo QR quando quiser.</p>
+      </Card>
+      <Card className="space-y-3">
+        <div>
+          <h3 className="font-display font-bold">Totem de autoatendimento</h3>
+          <p className="text-sm text-muted-foreground">Quando ligado, o cliente monta o pedido no totem e recebe uma senha. O pedido vai para a cozinha quando o caixa cobra; você vê os pedidos a cobrar na aba Caixa.</p>
+        </div>
+        <label className="flex items-center gap-3 text-sm">
+          <input type="checkbox" className="h-4 w-4 accent-primary" disabled={!podeDono} checked={v.totem} onChange={() => setF({ ...v, totem: !v.totem })} />
+          Ativar o totem de autoatendimento
+        </label>
+        {v.totem && <TotemConfig slug={slug} podeDono={podeDono} />}
       </Card>
       {podeDono && <Button type="submit">Salvar</Button>}
     </form>

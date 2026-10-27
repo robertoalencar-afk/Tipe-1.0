@@ -10,7 +10,8 @@ import { Message, MessageContent, MessageResponse } from "@/components/ai-elemen
 import { PromptInput, PromptInputBody, PromptInputButton, PromptInputFooter, PromptInputHeader, PromptInputSubmit, PromptInputTextarea, PromptInputTools, usePromptInputAttachments, type PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import { Tool, ToolContent, ToolHeader, ToolInput, ToolOutput } from "@/components/ai-elements/tool";
 import { askPublicLebre, askRestaurantLebre, executeLebreProposal, transcribeLebreAudio, type LebreFile, type LebreProposal } from "@/lib/tipe/lebre.functions";
-import lebre from "@/assets/lebre-ai-official.svg";
+import lebre from "@/assets/lebre/avatar-ola.webp";
+import lebrePensando from "@/assets/lebre/avatar-pensando.webp";
 
 type ChatMessage = { id: string; role: "user" | "assistant"; text: string; files?: { name: string; mediaType: string; url: string }[]; proposal?: LebreProposal; result?: string; error?: string };
 
@@ -153,7 +154,7 @@ export function LebreAssistant({ slug }: { slug?: string }) {
       {open && (
         <section className={`fixed inset-x-3 z-50 flex flex-col overflow-hidden rounded-lg border bg-card shadow-2xl sm:left-auto sm:right-5 sm:w-[420px] ${slug ? "bottom-24 h-[min(680px,calc(100dvh-7rem))] lg:bottom-3 lg:h-[min(720px,calc(100dvh-1.5rem))]" : "bottom-3 h-[min(720px,calc(100dvh-1.5rem))]"}`} aria-label="Conversa com a Lebre">
           <header className="flex items-center gap-3 bg-secondary px-4 py-3 text-secondary-foreground">
-            <div className="h-12 w-12 overflow-hidden rounded-full bg-background p-1"><img src={lebre} alt="Lebre da TIPE" width={3584} height={4800} className="h-full w-full object-contain" /></div>
+            <div className="h-12 w-12 overflow-hidden rounded-full bg-background"><img src={lebre} alt="Lebre da TIPE" width={192} height={192} className="h-full w-full object-cover" /></div>
             <div className="min-w-0 flex-1"><h2 className="font-display font-bold">Lebre</h2><p className="text-xs opacity-75">Especialista TIPE</p></div>
             <Button type="button" size="icon" variant="ghost" onClick={() => setOpen(false)} className="text-secondary-foreground" aria-label="Fechar conversa"><X /></Button>
           </header>
@@ -165,7 +166,7 @@ export function LebreAssistant({ slug }: { slug?: string }) {
                     <div className="mt-3 grid grid-cols-2 gap-2">{panelExamples.map((ex) => <div key={ex.title} className="rounded-md border bg-muted/40 p-3"><p className="text-sm font-semibold">{ex.title}</p><p className="mt-1 text-xs text-muted-foreground">{ex.text}</p></div>)}</div>
                     <p className="mt-3 text-xs text-muted-foreground">Toque num exemplo abaixo ou escreva do seu jeito. Toda alteração pede sua confirmação.</p></div>
                 ) : (
-                <div className="py-5 text-center"><HareOutline className="mx-auto h-9 w-7 text-primary" /><p className="mt-3 font-display font-semibold">Como posso ajudar?</p><p className="mt-1 text-sm text-muted-foreground">Pergunte sobre a TIPE ou sobre a operação do seu restaurante.</p></div>)
+                <div className="py-5 text-center"><img src={lebrePensando} alt="" width={192} height={192} className="mx-auto h-20 w-20 rounded-full bg-background-muted object-cover" /><p className="mt-3 font-display font-semibold">Como posso ajudar?</p><p className="mt-1 text-sm text-muted-foreground">Pergunte sobre a TIPE ou sobre a operação do seu restaurante.</p></div>)
               )}
               {messages.map((message) => (
                 <Message key={message.id} from={message.role}>

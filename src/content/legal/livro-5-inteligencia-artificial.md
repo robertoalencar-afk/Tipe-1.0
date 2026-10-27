@@ -36,7 +36,7 @@ Quando você descreve como quer dividir um item, o texto é enviado à IA para s
 
 ## 5.5 Dados enviados à IA {#dados-enviados-a-ia}
 
-- Os conteúdos enviados (texto, áudio, imagens e arquivos) são processados por Lovable AI, com modelos da Google (Gemini) e da OpenAI, que pode operar fora do Brasil (Livro 3, seção 3.11).
+- Os conteúdos enviados (texto, áudio, imagens e arquivos) são processados pela Anthropic, com os modelos Claude, e os áudios são transcritos pelo Workers AI da Cloudflare; esses provedores podem operar fora do Brasil (Livro 3, seção 3.11).
 - A TIPE não autoriza o uso desses conteúdos para treinar modelos de IA. Eles são usados apenas para gerar a resposta pedida e ficam com o provedor somente pelo tempo necessário ao processamento e à segurança.
 - Evite enviar à Lebre documentos com dados pessoais que não sejam necessários, como CPF de clientes ou dados bancários.
 - O histórico de conversas fica guardado pelo prazo do Livro 3, seção 3.13.

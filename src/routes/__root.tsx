@@ -4,18 +4,18 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useMatches,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
 } from "@tanstack/react-router";
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
 import { CookieBanner } from "@/components/tipe/PrivacyPreferences";
 import { WhatsAppFloat } from "@/components/tipe/WhatsAppFloat";
 import { captureAttribution, loadMeasurement } from "@/lib/tipe/tracking";
-import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 
 function NotFoundComponent() {
@@ -43,9 +43,6 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
-  useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -84,18 +81,33 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "TIPE | Pague. Sem esperar. | Pagamento na mesa por QR Code" },
-      { name: "description", content: "Plataforma TIPE: o cliente paga a conta pelo QR Code da mesa e o restaurante acompanha tudo em tempo real. Funciona com o PDV que você já usa. Entre na lista de espera para o lançamento." },
-      { property: "og:title", content: "TIPE | Pague. Sem esperar. | Pagamento na mesa por QR Code" },
-      { property: "og:description", content: "Plataforma TIPE: o cliente paga a conta pelo QR Code da mesa e o restaurante acompanha tudo em tempo real. Funciona com o PDV que você já usa. Entre na lista de espera para o lançamento." },
+      {
+        name: "description",
+        content:
+          "Plataforma TIPE: o cliente paga a conta pelo QR Code da mesa e o restaurante acompanha tudo em tempo real. Funciona com o PDV que você já usa. Entre na lista de espera para o lançamento.",
+      },
+      {
+        property: "og:title",
+        content: "TIPE | Pague. Sem esperar. | Pagamento na mesa por QR Code",
+      },
+      {
+        property: "og:description",
+        content:
+          "Plataforma TIPE: o cliente paga a conta pelo QR Code da mesa e o restaurante acompanha tudo em tempo real. Funciona com o PDV que você já usa. Entre na lista de espera para o lançamento.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "preconnect", href: "https://fonts.googleapis.com" },
-      // Os arquivos das fontes vêm de outro domínio: conectar cedo reduz o atraso do primeiro texto.
-      { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      { rel: "stylesheet", href: "https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Sora:wght@500;600;700;800&display=swap" },
+      // Fontes auto-hospedadas (ver @font-face em styles.css): sem domínio de terceiros no caminho do primeiro texto.
+      {
+        rel: "preload",
+        href: "/fonts/inter-tight-latin-var.woff2",
+        as: "font",
+        type: "font/woff2",
+        crossOrigin: "anonymous",
+      },
       { rel: "icon", href: "/favicon.png?v=3", type: "image/png" },
       { rel: "apple-touch-icon", href: "/favicon.png?v=3" },
     ],
@@ -137,21 +149,35 @@ function RootComponent() {
   useEffect(() => {
     captureAttribution();
     // Página da mesa do cliente fica sem scripts de medição para carregar rápido no 4G fraco.
-    if (/^\/(mesa\/)?[^/]+\/[^/]+$/.test(window.location.pathname) && !/^\/(legal|privacidade|_authenticated)\//.test(window.location.pathname)) return;
+    if (
+      /^\/(mesa\/)?[^/]+\/[^/]+$/.test(window.location.pathname) &&
+      !/^\/(legal|privacidade|produtos|_authenticated)\//.test(window.location.pathname)
+    )
+      return;
     loadMeasurement();
     const on = () => loadMeasurement();
     window.addEventListener("tipe:consent", on);
     return () => window.removeEventListener("tipe:consent", on);
   }, []);
 
+  // Dentro de um iframe (simulador embutido na landing) o aviso de cookies e o
+  // botão do WhatsApp já aparecem na página que contém o iframe.
+  const [embedded, setEmbedded] = useState(false);
+  useEffect(() => setEmbedded(window.self !== window.top), []);
+  // Na conta da mesa o aviso cobria o botão de pagar. Lá nada opcional carrega
+  // sem consentimento (loadMeasurement só roda com escolha salva), então o aviso
+  // fica para as demais páginas.
+  const naContaDaMesa = useMatches({
+    select: (matches) => matches.some((match) => match.routeId === "/$restaurante/$mesa"),
+  });
 
   return (
     <QueryClientProvider client={queryClient}>
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
       <Toaster position="top-center" />
-      <CookieBanner />
-      <WhatsAppFloat />
+      {!embedded && !naContaDaMesa && <CookieBanner />}
+      {!embedded && <WhatsAppFloat />}
     </QueryClientProvider>
   );
 }

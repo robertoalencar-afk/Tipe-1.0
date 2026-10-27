@@ -162,6 +162,48 @@
       "when": 1791971628310,
       "tag": "0022_tipe2_reversals_founder_scope_reviews_outbox",
       "breakpoints": true
+    },
+    {
+      "idx": 23,
+      "version": "7",
+      "when": 1791972228310,
+      "tag": "0023_counter_sales_kds_ticket_board",
+      "breakpoints": true
+    },
+    {
+      "idx": 24,
+      "version": "7",
+      "when": 1791972828310,
+      "tag": "0024_customer_self_order",
+      "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1791973428310,
+      "tag": "0025_self_service_totem",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1792412400000,
+      "tag": "0026_staff_push_subscriptions",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1791972228310,
+      "tag": "0028_product_launch_states",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1791972229310,
+      "tag": "0030_restrict_internal_rpc_execution",
+      "breakpoints": true
     }
   ]
 }

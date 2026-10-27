@@ -21,7 +21,10 @@ const step1Schema = z.object({
   // Capturados automaticamente
   utm_source: opt(120), utm_medium: opt(120), utm_campaign: opt(120), utm_content: opt(120), utm_term: opt(120),
   ref: z.string().regex(/^[a-z0-9]{4,16}$/i).optional(),
-  originPage: z.enum(["home", "simulador", "calculadora"]).default("home"),
+  // "tipe-order": formulário da página /produtos/order (origin_page é text, sem migração).
+  originPage: z.enum(["home", "simulador", "calculadora", "tipe-order"]).default("home"),
+  /** Estado de lançamento do produto quando a pessoa se cadastrou (só para originPage "tipe-order"). */
+  launchState: z.enum(["em-desenvolvimento", "acesso-antecipado", "piloto", "disponivel"]).optional(),
   usedSimulator: z.boolean().default(false),
   calculator: z.record(z.string(), z.number().finite()).optional(),
 });
@@ -38,6 +41,8 @@ export const submitLead = createServerFn({ method: "POST" })
       city: data.city, state: data.state, contact_role: data.role, tables_range: data.tablesRange, pdv_system: data.pdvSystem, acquirer: data.acquirer, privacy_accepted_at: new Date().toISOString(), marketing_opt_in: data.marketingOptIn,
       utm_source: data.utm_source, utm_medium: data.utm_medium, utm_campaign: data.utm_campaign, utm_content: data.utm_content, utm_term: data.utm_term,
       referred_by_code: data.ref?.toLowerCase() ?? null, origin_page: data.originPage, used_simulator: data.usedSimulator, calculator: data.calculator ?? null,
+      // Interesse no Tipe Order vai nas notas do CRM para a equipe comercial ver de cara.
+      ...(data.originPage === "tipe-order" ? { notes: `Interesse: Tipe Order (estado na hora do cadastro: ${data.launchState ?? "não informado"})` } : {}),
     } as never).select("id, ref_code, update_token").single() as unknown as { data: { id: string; ref_code: string; update_token: string } | null; error: { message: string } | null };
     if (error || !row) {
       console.error("lead_insert", error?.message);

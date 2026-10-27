@@ -1,0 +1,121 @@
+# Publica a TIPE na Cloudflare a cada push no main (e manualmente pela aba Actions).
+# Configuração em docs/deploy/README.md.
+name: Publicar
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  testar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Verificar sintaxe do configurador (sem acessar segredos)
+        run: bash -n scripts/deploy/configurar-github.sh
+      - run: bunx tsc --noEmit -p .
+      - run: bunx vitest run
+      - name: Build
+        run: bun run build
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || 'https://bnggnbwmihqexvihrqvy.supabase.co' }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_VBd0grDcguwpR_gyqa2nEw_kW40dW4s' }}
+          VITE_SUPABASE_PROJECT_ID: ${{ vars.VITE_SUPABASE_PROJECT_ID || 'bnggnbwmihqexvihrqvy' }}
+
+  publicar:
+    needs: testar
+    # Ativação explícita impede publicar em tipe.digital antes do Supabase e dos segredos estarem prontos.
+    # Defina a repository variable TIPE_PRODUCTION_READY=true somente no momento do go-live.
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && vars.TIPE_PRODUCTION_READY == 'true'
+    runs-on: ubuntu-latest
+    environment: producao
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Validar ambiente de produção antes de tocar no banco ou publicar
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || 'https://bnggnbwmihqexvihrqvy.supabase.co' }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_VBd0grDcguwpR_gyqa2nEw_kW40dW4s' }}
+          VITE_SUPABASE_PROJECT_ID: ${{ vars.VITE_SUPABASE_PROJECT_ID || 'bnggnbwmihqexvihrqvy' }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          TIPE_ENCRYPTION_KEY: ${{ secrets.TIPE_ENCRYPTION_KEY }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          missing=0
+          required=(DATABASE_URL VITE_SUPABASE_URL VITE_SUPABASE_PUBLISHABLE_KEY VITE_SUPABASE_PROJECT_ID SUPABASE_SERVICE_ROLE_KEY CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID ANTHROPIC_API_KEY RESEND_API_KEY CRON_SECRET TIPE_ENCRYPTION_KEY)
+          for name in "${required[@]}"; do
+            if [[ -z "${!name:-}" ]]; then
+              echo "::error title=Configuração incompleta::Variável obrigatória ausente: ${name}"
+              missing=1
+            fi
+          done
+          if [[ "$missing" -ne 0 ]]; then
+            echo "Deploy bloqueado; nenhuma migração executada e nenhum Worker publicado."
+            exit 1
+          fi
+          # Evita misturar a service key ou o banco de staging com o URL publico de production.
+          expected_id="bnggnbwmihqexvihrqvy"
+          expected_url="https://bnggnbwmihqexvihrqvy.supabase.co"
+          if [[ "$VITE_SUPABASE_PROJECT_ID" != "$expected_id" || "$VITE_SUPABASE_URL" != "$expected_url" ]]; then
+            echo "::error title=Supabase incorreto::Dados publicos nao correspondem a tipe-production."
+            exit 1
+          fi
+          if [[ "$DATABASE_URL" != *"$expected_id"* ]]; then
+            echo "::error title=Banco incorreto::DATABASE_URL deve apontar para tipe-production, nunca tipe-staging."
+            exit 1
+          fi
+      - name: Migrações do banco
+        run: scripts/db/aplicar-migracoes.sh
+      - name: Build
+        run: bun run build
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || 'https://bnggnbwmihqexvihrqvy.supabase.co' }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_VBd0grDcguwpR_gyqa2nEw_kW40dW4s' }}
+          VITE_SUPABASE_PROJECT_ID: ${{ vars.VITE_SUPABASE_PROJECT_ID || 'bnggnbwmihqexvihrqvy' }}
+      - name: Publicar o site
+        run: |
+          bunx wrangler deploy
+          node scripts/deploy/segredos.mjs app | bunx wrangler secret bulk
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || 'https://bnggnbwmihqexvihrqvy.supabase.co' }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_VBd0grDcguwpR_gyqa2nEw_kW40dW4s' }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          EMAIL_FROM: ${{ vars.EMAIL_FROM }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          TIPE_ENCRYPTION_KEY: ${{ secrets.TIPE_ENCRYPTION_KEY }}
+          PAGARME_SECRET_KEY: ${{ secrets.PAGARME_SECRET_KEY }}
+          PAGARME_PUBLIC_KEY: ${{ secrets.PAGARME_PUBLIC_KEY }}
+          PAGARME_WEBHOOK_SECRET: ${{ secrets.PAGARME_WEBHOOK_SECRET }}
+          PAGARME_TIPE_RECIPIENT_ID: ${{ secrets.PAGARME_TIPE_RECIPIENT_ID }}
+          TIPE_PLATFORM_FEE_PERCENT: ${{ vars.TIPE_PLATFORM_FEE_PERCENT }}
+          CLOUDFLARE_AI_TOKEN: ${{ secrets.CLOUDFLARE_AI_TOKEN }}
+      - name: Publicar as rotinas agendadas
+        run: |
+          bunx wrangler deploy --config cron-worker/wrangler.jsonc
+          node scripts/deploy/segredos.mjs cron | bunx wrangler secret bulk --config cron-worker/wrangler.jsonc
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
