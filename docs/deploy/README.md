@@ -36,6 +36,39 @@ Fluxo de trabalho: a alteração é feita aqui (Claude), vira um PR; quando o PR
 - Resend: grátis até 3.000 e-mails/mês.
 - Anthropic: por uso; defina um limite de gasto no Console.
 
+## Configuração simplificada — token Workers já existente
+
+O pipeline conhece os dados **públicos** do Supabase `tipe-production` (Project ID,
+Project URL e chave publicável) como valores de fallback; nenhuma chave secreta foi
+incluída no código. Esses dados também podem ser atualizados nas Variables do GitHub.
+
+Se você já cadastrou `CLOUDFLARE_API_TOKEN` como segredo GitHub (no repositório
+ou no ambiente `producao`), o configurador **não o substituirá**.
+Abra um terminal na pasta do projeto na branch que contém este arquivo e execute:
+
+```bash
+bash scripts/deploy/configurar-github.sh
+```
+
+O script usa o `gh` (GitHub CLI), faz login pelo navegador se você executar
+`gh auth login` antes, configura automaticamente as variáveis públicas,
+detecta quais segredos já existem e solicita apenas os valores privados ausentes,
+sem exibi-los no terminal. Os novos segredos são enviados pelo STDIN e não ficam
+no git. O script nunca define `TIPE_PRODUCTION_READY`.
+
+**O token Cloudflare não pode ser recuperado em texto pelo ChatGPT ou pelo
+GitHub depois de salvo.** Se ele existe apenas no painel Cloudflare e não
+foi guardado, é preciso gerar outro token com as permissões adequadas.
+Nunca cole tokens/chaves na conversa, no PR ou em arquivos versionados.
+
+`DATABASE_URL` é a conexão PostgreSQL do **tipe-production** pelo Session Pooler.
+O Supabase de staging é distinto, e jamais se devem misturar credenciais dos dois.
+
+A configuração automática não substitui a validação de OAuth, e-mail,
+Pagar.me, isolamento RLS entre restaurantes, modelo da Lebre e testes no Worker.
+**Não habilite `TIPE_PRODUCTION_READY=true` antes da aceitação dos testes,
+da revisão das branches do Tipe Order e da preparação do rollback.**
+
 ## Passo a passo
 
 Faça na ordem. Onde houver "Segredo do GitHub", o lugar é: repositório no GitHub → **Settings → Environments → New environment** com o nome `producao` → **Add environment secret**. "Variável do GitHub" é **Settings → Secrets and variables → Actions → aba Variables → New repository variable**.

@@ -19,14 +19,16 @@ jobs:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
+      - name: Verificar sintaxe do configurador (sem acessar segredos)
+        run: bash -n scripts/deploy/configurar-github.sh
       - run: bunx tsc --noEmit -p .
       - run: bunx vitest run
       - name: Build
         run: bun run build
         env:
-          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
-          VITE_SUPABASE_PROJECT_ID: ${{ vars.VITE_SUPABASE_PROJECT_ID }}
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || 'https://bnggnbwmihqexvihrqvy.supabase.co' }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_VBd0grDcguwpR_gyqa2nEw_kW40dW4s' }}
+          VITE_SUPABASE_PROJECT_ID: ${{ vars.VITE_SUPABASE_PROJECT_ID || 'bnggnbwmihqexvihrqvy' }}
 
   publicar:
     needs: testar
@@ -43,9 +45,9 @@ jobs:
       - run: bun install --frozen-lockfile
       - name: Validar ambiente de produção antes de tocar no banco ou publicar
         env:
-          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
-          VITE_SUPABASE_PROJECT_ID: ${{ vars.VITE_SUPABASE_PROJECT_ID }}
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || 'https://bnggnbwmihqexvihrqvy.supabase.co' }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_VBd0grDcguwpR_gyqa2nEw_kW40dW4s' }}
+          VITE_SUPABASE_PROJECT_ID: ${{ vars.VITE_SUPABASE_PROJECT_ID || 'bnggnbwmihqexvihrqvy' }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -68,14 +70,25 @@ jobs:
             echo "Deploy bloqueado; nenhuma migração executada e nenhum Worker publicado."
             exit 1
           fi
+          # Evita misturar a service key ou o banco de staging com o URL publico de production.
+          expected_id="bnggnbwmihqexvihrqvy"
+          expected_url="https://bnggnbwmihqexvihrqvy.supabase.co"
+          if [[ "$VITE_SUPABASE_PROJECT_ID" != "$expected_id" || "$VITE_SUPABASE_URL" != "$expected_url" ]]; then
+            echo "::error title=Supabase incorreto::Dados publicos nao correspondem a tipe-production."
+            exit 1
+          fi
+          if [[ "$DATABASE_URL" != *"$expected_id"* ]]; then
+            echo "::error title=Banco incorreto::DATABASE_URL deve apontar para tipe-production, nunca tipe-staging."
+            exit 1
+          fi
       - name: Migrações do banco
         run: scripts/db/aplicar-migracoes.sh
       - name: Build
         run: bun run build
         env:
-          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
-          VITE_SUPABASE_PROJECT_ID: ${{ vars.VITE_SUPABASE_PROJECT_ID }}
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || 'https://bnggnbwmihqexvihrqvy.supabase.co' }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_VBd0grDcguwpR_gyqa2nEw_kW40dW4s' }}
+          VITE_SUPABASE_PROJECT_ID: ${{ vars.VITE_SUPABASE_PROJECT_ID || 'bnggnbwmihqexvihrqvy' }}
       - name: Publicar o site
         run: |
           bunx wrangler deploy
@@ -83,8 +96,8 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
-          SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || 'https://bnggnbwmihqexvihrqvy.supabase.co' }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_VBd0grDcguwpR_gyqa2nEw_kW40dW4s' }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL }}
