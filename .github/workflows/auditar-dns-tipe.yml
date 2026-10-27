@@ -42,14 +42,27 @@ jobs:
           if not found: raise SystemExit("Token nao enxerga zona tipe.digital; DNS nao sera alterado.")
           for zone in found:
               zid=zone["id"]
-              print("Zona:",zone.get("name"),"id:",zid,"status:",zone.get("status"),"account:",zone.get("account",{}).get("id"))
+              print("Zona:",zone.get("name"),"id:",zid,"status:",zone.get("status"),"account:",zone.get("account",{}).get("id")); print("Nameservers atribuídos:",zone.get("name_servers")); print("Nameservers anteriores:",zone.get("original_name_servers"))
               path="/zones/"+zid+"/dns_records?per_page=100"
-              dns=call(path)
+              try:
+                  dns=call(path)
+              except SystemExit:
+                  print("Sem permissão DNS Read; verificacao de registros nesta conta bloqueada.")
+                  continue
               if not dns.get("success"): raise SystemExit("API negou leitura de DNS")
               for rec in dns.get("result",[]):
                   if rec.get("name") in ("tipe.digital","www.tipe.digital"):
                       info={"id":rec.get("id"),"name":rec.get("name"),"type":rec.get("type"),"proxied":rec.get("proxied"),"managed":rec.get("meta",{}).get("managed_by_apps")}
                       if rec.get("type") in ("A","AAAA","CNAME"):info["content"]=rec.get("content")
                       print("RECORD:",json.dumps(info,ensure_ascii=False))
+          print("DNS público delegado atualmente (consultado via Google DNS):")
+          for qtype in ("NS","A","CNAME","MX"):
+              q=urllib.parse.urlencode({"name":"tipe.digital","type":qtype})
+              try:
+                  with urllib.request.urlopen("https://dns.google/resolve?"+q,timeout=15) as response: 
+                      public=json.load(response)
+                  answers=public.get("Answer",[])
+                  print(qtype,[(a.get("type"),a.get("data")) for a in answers])
+              except Exception as ex: print("DNS publico",qtype,"indisponivel",type(ex).__name__)
           print("AUDITORIA APENAS LEITURA: nenhum registro foi alterado.")
           PY
