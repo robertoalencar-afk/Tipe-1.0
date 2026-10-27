@@ -6,7 +6,7 @@ REPO = os.path.abspath(os.path.join(AQUI, '../../..')) + '/'
 CAM, OUT = sys.argv[1], sys.argv[2]
 rig = json.load(open(f'{CAM}/assets/rig.json'))
 rd = lambda f: open(os.path.join(AQUI, f)).read()
-css, js, rend, body, pers = rd('css.txt'), rd('js.txt'), rd('render.txt'), rd('body.txt'), rd('personagens.js')
+css, js, rend, body, pers, tempo = rd('css.txt'), rd('js.txt'), rd('render.txt'), rd('body.txt'), rd('personagens.js'), rd('tempo.js')
 
 def cena(nome, host, pid):
     m = rig[nome]
@@ -15,7 +15,8 @@ def cena(nome, host, pid):
     tampas = {}
     for t in m['tampas']: tampas.setdefault(t['pai'], []).append(t)
     def parte(p):
-        h = (f'<div class="parte" id="{p["id"]}" style="left:{p["x"]}px;top:{p["y"]}px;width:{p["w"]}px;height:{p["h"]}px">'
+        # transform-origin = pivô anatômico (pescoço, base da orelha, cotovelo, punho)
+        h = (f'<div class="parte" id="{p["id"]}" style="left:{p["x"]}px;top:{p["y"]}px;width:{p["w"]}px;height:{p["h"]}px;transform-origin:{p["px"]}px {p["py"]}px">'
              f'<img src="assets/partes/{p["id"]}.png" alt="">')
         for t in tampas.get(p['id'], []):
             clip = ','.join(f'{x}px {y}px' for x, y in t['clip'])
@@ -77,11 +78,12 @@ for ar, (W, H) in {'16x9': (1600, 900), '4x5': (1080, 1350)}.items():
 <script src="assets/vendor/gsap.min.js"></script>
 </head>
 <body>
-<div id="root" data-composition-id="lebre" data-start="0" data-duration="14.85" data-width="{W}" data-height="{H}" data-fps="30">
+<div id="root" data-composition-id="lebre" data-start="0" data-duration="18.45" data-width="{W}" data-height="{H}" data-fps="30">
 <div id="stage">
   {cena('T-cliente', 'scT', 'pT')}
   {cena('H-cliente', 'scH1', 'pH1')}
   {cena('H-gorjeta', 'scH3', 'pH3')}
+  {cena('H-amigos', 'scA', 'pA') if 'H-amigos' in rig else ''}
   {b}
 </div>
 </div>
@@ -92,15 +94,16 @@ const AR = '{ar}';
 const DUR = 14.85;
 {js}
 {r}
+{tempo}
 const tl = gsap.timeline({{ paused: true }});
 const relogio = {{ t: 0 }};
-tl.to(relogio, {{ t: DUR, duration: DUR, ease: 'none', onUpdate: () => render(relogio.t) }}, 0);
+tl.to(relogio, {{ t: DUR_NOVO, duration: DUR_NOVO, ease: 'none', onUpdate: () => quadro(relogio.t) }}, 0);
 {pers}
 placeText();
-render(0);
+quadro(0);
 window.__timelines = window.__timelines || {{}};
 window.__timelines['lebre'] = tl;
-document.fonts && document.fonts.ready.then(() => {{ placeText(); render(relogio.t); }});
+document.fonts && document.fonts.ready.then(() => {{ placeText(); quadro(relogio.t); }});
 </script>
 </body>
 </html>
