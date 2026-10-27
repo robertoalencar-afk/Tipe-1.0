@@ -1,10 +1,59 @@
-/** Compact line icon of the TIPE hare, inheriting the surrounding theme color. */
+import { useId } from "react";
+
+/**
+ * Ícone de traço da lebre TIPE (orelhas longas com pontas cheias, focinho e
+ * bigodes), na cor do texto ao redor. Versão simples do mascote 3D.
+ */
 export function HareOutline({ className = "" }: { className?: string }) {
+  const tip = useId();
   return (
-    <svg viewBox="0 0 32 40" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" className={className} role="img" aria-label="Lebre TIPE">
-      <path d="M12 19C8 13 7 3 10 2c3-1 5 9 5 15M18 17c0-6 2-16 5-15 3 1 2 11-2 17" />
-      <path d="M10 19c-3 2-5 5-5 9 0 6 5 10 11 10s11-4 11-10c0-4-2-7-5-9" />
-      <path d="M11 26h.01M21 26h.01M14 30l2 2 2-2M16 32v2m-4 0c1 2 3 2 4 0 1 2 3 2 4 0M5 29l-3-1m3 4-3 1m25-4 3-1m-3 4 3 1" />
+    <svg
+      viewBox="0 0 32 40"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      role="img"
+      aria-label="Lebre TIPE"
+    >
+      <clipPath id={tip}>
+        <rect x="0" y="0" width="32" height="6.5" />
+      </clipPath>
+      <g transform="rotate(-9 11.5 18)">
+        <ellipse cx="11.5" cy="10.5" rx="3.2" ry="8.3" />
+        <ellipse
+          cx="11.5"
+          cy="10.5"
+          rx="3.2"
+          ry="8.3"
+          fill="currentColor"
+          clipPath={`url(#${tip})`}
+        />
+      </g>
+      <g transform="rotate(9 20.5 18)">
+        <ellipse cx="20.5" cy="10.5" rx="3.2" ry="8.3" />
+        <ellipse
+          cx="20.5"
+          cy="10.5"
+          rx="3.2"
+          ry="8.3"
+          fill="currentColor"
+          clipPath={`url(#${tip})`}
+        />
+      </g>
+      <circle cx="16" cy="28" r="9.2" />
+      <g fill="currentColor" stroke="none">
+        <circle cx="12.4" cy="26.6" r="1.15" />
+        <circle cx="19.6" cy="26.6" r="1.15" />
+        <ellipse cx="16" cy="29.6" rx="1.5" ry="1.05" />
+      </g>
+      <path d="M14.2 32.2c1.1.9 2.5.9 3.6 0" strokeWidth="1.4" />
+      <path
+        d="M11.5 30.4 4.5 29.4M11.5 32 4.8 33.4M20.5 30.4l7-1M20.5 32l6.7 1.4"
+        strokeWidth="1.1"
+      />
     </svg>
   );
 }
