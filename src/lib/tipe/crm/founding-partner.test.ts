@@ -327,3 +327,39 @@ describe("motor: comandos do programa", () => {
     fail(s, { type: "fpTransition", enrollmentId: e.id, to: "participante" });
   });
 });
+
+describe("adaptador do banco", () => {
+  it("converte as linhas da migração 0041 sem inventar benefício", async () => {
+    const { foundingPartnerFromRows } = await import("./adapters");
+    const e = foundingPartnerFromRows(
+      {
+        enrollment: {
+          id: "e1",
+          restaurant_id: "r1",
+          crm_account_id: null,
+          status: "participante",
+          created_at: "2026-10-01T10:00:00Z",
+          status_changed_at: "2026-10-05T10:00:00Z",
+          joined_at: "2026-10-05T10:00:00Z",
+          pilot_eligible: false,
+          pilot_note: null,
+        },
+        terms: [
+          { version: "v1", accepted_by_name: "Ana", accepted_at: "2026-10-04T10:00:00Z", recorded_by: "u" },
+        ],
+        invites: [],
+        benefits: [],
+        communications: [],
+        feedback: [],
+        events: [
+          { id: 1, kind: "estado", from_status: null, to_status: "convidado", detail: "", actor_id: "u", at: "2026-10-01T10:00:00Z" },
+          { id: 2, kind: "estado", from_status: "elegivel", to_status: "participante", detail: "", actor_id: "u", at: "2026-10-05T10:00:00Z" },
+        ],
+      },
+      { orgId: "org_tipe", accountId: "acc1" },
+    );
+    expect(e.benefits).toEqual([]);
+    expect(e.terms?.version).toBe("v1");
+    expect(e.history[0]?.to).toBe("participante");
+  });
+});
