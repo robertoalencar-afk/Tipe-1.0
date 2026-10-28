@@ -109,7 +109,11 @@ try {
   ok("Garçom libera pedidos pelo celular na mesa");
 
   // 4) O cliente atualiza, pede e o pedido aparece em Pagar sem perder a sessão.
-  await c.getByRole("button", { name: /já liberaram, atualizar/i }).click();
+  // A tela também se atualiza sozinha; o botão só adianta. Se já sumiu, segue.
+  await c
+    .getByRole("button", { name: /já liberaram, atualizar/i })
+    .click({ timeout: 3000 })
+    .catch(() => {});
   await c
     .getByText("Pedidos pelo celular ainda não liberados")
     .waitFor({ state: "detached", timeout: 15000 });

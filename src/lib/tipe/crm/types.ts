@@ -452,6 +452,17 @@ export type ModuleKey =
   | "kds"
   | "totem"
   | "lebre";
+/**
+ * Módulos vendidos à parte, com contrato próprio. O estado é o mesmo de
+ * restaurant_modules na plataforma (migração 0027): ativo, suspenso ou cancelado.
+ */
+export type EntitledModule = "pedido_na_mesa";
+export type EntitlementState = "ativo" | "suspenso" | "cancelado";
+export type Entitlement = {
+  state: EntitlementState;
+  reason?: string | undefined;
+  changedAt: ISO;
+};
 export type PdvStatus = "nao_iniciada" | "em_homologacao" | "conectada" | "lancamento_tipe";
 export type PagarmeStatus = "pendente" | "em_analise" | "aprovada";
 
@@ -475,6 +486,8 @@ export type RestaurantAccount = {
   status: AccountStatus;
   onboarding: OnboardingStep[];
   modules: ModuleKey[];
+  /** Contrato dos módulos à parte (Tipe Order). Sem registro, vale o que está em `modules`. */
+  entitlements?: Partial<Record<EntitledModule, Entitlement>> | undefined;
   pdv: { provider: string; status: PdvStatus };
   pagarme: PagarmeStatus;
   /** restaurants.id no Supabase quando a conta estiver ligada à plataforma real. */
