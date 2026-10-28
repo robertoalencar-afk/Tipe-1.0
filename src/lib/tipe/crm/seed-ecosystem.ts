@@ -7,7 +7,11 @@ import {
   ONBOARDING,
   planForTables,
 } from "./ecosystem";
-import { defaultFoundingPartnerRules, FP_STATUS } from "./founding-partner";
+import {
+  defaultFoundingPartnerRules,
+  FOUNDING_PARTNER_APPROVED_RULES,
+  FP_STATUS,
+} from "./founding-partner";
 import type {
   BillMethod,
   FoundingPartnerEnrollment,
@@ -410,6 +414,14 @@ export function seedFoundingPartners(ctx: Ctx, accounts: RestaurantAccount[]) {
   if (!orgId) return;
   s.foundingPartnerRules.push({
     ...defaultFoundingPartnerRules(orgId),
+    slots: FOUNDING_PARTNER_APPROVED_RULES.slots,
+    enrollmentOpensAt: FOUNDING_PARTNER_APPROVED_RULES.enrollmentOpensAt,
+    enrollmentClosesAt: FOUNDING_PARTNER_APPROVED_RULES.enrollmentClosesAt,
+    advantages: [...FOUNDING_PARTNER_APPROVED_RULES.advantages],
+    approvedAt: FOUNDING_PARTNER_APPROVED_RULES.approvedAt,
+    approvalRef: FOUNDING_PARTNER_APPROVED_RULES.approvalRef,
+    updatedAt: FOUNDING_PARTNER_APPROVED_RULES.approvedAt,
+    // A demonstração continua no texto fictício até a revisão jurídica de fundador-v1.
     termsVersion: DEMO_TERMS_VERSION,
   });
   const active = accounts.filter((a) => a.status === "ativa");

@@ -20,7 +20,7 @@ import type {
 // Dados fictícios de demonstração. Nenhuma pessoa, telefone ou e-mail real:
 // telefones usam o prefixo 90000, e-mails o domínio reservado .demo.
 
-export const SEED_VERSION = 3;
+export const SEED_VERSION = 4;
 export const DEMO_PASSWORD = "demo1234";
 
 export const DEMO_ACCOUNTS = [
