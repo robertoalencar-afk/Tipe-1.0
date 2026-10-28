@@ -5,6 +5,8 @@ import type {
   Consumer,
   ConsumerSegment,
   CrmState,
+  EntitledModule,
+  EntitlementState,
   ID,
   ModuleKey,
   OnboardingKey,
@@ -111,6 +113,25 @@ export const DEFAULT_MODULES: ModuleKey[] = [
   "gorjeta",
   "avaliacao",
 ];
+
+export const ENTITLED_MODULES: EntitledModule[] = ["pedido_na_mesa"];
+export const ENTITLEMENT_STATE: Record<
+  EntitlementState | "nao_contratado",
+  { label: string; tone: "success" | "warning" | "neutral" }
+> = {
+  ativo: { label: "Ativo", tone: "success" },
+  suspenso: { label: "Suspenso", tone: "warning" },
+  cancelado: { label: "Cancelado", tone: "neutral" },
+  nao_contratado: { label: "Não contratado", tone: "neutral" },
+};
+
+/** Estado do contrato de um módulo à parte. Contas antigas só têm a chave em `modules`. */
+export function entitlementOf(
+  a: Pick<RestaurantAccount, "modules" | "entitlements">,
+  key: EntitledModule,
+): EntitlementState | "nao_contratado" {
+  return a.entitlements?.[key]?.state ?? (a.modules.includes(key) ? "ativo" : "nao_contratado");
+}
 
 export const PDV_STATUS: Record<PdvStatus, string> = {
   nao_iniciada: "Não iniciada",

@@ -42,6 +42,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SaquesGarcons } from "@/components/tipe/SaquesGarcons";
+import { ModuloOrder } from "@/components/tipe/ModulosFundador";
 import { getFounderOverview } from "@/lib/tipe/founder.functions";
 import { createRestaurant } from "@/lib/tipe/staff.functions";
 
@@ -376,7 +377,7 @@ function Backoffice() {
                     ))}
                   </div>
                   <div className="hidden overflow-x-auto rounded-[1.25rem] border border-border bg-card md:block">
-                    <table className="w-full min-w-[900px] text-sm">
+                    <table className="w-full min-w-[1000px] text-sm">
                       <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
                         <tr>
                           {[
@@ -386,6 +387,7 @@ function Backoffice() {
                             "Estrutura",
                             "Volume 30d",
                             "Recebimentos",
+                            "Tipe Order",
                           ].map((heading) => (
                             <th key={heading} className="p-3 font-semibold">
                               {heading}
@@ -433,6 +435,9 @@ function Backoffice() {
                             </td>
                             <td className="p-3">
                               <ReceivingStatus status={r.payout} />
+                            </td>
+                            <td className="p-3">
+                              <ModuloOrder restaurantId={r.id} nome={r.name} />
                             </td>
                           </tr>
                         ))}
@@ -830,6 +835,12 @@ function RestaurantCard({ restaurant: r }: { restaurant: RestaurantSummary }) {
           <dt className="text-xs text-muted-foreground">Recebimentos</dt>
           <dd className="mt-1">
             <ReceivingStatus status={r.payout} />
+          </dd>
+        </div>
+        <div>
+          <dt className="text-xs text-muted-foreground">Tipe Order</dt>
+          <dd className="mt-1">
+            <ModuloOrder restaurantId={r.id} nome={r.name} />
           </dd>
         </div>
       </dl>

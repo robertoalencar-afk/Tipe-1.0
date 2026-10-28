@@ -17,6 +17,7 @@ import {
   Star,
   Users,
   UtensilsCrossed,
+  Wallet,
   WalletCards,
   WifiOff,
 } from "lucide-react";
@@ -28,6 +29,7 @@ import { DividirConta } from "@/components/tipe/DividirConta";
 import { remainingSubtotal, selectionSubtotal, type ShareItem } from "@/lib/tipe/bill-math";
 import { PAYMENT_STATUS_LABEL } from "@/lib/tipe/payment-state";
 import { MesaPedido } from "@/components/tipe/MesaPedido";
+import { MesaLiberacao, lerTokenPedido } from "@/components/tipe/MesaLiberacao";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -99,7 +101,7 @@ type Etapa =
   | "pagamento-gorjeta"
   | "mesa-encerrada"
   | "fim";
-type Aba = "conta" | "atividade" | "cardapio";
+type Aba = "conta" | "atividade";
 type Metodo = "pix" | "card" | "apple_pay" | "google_pay" | "at_establishment";
 type MetodoEstabelecimento = "cash" | "card_terminal";
 
@@ -198,6 +200,10 @@ function MesaPage() {
   const [mesaSincronizada, setMesaSincronizada] = useState(false);
   const [sessaoMesa, setSessaoMesa] = useState("");
   const [selfOrder, setSelfOrder] = useState(false);
+  // Com o Tipe Order: a mesma tela ganha Pedir e Pagar, sem trocar de sessão.
+  const [ordering, setOrdering] = useState<"open" | "closed" | "code" | null>(null);
+  const [modo, setModo] = useState<"pedir" | "pagar" | null>(null);
+  const [tokenPedido, setTokenPedido] = useState<string | undefined>(undefined);
   const [cartao, setCartao] = useState<CardInput>({ number: "", holder: "", exp: "", cvv: "" });
   const [chavePublica, setChavePublica] = useState<string | null>(null);
   const [googlePay, setGooglePay] = useState<GooglePayConfig | null>(null);
@@ -250,8 +256,9 @@ function MesaPage() {
 
   const atualizarMesa = useCallback(async () => {
     try {
+      const device = lerTokenPedido(restaurante, codigoMesa);
       const estado = await getPublicTable({
-        data: { slug: restaurante, code: codigoMesa, token: tokenMesa },
+        data: { slug: restaurante, code: codigoMesa, token: tokenMesa, ...(device ? { device } : {}) },
       });
       if ("error" in estado) {
         setErroMesa(
@@ -298,6 +305,10 @@ function MesaPage() {
       setPagamentos(estado.payments);
       setSessaoMesa(estado.session);
       setSelfOrder(estado.selfOrder);
+      setOrdering(estado.ordering);
+      setTokenPedido(lerTokenPedido(restaurante, codigoMesa, estado.session));
+      // Primeira leitura: mesa sem nada pedido abre em Pedir; com conta aberta, em Pagar.
+      setModo((atual) => atual ?? (estado.selfOrder && estado.items.length === 0 ? "pedir" : "pagar"));
       setQtds((atuais) =>
         Object.fromEntries(
           itensMesa.map((item) => {
@@ -752,8 +763,65 @@ function MesaPage() {
             )}
           </p>
 
-          <div role="tablist" aria-label="Conta da mesa" className={`mt-5 grid gap-1 rounded-full bg-muted p-1 ${selfOrder ? "grid-cols-3" : "grid-cols-2"}`}>
-            {([...(selfOrder ? [["cardapio", "Cardápio", UtensilsCrossed] as const] : []), ["conta", "Conta", ReceiptText] as const, ["atividade", "Atividade", ClipboardList] as const]).map(([id, rotulo, Icone]) => (
+          {selfOrder && (
+            <div
+              role="tablist"
+              aria-label="Pedir ou pagar"
+              className="mt-5 grid grid-cols-2 gap-1 rounded-2xl border border-border bg-card p-1 shadow-xs"
+            >
+              {(
+                [
+                  ["pedir", "Pedir", UtensilsCrossed],
+                  ["pagar", "Pagar", Wallet],
+                ] as const
+              ).map(([id, rotulo, Icone]) => (
+                <button
+                  key={id}
+                  type="button"
+                  role="tab"
+                  aria-selected={modo === id}
+                  onClick={() => setModo(id)}
+                  className={`flex h-12 items-center justify-center gap-2 rounded-xl text-[0.95rem] font-semibold transition-colors ${modo === id ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"}`}
+                >
+                  <Icone className="h-4 w-4" aria-hidden /> {rotulo}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {selfOrder && ordering && (
+            <div className={modo === "pedir" ? "mt-5 pb-8" : "hidden"}>
+              {ordering !== "open" && (
+                <MesaLiberacao
+                  estado={ordering}
+                  slug={restaurante}
+                  code={codigoMesa}
+                  session={sessaoMesa}
+                  garcom={dados.garcom}
+                  onLiberado={(token) => {
+                    setTokenPedido(token);
+                    void atualizarMesa();
+                  }}
+                  onAtualizar={atualizarMesa}
+                />
+              )}
+              <MesaPedido
+                slug={restaurante}
+                code={codigoMesa}
+                session={sessaoMesa}
+                nome={nome}
+                device={tokenPedido}
+                podeEnviar={ordering === "open"}
+                onPlaced={atualizarMesa}
+                onBlocked={(motivo) => setOrdering(motivo)}
+              />
+            </div>
+          )}
+
+          {(!selfOrder || modo !== "pedir") && (
+          <>
+          <div role="tablist" aria-label="Conta da mesa" className="mt-5 grid grid-cols-2 gap-1 rounded-full bg-muted p-1">
+            {([["conta", "Conta", ReceiptText], ["atividade", "Atividade", ClipboardList]] as const).map(([id, rotulo, Icone]) => (
               <button
                 key={id}
                 type="button"
@@ -766,12 +834,6 @@ function MesaPage() {
               </button>
             ))}
           </div>
-
-          {aba === "cardapio" && selfOrder && (
-            <div className="mt-6 pb-8">
-              <MesaPedido slug={restaurante} code={codigoMesa} session={sessaoMesa} nome={nome} onPlaced={atualizarMesa} />
-            </div>
-          )}
 
           {aba === "conta" && (
             <>
@@ -1105,6 +1167,8 @@ function MesaPage() {
                 </div>
               )}
             </section>
+          )}
+          </>
           )}
         </main>
       )}

@@ -22,12 +22,14 @@ export const getPublicMenu = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: r } = await supabaseAdmin.from("restaurants").select("id, self_order_enabled").eq("slug", data.slug).maybeSingle();
     if (!r) return { error: "not_found" };
+    // Cardápio de pedido só com o módulo Order ativo (a checagem que vale é a do pedido, no banco).
+    const { data: hasOrder } = await supabaseAdmin.rpc("restaurant_has_module", { p_rid: r.id, p_module: "order" });
     const [cats, items] = await Promise.all([
       supabaseAdmin.from("pdv_menu_categories").select("id, name, position").eq("restaurant_id", r.id).order("position"),
       supabaseAdmin.from("pdv_menu_items").select("id, category_id, code, name, price, available, position, description").eq("restaurant_id", r.id).eq("available", true).order("position"),
     ]);
     return {
-      selfOrder: (r as { self_order_enabled?: boolean }).self_order_enabled ?? false,
+      selfOrder: hasOrder === true && ((r as { self_order_enabled?: boolean }).self_order_enabled ?? false),
       categories: (cats.data ?? []).map((c) => ({ id: c.id, name: c.name })),
       items: (items.data ?? []).map((i) => ({ id: i.id, categoryId: i.category_id, code: i.code, name: i.name, price: Number(i.price), description: i.description })),
     };
@@ -44,15 +46,19 @@ export const placeCustomerOrder = createServerFn({ method: "POST" })
     session: z.string().min(1).max(96),
     requestId: z.string().min(8).max(64).regex(/^[A-Za-z0-9_-]+$/),
     customer: z.string().trim().max(40).optional(),
+    /** Token deste celular no modo código curto (claimTableOrdering). */
+    device: z.string().regex(/^[0-9a-f]{48}$/).optional(),
     items: z.array(z.object({ code: z.string().min(1).max(16), qty: z.number().int().min(1).max(99), notes: z.string().max(140).optional() })).min(1).max(60),
   }).parse(d))
-  .handler(async ({ data }): Promise<{ items: number; total: number } | { error: "invalid" | "disabled" | "unavailable" | "failed" }> => {
+  .handler(async ({ data }): Promise<{ items: number; total: number } | { error: "invalid" | "disabled" | "closed" | "code" | "unavailable" | "failed" }> => {
     const { enforceRate, clientIp, safeEqual, logSecurityEvent } = await import("./security.server");
+    // Por IP (vários celulares na mesma rede) e por conta da mesa (vários IPs na mesma conta).
     await enforceRate(`order:${data.slug}:${data.code}:${clientIp()}`, 20, 60, data.slug);
+    await enforceRate(`order-session:${data.slug}:${data.session.slice(0, 16)}`, 30, 300, data.slug);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: r } = await supabaseAdmin.from("restaurants").select("id, self_order_enabled").eq("slug", data.slug).maybeSingle();
     if (!r) return { error: "invalid" };
-    if (!(r as { self_order_enabled?: boolean }).self_order_enabled) return { error: "disabled" };
+    // Módulo, opção e liberação da mesa são checados na RPC (fonte da verdade); aqui só a sessão da conta.
     // Autoriza pela sessão da conta ativa da mesa (igual ao pagamento do QR).
     const { data: t } = await supabaseAdmin.from("restaurant_tables").select("number, active, session_token" as never).eq("restaurant_id", r.id).eq("code", data.code.toLowerCase()).maybeSingle() as unknown as { data: { number: string; active: boolean; session_token: string } | null };
     if (!t || !t.active || !safeEqual(t.session_token, data.session)) {
@@ -60,10 +66,12 @@ export const placeCustomerOrder = createServerFn({ method: "POST" })
       return { error: "invalid" };
     }
     const { data: res, error } = await supabaseAdmin.rpc("pdv_customer_order", {
-      p_slug: data.slug, p_table: t.number, p_items: data.items, p_customer: data.customer ?? "", p_request_id: data.requestId,
+      p_slug: data.slug, p_table: t.number, p_items: data.items, p_customer: data.customer ?? "", p_request_id: data.requestId, ...(data.device ? { p_device: data.device } : {}),
     });
     if (error) {
       if (error.message.includes("desativado")) return { error: "disabled" };
+      if (error.message.includes("não estão liberados")) return { error: "closed" };
+      if (error.message.includes("Código da mesa")) return { error: "code" };
       if (error.message.includes("indisponível") || error.message.includes("Mesa inativa")) return { error: "unavailable" };
       return { error: "failed" };
     }

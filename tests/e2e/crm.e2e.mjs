@@ -212,6 +212,24 @@ await step("Camada B: negócio ganho vira conta em implantação, conclui etapas
   await shot(page, "06-conta-jornada");
 });
 
+await step("Tipe Order: contrato ativado, suspenso com motivo e reativado no card da conta", async () => {
+  await page.getByRole("radio", { name: /Módulos e integrações/ }).click();
+  const card = page.locator("section", { has: page.getByRole("heading", { name: "Tipe Order" }) });
+  await card.getByText("Não contratado").waitFor();
+  await card.getByRole("button", { name: "Ativar o Tipe Order" }).click();
+  await card.getByText("Ativo", { exact: true }).waitFor();
+  await card.getByRole("radio", { name: "Suspenso" }).click();
+  await card.getByRole("button", { name: "Suspender" }).click();
+  await expectText(page, "Informe o motivo.");
+  await card.getByLabel("Motivo").fill("Mensalidade em atraso");
+  await card.getByRole("button", { name: "Suspender" }).click();
+  await card.getByText("Mensalidade em atraso").waitFor();
+  await shot(page, "06b-conta-tipe-order-suspenso");
+  await card.getByRole("radio", { name: "Ativo" }).click();
+  await card.getByRole("button", { name: "Ativar o Tipe Order" }).click();
+  await card.getByText("Ativo", { exact: true }).waitFor();
+});
+
 await step("Jornada: cadastro no site entra como lead distribuído", async () => {
   await go(page, "/crm/jornada");
   const before = await page.locator("section", { hasText: "Comercial: vender a Tipe" }).first().innerText();

@@ -1,10 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { leadFromWaitlist, visitFromPayment } from "./adapters";
+import {
+  accountFromPlatform,
+  entitlementsFromPlatform,
+  entitlementToPlatform,
+  leadFromWaitlist,
+  visitFromPayment,
+} from "./adapters";
 import { dispatch, type Command } from "./engine";
 import {
   accountHealth,
   accountJourney,
   consumerProfiles,
+  entitlementOf,
   journeyCounts,
   onboardingProgress,
   SITE_SOURCE,
@@ -226,5 +233,106 @@ describe("entrada pelo site e adaptadores do Supabase", () => {
     });
     expect(visitFromPayment({ ...base, status: "pending" }, ctx)).toBeNull();
     expect(visitFromPayment({ ...base, payment_target: "tipe" }, ctx)).toBeNull();
+  });
+
+  it("Tipe Order tem contrato próprio: ativo, suspenso com motivo, cancelado e reativado", () => {
+    let s = login(createSeed(NOW), "caio@tipe.demo");
+    const a = s.accounts.find(
+      (x) => x.status !== "cancelada" && !x.modules.includes("pedido_na_mesa"),
+    )!;
+    expect(entitlementOf(a, "pedido_na_mesa")).toBe("nao_contratado");
+    expect(
+      fail(s, {
+        type: "setAccountModule",
+        accountId: a.id,
+        module: "pedido_na_mesa",
+        enabled: true,
+      }).error,
+    ).toMatch(/contrato próprio/);
+    expect(
+      fail(s, {
+        type: "setAccountEntitlement",
+        accountId: a.id,
+        module: "pedido_na_mesa",
+        state: "suspenso",
+        reason: "Atraso",
+      }).error,
+    ).toMatch(/ativo pode ser suspenso/);
+    s = ok(s, {
+      type: "setAccountEntitlement",
+      accountId: a.id,
+      module: "pedido_na_mesa",
+      state: "ativo",
+    }).state;
+    let acc = s.accounts.find((x) => x.id === a.id)!;
+    expect(entitlementOf(acc, "pedido_na_mesa")).toBe("ativo");
+    expect(acc.modules).toContain("pedido_na_mesa");
+    expect(
+      fail(s, {
+        type: "setAccountEntitlement",
+        accountId: a.id,
+        module: "pedido_na_mesa",
+        state: "suspenso",
+      }).error,
+    ).toMatch(/motivo/);
+    s = ok(s, {
+      type: "setAccountEntitlement",
+      accountId: a.id,
+      module: "pedido_na_mesa",
+      state: "suspenso",
+      reason: "Mensalidade em atraso",
+    }).state;
+    acc = s.accounts.find((x) => x.id === a.id)!;
+    expect(acc.entitlements?.pedido_na_mesa).toMatchObject({
+      state: "suspenso",
+      reason: "Mensalidade em atraso",
+    });
+    expect(acc.modules).not.toContain("pedido_na_mesa");
+    // Os outros módulos (pagamento da conta) não mudam com a suspensão.
+    expect(acc.modules).toEqual(expect.arrayContaining(["pix", "apple_pay", "google_pay"]));
+    s = ok(s, {
+      type: "setAccountEntitlement",
+      accountId: a.id,
+      module: "pedido_na_mesa",
+      state: "ativo",
+    }).state;
+    acc = s.accounts.find((x) => x.id === a.id)!;
+    expect(acc.entitlements?.pedido_na_mesa?.reason).toBeUndefined();
+  });
+
+  it("adaptador do Tipe Order lê e escreve no formato de restaurant_modules", () => {
+    const rows = [
+      { module: "order", status: "suspended", reason: "Atraso", changed_at: NOW },
+      { module: "three_d", status: "active", reason: null, changed_at: NOW },
+    ];
+    expect(entitlementsFromPlatform(rows)).toEqual({
+      pedido_na_mesa: { state: "suspenso", reason: "Atraso", changedAt: NOW },
+    });
+    expect(entitlementToPlatform("r1", "pedido_na_mesa", "cancelado", " Pediu para sair ")).toEqual(
+      {
+        p_rid: "r1",
+        p_module: "order",
+        p_status: "cancelled",
+        p_reason: "Pediu para sair",
+        p_actor_kind: "crm",
+      },
+    );
+    expect(entitlementToPlatform("r1", "pedido_na_mesa", "ativo", "ignorado").p_reason).toBeNull();
+    const conta = accountFromPlatform(
+      {
+        id: "r1",
+        name: "Casa do Caju",
+        slug: "casa-do-caju",
+        pos_provider: "none",
+        pos_mode: "tipe",
+        onboarding_step: "done",
+        bill_payment_methods: ["pix"],
+      } as never,
+      null,
+      [{ active: true, waiter_id: null }],
+      [{ module: "order", status: "active", reason: null, changed_at: NOW }],
+    );
+    expect(conta.modules).toContain("pedido_na_mesa");
+    expect(conta.entitlements.pedido_na_mesa?.state).toBe("ativo");
   });
 });

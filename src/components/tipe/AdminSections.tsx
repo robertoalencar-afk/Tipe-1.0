@@ -13,6 +13,7 @@ import { cashAction, getOpsData, getReports, saveSettings } from "@/lib/tipe/adm
 import { FechamentoDia } from "@/components/tipe/FechamentoDia";
 import { PagamentosRelatorio } from "@/components/tipe/PagamentosRelatorio";
 import { TotemACobrar, TotemConfig } from "@/components/tipe/Totem";
+import { useOrderAccess } from "@/components/tipe/LiberarPedidosMesa";
 
 const brl = (n: number) => n.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 const hora = (s: string) => new Date(s).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
@@ -365,15 +366,16 @@ export function Configuracoes({ slug, podeDono }: { slug: string; podeDono: bool
   const ops = useOps(slug);
   const save = useServerFn(saveSettings);
   const qc = useQueryClient();
+  const orderAccess = useOrderAccess(slug);
   const r = ops.data?.restaurant;
-  const [f, setF] = useState<null | { name: string; rate: string; phone: string; address: string; hours: string; methods: string[]; review: string; selfOrder: boolean; totem: boolean }>(null);
+  const [f, setF] = useState<null | { name: string; rate: string; phone: string; address: string; hours: string; methods: string[]; review: string; selfOrder: boolean; orderMode: "staff_opens" | "table_code"; totem: boolean }>(null);
   if (!r) return <p className="text-muted-foreground">Carregando…</p>;
-  const v = f ?? { name: r.name, rate: String(Math.round(r.service_rate * 100)), phone: r.phone ?? "", address: r.address ?? "", hours: r.opening_hours ?? "", methods: r.bill_payment_methods ?? ["pix", "apple_pay", "google_pay", "at_establishment"], review: r.google_review_url ?? "", selfOrder: r.self_order_enabled ?? false, totem: r.totem_enabled ?? false };
+  const v = f ?? { name: r.name, rate: String(Math.round(r.service_rate * 100)), phone: r.phone ?? "", address: r.address ?? "", hours: r.opening_hours ?? "", methods: r.bill_payment_methods ?? ["pix", "apple_pay", "google_pay", "at_establishment"], review: r.google_review_url ?? "", selfOrder: r.self_order_enabled ?? false, orderMode: r.order_session_mode ?? "staff_opens", totem: r.totem_enabled ?? false };
   return (
     <form className="max-w-xl space-y-3" onSubmit={async (e) => {
       e.preventDefault();
       try {
-        await save({ data: { slug, name: v.name, serviceRate: Number(v.rate) / 100, phone: v.phone, address: v.address, openingHours: v.hours, billMethods: v.methods as ("pix" | "apple_pay" | "google_pay" | "at_establishment")[], googleReviewUrl: v.review.trim(), selfOrder: v.selfOrder, totem: v.totem } });
+        await save({ data: { slug, name: v.name, serviceRate: Number(v.rate) / 100, phone: v.phone, address: v.address, openingHours: v.hours, billMethods: v.methods as ("pix" | "apple_pay" | "google_pay" | "at_establishment")[], googleReviewUrl: v.review.trim(), selfOrder: v.selfOrder, orderSessionMode: v.orderMode, totem: v.totem } });
         toast.success("Configurações salvas"); setF(null);
         qc.invalidateQueries({ queryKey: ["ops", slug] }); qc.invalidateQueries({ queryKey: ["panel", slug] });
       } catch (err) { toast.error((err as Error).message); }
@@ -406,13 +408,36 @@ export function Configuracoes({ slug, podeDono }: { slug: string; podeDono: bool
       </Card>
       <Card className="space-y-3">
         <div>
-          <h3 className="font-display font-bold">Pedido pela mesa (cardápio digital)</h3>
-          <p className="text-sm text-muted-foreground">Quando ligado, o cliente pode pedir pelo cardápio no próprio celular, lendo o QR da mesa. O pedido vai direto para a cozinha e entra na conta.</p>
+          <h3 className="font-display font-bold">Tipe Order: pedido pela mesa</h3>
+          <p className="text-sm text-muted-foreground">O mesmo QR da conta ganha as opções Pedir e Pagar. O pedido vai direto para a cozinha e entra na conta da mesa.</p>
         </div>
-        <label className="flex items-center gap-3 text-sm">
-          <input type="checkbox" className="h-4 w-4 accent-primary" disabled={!podeDono} checked={v.selfOrder} onChange={() => setF({ ...v, selfOrder: !v.selfOrder })} />
-          Permitir que o cliente faça o pedido pela mesa
-        </label>
+        {orderAccess.data?.orderActive ? (
+          <>
+            <label className="flex items-center gap-3 text-sm">
+              <input type="checkbox" className="h-4 w-4 accent-primary" disabled={!podeDono} checked={v.selfOrder} onChange={() => setF({ ...v, selfOrder: !v.selfOrder })} />
+              Permitir que o cliente faça o pedido pela mesa
+            </label>
+            <fieldset className="space-y-2" disabled={!podeDono || !v.selfOrder}>
+              <legend className="text-sm font-medium">Como a mesa é liberada para pedir</legend>
+              {([
+                ["staff_opens", "A equipe libera a mesa", "Garçom ou caixa toca em \"Liberar pedidos pelo celular\" na mesa. Quem tem o QR da mesa pede enquanto ela estiver liberada."],
+                ["table_code", "A equipe libera e passa um código", "Além de liberar, cada celular digita um código de 4 números que a equipe passa para a mesa. Mais seguro, um passo a mais para o cliente."],
+              ] as const).map(([k, t, d]) => (
+                <label key={k} className="flex items-start gap-3 rounded-xl border border-border p-3 text-sm has-[:checked]:border-foreground/40">
+                  <input type="radio" name="order-mode" className="mt-0.5 h-4 w-4 accent-primary" checked={v.orderMode === k} onChange={() => setF({ ...v, orderMode: k })} />
+                  <span><span className="font-medium">{t}</span><span className="block text-xs text-muted-foreground">{d}</span></span>
+                </label>
+              ))}
+            </fieldset>
+            <p className="text-xs text-muted-foreground">Uma foto do QR não basta para pedir: a liberação vale só para a conta aberta e acaba quando a mesa fecha.</p>
+          </>
+        ) : (
+          <p className="rounded-xl bg-background-muted px-3 py-2 text-sm text-muted-foreground">
+            {orderAccess.data?.modules.order === "suspended"
+              ? "O Tipe Order está suspenso para este restaurante. A conta e os pagamentos continuam funcionando normalmente."
+              : "O Tipe Order não está contratado. Fale com a equipe da Tipe para ativar o pedido pela mesa."}
+          </p>
+        )}
         <p className="text-xs text-muted-foreground">O pagamento da conta continua igual: o cliente paga pelo QR quando quiser.</p>
       </Card>
       <Card className="space-y-3">

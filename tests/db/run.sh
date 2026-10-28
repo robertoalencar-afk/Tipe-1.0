@@ -38,6 +38,9 @@ grep -qE "FALHOU|ERROR" /tmp/tipe-garcom.log && FAIL=1
 $P -v ON_ERROR_STOP=1 -f "$DIR/pedido-mesa.sql" >/tmp/tipe-pedido-mesa.raw 2>&1 || FAIL=1
 grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-pedido-mesa.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-pedido-mesa.log
 grep -qE "FALHOU|ERROR" /tmp/tipe-pedido-mesa.log && FAIL=1
+$P -v ON_ERROR_STOP=1 -f "$DIR/order-liberacao.sql" >/tmp/tipe-order-liberacao.raw 2>&1 || FAIL=1
+grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-order-liberacao.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-order-liberacao.log
+grep -qE "FALHOU|ERROR" /tmp/tipe-order-liberacao.log && FAIL=1
 $P -v ON_ERROR_STOP=1 -f "$DIR/lancamento.sql" >/tmp/tipe-lancamento.raw 2>&1 || FAIL=1
 grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-lancamento.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-lancamento.log
 grep -qE "FALHOU|ERROR" /tmp/tipe-lancamento.log && FAIL=1

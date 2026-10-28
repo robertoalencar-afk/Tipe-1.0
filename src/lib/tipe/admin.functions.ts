@@ -13,9 +13,11 @@ async function rest(supabase: any, slug: string) {
   data.google_review_url = rvErr ? null : (rv?.google_review_url ?? null);
   const { data: so, error: soErr } = await supabase.from("restaurants").select("self_order_enabled").eq("id", data.id).maybeSingle();
   data.self_order_enabled = soErr ? false : (so?.self_order_enabled ?? false);
+  const { data: om, error: omErr } = await supabase.from("restaurants").select("order_session_mode").eq("id", data.id).maybeSingle();
+  data.order_session_mode = omErr ? "staff_opens" : (om?.order_session_mode ?? "staff_opens");
   const { data: tt, error: ttErr } = await supabase.from("restaurants").select("totem_enabled").eq("id", data.id).maybeSingle();
   data.totem_enabled = ttErr ? false : (tt?.totem_enabled ?? false);
-  return data as { id: string; slug: string; name: string; pos_provider: string; pos_mode: string; service_rate: number; phone: string | null; address: string | null; opening_hours: string | null; bill_payment_methods: string[]; google_review_url: string | null; self_order_enabled: boolean; totem_enabled: boolean };
+  return data as { id: string; slug: string; name: string; pos_provider: string; pos_mode: string; service_rate: number; phone: string | null; address: string | null; opening_hours: string | null; bill_payment_methods: string[]; google_review_url: string | null; self_order_enabled: boolean; order_session_mode: "staff_opens" | "table_code"; totem_enabled: boolean };
 }
 const err = (m: string, fb: string) => {
   for (const k of ["Sem permissão", "Já existe", "Abra o caixa", "Nenhum caixa", "Valor inválido", "Escolha outra", "Há pagamentos", "Mesa inativa", "Informe o motivo", "Quantidade"]) if (m.includes(k)) return m;
@@ -118,13 +120,14 @@ export const saveSettings = createServerFn({ method: "POST" })
     billMethods: z.array(z.enum(["pix", "apple_pay", "google_pay", "at_establishment"])).min(1, "Escolha ao menos um meio de pagamento").max(4),
     googleReviewUrl: z.string().trim().max(300).optional(),
     selfOrder: z.boolean().optional(),
+    orderSessionMode: z.enum(["staff_opens", "table_code"]).optional(),
     totem: z.boolean().optional(),
   }).parse(d))
   .handler(async ({ data, context }) => {
     const { isGoogleReviewUrl } = await import("./rules");
     const review = data.googleReviewUrl ? data.googleReviewUrl : null;
     if (review && !isGoogleReviewUrl(review)) throw new Error("Valor inválido: use o link de avaliação do Google (começa com https://g.page/ ou https://maps.app.goo.gl/, por exemplo)");
-    const { data: rows, error } = await context.supabase.from("restaurants").update({ name: data.name, service_rate: data.serviceRate, phone: data.phone || null, address: data.address || null, opening_hours: data.openingHours || null, bill_payment_methods: Array.from(new Set(data.billMethods)), ...(data.googleReviewUrl !== undefined ? { google_review_url: review } : {}), ...(data.selfOrder !== undefined ? { self_order_enabled: data.selfOrder } : {}), ...(data.totem !== undefined ? { totem_enabled: data.totem } : {}) }).eq("slug", data.slug).select("id");
+    const { data: rows, error } = await context.supabase.from("restaurants").update({ name: data.name, service_rate: data.serviceRate, phone: data.phone || null, address: data.address || null, opening_hours: data.openingHours || null, bill_payment_methods: Array.from(new Set(data.billMethods)), ...(data.googleReviewUrl !== undefined ? { google_review_url: review } : {}), ...(data.orderSessionMode !== undefined ? { order_session_mode: data.orderSessionMode } : {}), ...(data.selfOrder !== undefined ? { self_order_enabled: data.selfOrder } : {}), ...(data.totem !== undefined ? { totem_enabled: data.totem } : {}) }).eq("slug", data.slug).select("id");
     if (error || !rows?.length) throw new Error("Somente o dono pode alterar as configurações");
     return { ok: true };
   });

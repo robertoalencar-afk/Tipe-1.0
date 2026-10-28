@@ -2,6 +2,9 @@ import type { Tables } from "@/integrations/supabase/types";
 import { DEFAULT_MODULES, planForTables, SITE_SOURCE } from "./ecosystem";
 import type {
   BillMethod,
+  EntitledModule,
+  Entitlement,
+  EntitlementState,
   LeadProfile,
   LeadStatus,
   ModuleKey,
@@ -79,6 +82,7 @@ export function accountFromPlatform(
   r: Tables<"restaurants">,
   sub: Tables<"restaurant_subscriptions"> | null,
   tables: Pick<Tables<"restaurant_tables">, "active" | "waiter_id">[],
+  moduleRows: PlatformModuleRow[] = [],
 ) {
   const active = tables.filter((t) => t.active);
   const plan = PLAN_IDS.includes(sub?.plan as RestaurantPlan)
@@ -91,6 +95,9 @@ export function accountFromPlatform(
     const key = METHOD_MODULE[m];
     if (key) modules.add(key);
   }
+  const entitlements = entitlementsFromPlatform(moduleRows);
+  for (const [key, e] of Object.entries(entitlements))
+    if (e.state === "ativo") modules.add(key as EntitledModule);
   const pdv: PdvStatus =
     r.pos_mode === "external"
       ? r.onboarding_step === "pos"
@@ -108,10 +115,65 @@ export function accountFromPlatform(
     plan,
     tables: active.length,
     modules: [...modules],
+    entitlements,
     pdv: { provider: r.pos_provider, status: pdv },
     stepsDone,
     subscriptionStatus: sub?.status ?? "sem_assinatura",
     trialEndsAt: sub?.trial_ends_at,
+  };
+}
+
+// ---------- Camada B: contrato dos módulos à parte (Tipe Order) ----------
+
+/**
+ * Linha de restaurant_modules (migração 0027 do Tipe Order). Tipada aqui porque a
+ * tabela ainda não está no types.ts gerado desta branch.
+ */
+export type PlatformModuleRow = {
+  module: string;
+  status: string;
+  reason: string | null;
+  changed_at: string;
+};
+
+const PLATFORM_MODULE: Record<EntitledModule, string> = { pedido_na_mesa: "order" };
+const PLATFORM_STATE: Record<EntitlementState, string> = {
+  ativo: "active",
+  suspenso: "suspended",
+  cancelado: "cancelled",
+};
+
+/** Estado dos módulos à parte lido da plataforma. Linhas de módulos que o CRM não conhece ficam de fora. */
+export function entitlementsFromPlatform(rows: PlatformModuleRow[]) {
+  const out: Partial<Record<EntitledModule, Entitlement>> = {};
+  for (const r of rows) {
+    const key = (Object.keys(PLATFORM_MODULE) as EntitledModule[]).find(
+      (k) => PLATFORM_MODULE[k] === r.module,
+    );
+    const state = (Object.keys(PLATFORM_STATE) as EntitlementState[]).find(
+      (k) => PLATFORM_STATE[k] === r.status,
+    );
+    if (key && state) out[key] = { state, reason: r.reason ?? undefined, changedAt: r.changed_at };
+  }
+  return out;
+}
+
+/**
+ * Argumentos de set_restaurant_module (só service_role, chamado pelo servidor com 2FA
+ * do fundador) para gravar na plataforma a mudança feita no card do CRM.
+ */
+export function entitlementToPlatform(
+  restaurantId: string,
+  module: EntitledModule,
+  state: EntitlementState,
+  reason?: string,
+) {
+  return {
+    p_rid: restaurantId,
+    p_module: PLATFORM_MODULE[module],
+    p_status: PLATFORM_STATE[state],
+    p_reason: state === "ativo" ? null : (reason ?? "").trim() || null,
+    p_actor_kind: "crm" as const,
   };
 }
 
@@ -218,6 +280,13 @@ export const INTEGRATION_POINTS: {
     source: "pos_integrations, restaurant_pagarme_accounts",
     status: "adaptador",
     note: "Status do PDV vem de restaurants.pos_mode e onboarding_step.",
+  },
+  {
+    layer: "B",
+    what: "Contrato do Tipe Order",
+    source: "restaurant_modules (migração 0027)",
+    status: "adaptador",
+    note: "entitlementsFromPlatform() lê o estado; entitlementToPlatform() monta a gravação via set_restaurant_module.",
   },
   {
     layer: "B",

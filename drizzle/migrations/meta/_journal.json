@@ -194,26 +194,33 @@
     {
       "idx": 27,
       "version": "7",
+      "when": 1791972227310,
+      "tag": "0027_order_modules_table_ordering",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
       "when": 1791972228310,
       "tag": "0028_product_launch_states",
       "breakpoints": true
     },
     {
-      "idx": 28,
+      "idx": 29,
       "version": "7",
       "when": 1791972229310,
       "tag": "0030_restrict_internal_rpc_execution",
       "breakpoints": true
     },
     {
-      "idx": 29,
+      "idx": 30,
       "version": "7",
       "when": 1792413000000,
       "tag": "0031_pagarme_account_id_wallets",
       "breakpoints": true
     },
     {
-      "idx": 30,
+      "idx": 31,
       "version": "7",
       "when": 1792413600000,
       "tag": "0032_idempotent_launch_order",
