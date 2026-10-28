@@ -68,6 +68,7 @@ import { AvisoPendencias, PendenciasFinanceiras } from "@/components/tipe/Penden
 import { grantWaiterAccess } from "@/lib/tipe/waiter.functions";
 import { Landmark } from "lucide-react";
 import { DesempenhoGarcons } from "@/components/tipe/DesempenhoGarcons";
+import { AvaliacoesGuestRestaurante } from "@/components/tipe/guest/AvaliacoesGuestRestaurante";
 import { OnboardingPdv } from "@/components/tipe/OnboardingPdv";
 import { PrecisaDeVoce } from "@/components/tipe/PrecisaDeVoce";
 import { LebreAssistant } from "@/components/tipe/LebreAssistant";
@@ -865,7 +866,12 @@ export function RestaurantPanel({
           </div>
         )}
 
-        {aba === "garcons" && <DesempenhoGarcons slug={slug} />}
+        {aba === "garcons" && (
+          <div className="space-y-6">
+            <DesempenhoGarcons slug={slug} />
+            <AvaliacoesGuestRestaurante slug={slug} podeContestar={myRoles.includes("owner")} />
+          </div>
+        )}
         {aba === "qr" && (
           <MesasQr
             slug={slug}

@@ -374,8 +374,13 @@ export const getPaymentByKey = createServerFn({ method: "POST" })
   });
 
 // Avaliação do atendimento: vinculada ao garçom atual da mesa (definido pelo servidor).
+// Campos do Guest (paymentId, publishConsent, publicIdentity) são opcionais: sem eles, nada muda.
 export const submitRating = createServerFn({ method: "POST" })
-  .inputValidator((d) => TableInput.extend({ stars: z.number().int().min(1).max(5), comment: z.string().trim().max(400).optional() }).parse(d))
+  .inputValidator((d) => TableInput.extend({
+    stars: z.number().int().min(1).max(5), comment: z.string().trim().max(400).optional(),
+    paymentId: z.string().uuid().optional(), publishConsent: z.boolean().optional(),
+    publicIdentity: z.enum(["anonimo", "primeiro_nome"]).optional(),
+  }).parse(d))
   .handler(async ({ data }) => {
     const { verifyTableSession, enforceRate } = await import("./security.server");
     const ok = await verifyTableSession(data.restaurantId, data.tableId, data.session);
@@ -383,11 +388,17 @@ export const submitRating = createServerFn({ method: "POST" })
     await enforceRate(`rating:${data.restaurantId}:${data.tableId}:${data.session.slice(0, 12)}`, 5, 600, data.restaurantId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: t } = await supabaseAdmin.from("restaurant_tables").select("waiter_id").eq("restaurant_id", ok.restaurantId).eq("number", data.tableId).maybeSingle();
-    const { error } = await supabaseAdmin.from("waiter_ratings").insert({
+    const { data: rating, error } = await supabaseAdmin.from("waiter_ratings").insert({
       restaurant_id: ok.restaurantId, waiter_id: t?.waiter_id ?? null, table_number: data.tableId,
       stars: data.stars, comment: data.comment ? data.comment : null,
+    }).select("id").single();
+    if (error || !rating) throw new Error("Não foi possível registrar a avaliação");
+    const { recordGuestReview } = await import("./guest/reviews.server");
+    await recordGuestReview(supabaseAdmin as never, {
+      restaurantId: ok.restaurantId, restaurantSlug: data.restaurantId, tableNumber: data.tableId, waiterRatingId: rating.id,
+      paymentId: data.paymentId, stars: data.stars, comment: data.comment,
+      publishConsent: data.publishConsent, publicIdentity: data.publicIdentity,
     });
-    if (error) throw new Error("Não foi possível registrar a avaliação");
     if (data.stars <= 2) {
       const { avisarNota } = await import("./avisos-equipe.server");
       await avisarNota(supabaseAdmin, ok.restaurantId, t?.waiter_id ?? null, data.tableId, data.stars, data.comment);
