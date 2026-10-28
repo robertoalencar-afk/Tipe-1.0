@@ -39,6 +39,7 @@ import { Route as CrmEmpresasRouteImport } from './routes/crm.empresas'
 import { Route as CrmEntrarRouteImport } from './routes/crm.entrar'
 import { Route as CrmEquipeRouteImport } from './routes/crm.equipe'
 import { Route as CrmFinanceiroRouteImport } from './routes/crm.financeiro'
+import { Route as CrmFundadorRouteImport } from './routes/crm.fundador'
 import { Route as CrmFunisRouteImport } from './routes/crm.funis'
 import { Route as CrmGamificacaoRouteImport } from './routes/crm.gamificacao'
 import { Route as CrmJornadaRouteImport } from './routes/crm.jornada'
@@ -224,6 +225,11 @@ const CrmEquipeRoute = CrmEquipeRouteImport.update({
 const CrmFinanceiroRoute = CrmFinanceiroRouteImport.update({
   id: '/financeiro',
   path: '/financeiro',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmFundadorRoute = CrmFundadorRouteImport.update({
+  id: '/fundador',
+  path: '/fundador',
   getParentRoute: () => CrmRoute,
 } as any)
 const CrmFunisRoute = CrmFunisRouteImport.update({
@@ -440,6 +446,7 @@ export interface FileRoutesByFullPath {
   '/crm/entrar': typeof CrmEntrarRoute
   '/crm/equipe': typeof CrmEquipeRoute
   '/crm/financeiro': typeof CrmFinanceiroRoute
+  '/crm/fundador': typeof CrmFundadorRoute
   '/crm/funis': typeof CrmFunisRoute
   '/crm/gamificacao': typeof CrmGamificacaoRoute
   '/crm/jornada': typeof CrmJornadaRoute
@@ -506,6 +513,7 @@ export interface FileRoutesByTo {
   '/crm/entrar': typeof CrmEntrarRoute
   '/crm/equipe': typeof CrmEquipeRoute
   '/crm/financeiro': typeof CrmFinanceiroRoute
+  '/crm/fundador': typeof CrmFundadorRoute
   '/crm/funis': typeof CrmFunisRoute
   '/crm/gamificacao': typeof CrmGamificacaoRoute
   '/crm/jornada': typeof CrmJornadaRoute
@@ -575,6 +583,7 @@ export interface FileRoutesById {
   '/crm/entrar': typeof CrmEntrarRoute
   '/crm/equipe': typeof CrmEquipeRoute
   '/crm/financeiro': typeof CrmFinanceiroRoute
+  '/crm/fundador': typeof CrmFundadorRoute
   '/crm/funis': typeof CrmFunisRoute
   '/crm/gamificacao': typeof CrmGamificacaoRoute
   '/crm/jornada': typeof CrmJornadaRoute
@@ -644,6 +653,7 @@ export interface FileRouteTypes {
     | '/crm/entrar'
     | '/crm/equipe'
     | '/crm/financeiro'
+    | '/crm/fundador'
     | '/crm/funis'
     | '/crm/gamificacao'
     | '/crm/jornada'
@@ -710,6 +720,7 @@ export interface FileRouteTypes {
     | '/crm/entrar'
     | '/crm/equipe'
     | '/crm/financeiro'
+    | '/crm/fundador'
     | '/crm/funis'
     | '/crm/gamificacao'
     | '/crm/jornada'
@@ -778,6 +789,7 @@ export interface FileRouteTypes {
     | '/crm/entrar'
     | '/crm/equipe'
     | '/crm/financeiro'
+    | '/crm/fundador'
     | '/crm/funis'
     | '/crm/gamificacao'
     | '/crm/jornada'
@@ -1068,6 +1080,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CrmFinanceiroRouteImport
       parentRoute: typeof CrmRoute
     }
+    '/crm/fundador': {
+      id: '/crm/fundador'
+      path: '/fundador'
+      fullPath: '/crm/fundador'
+      preLoaderRoute: typeof CrmFundadorRouteImport
+      parentRoute: typeof CrmRoute
+    }
     '/crm/funis': {
       id: '/crm/funis'
       path: '/funis'
@@ -1351,6 +1370,7 @@ interface CrmRouteChildren {
   CrmEntrarRoute: typeof CrmEntrarRoute
   CrmEquipeRoute: typeof CrmEquipeRoute
   CrmFinanceiroRoute: typeof CrmFinanceiroRoute
+  CrmFundadorRoute: typeof CrmFundadorRoute
   CrmFunisRoute: typeof CrmFunisRoute
   CrmGamificacaoRoute: typeof CrmGamificacaoRoute
   CrmJornadaRoute: typeof CrmJornadaRoute
@@ -1381,6 +1401,7 @@ const CrmRouteChildren: CrmRouteChildren = {
   CrmEntrarRoute: CrmEntrarRoute,
   CrmEquipeRoute: CrmEquipeRoute,
   CrmFinanceiroRoute: CrmFinanceiroRoute,
+  CrmFundadorRoute: CrmFundadorRoute,
   CrmFunisRoute: CrmFunisRoute,
   CrmGamificacaoRoute: CrmGamificacaoRoute,
   CrmJornadaRoute: CrmJornadaRoute,

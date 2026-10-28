@@ -12,6 +12,7 @@ import {
   Contact as ContactIcon,
   Filter,
   Gauge,
+  Handshake,
   HeartHandshake,
   Inbox,
   KanbanSquare,
@@ -70,6 +71,8 @@ type NavItem = {
   icon: typeof Gauge;
   perm?: Action | undefined;
   platform?: boolean | undefined;
+  /** Só na organização da própria Tipe (programas da plataforma). */
+  tipeOnly?: boolean | undefined;
   exact?: boolean | undefined;
   badge?: ((b: Badges) => number) | undefined;
 };
@@ -101,6 +104,13 @@ export const SECTIONS: Section[] = [
     label: "Restaurantes",
     items: [
       { to: "/crm/contas", label: "Contas", icon: Store, badge: (b) => b.onboarding },
+      {
+        to: "/crm/fundador",
+        label: "Restaurante Fundador",
+        icon: Handshake,
+        perm: "founding.view",
+        tipeOnly: true,
+      },
       { to: "/crm/suporte", label: "Suporte", icon: LifeBuoy, badge: (b) => b.tickets },
     ],
   },
@@ -173,10 +183,15 @@ function useBadges() {
 }
 
 function useSections() {
-  const { me, can } = useCrm();
+  const { me, can, org } = useCrm();
   return SECTIONS.map((s) => ({
     ...s,
-    items: s.items.filter((i) => (!i.perm || can(i.perm)) && (!i.platform || me.platformAdmin)),
+    items: s.items.filter(
+      (i) =>
+        (!i.perm || can(i.perm)) &&
+        (!i.platform || me.platformAdmin) &&
+        (!i.tipeOnly || !!org.tipePlatform),
+    ),
   })).filter((s) => s.items.length);
 }
 
