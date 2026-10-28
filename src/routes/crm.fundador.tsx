@@ -34,7 +34,10 @@ import type { FoundingPartnerStatus } from "@/lib/tipe/crm/types";
 // Regras comerciais nascem vazias: nada de vaga, prazo, preço ou vantagem sem aprovação.
 export const Route = createFileRoute("/crm/fundador")({
   validateSearch: z.object({
-    estado: z.enum(FP_STATUS_ORDER as [FoundingPartnerStatus, ...FoundingPartnerStatus[]]).optional().catch(undefined),
+    estado: z
+      .enum(FP_STATUS_ORDER as [FoundingPartnerStatus, ...FoundingPartnerStatus[]])
+      .optional()
+      .catch(undefined),
     conta: z.string().optional().catch(undefined),
   }),
   head: () => ({ meta: [{ title: "Restaurante Fundador | Tipe" }] }),
@@ -73,7 +76,12 @@ function Fundador() {
     .map((e) => ({ e, a: accountsById.get(e.accountId) }))
     .filter((r): r is { e: (typeof list)[number]; a: NonNullable<typeof r.a> } => !!r.a)
     .filter((r) => !estado || r.e.status === estado)
-    .filter((r) => !term || r.a.name.toLowerCase().includes(term) || r.a.neighborhood.toLowerCase().includes(term))
+    .filter(
+      (r) =>
+        !term ||
+        r.a.name.toLowerCase().includes(term) ||
+        r.a.neighborhood.toLowerCase().includes(term),
+    )
     .sort(
       (x, y) =>
         FP_STATUS_ORDER.indexOf(x.e.status) - FP_STATUS_ORDER.indexOf(y.e.status) ||
@@ -92,8 +100,14 @@ function Fundador() {
 
   const setEstado = (v: FoundingPartnerStatus | undefined) =>
     navigate({ search: (p) => ({ ...p, estado: v }) });
-  const open = (accountId: string | undefined) =>
+  const open = (accountId: string | undefined) => {
     navigate({ search: (p) => ({ ...p, conta: accountId }) });
+    // No celular a ficha fica abaixo da lista: leva a pessoa até ela.
+    if (accountId && typeof window !== "undefined" && window.innerWidth < 1280)
+      requestAnimationFrame(() =>
+        document.getElementById("ficha-adesao")?.scrollIntoView({ block: "start" }),
+      );
+  };
 
   return (
     <div className="space-y-5">
@@ -133,7 +147,12 @@ function Fundador() {
         aria-label="Filtrar por estado"
         className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1"
       >
-        <StateChip on={!estado} onClick={() => setEstado(undefined)} label="Todos" n={list.length} />
+        <StateChip
+          on={!estado}
+          onClick={() => setEstado(undefined)}
+          label="Todos"
+          n={list.length}
+        />
         {FP_STATUS_ORDER.map((st) => (
           <StateChip
             key={st}
@@ -157,7 +176,9 @@ function Fundador() {
             <Select
               aria-label="Estado"
               value={estado ?? ""}
-              onChange={(e) => setEstado((e.target.value || undefined) as FoundingPartnerStatus | undefined)}
+              onChange={(e) =>
+                setEstado((e.target.value || undefined) as FoundingPartnerStatus | undefined)
+              }
               className="sm:w-52"
             >
               <option value="">Todos os estados</option>
@@ -175,7 +196,11 @@ function Fundador() {
             <div className="p-5">
               <Empty
                 icon={Handshake}
-                title={list.length ? "Nenhuma adesão com esses filtros" : "Nenhum restaurante convidado ainda"}
+                title={
+                  list.length
+                    ? "Nenhuma adesão com esses filtros"
+                    : "Nenhum restaurante convidado ainda"
+                }
                 text={
                   list.length
                     ? "Limpe a busca ou escolha outro estado."
@@ -216,7 +241,9 @@ function Fundador() {
                     </span>
                     <span className="flex items-center gap-2 sm:w-72 sm:justify-end">
                       {e.pilotEligible && e.status !== "selecionado_piloto" && (
-                        <span className="text-[0.68rem] text-muted-foreground">elegível ao piloto</span>
+                        <span className="text-[0.68rem] text-muted-foreground">
+                          elegível ao piloto
+                        </span>
                       )}
                       <FpStatusPill status={e.status} />
                       <span className="w-20 text-right text-[0.7rem] tabular-nums text-muted-foreground">
@@ -230,40 +257,45 @@ function Fundador() {
           )}
         </Panel>
 
-        <Panel
-          className="xl:col-span-2 xl:sticky xl:top-4"
-          title="Ficha da adesão"
-          description={
-            selected && selectedAccount
-              ? `Desde ${dateBR(selected.createdAt)}`
-              : "Escolha um restaurante na lista"
-          }
-          actions={
-            selected ? (
-              <IconBtn label="Fechar ficha" icon={X} onClick={() => open(undefined)} />
-            ) : undefined
-          }
-        >
-          {selected && selectedAccount ? (
-            <EnrollmentDetail enrollment={selected} account={selectedAccount} />
-          ) : conta ? (
-            <Empty
-              icon={Handshake}
-              title="Esta conta não está no programa"
-              text="Ela pode nunca ter sido convidada ou pertencer a outra organização."
-              action={
-                <Link to="/crm/contas/$id" params={{ id: conta }} className="text-xs font-semibold text-primary hover:underline">
-                  Abrir a conta
-                </Link>
-              }
-            />
-          ) : (
-            <p className="text-sm text-muted-foreground">
-              A ficha mostra estado, termos, elegibilidade para o piloto, convites, benefícios
-              concedidos, comunicações, feedback e a trilha de auditoria.
-            </p>
-          )}
-        </Panel>
+        <div id="ficha-adesao" className="scroll-mt-4 xl:col-span-2 xl:sticky xl:top-4">
+          <Panel
+            title="Ficha da adesão"
+            description={
+              selected && selectedAccount
+                ? `Desde ${dateBR(selected.createdAt)}`
+                : "Escolha um restaurante na lista"
+            }
+            actions={
+              selected ? (
+                <IconBtn label="Fechar ficha" icon={X} onClick={() => open(undefined)} />
+              ) : undefined
+            }
+          >
+            {selected && selectedAccount ? (
+              <EnrollmentDetail enrollment={selected} account={selectedAccount} />
+            ) : conta ? (
+              <Empty
+                icon={Handshake}
+                title="Esta conta não está no programa"
+                text="Ela pode nunca ter sido convidada ou pertencer a outra organização."
+                action={
+                  <Link
+                    to="/crm/contas/$id"
+                    params={{ id: conta }}
+                    className="text-xs font-semibold text-primary hover:underline"
+                  >
+                    Abrir a conta
+                  </Link>
+                }
+              />
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                A ficha mostra estado, termos, elegibilidade para o piloto, convites, benefícios
+                concedidos, comunicações, feedback e a trilha de auditoria.
+              </p>
+            )}
+          </Panel>
+        </div>
       </div>
 
       <DemoNote>

@@ -1,6 +1,14 @@
 import { useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowUpRight, FileSignature, Flag, Gift, History, MessageSquareText, Send } from "lucide-react";
+import {
+  ArrowUpRight,
+  FileSignature,
+  Flag,
+  Gift,
+  History,
+  MessageSquareText,
+  Send,
+} from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -12,7 +20,7 @@ import {
 import { cn } from "@/lib/utils";
 import {
   activeMembers,
-  FP_ACTION_LABEL,
+  fpActionLabel,
   FP_CHANNEL_LABEL,
   FP_FEEDBACK_TOPIC,
   FP_STATUS,
@@ -61,7 +69,7 @@ export function TransitionDialog({
   const [error, setError] = useState<string | undefined>();
   const needsReason = reasonRequired(enrollment.status, to);
   const destructive = to === "encerrado" || to === "suspenso";
-  const label = `${FP_ACTION_LABEL[to]} de ${account.name}`;
+  const label = `${fpActionLabel(enrollment.status, to)} de ${account.name}`;
   return (
     <Dialog
       open={open}
@@ -163,13 +171,14 @@ export function TransitionActions({
             size={compact ? "sm" : "default"}
             variant={to === "encerrado" || to === "suspenso" ? "ghost" : "outline"}
             className={cn(
-              (to === "encerrado" || to === "suspenso") && "text-destructive hover:text-destructive",
+              (to === "encerrado" || to === "suspenso") &&
+                "text-destructive hover:text-destructive",
             )}
             disabled={!!blocker}
             title={blocker ?? FP_STATUS[to].hint}
             onClick={() => setTarget(to)}
           >
-            {FP_ACTION_LABEL[to]}
+            {fpActionLabel(enrollment.status, to)}
           </Btn>
         );
       })}
@@ -339,13 +348,19 @@ export function EnrollmentDetail({
         ) : (
           <p className={muted}>Sem aceite registrado.</p>
         )}
-        {manage && !termsCurrent && e.status !== "encerrado" && (
-          rules.termsVersion ? (
+        {manage &&
+          !termsCurrent &&
+          e.status !== "encerrado" &&
+          (rules.termsVersion ? (
             <form
               className="flex flex-col gap-2 sm:flex-row sm:items-end"
               onSubmit={(ev) => {
                 ev.preventDefault();
-                const r = run({ type: "fpRecordTerms", enrollmentId: e.id, acceptedByName: signer });
+                const r = run({
+                  type: "fpRecordTerms",
+                  enrollmentId: e.id,
+                  acceptedByName: signer,
+                });
                 if (r.ok) setSigner("");
               }}
             >
@@ -365,8 +380,7 @@ export function EnrollmentDetail({
             </form>
           ) : (
             <p className={muted}>Os termos ainda não têm versão aprovada.</p>
-          )
-        )}
+          ))}
       </Section>
 
       <Section icon={Flag} title="Elegibilidade para o piloto">
@@ -379,8 +393,9 @@ export function EnrollmentDetail({
             <span className="text-muted-foreground">Não marcada como elegível.</span>
           )}
         </p>
-        {manage && e.status !== "encerrado" && (
-          e.pilotEligible ? (
+        {manage &&
+          e.status !== "encerrado" &&
+          (e.pilotEligible ? (
             <Btn
               size="sm"
               variant="ghost"
@@ -412,15 +427,18 @@ export function EnrollmentDetail({
             >
               <Field label="Por que é elegível" className="flex-1">
                 {(id) => (
-                  <TextInput id={id} value={pilotNote} onChange={(ev) => setPilotNote(ev.target.value)} />
+                  <TextInput
+                    id={id}
+                    value={pilotNote}
+                    onChange={(ev) => setPilotNote(ev.target.value)}
+                  />
                 )}
               </Field>
               <Btn type="submit" variant="outline">
                 Marcar como elegível
               </Btn>
             </form>
-          )
-        )}
+          ))}
       </Section>
 
       <Section icon={Gift} title="Benefícios concedidos">
@@ -450,7 +468,9 @@ export function EnrollmentDetail({
                   key={adv}
                   size="sm"
                   variant="outline"
-                  onClick={() => run({ type: "fpGrantBenefit", enrollmentId: e.id, advantage: adv })}
+                  onClick={() =>
+                    run({ type: "fpGrantBenefit", enrollmentId: e.id, advantage: adv })
+                  }
                 >
                   Conceder: {adv}
                 </Btn>
@@ -506,7 +526,7 @@ export function EnrollmentDetail({
           </ul>
         )}
         {write && e.status !== "encerrado" && (
-          <div className="grid gap-3 lg:grid-cols-2">
+          <div className="grid gap-4">
             <form
               className="space-y-2"
               onSubmit={(ev) => {
@@ -552,7 +572,12 @@ export function EnrollmentDetail({
               </div>
               <Field label="Resumo da conversa">
                 {(id) => (
-                  <TextArea id={id} rows={2} value={comm} onChange={(ev) => setComm(ev.target.value)} />
+                  <TextArea
+                    id={id}
+                    rows={2}
+                    value={comm}
+                    onChange={(ev) => setComm(ev.target.value)}
+                  />
                 )}
               </Field>
               <Btn type="submit" size="sm" variant="outline">
@@ -784,8 +809,9 @@ export function FoundingPartnerCard({ account }: { account: RestaurantAccount })
             Esta conta ainda não foi convidada.
             {account.status === "cancelada" && " Contas canceladas não entram no programa."}
           </p>
-          {can("founding.manage") && account.status !== "cancelada" && (
-            inviting ? (
+          {can("founding.manage") &&
+            account.status !== "cancelada" &&
+            (inviting ? (
               <InviteForm
                 accounts={[account]}
                 fixedAccountId={account.id}
@@ -796,8 +822,7 @@ export function FoundingPartnerCard({ account }: { account: RestaurantAccount })
                 <Send className="h-3.5 w-3.5" />
                 Convidar {account.name}
               </Btn>
-            )
-          )}
+            ))}
         </div>
       )}
     </section>

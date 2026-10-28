@@ -29,7 +29,11 @@ export const FP_STATUS: Record<
   FoundingPartnerStatus,
   { label: string; tone: "neutral" | "info" | "primary" | "success" | "warning"; hint: string }
 > = {
-  convidado: { label: "Convidado", tone: "neutral", hint: "Recebeu o convite e ainda não respondeu." },
+  convidado: {
+    label: "Convidado",
+    tone: "neutral",
+    hint: "Recebeu o convite e ainda não respondeu.",
+  },
   interessado: { label: "Interessado", tone: "info", hint: "Demonstrou interesse em participar." },
   elegivel: {
     label: "Elegível",
@@ -46,7 +50,11 @@ export const FP_STATUS: Record<
     tone: "primary",
     hint: "Participante escolhido para testar primeiro as novidades da Tipe.",
   },
-  suspenso: { label: "Suspenso", tone: "warning", hint: "Participação parada, com motivo registrado." },
+  suspenso: {
+    label: "Suspenso",
+    tone: "warning",
+    hint: "Participação parada, com motivo registrado.",
+  },
   encerrado: { label: "Encerrado", tone: "neutral", hint: "Saiu do programa. Estado final." },
 };
 
@@ -76,6 +84,14 @@ export const FP_ACTION_LABEL: Record<FoundingPartnerStatus, string> = {
   suspenso: "Suspender participação",
   encerrado: "Encerrar participação",
 };
+
+/** Rótulo da ação considerando de onde se parte (voltar do piloto não é "tornar participante"). */
+export function fpActionLabel(from: FoundingPartnerStatus, to: FoundingPartnerStatus) {
+  if (from === "selecionado_piloto" && to === "participante") return "Tirar do piloto";
+  if (from === "suspenso" && to === "participante") return "Reativar participação";
+  if (from === "elegivel" && to === "interessado") return "Voltar para interessado";
+  return FP_ACTION_LABEL[to];
+}
 
 export const FP_CHANNEL_LABEL: Record<FoundingPartnerChannel, string> = {
   email: "E-mail",
@@ -111,7 +127,9 @@ export function defaultFoundingPartnerRules(orgId: ID): FoundingPartnerRules {
 }
 
 export function rulesOf(s: CrmState, orgId: ID): FoundingPartnerRules {
-  return s.foundingPartnerRules.find((r) => r.orgId === orgId) ?? defaultFoundingPartnerRules(orgId);
+  return (
+    s.foundingPartnerRules.find((r) => r.orgId === orgId) ?? defaultFoundingPartnerRules(orgId)
+  );
 }
 
 /** Regras comerciais aprovadas? Sem aprovação, nenhum benefício pode ser concedido. */

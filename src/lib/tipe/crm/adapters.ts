@@ -183,8 +183,19 @@ export type FoundingPartnerRows = {
     pilot_eligible: boolean;
     pilot_note: string | null;
   };
-  terms: { version: string; accepted_by_name: string; accepted_at: string; recorded_by: string | null }[];
-  invites: { id: string; channel: FoundingPartnerChannel; note: string; sent_by: string | null; sent_at: string }[];
+  terms: {
+    version: string;
+    accepted_by_name: string;
+    accepted_at: string;
+    recorded_by: string | null;
+  }[];
+  invites: {
+    id: string;
+    channel: FoundingPartnerChannel;
+    note: string;
+    sent_by: string | null;
+    sent_at: string;
+  }[];
   benefits: {
     id: string;
     advantage: string;

@@ -408,11 +408,18 @@ export function seedFoundingPartners(ctx: Ctx, accounts: RestaurantAccount[]) {
   const { s, id } = ctx;
   const orgId = accounts[0]?.orgId;
   if (!orgId) return;
-  s.foundingPartnerRules.push({ ...defaultFoundingPartnerRules(orgId), termsVersion: DEMO_TERMS_VERSION });
+  s.foundingPartnerRules.push({
+    ...defaultFoundingPartnerRules(orgId),
+    termsVersion: DEMO_TERMS_VERSION,
+  });
   const active = accounts.filter((a) => a.status === "ativa");
   const onboarding = accounts.filter((a) => a.status === "implantacao");
   const plan: [RestaurantAccount | undefined, FoundingPartnerStatus[], boolean][] = [
-    [active[0], ["convidado", "interessado", "elegivel", "participante", "selecionado_piloto"], true],
+    [
+      active[0],
+      ["convidado", "interessado", "elegivel", "participante", "selecionado_piloto"],
+      true,
+    ],
     [active[1], ["convidado", "interessado", "elegivel", "participante"], true],
     [active[2], ["convidado", "interessado", "elegivel", "participante"], false],
     [active[3], ["convidado", "interessado", "elegivel"], false],
@@ -464,7 +471,12 @@ export function seedFoundingPartners(ctx: Ctx, accounts: RestaurantAccount[]) {
       const from = path[k - 1]!;
       if (to === "participante") {
         const by = names[i % names.length]!;
-        e.terms = { version: DEMO_TERMS_VERSION, acceptedAt: step(k), acceptedByName: by, recordedBy: actor };
+        e.terms = {
+          version: DEMO_TERMS_VERSION,
+          acceptedAt: step(k),
+          acceptedByName: by,
+          recordedBy: actor,
+        };
         e.history.unshift({
           id: id("fpe"),
           at: step(k),
@@ -498,7 +510,8 @@ export function seedFoundingPartners(ctx: Ctx, accounts: RestaurantAccount[]) {
         at: step(1),
         channel: "whatsapp",
         direction: "recebida",
-        summary: "Sócio respondeu que quer entender como o programa funciona e o que muda na operação.",
+        summary:
+          "Sócio respondeu que quer entender como o programa funciona e o que muda na operação.",
         by: actor,
       });
     if (path.includes("participante"))

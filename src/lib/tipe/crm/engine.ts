@@ -23,7 +23,7 @@ import {
   benefitBlocker,
   defaultFoundingPartnerRules,
   activeMembers,
-  FP_ACTION_LABEL,
+  fpActionLabel,
   FP_CHANNEL_LABEL,
   FP_FEEDBACK_TOPIC,
   FP_STATUS,
@@ -225,9 +225,19 @@ export type Command =
     }
   // Programa Restaurante Fundador (camada B).
   | { type: "fpInvite"; accountId: ID; channel: FoundingPartnerChannel; note?: string | undefined }
-  | { type: "fpTransition"; enrollmentId: ID; to: FoundingPartnerStatus; reason?: string | undefined }
+  | {
+      type: "fpTransition";
+      enrollmentId: ID;
+      to: FoundingPartnerStatus;
+      reason?: string | undefined;
+    }
   | { type: "fpRecordTerms"; enrollmentId: ID; acceptedByName: string }
-  | { type: "fpSetPilotEligibility"; enrollmentId: ID; eligible: boolean; note?: string | undefined }
+  | {
+      type: "fpSetPilotEligibility";
+      enrollmentId: ID;
+      eligible: boolean;
+      note?: string | undefined;
+    }
   | {
       type: "fpLogCommunication";
       enrollmentId: ID;
@@ -235,7 +245,12 @@ export type Command =
       direction: "enviada" | "recebida";
       summary: string;
     }
-  | { type: "fpAddFeedback"; enrollmentId: ID; topic: FoundingPartnerFeedback["topic"]; text: string }
+  | {
+      type: "fpAddFeedback";
+      enrollmentId: ID;
+      topic: FoundingPartnerFeedback["topic"];
+      text: string;
+    }
   | { type: "fpGrantBenefit"; enrollmentId: ID; advantage: string }
   | {
       type: "fpSetRules";
@@ -926,7 +941,6 @@ function waLog(c: Ctx, direction: "webhook" | "envio", event: string, detail: st
   if (c.s.waLogs.length > 300) c.s.waLogs.length = 300;
 }
 
-
 // ---------- Programa Restaurante Fundador ----------
 
 function fpProgram(c: Ctx, action: Action) {
@@ -950,10 +964,24 @@ function fpLog(
   summary: string,
 ) {
   e.history.unshift({ id: newId("fpe"), at: c.now, actorId: c.userId, ...ev });
-  audit(c.s, c.now, c.orgId, c.userId, `founding_partner.${ev.kind}`, `${accountName}: ${ev.detail}`, "ok");
-  activity(c, `account.founding_partner.${ev.kind}`, summary, { type: "account", id: e.accountId }, {
-    ...(ev.from || ev.to ? { changes: { status: [ev.from ?? null, ev.to ?? null] } } : {}),
-  });
+  audit(
+    c.s,
+    c.now,
+    c.orgId,
+    c.userId,
+    `founding_partner.${ev.kind}`,
+    `${accountName}: ${ev.detail}`,
+    "ok",
+  );
+  activity(
+    c,
+    `account.founding_partner.${ev.kind}`,
+    summary,
+    { type: "account", id: e.accountId },
+    {
+      ...(ev.from || ev.to ? { changes: { status: [ev.from ?? null, ev.to ?? null] } } : {}),
+    },
+  );
 }
 
 const FP_CHANNELS = Object.keys(FP_CHANNEL_LABEL) as FoundingPartnerChannel[];
@@ -2859,7 +2887,12 @@ function run(
         c,
         e,
         a.name,
-        { kind: "convite", from, to: "convidado", detail: `convite por ${FP_CHANNEL_LABEL[cmd.channel]}` },
+        {
+          kind: "convite",
+          from,
+          to: "convidado",
+          detail: `convite por ${FP_CHANNEL_LABEL[cmd.channel]}`,
+        },
         `${a.name} convidado para o programa Restaurante Fundador (${FP_CHANNEL_LABEL[cmd.channel]})`,
       );
       return {
@@ -2883,12 +2916,12 @@ function run(
       });
       if (blocker) throw new Invalid(blocker);
       const from = e.status;
+      const actionLabel = fpActionLabel(from, cmd.to);
       e.status = cmd.to;
       e.statusChangedAt = now;
       if (cmd.to === "participante" && !e.joinedAt) e.joinedAt = now;
       // Benefícios concedidos deixam de valer quando a participação termina.
-      if (cmd.to === "encerrado")
-        for (const b of e.benefits) if (!b.revokedAt) b.revokedAt = now;
+      if (cmd.to === "encerrado") for (const b of e.benefits) if (!b.revokedAt) b.revokedAt = now;
       const detail = `${FP_STATUS[from].label} → ${FP_STATUS[cmd.to].label}${reason ? `: ${reason}` : ""}`;
       fpLog(c, e, a.name, { kind: "estado", from, to: cmd.to, detail }, `${a.name}: ${detail}`);
       notify(
@@ -2897,7 +2930,7 @@ function run(
         `${a.name} no Restaurante Fundador: ${FP_STATUS[cmd.to].label}`,
         `/crm/contas/${a.id}`,
       );
-      return { id: e.id, message: `${FP_ACTION_LABEL[cmd.to]}: ${a.name}` };
+      return { id: e.id, message: `${actionLabel}: ${a.name}` };
     }
     case "fpRecordTerms": {
       fpProgram(c, "founding.manage");
@@ -2910,7 +2943,12 @@ function run(
       if (name.length < 3) throw new Invalid("Informe quem aceitou pelo restaurante.");
       if (e.terms?.version === rules.termsVersion)
         throw new Invalid(`O aceite da versão ${rules.termsVersion} já está registrado.`);
-      e.terms = { version: rules.termsVersion, acceptedAt: now, acceptedByName: name, recordedBy: c.userId };
+      e.terms = {
+        version: rules.termsVersion,
+        acceptedAt: now,
+        acceptedByName: name,
+        recordedBy: c.userId,
+      };
       fpLog(
         c,
         e,
@@ -2935,7 +2973,10 @@ function run(
         c,
         e,
         a.name,
-        { kind: "piloto", detail: cmd.eligible ? `elegível para o piloto: ${note}` : "não elegível para o piloto" },
+        {
+          kind: "piloto",
+          detail: cmd.eligible ? `elegível para o piloto: ${note}` : "não elegível para o piloto",
+        },
         `${a.name}: ${cmd.eligible ? "elegível" : "não elegível"} para o piloto`,
       );
       return;
@@ -2955,10 +2996,15 @@ function run(
         summary,
         by: c.userId,
       });
-      activity(c, "account.founding_partner.comunicacao", `${a.name}: comunicação registrada (${FP_CHANNEL_LABEL[cmd.channel]})`, {
-        type: "account",
-        id: a.id,
-      });
+      activity(
+        c,
+        "account.founding_partner.comunicacao",
+        `${a.name}: comunicação registrada (${FP_CHANNEL_LABEL[cmd.channel]})`,
+        {
+          type: "account",
+          id: a.id,
+        },
+      );
       return { message: "Comunicação registrada." };
     }
     case "fpAddFeedback": {
@@ -2969,10 +3015,15 @@ function run(
       const text = clean(cmd.text);
       if (text.length < 5) throw new Invalid("Escreva o feedback com pelo menos 5 letras.");
       e.feedback.unshift({ id: newId("fpf"), at: now, topic: cmd.topic, text, by: c.userId });
-      activity(c, "account.founding_partner.feedback", `${a.name}: feedback sobre ${FP_FEEDBACK_TOPIC[cmd.topic].toLowerCase()}`, {
-        type: "account",
-        id: a.id,
-      });
+      activity(
+        c,
+        "account.founding_partner.feedback",
+        `${a.name}: feedback sobre ${FP_FEEDBACK_TOPIC[cmd.topic].toLowerCase()}`,
+        {
+          type: "account",
+          id: a.id,
+        },
+      );
       return { message: "Feedback registrado." };
     }
     case "fpGrantBenefit": {
@@ -2993,7 +3044,10 @@ function run(
         c,
         e,
         a.name,
-        { kind: "beneficio", detail: `benefício concedido: ${advantage} (aprovação ${rules.approvalRef})` },
+        {
+          kind: "beneficio",
+          detail: `benefício concedido: ${advantage} (aprovação ${rules.approvalRef})`,
+        },
         `${a.name}: benefício concedido (${advantage})`,
       );
       return { message: "Benefício registrado." };
@@ -3002,7 +3056,9 @@ function run(
       fpProgram(c, "founding.rules");
       const ref = clean(cmd.approvalRef);
       if (ref.length < 3)
-        throw new Invalid("Informe a referência da aprovação comercial (ata, e-mail ou documento).");
+        throw new Invalid(
+          "Informe a referência da aprovação comercial (ata, e-mail ou documento).",
+        );
       if (cmd.slots !== null && (!Number.isInteger(cmd.slots) || cmd.slots < 1))
         throw new Invalid("Vagas: número inteiro a partir de 1, ou deixe em branco.");
       const opens = cmd.enrollmentOpensAt || null;
@@ -3034,10 +3090,24 @@ function run(
       for (const e of s.foundingPartners.filter((x) => x.orgId === c.orgId))
         for (const b of e.benefits)
           if (!b.revokedAt && !advantages.includes(b.advantage)) b.revokedAt = now;
-      audit(s, now, c.orgId, c.userId, "founding_partner.rules", `regras atualizadas (aprovação ${ref})`, "ok");
-      activity(c, "account.founding_partner.regras", "Regras do Restaurante Fundador atualizadas", { type: "org", id: c.orgId }, {
-        changes: diff(before, r),
-      });
+      audit(
+        s,
+        now,
+        c.orgId,
+        c.userId,
+        "founding_partner.rules",
+        `regras atualizadas (aprovação ${ref})`,
+        "ok",
+      );
+      activity(
+        c,
+        "account.founding_partner.regras",
+        "Regras do Restaurante Fundador atualizadas",
+        { type: "org", id: c.orgId },
+        {
+          changes: diff(before, r),
+        },
+      );
       return { message: "Regras do programa salvas com a referência da aprovação." };
     }
   }

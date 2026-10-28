@@ -201,7 +201,11 @@ describe("motor: comandos do programa", () => {
     expect(e.joinedAt).toBeDefined();
     expect(e.benefits).toEqual([]);
     const states = e.history.filter((h) => h.kind === "estado").map((h) => `${h.from}>${h.to}`);
-    expect(states).toEqual(["elegivel>participante", "interessado>elegivel", "convidado>interessado"]);
+    expect(states).toEqual([
+      "elegivel>participante",
+      "interessado>elegivel",
+      "convidado>interessado",
+    ]);
     for (const h of e.history) {
       expect(h.actorId).toBeTruthy();
       expect(h.at).toBeTruthy();
@@ -238,15 +242,19 @@ describe("motor: comandos do programa", () => {
     );
     const canceled = s.accounts.find((x) => x.orgId === "org_tipe" && x.status === "cancelada");
     if (canceled)
-      expect(
-        fail(s, { type: "fpInvite", accountId: canceled.id, channel: "email" }).error,
-      ).toMatch(/cancelada/);
+      expect(fail(s, { type: "fpInvite", accountId: canceled.id, channel: "email" }).error).toMatch(
+        /cancelada/,
+      );
   });
 
   it("nenhum benefício pode ser concedido com as regras padrão", () => {
     let s = login(createSeed(NOW), "helena@tipe.demo");
     const e = s.foundingPartners.find((x) => x.status === "participante")!;
-    const r = fail(s, { type: "fpGrantBenefit", enrollmentId: e.id, advantage: "Qualquer vantagem" });
+    const r = fail(s, {
+      type: "fpGrantBenefit",
+      enrollmentId: e.id,
+      advantage: "Qualquer vantagem",
+    });
     expect(r.error).toMatch(/Pendente de aprovação comercial/i);
     s = r.state;
     expect(s.foundingPartners.every((x) => x.benefits.length === 0)).toBe(true);
@@ -265,8 +273,11 @@ describe("motor: comandos do programa", () => {
     }).state;
     const e = s.foundingPartners.find((x) => x.status === "participante")!;
     fail(s, { type: "fpGrantBenefit", enrollmentId: e.id, advantage: "Vantagem B" });
-    s = ok(s, { type: "fpGrantBenefit", enrollmentId: e.id, advantage: "Vantagem A aprovada" })
-      .state;
+    s = ok(s, {
+      type: "fpGrantBenefit",
+      enrollmentId: e.id,
+      advantage: "Vantagem A aprovada",
+    }).state;
     const after = s.foundingPartners.find((x) => x.id === e.id)!;
     expect(after.benefits).toHaveLength(1);
     expect(after.benefits[0]?.approvalRef).toBe("Ata de teste");
@@ -302,7 +313,12 @@ describe("motor: comandos do programa", () => {
       expect(r.error).toMatch(/organização da Tipe/);
     }
     const tipeE = seed.foundingPartners[0]!;
-    const r2 = fail(s, { type: "fpTransition", enrollmentId: tipeE.id, to: "encerrado", reason: "x y z" });
+    const r2 = fail(s, {
+      type: "fpTransition",
+      enrollmentId: tipeE.id,
+      to: "encerrado",
+      reason: "x y z",
+    });
     expect(r2.error).toBeTruthy();
   });
 
@@ -318,10 +334,17 @@ describe("motor: comandos do programa", () => {
       approvalRef: "Ata de teste",
     }).state;
     const e = s.foundingPartners.find((x) => x.status === "participante")!;
-    s = ok(s, { type: "fpGrantBenefit", enrollmentId: e.id, advantage: "Vantagem A aprovada" })
-      .state;
-    s = ok(s, { type: "fpTransition", enrollmentId: e.id, to: "encerrado", reason: "Pediu para sair" })
-      .state;
+    s = ok(s, {
+      type: "fpGrantBenefit",
+      enrollmentId: e.id,
+      advantage: "Vantagem A aprovada",
+    }).state;
+    s = ok(s, {
+      type: "fpTransition",
+      enrollmentId: e.id,
+      to: "encerrado",
+      reason: "Pediu para sair",
+    }).state;
     const after = s.foundingPartners.find((x) => x.id === e.id)!;
     expect(after.benefits[0]?.revokedAt).toBeDefined();
     fail(s, { type: "fpTransition", enrollmentId: e.id, to: "participante" });
@@ -345,15 +368,36 @@ describe("adaptador do banco", () => {
           pilot_note: null,
         },
         terms: [
-          { version: "v1", accepted_by_name: "Ana", accepted_at: "2026-10-04T10:00:00Z", recorded_by: "u" },
+          {
+            version: "v1",
+            accepted_by_name: "Ana",
+            accepted_at: "2026-10-04T10:00:00Z",
+            recorded_by: "u",
+          },
         ],
         invites: [],
         benefits: [],
         communications: [],
         feedback: [],
         events: [
-          { id: 1, kind: "estado", from_status: null, to_status: "convidado", detail: "", actor_id: "u", at: "2026-10-01T10:00:00Z" },
-          { id: 2, kind: "estado", from_status: "elegivel", to_status: "participante", detail: "", actor_id: "u", at: "2026-10-05T10:00:00Z" },
+          {
+            id: 1,
+            kind: "estado",
+            from_status: null,
+            to_status: "convidado",
+            detail: "",
+            actor_id: "u",
+            at: "2026-10-01T10:00:00Z",
+          },
+          {
+            id: 2,
+            kind: "estado",
+            from_status: "elegivel",
+            to_status: "participante",
+            detail: "",
+            actor_id: "u",
+            at: "2026-10-05T10:00:00Z",
+          },
         ],
       },
       { orgId: "org_tipe", accountId: "acc1" },
