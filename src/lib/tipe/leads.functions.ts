@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { interestSchema, linhaInteresse } from "./interest-lead";
 
 const opt = (max: number) => z.string().trim().max(max).optional().transform((v) => (v ? v : null));
 const enumOpt = (vals: [string, ...string[]]) => z.enum(vals).optional().nullable();
@@ -54,6 +55,41 @@ export const submitLead = createServerFn({ method: "POST" })
       console.error("lead_email", e);
     }
     return { ok: true as const, leadId: row.id, token: row.update_token, refCode: row.ref_code };
+  });
+
+/**
+ * Lead curto de interesse (aviso do Tipe Guest e Restaurante Fundador). Mesma tabela e mesmo
+ * limite por IP do submitLead; o formulário de restaurante acima não muda. Ver interest-lead.ts.
+ */
+export const submitInterestLead = createServerFn({ method: "POST" })
+  .inputValidator((data) => interestSchema.parse(data))
+  .handler(async ({ data }) => {
+    const { enforceRate, clientIp } = await import("./security.server");
+    await enforceRate(`interest:${clientIp()}`, 5, 600);
+    const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
+    const { data: row, error } = (await db
+      .from("restaurant_leads")
+      .insert(linhaInteresse(data) as never)
+      .select("id")
+      .single()) as unknown as { data: { id: string } | null; error: { message: string } | null };
+    if (error || !row) {
+      console.error("interest_lead_insert", error?.message);
+      throw new Error("Falha ao registrar o contato");
+    }
+    // Só o Fundador é restaurante: avisa a equipe pelo e-mail interno que já existe.
+    if (data.origem === "restaurante-fundador") {
+      try {
+        const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
+        await sendTemplateEmail("lead-notification", "roberto@tipe.digital", {
+          templateData: { restaurantName: `Restaurante Fundador · ${data.restaurantName}`, contactName: data.contactName, email: data.email, phone: data.phone, city: data.city ?? "-" },
+          idempotencyKey: `interest-notification-${row.id}`,
+          replyTo: data.email,
+        });
+      } catch (e) {
+        console.error("interest_email", e);
+      }
+    }
+    return { ok: true as const };
   });
 
 const step2Schema = z.object({

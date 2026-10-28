@@ -770,7 +770,8 @@ export const PRODUTOS: Produto[] = [
     slug: "guest",
     grupo: "Na mesa",
     nome: "Tipe Guest",
-    resumo: "Avaliação depois de pagar e cliente lembrado; relacionamento em desenvolvimento",
+    resumo:
+      "Descobrir, reservar e voltar. Hoje já funcionam a avaliação depois de pagar e o nome lembrado",
     status: "em-breve",
     icone: Heart,
     foto: "casal",
@@ -778,15 +779,15 @@ export const PRODUTOS: Produto[] = [
     altFoto:
       "Casal num restaurante à luz de vela; ela confere a conta no celular, com o QR Code da Tipe na mesa",
     topo: {
-      foto: "cena-executiva",
-      posicao: "50% 35%",
-      alt: "Cliente sorrindo e avaliando o atendimento no celular, com o suporte da Tipe na mesa",
+      foto: "bistro",
+      posicao: "50% 40%",
+      alt: "Jantar num bistrô: o garçom serve vinho tinto à mesa, com vela acesa e o suporte da Tipe com QR Code",
     },
-    heroTelas: ["pago", "gorjeta", "avaliacao"],
+    heroTelas: ["pago", "avaliacao"],
     cenario: {
       titulo: "A experiência termina bem. E o cliente lembra.",
       texto:
-        "A avaliação aparece logo depois do pagamento, quando a mesa ainda está ali. O nome fica guardado para a próxima visita.",
+        "Hoje a avaliação aparece logo depois do pagamento e o nome fica guardado no aparelho para a próxima visita. Descobrir e reservar vêm com o Tipe Guest.",
       itens: [
         {
           foto: "cena-amigos",
@@ -801,36 +802,36 @@ export const PRODUTOS: Produto[] = [
       ],
     },
     rotulo: "Tipe Guest",
-    titulo: "Quem paga bem, volta.",
+    titulo: "Sua próxima experiência começa aqui.",
     texto:
-      "Cada pagamento é uma chance de conhecer o cliente. Hoje a Tipe já pede a avaliação logo depois do pagamento e lembra o nome de quem volta à mesma mesa. Relacionamento e campanhas estão em desenvolvimento.",
+      "Descobrir restaurantes, reservar e voltar aos lugares de que você gosta: é o que o Tipe Guest vai fazer. Hoje a Tipe já pede a avaliação logo depois do pagamento e lembra o nome de quem volta, no mesmo aparelho.",
     cartao: {
       titulo: "Avaliação · Mesa 12",
       linhas: [
         ["Nota", "5 estrelas"],
         ["Garçom", "Joyce"],
       ],
-      rodape: "Depois do pagamento",
+      rodape: "Disponível hoje, depois do pagamento",
     },
     beneficios: [
       {
         t: "Avaliação depois de pagar",
-        d: "Com a conta paga, o cliente dá a nota e, se quiser, deixa um comentário. A avaliação chega ligada a quem atendeu.",
+        d: "Disponível hoje. Com a conta paga, o cliente dá a nota e, se quiser, deixa um comentário. A avaliação chega ao restaurante ligada a quem atendeu.",
         foto: "cena-familia",
         posicao: "50% 40%",
         telaReal: "avaliacao",
       },
       {
         t: "Nome lembrado no aparelho",
-        d: "Na próxima visita à mesma mesa, a conta abre com “Olá, Lucas”. O nome fica guardado no celular do cliente, sem cadastro.",
+        d: "Disponível hoje. Na próxima visita à mesma mesa, a conta abre com “Olá, Lucas”. O nome fica guardado no celular do cliente, sem cadastro.",
         foto: "cena-casal",
         posicao: "50% 35%",
         telaReal: "conta",
       },
       {
-        t: "Relacionamento e campanhas",
-        d: "Em desenvolvimento. Ainda não está disponível para os restaurantes.",
-        foto: "cena-praia",
+        t: "Descobrir e reservar",
+        d: "Planejado no Tipe Guest. Ainda não está disponível.",
+        foto: "japones",
         posicao: "50% 45%",
         emDesenvolvimento: true,
       },
@@ -848,13 +849,14 @@ export const PRODUTOS: Produto[] = [
       { v: "Sem cadastro", t: "o nome fica guardado no celular do cliente" },
     ],
     fluxoReal: {
-      titulo: "As telas que o cliente vê hoje.",
-      texto: "Capturadas do app do cliente, com dados de teste do restaurante fictício Maré Alta.",
+      titulo: "Disponível hoje, nas telas que o cliente já vê.",
+      texto:
+        "Capturadas do app do cliente da Tipe, com dados de teste do restaurante fictício Maré Alta.",
       telas: [
         {
           tela: "conta",
           t: "Nome lembrado",
-          d: "A conta abre com o nome de quem já pagou nessa mesa.",
+          d: "A conta abre com o nome de quem já pagou nessa mesa, no mesmo aparelho.",
           alt: "Conta da Mesa 12 com a saudação Olá, Lucas e o total de R$ 356,40",
         },
         {
@@ -872,7 +874,7 @@ export const PRODUTOS: Produto[] = [
         {
           tela: "avaliacao",
           t: "Avaliação",
-          d: "Estrelas e um comentário opcional.",
+          d: "Estrelas e um comentário opcional, para o restaurante.",
           alt: "Tela Como foi seu atendimento, com cinco estrelas e campo de comentário",
         },
       ],
@@ -880,16 +882,24 @@ export const PRODUTOS: Produto[] = [
     recursos: [
       { icone: Star, t: "Avaliações", d: "Disponível hoje, logo depois do pagamento." },
       { icone: UserRound, t: "Nome lembrado", d: "Disponível hoje, no celular do cliente." },
-      { icone: Clock, t: "Relacionamento e campanhas", d: "Em desenvolvimento." },
+      { icone: Clock, t: "Descoberta, reservas e relacionamento", d: "Planejado no Tipe Guest." },
     ],
     faq: [
       [
-        "O programa de relacionamento já existe?",
-        "Ainda não. Avaliações e nome lembrado já funcionam; relacionamento e campanhas estão em desenvolvimento.",
+        "O Tipe Guest já está disponível?",
+        "Ainda não. Ele chega na próxima fase da Tipe, sem data definida. O que já funciona hoje, dentro da Tipe, é a avaliação logo depois do pagamento e o nome lembrado no mesmo aparelho.",
       ],
       [
-        "Quem vê as avaliações?",
-        "O restaurante, e cada avaliação fica ligada ao garçom que atendeu a mesa.",
+        "Preciso do Tipe Guest para pagar a conta?",
+        "Não. Quem paga pelo QR Code da mesa continua pagando sem instalar nada, com Apple Pay, Google Pay, Pix ou no estabelecimento.",
+      ],
+      [
+        "As avaliações vão aparecer para outras pessoas?",
+        "Hoje não: a avaliação vai só para o restaurante, ligada ao garçom que atendeu. Mostrar avaliações na descoberta do Guest é um recurso planejado e só vai valer para avaliações feitas com o consentimento de quem avaliou.",
+      ],
+      [
+        "Já dá para reservar uma mesa pela Tipe?",
+        "Ainda não. Reservas são planejadas para o Tipe Guest. Nenhuma reserva é feita por esta página.",
       ],
     ],
   },
