@@ -1,6 +1,6 @@
 # Fase 3 · Programa Restaurante Fundador · relatório
 
-Branch `guest/fase-3-fundador`, empilhada sobre `crm/backoffice-saas` (PR #29, CRM em modo demonstração). PR em rascunho contra `crm/backoffice-saas`. Data: 28/10/2026.
+Branch `guest/fase-3-fundador`, empilhada sobre `crm/backoffice-saas` (PR #29, CRM em modo demonstração). PR em rascunho: [#54](https://github.com/robertoalencar-afk/Tipe-1.0/pull/54), base `crm/backoffice-saas`. Data: 28/10/2026.
 
 Documento do programa: [`FUNDADOR.md`](./FUNDADOR.md).
 
