@@ -85,15 +85,17 @@ Não vendemos dados. Compartilhamos apenas o necessário com:
 | --- | --- | --- |
 | O restaurante onde você está | Pagamentos da mesa, avaliações | Operação da conta |
 | Pagar.me | Valor e dados da transação | Processar pagamentos digitais |
-| Provedor de nuvem: Lovable Cloud (infraestrutura Supabase, servidores no Canadá) | Todos os dados da plataforma, armazenados | Hospedagem, banco de dados e autenticação |
+| Provedor de banco de dados: Supabase (servidores em São Paulo) | Todos os dados da plataforma, armazenados | Banco de dados e autenticação |
+| Provedor de hospedagem: Cloudflare | Dados que passam pelo site durante o uso | Hospedagem do site e do sistema |
+| Provedor de e-mail: Resend | E-mail do destinatário e conteúdo da mensagem | Envio de e-mails do sistema (recibos, convites, avisos) |
 | Google | Dados de login, se você escolher entrar com Google; IP, ao carregar fontes | Autenticação e fontes do site |
-| Provedor de IA: Lovable AI (modelos Google Gemini e OpenAI) | Textos, áudios, imagens e arquivos enviados à Lebre; texto da sugestão de divisão | Recursos de IA (Livro 5) |
+| Provedores de IA: Anthropic (modelos Claude) e Cloudflare Workers AI (transcrição de áudio) | Textos, áudios, imagens e arquivos enviados à Lebre; texto da sugestão de divisão | Recursos de IA (Livro 5) |
 | Meta e Google (medição) | Dados de navegação, só com consentimento | Medição e anúncios |
 | Autoridades | O que for exigido | Cumprimento de lei ou ordem judicial |
 
 ## 3.11 Transferência internacional {#transferencia-internacional}
 
-Alguns prestadores podem processar dados fora do Brasil: o banco de dados da TIPE fica hoje no Canadá, e Google, Meta e os provedores de IA podem operar em outros países. Essas transferências seguem o art. 33 da LGPD e a regulamentação da ANPD, com cláusulas contratuais adequadas. A lista de fornecedores e países pode ser solicitada ao encarregado (Livro 6).
+Alguns prestadores podem processar dados fora do Brasil: o banco de dados da TIPE fica no Brasil, e Cloudflare, Resend, Google, Meta e os provedores de IA podem operar em outros países. Essas transferências seguem o art. 33 da LGPD e a regulamentação da ANPD, com cláusulas contratuais adequadas. A lista de fornecedores e países pode ser solicitada ao encarregado (Livro 6).
 
 ## 3.12 Segurança {#seguranca}
 

@@ -5,7 +5,6 @@ import { getMyAccess } from "@/lib/tipe/staff.functions";
 import { toast } from "sonner";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable";
 import { TipeLogo } from "@/components/tipe/Logo";
 import { EditorialPhoto } from "@/components/tipe/landing/EditorialPhoto";
 import { Toast } from "@/components/tipe/landing/Toast";
@@ -18,11 +17,6 @@ export const Route = createFileRoute("/entrar")({
     r: z
       .string()
       .regex(/^\/[a-z0-9-]+$/)
-      .optional()
-      .catch(undefined),
-    next: z
-      .string()
-      .regex(/^\/\.lovable\/oauth\/consent\?[\w=&%.-]*$/)
       .optional()
       .catch(undefined),
   }),
@@ -43,13 +37,9 @@ type Modo = "entrar" | "criar" | "esqueci";
 
 function Entrar() {
   const navigate = useNavigate();
-  const { r, next } = Route.useSearch();
+  const { r } = Route.useSearch();
   const fetchAccess = useServerFn(getMyAccess);
   const destino = async () => {
-    if (next) {
-      window.location.href = next;
-      return;
-    }
     if (r) return navigate({ to: "/$restaurante", params: { restaurante: r.slice(1) } });
     try {
       const a = await fetchAccess();
@@ -80,7 +70,7 @@ function Entrar() {
       if (e === "SIGNED_IN" && s) destino();
     });
     return () => data.subscription.unsubscribe();
-  }, [navigate, r, next]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [navigate, r]); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
@@ -93,7 +83,7 @@ function Entrar() {
         const { error } = await supabase.auth.signUp({
           email,
           password: senha,
-          options: { emailRedirectTo: `${window.location.origin}${next ?? r ?? "/painel"}` },
+          options: { emailRedirectTo: `${window.location.origin}${r ?? "/painel"}` },
         });
         if (error)
           throw new Error(
@@ -119,10 +109,11 @@ function Entrar() {
   }
 
   async function google() {
-    const res = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: `${window.location.origin}/entrar${next ? `?next=${encodeURIComponent(next)}` : r ? `?r=${encodeURIComponent(r)}` : ""}`,
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: `${window.location.origin}/entrar${r ? `?r=${encodeURIComponent(r)}` : ""}` },
     });
-    if (res.error) toast.error("Não foi possível entrar com Google");
+    if (error) toast.error("Não foi possível entrar com Google");
   }
 
   const titulo =

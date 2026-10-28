@@ -34,12 +34,6 @@ Apple Pay e Google Pay dependem da habilitação comercial do provedor e ainda n
 Para experimentar, indique /simulador. Para criar a conta, indique /cadastro. Para falar com a equipe, indique o WhatsApp oficial no site.
 `;
 
-function readOutput(body: unknown): string {
-  const value = body as { output_text?: string; output?: Array<{ content?: Array<{ text?: string }> }> };
-  if (value.output_text) return value.output_text.trim();
-  return value.output?.flatMap((item) => item.content ?? []).map((part) => part.text ?? "").join("").trim() ?? "";
-}
-
 export type LebreFile = { name: string; mediaType: string; dataUrl: string };
 
 const FileSchema = z.object({
@@ -49,29 +43,14 @@ const FileSchema = z.object({
 });
 const Files = z.array(FileSchema).max(3).optional();
 
-function buildInput(question: string, files: LebreFile[] = []) {
-  if (!files.length) return question;
-  const parts: Array<Record<string, string>> = [{ type: "input_text", text: question }];
-  for (const file of files) {
-    if (!file.dataUrl.startsWith(`data:${file.mediaType};base64,`)) throw new Error("Anexo inválido.");
-    if (file.mediaType === "application/pdf") parts.push({ type: "input_file", filename: file.name, file_data: file.dataUrl });
-    else parts.push({ type: "input_image", image_url: file.dataUrl });
-  }
-  return [{ role: "user", content: parts }];
-}
-
 async function askModel(instructions: string, question: string, files?: LebreFile[]) {
-  const apiKey = process.env["LOVABLE_API_KEY"];
-  if (!apiKey) return "A Lebre está se preparando para responder. Enquanto isso, você pode simular a experiência ou falar com nossa equipe.";
-  const response = await fetch("https://ai.gateway.lovable.dev/v1/responses", {
-    method: "POST",
-    headers: { "Content-Type": "application/json", "Lovable-API-Key": apiKey, "X-Lovable-AIG-SDK": "fetch" },
-    body: JSON.stringify({ model: "openai/gpt-6-astra", instructions, input: buildInput(question, files), stream: false, store: false, reasoning: { effort: "low" } }),
-  });
-  if (!response.ok) throw new Error(response.status === 429 ? "A Lebre recebeu muitas perguntas agora. Tente novamente em instantes." : "A Lebre não conseguiu responder agora.");
-  const text = readOutput(await response.json());
-  if (!text) throw new Error("A Lebre não conseguiu responder agora.");
-  return text;
+  const { askClaude, ClaudeUnavailable } = await import("./claude.server");
+  try {
+    return await askClaude({ system: instructions, question, files });
+  } catch (error) {
+    if (error instanceof ClaudeUnavailable) return "A Lebre está se preparando para responder. Enquanto isso, você pode simular a experiência ou falar com nossa equipe.";
+    throw error;
+  }
 }
 
 export const askPublicLebre = createServerFn({ method: "POST" })
@@ -287,27 +266,24 @@ export const transcribeLebreAudio = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { enforceRate, clientIp } = await import("./security.server");
     await enforceRate(`lebre-audio:${clientIp()}`, 10, 60);
-    const apiKey = process.env["LOVABLE_API_KEY"];
-    if (!apiKey) throw new Error("O áudio ainda não está disponível. Escreva sua pergunta.");
-    const type = data.mediaType.split(";")[0]!;
-    const ext = type.includes("mp4") || type.includes("m4a") ? "m4a" : type.includes("mpeg") ? "mp3" : type.split("/")[1]!;
-    const bytes = Uint8Array.from(atob(data.base64), (c) => c.charCodeAt(0));
-    const form = new FormData();
-    form.append("model", "openai/gpt-transcribe");
-    form.append("file", new File([bytes], `lebre.${ext}`, { type }));
-    form.append("response_format", "json");
-    form.append("language", "pt");
-    form.append("prompt", "Conversa com a Lebre, assistente da TIPE (marca pronunciada \"tchípi\", escrita TIPE). Termos: TIPE, Lebre, mesa, garçom, restaurante, PDV, Pix, QR Code, gorjeta, cardápio.");
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/audio/transcriptions", {
+    const accountId = process.env["CLOUDFLARE_ACCOUNT_ID"];
+    const token = process.env["CLOUDFLARE_AI_TOKEN"];
+    if (!accountId || !token) throw new Error("O áudio ainda não está disponível. Escreva sua pergunta.");
+    // O Claude não transcreve áudio; a transcrição usa o Whisper do Workers AI (Cloudflare).
+    const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/openai/whisper-large-v3-turbo`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${apiKey}`, "X-Lovable-AIG-SDK": "fetch" },
-      body: form,
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        audio: data.base64,
+        language: "pt",
+        initial_prompt: "Conversa com a Lebre, assistente da TIPE (marca pronunciada \"tchípi\", escrita TIPE). Termos: TIPE, Lebre, mesa, garçom, restaurante, PDV, Pix, QR Code, gorjeta, cardápio.",
+      }),
     });
     if (!response.ok) {
       console.error("lebre transcription", response.status, (await response.text()).slice(0, 300));
       throw new Error(response.status === 429 ? "Muitos áudios agora. Tente em instantes." : "Não consegui entender o áudio. Tente de novo ou escreva.");
     }
-    const body = (await response.json()) as { text?: string };
+    const body = ((await response.json()) as { result?: { text?: string } }).result ?? {};
     const text = fixBrand(body.text?.trim() ?? "");
     if (!text) throw new Error("Não ouvi nada no áudio. Tente falar mais perto do microfone.");
     return { text: text.slice(0, 600) };

@@ -8,7 +8,7 @@ export async function grantWaiterAccessCore(input: { restaurantId: string; slug:
   if (!w || !w.active) throw new Error("Garçom não encontrado ou inativo");
 
   const { getRequestHeader } = await import("@tanstack/react-start/server");
-  const origin = /^https:\/\/([a-z0-9-]+\.)*(tipe\.digital|lovable\.app)$/.test(getRequestHeader("origin") ?? "") ? getRequestHeader("origin")! : "https://tipe.digital";
+  const origin = /^https:\/\/([a-z0-9-]+\.)*tipe\.digital$/.test(getRequestHeader("origin") ?? "") ? getRequestHeader("origin")! : "https://tipe.digital";
 
   let userId: string | undefined;
   let invited = false;

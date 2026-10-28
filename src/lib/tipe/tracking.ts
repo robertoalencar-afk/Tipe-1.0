@@ -73,6 +73,18 @@ export function trackLead() {
   if (hasConsent("analytics")) window.gtag?.("event", "generate_lead");
 }
 
+/**
+ * Eventos das páginas de produto (ex.: clique no CTA do Tipe Order e resultado do formulário).
+ * Só com consentimento de medição; sem dado pessoal nos parâmetros.
+ */
+export function trackProduto(
+  evento: "produto_cta" | "produto_lead_ok" | "produto_lead_erro",
+  params: { produto: string; estado?: string; local?: string },
+) {
+  if (typeof window === "undefined" || !hasConsent("analytics")) return;
+  window.gtag?.("event", evento, params);
+}
+
 export function trackMesaViva(action: "passed" | "skip") {
   if (typeof window === "undefined" || !hasConsent("analytics")) return;
   window.gtag?.("event", action === "skip" ? "mesa_viva_skip" : "mesa_viva_passed");

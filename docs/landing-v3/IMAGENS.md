@@ -29,3 +29,7 @@ As cinco cenas (garcom, amigos, casal, salao, gestor) foram criadas com o modelo
 - Fotos `mesa`, `amigos`, `casal`, `salao` e `garcom` refeitas no Gemini (gemini-3-pro-image) com o cartão real da Tipe num suporte de madeira, a partir de `ref-totem-claro.png`. Sem maquininha em nenhuma cena.
 - `mesa` é a nova foto principal. `garcom` (vendo no relógio que caiu a gorjeta extra) foi para a seção "Para quem atende".
 - `src/assets/telas/*.webp`: capturas do próprio `/simulador` em 390×844 a 3x (Playwright), exportadas em 390 e 780 px. Usadas pelo `PhoneShot` no hero e na galeria "É isso que aparece no celular". Para refazer: abrir `/simulador`, percorrer totem → nome → seleção → pagamento (Apple Pay) → aprovado → avaliação → gorjeta, escondendo o botão de WhatsApp, e salvar cada etapa.
+
+## Rodada V4 (21/10/2026): só ferramentas gratuitas
+
+Decisão do Roberto (21/10): sem Gemini, fal.ai ou outra API paga sem autorização dele, e prioridade para os assets originais do projeto. Um banco de 36 fotos gratuitas do Unsplash foi baixado com licenças conferidas (/mnt/project-files/landing-v3/v4/stock/), mas o Roberto rejeitou o conjunto por não ter relação com o projeto; nenhuma delas está no site. A home continua só com as fotos originais do casting, que mostram o cartão da Tipe e o elenco brasileiro aprovado.

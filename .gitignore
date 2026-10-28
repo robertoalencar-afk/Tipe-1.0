@@ -51,3 +51,4 @@ service-account*.json
 *.backup
 *.bak
 backups/
+docs/landing-v5/video-produto/.produto-fluxo.build.html

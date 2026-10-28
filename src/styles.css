@@ -14,7 +14,9 @@
   font-display: swap;
   font-weight: 100 900;
   src: url("/fonts/inter-tight-latin-var.woff2") format("woff2");
-  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+  unicode-range:
+    U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329,
+    U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
   font-family: "Inter Tight Fallback";
@@ -24,7 +26,6 @@
   descent-override: 25%;
   line-gap-override: 0%;
 }
-
 
 /*
  * Design system definition.
@@ -109,7 +110,8 @@
   --shadow-xs: 0 1px 2px 0 oklch(0.2 0.04 250 / 0.05);
   --shadow-soft: 0 1px 2px oklch(0.2 0.04 250 / 0.04), 0 8px 24px -12px oklch(0.2 0.04 250 / 0.12);
   --shadow-lift: 0 2px 6px oklch(0.2 0.04 250 / 0.05), 0 24px 48px -24px oklch(0.2 0.04 250 / 0.22);
-  --shadow-device: 0 40px 80px -32px oklch(0.2 0.04 250 / 0.35), 0 12px 24px -12px oklch(0.2 0.04 250 / 0.18);
+  --shadow-device:
+    0 40px 80px -32px oklch(0.2 0.04 250 / 0.35), 0 12px 24px -12px oklch(0.2 0.04 250 / 0.18);
 
   --tracking-display: -0.045em;
   --tracking-heading: -0.025em;
@@ -125,6 +127,8 @@
 
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
   --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
+  /* Curva medida na sunday (reveal, botões, menus): expo-out. */
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 :root {
@@ -251,7 +255,9 @@
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    html:focus-within { scroll-behavior: smooth; }
+    html:focus-within {
+      scroll-behavior: smooth;
+    }
   }
 }
 
@@ -263,8 +269,12 @@
   max-width: 84rem;
   margin-inline: auto;
   padding-inline: 1.5rem;
-  @media (width >= 40rem) { padding-inline: 2.5rem; }
-  @media (width >= 64rem) { padding-inline: 3.5rem; }
+  @media (width >= 40rem) {
+    padding-inline: 2.5rem;
+  }
+  @media (width >= 64rem) {
+    padding-inline: 3.5rem;
+  }
 }
 
 @utility eyebrow {
@@ -287,15 +297,56 @@
 }
 
 /* Revelação suave ao rolar (só com movimento permitido e JS ativo) */
-@keyframes tipe-rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-.tipe-rise { animation: tipe-rise 700ms var(--ease-out-soft) both; }
-@keyframes tipe-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-.tipe-float { animation: tipe-float 7s ease-in-out infinite; }
-@keyframes tipe-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-@keyframes tipe-live { 0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--brand-primary) 55%, transparent); } 100% { box-shadow: 0 0 0 8px transparent; } }
-.tipe-live { animation: tipe-live 1.8s ease-out infinite; }
+@keyframes tipe-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.tipe-rise {
+  animation: tipe-rise 700ms var(--ease-out-soft) both;
+}
+@keyframes tipe-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+.tipe-float {
+  animation: tipe-float 7s ease-in-out infinite;
+}
+@keyframes tipe-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+@keyframes tipe-live {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in oklab, var(--brand-primary) 55%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 8px transparent;
+  }
+}
+.tipe-live {
+  animation: tipe-live 1.8s ease-out infinite;
+}
 @media (prefers-reduced-motion: reduce) {
-  .tipe-rise, .tipe-float, .tipe-live { animation: none; }
+  .tipe-rise,
+  .tipe-float,
+  .tipe-live {
+    animation: none;
+  }
 }
 
 /* Scope device theme at the token root so derived theme aliases, portalled
@@ -447,57 +498,288 @@
 }
 
 /* Mesa viva: palco da animação de abertura */
-:root { --mv-stage: oklch(0.13 0.02 250); --mv-surface: oklch(0.19 0.025 250); }
-.bg-mv-stage { background-color: var(--mv-stage); }
-.bg-mv-surface { background-color: var(--mv-surface); }
-.mv-glow { filter: drop-shadow(0 0 22px color-mix(in oklab, var(--primary) 65%, transparent)); }
+:root {
+  --mv-stage: oklch(0.13 0.02 250);
+  --mv-surface: oklch(0.19 0.025 250);
+}
+.bg-mv-stage {
+  background-color: var(--mv-stage);
+}
+.bg-mv-surface {
+  background-color: var(--mv-surface);
+}
+.mv-glow {
+  filter: drop-shadow(0 0 22px color-mix(in oklab, var(--primary) 65%, transparent));
+}
 
 /* Central Jurídica: virar de página e impressão limpa */
-@keyframes legal-turn { from { opacity: 0; transform: translateX(14px); } to { opacity: 1; transform: none; } }
-.legal-turn { animation: legal-turn 240ms ease-out; }
-@media (prefers-reduced-motion: reduce) { .legal-turn { animation: none; } }
+@keyframes legal-turn {
+  from {
+    opacity: 0;
+    transform: translateX(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.legal-turn {
+  animation: legal-turn 240ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .legal-turn {
+    animation: none;
+  }
+}
 @media print {
-  @page { margin: 18mm 16mm; @bottom-right { content: "Página " counter(page); font-size: 9pt; } }
-  [data-noprint], [aria-label="Aviso de cookies"], a[href*="wa.me"], a[href*="whatsapp"], [data-sonner-toaster] { display: none !important; }
-  .legal-central .print-header { display: block !important; font: 600 9pt var(--font-sans); border-bottom: 1px solid #ccc; padding-bottom: 6px; margin: 0 16px 12px; }
-  .legal-central { background: #fff !important; color: #000 !important; }
-  .legal-print-book { break-before: page; }
-  .legal-chapter { break-inside: auto; }
+  @page {
+    margin: 18mm 16mm;
+    @bottom-right {
+      content: "Página " counter(page);
+      font-size: 9pt;
+    }
+  }
+  [data-noprint],
+  [aria-label="Aviso de cookies"],
+  a[href*="wa.me"],
+  a[href*="whatsapp"],
+  [data-sonner-toaster] {
+    display: none !important;
+  }
+  .legal-central .print-header {
+    display: block !important;
+    font: 600 9pt var(--font-sans);
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 6px;
+    margin: 0 16px 12px;
+  }
+  .legal-central {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .legal-print-book {
+    break-before: page;
+  }
+  .legal-chapter {
+    break-inside: auto;
+  }
 }
 
 /* ------------------------------------------------------------------ Landing v3: motion
  * Entradas no scroll (ver src/components/tipe/landing/motion.tsx). Só transform/opacity.
  */
-[data-reveal] { transition: opacity 700ms var(--ease-out-soft) var(--d, 0ms), transform 900ms var(--ease-out-soft) var(--d, 0ms); }
-[data-reveal="up"]:not([data-in]) { opacity: 0; transform: translate3d(0, 28px, 0); }
-[data-reveal="fade"]:not([data-in]) { opacity: 0; }
-[data-reveal="scale"]:not([data-in]) { opacity: 0; transform: scale(0.94); }
-.line-reveal-inner { transition: transform 900ms var(--ease-out-soft) var(--d, 0ms), opacity 600ms ease var(--d, 0ms); }
-.line-reveal:not([data-in]) .line-reveal-inner { transform: translate3d(0, 105%, 0); opacity: 0; }
-/* Foto que "abre" de dentro de uma máscara com leve zoom-out. */
-.photo-reveal { clip-path: inset(0 0 0 0 round var(--photo-radius, 2rem)); transition: clip-path 1100ms var(--ease-out-soft); }
-.photo-reveal > .photo-zoom { transition: transform 1600ms var(--ease-out-soft); }
-.photo-reveal:not([data-in]) { clip-path: inset(8% 6% 8% 6% round var(--photo-radius, 2rem)); }
-.photo-reveal:not([data-in]) > .photo-zoom { transform: scale(1.12); }
-@keyframes tipe-hero-in { from { opacity: 0; transform: translate3d(0, 0.55em, 0); } to { opacity: 1; transform: none; } }
-.hero-in { animation: tipe-hero-in 900ms var(--ease-out-soft) both; animation-delay: var(--d, 0ms); }
-@keyframes tipe-pop { 0% { opacity: 0; transform: translate3d(0, 14px, 0) scale(0.96); } 100% { opacity: 1; transform: none; } }
-.pop-in { animation: tipe-pop 700ms var(--ease-spring) both; animation-delay: var(--d, 0ms); }
-@keyframes tipe-bob { 0%, 100% { transform: translate3d(0, 0, 0); } 50% { transform: translate3d(0, -6px, 0); } }
-.bob { animation: tipe-bob 6s ease-in-out infinite; animation-delay: var(--d, 0ms); }
-@keyframes tipe-doodle { from { stroke-dashoffset: 1; } to { stroke-dashoffset: 0; } }
-.doodle path { stroke-dasharray: 1; stroke-dashoffset: 1; animation: tipe-doodle 900ms var(--ease-out-soft) forwards; animation-delay: var(--d, 600ms); }
-.btn-press { transition: transform 160ms var(--ease-out-soft), background-color 200ms, box-shadow 200ms; }
-.btn-press:hover { transform: translate3d(0, -2px, 0); }
-.btn-press:active { transform: scale(0.97); }
-@media (prefers-reduced-motion: reduce) {
-  [data-reveal], .line-reveal-inner, .photo-reveal, .photo-reveal > .photo-zoom { transition: none !important; opacity: 1 !important; transform: none !important; clip-path: none !important; }
-  .hero-in, .pop-in, .bob { animation: none !important; }
-  .doodle path { animation: none; stroke-dashoffset: 0; }
+[data-reveal] {
+  transition:
+    opacity 1200ms var(--ease-expo) var(--d, 0ms),
+    transform 1500ms var(--ease-expo) var(--d, 0ms);
 }
-@keyframes tipe-scan { 0%, 100% { transform: translate3d(0, 0, 0); } 50% { transform: translate3d(0, 190px, 0); } }
-.scan-line { animation: tipe-scan 2.4s ease-in-out infinite; }
-@media (prefers-reduced-motion: reduce) { .scan-line { animation: none; opacity: 0; } }
+[data-reveal="up"]:not([data-in]) {
+  opacity: 0;
+  transform: translate3d(0, 16px, 0);
+}
+[data-reveal="fade"]:not([data-in]) {
+  opacity: 0;
+}
+[data-reveal="scale"]:not([data-in]) {
+  opacity: 0;
+  transform: scale(0.94);
+}
+/* Texto palavra por palavra (medido na sunday): sobe 15% da altura e aparece em 1,5 s,
+ * expo-out, com o atraso de cada palavra em --d. Ver Palavras e LineReveal. */
+@keyframes palavra-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 15%, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.palavra {
+  display: inline-block;
+}
+[data-palavras]:not([data-in]) .palavra {
+  opacity: 0;
+}
+[data-palavras][data-in] .palavra {
+  animation: palavra-in 1500ms var(--ease-expo) both;
+  animation-delay: var(--d, 0ms);
+}
+/* Botões em pílula da landing: 0,4 s expo-out; o contornado se preenche no hover. */
+.sunday :is(a, button).rounded-full {
+  transition-property: background-color, border-color, color, box-shadow, transform;
+  transition-duration: 400ms;
+  transition-timing-function: var(--ease-expo);
+}
+.sunday :is(a, button).rounded-full.border:not([role="tab"]):not([aria-current]):hover {
+  background-color: var(--foreground);
+  border-color: var(--foreground);
+  color: var(--background);
+}
+/* Menus que abrem: opacidade e leve descida em 0,75 s expo-out. */
+@keyframes menu-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.menu-in {
+  animation: menu-in 750ms var(--ease-expo) both;
+}
+/* Cabeçalho que some ao rolar e CTA que fica no topo. */
+.header-auto {
+  transition:
+    transform 500ms var(--ease-expo),
+    background-color 300ms ease,
+    border-color 300ms ease;
+}
+.header-auto[data-escondido] {
+  transform: translate3d(0, -100%, 0);
+}
+.cta-fixo {
+  transition:
+    opacity 400ms var(--ease-expo),
+    transform 500ms var(--ease-expo);
+}
+.cta-fixo:not([data-visivel]) {
+  opacity: 0;
+  transform: translate3d(0, -12px, 0);
+  pointer-events: none;
+}
+/* Foto que "abre" de dentro de uma máscara com leve zoom-out. */
+.photo-reveal {
+  clip-path: inset(0 0 0 0 round var(--photo-radius, 2rem));
+  transition: clip-path 1100ms var(--ease-out-soft);
+}
+.photo-reveal > .photo-zoom {
+  transition: transform 1600ms var(--ease-out-soft);
+}
+.photo-reveal:not([data-in]) {
+  clip-path: inset(8% 6% 8% 6% round var(--photo-radius, 2rem));
+}
+.photo-reveal:not([data-in]) > .photo-zoom {
+  transform: scale(1.12);
+}
+@keyframes tipe-hero-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 0.55em, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.hero-in {
+  animation: tipe-hero-in 900ms var(--ease-out-soft) both;
+  animation-delay: var(--d, 0ms);
+}
+@keyframes tipe-pop {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+.pop-in {
+  animation: tipe-pop 700ms var(--ease-spring) both;
+  animation-delay: var(--d, 0ms);
+}
+@keyframes tipe-bob {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, -6px, 0);
+  }
+}
+.bob {
+  animation: tipe-bob 6s ease-in-out infinite;
+  animation-delay: var(--d, 0ms);
+}
+@keyframes tipe-doodle {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.doodle path {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: tipe-doodle 900ms var(--ease-out-soft) forwards;
+  animation-delay: var(--d, 600ms);
+}
+.btn-press {
+  transition:
+    transform 160ms var(--ease-out-soft),
+    background-color 200ms,
+    box-shadow 200ms;
+}
+.btn-press:hover {
+  transform: translate3d(0, -2px, 0);
+}
+.btn-press:active {
+  transform: scale(0.97);
+}
+@media (prefers-reduced-motion: reduce) {
+  [data-reveal],
+  .line-reveal-inner,
+  .photo-reveal,
+  .photo-reveal > .photo-zoom {
+    transition: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+  }
+  [data-palavras] .palavra,
+  .menu-in {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .header-auto,
+  .cta-fixo {
+    transition: none !important;
+  }
+  .hero-in,
+  .pop-in,
+  .bob {
+    animation: none !important;
+  }
+  .doodle path {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes tipe-scan {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0);
+  }
+  50% {
+    transform: translate3d(0, 190px, 0);
+  }
+}
+.scan-line {
+  animation: tipe-scan 2.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .scan-line {
+    animation: none;
+    opacity: 0;
+  }
+}
 
 /* ---------------------------------------------------------------------------
    Landing no estilo Sunday: fundo branco, preto puro, uma fonte grotesca neutra
@@ -545,18 +827,1072 @@
   text-transform: none;
 }
 
-@keyframes faixa { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-.faixa { animation: faixa 38s linear infinite; }
-@media (prefers-reduced-motion: reduce) { .faixa { animation: none; } }
+@keyframes faixa {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+.faixa {
+  animation: faixa 38s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .faixa {
+    animation: none;
+  }
+}
 
 /* Moedas do palco do celular: face com brilho e borda grossa, em 3D */
 .palco-moeda {
   background:
-    radial-gradient(circle at 50% 50%, transparent 58%, color-mix(in oklab, white 30%, transparent) 60%, transparent 63%),
-    radial-gradient(circle at 35% 30%, color-mix(in oklab, var(--brand-primary) 55%, white), var(--brand-primary) 45%, var(--brand-primary-strong));
+    radial-gradient(
+      circle at 50% 50%,
+      transparent 58%,
+      color-mix(in oklab, white 30%, transparent) 60%,
+      transparent 63%
+    ),
+    radial-gradient(
+      circle at 35% 30%,
+      color-mix(in oklab, var(--brand-primary) 55%, white),
+      var(--brand-primary) 45%,
+      var(--brand-primary-strong)
+    );
   box-shadow:
     0 6px 0 color-mix(in oklab, var(--brand-primary-strong) 80%, black),
     0 12px 0 color-mix(in oklab, var(--brand-primary-strong) 70%, black),
     0 18px 0 color-mix(in oklab, var(--brand-primary-strong) 60%, black),
     0 40px 60px -10px rgb(0 0 0 / 0.6);
+}
+
+/* ---------------------------------------------------------------------------
+   Site no estilo sunday: o fundo da página inteira troca de branco para preto
+   quando uma seção data-tema="escuro" cruza o meio da tela (0,5 s, expo-out),
+   e as fotos assentam com zoom lento. Ver src/components/tipe/site/.
+--------------------------------------------------------------------------- */
+@property --pg-bg {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #fff;
+}
+@property --pg-fg {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #111;
+}
+@property --pg-muted {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #6b6b6b;
+}
+@property --pg-line {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #e5e5e5;
+}
+@property --pg-soft {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #f5f5f5;
+}
+.sunday {
+  --pg-bg: oklch(1 0 0);
+  --pg-fg: oklch(0.13 0 0);
+  --pg-muted: oklch(0.48 0 0);
+  --pg-line: oklch(0.9 0 0);
+  --pg-soft: oklch(0.968 0 0);
+  --background: var(--pg-bg);
+  --surface: var(--pg-bg);
+  --foreground: var(--pg-fg);
+  --muted-foreground: var(--pg-muted);
+  --border: var(--pg-line);
+  --background-muted: var(--pg-soft);
+  background-color: var(--pg-bg);
+  color: var(--pg-fg);
+  transition:
+    --pg-bg 500ms var(--ease-expo),
+    --pg-fg 500ms var(--ease-expo),
+    --pg-muted 500ms var(--ease-expo),
+    --pg-line 500ms var(--ease-expo),
+    --pg-soft 500ms var(--ease-expo);
+}
+.sunday[data-tema="escuro"] {
+  --pg-bg: oklch(0.11 0 0);
+  --pg-fg: oklch(0.98 0 0);
+  --pg-muted: oklch(0.72 0 0);
+  --pg-line: oklch(1 0 0 / 0.14);
+  --pg-soft: oklch(0.18 0 0);
+}
+/* Botão principal: preto no claro, branco no escuro (como a sunday). */
+.btn-tema {
+  background-color: var(--pg-fg);
+  color: var(--pg-bg);
+}
+.btn-tema:hover {
+  background-color: color-mix(in oklab, var(--pg-fg) 82%, var(--pg-bg));
+}
+.foto-zoom > img {
+  transform: scale(1.12);
+  transition: transform 2400ms var(--ease-expo);
+  will-change: transform;
+}
+.foto-zoom[data-in] > img {
+  transform: scale(1);
+}
+.group:hover .foto-zoom[data-in] > img {
+  transform: scale(1.05);
+  transition-duration: 1200ms;
+}
+@keyframes marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+.marquee {
+  animation: marquee 40s linear infinite;
+}
+.marquee:hover {
+  animation-play-state: paused;
+}
+.sem-barra {
+  scrollbar-width: none;
+}
+.sem-barra::-webkit-scrollbar {
+  display: none;
+}
+@keyframes troca-in {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.troca-in {
+  animation: troca-in 900ms var(--ease-expo) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sunday {
+    transition: none;
+  }
+  .foto-zoom > img,
+  .group:hover .foto-zoom[data-in] > img {
+    transform: none;
+    transition: none;
+  }
+  .marquee,
+  .troca-in {
+    animation: none;
+  }
+}
+.logo-escuro {
+  display: none;
+}
+.sunday[data-tema="escuro"] .logo-claro {
+  display: none;
+}
+.sunday[data-tema="escuro"] .logo-escuro {
+  display: block;
+}
+@keyframes aba-progresso {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+.aba-progresso {
+  animation: aba-progresso var(--tempo, 6s) linear both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .aba-progresso {
+    animation: none;
+    transform: scaleX(1);
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   V4: tokens de movimento (os mesmos de src/components/tipe/site/movimento.ts),
+   o focinho da lebre e o Tipe Whisker Motion (fios dos botões).
+--------------------------------------------------------------------------- */
+:root {
+  --mv-toque: 400ms;
+  --mv-painel: 750ms;
+  --mv-foto: 1200ms;
+  --mv-texto: 1500ms;
+  --mv-palavra: 140ms;
+  --mv-lista: 100ms;
+  --mv-subida: 24px;
+}
+
+/* Focinho da lebre (V5, desenho aprovado na prévia E). viewBox 120 × 64, nariz em x = 60.
+   O nariz fareja em rajadas com pausa; a cada farejada os lados se abrem um pouco; cada
+   bigode tem ritmo (--t), defasagem (--f) e amplitude (--a) próprios. No hover os
+   bigodes se abrem mais (propriedade rotate, que soma com a animação). */
+.focinho {
+  overflow: visible;
+  --focinho-fio: #021e34;
+}
+.focinho[data-tom="escuro"],
+.sunday[data-tema="escuro"] .focinho[data-tom="auto"] {
+  --focinho-fio: #fff;
+}
+.focinho-nariz {
+  fill: #0fc9bd;
+  transform-box: view-box;
+  transform-origin: 60px 24px;
+  animation:
+    focinho-surge 700ms var(--ease-expo) both calc(var(--d, 600ms) + 150ms),
+    focinho-fareja 3.4s ease-in-out infinite calc(var(--d, 600ms) + 1200ms);
+}
+.focinho-boca {
+  stroke: var(--focinho-fio);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  transition: stroke 500ms var(--ease-expo);
+}
+.focinho-lado {
+  transform-box: view-box;
+  animation: focinho-abre 3.4s ease-in-out infinite calc(var(--d, 600ms) + 1200ms);
+}
+.focinho-esq {
+  transform-origin: 45px 30px;
+  --s: 1;
+}
+.focinho-dir {
+  transform-origin: 75px 30px;
+  --s: -1;
+}
+.focinho-fio {
+  stroke: var(--focinho-fio);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  transform-box: view-box;
+  transform-origin: inherit;
+  transition: stroke 500ms var(--ease-expo);
+  animation:
+    tipe-doodle 900ms var(--ease-expo) forwards calc(var(--d, 600ms) + var(--i) * 90ms),
+    focinho-tremor var(--t, 4.2s) ease-in-out var(--f, 0s) infinite;
+}
+.focinho-esq .focinho-fio {
+  transform-origin: 45px 30px;
+}
+.focinho-dir .focinho-fio {
+  transform-origin: 75px 30px;
+  animation-delay: calc(var(--d, 600ms) + 60ms + var(--i) * 90ms), var(--f, 0s);
+}
+/* Resposta extra no hover: o leque dos bigodes se abre (o de cima sobe, o de baixo desce). */
+.focinho-leque {
+  transform-box: view-box;
+  transition: transform 700ms var(--ease-expo);
+}
+.focinho-esq .focinho-leque {
+  transform-origin: 45px 30px;
+}
+.focinho-dir .focinho-leque {
+  transform-origin: 75px 30px;
+}
+:is(.focinho, .com-focinho):hover .focinho-leque {
+  transform: rotate(calc(var(--s) * var(--h) * 9deg));
+}
+:is(.focinho, .com-focinho):hover .focinho-nariz {
+  animation-duration: 700ms, 1.6s;
+}
+/* Fora da primeira dobra: espera entrar na tela para desenhar. */
+.focinho[data-espera] * {
+  animation: none !important;
+}
+.focinho[data-espera] .focinho-nariz {
+  transform: scale(0);
+}
+@keyframes focinho-surge {
+  from {
+    transform: scale(0);
+  }
+  70% {
+    transform: scale(1.12);
+  }
+  to {
+    transform: none;
+  }
+}
+@keyframes focinho-fareja {
+  0%,
+  50%,
+  100% {
+    transform: none;
+  }
+  54% {
+    transform: scale(1.1, 0.88) translateY(1px);
+  }
+  58% {
+    transform: none;
+  }
+  62% {
+    transform: scale(1.1, 0.88) translateY(1px);
+  }
+  66% {
+    transform: none;
+  }
+  70% {
+    transform: scale(1.06, 0.92);
+  }
+  74% {
+    transform: none;
+  }
+}
+@keyframes focinho-abre {
+  0%,
+  50%,
+  100% {
+    transform: none;
+  }
+  56% {
+    transform: rotate(calc(var(--s) * -4deg)) scale(1.05);
+  }
+  64% {
+    transform: rotate(calc(var(--s) * 3deg));
+  }
+  72% {
+    transform: rotate(calc(var(--s) * -2deg)) scale(1.03);
+  }
+  80% {
+    transform: none;
+  }
+}
+@keyframes focinho-tremor {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  8% {
+    transform: rotate(calc(var(--s) * var(--a, 6deg) * -1));
+  }
+  13% {
+    transform: rotate(calc(var(--s) * var(--a, 6deg) * 0.5));
+  }
+  18% {
+    transform: rotate(calc(var(--s) * var(--a, 6deg) * -0.25));
+  }
+  24% {
+    transform: rotate(0deg);
+  }
+  60% {
+    transform: rotate(calc(var(--s) * 1.5deg));
+  }
+}
+
+/* Fios: a linguagem dos botões. Três traços que se desenham e somem (stroke-dashoffset
+   de 1 a 0 a -1). Disparam no hover, no foco do teclado e no toque; com "auto",
+   saltam sozinhos a cada 4,5 s. */
+@layer components {
+  .com-fios {
+    position: relative;
+  }
+  .com-fios:active {
+    scale: 0.98;
+  }
+}
+.fios {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  --fl: 13px;
+  --fio-cor: var(--fio, #0fc9bd);
+}
+.fios-leve {
+  --fl: 10px;
+}
+.fios-forte {
+  --fl: 16px;
+}
+.fios-lado {
+  position: absolute;
+  top: 50%;
+  width: var(--fl);
+  height: var(--fl);
+  margin-top: calc(var(--fl) / -2);
+  overflow: visible;
+}
+.fios-dir {
+  left: calc(100% + 3px);
+}
+.fios-esq {
+  right: calc(100% + 3px);
+  transform: scaleX(-1);
+}
+.fios path,
+.seta-fios .sf-fio {
+  fill: none;
+  stroke: var(--fio-cor, var(--fio, #0fc9bd));
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0; /* em repouso nada aparece, nem o ponto da ponta arredondada */
+}
+.fios path:nth-child(2),
+.seta-fios .sf-fio:nth-child(2) {
+  --i: 1;
+}
+.fios path:nth-child(3),
+.seta-fios .sf-fio:nth-child(3) {
+  --i: 2;
+}
+.fios-auto path,
+.seta-fios-auto .sf-fio {
+  animation: fios-auto 4.5s var(--ease-expo) calc(2.4s + var(--i, 0) * 60ms) infinite;
+}
+.com-fios:is(:hover, :focus-visible, :active) :is(.fios path, .sf-fio),
+.group:is(:hover, :focus-visible) .com-fios :is(.fios path, .sf-fio) {
+  animation: fios-salta 1100ms var(--ease-expo) calc(var(--i, 0) * 60ms) both;
+}
+@keyframes fios-salta {
+  0% {
+    stroke-dashoffset: 1;
+    opacity: 0;
+  }
+  6% {
+    opacity: 1;
+  }
+  40% {
+    stroke-dashoffset: 0;
+  }
+  68% {
+    stroke-dashoffset: 0;
+  }
+  92% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: -1;
+    opacity: 0;
+  }
+}
+@keyframes fios-auto {
+  0%,
+  55% {
+    stroke-dashoffset: 1;
+    opacity: 0;
+  }
+  56% {
+    opacity: 1;
+  }
+  66% {
+    stroke-dashoffset: 0;
+  }
+  84% {
+    stroke-dashoffset: 0;
+  }
+  97% {
+    opacity: 1;
+  }
+  100% {
+    stroke-dashoffset: -1;
+    opacity: 0;
+  }
+}
+
+/* Seta de bigodes (V6.1, 27/10): no lugar do meio focinho. O nariz é a cauda e três
+   bigodes formam a ponta da seta. A cor mistura o turquesa com a cor do texto do botão,
+   então fica legível no botão escuro, no claro e sobre o turquesa. Só transform anima:
+   a caixa do ícone é fixa (1,25 em) e a largura do botão não muda. */
+.seta-bigodes {
+  --sb: var(--fio-cor, color-mix(in oklab, var(--fio, #0fc9bd) 80%, currentColor));
+  width: 1.25em;
+  height: 1.25em;
+  margin-right: -0.1em;
+}
+.seta-bigodes .sb-fio {
+  fill: none;
+  stroke: var(--sb);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+}
+.seta-bigodes .sb-nariz {
+  fill: var(--sb);
+}
+.seta-bigodes * {
+  transform-box: view-box;
+}
+.seta-bigodes .sb-corpo {
+  transition: transform 500ms var(--ease-expo);
+}
+.seta-bigodes .sb-nariz {
+  transform-origin: 5px 12px;
+}
+.seta-bigodes .sb-cima,
+.seta-bigodes .sb-baixo {
+  transform-origin: 20.4px 12px;
+}
+.com-fios:is(:hover, :focus-visible, :active) .sb-corpo,
+.group:is(:hover, :focus-visible) .com-fios .sb-corpo {
+  transform: translateX(2px);
+}
+.com-fios:is(:hover, :focus-visible, :active) .sb-nariz,
+.group:is(:hover, :focus-visible) .com-fios .sb-nariz {
+  animation: sb-fareja 1100ms ease-in-out both;
+}
+.com-fios:is(:hover, :focus-visible, :active) .sb-cima,
+.group:is(:hover, :focus-visible) .com-fios .sb-cima {
+  animation: sb-vibra 1100ms ease-in-out both;
+}
+.com-fios:is(:hover, :focus-visible, :active) .sb-baixo,
+.group:is(:hover, :focus-visible) .com-fios .sb-baixo {
+  animation: sb-vibra 1100ms ease-in-out both reverse;
+}
+.seta-fios-auto .sb-nariz {
+  animation: sb-fareja-auto 4.5s ease-in-out 2.4s infinite;
+}
+@keyframes sb-fareja {
+  0%,
+  50%,
+  100% {
+    transform: none;
+  }
+  14% {
+    transform: scale(1.16, 0.86);
+  }
+  26% {
+    transform: none;
+  }
+  38% {
+    transform: scale(1.1, 0.9);
+  }
+}
+@keyframes sb-fareja-auto {
+  0%,
+  55%,
+  100% {
+    transform: none;
+  }
+  59% {
+    transform: scale(1.14, 0.88);
+  }
+  63% {
+    transform: none;
+  }
+  67% {
+    transform: scale(1.1, 0.9);
+  }
+  71% {
+    transform: none;
+  }
+}
+@keyframes sb-vibra {
+  0%,
+  100% {
+    transform: none;
+  }
+  25% {
+    transform: rotate(-5deg);
+  }
+  55% {
+    transform: rotate(2deg);
+  }
+}
+/* Sem o focinho: os fios ficam soltos na margem direita do botão ("Entrar"). */
+.seta-fios-solto {
+  position: absolute;
+  right: 0.45rem;
+  top: 50%;
+  width: 0.85em;
+  height: 0.85em;
+  margin: -0.425em 0 0;
+}
+/* Botão redondo só com a seta de bigodes (cards de produto, menu). */
+.meio-focinho-redondo {
+  width: 1.15em;
+  height: 1.15em;
+  margin: 0;
+}
+
+/* A seta lucide dos botões redondos anda junto com os fios. */
+.com-fios .seta {
+  transition: transform 500ms var(--ease-expo);
+}
+.com-fios:is(:hover, :focus-visible) .seta,
+.group:is(:hover, :focus-visible) .com-fios .seta {
+  transform: translateX(3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .focinho *,
+  .focinho[data-espera] * {
+    animation: none !important;
+    transition: none !important;
+  }
+  .focinho-fio {
+    stroke-dashoffset: 0;
+  }
+  .focinho-leque {
+    transform: none !important;
+  }
+  .focinho[data-espera] .focinho-nariz {
+    transform: none;
+  }
+  /* Fios: em vez de se desenhar, aparecem por opacidade enquanto há hover ou foco. */
+  .fios path,
+  .seta-fios .sf-fio {
+    animation: none !important;
+    stroke-dashoffset: 0;
+    opacity: 0;
+    transition: opacity 150ms ease;
+  }
+  .com-fios:is(:hover, :focus-visible) :is(.fios path, .sf-fio),
+  .group:is(:hover, :focus-visible) .com-fios :is(.fios path, .sf-fio) {
+    opacity: 1;
+  }
+  .seta-bigodes *,
+  .com-fios .seta {
+    animation: none !important;
+    transition: none;
+    transform: none !important;
+  }
+  .com-fios:active {
+    scale: none;
+  }
+}
+
+/* Rodapé V5: logotipo grande que se monta ao entrar na tela. As letras sobem uma a uma,
+   as orelhas (o símbolo) espiam de trás da linha de base e o traço do E se desenha como
+   um bigode. Depois as orelhas mexem de leve a cada ~7 s. Só transform e opacity. */
+.logo-tipe {
+  overflow: visible;
+}
+.logo-vivo .lt-letra,
+.logo-vivo .lt-simbolo,
+.logo-vivo .lt-simbolo path,
+.logo-vivo .lt-traco {
+  transform-box: view-box;
+}
+.logo-vivo .lt-simbolo,
+.logo-vivo .lt-simbolo path {
+  transform-origin: 133px 195px;
+}
+.logo-vivo .lt-traco {
+  transform-origin: 478px 140px;
+}
+.logo-vivo:not([data-in]) .lt-letra {
+  opacity: 0;
+  transform: translateY(46px);
+}
+.logo-vivo:not([data-in]) .lt-simbolo {
+  opacity: 0;
+  transform: translateY(70px) scale(0.86);
+}
+.logo-vivo:not([data-in]) .lt-traco {
+  transform: scaleX(0);
+}
+.logo-vivo[data-in] .lt-letra {
+  animation: lt-sobe 1300ms var(--ease-expo) both calc(120ms + var(--i) * 95ms);
+}
+.logo-vivo[data-in] .lt-simbolo {
+  animation: lt-espia 1500ms var(--ease-expo) both 420ms;
+}
+.logo-vivo[data-in] .lt-simbolo path {
+  animation: lt-orelhas 7s ease-in-out 2.6s infinite;
+}
+.logo-vivo[data-in] .lt-traco {
+  animation: lt-traco 900ms var(--ease-expo) both 900ms;
+}
+.logo-vivo[data-in]:hover .lt-simbolo path {
+  animation-duration: 1.4s;
+  animation-delay: 0s;
+}
+@keyframes lt-sobe {
+  from {
+    opacity: 0;
+    transform: translateY(46px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes lt-espia {
+  0% {
+    opacity: 0;
+    transform: translateY(70px) scale(0.86);
+  }
+  35% {
+    opacity: 1;
+  }
+  62% {
+    transform: translateY(-5px) rotate(-2deg);
+  }
+  82% {
+    transform: translateY(1.5px) rotate(1deg);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes lt-orelhas {
+  0%,
+  84%,
+  100% {
+    transform: none;
+  }
+  87% {
+    transform: rotate(-2.6deg);
+  }
+  90% {
+    transform: rotate(1.8deg);
+  }
+  93% {
+    transform: rotate(-0.8deg);
+  }
+  96% {
+    transform: none;
+  }
+}
+@keyframes lt-traco {
+  0% {
+    transform: scaleX(0);
+  }
+  70% {
+    transform: scaleX(1.08);
+  }
+  100% {
+    transform: none;
+  }
+}
+/* Selo do pré-lançamento: pulso discreto no ponto. */
+.rodape-vivo {
+  animation: tipe-live 2.4s ease-out infinite;
+}
+/* Links do rodapé: sublinhado fino que cresce da esquerda (sem os fios, que ficam para os CTAs). */
+.rodape-link {
+  background: linear-gradient(currentColor, currentColor) no-repeat 0 calc(100% - 0.35rem) / 0 1px;
+  transition:
+    color 300ms ease,
+    background-size 500ms var(--ease-expo);
+}
+.rodape-link:is(:hover, :focus-visible) {
+  background-size: 100% 1px;
+}
+.rodape :focus-visible {
+  outline: 2px solid #0fc9bd;
+  outline-offset: 3px;
+  border-radius: 0.5rem;
+}
+@media (prefers-reduced-motion: reduce) {
+  .logo-vivo .lt-letra,
+  .logo-vivo .lt-simbolo,
+  .logo-vivo .lt-simbolo path,
+  .logo-vivo .lt-traco {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+  .rodape-vivo {
+    animation: none;
+  }
+  .rodape-link {
+    transition: color 150ms ease;
+  }
+}
+
+/* Seção de conversão vibrante: camadas com profundidade (--z), rolagem (--p) e cursor (--mx/--my). */
+.cta-palco {
+  --p: 0;
+  --mx: 0;
+  --my: 0;
+}
+.cta-camada {
+  transform: translate3d(
+    calc(var(--mx) * var(--z) * -12px),
+    calc(var(--p) * var(--z) * -70px + var(--my) * var(--z) * -9px),
+    0
+  );
+  transition: transform 700ms var(--ease-expo);
+  will-change: transform;
+}
+.cta-flutua {
+  animation: cta-flutua var(--dur, 6s) ease-in-out infinite var(--atraso, 0s);
+}
+@keyframes cta-flutua {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(0deg);
+  }
+  50% {
+    transform: translate3d(0, -12px, 0) rotate(1.5deg);
+  }
+}
+.cta-vidro {
+  background: linear-gradient(160deg, rgb(255 255 255 / 0.96), rgb(255 255 255 / 0.72));
+  border: 1px solid rgb(255 255 255 / 0.8);
+  box-shadow:
+    inset 0 1px 0 #fff,
+    inset 0 -8px 16px rgb(2 30 52 / 0.07),
+    0 34px 50px -22px rgb(2 30 52 / 0.5),
+    0 6px 0 rgb(2 30 52 / 0.06);
+  backdrop-filter: blur(14px);
+  color: #021e34;
+}
+.cta-objeto {
+  box-shadow:
+    inset 0 2px 0 rgb(255 255 255 / 0.18),
+    0 30px 40px -18px rgb(2 30 52 / 0.6),
+    0 8px 0 #01121f;
+}
+.cta-check {
+  background: radial-gradient(circle at 34% 28%, #6ff0e4 0%, #12a99e 45%, #03665f 100%);
+  box-shadow:
+    inset 0 3px 6px rgb(255 255 255 / 0.45),
+    inset 0 -8px 14px rgb(1 50 46 / 0.5),
+    0 26px 36px -14px rgb(2 30 52 / 0.55);
+}
+@media (prefers-reduced-motion: reduce) {
+  .cta-camada {
+    transform: none;
+    transition: none;
+  }
+  .cta-flutua {
+    animation: none;
+  }
+}
+/* Avisos do Tipe Staff: o mais novo desce do topo, os outros abrem espaço. */
+@keyframes aviso-chega {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -18px, 0) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.aviso-staff {
+  transition:
+    transform 700ms var(--ease-expo),
+    opacity 500ms ease;
+}
+.aviso-staff:first-child {
+  animation: aviso-chega 800ms var(--ease-expo) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .aviso-staff:first-child {
+    animation: none;
+  }
+}
+
+/* Menu do celular: painel desce e os itens entram em cascata (100ms por item). */
+@keyframes menu-cel {
+  from {
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+  }
+}
+.menu-cel {
+  animation: menu-cel var(--mv-painel, 750ms) var(--ease-expo) both;
+}
+@keyframes menu-item {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.menu-cel .menu-item {
+  animation: menu-item 700ms var(--ease-expo) both;
+  animation-delay: calc(120ms + var(--i, 0) * 40ms);
+}
+@media (prefers-reduced-motion: reduce) {
+  .menu-cel,
+  .menu-cel .menu-item {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+  }
+}
+
+/* Rodapé E "Focinho vivo" (V6): focinho grande no palco turquesa. Vira um pouco na
+   direção do cursor (--rx/--ry, ligados em LandingChrome) e abre os bigodes quando o
+   cursor ou o foco chegam aos botões (data-aberto). */
+.focinho[data-tom="palco"] {
+  --focinho-fio: #021e34;
+}
+.focinho[data-tom="palco"] .focinho-nariz {
+  fill: #fff;
+  stroke: #021e34;
+  stroke-width: 2.2;
+  stroke-linejoin: round;
+}
+.rodape-focinho {
+  transform: perspective(900px) translate3d(calc(var(--rx, 0) * 14px), calc(var(--ry, 0) * 8px), 0)
+    rotateY(calc(var(--rx, 0) * 16deg)) rotateX(calc(var(--ry, 0) * -10deg));
+  transition: transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.rodape-palco[data-aberto] .focinho-leque {
+  transform: rotate(calc(var(--s) * var(--h) * 12deg));
+}
+.rodape-palco[data-aberto] .focinho-nariz {
+  animation-duration: 700ms, 1.2s;
+}
+@media (prefers-reduced-motion: reduce) {
+  .rodape-focinho {
+    transform: none;
+    transition: none;
+  }
+}
+
+/* Histórias por papel (V6, carrossel 2): foto em fusão, texto sobe, chip com o tempo. */
+.hist-foto {
+  opacity: 0;
+  transform: scale(1.06);
+  transition:
+    opacity 800ms ease,
+    transform 6.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hist-foto[data-on] {
+  opacity: 1;
+  transform: none;
+}
+.hist-texto {
+  animation: hist-entra 600ms cubic-bezier(0.22, 1, 0.36, 1) both 150ms;
+}
+@keyframes hist-entra {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.hist-progresso {
+  position: absolute;
+  inset: auto 0 0 0;
+  height: 3px;
+  background: #0fc9bd;
+  transform-origin: left;
+  transform: scaleX(0);
+}
+.hist-progresso[data-anda] {
+  animation: hist-tempo var(--ms, 6s) linear forwards;
+}
+@keyframes hist-tempo {
+  to {
+    transform: scaleX(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hist-foto {
+    transition: none;
+    transform: none;
+  }
+  .hist-texto,
+  .hist-progresso[data-anda] {
+    animation: none;
+  }
+}
+
+/* ------------------------------------------------------------------
+ * CRM da Tipe: mesma identidade do site e do painel do restaurante.
+ * Fundo claro, cartões brancos, turquesa da marca como destaque e azul-marinho
+ * como cor de texto e de superfícies escuras. Aplicado em <html class="crm-theme">
+ * para que diálogos, menus e avisos em portal herdem as mesmas cores.
+ * ------------------------------------------------------------------ */
+.crm-theme {
+  color-scheme: light;
+  --background: oklch(0.958 0.006 240);
+  --foreground: oklch(0.2 0.04 250);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2 0.04 250);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2 0.04 250);
+  --primary: oklch(0.77 0.14 178);
+  --primary-foreground: oklch(0.2 0.04 250);
+  --secondary: oklch(0.2 0.04 250);
+  --secondary-foreground: oklch(0.98 0 0);
+  --muted: oklch(0.955 0.006 245);
+  --muted-foreground: oklch(0.47 0.03 255);
+  --accent: oklch(0.94 0.05 175);
+  --accent-foreground: oklch(0.2 0.04 250);
+  --success: oklch(0.58 0.14 155);
+  --success-foreground: oklch(0.99 0 0);
+  --warning: oklch(0.64 0.16 52);
+  --warning-foreground: oklch(0.99 0 0);
+  --highlight: oklch(0.74 0.17 50);
+  --info: oklch(0.52 0.16 258);
+  --destructive: oklch(0.58 0.2 27);
+  --destructive-foreground: oklch(0.99 0 0);
+  --border: oklch(0.915 0.008 250);
+  --input: oklch(0.88 0.01 250);
+  --ring: oklch(0.77 0.14 178);
+  --focus-ring: oklch(0.55 0.11 182);
+  --chart-1: oklch(0.74 0.14 180);
+  --chart-2: oklch(0.27 0.05 250);
+  --chart-3: oklch(0.74 0.17 50);
+  --chart-4: oklch(0.88 0.08 175);
+  --chart-5: oklch(0.72 0.02 250);
+  --sidebar: oklch(1 0 0);
+  --sidebar-foreground: oklch(0.2 0.04 250);
+  --sidebar-primary: oklch(0.77 0.14 178);
+  --sidebar-primary-foreground: oklch(0.2 0.04 250);
+  --sidebar-accent: oklch(0.955 0.006 245);
+  --sidebar-accent-foreground: oklch(0.2 0.04 250);
+  --sidebar-border: oklch(0.915 0.008 250);
+  --sidebar-ring: oklch(0.77 0.14 178);
+  --surface: var(--card);
+  --surface-elevated: var(--popover);
+  --background-muted: oklch(0.965 0.005 250);
+  --brand-primary-soft: oklch(0.95 0.04 178);
+  --brand-primary-strong: oklch(0.5 0.1 182);
+  --shadow-xs: 0 1px 2px 0 oklch(0.2 0.04 250 / 0.06);
+  background-color: var(--background);
+}
+
+.crm-theme body { background-color: var(--background); }
+
+/* Turquesa da marca como texto precisa do tom forte para ter contraste no fundo claro. */
+.crm-theme .text-primary { color: var(--brand-primary-strong); }
+
+/* Cartão do CRM: branco, cantos generosos e sombra mínima. */
+@utility crm-panel {
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  box-shadow:
+    0 1px 2px oklch(0.2 0.04 250 / 0.04),
+    0 12px 32px -24px oklch(0.2 0.04 250 / 0.25);
+}
+
+/* Barras hachuradas (previsão) nos gráficos do painel. */
+@utility crm-hatch {
+  background-image: repeating-linear-gradient(
+    135deg,
+    oklch(0.2 0.04 250 / 0.14) 0 1.5px,
+    transparent 1.5px 7px
+  );
+}
+
+@utility crm-grid-bg {
+  background-image:
+    linear-gradient(oklch(0.2 0.04 250 / 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, oklch(0.2 0.04 250 / 0.035) 1px, transparent 1px);
+  background-size: 32px 32px;
 }

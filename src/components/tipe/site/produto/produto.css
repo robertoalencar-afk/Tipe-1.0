@@ -1,0 +1,322 @@
+/* Páginas de produto (/produtos/*): sequência rápida do celular, montagem do Tipe Staff,
+   palco da Mesa Viva. Movimento: 250–450 ms, ease-out suave; com movimento reduzido,
+   nada se desloca e o estado final fica visível. */
+
+/* ---------- Celular em sequência: troca de tela mais curta que a padrão ---------- */
+.seq-rapida .cel-real .cel-tela {
+  transition:
+    opacity 350ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 420ms cubic-bezier(0.22, 1, 0.36, 1);
+  transform: translate3d(0, 1%, 0) scale(0.99);
+}
+.seq-rapida .cel-real .cel-tela[data-on] {
+  transform: none;
+}
+.seq-rapida .cel-real .cel-toque[data-on] {
+  animation-duration: 0.45s;
+}
+.seq-pontos {
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+.seq-pontos button {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 99px;
+}
+.seq-pontos button:focus-visible {
+  outline: 2px solid #0fc9bd;
+  outline-offset: 1px;
+}
+.seq-ponto {
+  display: block;
+  width: 6px;
+  height: 6px;
+  border-radius: 99px;
+  background: currentColor;
+  opacity: 0.28;
+  transition:
+    opacity 300ms ease-out,
+    transform 300ms ease-out;
+}
+.seq-pontos button[data-on] .seq-ponto {
+  opacity: 1;
+  transform: scale(1.35);
+  background: #0fc9bd;
+}
+
+/* ---------- Tipe Staff: foto + avisos de vidro escuro ---------- */
+/* Montagem da referência (22/10): avisos empilhados no alto, saindo pela borda de cima,
+   alinhados à esquerda; a garçonete fica na metade de baixo, com o rosto livre. */
+.staff-montagem {
+  padding-right: 4%;
+}
+.staff-foto {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 9 / 16;
+  border-radius: 1.4rem;
+  background: #d9d4cc;
+}
+.staff-foto img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 40% 30%;
+}
+.staff-avisos {
+  /* à direita, na altura do balcão: o rosto (no alto, à esquerda) e o celular ficam livres */
+  position: absolute;
+  top: 5%;
+  right: 0;
+  width: 60%;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.staff-aviso {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px 7px 7px;
+  border-radius: 14px;
+  color: #fff;
+  background: rgb(36 30 30 / 0.5);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  backdrop-filter: blur(16px) saturate(150%);
+  border: 1px solid rgb(255 255 255 / 0.16);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.14),
+    0 12px 28px -14px rgb(12 8 8 / 0.55);
+}
+.staff-aviso-icone {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  background: #021e34;
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1);
+}
+.staff-aviso-titulo {
+  display: block;
+  padding-right: 2.6em;
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+}
+.staff-aviso-texto {
+  display: block;
+  margin-top: 1px;
+  font-size: 0.72rem;
+  line-height: 1.3;
+  color: rgb(255 255 255 / 0.86);
+}
+.staff-aviso-quando {
+  position: absolute;
+  top: 9px;
+  right: 11px;
+  font-size: 0.68rem;
+  color: rgb(255 255 255 / 0.55);
+}
+@media (min-width: 640px) {
+  .staff-foto {
+    aspect-ratio: 4 / 5;
+  }
+  .staff-avisos {
+    top: 30%;
+    width: 56%;
+    gap: 9px;
+  }
+  .staff-aviso {
+    padding: 11px 14px 11px 11px;
+    border-radius: 18px;
+    gap: 12px;
+  }
+  .staff-aviso-icone {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+  }
+  .staff-aviso-titulo {
+    font-size: 0.92rem;
+  }
+  .staff-aviso-texto {
+    font-size: 0.88rem;
+  }
+  .staff-aviso-quando {
+    top: 11px;
+    right: 14px;
+    font-size: 0.74rem;
+  }
+}
+@keyframes staff-aviso-entra {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -10px, 0) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.staff-aviso {
+  opacity: 0;
+}
+.staff-montagem[data-in] .staff-aviso {
+  animation: staff-aviso-entra 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--d, 0ms);
+}
+
+/* ---------- Cenas da seção escura ---------- */
+.cena-legenda {
+  counter-increment: cena;
+}
+
+/* ---------- Mesa Viva: palco que roda sozinho ---------- */
+.mv-capitulos {
+  display: flex;
+  gap: 6px;
+}
+.mv-capitulo {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  padding-top: 12px;
+  text-align: left;
+}
+.mv-capitulo-barra {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 3px;
+  border-radius: 99px;
+  background: rgb(255 255 255 / 0.14);
+  overflow: hidden;
+}
+.mv-capitulo-barra > span {
+  display: block;
+  height: 100%;
+  background: #0fc9bd;
+  transform-origin: left;
+  transform: scaleX(0);
+}
+.mv-capitulo[data-feito] .mv-capitulo-barra > span {
+  transform: scaleX(1);
+}
+.mv-capitulo:focus-visible {
+  outline: 2px solid #0fc9bd;
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .seq-rapida .cel-real .cel-tela {
+    transition: none;
+    transform: none;
+  }
+  .seq-ponto {
+    transition: none;
+  }
+  .staff-aviso,
+  .staff-montagem[data-in] .staff-aviso {
+    opacity: 1;
+    animation: none;
+  }
+}
+
+/* Mesa Viva automática (26/10): cena em fusão, texto e aviso entram a cada capítulo. */
+.mv-capitulo-barra > span {
+  transition-property: transform;
+  transition-timing-function: linear;
+}
+.mv-cena {
+  opacity: 0;
+  transform: scale(1.06);
+  transition:
+    opacity 700ms ease,
+    transform 6s linear;
+}
+.mv-cena[data-on] {
+  opacity: 1;
+  transform: scale(1);
+}
+.mv-texto,
+.mv-aviso {
+  animation: mv-entra 450ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.mv-aviso {
+  animation-delay: 250ms;
+}
+@keyframes mv-entra {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .mv-cena {
+    transition: none;
+    transform: none;
+  }
+  .mv-texto,
+  .mv-aviso {
+    animation: none;
+  }
+}
+
+/* Tipe Pay, lado do restaurante (V6): salão antes/depois, aviso do Pix e a Mesa 12 marcada. */
+.baixa-depois {
+  opacity: 0;
+  transition: opacity 600ms ease;
+}
+.baixa-depois[data-on] {
+  opacity: 1;
+}
+.baixa-alvo {
+  box-shadow: 0 0 0 3px #0fc9bd, 0 0 0 9px rgb(15 201 189 / 0.22);
+  opacity: 0;
+  transform: scale(1.06);
+  transition:
+    opacity 350ms ease,
+    transform 450ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.baixa-alvo[data-on] {
+  opacity: 1;
+  transform: none;
+}
+.baixa-aviso {
+  opacity: 0;
+  transform: translate3d(0, -12px, 0) scale(0.97);
+  transition:
+    opacity 350ms ease,
+    transform 450ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+.baixa-aviso[data-on] {
+  opacity: 1;
+  transform: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .baixa-depois,
+  .baixa-alvo,
+  .baixa-aviso {
+    transition: none;
+  }
+}

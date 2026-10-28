@@ -16,7 +16,6 @@ import { Toaster } from "@/components/ui/sonner";
 import { CookieBanner } from "@/components/tipe/PrivacyPreferences";
 import { WhatsAppFloat } from "@/components/tipe/WhatsAppFloat";
 import { captureAttribution, loadMeasurement } from "@/lib/tipe/tracking";
-import { reportLovableError } from "../lib/lovable-error-reporting";
 import { supabase } from "@/integrations/supabase/client";
 
 function NotFoundComponent() {
@@ -44,9 +43,6 @@ function NotFoundComponent() {
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
-  useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -155,7 +151,7 @@ function RootComponent() {
     // Página da mesa do cliente fica sem scripts de medição para carregar rápido no 4G fraco.
     if (
       /^\/(mesa\/)?[^/]+\/[^/]+$/.test(window.location.pathname) &&
-      !/^\/(legal|privacidade|_authenticated)\//.test(window.location.pathname)
+      !/^\/(legal|privacidade|produtos|_authenticated)\//.test(window.location.pathname)
     )
       return;
     loadMeasurement();

@@ -3,6 +3,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { LebreLimits } from "@/components/tipe/LebreLimits";
+import { LaunchStatesAdmin } from "@/components/tipe/LaunchStatesAdmin";
 import { PlansAdmin } from "@/components/tipe/PlansAdmin";
 import { Layers } from "lucide-react";
 import { useMemo, useState } from "react";
@@ -503,7 +504,7 @@ function Backoffice() {
                         className="mb-4 flex h-10 items-center justify-center rounded-full bg-foreground text-sm font-medium text-background"
                       >
                         Abrir lista de espera completa
-                      </Link>
+                      </Link>\n                      <Link to="/crm" className="mb-4 flex h-10 items-center justify-center rounded-full border border-border text-sm font-medium">Abrir CRM comercial</Link>
                       {overview.leads.length === 0 ? (
                         <Empty text="Nenhum contato recebido." />
                       ) : (
@@ -639,6 +640,7 @@ function Backoffice() {
                     </DataPanel>
                   </div>
                   <LebreLimits />
+                  <LaunchStatesAdmin />
                   <DataPanel
                     title="Equipe de atendimento"
                     subtitle="Visão consolidada de acessos e gorjetas"

@@ -13,9 +13,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as CookiesRouteImport } from './routes/cookies'
+import { Route as CrmRouteImport } from './routes/crm'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as FundadorRouteImport } from './routes/fundador'
-import { Route as McpRouteImport } from './routes/mcp'
+import { Route as IntegracoesRouteImport } from './routes/integracoes'
+import { Route as PrecosRouteImport } from './routes/precos'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SimuladorRouteImport } from './routes/simulador'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
@@ -27,10 +29,32 @@ import { Route as RestauranteMesaRouteImport } from './routes/$restaurante.$mesa
 import { Route as RestauranteCozinhaRouteImport } from './routes/$restaurante.cozinha'
 import { Route as RestauranteSenhasRouteImport } from './routes/$restaurante.senhas'
 import { Route as RestauranteTotemRouteImport } from './routes/$restaurante.totem'
-import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AuthenticatedBackofficeRouteImport } from './routes/_authenticated/backoffice'
 import { Route as AuthenticatedGarcomRouteImport } from './routes/_authenticated/garcom'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
+import { Route as CrmIndexRouteImport } from './routes/crm.index'
+import { Route as CrmAdminRouteImport } from './routes/crm.admin'
+import { Route as CrmAtendimentoRouteImport } from './routes/crm.atendimento'
+import { Route as CrmCalendarioRouteImport } from './routes/crm.calendario'
+import { Route as CrmClientesRouteImport } from './routes/crm.clientes'
+import { Route as CrmComercialRouteImport } from './routes/crm.comercial'
+import { Route as CrmConfiguracoesRouteImport } from './routes/crm.configuracoes'
+import { Route as CrmEmpresasRouteImport } from './routes/crm.empresas'
+import { Route as CrmEntrarRouteImport } from './routes/crm.entrar'
+import { Route as CrmEquipeRouteImport } from './routes/crm.equipe'
+import { Route as CrmFinanceiroRouteImport } from './routes/crm.financeiro'
+import { Route as CrmFunisRouteImport } from './routes/crm.funis'
+import { Route as CrmGamificacaoRouteImport } from './routes/crm.gamificacao'
+import { Route as CrmJornadaRouteImport } from './routes/crm.jornada'
+import { Route as CrmLeadsRouteImport } from './routes/crm.leads'
+import { Route as CrmOportunidadesRouteImport } from './routes/crm.oportunidades'
+import { Route as CrmOrganizacoesRouteImport } from './routes/crm.organizacoes'
+import { Route as CrmPerfilRouteImport } from './routes/crm.perfil'
+import { Route as CrmPlanosRouteImport } from './routes/crm.planos'
+import { Route as CrmRelatoriosRouteImport } from './routes/crm.relatorios'
+import { Route as CrmSuporteRouteImport } from './routes/crm.suporte'
+import { Route as CrmTarefasRouteImport } from './routes/crm.tarefas'
+import { Route as CrmWhatsappRouteImport } from './routes/crm.whatsapp'
 import { Route as LegalIndexRouteImport } from './routes/legal.index'
 import { Route as LegalLivroRouteImport } from './routes/legal.$livro'
 import { Route as LegalCompletaRouteImport } from './routes/legal.completa'
@@ -38,16 +62,20 @@ import { Route as LegalGlossarioRouteImport } from './routes/legal.glossario'
 import { Route as LegalVersoesRouteImport } from './routes/legal.versoes'
 import { Route as PrivacidadeIndexRouteImport } from './routes/privacidade.index'
 import { Route as PrivacidadeSolicitacaoRouteImport } from './routes/privacidade.solicitacao'
-import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
+import { Route as ProdutosProdutoRouteImport } from './routes/produtos.$produto'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin.leads'
 import { Route as ApiPublicCspReportRouteImport } from './routes/api/public/csp-report'
+import { Route as CrmContasIndexRouteImport } from './routes/crm.contas.index'
+import { Route as CrmContasIdRouteImport } from './routes/crm.contas.$id'
+import { Route as CrmContatosIndexRouteImport } from './routes/crm.contatos.index'
+import { Route as CrmContatosIdRouteImport } from './routes/crm.contatos.$id'
 import { Route as LegalVersoesArquivoRouteImport } from './routes/legal.versoes_.$arquivo'
 import { Route as MesaRestauranteMesaRouteImport } from './routes/mesa.$restaurante.$mesa'
 import { Route as ApiPublicPagarmeWebhookRouteImport } from './routes/api/public/pagarme/webhook'
 import { Route as ApiPublicPaymentsReconcileRouteImport } from './routes/api/public/payments.reconcile'
 import { Route as ApiPublicPdvSyncRouteImport } from './routes/api/public/pdv.sync'
 import { Route as ApiPublicPosSlugRouteImport } from './routes/api/public/pos.$slug'
-import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
+import { Route as ApiPublicWhatsappWebhookRouteImport } from './routes/api/public/whatsapp.webhook'
 import { Route as ApiPublicPagarmeRestauranteSlugRouteImport } from './routes/api/public/pagarme/restaurante.$slug'
 import { Route as ApiPublicPdvAdapterWebhookRouteImport } from './routes/api/public/pdv.$adapter.webhook'
 
@@ -70,6 +98,11 @@ const CookiesRoute = CookiesRouteImport.update({
   path: '/cookies',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CrmRoute = CrmRouteImport.update({
+  id: '/crm',
+  path: '/crm',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EntrarRoute = EntrarRouteImport.update({
   id: '/entrar',
   path: '/entrar',
@@ -80,9 +113,14 @@ const FundadorRoute = FundadorRouteImport.update({
   path: '/fundador',
   getParentRoute: () => rootRouteImport,
 } as any)
-const McpRoute = McpRouteImport.update({
-  id: '/mcp',
-  path: '/mcp',
+const IntegracoesRoute = IntegracoesRouteImport.update({
+  id: '/integracoes',
+  path: '/integracoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PrecosRoute = PrecosRouteImport.update({
+  id: '/precos',
+  path: '/precos',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -140,12 +178,6 @@ const RestauranteTotemRoute = RestauranteTotemRouteImport.update({
   path: '/$restaurante/totem',
   getParentRoute: () => rootRouteImport,
 } as any)
-const Char91DotwellKnownChar93OauthProtectedResourceRoute =
-  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
-    id: '/.well-known/oauth-protected-resource',
-    path: '/.well-known/oauth-protected-resource',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const AuthenticatedBackofficeRoute = AuthenticatedBackofficeRouteImport.update({
   id: '/backoffice',
   path: '/backoffice',
@@ -160,6 +192,121 @@ const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
   id: '/painel',
   path: '/painel',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const CrmIndexRoute = CrmIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmAdminRoute = CrmAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmAtendimentoRoute = CrmAtendimentoRouteImport.update({
+  id: '/atendimento',
+  path: '/atendimento',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmCalendarioRoute = CrmCalendarioRouteImport.update({
+  id: '/calendario',
+  path: '/calendario',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmClientesRoute = CrmClientesRouteImport.update({
+  id: '/clientes',
+  path: '/clientes',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmComercialRoute = CrmComercialRouteImport.update({
+  id: '/comercial',
+  path: '/comercial',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmConfiguracoesRoute = CrmConfiguracoesRouteImport.update({
+  id: '/configuracoes',
+  path: '/configuracoes',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmEmpresasRoute = CrmEmpresasRouteImport.update({
+  id: '/empresas',
+  path: '/empresas',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmEntrarRoute = CrmEntrarRouteImport.update({
+  id: '/entrar',
+  path: '/entrar',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmEquipeRoute = CrmEquipeRouteImport.update({
+  id: '/equipe',
+  path: '/equipe',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmFinanceiroRoute = CrmFinanceiroRouteImport.update({
+  id: '/financeiro',
+  path: '/financeiro',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmFunisRoute = CrmFunisRouteImport.update({
+  id: '/funis',
+  path: '/funis',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmGamificacaoRoute = CrmGamificacaoRouteImport.update({
+  id: '/gamificacao',
+  path: '/gamificacao',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmJornadaRoute = CrmJornadaRouteImport.update({
+  id: '/jornada',
+  path: '/jornada',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmLeadsRoute = CrmLeadsRouteImport.update({
+  id: '/leads',
+  path: '/leads',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmOportunidadesRoute = CrmOportunidadesRouteImport.update({
+  id: '/oportunidades',
+  path: '/oportunidades',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmOrganizacoesRoute = CrmOrganizacoesRouteImport.update({
+  id: '/organizacoes',
+  path: '/organizacoes',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmPerfilRoute = CrmPerfilRouteImport.update({
+  id: '/perfil',
+  path: '/perfil',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmPlanosRoute = CrmPlanosRouteImport.update({
+  id: '/planos',
+  path: '/planos',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmRelatoriosRoute = CrmRelatoriosRouteImport.update({
+  id: '/relatorios',
+  path: '/relatorios',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmSuporteRoute = CrmSuporteRouteImport.update({
+  id: '/suporte',
+  path: '/suporte',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmTarefasRoute = CrmTarefasRouteImport.update({
+  id: '/tarefas',
+  path: '/tarefas',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmWhatsappRoute = CrmWhatsappRouteImport.update({
+  id: '/whatsapp',
+  path: '/whatsapp',
+  getParentRoute: () => CrmRoute,
 } as any)
 const LegalIndexRoute = LegalIndexRouteImport.update({
   id: '/legal/',
@@ -196,9 +343,9 @@ const PrivacidadeSolicitacaoRoute = PrivacidadeSolicitacaoRouteImport.update({
   path: '/privacidade/solicitacao',
   getParentRoute: () => rootRouteImport,
 } as any)
-const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
-  id: '/.lovable/oauth/consent',
-  path: '/.lovable/oauth/consent',
+const ProdutosProdutoRoute = ProdutosProdutoRouteImport.update({
+  id: '/produtos/$produto',
+  path: '/produtos/$produto',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAdminLeadsRoute = AuthenticatedAdminLeadsRouteImport.update({
@@ -210,6 +357,26 @@ const ApiPublicCspReportRoute = ApiPublicCspReportRouteImport.update({
   id: '/api/public/csp-report',
   path: '/api/public/csp-report',
   getParentRoute: () => rootRouteImport,
+} as any)
+const CrmContasIndexRoute = CrmContasIndexRouteImport.update({
+  id: '/contas/',
+  path: '/contas/',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmContasIdRoute = CrmContasIdRouteImport.update({
+  id: '/contas/$id',
+  path: '/contas/$id',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmContatosIndexRoute = CrmContatosIndexRouteImport.update({
+  id: '/contatos/',
+  path: '/contatos/',
+  getParentRoute: () => CrmRoute,
+} as any)
+const CrmContatosIdRoute = CrmContatosIdRouteImport.update({
+  id: '/contatos/$id',
+  path: '/contatos/$id',
+  getParentRoute: () => CrmRoute,
 } as any)
 const LegalVersoesArquivoRoute = LegalVersoesArquivoRouteImport.update({
   id: '/legal/versoes_/$arquivo',
@@ -242,10 +409,10 @@ const ApiPublicPosSlugRoute = ApiPublicPosSlugRouteImport.update({
   path: '/api/public/pos/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
-const LovableEmailTransactionalPreviewRoute =
-  LovableEmailTransactionalPreviewRouteImport.update({
-    id: '/lovable/email/transactional/preview',
-    path: '/lovable/email/transactional/preview',
+const ApiPublicWhatsappWebhookRoute =
+  ApiPublicWhatsappWebhookRouteImport.update({
+    id: '/api/public/whatsapp/webhook',
+    path: '/api/public/whatsapp/webhook',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiPublicPagarmeRestauranteSlugRoute =
@@ -265,9 +432,11 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/cadastro': typeof CadastroRoute
   '/cookies': typeof CookiesRoute
+  '/crm': typeof CrmRouteWithChildren
   '/entrar': typeof EntrarRoute
   '/fundador': typeof FundadorRoute
-  '/mcp': typeof McpRoute
+  '/integracoes': typeof IntegracoesRoute
+  '/precos': typeof PrecosRoute
   '/reset-password': typeof ResetPasswordRoute
   '/simulador': typeof SimuladorRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -278,28 +447,54 @@ export interface FileRoutesByFullPath {
   '/$restaurante/cozinha': typeof RestauranteCozinhaRoute
   '/$restaurante/senhas': typeof RestauranteSenhasRoute
   '/$restaurante/totem': typeof RestauranteTotemRoute
-  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/backoffice': typeof AuthenticatedBackofficeRoute
   '/garcom': typeof AuthenticatedGarcomRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/crm/admin': typeof CrmAdminRoute
+  '/crm/atendimento': typeof CrmAtendimentoRoute
+  '/crm/calendario': typeof CrmCalendarioRoute
+  '/crm/clientes': typeof CrmClientesRoute
+  '/crm/comercial': typeof CrmComercialRoute
+  '/crm/configuracoes': typeof CrmConfiguracoesRoute
+  '/crm/empresas': typeof CrmEmpresasRoute
+  '/crm/entrar': typeof CrmEntrarRoute
+  '/crm/equipe': typeof CrmEquipeRoute
+  '/crm/financeiro': typeof CrmFinanceiroRoute
+  '/crm/funis': typeof CrmFunisRoute
+  '/crm/gamificacao': typeof CrmGamificacaoRoute
+  '/crm/jornada': typeof CrmJornadaRoute
+  '/crm/leads': typeof CrmLeadsRoute
+  '/crm/oportunidades': typeof CrmOportunidadesRoute
+  '/crm/organizacoes': typeof CrmOrganizacoesRoute
+  '/crm/perfil': typeof CrmPerfilRoute
+  '/crm/planos': typeof CrmPlanosRoute
+  '/crm/relatorios': typeof CrmRelatoriosRoute
+  '/crm/suporte': typeof CrmSuporteRoute
+  '/crm/tarefas': typeof CrmTarefasRoute
+  '/crm/whatsapp': typeof CrmWhatsappRoute
   '/legal/$livro': typeof LegalLivroRoute
   '/legal/completa': typeof LegalCompletaRoute
   '/legal/glossario': typeof LegalGlossarioRoute
   '/legal/versoes': typeof LegalVersoesRoute
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
+  '/produtos/$produto': typeof ProdutosProdutoRoute
   '/$restaurante/': typeof RestauranteIndexRoute
+  '/crm/': typeof CrmIndexRoute
   '/legal/': typeof LegalIndexRoute
   '/privacidade/': typeof PrivacidadeIndexRoute
-  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
+  '/crm/contas/$id': typeof CrmContasIdRoute
+  '/crm/contatos/$id': typeof CrmContatosIdRoute
   '/legal/versoes/$arquivo': typeof LegalVersoesArquivoRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
+  '/crm/contas/': typeof CrmContasIndexRoute
+  '/crm/contatos/': typeof CrmContatosIndexRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/payments/reconcile': typeof ApiPublicPaymentsReconcileRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
-  '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
   '/api/public/pagarme/restaurante/$slug': typeof ApiPublicPagarmeRestauranteSlugRoute
   '/api/public/pdv/$adapter/webhook': typeof ApiPublicPdvAdapterWebhookRoute
 }
@@ -309,7 +504,8 @@ export interface FileRoutesByTo {
   '/cookies': typeof CookiesRoute
   '/entrar': typeof EntrarRoute
   '/fundador': typeof FundadorRoute
-  '/mcp': typeof McpRoute
+  '/integracoes': typeof IntegracoesRoute
+  '/precos': typeof PrecosRoute
   '/reset-password': typeof ResetPasswordRoute
   '/simulador': typeof SimuladorRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -320,28 +516,54 @@ export interface FileRoutesByTo {
   '/$restaurante/cozinha': typeof RestauranteCozinhaRoute
   '/$restaurante/senhas': typeof RestauranteSenhasRoute
   '/$restaurante/totem': typeof RestauranteTotemRoute
-  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/backoffice': typeof AuthenticatedBackofficeRoute
   '/garcom': typeof AuthenticatedGarcomRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/crm/admin': typeof CrmAdminRoute
+  '/crm/atendimento': typeof CrmAtendimentoRoute
+  '/crm/calendario': typeof CrmCalendarioRoute
+  '/crm/clientes': typeof CrmClientesRoute
+  '/crm/comercial': typeof CrmComercialRoute
+  '/crm/configuracoes': typeof CrmConfiguracoesRoute
+  '/crm/empresas': typeof CrmEmpresasRoute
+  '/crm/entrar': typeof CrmEntrarRoute
+  '/crm/equipe': typeof CrmEquipeRoute
+  '/crm/financeiro': typeof CrmFinanceiroRoute
+  '/crm/funis': typeof CrmFunisRoute
+  '/crm/gamificacao': typeof CrmGamificacaoRoute
+  '/crm/jornada': typeof CrmJornadaRoute
+  '/crm/leads': typeof CrmLeadsRoute
+  '/crm/oportunidades': typeof CrmOportunidadesRoute
+  '/crm/organizacoes': typeof CrmOrganizacoesRoute
+  '/crm/perfil': typeof CrmPerfilRoute
+  '/crm/planos': typeof CrmPlanosRoute
+  '/crm/relatorios': typeof CrmRelatoriosRoute
+  '/crm/suporte': typeof CrmSuporteRoute
+  '/crm/tarefas': typeof CrmTarefasRoute
+  '/crm/whatsapp': typeof CrmWhatsappRoute
   '/legal/$livro': typeof LegalLivroRoute
   '/legal/completa': typeof LegalCompletaRoute
   '/legal/glossario': typeof LegalGlossarioRoute
   '/legal/versoes': typeof LegalVersoesRoute
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
+  '/produtos/$produto': typeof ProdutosProdutoRoute
   '/$restaurante': typeof RestauranteIndexRoute
+  '/crm': typeof CrmIndexRoute
   '/legal': typeof LegalIndexRoute
   '/privacidade': typeof PrivacidadeIndexRoute
-  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
+  '/crm/contas/$id': typeof CrmContasIdRoute
+  '/crm/contatos/$id': typeof CrmContatosIdRoute
   '/legal/versoes/$arquivo': typeof LegalVersoesArquivoRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
+  '/crm/contas': typeof CrmContasIndexRoute
+  '/crm/contatos': typeof CrmContatosIndexRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/payments/reconcile': typeof ApiPublicPaymentsReconcileRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
-  '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
   '/api/public/pagarme/restaurante/$slug': typeof ApiPublicPagarmeRestauranteSlugRoute
   '/api/public/pdv/$adapter/webhook': typeof ApiPublicPdvAdapterWebhookRoute
 }
@@ -351,9 +573,11 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/cadastro': typeof CadastroRoute
   '/cookies': typeof CookiesRoute
+  '/crm': typeof CrmRouteWithChildren
   '/entrar': typeof EntrarRoute
   '/fundador': typeof FundadorRoute
-  '/mcp': typeof McpRoute
+  '/integracoes': typeof IntegracoesRoute
+  '/precos': typeof PrecosRoute
   '/reset-password': typeof ResetPasswordRoute
   '/simulador': typeof SimuladorRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
@@ -364,28 +588,54 @@ export interface FileRoutesById {
   '/$restaurante/cozinha': typeof RestauranteCozinhaRoute
   '/$restaurante/senhas': typeof RestauranteSenhasRoute
   '/$restaurante/totem': typeof RestauranteTotemRoute
-  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/backoffice': typeof AuthenticatedBackofficeRoute
   '/_authenticated/garcom': typeof AuthenticatedGarcomRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
+  '/crm/admin': typeof CrmAdminRoute
+  '/crm/atendimento': typeof CrmAtendimentoRoute
+  '/crm/calendario': typeof CrmCalendarioRoute
+  '/crm/clientes': typeof CrmClientesRoute
+  '/crm/comercial': typeof CrmComercialRoute
+  '/crm/configuracoes': typeof CrmConfiguracoesRoute
+  '/crm/empresas': typeof CrmEmpresasRoute
+  '/crm/entrar': typeof CrmEntrarRoute
+  '/crm/equipe': typeof CrmEquipeRoute
+  '/crm/financeiro': typeof CrmFinanceiroRoute
+  '/crm/funis': typeof CrmFunisRoute
+  '/crm/gamificacao': typeof CrmGamificacaoRoute
+  '/crm/jornada': typeof CrmJornadaRoute
+  '/crm/leads': typeof CrmLeadsRoute
+  '/crm/oportunidades': typeof CrmOportunidadesRoute
+  '/crm/organizacoes': typeof CrmOrganizacoesRoute
+  '/crm/perfil': typeof CrmPerfilRoute
+  '/crm/planos': typeof CrmPlanosRoute
+  '/crm/relatorios': typeof CrmRelatoriosRoute
+  '/crm/suporte': typeof CrmSuporteRoute
+  '/crm/tarefas': typeof CrmTarefasRoute
+  '/crm/whatsapp': typeof CrmWhatsappRoute
   '/legal/$livro': typeof LegalLivroRoute
   '/legal/completa': typeof LegalCompletaRoute
   '/legal/glossario': typeof LegalGlossarioRoute
   '/legal/versoes': typeof LegalVersoesRoute
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
+  '/produtos/$produto': typeof ProdutosProdutoRoute
   '/$restaurante/': typeof RestauranteIndexRoute
+  '/crm/': typeof CrmIndexRoute
   '/legal/': typeof LegalIndexRoute
   '/privacidade/': typeof PrivacidadeIndexRoute
-  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
+  '/crm/contas/$id': typeof CrmContasIdRoute
+  '/crm/contatos/$id': typeof CrmContatosIdRoute
   '/legal/versoes_/$arquivo': typeof LegalVersoesArquivoRoute
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
+  '/crm/contas/': typeof CrmContasIndexRoute
+  '/crm/contatos/': typeof CrmContatosIndexRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/payments/reconcile': typeof ApiPublicPaymentsReconcileRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
-  '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
   '/api/public/pagarme/restaurante/$slug': typeof ApiPublicPagarmeRestauranteSlugRoute
   '/api/public/pdv/$adapter/webhook': typeof ApiPublicPdvAdapterWebhookRoute
 }
@@ -395,9 +645,11 @@ export interface FileRouteTypes {
     | '/'
     | '/cadastro'
     | '/cookies'
+    | '/crm'
     | '/entrar'
     | '/fundador'
-    | '/mcp'
+    | '/integracoes'
+    | '/precos'
     | '/reset-password'
     | '/simulador'
     | '/sitemap.xml'
@@ -408,28 +660,54 @@ export interface FileRouteTypes {
     | '/$restaurante/cozinha'
     | '/$restaurante/senhas'
     | '/$restaurante/totem'
-    | '/.well-known/oauth-protected-resource'
     | '/backoffice'
     | '/garcom'
     | '/painel'
+    | '/crm/admin'
+    | '/crm/atendimento'
+    | '/crm/calendario'
+    | '/crm/clientes'
+    | '/crm/comercial'
+    | '/crm/configuracoes'
+    | '/crm/empresas'
+    | '/crm/entrar'
+    | '/crm/equipe'
+    | '/crm/financeiro'
+    | '/crm/funis'
+    | '/crm/gamificacao'
+    | '/crm/jornada'
+    | '/crm/leads'
+    | '/crm/oportunidades'
+    | '/crm/organizacoes'
+    | '/crm/perfil'
+    | '/crm/planos'
+    | '/crm/relatorios'
+    | '/crm/suporte'
+    | '/crm/tarefas'
+    | '/crm/whatsapp'
     | '/legal/$livro'
     | '/legal/completa'
     | '/legal/glossario'
     | '/legal/versoes'
     | '/privacidade/solicitacao'
+    | '/produtos/$produto'
     | '/$restaurante/'
+    | '/crm/'
     | '/legal/'
     | '/privacidade/'
-    | '/.lovable/oauth/consent'
     | '/admin/leads'
     | '/api/public/csp-report'
+    | '/crm/contas/$id'
+    | '/crm/contatos/$id'
     | '/legal/versoes/$arquivo'
     | '/mesa/$restaurante/$mesa'
+    | '/crm/contas/'
+    | '/crm/contatos/'
     | '/api/public/pagarme/webhook'
     | '/api/public/payments/reconcile'
     | '/api/public/pdv/sync'
     | '/api/public/pos/$slug'
-    | '/lovable/email/transactional/preview'
+    | '/api/public/whatsapp/webhook'
     | '/api/public/pagarme/restaurante/$slug'
     | '/api/public/pdv/$adapter/webhook'
   fileRoutesByTo: FileRoutesByTo
@@ -439,7 +717,8 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/entrar'
     | '/fundador'
-    | '/mcp'
+    | '/integracoes'
+    | '/precos'
     | '/reset-password'
     | '/simulador'
     | '/sitemap.xml'
@@ -450,28 +729,54 @@ export interface FileRouteTypes {
     | '/$restaurante/cozinha'
     | '/$restaurante/senhas'
     | '/$restaurante/totem'
-    | '/.well-known/oauth-protected-resource'
     | '/backoffice'
     | '/garcom'
     | '/painel'
+    | '/crm/admin'
+    | '/crm/atendimento'
+    | '/crm/calendario'
+    | '/crm/clientes'
+    | '/crm/comercial'
+    | '/crm/configuracoes'
+    | '/crm/empresas'
+    | '/crm/entrar'
+    | '/crm/equipe'
+    | '/crm/financeiro'
+    | '/crm/funis'
+    | '/crm/gamificacao'
+    | '/crm/jornada'
+    | '/crm/leads'
+    | '/crm/oportunidades'
+    | '/crm/organizacoes'
+    | '/crm/perfil'
+    | '/crm/planos'
+    | '/crm/relatorios'
+    | '/crm/suporte'
+    | '/crm/tarefas'
+    | '/crm/whatsapp'
     | '/legal/$livro'
     | '/legal/completa'
     | '/legal/glossario'
     | '/legal/versoes'
     | '/privacidade/solicitacao'
+    | '/produtos/$produto'
     | '/$restaurante'
+    | '/crm'
     | '/legal'
     | '/privacidade'
-    | '/.lovable/oauth/consent'
     | '/admin/leads'
     | '/api/public/csp-report'
+    | '/crm/contas/$id'
+    | '/crm/contatos/$id'
     | '/legal/versoes/$arquivo'
     | '/mesa/$restaurante/$mesa'
+    | '/crm/contas'
+    | '/crm/contatos'
     | '/api/public/pagarme/webhook'
     | '/api/public/payments/reconcile'
     | '/api/public/pdv/sync'
     | '/api/public/pos/$slug'
-    | '/lovable/email/transactional/preview'
+    | '/api/public/whatsapp/webhook'
     | '/api/public/pagarme/restaurante/$slug'
     | '/api/public/pdv/$adapter/webhook'
   id:
@@ -480,9 +785,11 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/cadastro'
     | '/cookies'
+    | '/crm'
     | '/entrar'
     | '/fundador'
-    | '/mcp'
+    | '/integracoes'
+    | '/precos'
     | '/reset-password'
     | '/simulador'
     | '/sitemap.xml'
@@ -493,28 +800,54 @@ export interface FileRouteTypes {
     | '/$restaurante/cozinha'
     | '/$restaurante/senhas'
     | '/$restaurante/totem'
-    | '/.well-known/oauth-protected-resource'
     | '/_authenticated/backoffice'
     | '/_authenticated/garcom'
     | '/_authenticated/painel'
+    | '/crm/admin'
+    | '/crm/atendimento'
+    | '/crm/calendario'
+    | '/crm/clientes'
+    | '/crm/comercial'
+    | '/crm/configuracoes'
+    | '/crm/empresas'
+    | '/crm/entrar'
+    | '/crm/equipe'
+    | '/crm/financeiro'
+    | '/crm/funis'
+    | '/crm/gamificacao'
+    | '/crm/jornada'
+    | '/crm/leads'
+    | '/crm/oportunidades'
+    | '/crm/organizacoes'
+    | '/crm/perfil'
+    | '/crm/planos'
+    | '/crm/relatorios'
+    | '/crm/suporte'
+    | '/crm/tarefas'
+    | '/crm/whatsapp'
     | '/legal/$livro'
     | '/legal/completa'
     | '/legal/glossario'
     | '/legal/versoes'
     | '/privacidade/solicitacao'
+    | '/produtos/$produto'
     | '/$restaurante/'
+    | '/crm/'
     | '/legal/'
     | '/privacidade/'
-    | '/.lovable/oauth/consent'
     | '/_authenticated/admin/leads'
     | '/api/public/csp-report'
+    | '/crm/contas/$id'
+    | '/crm/contatos/$id'
     | '/legal/versoes_/$arquivo'
     | '/mesa/$restaurante/$mesa'
+    | '/crm/contas/'
+    | '/crm/contatos/'
     | '/api/public/pagarme/webhook'
     | '/api/public/payments/reconcile'
     | '/api/public/pdv/sync'
     | '/api/public/pos/$slug'
-    | '/lovable/email/transactional/preview'
+    | '/api/public/whatsapp/webhook'
     | '/api/public/pagarme/restaurante/$slug'
     | '/api/public/pdv/$adapter/webhook'
   fileRoutesById: FileRoutesById
@@ -524,9 +857,11 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   CadastroRoute: typeof CadastroRoute
   CookiesRoute: typeof CookiesRoute
+  CrmRoute: typeof CrmRouteWithChildren
   EntrarRoute: typeof EntrarRoute
   FundadorRoute: typeof FundadorRoute
-  McpRoute: typeof McpRoute
+  IntegracoesRoute: typeof IntegracoesRoute
+  PrecosRoute: typeof PrecosRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SimuladorRoute: typeof SimuladorRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
@@ -537,16 +872,15 @@ export interface RootRouteChildren {
   RestauranteCozinhaRoute: typeof RestauranteCozinhaRoute
   RestauranteSenhasRoute: typeof RestauranteSenhasRoute
   RestauranteTotemRoute: typeof RestauranteTotemRoute
-  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   LegalLivroRoute: typeof LegalLivroRoute
   LegalCompletaRoute: typeof LegalCompletaRoute
   LegalGlossarioRoute: typeof LegalGlossarioRoute
   LegalVersoesRoute: typeof LegalVersoesRoute
   PrivacidadeSolicitacaoRoute: typeof PrivacidadeSolicitacaoRoute
+  ProdutosProdutoRoute: typeof ProdutosProdutoRoute
   RestauranteIndexRoute: typeof RestauranteIndexRoute
   LegalIndexRoute: typeof LegalIndexRoute
   PrivacidadeIndexRoute: typeof PrivacidadeIndexRoute
-  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   ApiPublicCspReportRoute: typeof ApiPublicCspReportRoute
   LegalVersoesArquivoRoute: typeof LegalVersoesArquivoRoute
   MesaRestauranteMesaRoute: typeof MesaRestauranteMesaRoute
@@ -554,7 +888,7 @@ export interface RootRouteChildren {
   ApiPublicPaymentsReconcileRoute: typeof ApiPublicPaymentsReconcileRoute
   ApiPublicPdvSyncRoute: typeof ApiPublicPdvSyncRoute
   ApiPublicPosSlugRoute: typeof ApiPublicPosSlugRoute
-  LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
+  ApiPublicWhatsappWebhookRoute: typeof ApiPublicWhatsappWebhookRoute
   ApiPublicPagarmeRestauranteSlugRoute: typeof ApiPublicPagarmeRestauranteSlugRoute
   ApiPublicPdvAdapterWebhookRoute: typeof ApiPublicPdvAdapterWebhookRoute
 }
@@ -589,6 +923,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CookiesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/crm': {
+      id: '/crm'
+      path: '/crm'
+      fullPath: '/crm'
+      preLoaderRoute: typeof CrmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/entrar': {
       id: '/entrar'
       path: '/entrar'
@@ -603,11 +944,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FundadorRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/mcp': {
-      id: '/mcp'
-      path: '/mcp'
-      fullPath: '/mcp'
-      preLoaderRoute: typeof McpRouteImport
+    '/integracoes': {
+      id: '/integracoes'
+      path: '/integracoes'
+      fullPath: '/integracoes'
+      preLoaderRoute: typeof IntegracoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/precos': {
+      id: '/precos'
+      path: '/precos'
+      fullPath: '/precos'
+      preLoaderRoute: typeof PrecosRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -687,13 +1035,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RestauranteTotemRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/.well-known/oauth-protected-resource': {
-      id: '/.well-known/oauth-protected-resource'
-      path: '/.well-known/oauth-protected-resource'
-      fullPath: '/.well-known/oauth-protected-resource'
-      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/_authenticated/backoffice': {
       id: '/_authenticated/backoffice'
       path: '/backoffice'
@@ -714,6 +1055,167 @@ declare module '@tanstack/react-router' {
       fullPath: '/painel'
       preLoaderRoute: typeof AuthenticatedPainelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/crm/': {
+      id: '/crm/'
+      path: '/'
+      fullPath: '/crm/'
+      preLoaderRoute: typeof CrmIndexRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/admin': {
+      id: '/crm/admin'
+      path: '/admin'
+      fullPath: '/crm/admin'
+      preLoaderRoute: typeof CrmAdminRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/atendimento': {
+      id: '/crm/atendimento'
+      path: '/atendimento'
+      fullPath: '/crm/atendimento'
+      preLoaderRoute: typeof CrmAtendimentoRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/calendario': {
+      id: '/crm/calendario'
+      path: '/calendario'
+      fullPath: '/crm/calendario'
+      preLoaderRoute: typeof CrmCalendarioRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/clientes': {
+      id: '/crm/clientes'
+      path: '/clientes'
+      fullPath: '/crm/clientes'
+      preLoaderRoute: typeof CrmClientesRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/comercial': {
+      id: '/crm/comercial'
+      path: '/comercial'
+      fullPath: '/crm/comercial'
+      preLoaderRoute: typeof CrmComercialRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/configuracoes': {
+      id: '/crm/configuracoes'
+      path: '/configuracoes'
+      fullPath: '/crm/configuracoes'
+      preLoaderRoute: typeof CrmConfiguracoesRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/empresas': {
+      id: '/crm/empresas'
+      path: '/empresas'
+      fullPath: '/crm/empresas'
+      preLoaderRoute: typeof CrmEmpresasRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/entrar': {
+      id: '/crm/entrar'
+      path: '/entrar'
+      fullPath: '/crm/entrar'
+      preLoaderRoute: typeof CrmEntrarRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/equipe': {
+      id: '/crm/equipe'
+      path: '/equipe'
+      fullPath: '/crm/equipe'
+      preLoaderRoute: typeof CrmEquipeRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/financeiro': {
+      id: '/crm/financeiro'
+      path: '/financeiro'
+      fullPath: '/crm/financeiro'
+      preLoaderRoute: typeof CrmFinanceiroRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/funis': {
+      id: '/crm/funis'
+      path: '/funis'
+      fullPath: '/crm/funis'
+      preLoaderRoute: typeof CrmFunisRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/gamificacao': {
+      id: '/crm/gamificacao'
+      path: '/gamificacao'
+      fullPath: '/crm/gamificacao'
+      preLoaderRoute: typeof CrmGamificacaoRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/jornada': {
+      id: '/crm/jornada'
+      path: '/jornada'
+      fullPath: '/crm/jornada'
+      preLoaderRoute: typeof CrmJornadaRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/leads': {
+      id: '/crm/leads'
+      path: '/leads'
+      fullPath: '/crm/leads'
+      preLoaderRoute: typeof CrmLeadsRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/oportunidades': {
+      id: '/crm/oportunidades'
+      path: '/oportunidades'
+      fullPath: '/crm/oportunidades'
+      preLoaderRoute: typeof CrmOportunidadesRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/organizacoes': {
+      id: '/crm/organizacoes'
+      path: '/organizacoes'
+      fullPath: '/crm/organizacoes'
+      preLoaderRoute: typeof CrmOrganizacoesRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/perfil': {
+      id: '/crm/perfil'
+      path: '/perfil'
+      fullPath: '/crm/perfil'
+      preLoaderRoute: typeof CrmPerfilRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/planos': {
+      id: '/crm/planos'
+      path: '/planos'
+      fullPath: '/crm/planos'
+      preLoaderRoute: typeof CrmPlanosRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/relatorios': {
+      id: '/crm/relatorios'
+      path: '/relatorios'
+      fullPath: '/crm/relatorios'
+      preLoaderRoute: typeof CrmRelatoriosRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/suporte': {
+      id: '/crm/suporte'
+      path: '/suporte'
+      fullPath: '/crm/suporte'
+      preLoaderRoute: typeof CrmSuporteRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/tarefas': {
+      id: '/crm/tarefas'
+      path: '/tarefas'
+      fullPath: '/crm/tarefas'
+      preLoaderRoute: typeof CrmTarefasRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/whatsapp': {
+      id: '/crm/whatsapp'
+      path: '/whatsapp'
+      fullPath: '/crm/whatsapp'
+      preLoaderRoute: typeof CrmWhatsappRouteImport
+      parentRoute: typeof CrmRoute
     }
     '/legal/': {
       id: '/legal/'
@@ -764,11 +1266,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivacidadeSolicitacaoRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/.lovable/oauth/consent': {
-      id: '/.lovable/oauth/consent'
-      path: '/.lovable/oauth/consent'
-      fullPath: '/.lovable/oauth/consent'
-      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+    '/produtos/$produto': {
+      id: '/produtos/$produto'
+      path: '/produtos/$produto'
+      fullPath: '/produtos/$produto'
+      preLoaderRoute: typeof ProdutosProdutoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/admin/leads': {
@@ -784,6 +1286,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/public/csp-report'
       preLoaderRoute: typeof ApiPublicCspReportRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/crm/contas/': {
+      id: '/crm/contas/'
+      path: '/contas'
+      fullPath: '/crm/contas/'
+      preLoaderRoute: typeof CrmContasIndexRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/contas/$id': {
+      id: '/crm/contas/$id'
+      path: '/contas/$id'
+      fullPath: '/crm/contas/$id'
+      preLoaderRoute: typeof CrmContasIdRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/contatos/': {
+      id: '/crm/contatos/'
+      path: '/contatos'
+      fullPath: '/crm/contatos/'
+      preLoaderRoute: typeof CrmContatosIndexRouteImport
+      parentRoute: typeof CrmRoute
+    }
+    '/crm/contatos/$id': {
+      id: '/crm/contatos/$id'
+      path: '/contatos/$id'
+      fullPath: '/crm/contatos/$id'
+      preLoaderRoute: typeof CrmContatosIdRouteImport
+      parentRoute: typeof CrmRoute
     }
     '/legal/versoes_/$arquivo': {
       id: '/legal/versoes_/$arquivo'
@@ -827,11 +1357,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPosSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/lovable/email/transactional/preview': {
-      id: '/lovable/email/transactional/preview'
-      path: '/lovable/email/transactional/preview'
-      fullPath: '/lovable/email/transactional/preview'
-      preLoaderRoute: typeof LovableEmailTransactionalPreviewRouteImport
+    '/api/public/whatsapp/webhook': {
+      id: '/api/public/whatsapp/webhook'
+      path: '/api/public/whatsapp/webhook'
+      fullPath: '/api/public/whatsapp/webhook'
+      preLoaderRoute: typeof ApiPublicWhatsappWebhookRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/pagarme/restaurante/$slug': {
@@ -868,14 +1398,78 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
 const AuthenticatedRouteRouteWithChildren =
   AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
 
+interface CrmRouteChildren {
+  CrmAdminRoute: typeof CrmAdminRoute
+  CrmAtendimentoRoute: typeof CrmAtendimentoRoute
+  CrmCalendarioRoute: typeof CrmCalendarioRoute
+  CrmClientesRoute: typeof CrmClientesRoute
+  CrmComercialRoute: typeof CrmComercialRoute
+  CrmConfiguracoesRoute: typeof CrmConfiguracoesRoute
+  CrmEmpresasRoute: typeof CrmEmpresasRoute
+  CrmEntrarRoute: typeof CrmEntrarRoute
+  CrmEquipeRoute: typeof CrmEquipeRoute
+  CrmFinanceiroRoute: typeof CrmFinanceiroRoute
+  CrmFunisRoute: typeof CrmFunisRoute
+  CrmGamificacaoRoute: typeof CrmGamificacaoRoute
+  CrmJornadaRoute: typeof CrmJornadaRoute
+  CrmLeadsRoute: typeof CrmLeadsRoute
+  CrmOportunidadesRoute: typeof CrmOportunidadesRoute
+  CrmOrganizacoesRoute: typeof CrmOrganizacoesRoute
+  CrmPerfilRoute: typeof CrmPerfilRoute
+  CrmPlanosRoute: typeof CrmPlanosRoute
+  CrmRelatoriosRoute: typeof CrmRelatoriosRoute
+  CrmSuporteRoute: typeof CrmSuporteRoute
+  CrmTarefasRoute: typeof CrmTarefasRoute
+  CrmWhatsappRoute: typeof CrmWhatsappRoute
+  CrmIndexRoute: typeof CrmIndexRoute
+  CrmContasIdRoute: typeof CrmContasIdRoute
+  CrmContatosIdRoute: typeof CrmContatosIdRoute
+  CrmContasIndexRoute: typeof CrmContasIndexRoute
+  CrmContatosIndexRoute: typeof CrmContatosIndexRoute
+}
+
+const CrmRouteChildren: CrmRouteChildren = {
+  CrmAdminRoute: CrmAdminRoute,
+  CrmAtendimentoRoute: CrmAtendimentoRoute,
+  CrmCalendarioRoute: CrmCalendarioRoute,
+  CrmClientesRoute: CrmClientesRoute,
+  CrmComercialRoute: CrmComercialRoute,
+  CrmConfiguracoesRoute: CrmConfiguracoesRoute,
+  CrmEmpresasRoute: CrmEmpresasRoute,
+  CrmEntrarRoute: CrmEntrarRoute,
+  CrmEquipeRoute: CrmEquipeRoute,
+  CrmFinanceiroRoute: CrmFinanceiroRoute,
+  CrmFunisRoute: CrmFunisRoute,
+  CrmGamificacaoRoute: CrmGamificacaoRoute,
+  CrmJornadaRoute: CrmJornadaRoute,
+  CrmLeadsRoute: CrmLeadsRoute,
+  CrmOportunidadesRoute: CrmOportunidadesRoute,
+  CrmOrganizacoesRoute: CrmOrganizacoesRoute,
+  CrmPerfilRoute: CrmPerfilRoute,
+  CrmPlanosRoute: CrmPlanosRoute,
+  CrmRelatoriosRoute: CrmRelatoriosRoute,
+  CrmSuporteRoute: CrmSuporteRoute,
+  CrmTarefasRoute: CrmTarefasRoute,
+  CrmWhatsappRoute: CrmWhatsappRoute,
+  CrmIndexRoute: CrmIndexRoute,
+  CrmContasIdRoute: CrmContasIdRoute,
+  CrmContatosIdRoute: CrmContatosIdRoute,
+  CrmContasIndexRoute: CrmContasIndexRoute,
+  CrmContatosIndexRoute: CrmContatosIndexRoute,
+}
+
+const CrmRouteWithChildren = CrmRoute._addFileChildren(CrmRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   CadastroRoute: CadastroRoute,
   CookiesRoute: CookiesRoute,
+  CrmRoute: CrmRouteWithChildren,
   EntrarRoute: EntrarRoute,
   FundadorRoute: FundadorRoute,
-  McpRoute: McpRoute,
+  IntegracoesRoute: IntegracoesRoute,
+  PrecosRoute: PrecosRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SimuladorRoute: SimuladorRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
@@ -886,17 +1480,15 @@ const rootRouteChildren: RootRouteChildren = {
   RestauranteCozinhaRoute: RestauranteCozinhaRoute,
   RestauranteSenhasRoute: RestauranteSenhasRoute,
   RestauranteTotemRoute: RestauranteTotemRoute,
-  Char91DotwellKnownChar93OauthProtectedResourceRoute:
-    Char91DotwellKnownChar93OauthProtectedResourceRoute,
   LegalLivroRoute: LegalLivroRoute,
   LegalCompletaRoute: LegalCompletaRoute,
   LegalGlossarioRoute: LegalGlossarioRoute,
   LegalVersoesRoute: LegalVersoesRoute,
   PrivacidadeSolicitacaoRoute: PrivacidadeSolicitacaoRoute,
+  ProdutosProdutoRoute: ProdutosProdutoRoute,
   RestauranteIndexRoute: RestauranteIndexRoute,
   LegalIndexRoute: LegalIndexRoute,
   PrivacidadeIndexRoute: PrivacidadeIndexRoute,
-  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   ApiPublicCspReportRoute: ApiPublicCspReportRoute,
   LegalVersoesArquivoRoute: LegalVersoesArquivoRoute,
   MesaRestauranteMesaRoute: MesaRestauranteMesaRoute,
@@ -904,7 +1496,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicPaymentsReconcileRoute: ApiPublicPaymentsReconcileRoute,
   ApiPublicPdvSyncRoute: ApiPublicPdvSyncRoute,
   ApiPublicPosSlugRoute: ApiPublicPosSlugRoute,
-  LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
+  ApiPublicWhatsappWebhookRoute: ApiPublicWhatsappWebhookRoute,
   ApiPublicPagarmeRestauranteSlugRoute: ApiPublicPagarmeRestauranteSlugRoute,
   ApiPublicPdvAdapterWebhookRoute: ApiPublicPdvAdapterWebhookRoute,
 }

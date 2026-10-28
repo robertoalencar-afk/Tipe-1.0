@@ -1,7 +1,6 @@
 import * as React from "react";
 import { Body, Container, Head, Heading, Html, Img, Preview, Section, Text, Hr } from "@react-email/components";
 import type { TemplateEntry } from "./registry";
-import logo from "@/assets/logo.png.asset.json";
 
 interface Props { restaurantName?: string; contactName?: string; tables?: number; pdv?: string }
 
@@ -19,7 +18,7 @@ function LeadConfirmation({ restaurantName = "seu restaurante", contactName, tab
     <Html lang="pt-BR"><Head /><Preview>{restaurantName} está na lista de espera da TIPE</Preview>
       <Body style={{ backgroundColor: "#ffffff", fontFamily: "Arial, Helvetica, sans-serif", margin: 0 }}>
         <Container style={{ maxWidth: 560, margin: "0 auto", padding: "32px 24px" }}>
-          <Img src={logo.url} alt="TIPE" height="36" style={{ height: 36, width: "auto" }} />
+          <Img src="https://tipe.digital/email/tipe-logo-email.png" alt="TIPE" height="36" style={{ height: 36, width: "auto" }} />
           <Section style={{ backgroundColor: ink, borderRadius: 20, padding: "32px 28px", marginTop: 24 }}>
             <Text style={{ color: turquoise, fontSize: 12, fontWeight: 700, letterSpacing: 2, margin: 0 }}>LISTA DE ESPERA CONFIRMADA</Text>
             <Heading style={{ color: "#ffffff", fontSize: 26, lineHeight: "32px", margin: "10px 0 8px" }}>{first ? `${first}, seu lugar está garantido.` : "Seu lugar está garantido."}</Heading>

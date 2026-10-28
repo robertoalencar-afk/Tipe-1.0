@@ -12,7 +12,8 @@ import { WaitlistForm } from "@/components/tipe/WaitlistForm";
 import { LandingFooter, LandingHeader } from "@/components/tipe/landing/LandingChrome";
 import { EditorialPhoto, type Scene } from "@/components/tipe/landing/EditorialPhoto";
 import { SimboloTipe } from "@/components/tipe/landing/Marcas";
-import mascotWaiting from "@/assets/mascot-waiting-hd.webp";
+import { useVelocidadeFaixa } from "@/components/tipe/landing/motion";
+import mascotWaiting from "@/assets/lebre/rosto-ola.webp";
 import { cn } from "@/lib/utils";
 
 const TITLE = `Teste grátis por ${TRIAL_DAYS} dias | TIPE`;
@@ -120,13 +121,14 @@ const TIPOS = [
 
 function Faixa() {
   const itens = [...TIPOS, ...TIPOS];
+  const faixa = useVelocidadeFaixa<HTMLUListElement>(50);
   return (
     <section aria-label="Para quem é a Tipe" className="border-y border-border py-8">
       <p className="container-page mb-5 text-center text-sm text-muted-foreground">
         Feita para quem serve mesa no Brasil
       </p>
       <div className="relative overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_10%,black_90%,transparent)]">
-        <ul className="faixa flex w-max items-center">
+        <ul ref={faixa} className="faixa flex w-max items-center">
           {itens.map((t, i) => (
             <li
               key={i}
@@ -291,7 +293,7 @@ const GRUPOS: { id: string; nome: string; cor: string; slides: Slide[] }[] = [
         scene: "mesa",
         alt: "Cliente pagando pelo celular com o totem da Tipe na mesa",
         selo: ["Pix aprovado", "Sua parte: R$ 51,97"],
-        link: ["/#para-clientes", "Como o cliente paga"],
+        link: ["/produtos/pay", "Como o cliente paga"],
       },
       {
         eyebrow: "Para o cliente",
@@ -326,7 +328,7 @@ const GRUPOS: { id: string; nome: string; cor: string; slides: Slide[] }[] = [
         scene: "garcom",
         alt: "Garçom sorrindo ao ver a gorjeta extra no relógio",
         selo: ["Gorjeta extra da Mesa 12", "R$ 7,00 no seu saldo"],
-        link: ["/#para-garcons", "Área do garçom"],
+        link: ["/produtos/staff", "Área do garçom"],
       },
       {
         eyebrow: "Para a equipe",
@@ -335,7 +337,7 @@ const GRUPOS: { id: string; nome: string; cor: string; slides: Slide[] }[] = [
         scene: "salao",
         alt: "Garçom servindo um salão cheio",
         selo: ["Mesa 07", "Paga pelo celular"],
-        link: ["/#para-garcons", "Como a equipe usa"],
+        link: ["/produtos/staff", "Como a equipe usa"],
       },
     ],
   },
@@ -352,7 +354,7 @@ const GRUPOS: { id: string; nome: string; cor: string; slides: Slide[] }[] = [
         scene: "gestor",
         alt: "Dona de restaurante acompanhando os pagamentos no tablet",
         selo: ["Mesa 08 · Bruno S.", "Pix aprovado · R$ 150,60"],
-        link: ["/#painel", "Ver o painel"],
+        link: ["/produtos/restaurant", "Ver o painel"],
       },
       {
         eyebrow: "Para o caixa",
@@ -361,7 +363,7 @@ const GRUPOS: { id: string; nome: string; cor: string; slides: Slide[] }[] = [
         scene: "salao",
         alt: "Salão de restaurante movimentado",
         selo: ["Recebido hoje", "R$ 2.840,50"],
-        link: ["/#painel", "Ver o painel"],
+        link: ["/produtos/restaurant", "Ver o painel"],
       },
     ],
   },
@@ -377,7 +379,7 @@ const GRUPOS: { id: string; nome: string; cor: string; slides: Slide[] }[] = [
         scene: "gestor",
         alt: "Dona de restaurante trabalhando no tablet, no balcão",
         selo: ["Ao vivo", "5 de 8 mesas abertas"],
-        link: ["/#painel", "Conhecer o painel"],
+        link: ["/produtos/restaurant", "Conhecer o painel"],
       },
       {
         eyebrow: "Para o dono",
@@ -386,7 +388,7 @@ const GRUPOS: { id: string; nome: string; cor: string; slides: Slide[] }[] = [
         scene: "amigos",
         alt: "Mesa cheia de amigos felizes",
         selo: ["Sem taxa para o cliente", "Assinatura por mesas"],
-        link: ["/#precos", "Ver preços"],
+        link: ["/precos", "Ver preços"],
       },
     ],
   },
