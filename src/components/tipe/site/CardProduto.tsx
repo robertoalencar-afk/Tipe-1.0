@@ -152,6 +152,19 @@ function Vitrine({ p }: { p: Produto }) {
           </p>
         </div>
       );
+    case "guest":
+      // Tela REAL de hoje (avaliação depois de pagar); descoberta e reserva ainda não têm tela.
+      return (
+        <>
+          <div className={`${EIXO} w-[54%]`}>
+            <Celular tela="avaliacao" alt="" sizes="200px" />
+          </div>
+          <Aviso className={AVISO_POS}>
+            <Selo cor={cor} />
+            <span>Disponível hoje: avaliação depois de pagar. Descobrir e reservar, em breve.</span>
+          </Aviso>
+        </>
+      );
     default:
       return (
         <div className="absolute inset-x-[6%] top-[8%] rounded-[1.5rem] border border-white/10 bg-[oklch(0.24_0_0)] p-4 text-white transition-transform duration-700 group-hover:-translate-y-2">

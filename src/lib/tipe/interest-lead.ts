@@ -63,7 +63,11 @@ export const interestSchema = z
   .superRefine((d, ctx) => {
     if (d.origem === "restaurante-fundador") {
       if (!d.restaurantName || d.restaurantName.length < 2)
-        ctx.addIssue({ code: "custom", path: ["restaurantName"], message: "Informe o restaurante" });
+        ctx.addIssue({
+          code: "custom",
+          path: ["restaurantName"],
+          message: "Informe o restaurante",
+        });
       if (!d.phone)
         ctx.addIssue({ code: "custom", path: ["phone"], message: "Informe o WhatsApp" });
     }
@@ -93,7 +97,9 @@ export function linhaInteresse(d: Interesse, agora = new Date()) {
     notes: [
       guest ? "Interesse: Tipe Guest (quer ser avisado)." : "Interesse: Restaurante Fundador.",
       `Finalidade aceita (v${VERSAO_CONSENTIMENTO}): ${FINALIDADE[d.origem]}`,
-      d.marketingOptIn ? "Aceitou também receber novidades da Tipe." : "Não aceitou novidades gerais.",
+      d.marketingOptIn
+        ? "Aceitou também receber novidades da Tipe."
+        : "Não aceitou novidades gerais.",
     ].join("\n"),
   };
 }

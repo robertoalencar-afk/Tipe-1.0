@@ -19,6 +19,7 @@ import { Route as IntegracoesRouteImport } from './routes/integracoes'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as PrecosRouteImport } from './routes/precos'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as RestauranteFundadorRouteImport } from './routes/restaurante-fundador'
 import { Route as SimuladorRouteImport } from './routes/simulador'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TermosRouteImport } from './routes/termos'
@@ -98,6 +99,11 @@ const PrecosRoute = PrecosRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RestauranteFundadorRoute = RestauranteFundadorRouteImport.update({
+  id: '/restaurante-fundador',
+  path: '/restaurante-fundador',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SimuladorRoute = SimuladorRouteImport.update({
@@ -271,6 +277,7 @@ export interface FileRoutesByFullPath {
   '/mcp': typeof McpRoute
   '/precos': typeof PrecosRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/restaurante-fundador': typeof RestauranteFundadorRoute
   '/simulador': typeof SimuladorRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/termos': typeof TermosRoute
@@ -313,6 +320,7 @@ export interface FileRoutesByTo {
   '/mcp': typeof McpRoute
   '/precos': typeof PrecosRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/restaurante-fundador': typeof RestauranteFundadorRoute
   '/simulador': typeof SimuladorRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/termos': typeof TermosRoute
@@ -357,6 +365,7 @@ export interface FileRoutesById {
   '/mcp': typeof McpRoute
   '/precos': typeof PrecosRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/restaurante-fundador': typeof RestauranteFundadorRoute
   '/simulador': typeof SimuladorRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/termos': typeof TermosRoute
@@ -401,6 +410,7 @@ export interface FileRouteTypes {
     | '/mcp'
     | '/precos'
     | '/reset-password'
+    | '/restaurante-fundador'
     | '/simulador'
     | '/sitemap.xml'
     | '/termos'
@@ -443,6 +453,7 @@ export interface FileRouteTypes {
     | '/mcp'
     | '/precos'
     | '/reset-password'
+    | '/restaurante-fundador'
     | '/simulador'
     | '/sitemap.xml'
     | '/termos'
@@ -486,6 +497,7 @@ export interface FileRouteTypes {
     | '/mcp'
     | '/precos'
     | '/reset-password'
+    | '/restaurante-fundador'
     | '/simulador'
     | '/sitemap.xml'
     | '/termos'
@@ -530,6 +542,7 @@ export interface RootRouteChildren {
   McpRoute: typeof McpRoute
   PrecosRoute: typeof PrecosRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  RestauranteFundadorRoute: typeof RestauranteFundadorRoute
   SimuladorRoute: typeof SimuladorRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TermosRoute: typeof TermosRoute
@@ -629,6 +642,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/restaurante-fundador': {
+      id: '/restaurante-fundador'
+      path: '/restaurante-fundador'
+      fullPath: '/restaurante-fundador'
+      preLoaderRoute: typeof RestauranteFundadorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/simulador': {
@@ -879,6 +899,7 @@ const rootRouteChildren: RootRouteChildren = {
   McpRoute: McpRoute,
   PrecosRoute: PrecosRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  RestauranteFundadorRoute: RestauranteFundadorRoute,
   SimuladorRoute: SimuladorRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TermosRoute: TermosRoute,
