@@ -4,6 +4,9 @@
 {
   "name": "tipe",
   "compatibility_flags": ["nodejs_compat"],
+  // Endereço próprio do Worker (tipe.<conta>.workers.dev): o site funciona e
+  // pode ser testado mesmo antes de o domínio apontar para a Cloudflare.
+  "workers_dev": true,
   "routes": [
     { "pattern": "tipe.digital", "custom_domain": true },
     { "pattern": "www.tipe.digital", "custom_domain": true }

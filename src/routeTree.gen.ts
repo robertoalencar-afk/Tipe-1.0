@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as CrmRouteImport } from './routes/crm'
+import { Route as DemoRouteImport } from './routes/demo'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as FundadorRouteImport } from './routes/fundador'
 import { Route as IntegracoesRouteImport } from './routes/integracoes'
@@ -101,6 +102,11 @@ const CookiesRoute = CookiesRouteImport.update({
 const CrmRoute = CrmRouteImport.update({
   id: '/crm',
   path: '/crm',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoRoute = DemoRouteImport.update({
+  id: '/demo',
+  path: '/demo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EntrarRoute = EntrarRouteImport.update({
@@ -433,6 +439,7 @@ export interface FileRoutesByFullPath {
   '/cadastro': typeof CadastroRoute
   '/cookies': typeof CookiesRoute
   '/crm': typeof CrmRouteWithChildren
+  '/demo': typeof DemoRoute
   '/entrar': typeof EntrarRoute
   '/fundador': typeof FundadorRoute
   '/integracoes': typeof IntegracoesRoute
@@ -502,6 +509,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/cadastro': typeof CadastroRoute
   '/cookies': typeof CookiesRoute
+  '/demo': typeof DemoRoute
   '/entrar': typeof EntrarRoute
   '/fundador': typeof FundadorRoute
   '/integracoes': typeof IntegracoesRoute
@@ -574,6 +582,7 @@ export interface FileRoutesById {
   '/cadastro': typeof CadastroRoute
   '/cookies': typeof CookiesRoute
   '/crm': typeof CrmRouteWithChildren
+  '/demo': typeof DemoRoute
   '/entrar': typeof EntrarRoute
   '/fundador': typeof FundadorRoute
   '/integracoes': typeof IntegracoesRoute
@@ -646,6 +655,7 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/cookies'
     | '/crm'
+    | '/demo'
     | '/entrar'
     | '/fundador'
     | '/integracoes'
@@ -715,6 +725,7 @@ export interface FileRouteTypes {
     | '/'
     | '/cadastro'
     | '/cookies'
+    | '/demo'
     | '/entrar'
     | '/fundador'
     | '/integracoes'
@@ -786,6 +797,7 @@ export interface FileRouteTypes {
     | '/cadastro'
     | '/cookies'
     | '/crm'
+    | '/demo'
     | '/entrar'
     | '/fundador'
     | '/integracoes'
@@ -858,6 +870,7 @@ export interface RootRouteChildren {
   CadastroRoute: typeof CadastroRoute
   CookiesRoute: typeof CookiesRoute
   CrmRoute: typeof CrmRouteWithChildren
+  DemoRoute: typeof DemoRoute
   EntrarRoute: typeof EntrarRoute
   FundadorRoute: typeof FundadorRoute
   IntegracoesRoute: typeof IntegracoesRoute
@@ -928,6 +941,13 @@ declare module '@tanstack/react-router' {
       path: '/crm'
       fullPath: '/crm'
       preLoaderRoute: typeof CrmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo': {
+      id: '/demo'
+      path: '/demo'
+      fullPath: '/demo'
+      preLoaderRoute: typeof DemoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/entrar': {
@@ -1466,6 +1486,7 @@ const rootRouteChildren: RootRouteChildren = {
   CadastroRoute: CadastroRoute,
   CookiesRoute: CookiesRoute,
   CrmRoute: CrmRouteWithChildren,
+  DemoRoute: DemoRoute,
   EntrarRoute: EntrarRoute,
   FundadorRoute: FundadorRoute,
   IntegracoesRoute: IntegracoesRoute,

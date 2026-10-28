@@ -19,6 +19,8 @@ export type PublicTable = {
   googleReviewUrl: string | null;
   /** Restaurante permite que o cliente peça pela mesa (cardápio digital). */
   selfOrder: boolean;
+  /** Google Pay ativo nesta conta (conta Pagar.me com ID informado), ou null. */
+  googlePay: import("./carteiras").GooglePayConfig | null;
   items: { item_code: string; item_name: string; unit_price: number; ordered_quantity: number; reserved_portion: number; paid_portion: number; ordered_at: string }[];
   payments: { id: string; customer_name: string; payment_method: string; status: import("./payment-state").PaymentStatus; amount: number; item_quantities: Record<string, number>; created_at: string; establishment_method: string | null; cash_received: number | null; change_due: number | null }[];
 };
@@ -43,7 +45,7 @@ export const getPublicTable = createServerFn({ method: "GET" })
       await logSecurityEvent({ action: "table_token_denied", resource: `mesa:${t.number}`, result: "denied", restaurantSlug: data.slug, restaurantId: r.id, detail: `ip=${clientIp()}` });
       return { error: "invalid_token" };
     }
-    const [items, payments, waiter, waiver, account, review, selfOrderRow] = await Promise.all([
+    const [items, payments, waiter, waiver, account, review, selfOrderRow, walletRow] = await Promise.all([
       supabaseAdmin.from("table_bill_items").select("item_code, item_name, unit_price, ordered_quantity, reserved_portion, paid_portion, ordered_at")
         .eq("restaurant_slug", data.slug).eq("table_number", t.number).order("ordered_at"),
       supabaseAdmin.from("table_payment_requests").select("id, customer_name, payment_method, status, amount, item_quantities, created_at, establishment_method, cash_received, change_due")
@@ -56,8 +58,12 @@ export const getPublicTable = createServerFn({ method: "GET" })
       supabaseAdmin.from("restaurants").select("google_review_url").eq("id", r.id).maybeSingle(),
       // Idem para o pedido pela mesa (migração 0024).
       supabaseAdmin.from("restaurants").select("self_order_enabled" as never).eq("id", r.id).maybeSingle(),
+      // Idem para o ID da conta Pagar.me usado pelo Google Pay (migração 0031).
+      supabaseAdmin.from("restaurant_pagarme_accounts").select("account_id, key_mode, status" as never).eq("restaurant_id", r.id).maybeSingle(),
     ]);
     const { usableBillMethods } = await import("./pagarme.server");
+    const { googlePayConfig } = await import("./carteiras");
+    const wallet = walletRow.error ? null : (walletRow.data as { account_id?: string | null; key_mode?: string; status?: string } | null);
     if (items.error || payments.error) throw new Error("Não foi possível atualizar a mesa");
     if (!(items.data ?? []).length) {
       const { data: over } = await supabaseAdmin.rpc("table_is_over_limit", { p_rid: r.id, p_number: t.number });
@@ -73,6 +79,7 @@ export const getPublicTable = createServerFn({ method: "GET" })
       serviceWaived: (waiver.data ?? []).length > 0,
       googleReviewUrl: review.error ? null : ((review.data as { google_review_url?: string | null } | null)?.google_review_url ?? null),
       selfOrder: selfOrderRow.error ? false : ((selfOrderRow.data as { self_order_enabled?: boolean } | null)?.self_order_enabled ?? false),
+      googlePay: wallet?.status === "active" ? googlePayConfig({ accountId: wallet.account_id, keyMode: wallet.key_mode, merchantId: process.env["GOOGLE_PAY_MERCHANT_ID"], merchantName: r.name }) : null,
       waiterName: (waiter.data as { name: string } | null)?.name?.split(" ")[0] ?? "",
       items: (items.data ?? []).map((i) => ({ ...i, unit_price: Number(i.unit_price), ordered_quantity: Number(i.ordered_quantity), reserved_portion: Number(i.reserved_portion), paid_portion: Number(i.paid_portion) })),
       payments: (payments.data ?? []).map((p) => ({ ...p, amount: Number(p.amount), cash_received: p.cash_received === null ? null : Number(p.cash_received), change_due: p.change_due === null ? null : Number(p.change_due), item_quantities: (p.item_quantities ?? {}) as Record<string, number> })) as PublicTable["payments"],
@@ -86,7 +93,7 @@ async function restaurantId(supabase: any, slug: string) {
 }
 
 const friendly = (msg: string, fallback: string) => {
-  for (const k of ["Sem permissão", "Mesa inativa", "Garçom inválido", "Pedido vazio", "Item indisponível", "Quantidade", "Há pagamentos", "Informe o motivo"]) if (msg.includes(k)) return msg;
+  for (const k of ["Sem permissão", "Mesa inativa", "Garçom inválido", "Pedido vazio", "Item indisponível", "Quantidade", "Há pagamentos", "Informe o motivo", "acima do limite"]) if (msg.includes(k)) return msg;
   return fallback;
 };
 
@@ -109,14 +116,18 @@ export const getPdvData = createServerFn({ method: "GET" })
     };
   });
 
+const RequestId = z.string().min(8).max(64).regex(/^[A-Za-z0-9_-]+$/);
+
 export const launchOrder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({
     slug: Slug, table: z.string().min(1).max(16), waiterId: z.string().uuid(),
     items: z.array(z.object({ code: z.string().min(1).max(16), qty: z.number().int().min(1).max(99), notes: z.string().max(140).optional() })).min(1).max(60),
+    // Mesma chave em toque duplo ou nova tentativa: o banco devolve o pedido já lançado.
+    requestId: RequestId,
   }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.rpc("pdv_launch_order", { p_slug: data.slug, p_table: data.table, p_waiter: data.waiterId, p_items: data.items });
+    const { error } = await context.supabase.rpc("pdv_launch_order" as never, { p_slug: data.slug, p_table: data.table, p_waiter: data.waiterId, p_items: data.items, p_request_id: data.requestId } as never);
     if (error) throw new Error(friendly(error.message, "Não foi possível lançar o pedido"));
     return { ok: true };
   });
