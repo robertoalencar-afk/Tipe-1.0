@@ -26,6 +26,7 @@ import {
   Users,
 } from "lucide-react";
 import { useCrm, useOrgData } from "@/components/tipe/crm/context";
+import { FoundingPartnerCard } from "@/components/tipe/crm/fundador";
 import { TICKET_STATUS } from "@/components/tipe/crm/labels";
 import {
   AccountStatusPill,
@@ -325,6 +326,7 @@ function Conta() {
               )}
             </Panel>
           </div>
+          <FoundingPartnerCard account={a} />
           <div className="grid gap-4 xl:grid-cols-3">
             <Panel title="Como os clientes pagam" description="Contas dos últimos 30 dias">
               <ul className="space-y-2.5">

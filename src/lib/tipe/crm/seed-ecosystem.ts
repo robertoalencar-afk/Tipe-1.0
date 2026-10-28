@@ -7,8 +7,11 @@ import {
   ONBOARDING,
   planForTables,
 } from "./ecosystem";
+import { defaultFoundingPartnerRules, FP_STATUS } from "./founding-partner";
 import type {
   BillMethod,
+  FoundingPartnerEnrollment,
+  FoundingPartnerStatus,
   Consumer,
   CrmState,
   ID,
@@ -390,5 +393,135 @@ export function seedAccountLinks(ctx: Ctx, accounts: RestaurantAccount[]) {
       createdBy: a.csmId,
       createdAt: new Date(ctx.now - (6 + i * 5) * DAY).toISOString(),
     });
+  });
+}
+
+/** Versão fictícia dos termos, só para a demonstração (texto ainda sem revisão jurídica). */
+export const DEMO_TERMS_VERSION = "demo-0.1";
+
+/**
+ * Programa Restaurante Fundador na demonstração: poucas adesões, uma em cada estado
+ * principal, sempre com a trilha de auditoria coerente. Nenhum benefício concedido e
+ * regras comerciais vazias (vagas, período e vantagens pendentes de aprovação).
+ */
+export function seedFoundingPartners(ctx: Ctx, accounts: RestaurantAccount[]) {
+  const { s, id } = ctx;
+  const orgId = accounts[0]?.orgId;
+  if (!orgId) return;
+  s.foundingPartnerRules.push({
+    ...defaultFoundingPartnerRules(orgId),
+    termsVersion: DEMO_TERMS_VERSION,
+  });
+  const active = accounts.filter((a) => a.status === "ativa");
+  const onboarding = accounts.filter((a) => a.status === "implantacao");
+  const plan: [RestaurantAccount | undefined, FoundingPartnerStatus[], boolean][] = [
+    [
+      active[0],
+      ["convidado", "interessado", "elegivel", "participante", "selecionado_piloto"],
+      true,
+    ],
+    [active[1], ["convidado", "interessado", "elegivel", "participante"], true],
+    [active[2], ["convidado", "interessado", "elegivel", "participante"], false],
+    [active[3], ["convidado", "interessado", "elegivel"], false],
+    [onboarding[0], ["convidado", "interessado"], false],
+    [active[4], ["convidado"], false],
+  ];
+  const names = ["Ana Ribeiro", "Paulo Feitosa", "Joana Sales", "Marcos Leite"];
+  plan.forEach(([a, path, pilot], i) => {
+    if (!a) return;
+    const start = ctx.now - (40 - i * 5) * DAY;
+    const step = (k: number) => new Date(start + k * 3 * DAY + i * 36e5).toISOString();
+    const actor = a.csmId;
+    const e: FoundingPartnerEnrollment = {
+      id: id("fp"),
+      orgId,
+      accountId: a.id,
+      status: path[path.length - 1]!,
+      createdAt: step(0),
+      statusChangedAt: step(path.length - 1),
+      pilotEligible: pilot,
+      pilotNote: pilot ? "Conta ativa, equipe treinada e uso estável." : undefined,
+      invites: [
+        {
+          id: id("fpi"),
+          at: step(0),
+          channel: i % 2 ? "whatsapp" : "email",
+          sentBy: actor,
+          note: "Convite feito na visita de acompanhamento.",
+          simulated: true,
+        },
+      ],
+      benefits: [],
+      communications: [],
+      feedback: [],
+      history: [],
+    };
+    path.forEach((to, k) => {
+      if (k === 0) {
+        e.history.unshift({
+          id: id("fpe"),
+          at: step(0),
+          actorId: actor,
+          kind: "convite",
+          to,
+          detail: `convite por ${i % 2 ? "WhatsApp" : "E-mail"}`,
+        });
+        return;
+      }
+      const from = path[k - 1]!;
+      if (to === "participante") {
+        const by = names[i % names.length]!;
+        e.terms = {
+          version: DEMO_TERMS_VERSION,
+          acceptedAt: step(k),
+          acceptedByName: by,
+          recordedBy: actor,
+        };
+        e.history.unshift({
+          id: id("fpe"),
+          at: step(k),
+          actorId: actor,
+          kind: "termos",
+          detail: `termos versão ${DEMO_TERMS_VERSION} aceitos por ${by}`,
+        });
+        e.joinedAt = step(k);
+      }
+      if (to === "selecionado_piloto")
+        e.history.unshift({
+          id: id("fpe"),
+          at: step(k),
+          actorId: actor,
+          kind: "piloto",
+          detail: `elegível para o piloto: ${e.pilotNote}`,
+        });
+      e.history.unshift({
+        id: id("fpe"),
+        at: step(k),
+        actorId: actor,
+        kind: "estado",
+        from,
+        to,
+        detail: `${FP_STATUS[from].label} → ${FP_STATUS[to].label}`,
+      });
+    });
+    if (path.length >= 2)
+      e.communications.push({
+        id: id("fpc"),
+        at: step(1),
+        channel: "whatsapp",
+        direction: "recebida",
+        summary:
+          "Sócio respondeu que quer entender como o programa funciona e o que muda na operação.",
+        by: actor,
+      });
+    if (path.includes("participante"))
+      e.feedback.push({
+        id: id("fpf"),
+        at: step(path.length),
+        topic: "produto",
+        text: "Gostaria de ver no painel quais garçons recebem mais gorjeta por turno.",
+        by: actor,
+      });
+    s.foundingPartners.push(e);
   });
 }

@@ -31,7 +31,11 @@ export type Action =
   | "whatsapp.manage"
   | "accounts.manage"
   | "consumers.view"
-  | "campaigns.manage";
+  | "campaigns.manage"
+  // Programa Restaurante Fundador (camada B), só na organização da própria Tipe.
+  | "founding.view"
+  | "founding.manage"
+  | "founding.rules";
 
 const ALL: Action[] = [
   "org.settings",
@@ -61,6 +65,9 @@ const ALL: Action[] = [
   "accounts.manage",
   "consumers.view",
   "campaigns.manage",
+  "founding.view",
+  "founding.manage",
+  "founding.rules",
 ];
 
 const MATRIX: Record<Role, Action[]> = {
@@ -87,6 +94,8 @@ const MATRIX: Record<Role, Action[]> = {
     "accounts.manage",
     "consumers.view",
     "campaigns.manage",
+    "founding.view",
+    "founding.manage",
   ],
   seller: [
     "contacts.write",
@@ -111,8 +120,9 @@ const MATRIX: Record<Role, Action[]> = {
     "tickets.manage",
     "accounts.manage",
     "consumers.view",
+    "founding.view",
   ],
-  viewer: ["reports.view"],
+  viewer: ["reports.view", "founding.view"],
 };
 
 export function can(role: Role | null | undefined, action: Action): boolean {

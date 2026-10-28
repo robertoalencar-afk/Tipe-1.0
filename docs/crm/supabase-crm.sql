@@ -550,3 +550,13 @@ create policy "criar campanhas" on public.crm_campaigns for insert to authentica
 -- pagamento aprovado), que confere crm_can e grava crm_activities.
 
 commit;
+
+-- =======================================================================================
+-- Programa Restaurante Fundador (camada B): proposta separada, também NÃO APLICADA, em
+-- drizzle/migrations/0041_founding_partner_program.sql (tabelas founding_partner_*).
+-- founding_partner_enrollments.crm_account_id aponta para crm_restaurant_accounts.id; ao
+-- aplicar este arquivo, acrescente a FK:
+--   alter table public.founding_partner_enrollments
+--     add constraint founding_partner_enrollments_crm_account_fk
+--     foreign key (crm_account_id) references public.crm_restaurant_accounts (id) on delete set null;
+-- =======================================================================================

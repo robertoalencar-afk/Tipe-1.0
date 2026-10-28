@@ -61,6 +61,8 @@ export type Org = {
   createdAt: ISO;
   status: "ativa" | "suspensa";
   settings: OrgSettings;
+  /** Organização da própria Tipe: só ela opera programas da plataforma, como o Restaurante Fundador. */
+  tipePlatform?: boolean | undefined;
 };
 
 export type Team = { id: ID; orgId: ID; name: string };
@@ -212,7 +214,8 @@ export type EntityRef = {
     | "goal"
     | "account"
     | "consumer"
-    | "campaign";
+    | "campaign"
+    | "founding_partner";
   id: ID;
 };
 
@@ -577,5 +580,124 @@ export type CrmState = {
   consumers: Consumer[];
   visits: Visit[];
   campaigns: Campaign[];
+  foundingPartners: FoundingPartnerEnrollment[];
+  foundingPartnerRules: FoundingPartnerRules[];
   session: Session | null;
+};
+
+// ---------------------------------------------------------------------------------------
+// Programa Restaurante Fundador (camada B). Prefixo founding_partner_* de propósito:
+// "founder" já é o papel da equipe Tipe (super-admin com 2FA) e não pode ser reutilizado.
+// Regras comerciais (vagas, período, vantagens) nascem vazias e só valem com aprovação.
+// ---------------------------------------------------------------------------------------
+
+export type FoundingPartnerStatus =
+  | "convidado"
+  | "interessado"
+  | "elegivel"
+  | "participante"
+  | "selecionado_piloto"
+  | "suspenso"
+  | "encerrado";
+
+export type FoundingPartnerChannel = "email" | "whatsapp" | "telefone" | "presencial";
+
+/** Aceite dos termos do programa, sempre com a versão do texto aceito. */
+export type FoundingPartnerTermsAcceptance = {
+  version: string;
+  acceptedAt: ISO;
+  /** Nome de quem aceitou pelo restaurante (responsável legal ou sócio). */
+  acceptedByName: string;
+  /** Quem registrou o aceite no CRM. */
+  recordedBy: ID;
+};
+
+export type FoundingPartnerInvite = {
+  id: ID;
+  at: ISO;
+  channel: FoundingPartnerChannel;
+  sentBy: ID;
+  note: string;
+  /** No modo demonstração nada é enviado: o convite fica só registrado. */
+  simulated: boolean;
+};
+
+/** Benefício efetivamente concedido. Só existe com regra comercial aprovada. */
+export type FoundingPartnerBenefit = {
+  id: ID;
+  /** Texto exatamente como aprovado nas regras comerciais. */
+  advantage: string;
+  grantedAt: ISO;
+  grantedBy: ID;
+  /** Referência da aprovação comercial que autorizou a concessão. */
+  approvalRef: string;
+  revokedAt?: ISO | undefined;
+};
+
+export type FoundingPartnerCommunication = {
+  id: ID;
+  at: ISO;
+  channel: FoundingPartnerChannel;
+  direction: "enviada" | "recebida";
+  summary: string;
+  by: ID;
+};
+
+export type FoundingPartnerFeedback = {
+  id: ID;
+  at: ISO;
+  topic: "produto" | "atendimento" | "implantacao" | "programa" | "outro";
+  text: string;
+  by: ID;
+};
+
+/** Trilha de auditoria: toda mudança de estado do programa vira um evento imutável. */
+export type FoundingPartnerEvent = {
+  id: ID;
+  at: ISO;
+  actorId: ID;
+  kind: "estado" | "termos" | "piloto" | "convite" | "beneficio";
+  from?: FoundingPartnerStatus | undefined;
+  to?: FoundingPartnerStatus | undefined;
+  detail: string;
+};
+
+export type FoundingPartnerEnrollment = {
+  id: ID;
+  orgId: ID;
+  /** Conta do restaurante (camada B). Uma adesão por conta. */
+  accountId: ID;
+  status: FoundingPartnerStatus;
+  createdAt: ISO;
+  statusChangedAt: ISO;
+  /** Data de entrada no programa: primeira vez que virou participante. */
+  joinedAt?: ISO | undefined;
+  terms?: FoundingPartnerTermsAcceptance | undefined;
+  pilotEligible: boolean;
+  pilotNote?: string | undefined;
+  invites: FoundingPartnerInvite[];
+  benefits: FoundingPartnerBenefit[];
+  communications: FoundingPartnerCommunication[];
+  feedback: FoundingPartnerFeedback[];
+  history: FoundingPartnerEvent[];
+};
+
+/**
+ * Regras comerciais do programa. Tudo nulo ou vazio por padrão: a interface mostra
+ * "Pendente de aprovação comercial" e o motor recusa conceder qualquer benefício.
+ */
+export type FoundingPartnerRules = {
+  orgId: ID;
+  /** Quantidade de vagas. Nulo: sem número definido (e nada de escassez artificial). */
+  slots: number | null;
+  enrollmentOpensAt: ISO | null;
+  enrollmentClosesAt: ISO | null;
+  /** Vantagens aprovadas, com o texto exato. Vazio por padrão. */
+  advantages: string[];
+  /** Versão vigente dos termos. Nula até a revisão jurídica. */
+  termsVersion: string | null;
+  approvedAt: ISO | null;
+  approvedBy: ID | null;
+  approvalRef: string | null;
+  updatedAt: ISO | null;
 };

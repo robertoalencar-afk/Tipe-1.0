@@ -138,3 +138,12 @@ Resultado anterior, da primeira entrega:
 3. Gravar os eventos do webhook do WhatsApp e enviar respostas pela Cloud API, com fila e nova tentativa para erros temporários.
 4. Conectar um gateway para as assinaturas e emitir nota fiscal fora do CRM.
 5. Mover a Administração global para uma rota protegida pelo papel `founder` com MFA, como o `/backoffice` atual.
+
+## Programa Restaurante Fundador (camada B)
+
+Revisão de 28/10/2026, Tipe Guest Fase 3. Detalhes em [`docs/tipe-guest/FUNDADOR.md`](../tipe-guest/FUNDADOR.md).
+
+- Tela `/crm/fundador` (menu Restaurantes, só na organização da Tipe) e card "Restaurante Fundador" na página de cada conta (`/crm/contas/$id`).
+- Domínio puro em `src/lib/tipe/crm/founding-partner.ts` (estados, transições, bloqueios); comandos `fp*` no motor; permissões `founding.view`, `founding.manage` e `founding.rules`; adaptador `foundingPartnerFromRows()` em `adapters.ts`.
+- Proposta SQL: [`drizzle/migrations/0041_founding_partner_program.sql`](../../drizzle/migrations/0041_founding_partner_program.sql), **não aplicada**. Ela liga a adesão a `restaurants.id` e guarda `crm_account_id` para `crm_restaurant_accounts` (desta proposta) sem FK até este SQL existir no banco.
+- Prefixo `founding_partner_*` de propósito: `founder` é o papel da equipe Tipe.

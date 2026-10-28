@@ -2,6 +2,11 @@ import type { Tables } from "@/integrations/supabase/types";
 import { DEFAULT_MODULES, planForTables, SITE_SOURCE } from "./ecosystem";
 import type {
   BillMethod,
+  FoundingPartnerChannel,
+  FoundingPartnerEnrollment,
+  FoundingPartnerFeedback,
+  FoundingPartnerRules,
+  FoundingPartnerStatus,
   LeadProfile,
   LeadStatus,
   ModuleKey,
@@ -162,6 +167,170 @@ export function visitFromPayment(
   };
 }
 
+// ---------- Camada B: programa Restaurante Fundador (migração 0041, não aplicada) ----------
+// As tabelas founding_partner_* ainda não estão nos tipos gerados do Supabase; as linhas
+// abaixo espelham a migração drizzle/migrations/0041_founding_partner_program.sql.
+
+export type FoundingPartnerRows = {
+  enrollment: {
+    id: string;
+    restaurant_id: string;
+    crm_account_id: string | null;
+    status: FoundingPartnerStatus;
+    created_at: string;
+    status_changed_at: string;
+    joined_at: string | null;
+    pilot_eligible: boolean;
+    pilot_note: string | null;
+  };
+  terms: {
+    version: string;
+    accepted_by_name: string;
+    accepted_at: string;
+    recorded_by: string | null;
+  }[];
+  invites: {
+    id: string;
+    channel: FoundingPartnerChannel;
+    note: string;
+    sent_by: string | null;
+    sent_at: string;
+  }[];
+  benefits: {
+    id: string;
+    advantage: string;
+    approval_ref: string;
+    granted_at: string;
+    granted_by: string | null;
+    revoked_at: string | null;
+  }[];
+  communications: {
+    id: string;
+    channel: FoundingPartnerChannel;
+    direction: "enviada" | "recebida";
+    summary: string;
+    created_by: string | null;
+    created_at: string;
+  }[];
+  feedback: {
+    id: string;
+    topic: FoundingPartnerFeedback["topic"];
+    body: string;
+    created_by: string | null;
+    created_at: string;
+  }[];
+  events: {
+    id: number;
+    kind: "estado" | "termos" | "piloto" | "convite" | "beneficio";
+    from_status: FoundingPartnerStatus | null;
+    to_status: FoundingPartnerStatus | null;
+    detail: string;
+    actor_id: string | null;
+    at: string;
+  }[];
+};
+
+/**
+ * Adesão vinda do banco → registro do CRM. A conta do CRM é achada por crm_account_id
+ * (ou, sem ele, pelo platformRestaurantId da conta igual a restaurant_id).
+ */
+export function foundingPartnerFromRows(
+  rows: FoundingPartnerRows,
+  ctx: { orgId: string; accountId: string },
+): FoundingPartnerEnrollment {
+  const r = rows.enrollment;
+  const latestTerms = [...rows.terms].sort((a, b) => b.accepted_at.localeCompare(a.accepted_at))[0];
+  return {
+    id: r.id,
+    orgId: ctx.orgId,
+    accountId: ctx.accountId,
+    status: r.status,
+    createdAt: r.created_at,
+    statusChangedAt: r.status_changed_at,
+    joinedAt: r.joined_at ?? undefined,
+    terms: latestTerms
+      ? {
+          version: latestTerms.version,
+          acceptedAt: latestTerms.accepted_at,
+          acceptedByName: latestTerms.accepted_by_name,
+          recordedBy: latestTerms.recorded_by ?? "",
+        }
+      : undefined,
+    pilotEligible: r.pilot_eligible,
+    pilotNote: r.pilot_note ?? undefined,
+    invites: rows.invites.map((i) => ({
+      id: i.id,
+      at: i.sent_at,
+      channel: i.channel,
+      sentBy: i.sent_by ?? "",
+      note: i.note,
+      simulated: false,
+    })),
+    benefits: rows.benefits.map((b) => ({
+      id: b.id,
+      advantage: b.advantage,
+      grantedAt: b.granted_at,
+      grantedBy: b.granted_by ?? "",
+      approvalRef: b.approval_ref,
+      revokedAt: b.revoked_at ?? undefined,
+    })),
+    communications: rows.communications.map((c) => ({
+      id: c.id,
+      at: c.created_at,
+      channel: c.channel,
+      direction: c.direction,
+      summary: c.summary,
+      by: c.created_by ?? "",
+    })),
+    feedback: rows.feedback.map((f) => ({
+      id: f.id,
+      at: f.created_at,
+      topic: f.topic,
+      text: f.body,
+      by: f.created_by ?? "",
+    })),
+    history: [...rows.events]
+      .sort((a, b) => b.at.localeCompare(a.at) || b.id - a.id)
+      .map((e) => ({
+        id: String(e.id),
+        at: e.at,
+        actorId: e.actor_id ?? "",
+        kind: e.kind,
+        from: e.from_status ?? undefined,
+        to: e.to_status ?? undefined,
+        detail: e.detail,
+      })),
+  };
+}
+
+export function foundingPartnerRulesFromRow(
+  row: {
+    slots: number | null;
+    enrollment_opens_at: string | null;
+    enrollment_closes_at: string | null;
+    advantages: string[];
+    terms_version: string | null;
+    approved_at: string | null;
+    approved_by: string | null;
+    approval_ref: string | null;
+    updated_at: string | null;
+  },
+  orgId: string,
+): FoundingPartnerRules {
+  return {
+    orgId,
+    slots: row.slots,
+    enrollmentOpensAt: row.enrollment_opens_at,
+    enrollmentClosesAt: row.enrollment_closes_at,
+    advantages: row.advantages,
+    termsVersion: row.terms_version,
+    approvedAt: row.approved_at,
+    approvedBy: row.approved_by,
+    approvalRef: row.approval_ref,
+    updatedAt: row.updated_at,
+  };
+}
+
 /** O que cada camada já consegue ler do Supabase e o que ainda depende de módulo externo. */
 export const INTEGRATION_POINTS: {
   layer: "A" | "B" | "C";
@@ -225,6 +394,13 @@ export const INTEGRATION_POINTS: {
     source: "table_payment_requests, waiter_ratings",
     status: "adaptador",
     note: "visitFromPayment() transforma pagamentos aprovados em uso diário.",
+  },
+  {
+    layer: "B",
+    what: "Restaurante Fundador",
+    source: "founding_partner_* (migração 0041)",
+    status: "adaptador",
+    note: "foundingPartnerFromRows() lê adesão, termos, convites, benefícios e trilha; a migração ainda não foi aplicada.",
   },
   {
     layer: "C",
