@@ -24,6 +24,7 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
       RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       CRON_SECRET: ${{ secrets.CRON_SECRET }}
       TIPE_ENCRYPTION_KEY: ${{ secrets.TIPE_ENCRYPTION_KEY }}
@@ -32,7 +33,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          for name in DATABASE_URL SUPABASE_SERVICE_ROLE_KEY CLOUDFLARE_ACCOUNT_ID CLOUDFLARE_API_TOKEN ANTHROPIC_API_KEY RESEND_API_KEY CRON_SECRET TIPE_ENCRYPTION_KEY VITE_SUPABASE_URL VITE_SUPABASE_PROJECT_ID; do
+          for name in DATABASE_URL SUPABASE_SERVICE_ROLE_KEY CLOUDFLARE_ACCOUNT_ID CLOUDFLARE_API_TOKEN RESEND_API_KEY CRON_SECRET TIPE_ENCRYPTION_KEY VITE_SUPABASE_URL VITE_SUPABASE_PROJECT_ID; do
             if [[ -z "${!name:-}" ]]; then
               echo "::error title=Segredo ausente::$name nao cadastrado no ambiente/repository."
               exit 1
@@ -116,12 +117,28 @@ jobs:
           print("Token Cloudflare ativo. Permissoes de publicacao ainda precisam ser verificadas no primeiro deploy de teste.")
           PY
 
-      - name: Verificar acesso ao catalogo Anthropic (sem consumir tokens)
+      - name: Verificar acesso ao catalogo Groq (sem consumir tokens)
+        id: groq
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -euo pipefail
+          if [[ -z "${GROQ_API_KEY:-}" ]]; then echo "::warning::GROQ_API_KEY nao cadastrada; a Lebre usa so a cota gratis da Cloudflare."; exit 0; fi
+          code="$(curl --silent --show-error --max-time 20 --output /dev/null --write-out '%{http_code}' --header "Authorization: Bearer $GROQ_API_KEY" 'https://api.groq.com/openai/v1/models')"
+          if [[ "$code" == "200" ]]; then
+            echo "Groq API OK (lista de modelos, sem chamada de geracao)."
+          else
+            echo "::error::Groq respondeu HTTP $code. Revise a chave."
+            exit 1
+          fi
+
+      - name: Verificar acesso ao catalogo Anthropic (opcional, sem consumir tokens)
         id: anthropic
         continue-on-error: true
         shell: bash
         run: |
           set -euo pipefail
+          if [[ -z "${ANTHROPIC_API_KEY:-}" ]]; then echo "Anthropic nao cadastrada (opcional: so usada com LEBRE_CLAUDE_FALLBACK=true)."; exit 0; fi
           code="$(curl --silent --show-error --max-time 20 --output /dev/null --write-out '%{http_code}' --header "x-api-key: $ANTHROPIC_API_KEY" --header "anthropic-version: 2026-10-21" 'https://api.anthropic.com/v1/models?limit=1')"
           if [[ "$code" == "200" ]]; then
             echo "Anthropic API OK (consulta de modelos, sem chamada de geracao)."
@@ -147,6 +164,7 @@ jobs:
           SUPABASE_RESULT: ${{ steps.supabase_rest.outcome }}
           CLOUDFLARE_RESULT: ${{ steps.cloudflare.outcome }}
           ANTHROPIC_RESULT: ${{ steps.anthropic.outcome }}
+          GROQ_RESULT: ${{ steps.groq.outcome }}
           RESEND_RESULT: ${{ steps.resend.outcome }}
         run: |
           set -euo pipefail
@@ -154,9 +172,10 @@ jobs:
           echo "- PostgreSQL URI: ${DB_URL_VALID:-not-run}" >> "$GITHUB_STEP_SUMMARY"
           echo "- Supabase secret key: $SUPABASE_RESULT" >> "$GITHUB_STEP_SUMMARY"
           echo "- Cloudflare token: $CLOUDFLARE_RESULT" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Anthropic key: $ANTHROPIC_RESULT" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Groq key: $GROQ_RESULT" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Anthropic key (opcional): $ANTHROPIC_RESULT" >> "$GITHUB_STEP_SUMMARY"
           echo "- Resend formato: $RESEND_RESULT (envio e dominio nao testados)" >> "$GITHUB_STEP_SUMMARY"
-          if [[ "${DB_URL_VALID:-}" != "true" || "$SUPABASE_RESULT" != "success" || "$CLOUDFLARE_RESULT" != "success" || "$ANTHROPIC_RESULT" != "success" || "$RESEND_RESULT" != "success" ]]; then
+          if [[ "${DB_URL_VALID:-}" != "true" || "$SUPABASE_RESULT" != "success" || "$CLOUDFLARE_RESULT" != "success" || "$GROQ_RESULT" != "success" || "$ANTHROPIC_RESULT" != "success" || "$RESEND_RESULT" != "success" ]]; then
             echo "::error::Alguma credencial ainda precisa de correcao. Nenhum deploy foi realizado."
             exit 1
           fi

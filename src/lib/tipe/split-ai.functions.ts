@@ -10,7 +10,7 @@ export type SplitSuggestion =
   | { ok: true; option: "2" | "3" | "4" | "rest"; reason: string }
   | { ok: false; error: string };
 
-// Sugere a divisão de um item a partir de uma descrição em texto (Claude).
+// Sugere a divisão de um item a partir de uma descrição em texto (IA grátis, ver ai.server.ts).
 // Não lê nem altera dados da mesa: apenas devolve a sugestão para o cliente confirmar.
 export const suggestSplit = createServerFn({ method: "POST" })
   .inputValidator((d) => Input.parse(d))
@@ -19,12 +19,12 @@ export const suggestSplit = createServerFn({ method: "POST" })
     await enforceRate(`split-ai:${clientIp()}`, 10, 60);
     const instructions =
       'Você ajuda clientes de restaurante a dividir UM item da conta. Opções: "2" (dividido entre duas pessoas), "3" (três pessoas), "4" (quatro pessoas), "rest" (a pessoa paga o item todo / o restante). Se forem mais de 4 pessoas, escolha "4". Responda SOMENTE JSON: {"option":"2|3|4|rest","reason":"frase curta em português, até 12 palavras"}.';
-    const { askClaude, ClaudeUnavailable } = await import("./claude.server");
+    const { askAI, AIUnavailable } = await import("./ai.server");
     let text: string;
     try {
-      text = await askClaude({ system: instructions, question: `Item: ${data.itemName}\nDescrição do cliente: ${data.description}`, maxTokens: 1000 });
+      text = await askAI({ system: instructions, question: `Item: ${data.itemName}\nDescrição do cliente: ${data.description}`, maxTokens: 200 });
     } catch (error) {
-      if (!(error instanceof ClaudeUnavailable)) console.error("split-ai", error);
+      if (!(error instanceof AIUnavailable)) console.error("split-ai", error);
       return { ok: false, error: "Não foi possível sugerir agora. Escolha a divisão manualmente." };
     }
     const match = text.match(/\{[\s\S]*\}/);
