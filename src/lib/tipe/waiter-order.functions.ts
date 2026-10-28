@@ -203,6 +203,8 @@ export const waiterLaunchOrder = createServerFn({ method: "POST" })
           )
           .min(1)
           .max(60),
+        // Mesma chave em toque duplo ou nova tentativa: o banco devolve o pedido já lançado.
+        requestId: z.string().min(8).max(64).regex(/^[A-Za-z0-9_-]+$/),
       })
       .parse(d),
   )
@@ -211,12 +213,13 @@ export const waiterLaunchOrder = createServerFn({ method: "POST" })
     const { enforceRate } = await import("./security.server");
     await enforceRate(`waiter-order:${w.id}`, 120, 60, w.restaurants.slug);
     // RPC com o contexto autenticado do garçom (papel waiter). p_waiter é sempre o próprio.
-    const { error } = await context.supabase.rpc("pdv_launch_order", {
+    const { error } = await context.supabase.rpc("pdv_launch_order" as never, {
       p_slug: w.restaurants.slug,
       p_table: data.table,
       p_waiter: w.id,
       p_items: data.items,
-    });
+      p_request_id: data.requestId,
+    } as never);
     if (error) {
       for (const k of [
         "Mesa inativa",

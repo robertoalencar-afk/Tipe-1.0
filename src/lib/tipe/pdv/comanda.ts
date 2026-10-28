@@ -174,3 +174,11 @@ export function avisosDeNotas(
       texto: n.comment?.trim() ? `“${n.comment.trim()}”` : "O cliente não deixou comentário.",
     }));
 }
+
+/** Chave do lançamento: a mesma para o mesmo pedido (toque duplo, nova tentativa), nova quando o pedido muda. */
+export type ChaveLancamento = { assinatura: string; id: string };
+
+export function chaveLancamento(anterior: ChaveLancamento | null, pedido: unknown, novoId: () => string = () => `lanc_${crypto.randomUUID().replace(/-/g, "")}`): ChaveLancamento {
+  const assinatura = JSON.stringify(pedido);
+  return anterior && anterior.assinatura === assinatura ? anterior : { assinatura, id: novoId() };
+}

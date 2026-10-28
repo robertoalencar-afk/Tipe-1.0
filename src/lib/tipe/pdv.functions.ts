@@ -86,7 +86,7 @@ async function restaurantId(supabase: any, slug: string) {
 }
 
 const friendly = (msg: string, fallback: string) => {
-  for (const k of ["Sem permissão", "Mesa inativa", "Garçom inválido", "Pedido vazio", "Item indisponível", "Quantidade", "Há pagamentos", "Informe o motivo"]) if (msg.includes(k)) return msg;
+  for (const k of ["Sem permissão", "Mesa inativa", "Garçom inválido", "Pedido vazio", "Item indisponível", "Quantidade", "Há pagamentos", "Informe o motivo", "acima do limite"]) if (msg.includes(k)) return msg;
   return fallback;
 };
 
@@ -109,14 +109,18 @@ export const getPdvData = createServerFn({ method: "GET" })
     };
   });
 
+const RequestId = z.string().min(8).max(64).regex(/^[A-Za-z0-9_-]+$/);
+
 export const launchOrder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({
     slug: Slug, table: z.string().min(1).max(16), waiterId: z.string().uuid(),
     items: z.array(z.object({ code: z.string().min(1).max(16), qty: z.number().int().min(1).max(99), notes: z.string().max(140).optional() })).min(1).max(60),
+    // Mesma chave em toque duplo ou nova tentativa: o banco devolve o pedido já lançado.
+    requestId: RequestId,
   }).parse(d))
   .handler(async ({ data, context }) => {
-    const { error } = await context.supabase.rpc("pdv_launch_order", { p_slug: data.slug, p_table: data.table, p_waiter: data.waiterId, p_items: data.items });
+    const { error } = await context.supabase.rpc("pdv_launch_order" as never, { p_slug: data.slug, p_table: data.table, p_waiter: data.waiterId, p_items: data.items, p_request_id: data.requestId } as never);
     if (error) throw new Error(friendly(error.message, "Não foi possível lançar o pedido"));
     return { ok: true };
   });
