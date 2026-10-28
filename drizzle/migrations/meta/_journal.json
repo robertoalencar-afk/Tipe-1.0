@@ -190,6 +190,13 @@
       "when": 1792412400000,
       "tag": "0026_staff_push_subscriptions",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1792414200000,
+      "tag": "0033_cash_expected_server",
+      "breakpoints": true
     }
   ]
 }
