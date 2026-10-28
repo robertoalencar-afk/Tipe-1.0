@@ -8,11 +8,14 @@ import type { CSSProperties } from "react";
 import { useInView } from "@/components/tipe/landing/motion";
 import { cn } from "@/lib/utils";
 
-const ARQUIVOS = import.meta.glob(["/src/assets/produtos/*.webp", "/src/assets/fotos/*.webp", "/src/assets/cenas/*.webp"], {
-  eager: true,
-  query: "?url",
-  import: "default",
-}) as Record<string, string>;
+const ARQUIVOS = import.meta.glob(
+  ["/src/assets/produtos/*.webp", "/src/assets/fotos/*.webp", "/src/assets/cenas/*.webp"],
+  {
+    eager: true,
+    query: "?url",
+    import: "default",
+  },
+) as Record<string, string>;
 
 export type NomeFoto =
   | "pay"
@@ -74,7 +77,14 @@ export type NomeFoto =
   | "cena-dono-vertical"
   | "cena-dono-larga"
   | "cena-mesa-liberada"
-  | "cena-mesa-liberada-vertical";
+  | "cena-mesa-liberada-vertical"
+  /* Ilustrações da lebre e da tartaruga (src/assets/cenas), usadas nos storyboards internos. */
+  | "lebre-tartaruga-amigos"
+  | "lebre-tartaruga-cliente"
+  | "lebre-tartaruga-dono"
+  | "lebre-tartaruga-familia"
+  | "lebre-tartaruga-garcom"
+  | "lebre-tartaruga-gorjeta";
 
 export function fotoSrc(nome: NomeFoto) {
   const tamanhos = Object.entries(ARQUIVOS)

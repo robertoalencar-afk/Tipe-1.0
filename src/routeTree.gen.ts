@@ -30,6 +30,10 @@ import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } fr
 import { Route as AuthenticatedBackofficeRouteImport } from './routes/_authenticated/backoffice'
 import { Route as AuthenticatedGarcomRouteImport } from './routes/_authenticated/garcom'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
+import { Route as InternoComoFuncionaRouteImport } from './routes/interno.como-funciona'
+import { Route as InternoFocinhoRouteImport } from './routes/interno.focinho'
+import { Route as InternoPropostasEcossistemaRouteImport } from './routes/interno.propostas-ecossistema'
+import { Route as InternoVideosRouteImport } from './routes/interno.videos'
 import { Route as LegalIndexRouteImport } from './routes/legal.index'
 import { Route as LegalLivroRouteImport } from './routes/legal.$livro'
 import { Route as LegalCompletaRouteImport } from './routes/legal.completa'
@@ -156,6 +160,27 @@ const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
   path: '/painel',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const InternoComoFuncionaRoute = InternoComoFuncionaRouteImport.update({
+  id: '/interno/como-funciona',
+  path: '/interno/como-funciona',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InternoFocinhoRoute = InternoFocinhoRouteImport.update({
+  id: '/interno/focinho',
+  path: '/interno/focinho',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InternoPropostasEcossistemaRoute =
+  InternoPropostasEcossistemaRouteImport.update({
+    id: '/interno/propostas-ecossistema',
+    path: '/interno/propostas-ecossistema',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const InternoVideosRoute = InternoVideosRouteImport.update({
+  id: '/interno/videos',
+  path: '/interno/videos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LegalIndexRoute = LegalIndexRouteImport.update({
   id: '/legal/',
   path: '/legal/',
@@ -281,6 +306,10 @@ export interface FileRoutesByFullPath {
   '/backoffice': typeof AuthenticatedBackofficeRoute
   '/garcom': typeof AuthenticatedGarcomRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/interno/como-funciona': typeof InternoComoFuncionaRoute
+  '/interno/focinho': typeof InternoFocinhoRoute
+  '/interno/propostas-ecossistema': typeof InternoPropostasEcossistemaRoute
+  '/interno/videos': typeof InternoVideosRoute
   '/legal/$livro': typeof LegalLivroRoute
   '/legal/completa': typeof LegalCompletaRoute
   '/legal/glossario': typeof LegalGlossarioRoute
@@ -323,6 +352,10 @@ export interface FileRoutesByTo {
   '/backoffice': typeof AuthenticatedBackofficeRoute
   '/garcom': typeof AuthenticatedGarcomRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/interno/como-funciona': typeof InternoComoFuncionaRoute
+  '/interno/focinho': typeof InternoFocinhoRoute
+  '/interno/propostas-ecossistema': typeof InternoPropostasEcossistemaRoute
+  '/interno/videos': typeof InternoVideosRoute
   '/legal/$livro': typeof LegalLivroRoute
   '/legal/completa': typeof LegalCompletaRoute
   '/legal/glossario': typeof LegalGlossarioRoute
@@ -367,6 +400,10 @@ export interface FileRoutesById {
   '/_authenticated/backoffice': typeof AuthenticatedBackofficeRoute
   '/_authenticated/garcom': typeof AuthenticatedGarcomRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
+  '/interno/como-funciona': typeof InternoComoFuncionaRoute
+  '/interno/focinho': typeof InternoFocinhoRoute
+  '/interno/propostas-ecossistema': typeof InternoPropostasEcossistemaRoute
+  '/interno/videos': typeof InternoVideosRoute
   '/legal/$livro': typeof LegalLivroRoute
   '/legal/completa': typeof LegalCompletaRoute
   '/legal/glossario': typeof LegalGlossarioRoute
@@ -411,6 +448,10 @@ export interface FileRouteTypes {
     | '/backoffice'
     | '/garcom'
     | '/painel'
+    | '/interno/como-funciona'
+    | '/interno/focinho'
+    | '/interno/propostas-ecossistema'
+    | '/interno/videos'
     | '/legal/$livro'
     | '/legal/completa'
     | '/legal/glossario'
@@ -453,6 +494,10 @@ export interface FileRouteTypes {
     | '/backoffice'
     | '/garcom'
     | '/painel'
+    | '/interno/como-funciona'
+    | '/interno/focinho'
+    | '/interno/propostas-ecossistema'
+    | '/interno/videos'
     | '/legal/$livro'
     | '/legal/completa'
     | '/legal/glossario'
@@ -496,6 +541,10 @@ export interface FileRouteTypes {
     | '/_authenticated/backoffice'
     | '/_authenticated/garcom'
     | '/_authenticated/painel'
+    | '/interno/como-funciona'
+    | '/interno/focinho'
+    | '/interno/propostas-ecossistema'
+    | '/interno/videos'
     | '/legal/$livro'
     | '/legal/completa'
     | '/legal/glossario'
@@ -537,6 +586,10 @@ export interface RootRouteChildren {
   TesteGratisRoute: typeof TesteGratisRoute
   RestauranteMesaRoute: typeof RestauranteMesaRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
+  InternoComoFuncionaRoute: typeof InternoComoFuncionaRoute
+  InternoFocinhoRoute: typeof InternoFocinhoRoute
+  InternoPropostasEcossistemaRoute: typeof InternoPropostasEcossistemaRoute
+  InternoVideosRoute: typeof InternoVideosRoute
   LegalLivroRoute: typeof LegalLivroRoute
   LegalCompletaRoute: typeof LegalCompletaRoute
   LegalGlossarioRoute: typeof LegalGlossarioRoute
@@ -707,6 +760,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/painel'
       preLoaderRoute: typeof AuthenticatedPainelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/interno/como-funciona': {
+      id: '/interno/como-funciona'
+      path: '/interno/como-funciona'
+      fullPath: '/interno/como-funciona'
+      preLoaderRoute: typeof InternoComoFuncionaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/interno/focinho': {
+      id: '/interno/focinho'
+      path: '/interno/focinho'
+      fullPath: '/interno/focinho'
+      preLoaderRoute: typeof InternoFocinhoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/interno/propostas-ecossistema': {
+      id: '/interno/propostas-ecossistema'
+      path: '/interno/propostas-ecossistema'
+      fullPath: '/interno/propostas-ecossistema'
+      preLoaderRoute: typeof InternoPropostasEcossistemaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/interno/videos': {
+      id: '/interno/videos'
+      path: '/interno/videos'
+      fullPath: '/interno/videos'
+      preLoaderRoute: typeof InternoVideosRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/legal/': {
       id: '/legal/'
@@ -887,6 +968,10 @@ const rootRouteChildren: RootRouteChildren = {
   RestauranteMesaRoute: RestauranteMesaRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
+  InternoComoFuncionaRoute: InternoComoFuncionaRoute,
+  InternoFocinhoRoute: InternoFocinhoRoute,
+  InternoPropostasEcossistemaRoute: InternoPropostasEcossistemaRoute,
+  InternoVideosRoute: InternoVideosRoute,
   LegalLivroRoute: LegalLivroRoute,
   LegalCompletaRoute: LegalCompletaRoute,
   LegalGlossarioRoute: LegalGlossarioRoute,

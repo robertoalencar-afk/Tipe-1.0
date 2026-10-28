@@ -97,7 +97,7 @@ function Vitrine({ p }: { p: Produto }) {
             <Selo cor={cor} />
             <span>
               <span className="block text-white/60">Gorjeta extra · Mesa 5</span>
-              <span className="money">+ R$ 8,00</span> para Joyce
+              <span className="money">R$ 8,00</span> · R$ 5,60 para Joyce
             </span>
           </Aviso>
         </>

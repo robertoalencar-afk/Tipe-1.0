@@ -142,16 +142,86 @@ export function Fios({
 }
 
 /**
- * O ícone dos CTAs (substitui a seta). Fica dentro do botão (que precisa da classe
- * "com-fios"). Sem `seta`, sobram só os fios, soltos na margem direita do botão (para
- * links secundários como "Entrar").
+ * Focinho dos CTAs (V62, 27/10): a direção entre as opções A (nariz e boca) e B (meio
+ * focinho com bigodes). Nariz turquesa pequeno, arredondado e simétrico; boca mínima em
+ * "Y" com curvas; bigodes curtos e finos. Três microvariações para comparar em
+ * /interno/focinho: 1 só nariz e boca, 2 com dois bigodes curtos de cada lado (a usada
+ * no site), 3 com um bigode longo de cada lado.
+ *
+ * Movimento: parado, o nariz fareja quase imperceptível a cada ~6 s e os bigodes
+ * acompanham. No hover, no foco por teclado e no toque, uma farejada dupla e os bigodes
+ * abrem de leve. Nada se desloca: a caixa é fixa e a largura do botão não muda.
+ * Com movimento reduzido fica parado.
+ */
+export type VarianteFocinho = 1 | 2 | 3;
+
+const FZ_NARIZ =
+  "M12 11.8 C9.5 11.1 7.7 9.7 7.8 8.4 C7.9 7.3 9.8 6.8 12 6.8 C14.2 6.8 16.1 7.3 16.2 8.4 C16.3 9.7 14.5 11.1 12 11.8Z";
+const FZ_BOCA =
+  "M12 11.8 V12.6 M12 12.6 C11.4 14.1 9.8 14.6 8.8 13.8 M12 12.6 C12.6 14.1 14.2 14.6 15.2 13.8";
+/** Cada variação recorta o desenho no seu viewBox, então o focinho ocupa a altura do texto. */
+const FZ_VIEWBOX: Record<VarianteFocinho, string> = {
+  1: "7.2 6.2 9.6 9.2",
+  2: "2.6 6.2 18.8 9.2",
+  3: "1.2 6.2 21.6 9.2",
+};
+const FZ_BIGODES: Record<VarianteFocinho, { esq: string[]; dir: string[] }> = {
+  1: { esq: [], dir: [] },
+  2: {
+    esq: ["M7.9 9.6 Q5.7 9 3.4 9.4", "M8 11.4 Q5.9 11.7 3.8 12.6"],
+    dir: ["M16.1 9.6 Q18.3 9 20.6 9.4", "M16 11.4 Q18.1 11.7 20.2 12.6"],
+  },
+  3: {
+    esq: ["M7.9 10.4 Q4.9 9.8 1.8 10.7"],
+    dir: ["M16.1 10.4 Q19.1 9.8 22.2 10.7"],
+  },
+};
+
+export function FocinhoCta({
+  variante = 2,
+  auto = true,
+  className,
+}: {
+  variante?: VarianteFocinho | undefined;
+  /** Farejada sutil sozinha, sem hover (padrão). */
+  auto?: boolean | undefined;
+  className?: string | undefined;
+}) {
+  const b = FZ_BIGODES[variante];
+  return (
+    <svg
+      viewBox={FZ_VIEWBOX[variante]}
+      aria-hidden
+      focusable="false"
+      data-v={variante}
+      className={cn("focinho-cta", auto && "focinho-cta-auto", className)}
+    >
+      {(["esq", "dir"] as const).map((lado) =>
+        b[lado].length ? (
+          <g key={lado} className={`fz-bigodes fz-${lado}`}>
+            {b[lado].map((d) => (
+              <path key={d} className="fz-fio" d={d} />
+            ))}
+          </g>
+        ) : null,
+      )}
+      <path className="fz-boca" d={FZ_BOCA} />
+      <path className="fz-nariz" d={FZ_NARIZ} />
+    </svg>
+  );
+}
+
+/**
+ * O ícone dos CTAs. Fica dentro do botão (que precisa da classe "com-fios"). Desde a V62
+ * é o focinho (FocinhoCta, variação 2). Sem `seta`, sobram só os fios, soltos na margem
+ * direita do botão (para links secundários como "Entrar").
  */
 export function SetaFios({
   auto = false,
   seta = true,
   className,
 }: {
-  /** Os bigodes saltam sozinhos a cada 4,5 s (só no CTA principal da página). */
+  /** Mantido por compatibilidade: o focinho já fareja sozinho, de leve. */
   auto?: boolean;
   seta?: boolean;
   className?: string;
@@ -170,22 +240,8 @@ export function SetaFios({
       </svg>
     );
   }
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      aria-hidden
-      focusable="false"
-      className={cn("seta-fios seta-bigodes", auto && "seta-fios-auto", className)}
-    >
-      <g className="sb-corpo">
-        <path className="sb-fio sb-cima" d="M9.5 6.4 Q15.5 8.4 20.4 12" />
-        <path className="sb-fio" d="M9.2 12 H20.4" />
-        <path className="sb-fio sb-baixo" d="M9.5 17.6 Q15.5 15.6 20.4 12" />
-        <circle className="sb-nariz" cx="5" cy="12" r="3" />
-      </g>
-    </svg>
-  );
+  return <FocinhoCta className={className} />;
 }
 
-/** Alias antigo (o meio focinho virou a seta de bigodes em 27/10). */
+/** Alias antigo (o meio focinho virou a seta de bigodes em 27/10 e o focinho na V62). */
 export const MeioFocinho = SetaFios;
