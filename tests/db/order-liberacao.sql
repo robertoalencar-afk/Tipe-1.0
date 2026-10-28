@@ -22,6 +22,24 @@ CREATE OR REPLACE FUNCTION pg_temp.como(p_user uuid) RETURNS void LANGUAGE sql A
   SELECT set_config('request.jwt.claim.sub', coalesce(p_user::text, ''), true)
 $$;
 
+-- 0) Quem já tinha o pedido pela mesa ligado antes da 0027 continua com o Order ativo.
+UPDATE restaurants SET self_order_enabled = true WHERE slug = 'mare-alta';
+DELETE FROM restaurant_module_events WHERE restaurant_id = (SELECT id FROM restaurants WHERE slug = 'mare-alta');
+DELETE FROM restaurant_modules WHERE restaurant_id = (SELECT id FROM restaurants WHERE slug = 'mare-alta');
+SET client_min_messages = warning;
+\ir ../../drizzle/migrations/0027_order_modules_table_ordering.sql
+\ir ../../drizzle/migrations/0027_order_modules_table_ordering.sql
+SET client_min_messages = notice;
+SET search_path = public, extensions;
+DO $$
+DECLARE v_rid uuid;
+BEGIN
+  SELECT id INTO v_rid FROM restaurants WHERE slug = 'mare-alta';
+  PERFORM pg_temp.ok(restaurant_has_module(v_rid, 'order'), 'pedido pela mesa já ligado vira Order ativo na migração');
+  PERFORM pg_temp.ok((SELECT count(*) FROM restaurant_module_events WHERE restaurant_id = v_rid AND actor_kind = 'system') = 1,
+    'a migração registra um evento do sistema só uma vez, mesmo rodando de novo');
+END $$;
+
 -- 1) Restaurante só com Pay: o servidor recusa pedido mesmo chamando a função direto.
 DO $$
 DECLARE v_rid uuid; u_gar uuid := gen_random_uuid();

@@ -274,3 +274,15 @@ BEGIN
 END; $function$;
 REVOKE EXECUTE ON FUNCTION public.pdv_customer_order(text, text, jsonb, text, text, text) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.pdv_customer_order(text, text, jsonb, text, text, text) TO service_role;
+
+-- Restaurantes que já tinham o pedido pela mesa ligado (migração 0024) continuam com ele:
+-- o módulo entra como ativo, registrado como mudança do sistema. A partir daqui a mesa
+-- só pede depois que a equipe libera. Idempotente: só cria o que ainda não existe.
+WITH novos AS (
+  INSERT INTO public.restaurant_modules (restaurant_id, module, status, reason)
+  SELECT id, 'order', 'active', NULL FROM public.restaurants WHERE self_order_enabled
+  ON CONFLICT (restaurant_id, module) DO NOTHING
+  RETURNING restaurant_id
+)
+INSERT INTO public.restaurant_module_events (restaurant_id, module, from_status, to_status, reason, actor_kind)
+SELECT restaurant_id, 'order', NULL, 'active', 'Pedido pela mesa já estava ligado antes do Tipe Order', 'system' FROM novos;

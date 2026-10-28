@@ -44,6 +44,8 @@ Branch `order/fase-2-modulos`, PR em rascunho contra `main`. A base `order/base`
 - `drizzle/migrations/0027_order_modules_table_ordering.sql`
 - O journal coloca a 0027 antes da 0028 e da 0030 que já estão na `main`.
 - Ela foi aplicada duas vezes seguidas num Postgres 16 local, sem erro.
+- Restaurantes que já tinham o pedido pela mesa ligado (migração 0024) entram com o Order **ativo**, com um evento do sistema no histórico. Assim ninguém perde o cardápio no deploy; a diferença é que a mesa passa a pedir só depois que a equipe libera.
+- Atenção: o deploy da `main` roda `scripts/db/aplicar-migracoes.sh`, então o merge aplica a 0027 no banco de produção.
 - A numeração 0027 estava reservada ao Tipe Order. Próximas migrações do Order: 0034 a 0039, conforme a coordenação.
 
 ## Testes (rodados nesta branch, depois do merge com a `main`)
