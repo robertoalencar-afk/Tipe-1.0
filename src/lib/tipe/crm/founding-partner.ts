@@ -110,6 +110,29 @@ export const FP_FEEDBACK_TOPIC: Record<FoundingPartnerFeedback["topic"], string>
 
 export const PENDING_COMMERCIAL = "Pendente de aprovação comercial";
 
+/**
+ * Regras comerciais definidas pelo Roberto em 28/10/2026 (delegou a definição ao time, dentro das
+ * regras do prompt do Guest): sem preço, desconto ou escassez artificial. As vagas são limite
+ * interno de operação e não aparecem em texto público. Detalhes em docs/tipe-guest/FUNDADOR.md.
+ */
+export const FOUNDING_PARTNER_APPROVED_RULES = {
+  slots: 30,
+  enrollmentOpensAt: "2026-10-28T00:00:00-03:00",
+  enrollmentClosesAt: "2027-03-31T23:59:59-03:00",
+  advantages: [
+    "Selo Restaurante Fundador para o salão e as redes",
+    "Canal direto com a equipe Tipe durante a implantação",
+    "Convite para o piloto do Tipe Guest antes da abertura ao público",
+    "Encontros trimestrais de feedback sobre o produto",
+    "Identificação como Restaurante Fundador no perfil do Tipe Guest, quando lançado",
+  ],
+  approvedAt: "2026-10-28T10:05:43Z",
+  approvalRef: "Roberto Alencar, thread Tipe Guest, 28/10/2026",
+} as const;
+
+/** Versão do texto dos termos (rascunho em FUNDADOR.md, pendente de revisão jurídica). */
+export const FOUNDING_PARTNER_TERMS_VERSION = "fundador-v1";
+
 /** Regras comerciais padrão: tudo vazio. Nada de vaga, prazo ou vantagem sem aprovação. */
 export function defaultFoundingPartnerRules(orgId: ID): FoundingPartnerRules {
   return {

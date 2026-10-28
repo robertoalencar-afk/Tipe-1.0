@@ -3,6 +3,7 @@ import { dispatch, type Command } from "./engine";
 import {
   benefitBlocker,
   defaultFoundingPartnerRules,
+  FOUNDING_PARTNER_APPROVED_RULES,
   FP_STATUS_ORDER,
   FP_TRANSITIONS,
   rulesApproved,
@@ -16,7 +17,7 @@ import type { CrmState, FoundingPartnerEnrollment, RestaurantAccount } from "./t
 // Programa Restaurante Fundador: transições permitidas e negadas, auditoria de cada
 // mudança e nenhum benefício por padrão.
 
-const NOW = "2026-10-27T15:00:00.000Z";
+const NOW = "2026-11-04T15:00:00.000Z";
 let clock = new Date(NOW).getTime();
 const tick = () => new Date((clock += 60 * 60000)).toISOString();
 
@@ -58,15 +59,15 @@ describe("seed do Restaurante Fundador", () => {
       expect(e.orgId).toBe("org_tipe");
     }
   });
-  it("nenhum benefício concedido e regras comerciais vazias", () => {
+  it("nenhum benefício concedido e regras comerciais aprovadas em 28/10 sem preço nem desconto", () => {
     for (const e of s.foundingPartners) expect(e.benefits).toEqual([]);
     const r = rulesOf(s, "org_tipe");
-    expect(r.slots).toBeNull();
-    expect(r.enrollmentOpensAt).toBeNull();
-    expect(r.enrollmentClosesAt).toBeNull();
-    expect(r.advantages).toEqual([]);
-    expect(r.approvedAt).toBeNull();
-    expect(rulesApproved(r)).toBe(false);
+    expect(r.slots).toBe(FOUNDING_PARTNER_APPROVED_RULES.slots);
+    expect(r.enrollmentOpensAt).toBe(FOUNDING_PARTNER_APPROVED_RULES.enrollmentOpensAt);
+    expect(r.enrollmentClosesAt).toBe(FOUNDING_PARTNER_APPROVED_RULES.enrollmentClosesAt);
+    expect(r.advantages).toEqual([...FOUNDING_PARTNER_APPROVED_RULES.advantages]);
+    expect(rulesApproved(r)).toBe(true);
+    for (const a of r.advantages) expect(a).not.toMatch(/R\$|%|desconto|grátis|gratuit|vagas limitadas/i);
   });
   it("todo participante tem aceite de termos com versão e data de entrada", () => {
     for (const e of s.foundingPartners.filter((x) =>
@@ -247,7 +248,7 @@ describe("motor: comandos do programa", () => {
       );
   });
 
-  it("nenhum benefício pode ser concedido com as regras padrão", () => {
+  it("vantagem fora do texto aprovado é recusada", () => {
     let s = login(createSeed(NOW), "helena@tipe.demo");
     const e = s.foundingPartners.find((x) => x.status === "participante")!;
     const r = fail(s, {
@@ -255,7 +256,7 @@ describe("motor: comandos do programa", () => {
       enrollmentId: e.id,
       advantage: "Qualquer vantagem",
     });
-    expect(r.error).toMatch(/Pendente de aprovação comercial/i);
+    expect(r.error).toMatch(/exatamente como aprovada/i);
     s = r.state;
     expect(s.foundingPartners.every((x) => x.benefits.length === 0)).toBe(true);
   });
