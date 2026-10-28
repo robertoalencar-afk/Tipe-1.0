@@ -52,6 +52,9 @@ import {
   type SharedPayment,
 } from "@/lib/tipe/payments.functions";
 import { CardFields } from "@/components/tipe/CardFields";
+import { ConsentimentoAvaliacao } from "@/components/tipe/guest/ConsentimentoAvaliacao";
+import { getReviewConsentConfig } from "@/lib/tipe/guest/reviews.functions";
+import { isPaymentUuid, type PublicIdentity, type REVIEW_CONSENT_TEXT } from "@/lib/tipe/guest/review-consent";
 import {
   gorjetaMaxima,
   lerValor,
@@ -186,6 +189,10 @@ function MesaPage() {
   const [metodoGorjeta, setMetodoGorjeta] = useState<Metodo | null>(null);
   const [estrelas, setEstrelas] = useState(0);
   const [comentario, setComentario] = useState("");
+  // Tipe Guest: consentimento opcional, só quando a flag do restaurante estiver ligada.
+  const [consentimentoGuest, setConsentimentoGuest] = useState<typeof REVIEW_CONSENT_TEXT | null>(null);
+  const [publicarAvaliacao, setPublicarAvaliacao] = useState(false);
+  const [identidadePublica, setIdentidadePublica] = useState<PublicIdentity>("anonimo");
   const [gorjetaExtra, setGorjetaExtra] = useState(0);
   const [pagando, setPagando] = useState(false);
   const [erroPagamento, setErroPagamento] = useState<string | null>(null);
@@ -375,6 +382,20 @@ function MesaPage() {
     ["carregando", "identificacao", "conta", "pagamento-conta", "conta-pendente"].includes(etapa)
       ? "mesa-encerrada"
       : etapa;
+
+  // Tipe Guest: ao chegar na avaliação, pergunta ao servidor se o restaurante coleta com consentimento.
+  useEffect(() => {
+    if (etapaVisivel !== "avaliacao" || !sessaoMesa) return;
+    let ativo = true;
+    getReviewConsentConfig({ data: { restaurantId: restaurante, tableId: String(dados.mesa), session: sessaoMesa } })
+      .then((c) => {
+        if (ativo) setConsentimentoGuest(c.enabled ? c.text : null);
+      })
+      .catch(() => undefined);
+    return () => {
+      ativo = false;
+    };
+  }, [etapaVisivel, sessaoMesa, restaurante, dados.mesa]);
 
   useEffect(() => {
     if (!mesaEncerrada) return;
@@ -1389,6 +1410,15 @@ function MesaPage() {
             maxLength={400}
             className="mt-2 min-h-28"
           />
+          {consentimentoGuest && (
+            <ConsentimentoAvaliacao
+              texto={consentimentoGuest}
+              consentiu={publicarAvaliacao}
+              onConsentir={setPublicarAvaliacao}
+              identidade={identidadePublica}
+              onIdentidade={setIdentidadePublica}
+            />
+          )}
           <BarraAcao>
             <Button
               onClick={() => {
@@ -1400,6 +1430,13 @@ function MesaPage() {
                       session: sessaoMesa,
                       stars: estrelas,
                       comment: comentario.trim() || undefined,
+                      ...(consentimentoGuest
+                        ? {
+                            paymentId: isPaymentUuid(ultimoPagamento) ? ultimoPagamento : undefined,
+                            publishConsent: publicarAvaliacao,
+                            publicIdentity: identidadePublica,
+                          }
+                        : {}),
                     },
                   }).catch(() => undefined);
                 setEtapa("fim");
