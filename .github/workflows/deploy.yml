@@ -51,7 +51,8 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          CLOUDFLARE_AI_TOKEN: ${{ secrets.CLOUDFLARE_AI_TOKEN }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
           TIPE_ENCRYPTION_KEY: ${{ secrets.TIPE_ENCRYPTION_KEY }}
@@ -59,7 +60,7 @@ jobs:
         run: |
           set -euo pipefail
           missing=0
-          required=(DATABASE_URL VITE_SUPABASE_URL VITE_SUPABASE_PUBLISHABLE_KEY VITE_SUPABASE_PROJECT_ID SUPABASE_SERVICE_ROLE_KEY CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID ANTHROPIC_API_KEY RESEND_API_KEY CRON_SECRET TIPE_ENCRYPTION_KEY)
+          required=(DATABASE_URL VITE_SUPABASE_URL VITE_SUPABASE_PUBLISHABLE_KEY VITE_SUPABASE_PROJECT_ID SUPABASE_SERVICE_ROLE_KEY CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID RESEND_API_KEY CRON_SECRET TIPE_ENCRYPTION_KEY)
           for name in "${required[@]}"; do
             if [[ -z "${!name:-}" ]]; then
               echo "::error title=Configuração incompleta::Variável obrigatória ausente: ${name}"
@@ -69,6 +70,10 @@ jobs:
           if [[ "$missing" -ne 0 ]]; then
             echo "Deploy bloqueado; nenhuma migração executada e nenhum Worker publicado."
             exit 1
+          fi
+          # A IA da Lebre é grátis (Cloudflare Workers AI, depois Groq); sem as duas, ela só responde o que não precisa de IA.
+          if [[ -z "${CLOUDFLARE_AI_TOKEN:-}" && -z "${GROQ_API_KEY:-}" ]]; then
+            echo "::warning title=Lebre sem IA::Cadastre CLOUDFLARE_AI_TOKEN e/ou GROQ_API_KEY para a Lebre responder com IA."
           fi
           # Evita misturar a service key ou o banco de staging com o URL publico de production.
           expected_id="bnggnbwmihqexvihrqvy"
@@ -126,6 +131,12 @@ jobs:
           TIPE_PLATFORM_FEE_PERCENT: ${{ vars.TIPE_PLATFORM_FEE_PERCENT }}
           CLOUDFLARE_AI_TOKEN: ${{ secrets.CLOUDFLARE_AI_TOKEN }}
           GOOGLE_PAY_MERCHANT_ID: ${{ vars.GOOGLE_PAY_MERCHANT_ID }}
+          CLOUDFLARE_AI_MODEL: ${{ vars.CLOUDFLARE_AI_MODEL }}
+          CLOUDFLARE_AI_DAILY_LIMIT: ${{ vars.CLOUDFLARE_AI_DAILY_LIMIT }}
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          GROQ_MODEL: ${{ vars.GROQ_MODEL }}
+          GROQ_VISION_MODEL: ${{ vars.GROQ_VISION_MODEL }}
+          LEBRE_CLAUDE_FALLBACK: ${{ vars.LEBRE_CLAUDE_FALLBACK }}
       - name: Publicar as rotinas agendadas
         run: |
           bunx wrangler deploy --config cron-worker/wrangler.jsonc

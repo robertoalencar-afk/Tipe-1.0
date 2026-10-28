@@ -89,7 +89,7 @@ Não vendemos dados. Compartilhamos apenas o necessário com:
 | Provedor de hospedagem: Cloudflare | Dados que passam pelo site durante o uso | Hospedagem do site e do sistema |
 | Provedor de e-mail: Resend | E-mail do destinatário e conteúdo da mensagem | Envio de e-mails do sistema (recibos, convites, avisos) |
 | Google | Dados de login, se você escolher entrar com Google; IP, ao carregar fontes | Autenticação e fontes do site |
-| Provedores de IA: Anthropic (modelos Claude) e Cloudflare Workers AI (transcrição de áudio) | Textos, áudios, imagens e arquivos enviados à Lebre; texto da sugestão de divisão | Recursos de IA (Livro 5) |
+| Provedores de IA: Cloudflare Workers AI e Groq (modelos abertos, como o Llama) e, só se habilitada como reserva, Anthropic (modelos Claude) | Textos, áudios, imagens e arquivos enviados à Lebre; texto da sugestão de divisão | Recursos de IA (Livro 5) |
 | Meta e Google (medição) | Dados de navegação, só com consentimento | Medição e anúncios |
 | Autoridades | O que for exigido | Cumprimento de lei ou ordem judicial |
 

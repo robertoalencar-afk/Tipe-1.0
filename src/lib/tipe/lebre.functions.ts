@@ -43,12 +43,15 @@ const FileSchema = z.object({
 });
 const Files = z.array(FileSchema).max(3).optional();
 
+// Usada quando as cotas grátis de IA do dia acabaram (ou nenhum provedor respondeu).
+const AI_REST_MESSAGE = "Por hoje eu já usei toda a minha energia para responder por aqui. Volto amanhã! Se for urgente, fale com a equipe TIPE no WhatsApp.";
+
 async function askModel(instructions: string, question: string, files?: LebreFile[]) {
-  const { askClaude, ClaudeUnavailable } = await import("./claude.server");
+  const { askAI, AIUnavailable } = await import("./ai.server");
   try {
-    return await askClaude({ system: instructions, question, files });
+    return await askAI({ system: instructions, question, files });
   } catch (error) {
-    if (error instanceof ClaudeUnavailable) return "A Lebre está se preparando para responder. Enquanto isso, você pode simular a experiência ou falar com nossa equipe.";
+    if (error instanceof AIUnavailable) return AI_REST_MESSAGE;
     throw error;
   }
 }
@@ -58,6 +61,12 @@ export const askPublicLebre = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<LebreReply> => {
     const { enforceRate, clientIp, consumeLebreQuota } = await import("./security.server");
     await enforceRate(`lebre-public:${clientIp()}`, 12, 60);
+    // Perguntas frequentes têm resposta pronta: não gastam IA nem a cota do dia.
+    if (!data.files?.length) {
+      const { respostaFaq } = await import("./lebre-regras");
+      const pronta = respostaFaq(data.question);
+      if (pronta) return { answer: pronta };
+    }
     const limitMsg = await consumeLebreQuota("public");
     if (limitMsg) return { answer: limitMsg };
     const answer = await askModel(
@@ -110,8 +119,6 @@ export const askRestaurantLebre = createServerFn({ method: "POST" })
     if (!restaurant) throw new Error("Restaurante não encontrado ou sem acesso.");
     const { data: roles } = await context.supabase.from("user_roles").select("role").eq("restaurant_id", restaurant.id).eq("user_id", context.userId);
     if (!roles?.length) throw new Error("Você não tem acesso a este restaurante.");
-    const limitMsg = await consumeLebreQuota("panel", data.slug);
-    if (limitMsg) return { answer: limitMsg };
     const roleNames = roles.map((row) => row.role);
     const canManage = roleNames.includes("owner") || roleNames.includes("founder");
     const [tables, payments, items, waiters] = await Promise.all([
@@ -127,8 +134,31 @@ export const askRestaurantLebre = createServerFn({ method: "POST" })
     const tableList = (tables.data ?? []).map((t) => `${t.number}${t.active ? "" : " (inativa)"}`).join(", ") || "nenhuma";
     const waiterList = (waiters.data ?? []).map((w) => `${w.name}${w.email ? " (com acesso)" : " (sem acesso)"}${w.active ? "" : " inativo"}`).join(", ") || "nenhum";
     const contextText = `Restaurante: ${restaurant.name}. Cargo do usuário: ${roleNames.join(", ")}. Mesas: ${tableList}. Mesas com conta aberta: ${busyTables}. Mesas com pagamento presencial aguardando confirmação: ${pendingTables}. Garçons: ${waiterList}. Pagamentos pendentes: ${pending.length}. Valor aproximado em aberto, sem taxa: R$ ${openValue.toFixed(2)}. PDV: ${restaurant.pos_mode === "external" ? `externo, ${restaurant.pos_provider ?? "não informado"}` : "TIPE"}.`;
+    // Consultas rápidas e comandos claros são resolvidos sem IA e sem gastar a cota do dia.
+    let raw: string | null = null;
+    if (!data.files?.length) {
+      const { lerComando, respostaSalao } = await import("./lebre-regras");
+      const salao = respostaSalao(data.question, {
+        mesas: (tables.data ?? []).map((t) => ({ number: String(t.number), active: !!t.active })),
+        mesasComConta: [...new Set((items.data ?? []).map((i) => String(i.table_number)))],
+        mesasAguardando: [...new Set(pending.map((p) => String(p.table_number)))],
+        pendentes: pending.length,
+        valorAberto: openValue,
+        garcons: (waiters.data ?? []).map((w) => ({ name: w.name, active: !!w.active, comAcesso: !!w.email })),
+      });
+      if (salao) return { answer: salao };
+      const comando = lerComando(data.question, (tables.data ?? []).map((t) => String(t.number)));
+      if (comando) {
+        if (!canManage) return { answer: "Só o dono do restaurante pode alterar cadastros. Peça a ele para fazer essa mudança." };
+        raw = JSON.stringify({ reply: "Posso fazer isso. Confira e confirme abaixo.", action: comando });
+      }
+    }
+    if (raw === null) {
+      const limitMsg = await consumeLebreQuota("panel", data.slug);
+      if (limitMsg) return { answer: limitMsg };
+    }
     const history = (data.history ?? []).map((m) => `${m.role === "user" ? "Usuário" : "Lebre"}: ${m.text}`).join("\n");
-    const raw = await askModel(
+    raw ??= await askModel(
       `Você é a Lebre, assistente operacional da TIPE. Fale em português brasileiro, pessoal, objetiva, sem travessões. Use só o contexto. Não revele dados pessoais nem invente números.
 Você pode PROPOR estas ações (o sistema mostra um botão para o usuário confirmar; você nunca diz que já executou):
 - add_table {number}: cadastrar mesa nova
@@ -269,7 +299,9 @@ export const transcribeLebreAudio = createServerFn({ method: "POST" })
     const accountId = process.env["CLOUDFLARE_ACCOUNT_ID"];
     const token = process.env["CLOUDFLARE_AI_TOKEN"];
     if (!accountId || !token) throw new Error("O áudio ainda não está disponível. Escreva sua pergunta.");
-    // O Claude não transcreve áudio; a transcrição usa o Whisper do Workers AI (Cloudflare).
+    // A transcrição usa o Whisper do Workers AI (Cloudflare) e conta no teto diário grátis.
+    const { consumeProviderQuota, cloudflareDailyLimit } = await import("./ai.server");
+    if (!(await consumeProviderQuota("cloudflare", cloudflareDailyLimit()))) throw new Error("O áudio da Lebre descansa por hoje. Escreva sua pergunta.");
     const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/openai/whisper-large-v3-turbo`, {
       method: "POST",
       headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
