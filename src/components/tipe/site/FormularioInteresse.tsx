@@ -241,7 +241,7 @@ export function FormularioInteresse({
           </>
         ) : (
           <>
-            {fundador ? "Quero ser Restaurante Fundador" : "Quero ser avisado"}
+            {fundador ? "Quero participar" : "Quero ser avisado"}
             <SetaFios />
           </>
         )}
