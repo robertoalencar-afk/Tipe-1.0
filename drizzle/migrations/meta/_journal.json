@@ -232,6 +232,20 @@
       "when": 1792414200000,
       "tag": "0033_ai_provider_quota",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1792500000000,
+      "tag": "0040_guest_reviews_consent",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1792500600000,
+      "tag": "0041_founding_partner_program",
+      "breakpoints": true
     }
   ]
 }
