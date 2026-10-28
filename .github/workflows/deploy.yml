@@ -92,7 +92,8 @@ jobs:
       - name: Publicar o site
         shell: bash
         run: |
-          set -uo pipefail
+          # O Actions roda bash com -e; desligado aqui para tratar o erro do domínio.
+          set +e -uo pipefail
           # O domínio só pode ser ligado ao Worker depois que o DNS de tipe.digital
           # estiver na Cloudflare. Até lá o código sobe mesmo assim (no endereço
           # workers.dev) e os segredos e as rotinas continuam sendo publicados.
