@@ -1,7 +1,7 @@
 import { award, defaultSettings, settleGoals } from "./engine";
 import { SITE_SOURCE } from "./ecosystem";
 import { goalProgress } from "./metrics";
-import { seedAccountLinks, seedEcosystem } from "./seed-ecosystem";
+import { seedAccountLinks, seedEcosystem, seedFoundingPartners } from "./seed-ecosystem";
 import type {
   Company,
   Contact,
@@ -20,7 +20,7 @@ import type {
 // Dados fictícios de demonstração. Nenhuma pessoa, telefone ou e-mail real:
 // telefones usam o prefixo 90000, e-mails o domínio reservado .demo.
 
-export const SEED_VERSION = 2;
+export const SEED_VERSION = 3;
 export const DEMO_PASSWORD = "demo1234";
 
 export const DEMO_ACCOUNTS = [
@@ -106,6 +106,8 @@ export function createSeed(nowIso = new Date().toISOString()): CrmState {
     consumers: [],
     visits: [],
     campaigns: [],
+    foundingPartners: [],
+    foundingPartnerRules: [],
     session: null,
   };
 
@@ -143,6 +145,7 @@ export function createSeed(nowIso = new Date().toISOString()): CrmState {
       createdAt: at(240),
       status: "ativa",
       settings: defaultSettings(),
+      tipePlatform: true,
     },
     {
       id: B,
@@ -1098,7 +1101,9 @@ export function createSeed(nowIso = new Date().toISOString()): CrmState {
     personName: () => `${pick(FIRST)} ${pick(LAST)}`,
     csm: [caio, davi],
   };
-  seedAccountLinks(eco, seedEcosystem(eco, A));
+  const tipeAccounts = seedEcosystem(eco, A);
+  seedAccountLinks(eco, tipeAccounts);
+  seedFoundingPartners(eco, tipeAccounts);
 
   // Metas do mês atual e dos anteriores (para a evolução).
   const month = (offset: number) => {

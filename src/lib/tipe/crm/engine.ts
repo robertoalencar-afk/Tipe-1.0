@@ -19,6 +19,18 @@ import {
   SITE_SOURCE,
   stepDone,
 } from "./ecosystem";
+import {
+  benefitBlocker,
+  defaultFoundingPartnerRules,
+  activeMembers,
+  FP_ACTION_LABEL,
+  FP_CHANNEL_LABEL,
+  FP_FEEDBACK_TOPIC,
+  FP_STATUS,
+  inviteBlocker,
+  rulesOf,
+  transitionBlocker,
+} from "./founding-partner";
 import type {
   Activity,
   BillMethod,
@@ -31,6 +43,11 @@ import type {
   CrmState,
   Deal,
   EntityRef,
+  FoundingPartnerChannel,
+  FoundingPartnerEnrollment,
+  FoundingPartnerEvent,
+  FoundingPartnerFeedback,
+  FoundingPartnerStatus,
   Goal,
   GoalMetric,
   ID,
@@ -205,6 +222,29 @@ export type Command =
       name: string;
       segment: ConsumerSegment;
       message: string;
+    }
+  // Programa Restaurante Fundador (camada B).
+  | { type: "fpInvite"; accountId: ID; channel: FoundingPartnerChannel; note?: string | undefined }
+  | { type: "fpTransition"; enrollmentId: ID; to: FoundingPartnerStatus; reason?: string | undefined }
+  | { type: "fpRecordTerms"; enrollmentId: ID; acceptedByName: string }
+  | { type: "fpSetPilotEligibility"; enrollmentId: ID; eligible: boolean; note?: string | undefined }
+  | {
+      type: "fpLogCommunication";
+      enrollmentId: ID;
+      channel: FoundingPartnerChannel;
+      direction: "enviada" | "recebida";
+      summary: string;
+    }
+  | { type: "fpAddFeedback"; enrollmentId: ID; topic: FoundingPartnerFeedback["topic"]; text: string }
+  | { type: "fpGrantBenefit"; enrollmentId: ID; advantage: string }
+  | {
+      type: "fpSetRules";
+      slots: number | null;
+      enrollmentOpensAt: string | null;
+      enrollmentClosesAt: string | null;
+      advantages: string[];
+      termsVersion: string | null;
+      approvalRef: string;
     };
 
 export type ContactInput = {
@@ -885,6 +925,38 @@ function waLog(c: Ctx, direction: "webhook" | "envio", event: string, detail: st
   });
   if (c.s.waLogs.length > 300) c.s.waLogs.length = 300;
 }
+
+
+// ---------- Programa Restaurante Fundador ----------
+
+function fpProgram(c: Ctx, action: Action) {
+  if (!c.org.tipePlatform)
+    throw new Denied("O programa Restaurante Fundador é operado só pela organização da Tipe.");
+  need(c, action);
+}
+
+function fpOwn(c: Ctx, enrollmentId: ID) {
+  const e = own(c, c.s.foundingPartners, enrollmentId, "Adesão");
+  const a = own(c, c.s.accounts, e.accountId, "Conta");
+  return { e, a };
+}
+
+/** Registra o evento na trilha da adesão, na auditoria geral e na atividade da conta. */
+function fpLog(
+  c: Ctx,
+  e: FoundingPartnerEnrollment,
+  accountName: string,
+  ev: Omit<FoundingPartnerEvent, "id" | "at" | "actorId">,
+  summary: string,
+) {
+  e.history.unshift({ id: newId("fpe"), at: c.now, actorId: c.userId, ...ev });
+  audit(c.s, c.now, c.orgId, c.userId, `founding_partner.${ev.kind}`, `${accountName}: ${ev.detail}`, "ok");
+  activity(c, `account.founding_partner.${ev.kind}`, summary, { type: "account", id: e.accountId }, {
+    ...(ev.from || ev.to ? { changes: { status: [ev.from ?? null, ev.to ?? null] } } : {}),
+  });
+}
+
+const FP_CHANNELS = Object.keys(FP_CHANNEL_LABEL) as FoundingPartnerChannel[];
 
 // ---------- Execução ----------
 
@@ -2739,6 +2811,234 @@ function run(
         id: campaign.id,
         message: `Campanha simulada para ${audience} clientes com consentimento. Nenhuma mensagem foi enviada.`,
       };
+    }
+
+    // ---------- Programa Restaurante Fundador ----------
+    case "fpInvite": {
+      fpProgram(c, "founding.manage");
+      const a = own(c, s.accounts, cmd.accountId, "Conta");
+      if (!FP_CHANNELS.includes(cmd.channel)) throw new Invalid("Escolha o canal do convite.");
+      const rules = rulesOf(s, c.orgId);
+      const existing = s.foundingPartners.find((x) => x.accountId === a.id && x.orgId === c.orgId);
+      const blocker = inviteBlocker(a, existing, rules, now);
+      if (blocker) throw new Invalid(blocker);
+      const note = clean(cmd.note);
+      const invite = {
+        id: newId("fpi"),
+        at: now,
+        channel: cmd.channel,
+        sentBy: c.userId,
+        note,
+        simulated: true,
+      };
+      let e = existing;
+      const from = e?.status;
+      if (e) {
+        // Reconvite depois de encerrado: mesma adesão, histórico preservado.
+        e.status = "convidado";
+        e.statusChangedAt = now;
+        e.invites.unshift(invite);
+      } else {
+        e = {
+          id: newId("fp"),
+          orgId: c.orgId,
+          accountId: a.id,
+          status: "convidado",
+          createdAt: now,
+          statusChangedAt: now,
+          pilotEligible: false,
+          invites: [invite],
+          benefits: [],
+          communications: [],
+          feedback: [],
+          history: [],
+        };
+        s.foundingPartners.push(e);
+      }
+      fpLog(
+        c,
+        e,
+        a.name,
+        { kind: "convite", from, to: "convidado", detail: `convite por ${FP_CHANNEL_LABEL[cmd.channel]}` },
+        `${a.name} convidado para o programa Restaurante Fundador (${FP_CHANNEL_LABEL[cmd.channel]})`,
+      );
+      return {
+        id: e.id,
+        message: `Convite registrado para ${a.name}. No modo demonstração nada é enviado.`,
+      };
+    }
+    case "fpTransition": {
+      fpProgram(c, "founding.manage");
+      const { e, a } = fpOwn(c, cmd.enrollmentId);
+      if (!FP_STATUS[cmd.to]) throw new Invalid("Estado desconhecido.");
+      const reason = clean(cmd.reason);
+      const rules = rulesOf(s, c.orgId);
+      const blocker = transitionBlocker({
+        enrollment: e,
+        to: cmd.to,
+        account: a,
+        rules,
+        activeCount: activeMembers(s, c.orgId),
+        reason,
+      });
+      if (blocker) throw new Invalid(blocker);
+      const from = e.status;
+      e.status = cmd.to;
+      e.statusChangedAt = now;
+      if (cmd.to === "participante" && !e.joinedAt) e.joinedAt = now;
+      // Benefícios concedidos deixam de valer quando a participação termina.
+      if (cmd.to === "encerrado")
+        for (const b of e.benefits) if (!b.revokedAt) b.revokedAt = now;
+      const detail = `${FP_STATUS[from].label} → ${FP_STATUS[cmd.to].label}${reason ? `: ${reason}` : ""}`;
+      fpLog(c, e, a.name, { kind: "estado", from, to: cmd.to, detail }, `${a.name}: ${detail}`);
+      notify(
+        c,
+        [a.csmId, ...managers(c)],
+        `${a.name} no Restaurante Fundador: ${FP_STATUS[cmd.to].label}`,
+        `/crm/contas/${a.id}`,
+      );
+      return { id: e.id, message: `${FP_ACTION_LABEL[cmd.to]}: ${a.name}` };
+    }
+    case "fpRecordTerms": {
+      fpProgram(c, "founding.manage");
+      const { e, a } = fpOwn(c, cmd.enrollmentId);
+      const rules = rulesOf(s, c.orgId);
+      if (!rules.termsVersion)
+        throw new Invalid("Os termos do programa ainda não têm versão aprovada.");
+      if (e.status === "encerrado") throw new Invalid("Adesão encerrada não recebe aceite.");
+      const name = clean(cmd.acceptedByName);
+      if (name.length < 3) throw new Invalid("Informe quem aceitou pelo restaurante.");
+      if (e.terms?.version === rules.termsVersion)
+        throw new Invalid(`O aceite da versão ${rules.termsVersion} já está registrado.`);
+      e.terms = { version: rules.termsVersion, acceptedAt: now, acceptedByName: name, recordedBy: c.userId };
+      fpLog(
+        c,
+        e,
+        a.name,
+        { kind: "termos", detail: `termos versão ${rules.termsVersion} aceitos por ${name}` },
+        `${a.name} aceitou os termos do Restaurante Fundador (versão ${rules.termsVersion})`,
+      );
+      return { id: e.id, message: "Aceite dos termos registrado." };
+    }
+    case "fpSetPilotEligibility": {
+      fpProgram(c, "founding.manage");
+      const { e, a } = fpOwn(c, cmd.enrollmentId);
+      if (e.pilotEligible === cmd.eligible) return;
+      const note = clean(cmd.note);
+      if (!cmd.eligible && e.status === "selecionado_piloto")
+        throw new Invalid("Tire o restaurante do piloto antes de remover a elegibilidade.");
+      if (cmd.eligible && note.length < 3)
+        throw new Invalid("Explique por que a conta é elegível para o piloto.");
+      e.pilotEligible = cmd.eligible;
+      e.pilotNote = note || undefined;
+      fpLog(
+        c,
+        e,
+        a.name,
+        { kind: "piloto", detail: cmd.eligible ? `elegível para o piloto: ${note}` : "não elegível para o piloto" },
+        `${a.name}: ${cmd.eligible ? "elegível" : "não elegível"} para o piloto`,
+      );
+      return;
+    }
+    case "fpLogCommunication": {
+      fpProgram(c, "founding.view");
+      need(c, "accounts.manage");
+      const { e, a } = fpOwn(c, cmd.enrollmentId);
+      if (!FP_CHANNELS.includes(cmd.channel)) throw new Invalid("Escolha o canal.");
+      const summary = clean(cmd.summary);
+      if (summary.length < 5) throw new Invalid("Resuma a conversa em pelo menos 5 letras.");
+      e.communications.unshift({
+        id: newId("fpc"),
+        at: now,
+        channel: cmd.channel,
+        direction: cmd.direction === "recebida" ? "recebida" : "enviada",
+        summary,
+        by: c.userId,
+      });
+      activity(c, "account.founding_partner.comunicacao", `${a.name}: comunicação registrada (${FP_CHANNEL_LABEL[cmd.channel]})`, {
+        type: "account",
+        id: a.id,
+      });
+      return { message: "Comunicação registrada." };
+    }
+    case "fpAddFeedback": {
+      fpProgram(c, "founding.view");
+      need(c, "accounts.manage");
+      const { e, a } = fpOwn(c, cmd.enrollmentId);
+      if (!FP_FEEDBACK_TOPIC[cmd.topic]) throw new Invalid("Escolha o assunto.");
+      const text = clean(cmd.text);
+      if (text.length < 5) throw new Invalid("Escreva o feedback com pelo menos 5 letras.");
+      e.feedback.unshift({ id: newId("fpf"), at: now, topic: cmd.topic, text, by: c.userId });
+      activity(c, "account.founding_partner.feedback", `${a.name}: feedback sobre ${FP_FEEDBACK_TOPIC[cmd.topic].toLowerCase()}`, {
+        type: "account",
+        id: a.id,
+      });
+      return { message: "Feedback registrado." };
+    }
+    case "fpGrantBenefit": {
+      fpProgram(c, "founding.manage");
+      const { e, a } = fpOwn(c, cmd.enrollmentId);
+      const rules = rulesOf(s, c.orgId);
+      const advantage = clean(cmd.advantage);
+      const blocker = benefitBlocker(e, rules, advantage);
+      if (blocker) throw new Invalid(blocker);
+      e.benefits.push({
+        id: newId("fpb"),
+        advantage,
+        grantedAt: now,
+        grantedBy: c.userId,
+        approvalRef: rules.approvalRef!,
+      });
+      fpLog(
+        c,
+        e,
+        a.name,
+        { kind: "beneficio", detail: `benefício concedido: ${advantage} (aprovação ${rules.approvalRef})` },
+        `${a.name}: benefício concedido (${advantage})`,
+      );
+      return { message: "Benefício registrado." };
+    }
+    case "fpSetRules": {
+      fpProgram(c, "founding.rules");
+      const ref = clean(cmd.approvalRef);
+      if (ref.length < 3)
+        throw new Invalid("Informe a referência da aprovação comercial (ata, e-mail ou documento).");
+      if (cmd.slots !== null && (!Number.isInteger(cmd.slots) || cmd.slots < 1))
+        throw new Invalid("Vagas: número inteiro a partir de 1, ou deixe em branco.");
+      const opens = cmd.enrollmentOpensAt || null;
+      const closes = cmd.enrollmentClosesAt || null;
+      if (opens && closes && opens > closes)
+        throw new Invalid("O fim da inscrição precisa ser depois do início.");
+      const advantages = [...new Set(cmd.advantages.map((x) => clean(x)).filter(Boolean))];
+      const termsVersion = clean(cmd.termsVersion ?? "") || null;
+      if (cmd.slots !== null && cmd.slots < activeMembers(s, c.orgId))
+        throw new Invalid("Há mais participantes do que as vagas informadas.");
+      let r = s.foundingPartnerRules.find((x) => x.orgId === c.orgId);
+      if (!r) {
+        r = defaultFoundingPartnerRules(c.orgId);
+        s.foundingPartnerRules.push(r);
+      }
+      const before = { ...r };
+      Object.assign(r, {
+        slots: cmd.slots,
+        enrollmentOpensAt: opens,
+        enrollmentClosesAt: closes,
+        advantages,
+        termsVersion,
+        approvedAt: now,
+        approvedBy: c.userId,
+        approvalRef: ref,
+        updatedAt: now,
+      });
+      // Benefícios já concedidos de uma vantagem que saiu das regras deixam de valer.
+      for (const e of s.foundingPartners.filter((x) => x.orgId === c.orgId))
+        for (const b of e.benefits)
+          if (!b.revokedAt && !advantages.includes(b.advantage)) b.revokedAt = now;
+      audit(s, now, c.orgId, c.userId, "founding_partner.rules", `regras atualizadas (aprovação ${ref})`, "ok");
+      activity(c, "account.founding_partner.regras", "Regras do Restaurante Fundador atualizadas", { type: "org", id: c.orgId }, {
+        changes: diff(before, r),
+      });
+      return { message: "Regras do programa salvas com a referência da aprovação." };
     }
   }
 }
