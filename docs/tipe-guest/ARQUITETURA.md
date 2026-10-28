@@ -16,7 +16,7 @@ src/lib/tipe/guest/            domínio puro (sem React, sem Supabase)
   *.test.ts                    vitest
 src/lib/tipe/guest/*.functions.ts   server functions (createServerFn), validação no servidor, flags
 src/lib/tipe/guest/*.server.ts      acesso ao Supabase com supabaseAdmin quando necessário
-drizzle/migrations/0031…0039   SQL aditivo (avaliações, Fundador, reservas), RLS, RPCs SECURITY DEFINER
+drizzle/migrations/0040…0049   SQL aditivo (avaliações, Fundador, reservas), RLS, RPCs SECURITY DEFINER
 tests/db/guest-*.sql           testes de banco (concorrência, RLS, holds, idempotência)
 src/components/tipe/painel/reservas/   módulo do painel (Fase 5), plugado no RestaurantPanel existente
 src/lib/tipe/demo/             papel "guest" no engine do /demo (Fase 6)
@@ -54,8 +54,8 @@ docs/tipe-guest/               documentação
 | `guest_favorites`, `guest_lists` | salvos e listas |
 | `guest_push_tokens` | tokens do Expo Push |
 | `guest_feature_flags` | flags por ambiente, restaurante e grupo |
-| `guest_reviews` (Fase 2, 0031) | avaliação nova com pagamento, consentimento, moderação e elegibilidade |
-| `founding_partner_*` (Fase 3, 0032) | adesão, estados, termos, convites, benefícios concedidos, comunicações, auditoria |
+| `guest_reviews` (Fase 2, 0040) | avaliação nova com pagamento, consentimento, moderação e elegibilidade |
+| `founding_partner_*` (Fase 3, 0041) | adesão, estados, termos, convites, benefícios concedidos, comunicações, auditoria |
 
 **Concorrência:** a garantia contra overbooking fica no Postgres (`btree_gist` + `EXCLUDE`), não no código. Holds expiram por `expires_at` e são ignorados pela checagem; a confirmação usa `idempotency_key` única. Rate limit reaproveita `rate_limit_buckets`/`enforceRate` que já existem.
 
@@ -88,7 +88,7 @@ MapLibre GL com tiles livres de provedor que permita uso em produção dentro da
 
 | Risco | Impacto | Mitigação |
 |---|---|---|
-| Colisão de numeração de migrações (Order, Infra, Guest em paralelo) | alto | Guest usa 0031–0039, combinado com o Order; checar todas as branches antes de criar; reordenar `_journal.json` ao mesclar |
+| Colisão de numeração de migrações (Order, Infra, Guest em paralelo) | alto | Guest usa 0040–0049 (0031–0033 já usadas por #45/release e caixa); reservas a partir de 0042; checar todas as branches antes de criar; reordenar `_journal.json` ao mesclar |
 | Conflito de nome `founder` | médio | prefixo `founding_partner_*` no banco e "Restaurante Fundador" na interface; teste que `/fundador` continua só da equipe Tipe |
 | LGPD das avaliações | alto | avaliações antigas ficam internas; nova coleta com consentimento separado, desmarcado, versão do texto, moderação; `AVALIACOES-LGPD.md` como rascunho para revisão jurídica |
 | Avaliação sem prova de pagamento | médio | marcar "verificada" só quando ligada a `table_payment_requests` aprovado pelo webhook |

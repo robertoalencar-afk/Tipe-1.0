@@ -10,7 +10,7 @@ Legenda de status: **funciona em main** · **em PR não mesclado** (número do P
 - **As avaliações atuais não servem para o Guest público.** `waiter_ratings` não liga a nota ao pagamento, não pede consentimento e não está citada no conteúdo legal. A Fase 2 precisa começar a coletar avaliações novas, com consentimento opcional, sem mudar a atual.
 - **"Nome lembrado" é só do aparelho:** o nome fica em `localStorage` por restaurante e mesa (`customerStorageKey`), não no servidor. A landing ("O nome fica guardado para a próxima visita") está correta para o mesmo aparelho, mas não existe perfil de cliente no banco.
 - **`founder` já é o papel da equipe Tipe** (enum `app_role`). O programa de restaurantes usa `founding_partner_*`.
-- **Migrações:** o Guest reserva **0031–0039** (ver seção 7). Fase 1 não cria migração.
+- **Migrações:** o Guest reserva **0040–0049** (ver seção 7). Fase 1 não cria migração.
 
 ## 2. Stack e ambiente
 
@@ -96,9 +96,12 @@ O Guest **não altera** nada disso. O link reserva → mesa será feito por uma 
 | 0028 | `product_launch_states` | #33 `order/landing`, `release/candidato-cloudflare-20261027` | Tipe Order landing |
 | 0029 | livre, deixada para o Order | — | Tipe Order (se precisar) |
 | 0030 | `restrict_internal_rpc_execution` | #34 `infra/sair-da-lovable`, #36 | Infra |
-| **0031–0039** | **reservadas ao Tipe Guest** | — | Guest (0031 avaliações, 0032 Restaurante Fundador, 0033+ reservas) |
+| 0031–0032 | usadas | PR #45 / release | Release |
+| 0033 | usada | caixa / esperado no servidor | Caixa |
+| 0034–0039 | fora do bloco do Guest (uso não verificado) | — | — |
+| **0040–0049** | **reservadas ao Tipe Guest** | — | Guest (0040 avaliações, 0041 Restaurante Fundador, 0042+ reservas) |
 
-Combinado por mensagem com a thread do Tipe Order em 27/10. Se algum PR for mesclado fora de ordem, o `_journal.json` do drizzle precisa ser reordenado antes (o Order já registrou esse cuidado).
+Combinado por mensagem com a thread do Tipe Order em 27/10; renumerado em 28/10 para 0040–0049 porque 0031–0032 foram usadas pelo PR #45/release e 0033 por caixa/esperado-no-servidor. Se algum PR for mesclado fora de ordem, o `_journal.json` do drizzle precisa ser reordenado antes (o Order já registrou esse cuidado).
 
 ## 8. CRM (PR #29, `crm/backoffice-saas`)
 
