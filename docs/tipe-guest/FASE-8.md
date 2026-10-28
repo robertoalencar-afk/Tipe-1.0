@@ -1,6 +1,6 @@
 # Fase 8 — Landing do Tipe Guest + página Restaurante Fundador (relatório)
 
-Branch `guest/landing` (base `correcao-visual-v6`). PR em rascunho: ver o link no PR desta branch.
+Branch `guest/landing` (base `correcao-visual-v6`). PR em rascunho: [#53](https://github.com/robertoalencar-afk/Tipe-1.0/pull/53).
 Detalhes da implementação: [LANDING.md](./LANDING.md).
 
 ## O que foi feito
