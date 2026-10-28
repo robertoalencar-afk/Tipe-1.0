@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS public.guest_feature_flags (
 CREATE UNIQUE INDEX IF NOT EXISTS guest_feature_flags_scope_key
   ON public.guest_feature_flags (COALESCE(restaurant_id, '00000000-0000-0000-0000-000000000000'::uuid), flag_key);
 ALTER TABLE public.guest_feature_flags ENABLE ROW LEVEL SECURITY;
+-- Supabase concede tudo por padrão a anon/authenticated; aqui só leitura (escrita só por RPC).
+REVOKE ALL ON public.guest_feature_flags FROM anon, authenticated;
 GRANT SELECT ON public.guest_feature_flags TO authenticated;
 GRANT ALL ON public.guest_feature_flags TO service_role;
 DROP POLICY IF EXISTS "Owners read own guest flags" ON public.guest_feature_flags;
@@ -71,6 +73,8 @@ CREATE INDEX IF NOT EXISTS guest_reviews_queue_idx ON public.guest_reviews (mode
 DROP TRIGGER IF EXISTS set_guest_reviews_updated_at ON public.guest_reviews;
 CREATE TRIGGER set_guest_reviews_updated_at BEFORE UPDATE ON public.guest_reviews FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 ALTER TABLE public.guest_reviews ENABLE ROW LEVEL SECURITY;
+-- Supabase concede tudo por padrão a anon/authenticated; aqui só leitura (escrita só por RPC).
+REVOKE ALL ON public.guest_reviews FROM anon, authenticated;
 GRANT SELECT ON public.guest_reviews TO authenticated;
 GRANT ALL ON public.guest_reviews TO service_role;
 -- Mesma regra de waiter_ratings: dono e caixa do próprio restaurante. Escrita só por RPC.
@@ -93,6 +97,8 @@ CREATE TABLE IF NOT EXISTS public.guest_review_events (
 );
 CREATE INDEX IF NOT EXISTS guest_review_events_review_idx ON public.guest_review_events (review_id, created_at);
 ALTER TABLE public.guest_review_events ENABLE ROW LEVEL SECURITY;
+-- Supabase concede tudo por padrão a anon/authenticated; aqui só leitura (escrita só por RPC).
+REVOKE ALL ON public.guest_review_events FROM anon, authenticated;
 GRANT SELECT ON public.guest_review_events TO authenticated;
 GRANT ALL ON public.guest_review_events TO service_role;
 DROP POLICY IF EXISTS "Owners read guest review events" ON public.guest_review_events;
@@ -114,6 +120,8 @@ CREATE TABLE IF NOT EXISTS public.guest_review_reports (
 );
 CREATE UNIQUE INDEX IF NOT EXISTS guest_review_reports_one_open ON public.guest_review_reports (review_id, reporter_user_id) WHERE status = 'aberta';
 ALTER TABLE public.guest_review_reports ENABLE ROW LEVEL SECURITY;
+-- Supabase concede tudo por padrão a anon/authenticated; aqui só leitura (escrita só por RPC).
+REVOKE ALL ON public.guest_review_reports FROM anon, authenticated;
 GRANT SELECT ON public.guest_review_reports TO authenticated;
 GRANT ALL ON public.guest_review_reports TO service_role;
 DROP POLICY IF EXISTS "Owners read own reports" ON public.guest_review_reports;
