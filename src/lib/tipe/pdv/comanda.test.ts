@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import {
+  chaveLancamento,
   resumoMesa,
   statusMesaSalao,
   totalCarrinho,
@@ -144,5 +145,23 @@ describe("avisosDeNotas", () => {
   it("ignora nota acima de 2 e explica quando não há comentário", () => {
     const r = avisosDeNotas(new Set(), [nota("c", 3), nota("d", 1)]);
     expect(r.map((x) => x.texto)).toEqual(["O cliente não deixou comentário."]);
+  });
+});
+
+describe("chave do lançamento", () => {
+  let n = 0;
+  const novo = () => `lanc_teste${++n}`;
+  it("o mesmo pedido reaproveita a chave (toque duplo ou nova tentativa)", () => {
+    const a = chaveLancamento(null, { mesa: "4", itens: [{ code: "suco", qty: 2 }] }, novo);
+    const b = chaveLancamento(a, { mesa: "4", itens: [{ code: "suco", qty: 2 }] }, novo);
+    expect(b.id).toBe(a.id);
+  });
+  it("pedido diferente ganha chave nova", () => {
+    const a = chaveLancamento(null, { mesa: "4", itens: [{ code: "suco", qty: 2 }] }, novo);
+    expect(chaveLancamento(a, { mesa: "4", itens: [{ code: "suco", qty: 3 }] }, novo).id).not.toBe(a.id);
+    expect(chaveLancamento(a, { mesa: "5", itens: [{ code: "suco", qty: 2 }] }, novo).id).not.toBe(a.id);
+  });
+  it("a chave padrão passa na validação do servidor", () => {
+    expect(chaveLancamento(null, {}).id).toMatch(/^[A-Za-z0-9_-]{8,64}$/);
   });
 });

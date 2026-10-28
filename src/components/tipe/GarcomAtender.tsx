@@ -34,6 +34,8 @@ import {
   avisosDeNotas,
   type AvisoMesa,
   type StatusMesaSalao,
+  chaveLancamento,
+  type ChaveLancamento,
 } from "@/lib/tipe/pdv/comanda";
 import { beep, unlockSound } from "@/lib/tipe/beep";
 
@@ -345,6 +347,7 @@ function LancarPedido({
   onDone: () => void;
 }) {
   const launch = useServerFn(waiterLaunchOrder);
+  const chave = useRef<ChaveLancamento | null>(null);
   const [busca, setBusca] = useState("");
   const [cat, setCat] = useState<string>("");
   const [carrinho, setCarrinho] = useState<Record<string, number>>({});
@@ -373,8 +376,11 @@ function LancarPedido({
   async function enviar() {
     if (!linhas.length) return;
     setEnviando(true);
+    // Mesmo pedido reenviado (toque duplo, rede caiu) usa a mesma chave e não duplica.
+    chave.current = chaveLancamento(chave.current, { mesa, linhas });
     try {
-      await launch({ data: { table: mesa, items: linhas } });
+      await launch({ data: { table: mesa, items: linhas, requestId: chave.current.id } });
+      chave.current = null;
       toast.success(`Pedido enviado para a cozinha · Mesa ${mesa}`);
       onDone();
     } catch (e) {
