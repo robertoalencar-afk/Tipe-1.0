@@ -41,6 +41,9 @@ grep -qE "FALHOU|ERROR" /tmp/tipe-pedido-mesa.log && FAIL=1
 $P -v ON_ERROR_STOP=1 -f "$DIR/order-liberacao.sql" >/tmp/tipe-order-liberacao.raw 2>&1 || FAIL=1
 grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-order-liberacao.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-order-liberacao.log
 grep -qE "FALHOU|ERROR" /tmp/tipe-order-liberacao.log && FAIL=1
+$P -v ON_ERROR_STOP=1 -f "$DIR/lancamento.sql" >/tmp/tipe-lancamento.raw 2>&1 || FAIL=1
+grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-lancamento.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-lancamento.log
+grep -qE "FALHOU|ERROR" /tmp/tipe-lancamento.log && FAIL=1
 $P -v ON_ERROR_STOP=1 -f "$DIR/totem.sql" >/tmp/tipe-totem.raw 2>&1 || FAIL=1
 grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-totem.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-totem.log
 grep -qE "FALHOU|ERROR" /tmp/tipe-totem.log && FAIL=1
@@ -53,6 +56,14 @@ OKS=$(grep -L ERROR /tmp/tipe-conc-a.log /tmp/tipe-conc-b.log | wc -l)
 ERRS=$(grep -l "não está mais disponível" /tmp/tipe-conc-a.log /tmp/tipe-conc-b.log | wc -l)
 RES=$($P -At -c "SELECT sum(reserved_portion) FROM table_bill_items WHERE restaurant_slug='mare-alta' AND table_number='8'")
 if [ "$OKS" = "1" ] && [ "$ERRS" = "1" ] && [ "$RES" = "4.0000" ]; then echo "ok: dois pagamentos simultâneos da mesma conta: um passa, o outro é recusado"; else echo "FALHOU: concorrência (passaram=$OKS recusados=$ERRS reservado=$RES)"; FAIL=1; fi
+
+# 2) O mesmo lançamento enviado duas vezes ao mesmo tempo (toque duplo com rede lenta).
+launch() { $P -At -c "SET search_path=public,extensions; BEGIN; SELECT set_config('request.jwt.claim.sub', (SELECT user_id::text FROM pdv_waiters WHERE code='g-bia'), true); SELECT pdv_launch_order('mare-alta','4',(SELECT id FROM pdv_waiters WHERE code='g-bia'),'[{\"code\":\"idem-suco\",\"qty\":5}]','req-concorrente-01'); SELECT pg_sleep(0.5); COMMIT;" >/tmp/tipe-launch-$1.log 2>&1; }
+ANTES=$($P -At -c "SELECT ordered_quantity FROM table_bill_items WHERE restaurant_slug='mare-alta' AND table_number='4' AND item_code='idem-suco'")
+launch a & launch b & wait
+DEPOIS=$($P -At -c "SELECT ordered_quantity FROM table_bill_items WHERE restaurant_slug='mare-alta' AND table_number='4' AND item_code='idem-suco'")
+PEDIDOS=$($P -At -c "SELECT count(*) FROM pdv_orders WHERE request_id='req-concorrente-01'")
+if [ "$PEDIDOS" = "1" ] && [ "$(awk "BEGIN{print $DEPOIS - $ANTES}")" = "5" ] && ! grep -q ERROR /tmp/tipe-launch-a.log /tmp/tipe-launch-b.log; then echo "ok: dois lançamentos simultâneos da mesma requisição viram um pedido só"; else echo "FALHOU: lançamento concorrente (pedidos=$PEDIDOS antes=$ANTES depois=$DEPOIS)"; cat /tmp/tipe-launch-a.log /tmp/tipe-launch-b.log; FAIL=1; fi
 
 psql -X -q -d postgres -c "drop database if exists $DB" >/dev/null
 [ $FAIL = 0 ] && echo "TODOS OS CENÁRIOS DO BANCO PASSARAM" || { echo "HÁ FALHAS"; exit 1; }

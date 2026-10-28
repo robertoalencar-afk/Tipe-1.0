@@ -1,6 +1,7 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { chaveLancamento, type ChaveLancamento } from "@/lib/tipe/pdv/comanda";
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
 import {
@@ -1198,6 +1199,7 @@ function LancarPedido({ slug, pdv, mesa, setMesa, podeBalcao, onDone }: { slug: 
   const [obs, setObs] = useState<Record<string, string>>({});
   const [cat, setCat] = useState<string>("");
   const [enviando, setEnviando] = useState(false);
+  const chave = useRef<ChaveLancamento | null>(null);
   // Mesa: lança na conta da mesa. Balcão: cobra na hora e gera senha (fast-food, retirada).
   const [modo, setModo] = useState<"mesa" | "balcao">("mesa");
   const balcao = modo === "balcao" && podeBalcao;
@@ -1228,19 +1230,16 @@ function LancarPedido({ slug, pdv, mesa, setMesa, podeBalcao, onDone }: { slug: 
   async function enviar() {
     if (!mesa || !garcom || linhas.length === 0) return;
     setEnviando(true);
+    const items = linhas.map(([code, qty]) => ({
+      code,
+      qty,
+      ...(obs[code]?.trim() ? { notes: obs[code]!.trim() } : {}),
+    }));
+    // Mesmo pedido reenviado (toque duplo, rede caiu) usa a mesma chave e não duplica.
+    chave.current = chaveLancamento(chave.current, { mesa, garcom, items });
     try {
-      await launch({
-        data: {
-          slug,
-          table: mesa,
-          waiterId: garcom,
-          items: linhas.map(([code, qty]) => ({
-            code,
-            qty,
-            ...(obs[code]?.trim() ? { notes: obs[code]!.trim() } : {}),
-          })),
-        },
-      });
+      await launch({ data: { slug, table: mesa, waiterId: garcom, items, requestId: chave.current.id } });
+      chave.current = null;
       toast.success(`Pedido lançado na mesa ${mesa}`);
       setCarrinho({});
       setObs({});

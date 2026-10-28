@@ -43,6 +43,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getPublicTable } from "@/lib/tipe/pdv.functions";
+import type { GooglePayConfig } from "@/lib/tipe/carteiras";
+import { GooglePayCancelado, pedirTokenGooglePay } from "@/lib/tipe/google-pay";
 import {
   createPayment,
   getPaymentByKey,
@@ -204,6 +206,7 @@ function MesaPage() {
   const [tokenPedido, setTokenPedido] = useState<string | undefined>(undefined);
   const [cartao, setCartao] = useState<CardInput>({ number: "", holder: "", exp: "", cvv: "" });
   const [chavePublica, setChavePublica] = useState<string | null>(null);
+  const [googlePay, setGooglePay] = useState<GooglePayConfig | null>(null);
   const [pix, setPix] = useState<{
     id: string;
     code: string;
@@ -279,6 +282,7 @@ function MesaPage() {
         };
       });
       setMetodosAceitos(estado.billMethods as Metodo[]);
+      setGooglePay(estado.googlePay ?? null);
       setTaxaSugerida(estado.serviceWaived ? 0 : estado.serviceRate);
       setTaxaRemovida(estado.serviceWaived);
       setLinkAvaliacao(estado.googleReviewUrl ?? null);
@@ -470,9 +474,16 @@ function MesaPage() {
     try {
       const cardToken =
         metodo === "card" && chavePublica ? await tokenizeCard(chavePublica, cartao) : undefined;
+      // Google Pay ativo no restaurante: a folha da carteira devolve o token que o servidor cobra.
+      // Nas empresas virtuais não há token: o servidor aprova em simulação.
+      const walletToken =
+        tipo === "conta" && metodo === "google_pay" && googlePay
+          ? await pedirTokenGooglePay(googlePay, valor)
+          : undefined;
       const resultado = await createPayment({
         data: {
           cardToken,
+          walletToken,
           method: metodo,
           tip: tipo === "gorjeta" ? gorjetaExtra : 0,
           billPaymentId:
@@ -518,6 +529,7 @@ function MesaPage() {
           : "avaliacao",
       );
     } catch (error) {
+      if (error instanceof GooglePayCancelado) return;
       const msg = error instanceof Error ? error.message : "";
       if (!navigator.onLine || error instanceof TypeError || /fetch|network|rede/i.test(msg)) {
         // Queda de conexão: mantém a mesma chave e só libera nova tentativa após consultar o servidor.

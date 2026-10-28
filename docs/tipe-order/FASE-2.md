@@ -1,6 +1,6 @@
 # Tipe Order · Fase 2: módulos por restaurante e QR seguro
 
-Branch `order/fase-2-modulos`, PR em rascunho contra `main`. A base `order/base` (PR #32) já entrou na `main`. A `main` nova, com a release fora da Lovable, foi trazida para esta branch com merge.
+Branch `order/fase-2-modulos`, PR em rascunho contra `main`. A base `order/base` (PR #32) já entrou na `main`. A `main` nova (release fora da Lovable e o PR #45) foi trazida para esta branch com merge, e os testes abaixo rodaram depois disso.
 
 ## O que foi feito
 
@@ -51,7 +51,7 @@ Branch `order/fase-2-modulos`, PR em rascunho contra `main`. A base `order/base`
 | O quê | Comando | Resultado |
 |---|---|---|
 | Tipos | `npx tsc --noEmit -p .` | sem erros |
-| Unidade | `npx vitest run` | 19 arquivos, 182 testes ok (inclui 2 novos do CRM) |
+| Unidade | `npx vitest run` | 21 arquivos, 216 testes ok (inclui 2 novos do CRM) |
 | Banco (Postgres 16 local) | `bash tests/db/run.sh` | todos os cenários ok, com o novo `tests/db/order-liberacao.sql` |
 | Ponta a ponta do Order | `bash tests/e2e/order/run.sh` | 11 de 11 ok, sem erro de console |
 | Ponta a ponta do CRM | `node tests/e2e/crm.e2e.mjs` | 23 de 23 ok, inclui o passo novo do Tipe Order (com variáveis do Supabase locais de mentira, que a `main` agora exige no modo dev) |
@@ -96,4 +96,4 @@ Capturas em `docs/tipe-order/fase-2/` (o card do CRM está em `crm-tipe-order-su
 1. **Modo padrão do QR:** deixei "equipe libera". O "código da mesa" é opcional por restaurante.
 2. **Aplicar a migração 0027** no Supabase junto com o merge.
 3. **Merge deste PR** na `main`, que publica.
-4. **Apple Pay e Google Pay:** o servidor ainda recusa os dois no pagamento da conta (achado da Fase 1). Isso fica para a fase de pagamentos.
+4. **Apple Pay e Google Pay:** a `main` recebeu o PR #45, que liga os dois no pagamento da conta pelo Pagar.me. Esta fase não mexe nisso; a mesa com Order usa o mesmo Pagar.
