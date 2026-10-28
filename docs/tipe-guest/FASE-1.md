@@ -15,7 +15,7 @@ Não se aplica (só documentos). Auditoria feita por leitura de código e `git s
 
 ## Situação
 - Implementado e verificado: auditoria e arquitetura.
-- Pendente: capturas REA de perfil de restaurante, busca com cidade, `/restaurant-solutions/` e App Store (cada aba em primeiro plano; a captura só respondeu na aba ativa), e com elas a validação final das 5 abas (§4 do benchmark mantém a recomendação provisória).
+- Segunda rodada REA (28/10, 10:20 UTC): perfil, `/restaurant-solutions/` e App Store capturados. Pendente: busca com resultados e mapa (a `/s` não carrega e a listagem testada deu 404) e a barra de abas do app (não aparece nas imagens da loja).
 - Fora do escopo: Fases 2 a 9.
 
 ## Decisões para o Roberto
