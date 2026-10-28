@@ -11,7 +11,7 @@ import type {
 
 // Programa Restaurante Fundador: regras puras (sem React, sem Supabase).
 // O motor (engine.ts) chama estas funções antes de escrever; a migração
-// drizzle/migrations/0032_founding_partner_program.sql repete as mesmas transições no banco.
+// drizzle/migrations/0041_founding_partner_program.sql repete as mesmas transições no banco.
 //
 // Nome: "founding partner", nunca "founder". "founder" é o papel da equipe Tipe.
 

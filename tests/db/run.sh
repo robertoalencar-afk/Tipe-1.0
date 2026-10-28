@@ -30,6 +30,13 @@ $P -v ON_ERROR_STOP=1 -f "$DIR/payments.sql" >/tmp/tipe-db.raw 2>&1 || FAIL=1
 grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-db.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-db.log
 grep -qE "FALHOU|ERROR" /tmp/tipe-db.log && FAIL=1
 
+# Programa Restaurante Fundador (migração 0041).
+if [ -f "$DIR/founding_partner.sql" ]; then
+  $P -v ON_ERROR_STOP=1 -f "$DIR/founding_partner.sql" >/tmp/tipe-db-fp.raw 2>&1 || FAIL=1
+  grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-db-fp.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-db-fp.log
+  grep -qE "FALHOU|ERROR" /tmp/tipe-db-fp.log && FAIL=1
+fi
+
 # 1) Dois clientes pagando a conta inteira ao mesmo tempo, em conexões separadas.
 $P -c "SET search_path=public,extensions; DELETE FROM table_payment_requests WHERE restaurant_slug='mare-alta' AND table_number='8'; DELETE FROM table_bill_items WHERE restaurant_slug='mare-alta' AND table_number='8'; INSERT INTO table_bill_items (restaurant_slug, table_number, item_code, item_name, unit_price, ordered_quantity, ordered_by, ordered_at) VALUES ('mare-alta','8','pizza','Pizza',90,1,'Teste',now()),('mare-alta','8','suco','Suco',12,3,'Teste',now());" >/dev/null
 pay() { $P -c "SET search_path=public,extensions; BEGIN; SELECT register_table_payment('mare-alta','8','$1','restaurant','pix','pending',126,'{\"pizza\":1,\"suco\":3}','concorrencia-$2'); SELECT pg_sleep(0.5); COMMIT;" >/tmp/tipe-conc-$2.log 2>&1; }
