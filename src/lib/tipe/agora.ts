@@ -6,7 +6,7 @@
 
 export type TarefaAgora = {
   id: string;
-  tipo: "pendencia" | "confirmar" | "sincronizacao" | "cancelamento" | "quitada" | "nota";
+  tipo: "pendencia" | "confirmar" | "chamado" | "sincronizacao" | "cancelamento" | "quitada" | "nota";
   /** 0 = dinheiro em risco, 1 = cliente ou mesa esperando, 2 = vale olhar hoje. */
   urgencia: 0 | 1 | 2;
   titulo: string;
@@ -14,6 +14,8 @@ export type TarefaAgora = {
   acao: string;
   destino: { aba: string } | { mesa: string };
   pagamentoId?: string;
+  /** Chamado da mesa que a equipe marca como atendido. */
+  chamadoId?: string;
   desde?: string;
 };
 
@@ -33,6 +35,8 @@ export type EntradaAgora = {
   alertasCancelamento: { id: string; detail: string | null; created_at: string }[];
   quitadas: { number: string; total: number }[];
   notas: { stars: number; comment: string; table: string; at: string; garcom: string }[];
+  /** Chamados abertos da conta atual de cada mesa ("Chamar garçom", "Pedir a conta"). */
+  chamados?: { id: string; table: string; kind: "waiter" | "bill"; at: string }[];
   agora: Date;
 };
 
@@ -82,6 +86,19 @@ export function tarefasAgora(e: EntradaAgora): TarefaAgora[] {
       desde: p.created_at,
     });
   }
+
+  for (const c of [...(e.chamados ?? [])].sort((a, b) => a.at.localeCompare(b.at)))
+    t.push({
+      id: `chamado-${c.id}`,
+      tipo: "chamado",
+      urgencia: 1,
+      titulo: c.kind === "bill" ? `Mesa ${c.table} pediu a conta` : `Mesa ${c.table} chamou o garçom`,
+      detalhe: `${c.kind === "bill" ? "Leve a maquininha ou ajude com o pagamento" : "Passe na mesa"} · ${haQuanto(c.at, e.agora)}`,
+      acao: "Marcar como atendido",
+      destino: { mesa: c.table },
+      chamadoId: c.id,
+      desde: c.at,
+    });
 
   if (e.syncErro)
     t.push({

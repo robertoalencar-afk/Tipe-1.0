@@ -28,6 +28,7 @@ import { DividirConta } from "@/components/tipe/DividirConta";
 import { remainingSubtotal, selectionSubtotal, type ShareItem } from "@/lib/tipe/bill-math";
 import { PAYMENT_STATUS_LABEL } from "@/lib/tipe/payment-state";
 import { MesaPedido } from "@/components/tipe/MesaPedido";
+import { ChamarEquipe } from "@/components/tipe/ChamarEquipe";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -739,6 +740,8 @@ function MesaPage() {
               "Seus pedidos aparecem aqui assim que forem lançados."
             )}
           </p>
+
+          {sessaoMesa && <ChamarEquipe slug={restaurante} mesa={String(dados.mesa)} session={sessaoMesa} />}
 
           <div role="tablist" aria-label="Conta da mesa" className={`mt-5 grid gap-1 rounded-full bg-muted p-1 ${selfOrder ? "grid-cols-3" : "grid-cols-2"}`}>
             {([...(selfOrder ? [["cardapio", "Cardápio", UtensilsCrossed] as const] : []), ["conta", "Conta", ReceiptText] as const, ["atividade", "Atividade", ClipboardList] as const]).map(([id, rotulo, Icone]) => (
