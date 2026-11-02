@@ -200,7 +200,7 @@ export function AberturaMesa() {
               <Foto
                 nome="cena-amigos"
                 prioridade
-                alt="Quatro amigos numa mesa de bar na calçada, cada um com a conta da Tipe aberta no celular"
+                alt="Quatro amigos numa mesa de bar na calçada à noite; um deles abre a conta da Tipe no celular, com o suporte da Tipe na mesa"
                 sizes="(min-width: 1024px) 46vw, 92vw"
                 posicao="64% 46%"
                 className="ab-abre ab-kb h-full w-full rounded-[1.75rem] sm:rounded-[2.25rem]"

@@ -260,7 +260,7 @@ export const PRODUTOS: Produto[] = [
     topo: {
       foto: "cena-praia",
       posicao: "40% 45%",
-      alt: "Amigos numa barraca de praia com água de coco; um deles mostra o celular, com o suporte da Tipe na mesa",
+      alt: "Amigos numa barraca de praia com água de coco; um deles paga pelo celular, com o suporte da Tipe na mesa",
     },
     cenario: {
       titulo: "Pediu, comeu, pagou. Na mesma mesa.",
