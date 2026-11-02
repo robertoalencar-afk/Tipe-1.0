@@ -88,7 +88,7 @@ export function VideoLebre({ className }: { className?: string }) {
         height={f.h}
         onPlay={() => setTocando(true)}
         onPause={() => setTocando(false)}
-        aria-label="Filme curto: a tartaruga espera a conta, a lebre paga pelo celular com a Tipe, o pagamento é confirmado na hora e as amigas comemoram."
+        aria-label="Filme curto: a tartaruga pede a conta e espera a maquininha; a lebre paga pelo celular com a Tipe, divide com os amigos e, desta vez, a lebre ganha."
         className="block h-auto w-full"
       >
         <source src={f.webm} type="video/webm" />

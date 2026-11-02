@@ -1569,6 +1569,65 @@
     transform: none !important;
   }
 }
+/* Ícone dos CTAs (02/11): só o bigode, três fios em leque na cor do texto. No hover os
+   fios balançam em sequência e o leque anda 2px; nunca aparece nariz nem boca. */
+.bigode-cta {
+  height: 0.8em;
+  width: 1em;
+  overflow: visible;
+  flex-shrink: 0;
+  transition: transform 500ms var(--ease-expo);
+}
+.bigode-cta .bc-fio {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  transform-box: view-box;
+  transform-origin: 2.5px 8.2px;
+}
+.bigode-cta .bc-fio:nth-child(2) {
+  --i: 1;
+}
+.bigode-cta .bc-fio:nth-child(3) {
+  --i: 2;
+}
+.com-fios:is(:hover, :focus-visible, :active) .bigode-cta,
+.group:is(:hover, :focus-visible) .com-fios .bigode-cta {
+  transform: translateX(2px);
+}
+.com-fios:is(:hover, :focus-visible, :active) .bigode-cta .bc-fio,
+.group:is(:hover, :focus-visible) .com-fios .bigode-cta .bc-fio {
+  animation: bc-balanca 900ms ease-in-out calc(var(--i, 0) * 70ms) both;
+}
+@keyframes bc-balanca {
+  0%,
+  100% {
+    transform: none;
+  }
+  20% {
+    transform: rotate(-6deg) scaleX(1.06);
+  }
+  42% {
+    transform: rotate(3deg);
+  }
+  62% {
+    transform: rotate(-1.2deg);
+  }
+}
+.sem-movimento .bigode-cta,
+.sem-movimento .bigode-cta * {
+  animation: none !important;
+  transform: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .bigode-cta,
+  .bigode-cta * {
+    animation: none !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
 /* Sem o focinho: os fios ficam soltos na margem direita do botão ("Entrar"). */
 .seta-fios-solto {
   position: absolute;

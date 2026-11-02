@@ -212,8 +212,9 @@ export function FocinhoCta({
 }
 
 /**
- * O ícone dos CTAs. Fica dentro do botão (que precisa da classe "com-fios"). Desde a V62
- * é o focinho (FocinhoCta, variação 2). Sem `seta`, sobram só os fios, soltos na margem
+ * O ícone dos CTAs. Fica dentro do botão (que precisa da classe "com-fios"). Desde 02/11
+ * é só o bigode (três fios em leque, sem nariz nem boca, também no hover; pedido do
+ * Roberto). Sem `seta`, sobram só os fios, soltos na margem
  * direita do botão (para links secundários como "Entrar").
  */
 export function SetaFios({
@@ -240,7 +241,18 @@ export function SetaFios({
       </svg>
     );
   }
-  return <FocinhoCta className={className} />;
+  return (
+    <svg
+      viewBox="0 0 20 16"
+      aria-hidden
+      focusable="false"
+      className={cn("bigode-cta", className)}
+    >
+      <path className="bc-fio" d="M2.5 6 Q9.5 3.7 17.5 2.4" />
+      <path className="bc-fio" d="M2.5 8.2 Q10 7.9 18.5 8.5" />
+      <path className="bc-fio" d="M2.5 10.4 Q9.5 12.6 17.5 14" />
+    </svg>
+  );
 }
 
 /** Alias antigo (o meio focinho virou a seta de bigodes em 27/10 e o focinho na V62). */
