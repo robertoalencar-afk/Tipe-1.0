@@ -27,7 +27,8 @@ const securityHeadersMiddleware = createMiddleware().server(async ({ next, reque
     h.set("X-Content-Type-Options", "nosniff");
     h.set("Referrer-Policy", "strict-origin-when-cross-origin");
     h.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
-    h.set("Permissions-Policy", "camera=(self), microphone=(self), geolocation=(), payment=(self)");
+    // geolocation=(self): a fila presencial (/:slug/fila) e o painel pedem a localização uma vez.
+    h.set("Permissions-Policy", "camera=(self), microphone=(self), geolocation=(self), payment=(self)");
     h.set("Content-Security-Policy", `frame-ancestors ${FRAME_ANCESTORS}; object-src 'none'; base-uri 'self'; form-action 'self'`);
     h.set(
       "Content-Security-Policy-Report-Only",
