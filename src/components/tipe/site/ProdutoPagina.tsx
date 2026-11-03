@@ -23,6 +23,7 @@ import { CelularReal, TabletSalao } from "./produto/TelaReal";
 import { TopoStaff } from "./produto/TopoStaff";
 import { Tablet } from "./Dispositivo";
 import { BaixaAutomatica } from "./produto/BaixaAutomatica";
+import { SimuladorGuest } from "./guest/SimuladorGuest";
 import { PaginaOrder } from "./order/PaginaOrder";
 import { LANCAMENTO_PADRAO, type EstadoLancamento } from "@/lib/tipe/launch-state";
 
@@ -129,7 +130,9 @@ function TextoTopo({ p }: { p: Produto }) {
         <BotaoPrincipal>
           {p.status === "disponivel" ? "Começar o teste grátis" : "Quero saber primeiro"}
         </BotaoPrincipal>
-        <BotaoSecundario href="/simulador">Testar o simulador</BotaoSecundario>
+        <BotaoSecundario href={p.slug === "guest" ? "#simulador" : "/simulador"}>
+          Testar o simulador
+        </BotaoSecundario>
       </div>
     </>
   );
@@ -508,7 +511,10 @@ export function Relacionados({ p }: { p: Produto }) {
 }
 
 export function ProdutoPagina({ p, estado }: { p: Produto; estado?: EstadoLancamento | null }) {
-  if (p.slug === "order") return <PaginaOrder p={p} estado={estado ?? LANCAMENTO_PADRAO["order"] ?? "em-desenvolvimento"} />;
+  if (p.slug === "order")
+    return (
+      <PaginaOrder p={p} estado={estado ?? LANCAMENTO_PADRAO["order"] ?? "em-desenvolvimento"} />
+    );
   return (
     <>
       <Topo p={p} />
@@ -520,6 +526,7 @@ export function ProdutoPagina({ p, estado }: { p: Produto; estado?: EstadoLancam
         <>
           <Cenario p={p} />
           <FluxoReal p={p} />
+          {p.slug === "guest" && <SimuladorGuest />}
         </>
       )}
       <Recursos p={p} />
