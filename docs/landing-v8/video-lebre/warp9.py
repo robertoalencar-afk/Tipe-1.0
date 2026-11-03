@@ -94,10 +94,12 @@ for nome, (src, x0, t0, t1) in CENAS.items():
     peso = {}
     for pid, a in alfa.items():
         if pid in POPS: continue
-        pad = 40
+        # a faixa de transição cresce com a parte: orelha comprida precisa de faixa larga, senão a ponta
+        # anda mais que a faixa e a orelha original fica no lugar (orelha duplicada)
+        sig = max(5.0, 0.07 * max(a.shape)); pad = int(3 * sig) + 12
         b = cv2.copyMakeBorder(a, pad, pad, pad, pad, cv2.BORDER_CONSTANT, 0)
         b = cv2.dilate(b, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)))
-        b = cv2.GaussianBlur(b, (0, 0), 5.0)
+        b = cv2.GaussianBlur(b, (0, 0), sig)
         peso[pid] = (np.clip(b * 1.15, 0, 1), pad)
     # tampas (piscar)
     tampas = m['tampas']

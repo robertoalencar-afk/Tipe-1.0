@@ -135,7 +135,7 @@ const devW = scrW + bz * 2, devH = scrH + bz * 2;
   b.style.left = (devW - bs * 0.62) + 'px'; b.style.top = (devH * 0.16) + 'px';
   const r = $('ring'); r.style.width = r.style.height = bs + 'px'; r.style.left = b.style.left; r.style.top = b.style.top;
 })();
-const passos = bloco({ eb: 'Com a Tipe', lado: 'E', linhas: L.c3.stacked ? [['Confere.'], ['Escolhe.'], ['Pago.']] : [['Confere.', 'Escolhe.', 'Pago.']], de: T.PH + 0.3, ate: [T.IRIS + 0.5, T.IRIS + 0.8] });
+const passos = bloco({ eb: 'Com a Tipe', lado: 'E', linhas: L.c3.stacked ? [['Confira.'], ['Escolha.'], ['Pague.']] : [['Confira.', 'Escolha.', 'Pague.']], de: T.PH + 0.3, ate: [T.IRIS + 0.5, T.IRIS + 0.8] });
 passos.passo = true;
 
 // assinatura

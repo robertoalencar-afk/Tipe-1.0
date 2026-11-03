@@ -57,3 +57,7 @@ html,body{background:#021E34;overflow:hidden}
   -webkit-mask-image:linear-gradient(to right,transparent 0,#000 7%,#000 93%,transparent 100%),linear-gradient(to bottom,#000 0,#000 92%,transparent 100%);
   -webkit-mask-composite:source-in;mask-composite:intersect}
 .com-video .parte{visibility:hidden}
+/* V9.1: a tartaruga garçom num salão mais quente (luz de restaurante, não estúdio frio) */
+#pB{filter:sepia(.32) saturate(1.25) hue-rotate(-10deg) brightness(1.03) contrast(1.02)}
+#scB::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(60% 55% at 70% 30%,rgba(255,196,120,.22),transparent 70%),radial-gradient(90% 80% at 50% 100%,rgba(140,80,30,.10),transparent 70%);mix-blend-mode:soft-light}

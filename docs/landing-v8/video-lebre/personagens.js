@@ -21,7 +21,7 @@ function respirar(id, de, ate, per, amp) {
 // a cabeça lidera; as orelhas (filhas da cabeça) ficam para trás e assentam depois
 function cabeca(id, orelhas, de, para, at, dur, ease) {
   R(id, { rotation: para }, dur, at, ease || 'power2.inOut');
-  const arrasto = -(para - de) * 0.55;
+  const arrasto = -(para - de) * 0.3;
   orelhas.forEach((o, i) => {
     const a = at + 0.03 + i * 0.05;
     tl.to(q(o), { rotation: arrasto, duration: dur * 0.6, ease: 'sine.out' }, a)
@@ -90,14 +90,14 @@ const dE = -0.15;
 const OA1 = ['a1-orelhaE', 'a1-orelhaD'], OA2 = ['a2-orelhaE', 'a2-orelhaD'], OA3 = ['a3-orelhaE', 'a3-orelhaD'];
 respirar('a1-cabeca', 10.6 + dE, 13.3, 2.0, 0.8);
 respirar('a3-cabeca', 10.75 + dE, 13.3, 2.3, 0.8);
-cabeca('a2-cabeca', OA2, 0, 2.4, 11.0 + dE, 0.32, 'power2.out');
-cabeca('a2-cabeca', OA2, 2.4, -1.6, 11.32 + dE, 0.36, 'power2.inOut');
-cabeca('a2-cabeca', OA2, -1.6, 1.8, 11.68 + dE, 0.34, 'power2.inOut');
-cabeca('a2-cabeca', OA2, 1.8, 0, 12.02 + dE, 0.6, 'back.out(1.6)');
-cabeca('a1-cabeca', OA1, 0, 3.2, 11.12 + dE, 0.55);
-cabeca('a1-cabeca', OA1, 3.2, 0.6, 12.2 + dE, 0.7);
-cabeca('a3-cabeca', OA3, 0, -3.0, 11.26 + dE, 0.55);
-cabeca('a3-cabeca', OA3, -3.0, -0.4, 12.3 + dE, 0.7);
+cabeca('a2-cabeca', OA2, 0.0, 1.32, 11.0 + dE, 0.32, 'power2.out');
+cabeca('a2-cabeca', OA2, 1.32, -0.88, 11.32 + dE, 0.36, 'power2.inOut');
+cabeca('a2-cabeca', OA2, -0.88, 0.99, 11.68 + dE, 0.34, 'power2.inOut');
+cabeca('a2-cabeca', OA2, 0.99, 0.0, 12.02 + dE, 0.6, 'back.out(1.6)');
+cabeca('a1-cabeca', OA1, 0.0, 1.76, 11.12 + dE, 0.55);
+cabeca('a1-cabeca', OA1, 1.76, 0.33, 12.2 + dE, 0.7);
+cabeca('a3-cabeca', OA3, 0.0, -1.65, 11.26 + dE, 0.55);
+cabeca('a3-cabeca', OA3, -1.65, -0.22, 12.3 + dE, 0.7);
 pop('a-bolhaP', 11.2 + dE, '30% 100%', 5);
 pop('a-bolhaR', 11.48 + dE, '30% 100%', 5);
 
