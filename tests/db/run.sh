@@ -53,6 +53,9 @@ grep -qE "FALHOU|ERROR" /tmp/tipe-guest.log && FAIL=1
 $P -v ON_ERROR_STOP=1 -f "$DIR/founding_partner.sql" >/tmp/tipe-fundador.raw 2>&1 || FAIL=1
 grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-fundador.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-fundador.log
 grep -qE "FALHOU|ERROR" /tmp/tipe-fundador.log && FAIL=1
+$P -v ON_ERROR_STOP=1 -f "$DIR/guest-reservas.sql" >/tmp/tipe-reservas.raw 2>&1 || FAIL=1
+grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-reservas.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-reservas.log
+grep -qE "FALHOU|ERROR" /tmp/tipe-reservas.log && FAIL=1
 
 # 1) Dois clientes pagando a conta inteira ao mesmo tempo, em conexões separadas.
 $P -c "SET search_path=public,extensions; DELETE FROM table_payment_requests WHERE restaurant_slug='mare-alta' AND table_number='8'; DELETE FROM table_bill_items WHERE restaurant_slug='mare-alta' AND table_number='8'; INSERT INTO table_bill_items (restaurant_slug, table_number, item_code, item_name, unit_price, ordered_quantity, ordered_by, ordered_at) VALUES ('mare-alta','8','pizza','Pizza',90,1,'Teste',now()),('mare-alta','8','suco','Suco',12,3,'Teste',now());" >/dev/null
@@ -70,6 +73,15 @@ launch a & launch b & wait
 DEPOIS=$($P -At -c "SELECT ordered_quantity FROM table_bill_items WHERE restaurant_slug='mare-alta' AND table_number='4' AND item_code='idem-suco'")
 PEDIDOS=$($P -At -c "SELECT count(*) FROM pdv_orders WHERE request_id='req-concorrente-01'")
 if [ "$PEDIDOS" = "1" ] && [ "$(awk "BEGIN{print $DEPOIS - $ANTES}")" = "5" ] && ! grep -q ERROR /tmp/tipe-launch-a.log /tmp/tipe-launch-b.log; then echo "ok: dois lançamentos simultâneos da mesma requisição viram um pedido só"; else echo "FALHOU: lançamento concorrente (pedidos=$PEDIDOS antes=$ANTES depois=$DEPOIS)"; cat /tmp/tipe-launch-a.log /tmp/tipe-launch-b.log; FAIL=1; fi
+
+# 3) Duas pessoas pedindo a última mesa para 3 no mesmo horário, ao mesmo tempo (Guest, 0042).
+SLOT=$($P -At -c "SELECT (((now() AT TIME ZONE 'America/Fortaleza')::date + 3) + time '22:00') AT TIME ZONE 'America/Fortaleza'")
+hold() { $P -c "SET search_path=public,extensions; BEGIN; SELECT * FROM guest_create_hold((SELECT id FROM restaurants WHERE slug='mare-alta'), NULL, 'concorrencia-reserva-$1', 3, '$SLOT'); SELECT pg_sleep(0.5); COMMIT;" >/tmp/tipe-hold-$1.log 2>&1; }
+hold a & hold b & wait
+OKS=$(grep -L ERROR /tmp/tipe-hold-a.log /tmp/tipe-hold-b.log | wc -l)
+ERRS=$(grep -l "Sem mesa" /tmp/tipe-hold-a.log /tmp/tipe-hold-b.log | wc -l)
+OCUP=$($P -At -c "SELECT count(*) FROM guest_table_allocations a JOIN guest_holds h ON h.id = a.hold_id WHERE h.session_key LIKE 'concorrencia-reserva-%'")
+if [ "$OKS" = "1" ] && [ "$ERRS" = "1" ] && [ "$OCUP" = "1" ]; then echo "ok: duas reservas simultâneas para a mesma mesa e horário: só uma passa"; else echo "FALHOU: reserva concorrente (passaram=$OKS recusadas=$ERRS ocupações=$OCUP)"; cat /tmp/tipe-hold-a.log /tmp/tipe-hold-b.log; FAIL=1; fi
 
 psql -X -q -d postgres -c "drop database if exists $DB" >/dev/null
 [ $FAIL = 0 ] && echo "TODOS OS CENÁRIOS DO BANCO PASSARAM" || { echo "HÁ FALHAS"; exit 1; }
