@@ -80,8 +80,8 @@ const PASSOS: Passo[] = [
     quem: "Cliente",
     titulo: "Vê a conta ao vivo",
     texto: "Os itens aparecem conforme o garçom lança, já com a taxa de serviço do restaurante.",
-    cena: "cena-familia",
-    foco: "40% 45%",
+    cena: "cena-casal",
+    foco: "30% 40%",
     quadro: {
       tipo: "tela",
       tela: "conta",
