@@ -466,7 +466,7 @@ BEGIN
   RETURNING id INTO v_id;
   UPDATE public.guest_table_allocations SET hold_id = NULL, reservation_id = v_id WHERE hold_id = h.id;
   UPDATE public.guest_holds SET released_at = now() WHERE id = h.id;
-  PERFORM public.guest_log_reservation(v_id, h.guest_user_id, 'cliente', 'criada', NULL, v_status, jsonb_build_object('party_size', h.party_size));
+  PERFORM public.guest_log_reservation(v_id, h.guest_user_id, CASE WHEN p_channel IN ('painel', 'telefone') THEN 'restaurante' ELSE 'cliente' END, 'criada', NULL, v_status, jsonb_build_object('party_size', h.party_size, 'canal', p_channel));
   RETURN v_id;
 END $$;
 
