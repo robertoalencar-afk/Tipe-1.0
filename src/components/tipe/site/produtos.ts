@@ -854,9 +854,9 @@ export const PRODUTOS: Produto[] = [
       { v: "1 app", t: "da reserva à conta paga" },
     ],
     fluxoReal: {
-      titulo: "As telas do Tipe Guest.",
+      titulo: "Da fome ao até a próxima.",
       texto:
-        "Capturadas do simulador, com restaurantes fictícios. Nada é enviado e nenhuma cobrança acontece.",
+        "Quatro toques entre escolher onde comer e sair com a conta paga. Os restaurantes são fictícios: explore à vontade, nada é cobrado.",
       telas: [
         {
           tela: "guest-descobrir",

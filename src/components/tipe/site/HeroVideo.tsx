@@ -15,7 +15,6 @@ import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Pause, Play } from "lucide-react";
 import { Palavras } from "@/components/tipe/landing/motion";
 import { TRIAL_DAYS } from "@/lib/tipe/plans";
-import { Focinho } from "./Bigode";
 import { BotaoPrincipal, BotaoSecundario } from "./Site";
 import { tocarMudo } from "./videoAuto";
 
@@ -33,7 +32,12 @@ const PROVISORIO = import.meta.glob(
   { eager: true, query: "?url", import: "default" },
 ) as Record<string, string>;
 
-type Fontes = { mp4: string; webm?: string | undefined; vertical?: string | undefined; poster?: string | undefined };
+type Fontes = {
+  mp4: string;
+  webm?: string | undefined;
+  vertical?: string | undefined;
+  poster?: string | undefined;
+};
 
 const FINAL: Fontes | null = ARQ["/src/assets/video/hero.mp4"]
   ? {
@@ -143,7 +147,6 @@ export function HeroVideo() {
             <Palavras imediato delay={340}>
               Sem esperar.
             </Palavras>
-            <Focinho className="ml-[0.1em] inline-block h-[0.52em] w-[0.98em] align-[0.04em]" />
           </span>
         </h1>
         <p

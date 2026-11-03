@@ -388,7 +388,7 @@ function FluxoReal({ p }: { p: Produto }) {
   return (
     <Secao tema="claro">
       <div className="container-page">
-        <Titulo rotulo="Telas reais" titulo={f.titulo} texto={f.texto} />
+        <Titulo rotulo="Passo a passo" titulo={f.titulo} texto={f.texto} />
         <ol className="sem-barra -mx-4 mt-10 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-px-4 px-4 pb-4 sm:mx-0 sm:mt-12 sm:grid sm:grid-cols-2 sm:gap-8 sm:overflow-visible sm:px-0 lg:grid-cols-4">
           {f.telas.map((t, i) => (
             <Reveal

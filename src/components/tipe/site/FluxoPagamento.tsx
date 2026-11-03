@@ -363,7 +363,7 @@ export function FluxoPagamento() {
         <Titulo
           rotulo="Como funciona"
           titulo="Três momentos na mesa. Nenhuma espera."
-          texto="As telas reais do app do cliente, com o que acontece do lado do restaurante a cada toque."
+          texto="Cada toque do cliente na mesa e, ao mesmo tempo, o que acontece do lado do restaurante."
         />
       </div>
 
@@ -511,7 +511,8 @@ export function FluxoPagamento() {
                   {passo.quem}
                 </span>
                 <span className="cf-meta-selo">
-                  Telas reais<span className="hidden sm:inline"> · Maré Alta (fictício)</span>
+                  Mesa 12
+                  <span className="hidden sm:inline"> · Maré Alta, restaurante fictício</span>
                 </span>
               </div>
             </div>
