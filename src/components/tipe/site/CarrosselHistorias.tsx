@@ -1,7 +1,7 @@
 /**
  * Logo abaixo do herói (V6, opção 2 "Vídeo fixo", escolhida pelo Roberto em 26/10).
  * À esquerda fica o filme do fluxo do produto, sempre visível; à direita, as histórias
- * por papel (cliente, família, cozinha, garçom, caixa, dono) com as cenas do casting.
+ * por papel (cliente, bar, cozinha, garçom, caixa, dono) com as cenas do casting.
  * As histórias trocam sozinhas a cada 6 s enquanto a seção está na tela; o chip ativo
  * mostra o tempo restante, um toque troca e o mouse por cima pausa. Com movimento
  * reduzido nada troca sozinho. Só funcionalidades que existem no produto.
@@ -36,13 +36,13 @@ const HISTORIAS: Historia[] = [
     alt: "Amigos numa barraca de praia abrindo a conta pelo QR Code do totem",
   },
   {
-    papel: "Família",
-    cena: "cena-familia",
-    foco: "50% 40%",
-    frase: "Cada um paga a sua parte, do próprio celular.",
+    papel: "Bar",
+    cena: "cena-bartender",
+    foco: "55% 40%",
+    frase: "No balcão, o drinque também se paga pelo QR.",
     dado: "Pix",
     legenda: "Apple Pay e Google Pay também.",
-    alt: "Família almoçando e dividindo a conta pelo celular",
+    alt: "Bartender preparando um drinque no balcão, ao lado do totem da Tipe",
   },
   {
     papel: "Cozinha",

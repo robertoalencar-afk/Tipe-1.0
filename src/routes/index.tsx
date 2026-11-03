@@ -44,7 +44,14 @@ function LandingPage() {
   return (
     <SitePage extra={<LazyLebreAssistant />}>
       <span id="principal" aria-hidden />
-      {TEM_VIDEO_HERO || previaHero ? <HeroVideo /> : <AberturaMesa />}
+      {TEM_VIDEO_HERO || previaHero ? (
+        <>
+          <HeroVideo />
+          <AberturaMesa secao />
+        </>
+      ) : (
+        <AberturaMesa />
+      )}
       <ProdutosHome />
       <CarrosselHistorias />
       <FluxoPagamento />
