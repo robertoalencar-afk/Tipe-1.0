@@ -1,5 +1,5 @@
 /**
- * O filme curto da lebre e da tartaruga (18 s, sem som, em loop). V6.1: composição
+ * O filme curto da lebre e da tartaruga (21 s, sem som, em loop). V6.1: composição
  * HyperFrames com os personagens articulados (cabeça, orelhas, braços e pálpebras
  * recortados da ilustração, cada um girando no seu pivô; relógio em time-lapse e as três
  * lebres comemorando no fim), renderizada a 60 quadros/s e
@@ -88,7 +88,7 @@ export function VideoLebre({ className }: { className?: string }) {
         height={f.h}
         onPlay={() => setTocando(true)}
         onPause={() => setTocando(false)}
-        aria-label="Filme curto: a tartaruga espera a conta, a lebre paga pelo celular com a Tipe, o pagamento é confirmado na hora e as amigas comemoram."
+        aria-label="Filme curto: a tartaruga pede a conta e espera a maquininha, que estava em outra mesa; a lebre escaneia a mesa, paga pelo celular com a Tipe e divide com os amigos. Moral da história: quem não espera, ganha."
         className="block h-auto w-full"
       >
         <source src={f.webm} type="video/webm" />
