@@ -109,7 +109,7 @@ export function HeroVideo() {
   return (
     <section
       data-tema="escuro"
-      className="relative -mt-16 flex min-h-[100svh] items-end overflow-hidden bg-[#021E34] pt-16 text-white lg:min-h-[min(100svh,56.25vw)]"
+      className="relative -mt-16 flex min-h-[100svh] items-end overflow-hidden bg-[#021E34] pt-16 text-white lg:min-h-[100svh]"
     >
       <video
         key={src}
@@ -126,6 +126,8 @@ export function HeroVideo() {
         {!celular && fontes.webm && <source src={fontes.webm} type="video/webm" />}
         <source src={src} type="video/mp4" />
       </video>
+      {/* No celular o texto ocupa a tela toda: um véu leve por cima do vídeo inteiro. */}
+      <div aria-hidden className="absolute inset-0 bg-[#021E34]/40 md:hidden" />
       {/* Degradê só onde o texto fica: embaixo e à esquerda. */}
       <div
         aria-hidden
@@ -176,7 +178,7 @@ export function HeroVideo() {
         type="button"
         onClick={alternar}
         aria-label={pausado ? "Tocar o vídeo" : "Pausar o vídeo"}
-        className="absolute bottom-5 right-5 grid h-11 w-11 place-items-center rounded-full bg-white/15 text-white ring-1 ring-white/30 backdrop-blur-md transition-colors hover:bg-white/25 sm:bottom-8 sm:right-8"
+        className="absolute right-4 top-20 grid h-11 w-11 place-items-center rounded-full bg-white/15 text-white ring-1 ring-white/30 backdrop-blur-md transition-colors hover:bg-white/25 sm:right-8 sm:top-24"
       >
         {pausado ? (
           <Play className="h-4 w-4" aria-hidden />
