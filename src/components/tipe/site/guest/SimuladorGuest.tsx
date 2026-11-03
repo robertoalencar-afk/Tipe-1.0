@@ -81,7 +81,7 @@ const RESTAURANTES: Restaurante[] = [
     nota: "4,8",
     fundador: true,
     garcom: "Joyce",
-    garantiaPorPessoa: 1000,
+    garantiaPorPessoa: 2500,
     turnos: [
       ["12:00", "15:00"],
       ["19:00", "22:30"],
