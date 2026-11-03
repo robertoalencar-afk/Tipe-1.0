@@ -937,6 +937,7 @@ export type Database = {
           founder_price: number | null
           full_price: number | null
           id: string
+          included_modules: string[]
           max_tables: number | null
           name: string
           position: number
@@ -947,6 +948,7 @@ export type Database = {
           founder_price?: number | null
           full_price?: number | null
           id: string
+          included_modules?: string[]
           max_tables?: number | null
           name: string
           position?: number
@@ -957,6 +959,7 @@ export type Database = {
           founder_price?: number | null
           full_price?: number | null
           id?: string
+          included_modules?: string[]
           max_tables?: number | null
           name?: string
           position?: number
@@ -1467,11 +1470,16 @@ export type Database = {
       restaurant_subscriptions: {
         Row: {
           billing_period: string
+          cancel_reason: string | null
+          canceled_at: string | null
           created_at: string
           current_period_end: string | null
           custom_table_limit: number | null
+          exempt: boolean
+          exempt_reason: string | null
           founder_price: boolean
           founder_price_until: string | null
+          past_due_since: string | null
           plan: string
           provider: string
           provider_customer_id: string | null
@@ -1483,6 +1491,11 @@ export type Database = {
         }
         Insert: {
           billing_period?: string
+          cancel_reason?: string | null
+          canceled_at?: string | null
+          exempt?: boolean
+          exempt_reason?: string | null
+          past_due_since?: string | null
           created_at?: string
           current_period_end?: string | null
           custom_table_limit?: number | null
@@ -1499,6 +1512,11 @@ export type Database = {
         }
         Update: {
           billing_period?: string
+          cancel_reason?: string | null
+          canceled_at?: string | null
+          exempt?: boolean
+          exempt_reason?: string | null
+          past_due_since?: string | null
           created_at?: string
           current_period_end?: string | null
           custom_table_limit?: number | null
@@ -1775,6 +1793,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "staff_members_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      subscription_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          detail: string | null
+          from_plan: string | null
+          from_status: string | null
+          id: string
+          restaurant_id: string
+          to_plan: string | null
+          to_status: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          detail?: string | null
+          from_plan?: string | null
+          from_status?: string | null
+          id?: string
+          restaurant_id: string
+          to_plan?: string | null
+          to_status: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          detail?: string | null
+          from_plan?: string | null
+          from_status?: string | null
+          id?: string
+          restaurant_id?: string
+          to_plan?: string | null
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_events_restaurant_id_fkey"
             columns: ["restaurant_id"]
             isOneToOne: false
             referencedRelation: "restaurants"
@@ -2526,6 +2588,9 @@ export type Database = {
         Returns: undefined
       }
       restaurant_table_limit: { Args: { p_rid: string }; Returns: number }
+      restaurant_access: { Args: { p_rid: string }; Returns: Json }
+      restaurant_can_operate: { Args: { p_rid: string }; Returns: boolean }
+      my_restaurant_access: { Args: { p_rid: string }; Returns: Json }
       signup_restaurant: {
         Args: {
           p_address: string
