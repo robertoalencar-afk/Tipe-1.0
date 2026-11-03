@@ -28,10 +28,17 @@ import { cn } from "@/lib/utils";
 import { Secao, Titulo } from "../Site";
 import { useMovimentoReduzido } from "../produto/useVisivel";
 import { AneisCategorias, StoryCardapio, type ItemStory } from "./StoryCardapio";
-import fotoIsca from "@/assets/cardapio/isca-720.webp";
-import fotoBaiao from "@/assets/cardapio/baiao-720.webp";
+import fotoPastel from "@/assets/cardapio/pastel-1080.webp";
+import profPastel from "@/assets/cardapio/pastel-depth.png";
+import fotoIsca from "@/assets/cardapio/isca-1080.webp";
+import profIsca from "@/assets/cardapio/isca-depth.png";
+import fotoBaiao from "@/assets/cardapio/baiao-1080.webp";
+import profBaiao from "@/assets/cardapio/baiao-depth.png";
+import fotoCartola from "@/assets/cardapio/cartola-1080.webp";
+import profCartola from "@/assets/cardapio/cartola-depth.png";
 import fotoPeixe from "@/assets/cardapio/peixe-720.webp";
-import fotoCaju from "@/assets/cardapio/caju-720.webp";
+import fotoCaju from "@/assets/cardapio/caju-1080.webp";
+import profCaju from "@/assets/cardapio/caju-depth.png";
 import fotoCoco from "@/assets/cardapio/coco-720.webp";
 
 type Item = ItemStory;
@@ -50,6 +57,9 @@ const CARDAPIO: Item[] = [
     desc: "Porção com 6 unidades",
     preco: 3400,
     cat: "Petiscos",
+    foto: fotoPastel,
+    profundidade: profPastel,
+    modelo: "/modelos/pastel-triposr.glb",
   },
   {
     code: "isca",
@@ -58,6 +68,7 @@ const CARDAPIO: Item[] = [
     preco: 5400,
     cat: "Petiscos",
     foto: fotoIsca,
+    profundidade: profIsca,
     selo: "Mais pedido",
     alergenicos: ["peixe", "ovo", "glúten"],
   },
@@ -68,6 +79,7 @@ const CARDAPIO: Item[] = [
     preco: 4200,
     cat: "Pratos",
     foto: fotoBaiao,
+    profundidade: profBaiao,
     alergenicos: ["leite"],
   },
   {
@@ -87,6 +99,7 @@ const CARDAPIO: Item[] = [
     preco: 950,
     cat: "Bebidas",
     foto: fotoCaju,
+    profundidade: profCaju,
   },
   {
     code: "coco",
@@ -102,6 +115,8 @@ const CARDAPIO: Item[] = [
     desc: "Banana, queijo coalho e canela",
     preco: 1900,
     cat: "Sobremesas",
+    foto: fotoCartola,
+    profundidade: profCartola,
     alergenicos: ["leite"],
   },
   {
