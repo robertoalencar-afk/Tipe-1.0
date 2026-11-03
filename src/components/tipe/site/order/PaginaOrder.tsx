@@ -30,16 +30,12 @@ import {
 import totemMesa from "@/assets/marca/totem-mesa.webp";
 import { Palavras, Reveal } from "@/components/tipe/landing/motion";
 import { cn } from "@/lib/utils";
-import {
-  PERGUNTA_QUANDO,
-  TEXTOS_LANCAMENTO,
-  type EstadoLancamento,
-} from "@/lib/tipe/launch-state";
+import { PERGUNTA_QUANDO, TEXTOS_LANCAMENTO, type EstadoLancamento } from "@/lib/tipe/launch-state";
 import { trackProduto } from "@/lib/tipe/tracking";
 import { SetaFios } from "../Bigode";
 import { Foto } from "../Foto";
 import { Secao, Titulo } from "../Site";
-import { CelularReal } from "../produto/TelaReal";
+import { CelularReal, type TelaReal } from "../produto/TelaReal";
 import { SequenciaCelular } from "../produto/SequenciaCelular";
 import { duvidasDe, type Produto } from "../produtos";
 import { ListaDuvidas, Relacionados } from "../ProdutoPagina";
@@ -141,7 +137,7 @@ function Topo({ p, estado }: { p: Produto; estado: EstadoLancamento }) {
             style={{ "--d": "700ms" } as CSSProperties}
           >
             <SequenciaCelular
-              telas={["cardapio", "pedido", "conta", "metodos"]}
+              telas={["order-story-baiao", "order-story-peixe", "order-cozinha", "order-conta"]}
               legenda={false}
               prioridade
               sizes="220px"
@@ -186,7 +182,7 @@ function Topo({ p, estado }: { p: Produto; estado: EstadoLancamento }) {
             className="hero-in mt-6 max-w-md text-sm leading-relaxed text-muted-foreground"
             style={{ "--d": "700ms" } as CSSProperties}
           >
-            {t.fase} As telas do cardápio são do código do Tipe Order, com dados de exemplo.
+            {t.fase} As telas são do Tipe Order de verdade, com dados de exemplo.
           </p>
         </div>
       </div>
@@ -201,7 +197,7 @@ const PASSOS: {
   t: string;
   d: string;
   icone: typeof ScanLine;
-  tela?: "cardapio" | "pedido" | "metodos";
+  tela?: TelaReal;
   alt: string;
   rotulo: string;
 }[] = [
@@ -216,29 +212,29 @@ const PASSOS: {
   {
     n: "02",
     t: "Escolha",
-    d: "O cardápio do restaurante, com categorias e busca. Cada um navega no próprio celular.",
+    d: "O cardápio abre em stories: cada prato em foto de tela cheia. É só tocar para ver o próximo.",
     icone: ClipboardList,
-    tela: "cardapio",
-    alt: "Cardápio da Mesa 12 no celular, com busca e categorias Petiscos, Pratos e Bebidas (dados de exemplo)",
+    tela: "order-story-baiao",
+    alt: "Cardápio em stories com a foto do Baião de dois e o botão Adicionar por R$ 42,00 (dados de exemplo)",
     rotulo: "Tela do Tipe Order · dados de exemplo",
   },
   {
     n: "03",
     t: "Peça",
-    d: "Escolhe a quantidade, escreve uma observação e envia. O pedido vai para a cozinha.",
+    d: "Adiciona, escreve uma observação e envia. O pedido vai para a cozinha e entra na conta da mesa.",
     icone: UtensilsCrossed,
-    tela: "pedido",
-    alt: "Pedido com 2 pastéis e 1 isca de peixe e o botão Enviar 3 itens, R$ 118,00 (dados de exemplo)",
+    tela: "order-cozinha",
+    alt: "Pedido enviado: 2 itens foram para a cozinha e já estão na conta da mesa (dados de exemplo)",
     rotulo: "Tela do Tipe Order · dados de exemplo",
   },
   {
     n: "04",
     t: "Pague",
-    d: "Na conta da mesa: divide se quiser e paga com Apple Pay, Google Pay, Pix ou no estabelecimento.",
+    d: "Na aba Pagar está a conta com tudo o que foi pedido. Apple Pay, Google Pay, Pix ou no estabelecimento.",
     icone: Wallet,
-    tela: "metodos",
-    alt: "Formas de pagamento da conta: Pix, Apple Pay, Google Pay e pagar no estabelecimento",
-    rotulo: "Tela real do Tipe Pay",
+    tela: "order-conta",
+    alt: "Conta da Mesa 12 com o pastel de camarão, o serviço e o botão Pagar R$ 74,80 (dados de exemplo)",
+    rotulo: "Tela do Tipe Order · dados de exemplo",
   },
 ];
 
@@ -275,19 +271,91 @@ function Experiencia() {
                       />
                     </div>
                   )}
-                  <Rotulo className="absolute left-2 top-2 max-w-[calc(100%-1rem)] text-[0.62rem] leading-tight sm:left-3 sm:top-3 sm:text-[0.72rem]">{s.rotulo}</Rotulo>
+                  <Rotulo className="absolute left-2 top-2 max-w-[calc(100%-1rem)] text-[0.62rem] leading-tight sm:left-3 sm:top-3 sm:text-[0.72rem]">
+                    {s.rotulo}
+                  </Rotulo>
                 </div>
                 <figcaption className="mt-5">
                   <p className="flex items-baseline gap-2 font-display text-[1.15rem] tracking-[-0.02em] sm:text-[1.35rem]">
                     <span className="text-[0.85rem] text-muted-foreground">{s.n}</span>
                     {s.t}
                   </p>
-                  <p className="mt-1.5 text-[0.9rem] leading-relaxed text-muted-foreground sm:text-[0.98rem]">{s.d}</p>
+                  <p className="mt-1.5 text-[0.9rem] leading-relaxed text-muted-foreground sm:text-[0.98rem]">
+                    {s.d}
+                  </p>
                 </figcaption>
               </figure>
             </Reveal>
           ))}
         </ol>
+      </div>
+    </Secao>
+  );
+}
+
+/* ---------------------------------------------------------- Cardápio em stories */
+
+const STORIES: { tela: TelaReal; t: string; alt: string }[] = [
+  {
+    tela: "order-story-baiao",
+    t: "Pratos",
+    alt: "Story do Baião de dois, com feijão-verde, queijo coalho e nata (dados de exemplo)",
+  },
+  {
+    tela: "order-story-peixe",
+    t: "Saindo da brasa",
+    alt: "Story do Peixe na brasa com o selo Saindo da brasa e 1 no pedido (dados de exemplo)",
+  },
+  {
+    tela: "order-story-bebidas",
+    t: "Bebidas",
+    alt: "Story do Suco de caju, copo de 400 ml, por R$ 9,50 (dados de exemplo)",
+  },
+];
+
+function CardapioStories() {
+  return (
+    <Secao tema="escuro">
+      <div className="container-page grid gap-10 lg:grid-cols-[0.85fr_1.15fr] lg:items-center lg:gap-16">
+        <div>
+          <Titulo
+            rotulo="Cardápio em stories"
+            titulo="O prato entra pelos olhos."
+            texto="Cada prato aparece em foto de tela cheia, como nos stories. O cliente passa para o lado, vê o que está saindo agora e adiciona sem sair da tela."
+          />
+          <ul className="mt-8 space-y-3 text-[1rem] leading-snug">
+            {[
+              "Toque para o próximo, segure para pausar",
+              "Selo para o que está saindo da cozinha agora",
+              "Alergênicos informados pelo restaurante",
+              "Quantidade no pedido sempre à vista",
+            ].map((it) => (
+              <li key={it} className="flex gap-3">
+                <Check
+                  className="mt-0.5 h-5 w-5 shrink-0 text-[#0FC9BD]"
+                  strokeWidth={2.5}
+                  aria-hidden
+                />
+                {it}
+              </li>
+            ))}
+          </ul>
+        </div>
+        <ul className="grid grid-cols-3 gap-3 sm:gap-5">
+          {STORIES.map((s, i) => (
+            <Reveal
+              as="li"
+              key={s.tela}
+              delay={i * 120}
+              className={cn("flex flex-col", i === 1 && "lg:-translate-y-8")}
+            >
+              <CelularReal tela={s.tela} alt={s.alt} sizes="(min-width: 1024px) 15vw, 30vw" />
+              <p className="mt-3 text-center text-[0.85rem] text-muted-foreground sm:text-[0.95rem]">
+                {s.t}
+              </p>
+            </Reveal>
+          ))}
+        </ul>
       </div>
     </Secao>
   );
@@ -326,7 +394,7 @@ function PayEOrder({ estado }: { estado: EstadoLancamento }) {
     },
   ];
   return (
-    <Secao tema="claro" className="!pt-0">
+    <Secao tema="claro">
       <div className="container-page">
         <Titulo
           rotulo="Pay e Order"
@@ -354,14 +422,22 @@ function PayEOrder({ estado }: { estado: EstadoLancamento }) {
                   {c.selo}
                 </span>
               </div>
-              <p className={cn("mt-1 text-[0.95rem]", c.escuro ? "text-white/70" : "text-[#021E34]/70")}>
+              <p
+                className={cn(
+                  "mt-1 text-[0.95rem]",
+                  c.escuro ? "text-white/70" : "text-[#021E34]/70",
+                )}
+              >
                 {c.papel}
               </p>
               <ul className="mt-6 space-y-3 text-[1rem] leading-snug">
                 {c.itens.map((it) => (
                   <li key={it} className="flex gap-3">
                     <Check
-                      className={cn("mt-0.5 h-5 w-5 shrink-0", c.escuro ? "text-[#0FC9BD]" : "text-[#03665f]")}
+                      className={cn(
+                        "mt-0.5 h-5 w-5 shrink-0",
+                        c.escuro ? "text-[#0FC9BD]" : "text-[#03665f]",
+                      )}
                       strokeWidth={2.5}
                       aria-hidden
                     />
@@ -384,10 +460,30 @@ function PayEOrder({ estado }: { estado: EstadoLancamento }) {
 /* ---------------------------------------------------------- Tudo conectado */
 
 const ETAPAS: { nome: string; href: string; icone: typeof ChefHat; d: string }[] = [
-  { nome: "Order", href: `#${ANCORA_FORM}`, icone: Smartphone, d: "O cliente pede pelo celular, na mesa." },
-  { nome: "Cozinha", href: "/produtos/kitchen", icone: ChefHat, d: "O pedido aparece na tela da cozinha e do bar." },
-  { nome: "Staff", href: "/produtos/staff", icone: Users, d: "A equipe acompanha a mesa e leva o pedido." },
-  { nome: "Pay", href: "/produtos/pay", icone: ReceiptText, d: "Tudo o que foi pedido já está na conta para pagar." },
+  {
+    nome: "Order",
+    href: `#${ANCORA_FORM}`,
+    icone: Smartphone,
+    d: "O cliente pede pelo celular, na mesa.",
+  },
+  {
+    nome: "Cozinha",
+    href: "/produtos/kitchen",
+    icone: ChefHat,
+    d: "O pedido aparece na tela da cozinha e do bar.",
+  },
+  {
+    nome: "Staff",
+    href: "/produtos/staff",
+    icone: Users,
+    d: "A equipe acompanha a mesa e leva o pedido.",
+  },
+  {
+    nome: "Pay",
+    href: "/produtos/pay",
+    icone: ReceiptText,
+    d: "Tudo o que foi pedido já está na conta para pagar.",
+  },
 ];
 
 function TudoConectado() {
@@ -411,7 +507,9 @@ function TudoConectado() {
                   <span className="block font-display text-[1.35rem] tracking-[-0.03em] sm:text-[1.6rem]">
                     {e.nome}
                   </span>
-                  <span className="mt-1.5 block text-[0.88rem] leading-relaxed text-muted-foreground sm:text-[0.95rem]">{e.d}</span>
+                  <span className="mt-1.5 block text-[0.88rem] leading-relaxed text-muted-foreground sm:text-[0.95rem]">
+                    {e.d}
+                  </span>
                 </span>
               </a>
               {i < ETAPAS.length - 1 && (
@@ -431,12 +529,36 @@ function TudoConectado() {
 /* ---------------------------------------------------------- Benefícios */
 
 const BENEFICIOS: { icone: typeof Clock; t: string; d: string }[] = [
-  { icone: Clock, t: "Ninguém espera para pedir", d: "O cliente pede quando quer, sem precisar chamar alguém." },
-  { icone: MessageSquareText, t: "Pedido escrito, com observação", d: "“Sem cebola” chega por escrito, do jeito que o cliente pediu." },
-  { icone: ReceiptText, t: "Conta sem digitação", d: "O que foi pedido entra na conta da mesa. Sem item esquecido." },
-  { icone: RefreshCw, t: "Pedir mais é um toque", d: "A segunda rodada sai da mesa, sem esperar o garçom passar." },
-  { icone: Users, t: "Equipe livre para atender", d: "Menos ida e volta com bloquinho, mais tempo para o salão." },
-  { icone: UtensilsCrossed, t: "Cardápio sempre igual ao da casa", d: "Item que acabou sai do cardápio; nada para reimprimir." },
+  {
+    icone: Clock,
+    t: "Ninguém espera para pedir",
+    d: "O cliente pede quando quer, sem precisar chamar alguém.",
+  },
+  {
+    icone: MessageSquareText,
+    t: "Pedido escrito, com observação",
+    d: "“Sem cebola” chega por escrito, do jeito que o cliente pediu.",
+  },
+  {
+    icone: ReceiptText,
+    t: "Conta sem digitação",
+    d: "O que foi pedido entra na conta da mesa. Sem item esquecido.",
+  },
+  {
+    icone: RefreshCw,
+    t: "Pedir mais é um toque",
+    d: "A segunda rodada sai da mesa, sem esperar o garçom passar.",
+  },
+  {
+    icone: Users,
+    t: "Equipe livre para atender",
+    d: "Menos ida e volta com bloquinho, mais tempo para o salão.",
+  },
+  {
+    icone: UtensilsCrossed,
+    t: "Cardápio sempre igual ao da casa",
+    d: "Item que acabou sai do cardápio; nada para reimprimir.",
+  },
 ];
 
 function Beneficios({ p }: { p: Produto }) {
@@ -465,7 +587,9 @@ function Beneficios({ p }: { p: Produto }) {
               className="rounded-[1.5rem] bg-background-muted p-5 ring-1 ring-border sm:p-6"
             >
               <b.icone className="h-6 w-6 text-[#0FC9BD]" aria-hidden />
-              <p className="mt-3 font-display text-[1.2rem] sm:mt-5 sm:text-[1.3rem] leading-tight tracking-[-0.02em]">{b.t}</p>
+              <p className="mt-3 font-display text-[1.2rem] sm:mt-5 sm:text-[1.3rem] leading-tight tracking-[-0.02em]">
+                {b.t}
+              </p>
               <p className="mt-2 text-[0.97rem] leading-relaxed text-muted-foreground">{b.d}</p>
             </Reveal>
           ))}
@@ -517,6 +641,17 @@ function Futuro() {
             titulo="O prato antes de chegar."
             texto="Duas ideias que a Tipe está desenvolvendo para o cardápio. Ainda não existem no produto e não têm data."
           />
+          <figure className="m-0 mt-8 flex items-end gap-4">
+            <CelularReal
+              tela="order-story-3d"
+              alt="Protótipo do cardápio em 3D: um abacate que o cliente gira no celular (em desenvolvimento)"
+              sizes="180px"
+              className="w-[42%] max-w-[11rem]"
+            />
+            <figcaption className="max-w-[13rem] pb-2 text-[0.9rem] leading-relaxed text-muted-foreground">
+              Protótipo do story em 3D, em teste com dados de exemplo.
+            </figcaption>
+          </figure>
         </div>
         <ul className="grid gap-4 sm:grid-cols-2">
           {itens.map((it, i) => (
@@ -533,7 +668,9 @@ function Futuro() {
                 </span>
               </div>
               <div>
-                <p className="mt-6 font-display text-[1.5rem] leading-tight tracking-[-0.03em]">{it.t}</p>
+                <p className="mt-6 font-display text-[1.5rem] leading-tight tracking-[-0.03em]">
+                  {it.t}
+                </p>
                 <p className="mt-2 text-[0.98rem] leading-relaxed text-muted-foreground">{it.d}</p>
               </div>
             </Reveal>
@@ -549,7 +686,11 @@ function Futuro() {
 function Contato({ estado }: { estado: EstadoLancamento }) {
   const t = TEXTOS_LANCAMENTO[estado];
   return (
-    <section data-tema="claro" id={ANCORA_FORM} className="scroll-mt-16 px-4 py-16 sm:px-6 sm:py-24">
+    <section
+      data-tema="claro"
+      id={ANCORA_FORM}
+      className="scroll-mt-16 px-4 py-16 sm:px-6 sm:py-24"
+    >
       <div className="relative mx-auto grid max-w-7xl gap-10 overflow-hidden rounded-[2.25rem] bg-[linear-gradient(120deg,#021E34_0%,#03465a_55%,#0b8f87_100%)] px-5 py-12 text-white sm:px-12 sm:py-16 lg:grid-cols-[0.85fr_1.15fr] lg:gap-14 lg:px-16">
         <div>
           <SeloEstado estado={estado} className="text-white" />
@@ -580,6 +721,7 @@ export function PaginaOrder({ p, estado }: { p: Produto; estado: EstadoLancament
     <>
       <Topo p={p} estado={estado} />
       <Experiencia />
+      <CardapioStories />
       <PayEOrder estado={estado} />
       <TudoConectado />
       <Beneficios p={p} />

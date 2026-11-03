@@ -110,7 +110,7 @@ export function CarrosselHistorias() {
   const h = HISTORIAS[i]!;
 
   return (
-    <Secao tema="claro" id="historias" ariaLabel="A Tipe na mesa" className="!pt-6 sm:!pt-10">
+    <Secao tema="claro" id="historias" ariaLabel="A Tipe na mesa">
       <div ref={ref} className="container-page">
         <div className="grid gap-5 md:grid-cols-12 lg:gap-6">
           <div className="md:col-span-5">
