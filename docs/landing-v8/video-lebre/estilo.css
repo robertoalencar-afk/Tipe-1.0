@@ -50,3 +50,7 @@ html,body{background:#021E34;overflow:hidden}
 .bloco.centro{text-align:center}
 .bloco.centro .eyebrow{justify-content:center}
 .halo{background:radial-gradient(closest-side,rgba(246,245,241,.92),rgba(246,245,241,.75) 60%,rgba(246,245,241,0));padding:.5em 1.2em .6em}
+
+/* V9: cena em vídeo (warp9.py) no lugar das partes recortadas */
+.rigbox>video.painel{position:absolute;display:block;object-fit:fill}
+.com-video .parte{visibility:hidden}

@@ -48,10 +48,18 @@ def cena(nome, host, pid):
                   '<line id="d-hora" x1="0" y1="3" x2="0" y2="-34" stroke="#4d5254" stroke-width="7" stroke-linecap="round" transform="rotate(118)"/>'
                   '<line id="d-minuto" x1="0" y1="4" x2="0" y2="-60" stroke="#4d5254" stroke-width="5" stroke-linecap="round" transform="rotate(-14)"/>'
                   '<circle r="5.5" fill="#4d5254"/></svg>')
-    return (f'<div class="layer cena" id="{host}"><div class="rigbox" id="{pid}" style="width:{m["w"]}px;height:{m["h"]}px">'
-            f'<img class="plate" src="assets/plates/{nome}.jpg" alt="">{inner}</div></div>')
+    vid, cls = '', 'rigbox'
+    if os.path.exists(f'{CAM}/assets/vid/{nome}.mp4'):
+        # V9: a cena deformada em alta (warp9.py) toca por cima do prato; as partes recortadas ficam ocultas
+        t0, t1 = JANELAS[nome]
+        vid = (f'<video class="clip painel" id="v-{nome}" src="assets/vid/{nome}.mp4" data-start="{t0}" data-duration="{round(t1 - t0, 3)}" '
+               f'data-track-index="{list(JANELAS).index(nome) + 1}" muted playsinline style="left:{m["ix"]}px;top:{m["iy"]}px;width:{m["iw"]}px;height:{m["ih"]}px"></video>')
+        cls = 'rigbox com-video'
+    return (f'<div class="layer cena" id="{host}"><div class="{cls}" id="{pid}" style="width:{m["w"]}px;height:{m["h"]}px">'
+            f'<img class="plate" src="assets/plates/{nome}.jpg" alt="">{vid}{inner}</div></div>')
 
 
+JANELAS = {'T-cliente': (0.0, 4.8), 'T-garcom': (4.2, 7.9), 'H-cliente': (6.9, 11.0), 'H-amigos': (10.4, 13.4), 'T-dono': (12.7, 16.1), 'H-gorjeta': (12.7, 16.1)}
 alturas = {t['id']: t['h'] for m in rig.values() for t in m['tampas']}
 meta = {k: {kk: v[kk] for kk in ('w', 'h', 'ix', 'iy', 'iw', 'ih')} for k, v in rig.items()}
 DUR = 20.0

@@ -80,11 +80,11 @@ function bloco(cfg) {
   const b = Object.assign({}, cfg, { el, ws: [...el.querySelectorAll('.w')], ul: el.querySelector('.ul'), st: el.querySelector('.status'), eb: el.querySelector('.eyebrow') });
   blocos.push(b); return b;
 }
-const bA = bloco({ eb: 'A tartaruga', ebCor: '#8B9686', lado: 'E', linhas: [['Pediu', 'a', 'conta'], ['e', 'esperou.']], st: '', de: 0.25, ate: [T.AB - 0.2, T.AB + 0.15] });
-const bB = bloco({ eb: 'A tartaruga', ebCor: '#8B9686', lado: 'E', linhas: [['A', 'maquininha'], ['ainda', 'estava'], ['em', 'outra', { t: 'mesa.' }]], st: '', de: T.AB + 0.25, ate: [T.W0 + 0.1, T.W0 + 0.35] });
-const bD = bloco({ eb: 'A lebre', lado: 'D', linhas: [['Pagou'], ['pelo', { t: 'celular.' }]], st: 'Escaneou, conferiu e pagou.', de: T.W1 - 0.1, ate: [T.DE - 0.15, T.DE + 0.2] });
-const bE = bloco({ eb: 'A lebre', lado: 'D', linhas: [['E', 'dividiu'], ['com', 'os', 'amigos.']], st: 'Cada um paga a sua parte.', de: T.DE + 0.3, ate: [T.EF - 0.1, T.EF + 0.2] });
-const bF = bloco({ centro: true, linhas: AR === '16x9' ? [['Desta', 'vez,', 'a', 'lebre', { t: 'ganha.' }]] : [['Desta', 'vez,'], ['a', 'lebre', { t: 'ganha.' }]], de: T.EF + 0.45, ate: [T.PH - 0.1, T.PH + 0.2] });
+const bA = bloco({ eb: 'A tartaruga', ebCor: '#8B9686', lado: 'E', linhas: [['Pediu', 'a', 'conta'], ['e', 'ficou', 'na', 'mesa.']], st: '', de: 0.25, ate: [T.AB - 0.2, T.AB + 0.15] });
+const bB = bloco({ eb: 'A tartaruga', ebCor: '#8B9686', lado: 'E', linhas: [['A', 'maquininha'], ['estava', 'na', { t: 'mesa 9.' }]], st: '', de: T.AB + 0.25, ate: [T.W0 + 0.1, T.W0 + 0.35] });
+const bD = bloco({ eb: 'A lebre', lado: 'D', linhas: [['Escaneou', 'a', 'mesa'], ['e', 'pagou', { t: 'ali.' }]], st: 'Sem chamar ninguém.', de: T.W1 - 0.1, ate: [T.DE - 0.15, T.DE + 0.2] });
+const bE = bloco({ eb: 'A lebre', lado: 'D', linhas: [['Dividiu', 'em', 'três'], ['sem', { t: 'calculadora.' }]], st: 'Pix, Apple Pay ou Google Pay.', de: T.DE + 0.3, ate: [T.EF - 0.1, T.EF + 0.2] });
+const bF = bloco({ centro: true, linhas: AR === '16x9' ? [['Moral', 'da', 'história:'], ['quem', 'não', 'espera,', { t: 'ganha.' }]] : [['Moral', 'da', 'história:'], ['quem', 'não', 'espera,'], [{ t: 'ganha.' }]], de: T.EF + 0.45, ate: [T.PH - 0.1, T.PH + 0.2] });
 
 function montar() {
   for (const b of blocos) {
@@ -135,7 +135,7 @@ const devW = scrW + bz * 2, devH = scrH + bz * 2;
   b.style.left = (devW - bs * 0.62) + 'px'; b.style.top = (devH * 0.16) + 'px';
   const r = $('ring'); r.style.width = r.style.height = bs + 'px'; r.style.left = b.style.left; r.style.top = b.style.top;
 })();
-const passos = bloco({ eb: 'Com a Tipe, no celular', lado: 'E', linhas: L.c3.stacked ? [['Conta.'], ['Pagamento.'], ['Pronto.']] : [['Conta.', 'Pagamento.', 'Pronto.']], de: T.PH + 0.3, ate: [T.IRIS + 0.5, T.IRIS + 0.8] });
+const passos = bloco({ eb: 'Com a Tipe', lado: 'E', linhas: L.c3.stacked ? [['Confere.'], ['Escolhe.'], ['Pago.']] : [['Confere.', 'Escolhe.', 'Pago.']], de: T.PH + 0.3, ate: [T.IRIS + 0.5, T.IRIS + 0.8] });
 passos.passo = true;
 
 // assinatura
@@ -170,7 +170,7 @@ function esperaEm(t) {
   if (t < T.AB + 0.2) { const p = clamp((t - 0.3) / 3.9); const k = p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2; return 5 + 42 * k; }
   return 47 + 17 * E(P(t, T.AB + 0.3, T.W0));
 }
-const fmtEspera = m => { m = Math.floor(m); return 'Esperando a conta · há ' + (m < 60 ? m + ' min' : '1 h ' + String(m - 60).padStart(2, '0') + ' min'); };
+const fmtEspera = m => { m = Math.floor(m); return 'Esperando há ' + (m < 60 ? m + ' min' : '1 h ' + String(m - 60).padStart(2, '0') + ' min'); };
 
 /* ---------- quadro(t) ---------- */
 function quadro(t) {
@@ -178,22 +178,22 @@ function quadro(t) {
   // cena A: tartaruga na mesa
   const qAB = IO(P(t, T.AB, T.AB + 0.45));
   place($('pA'), L.A, cam(t, 0, T.AB + 0.45));
-  show($('scA'), t < T.AB + 0.45 ? 1 : 0); desfoque($('scA'), qAB * 16);
+  show($('scA'), t < T.AB + 0.45 ? 1 : 0); desfoque($('scA'), qAB * 5);
   const m = esperaEm(t), mm = m - 5;
   $('t-minuto').setAttribute('transform', `rotate(${(Math.min(mm, 42) * 6).toFixed(3)})`);
   $('t-hora').setAttribute('transform', `rotate(${(124 + Math.min(mm, 42) * 0.5).toFixed(3)})`);
   bA.st.textContent = fmtEspera(m); bB.st.textContent = fmtEspera(m);
   // cena B: a maquininha
   place($('pB'), L.B, cam(t, T.AB, T.W1));
-  show($('scB'), t >= T.AB && !swap ? qAB : 0); desfoque($('scB'), (1 - qAB) * 16);
+  show($('scB'), t >= T.AB && !swap ? qAB : 0); desfoque($('scB'), (1 - qAB) * 5);
   // cena D: lebre do celular
   const qDE = IO(P(t, T.DE, T.DE + 0.45));
   place($('pD'), L.D, E(P(t, T.W0 + 0.4, T.DE + 0.45)));
-  show($('scD'), swap && t < T.DE + 0.45 ? 1 : 0); desfoque($('scD'), qDE * 16);
+  show($('scD'), swap && t < T.DE + 0.45 ? 1 : 0); desfoque($('scD'), qDE * 5);
   // cena E: três lebres
   place($('pE'), L.E, E(P(t, T.DE, T.EF + 0.5)));
   const qEF = IO(P(t, T.EF, T.EF + 0.55));
-  show($('scE'), t >= T.DE && t < T.EF + 0.55 ? qDE : 0); desfoque($('scE'), (1 - qDE) * 16);
+  show($('scE'), t >= T.DE && t < T.EF + 0.55 ? qDE : 0); desfoque($('scE'), (1 - qDE) * 5);
   // cena F: tela dividida (as metades deslizam para dentro, a costura turquesa cresce)
   show($('scF'), t >= T.EF && t < T.PH + 0.4 ? 1 : 0);
   if (t >= T.EF && t < T.PH + 0.4) {
