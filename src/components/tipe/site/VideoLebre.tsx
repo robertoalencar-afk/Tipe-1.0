@@ -52,12 +52,27 @@ export function VideoLebre({ className }: { className?: string }) {
         visivel.current = !!e?.isIntersecting;
         if (visivel.current && !pausadoPelaPessoa.current)
           tocarMudo(v, () => visivel.current && !pausadoPelaPessoa.current);
-        else v.pause();
+        else {
+          v.pause();
+          // Saiu da tela: quando a pessoa voltar, o vídeo retoma sozinho.
+          if (!visivel.current && !reduzMovimento()) pausadoPelaPessoa.current = false;
+        }
       },
-      { threshold: 0.35 },
+      { threshold: 0.2 },
     );
     io.observe(v);
-    return () => io.disconnect();
+    // Volta de outra aba ou app (o celular pausa o vídeo): retoma de onde parou.
+    const voltar = () => {
+      if (document.visibilityState === "visible" && visivel.current && !pausadoPelaPessoa.current)
+        tocarMudo(v, () => visivel.current && !pausadoPelaPessoa.current);
+    };
+    document.addEventListener("visibilitychange", voltar);
+    window.addEventListener("pageshow", voltar);
+    return () => {
+      io.disconnect();
+      document.removeEventListener("visibilitychange", voltar);
+      window.removeEventListener("pageshow", voltar);
+    };
   }, [formato]);
 
   const alternar = () => {
@@ -86,7 +101,7 @@ export function VideoLebre({ className }: { className?: string }) {
         muted
         loop
         playsInline
-        preload="none"
+        preload="metadata"
         poster={f.poster}
         width={f.w}
         height={f.h}
