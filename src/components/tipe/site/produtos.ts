@@ -819,7 +819,7 @@ export const PRODUTOS: Produto[] = [
     beneficios: [
       {
         t: "Reserva no horário livre",
-        d: "O cliente escolhe o dia, quantas pessoas e um horário que existe de verdade. O horário fica seguro por 5 minutos enquanto ele confirma. Sem cartão.",
+        d: "O cliente escolhe o dia, quantas pessoas e um horário que existe de verdade. O horário fica seguro por 5 minutos enquanto ele confirma. Se o restaurante pedir, uma garantia simbólica confirma a mesa e vira crédito na conta.",
         foto: "cena-casal",
         posicao: "50% 35%",
         telaReal: "guest-horarios",
@@ -850,7 +850,7 @@ export const PRODUTOS: Produto[] = [
     fatos: [
       { v: "5 min", t: "de horário seguro enquanto o cliente confirma" },
       { v: "15 min", t: "para confirmar quando a mesa da fila libera" },
-      { v: "Sem cartão", t: "para reservar" },
+      { v: "100%", t: "da garantia vira crédito na conta" },
       { v: "1 app", t: "da reserva à conta paga" },
     ],
     fluxoReal: {
@@ -909,7 +909,10 @@ export const PRODUTOS: Produto[] = [
         "O Tipe Guest já está disponível?",
         "Ainda não. Está em desenvolvimento; dá para experimentar no simulador, com restaurantes fictícios.",
       ],
-      ["O cliente paga para reservar?", "Não. A reserva é grátis e não pede cartão."],
+      [
+        "O cliente paga para reservar?",
+        "Só se o restaurante pedir uma garantia, um valor simbólico por pessoa pago com Pix, Apple Pay ou Google Pay. No dia, o valor vira crédito na conta. Cancelou no prazo, recebe tudo de volta; não compareceu ou cancelou fora do prazo, o valor não é devolvido. As regras aparecem antes de pagar.",
+      ],
       [
         "E se o horário estiver lotado?",
         "O cliente entra na lista de espera. Quando uma mesa libera, o app avisa e ele tem 15 minutos para confirmar.",
