@@ -4,7 +4,7 @@
  *
  * COMO TROCAR PELO VÍDEO FINAL: coloque os arquivos em src/assets/video/ com estes nomes e
  * publique. A home passa a usar este topo sozinha; sem eles, continua a abertura atual.
- *   hero.mp4            obrigatório · 16:9, H.264, mudo, 8 a 20 s em loop, até ~6 MB
+ *   hero.mp4            obrigatório · 16:9, H.264, mudo, em loop (hoje ~37 s, ~13 MB)
  *   hero.webm           opcional · a mesma cena em VP9, mais leve no Chrome/Android
  *   hero-vertical.mp4   opcional · 9:16 ou 4:5 para o celular (sem ele, o 16:9 é recortado)
  *   hero-poster.webp    recomendado · o primeiro quadro, mostrado enquanto o vídeo carrega
