@@ -49,7 +49,9 @@ def ler(caminho, flags=cv2.IMREAD_UNCHANGED):
     return im
 
 
+SO = sys.argv[5:]
 for nome, (src, x0, t0, t1) in CENAS.items():
+    if SO and nome not in SO: continue
     m = rig[nome]; iw, ih = m['iw'], m['ih']; W, H = int(iw * K), int(ih * K)
     hi = ler(f'{HI}/{src}.png', cv2.IMREAD_COLOR)
     base = hi[:H, int(x0 * K):int(x0 * K) + W].astype(np.float32).copy()
@@ -74,6 +76,8 @@ for nome, (src, x0, t0, t1) in CENAS.items():
     dif = (np.abs(prato - orig1).max(2) > 18).astype(np.uint8)
     dif = cv2.morphologyEx(dif, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
     dif = cv2.dilate(dif, np.ones((5, 5), np.uint8)) * (1 - uniao)
+    if 'relogio' in m and nome == 'T-cliente':   # o mostrador inteiro vem do prato: os ponteiros são redesenhados em SVG
+        cx, cy = m['relogio']['c']; cv2.circle(dif, (int(cx - PX), int(cy - PY)), 40, 1, -1)
     if dif.any():
         mk = cv2.GaussianBlur(cv2.resize(dif.astype(np.float32), (W, H)), (0, 0), 2.0)[..., None]
         prato_hi = cv2.resize(prato, (W, H), interpolation=cv2.INTER_CUBIC)

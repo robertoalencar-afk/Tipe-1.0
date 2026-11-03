@@ -62,7 +62,7 @@ def cena(nome, host, pid):
 JANELAS = {'T-cliente': (0.0, 4.8), 'T-garcom': (4.2, 7.9), 'H-cliente': (6.9, 11.0), 'H-amigos': (10.4, 13.4), 'T-dono': (12.7, 16.1), 'H-gorjeta': (12.7, 16.1)}
 alturas = {t['id']: t['h'] for m in rig.values() for t in m['tampas']}
 meta = {k: {kk: v[kk] for kk in ('w', 'h', 'ix', 'iy', 'iw', 'ih')} for k, v in rig.items()}
-DUR = 20.0
+DUR = 21.0
 for ar, (W, H) in {'16x9': (1600, 900), '4x5': (1080, 1350)}.items():
     d = f'{OUT}/lebre-{ar}'
     if os.path.exists(d): shutil.rmtree(d)

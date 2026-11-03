@@ -40,18 +40,18 @@ function pop(id, at, origem, sobe) {
 respirar('t-cabeca', 0.0, 4.6, 3.2, 1.0);
 R('t-cabeca', { rotation: 2.2, x: 1.5, y: -1.5 }, 0.7, 0.25);
 piscar(['t-olhoE', 't-olhoD'], 1.0, true);
-R('t-mao', { rotation: 5 }, 0.16, 0.55, 'power2.out');
+R('t-mao', { rotation: 3.5 }, 0.16, 0.55, 'power2.out');
 R('t-mao', { rotation: -1 }, 0.2, 0.71, 'power2.in');
-R('t-mao', { rotation: 4 }, 0.16, 0.95, 'power2.out');
+R('t-mao', { rotation: 3 }, 0.16, 0.95, 'power2.out');
 R('t-mao', { rotation: 0 }, 0.25, 1.11, 'power2.in');
 R('t-braco', { rotation: 0.8 }, 0.18, 1.45, 'sine.out');
-R('t-braco', { rotation: -12.5 }, 0.95, 1.63, 'power2.inOut');
-R('t-mao', { rotation: -7 }, 0.9, 1.75, 'power2.inOut');
-R('t-cabeca', { rotation: 4.6, x: 0, y: 2.2 }, 0.9, 2.15, 'power2.inOut');
-R('t-cabeca', { rotation: 3.4 }, 0.5, 2.95);
-R('t-cabeca', { rotation: 3.8, y: 0.6 }, 0.4, 3.45, 'sine.out');
-R('t-cabeca', { rotation: 5.4, y: 2.8 }, 0.7, 3.85, 'sine.inOut');
-R('t-braco', { rotation: -13.2 }, 0.7, 3.9, 'sine.inOut');
+R('t-braco', { rotation: -4.2 }, 0.95, 1.63, 'power2.inOut');
+R('t-mao', { rotation: -3 }, 0.9, 1.75, 'power2.inOut');
+R('t-cabeca', { rotation: 2.6, x: 0, y: 1.6 }, 0.9, 2.15, 'power2.inOut');
+R('t-cabeca', { rotation: 2.0 }, 0.5, 2.95);
+R('t-cabeca', { rotation: 2.3, y: 0.6 }, 0.4, 3.45, 'sine.out');
+R('t-cabeca', { rotation: 3.0, y: 1.8 }, 0.7, 3.85, 'sine.inOut');
+R('t-braco', { rotation: -4.6 }, 0.7, 3.9, 'sine.inOut');
 piscar(['t-olhoE', 't-olhoD'], 3.95, true);
 
 /* --- B (4,25 a 7,4 s): a tartaruga garçom com a maquininha, cansada; o salão chama --- */
