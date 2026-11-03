@@ -88,6 +88,17 @@ export function HeroVideo() {
       return;
     }
     tocarMudo(v, () => !pausadoPelaPessoa.current);
+    // Volta de outra aba ou app (o celular pausa o vídeo): retoma sozinho.
+    const voltar = () => {
+      if (document.visibilityState === "visible" && !pausadoPelaPessoa.current)
+        tocarMudo(v, () => !pausadoPelaPessoa.current);
+    };
+    document.addEventListener("visibilitychange", voltar);
+    window.addEventListener("pageshow", voltar);
+    return () => {
+      document.removeEventListener("visibilitychange", voltar);
+      window.removeEventListener("pageshow", voltar);
+    };
   }, [celular]);
 
   const alternar = () => {

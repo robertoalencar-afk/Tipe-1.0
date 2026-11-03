@@ -1866,10 +1866,14 @@
   background-color: var(--background);
 }
 
-.crm-theme body { background-color: var(--background); }
+.crm-theme body {
+  background-color: var(--background);
+}
 
 /* Turquesa da marca como texto precisa do tom forte para ter contraste no fundo claro. */
-.crm-theme .text-primary { color: var(--brand-primary-strong); }
+.crm-theme .text-primary {
+  color: var(--brand-primary-strong);
+}
 
 /* Cartão do CRM: branco, cantos generosos e sombra mínima. */
 @utility crm-panel {
@@ -1934,6 +1938,33 @@
   }
   88% {
     stroke-dashoffset: 0;
+  }
+}
+/* 03/11 (Roberto): no computador, só o CTA principal do topo (`vivo`) pisca sozinho. Nos
+   outros botões os bigodinhos ficam escondidos e saem quando o mouse passa ou o botão
+   recebe foco. Em telas de toque (sem hover) continuam como antes. */
+@media (hover: hover) and (pointer: fine) {
+  .bigode-cta:not(.bc-auto) .bc-fio {
+    animation: none;
+    stroke-dashoffset: 1;
+    transition: stroke-dashoffset 0.35s cubic-bezier(0.3, 0.7, 0.3, 1) calc(var(--i) * 0.06s);
+  }
+  .com-fios:is(:hover, :focus-visible, :active) .bigode-cta:not(.bc-auto) .bc-fio,
+  .group:is(:hover, :focus-visible) .com-fios .bigode-cta:not(.bc-auto) .bc-fio {
+    stroke-dashoffset: 0;
+    animation: bc-pisca 1.1s cubic-bezier(0.3, 0.7, 0.3, 1) calc(0.35s + var(--i) * 0.12s) infinite;
+  }
+}
+/* Botão redondo dos cards: seta parada; no hover do card ela dá lugar aos bigodinhos. */
+.cp-seta {
+  transition: opacity 0.25s ease;
+}
+.group:is(:hover, :focus-visible) .cp-seta {
+  opacity: 0;
+}
+@media not ((hover: hover) and (pointer: fine)) {
+  .cp-seta {
+    display: none;
   }
 }
 .sem-movimento .bigode-cta,
