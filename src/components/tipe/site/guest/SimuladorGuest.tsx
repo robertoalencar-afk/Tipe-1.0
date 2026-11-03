@@ -46,6 +46,12 @@ import {
   type ReservationSettings,
   type ReservationStatus,
 } from "@/lib/tipe/guest/reservas";
+import {
+  applyGuaranteeCredit,
+  guaranteeAmountCents,
+  guaranteeOutcome,
+  guaranteePolicyLines,
+} from "@/lib/tipe/guest/garantia";
 
 type Restaurante = {
   id: string;
@@ -56,6 +62,8 @@ type Restaurante = {
   nota: string;
   fundador?: boolean;
   garcom: string;
+  /** Garantia por pessoa em centavos (0 = sem garantia), vira crédito na conta. */
+  garantiaPorPessoa: number;
   turnos: [string, string][];
   mesas: (ReservableTable & { numero: string })[];
   /** Reservas fictícias que já existem todo dia (mesa, HH:MM): deixam alguns horários lotados. */
@@ -73,6 +81,7 @@ const RESTAURANTES: Restaurante[] = [
     nota: "4,8",
     fundador: true,
     garcom: "Joyce",
+    garantiaPorPessoa: 1000,
     turnos: [
       ["12:00", "15:00"],
       ["19:00", "22:30"],
@@ -105,6 +114,7 @@ const RESTAURANTES: Restaurante[] = [
     preco: "$$",
     nota: "4,6",
     garcom: "Davi",
+    garantiaPorPessoa: 1500,
     turnos: [["18:00", "23:00"]],
     mesas: [
       { id: "b3", numero: "3", seatsMin: 1, seatsMax: 4 },
@@ -128,6 +138,7 @@ const RESTAURANTES: Restaurante[] = [
     preco: "$",
     nota: "4,7",
     garcom: "Lia",
+    garantiaPorPessoa: 0,
     turnos: [["08:00", "13:30"]],
     mesas: [
       { id: "j1", numero: "1", seatsMin: 1, seatsMax: 2 },
@@ -200,6 +211,7 @@ type Tela =
   | "descobrir"
   | "restaurante"
   | "hold"
+  | "garantia"
   | "confirmada"
   | "espera"
   | "mesa"
@@ -216,6 +228,9 @@ type Reserva = {
   nome: string;
   ocasiao: string;
   status: ReservationStatus;
+  /** Garantia paga, em centavos (0 = restaurante sem garantia). */
+  garantia: number;
+  garantiaFim?: "devolvida" | "retida";
 };
 
 export function SimuladorGuest() {
@@ -234,6 +249,9 @@ export function SimuladorGuest() {
     null,
   );
   const [metodo, setMetodo] = useState<Metodo | null>(null);
+  const [metodoGar, setMetodoGar] = useState<Metodo | null>(null);
+  const [aceitouRegras, setAceitouRegras] = useState(false);
+  const [confirmarCancelar, setConfirmarCancelar] = useState(false);
   const [pago, setPago] = useState(0);
   const [gorjeta, setGorjeta] = useState<number | null>(null);
   const [outro, setOutro] = useState("");
@@ -273,12 +291,12 @@ export function SimuladorGuest() {
 
   // Hold de 5 minutos: o horário fica segurado enquanto o cliente confirma.
   useEffect(() => {
-    if (tela !== "hold") return;
+    if (tela !== "hold" && tela !== "garantia") return;
     const t = setInterval(() => setRestante((s) => Math.max(0, s - 1)), 1000);
     return () => clearInterval(t);
   }, [tela]);
   useEffect(() => {
-    if (tela === "hold" && restante === 0) {
+    if ((tela === "hold" || tela === "garantia") && restante === 0) {
       setAviso("O tempo acabou e o horário foi liberado para outras pessoas.");
       anotar(`Hold de ${horario ? localTime(horario) : ""} expirou e a mesa voltou a ficar livre`);
       setTela("restaurante");
@@ -289,6 +307,12 @@ export function SimuladorGuest() {
     rest.cardapio.reduce((s, i) => s + i.preco, 0) * Math.max(1, Math.ceil(pessoas / 2));
   const servico = Math.round(conta * SERVICO);
   const total = conta + servico;
+  const garSettings = (r: Restaurante) => ({
+    perPersonCents: r.garantiaPorPessoa,
+    refundCutoffMin: SETTINGS.cancelCutoffMin,
+  });
+  const garantiaValor = guaranteeAmountCents(garSettings(rest), pessoas);
+  const credito = applyGuaranteeCredit(total, reserva?.garantia ?? 0);
 
   function abrir(r: Restaurante) {
     setRest(r);
@@ -302,6 +326,14 @@ export function SimuladorGuest() {
     setAviso(null);
     setTela("hold");
     anotar(`Horário ${localTime(d)} segurado por 5 minutos para ${pessoas} pessoas`);
+  }
+  /** Segue para a garantia quando o restaurante cobra; sem garantia, confirma direto. */
+  function continuar() {
+    if (garantiaValor > 0) {
+      setMetodoGar(null);
+      setAceitouRegras(false);
+      setTela("garantia");
+    } else confirmar();
   }
   function confirmar() {
     if (!horario) return;
@@ -323,11 +355,16 @@ export function SimuladorGuest() {
       nome: nome.trim() || "Cliente",
       ocasiao,
       status: "confirmada",
+      garantia: garantiaValor,
     };
     setReserva(r);
+    setConfirmarCancelar(false);
     setTela("confirmada");
     anotar(
-      `Nova reserva pelo app: ${r.nome}, ${pessoas} pessoas, ${localTime(horario)}, mesa ${mesa}`,
+      `Nova reserva pelo app: ${r.nome}, ${pessoas} pessoas, ${localTime(horario)}, mesa ${mesa}` +
+        (garantiaValor > 0
+          ? `; garantia de ${brl(garantiaValor)} paga com ${METODOS.find((x) => x.id === metodoGar)?.nome ?? "Pix"} (simulação)`
+          : ""),
     );
   }
   function mudarStatus(s: ReservationStatus, texto: string) {
@@ -344,12 +381,14 @@ export function SimuladorGuest() {
   function pagar() {
     if (!metodo) return;
     setPago(total);
+    if (credito.used > 0)
+      anotar(`Mesa ${reserva?.mesa}: crédito da garantia de ${brl(credito.used)} abatido da conta`);
     setTela("gorjeta");
     const m = METODOS.find((x) => x.id === metodo)!.nome;
     anotar(
       metodo === "estabelecimento"
-        ? `Mesa ${reserva?.mesa}: pagamento no estabelecimento aguardando o caixa (${brl(total)})`
-        : `Mesa ${reserva?.mesa}: conta paga com ${m} (${brl(total)}), aprovado na simulação`,
+        ? `Mesa ${reserva?.mesa}: pagamento no estabelecimento aguardando o caixa (${brl(credito.toPay)})`
+        : `Mesa ${reserva?.mesa}: conta paga com ${m} (${brl(credito.toPay)}), aprovado na simulação`,
     );
   }
   function recomecar() {
@@ -362,6 +401,9 @@ export function SimuladorGuest() {
     setReserva(null);
     setEspera(null);
     setMetodo(null);
+    setMetodoGar(null);
+    setAceitouRegras(false);
+    setConfirmarCancelar(false);
     setPago(0);
     setGorjeta(null);
     setOutro("");
@@ -375,7 +417,7 @@ export function SimuladorGuest() {
   const passo =
     tela === "descobrir" || tela === "restaurante"
       ? 0
-      : tela === "hold" || tela === "espera"
+      : tela === "hold" || tela === "garantia" || tela === "espera"
         ? 1
         : tela === "confirmada"
           ? 2
@@ -384,7 +426,7 @@ export function SimuladorGuest() {
             : 4;
   const DICAS = [
     "Escolha um restaurante, o dia e quantas pessoas. Os horários livres saem do mesmo cálculo do motor de reservas.",
-    "O horário fica segurado por 5 minutos enquanto você confirma. Horário lotado oferece a lista de espera.",
+    "O horário fica segurado por 5 minutos. Se o restaurante cobra garantia, você paga um valor simbólico que vira crédito na conta. Horário lotado oferece a lista de espera.",
     "Reserva confirmada. Agora faça o papel do restaurante: marque a chegada e leve o grupo à mesa.",
     "Na mesa, a conta abre no mesmo app. Pague com Pix, Apple Pay, Google Pay ou no estabelecimento.",
     "Depois de pagar: gorjeta extra opcional para quem atendeu e a avaliação, com o seu consentimento.",
@@ -599,6 +641,9 @@ export function SimuladorGuest() {
                     <p className="mt-4 text-[0.7rem] leading-relaxed text-[#5b6b78]">
                       Mesa por até {SETTINGS.durationMin} minutos. Cancelamento pelo app até{" "}
                       {SETTINGS.cancelCutoffMin / 60} horas antes.
+                      {rest.garantiaPorPessoa > 0
+                        ? ` Garantia de ${brl(rest.garantiaPorPessoa)} por pessoa para confirmar, descontada da conta.`
+                        : " Este restaurante não cobra garantia."}
                     </p>
                   </Tela>
                 )}
@@ -654,14 +699,102 @@ export function SimuladorGuest() {
                     <div className="mt-auto pt-4">
                       <button
                         type="button"
-                        onClick={confirmar}
+                        onClick={continuar}
                         disabled={!nome.trim()}
                         className="min-h-12 w-full rounded-full bg-[#0FC9BD] font-semibold text-[#021E34] disabled:opacity-50"
                       >
-                        Confirmar reserva
+                        {garantiaValor > 0 ? "Continuar para a garantia" : "Confirmar reserva"}
                       </button>
                       <p className="mt-2 text-center text-[0.7rem] text-[#5b6b78]">
-                        Reservar é grátis. Sem cartão.
+                        {garantiaValor > 0
+                          ? `Garantia de ${brl(garantiaValor)}, descontada da conta no dia.`
+                          : "Reservar é grátis neste restaurante."}
+                      </p>
+                    </div>
+                  </Tela>
+                )}
+
+                {tela === "garantia" && horario && (
+                  <Tela
+                    titulo="Garantia da reserva"
+                    sub={`${rest.nome} · ${localTime(horario)} · ${pessoas} pessoas`}
+                    voltar={() => setTela("hold")}
+                  >
+                    <div className="rounded-2xl bg-[#021E34] p-4 text-white">
+                      <p className="text-sm opacity-80">Valor da garantia</p>
+                      <p className="font-display text-3xl tracking-[-0.03em]">
+                        {brl(garantiaValor)}
+                      </p>
+                      <p className="mt-1 text-xs opacity-80">
+                        Vira crédito na conta da mesa · segurado por {Math.floor(restante / 60)}:
+                        {String(restante % 60).padStart(2, "0")}
+                      </p>
+                    </div>
+                    <ul className="mt-3 space-y-1.5 text-[0.75rem] leading-snug text-[#021E34]">
+                      {guaranteePolicyLines(garSettings(rest), pessoas)
+                        .slice(1)
+                        .map((l) => (
+                          <li key={l} className="flex gap-2">
+                            <span
+                              aria-hidden
+                              className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#0FC9BD]"
+                            />
+                            {l}
+                          </li>
+                        ))}
+                    </ul>
+                    <div
+                      className="mt-3 grid gap-1.5"
+                      role="radiogroup"
+                      aria-label="Forma de pagamento da garantia"
+                    >
+                      {METODOS.filter((m) => m.id !== "estabelecimento").map((m) => (
+                        <button
+                          key={m.id}
+                          type="button"
+                          role="radio"
+                          aria-checked={metodoGar === m.id}
+                          onClick={() => setMetodoGar(m.id)}
+                          className={cn(
+                            "flex items-center justify-between rounded-xl border px-3 py-2 text-left",
+                            metodoGar === m.id
+                              ? "border-[#021E34] bg-[#021E34] text-white"
+                              : "border-[#021E34]/12",
+                          )}
+                        >
+                          <span className="text-sm font-semibold">{m.nome}</span>
+                          <span
+                            className={cn(
+                              "text-[0.65rem]",
+                              metodoGar === m.id ? "text-white/70" : "text-[#5b6b78]",
+                            )}
+                          >
+                            {m.desc}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                    <label className="mt-3 flex items-start gap-2 text-xs leading-relaxed">
+                      <input
+                        type="checkbox"
+                        checked={aceitouRegras}
+                        onChange={(e) => setAceitouRegras(e.target.checked)}
+                        className="mt-0.5 h-4 w-4"
+                      />
+                      Li e aceito as regras da garantia, inclusive a perda do valor se eu não
+                      comparecer.
+                    </label>
+                    <div className="mt-auto pt-3">
+                      <button
+                        type="button"
+                        onClick={confirmar}
+                        disabled={!metodoGar || !aceitouRegras}
+                        className="min-h-12 w-full rounded-full bg-[#0FC9BD] font-semibold text-[#021E34] disabled:opacity-50"
+                      >
+                        Pagar {brl(garantiaValor)} e confirmar
+                      </button>
+                      <p className="mt-2 text-center text-[0.7rem] text-[#5b6b78]">
+                        Simulação: nenhuma cobrança real acontece.
                       </p>
                     </div>
                   </Tela>
@@ -702,6 +835,16 @@ export function SimuladorGuest() {
                               const d = localInstant(dia, espera.hora);
                               setHorario(d);
                               setEspera(null);
+                              if (garantiaValor > 0) {
+                                setRestante(HOLD_SEG);
+                                setMetodoGar(null);
+                                setAceitouRegras(false);
+                                setTela("garantia");
+                                anotar(
+                                  `${nome || "Cliente"} aceitou a vaga da lista de espera e está pagando a garantia`,
+                                );
+                                return;
+                              }
                               const r: Reserva = {
                                 codigo: `TG-${seq.current++}`,
                                 restaurante: rest,
@@ -711,6 +854,7 @@ export function SimuladorGuest() {
                                 nome: nome.trim() || "Cliente",
                                 ocasiao,
                                 status: "confirmada",
+                                garantia: 0,
                               };
                               setReserva(r);
                               setTela("confirmada");
@@ -732,7 +876,14 @@ export function SimuladorGuest() {
                 )}
 
                 {tela === "confirmada" && reserva && (
-                  <Tela titulo="Reserva confirmada" sub={reserva.restaurante.nome}>
+                  <Tela
+                    titulo={
+                      reserva.status === "nao_compareceu"
+                        ? "Ausência registrada"
+                        : "Reserva confirmada"
+                    }
+                    sub={reserva.restaurante.nome}
+                  >
                     <div className="rounded-2xl bg-[#e6faf8] p-4">
                       <BadgeCheck className="h-7 w-7 text-[#03665f]" aria-hidden />
                       <p className="mt-2 font-display text-2xl tracking-[-0.03em]">
@@ -743,6 +894,13 @@ export function SimuladorGuest() {
                         {reserva.ocasiao !== OCASIOES[0] ? ` · ${reserva.ocasiao}` : ""}
                       </p>
                       <p className="mt-2 text-xs text-[#5b6b78]">Código {reserva.codigo}</p>
+                      {reserva.garantia > 0 && (
+                        <p className="mt-2 rounded-lg bg-white/70 px-2.5 py-1.5 text-xs text-[#021E34]">
+                          {reserva.garantiaFim === "retida"
+                            ? `Garantia de ${brl(reserva.garantia)} ficou com o restaurante.`
+                            : `Garantia de ${brl(reserva.garantia)} paga. Vira crédito na conta da mesa.`}
+                        </p>
+                      )}
                     </div>
                     <p className="mt-3 flex items-center gap-2 text-sm">
                       <MapPin className="h-4 w-4" aria-hidden /> {reserva.restaurante.bairro},
@@ -752,7 +910,7 @@ export function SimuladorGuest() {
                       <CalendarDays className="h-4 w-4" aria-hidden /> Status:{" "}
                       {RESERVATION_STATUS_LABEL[reserva.status]}
                     </p>
-                    {reserva.status === "confirmada" && (
+                    {reserva.status === "confirmada" && reserva.garantia === 0 && (
                       <button
                         type="button"
                         onClick={() => {
@@ -778,13 +936,71 @@ export function SimuladorGuest() {
                         Cancelar reserva
                       </button>
                     )}
+                    {reserva.status === "confirmada" &&
+                      reserva.garantia > 0 &&
+                      (() => {
+                        const fim = guaranteeOutcome({
+                          event: "cancelada_cliente",
+                          start: reserva.inicio,
+                          at: new Date(),
+                          refundCutoffMin: SETTINGS.cancelCutoffMin,
+                        });
+                        const cancelar = () => {
+                          anotar(
+                            `${reserva.nome} cancelou pelo app; garantia de ${brl(reserva.garantia)} ${fim === "devolvida" ? "devolvida" : "retida pelo restaurante (fora do prazo)"}; mesa ${reserva.mesa} livre`,
+                          );
+                          setReserva(null);
+                          setConfirmarCancelar(false);
+                          setAviso(
+                            fim === "devolvida"
+                              ? `Reserva cancelada. Devolvemos ${brl(reserva.garantia)}.`
+                              : `Reserva cancelada fora do prazo. A garantia ficou com o restaurante.`,
+                          );
+                          setTela("restaurante");
+                        };
+                        return confirmarCancelar ? (
+                          <div className="mt-4 rounded-xl border border-[#021E34]/12 p-3 text-xs">
+                            <p>
+                              {fim === "devolvida"
+                                ? `Cancelar agora devolve ${brl(reserva.garantia)}.`
+                                : `Fora do prazo: a garantia de ${brl(reserva.garantia)} não é devolvida.`}
+                            </p>
+                            <div className="mt-2 grid grid-cols-2 gap-2">
+                              <button
+                                type="button"
+                                onClick={() => setConfirmarCancelar(false)}
+                                className="min-h-10 rounded-full border border-[#021E34]/20 font-medium"
+                              >
+                                Manter
+                              </button>
+                              <button
+                                type="button"
+                                onClick={cancelar}
+                                className="min-h-10 rounded-full bg-[#b42318] font-semibold text-white"
+                              >
+                                Cancelar reserva
+                              </button>
+                            </div>
+                          </div>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setConfirmarCancelar(true)}
+                            className="mt-4 min-h-11 w-full rounded-full border border-[#021E34]/20 text-sm font-medium"
+                          >
+                            Cancelar reserva
+                          </button>
+                        );
+                      })()}
                     {aviso && <p className="mt-2 text-xs text-amber-800">{aviso}</p>}
                     <p className="mt-auto rounded-xl bg-[#f4f6f8] px-3 py-2.5 text-xs text-[#5b6b78]">
                       {reserva.status === "confirmada"
                         ? "Chegou ao restaurante? No painel ao lado, marque a chegada e leve o grupo à mesa."
                         : reserva.status === "chegou"
                           ? "A equipe já viu que você chegou. Agora é só levar à mesa no painel."
-                          : "Bom apetite!"}
+                          : reserva.status === "nao_compareceu"
+                            ? "O restaurante marcou ausência. Pelas regras aceitas, a garantia não é devolvida."
+                            : "Bom apetite!"}
                     </p>
                   </Tela>
                 )}
@@ -810,9 +1026,15 @@ export function SimuladorGuest() {
                         <span>Serviço (10%)</span>
                         <span className="tabular-nums">{brl(servico)}</span>
                       </li>
+                      {credito.used > 0 && (
+                        <li className="flex justify-between gap-2 px-3 py-2 text-[#03665f]">
+                          <span>Crédito da garantia</span>
+                          <span className="tabular-nums">−{brl(credito.used)}</span>
+                        </li>
+                      )}
                       <li className="flex justify-between gap-2 px-3 py-2 font-semibold">
-                        <span>Total</span>
-                        <span className="tabular-nums">{brl(total)}</span>
+                        <span>{credito.used > 0 ? "A pagar" : "Total"}</span>
+                        <span className="tabular-nums">{brl(credito.toPay)}</span>
                       </li>
                     </ul>
                     {tela === "mesa" ? (
@@ -821,7 +1043,7 @@ export function SimuladorGuest() {
                         onClick={() => setTela("metodos")}
                         className="mt-auto min-h-12 w-full rounded-full bg-[#021E34] font-semibold text-white"
                       >
-                        Pagar {brl(total)}
+                        Pagar {brl(credito.toPay)}
                       </button>
                     ) : (
                       <div className="mt-3 grid gap-1.5">
@@ -1026,6 +1248,31 @@ export function SimuladorGuest() {
                       >
                         Marcar chegada
                       </BotaoPainel>
+                    )}
+                    {reserva.status === "confirmada" && reserva.garantia > 0 && (
+                      <BotaoPainel
+                        onClick={() => {
+                          setReserva((r) =>
+                            r ? { ...r, status: "nao_compareceu", garantiaFim: "retida" } : r,
+                          );
+                          anotar(
+                            `${reserva.nome} não compareceu; garantia de ${brl(reserva.garantia)} retida para o restaurante (simulado, no real só depois do horário)`,
+                          );
+                          if (tela !== "confirmada") setTela("confirmada");
+                        }}
+                      >
+                        Simular ausência
+                      </BotaoPainel>
+                    )}
+                    {reserva.garantia > 0 && (
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        Garantia {brl(reserva.garantia)} ·{" "}
+                        {reserva.garantiaFim === "retida"
+                          ? "retida (ausência)"
+                          : reserva.status === "sentada" || reserva.status === "concluida"
+                            ? "virou crédito na conta"
+                            : "paga, aguardando o dia"}
+                      </p>
                     )}
                     {reserva.status === "chegou" && (
                       <BotaoPainel
