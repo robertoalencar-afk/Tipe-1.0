@@ -296,26 +296,40 @@ export const transcribeLebreAudio = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { enforceRate, clientIp } = await import("./security.server");
     await enforceRate(`lebre-audio:${clientIp()}`, 10, 60);
+    // A transcrição usa o Whisper do Workers AI (Cloudflare), de preferência pelo binding do Worker
+    // (sem token), e conta no teto diário grátis.
+    const { aiBinding, consumeProviderQuota, cloudflareDailyLimit } = await import("./ai.server");
+    const binding = aiBinding();
     const accountId = process.env["CLOUDFLARE_ACCOUNT_ID"];
     const token = process.env["CLOUDFLARE_AI_TOKEN"];
-    if (!accountId || !token) throw new Error("O áudio ainda não está disponível. Escreva sua pergunta.");
-    // A transcrição usa o Whisper do Workers AI (Cloudflare) e conta no teto diário grátis.
-    const { consumeProviderQuota, cloudflareDailyLimit } = await import("./ai.server");
+    if (!binding && (!accountId || !token)) throw new Error("O áudio ainda não está disponível. Escreva sua pergunta.");
     if (!(await consumeProviderQuota("cloudflare", cloudflareDailyLimit()))) throw new Error("O áudio da Lebre descansa por hoje. Escreva sua pergunta.");
-    const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/openai/whisper-large-v3-turbo`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        audio: data.base64,
-        language: "pt",
-        initial_prompt: "Conversa com a Lebre, assistente da TIPE (marca pronunciada \"tchípi\", escrita TIPE). Termos: TIPE, Lebre, mesa, garçom, restaurante, PDV, Pix, QR Code, gorjeta, cardápio.",
-      }),
-    });
-    if (!response.ok) {
-      console.error("lebre transcription", response.status, (await response.text()).slice(0, 300));
-      throw new Error(response.status === 429 ? "Muitos áudios agora. Tente em instantes." : "Não consegui entender o áudio. Tente de novo ou escreva.");
+    const whisper = "@cf/openai/whisper-large-v3-turbo";
+    const input = {
+      audio: data.base64,
+      language: "pt",
+      initial_prompt: "Conversa com a Lebre, assistente da TIPE (marca pronunciada \"tchípi\", escrita TIPE). Termos: TIPE, Lebre, mesa, garçom, restaurante, PDV, Pix, QR Code, gorjeta, cardápio.",
+    };
+    let body: { text?: string };
+    if (binding) {
+      try {
+        body = (await binding.run(whisper, input)) as { text?: string };
+      } catch (error) {
+        console.error("lebre transcription", error);
+        throw new Error("Não consegui entender o áudio. Tente de novo ou escreva.");
+      }
+    } else {
+      const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${whisper}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      });
+      if (!response.ok) {
+        console.error("lebre transcription", response.status, (await response.text()).slice(0, 300));
+        throw new Error(response.status === 429 ? "Muitos áudios agora. Tente em instantes." : "Não consegui entender o áudio. Tente de novo ou escreva.");
+      }
+      body = ((await response.json()) as { result?: { text?: string } }).result ?? {};
     }
-    const body = ((await response.json()) as { result?: { text?: string } }).result ?? {};
     const text = fixBrand(body.text?.trim() ?? "");
     if (!text) throw new Error("Não ouvi nada no áudio. Tente falar mais perto do microfone.");
     return { text: text.slice(0, 600) };

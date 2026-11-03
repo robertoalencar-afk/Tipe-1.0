@@ -83,4 +83,27 @@ describe("askAI", () => {
       image_url: { url: "data:image/png;base64,AAAA" },
     });
   });
+
+  it("usa o binding do Worker sem token e ainda respeita o teto", async () => {
+    vi.stubEnv("CLOUDFLARE_AI_TOKEN", "");
+    const run = vi.fn().mockResolvedValue({ response: "oi do binding" });
+    vi.stubGlobal("__env__", { AI: { run } });
+    await expect(askAI({ system: "s", question: "q" })).resolves.toBe("oi do binding");
+    expect(run).toHaveBeenCalledWith(
+      "@cf/meta/llama-4-scout-17b-16e-instruct",
+      expect.objectContaining({ max_tokens: 800 }),
+    );
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(rpc).toHaveBeenCalledWith("ai_provider_consume", {
+      p_provider: "cloudflare",
+      p_limit: 150,
+    });
+  });
+
+  it("passa para o Groq quando o binding falha", async () => {
+    vi.stubGlobal("__env__", { AI: { run: vi.fn().mockRejectedValue(new Error("3036: limite")) } });
+    fetchMock.mockResolvedValueOnce(ok("oi do groq"));
+    await expect(askAI({ system: "s", question: "q" })).resolves.toBe("oi do groq");
+    expect(host(fetchMock.mock.calls[0]!)).toBe("api.groq.com");
+  });
 });
