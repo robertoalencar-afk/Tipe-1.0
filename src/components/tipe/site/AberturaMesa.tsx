@@ -9,7 +9,6 @@ import { Check, Heart, Star, Divide } from "lucide-react";
 import { Palavras } from "@/components/tipe/landing/motion";
 import { TRIAL_DAYS } from "@/lib/tipe/plans";
 import { cn } from "@/lib/utils";
-import { Focinho } from "./Bigode";
 import { CelularReal, useSequencia, type EtapaCelular } from "./CelularReal";
 import { Foto } from "./Foto";
 import { BotaoPrincipal, BotaoSecundario } from "./Site";
@@ -164,7 +163,6 @@ export function AberturaMesa() {
               <Palavras imediato delay={340}>
                 Sem esperar.
               </Palavras>
-              <Focinho className="ml-[0.1em] inline-block h-[0.52em] w-[0.98em] align-[0.04em]" />
             </span>
           </h1>
           <p

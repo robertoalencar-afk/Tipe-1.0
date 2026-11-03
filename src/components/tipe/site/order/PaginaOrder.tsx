@@ -182,7 +182,7 @@ function Topo({ p, estado }: { p: Produto; estado: EstadoLancamento }) {
             className="hero-in mt-6 max-w-md text-sm leading-relaxed text-muted-foreground"
             style={{ "--d": "700ms" } as CSSProperties}
           >
-            {t.fase} As telas são do Tipe Order de verdade, com dados de exemplo.
+            {t.fase} Pratos e preços de exemplo.
           </p>
         </div>
       </div>
@@ -216,7 +216,7 @@ const PASSOS: {
     icone: ClipboardList,
     tela: "order-story-baiao",
     alt: "Cardápio em stories com a foto do Baião de dois e o botão Adicionar por R$ 42,00 (dados de exemplo)",
-    rotulo: "Tela do Tipe Order · dados de exemplo",
+    rotulo: "Cardápio em stories",
   },
   {
     n: "03",
@@ -225,7 +225,7 @@ const PASSOS: {
     icone: UtensilsCrossed,
     tela: "order-cozinha",
     alt: "Pedido enviado: 2 itens foram para a cozinha e já estão na conta da mesa (dados de exemplo)",
-    rotulo: "Tela do Tipe Order · dados de exemplo",
+    rotulo: "Direto para a cozinha",
   },
   {
     n: "04",
@@ -234,7 +234,7 @@ const PASSOS: {
     icone: Wallet,
     tela: "order-conta",
     alt: "Conta da Mesa 12 com o pastel de camarão, o serviço e o botão Pagar R$ 74,80 (dados de exemplo)",
-    rotulo: "Tela do Tipe Order · dados de exemplo",
+    rotulo: "A conta da mesa",
   },
 ];
 
