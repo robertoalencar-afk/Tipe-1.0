@@ -1,7 +1,8 @@
 // Tipe Guest · taxa de garantia da reserva (modelo OpenTable). Regras puras, em centavos.
 // O cliente paga um valor simbólico para confirmar; no dia ele vira crédito na conta da mesa.
 // Cancelou no prazo ou o restaurante cancelou: devolução integral. Cancelou fora do prazo ou não
-// apareceu: o valor fica com o restaurante. Pagamento só por Pix, Apple Pay ou Google Pay.
+// apareceu: o valor fica com o Tipe (decisão do Roberto, 03/11). Estornos: a tarifa é do Tipe.
+// Pagamento só por Pix, Apple Pay ou Google Pay.
 
 const MIN = 60_000;
 
@@ -66,7 +67,7 @@ export function guaranteePolicyLines(s: GuaranteeSettings, party: number) {
     `Você paga ${brl(total)} agora (${brl(s.perPersonCents)} por pessoa) para confirmar a reserva.`,
     `No dia, o valor vira crédito e é descontado da conta da mesa.`,
     `Cancelou até ${prazo(s.refundCutoffMin)} antes do horário: devolvemos tudo.`,
-    `Cancelou depois disso ou não compareceu: o valor fica com o restaurante.`,
+    `Cancelou depois disso ou não compareceu: o valor não é devolvido.`,
     `Se o restaurante cancelar, você recebe tudo de volta.`,
   ];
 }

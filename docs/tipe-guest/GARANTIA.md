@@ -9,8 +9,8 @@ crédito na conta. O cliente é informado de que perde o valor se não comparece
 |---|---|
 | Cliente senta à mesa | Vira crédito e é abatida da conta (sobra volta ao cliente) |
 | Cliente cancela até o prazo (padrão 2 h antes) | Devolvida integralmente |
-| Cliente cancela depois do prazo | Fica com o restaurante |
-| Cliente não comparece (marcado só depois do horário) | Fica com o restaurante |
+| Cliente cancela depois do prazo | Fica com o Tipe |
+| Cliente não comparece (marcado só depois do horário) | Fica com o Tipe |
 | Restaurante cancela | Devolvida integralmente |
 
 - Valor por pessoa definido pelo restaurante (R$ 5 a R$ 100; 0 = sem garantia). Exemplo do simulador: R$ 10.
@@ -39,8 +39,12 @@ crédito na conta. O cliente é informado de que perde o valor se não comparece
 5. **Empresas virtuais** (teste-tipe, bistro-teste, bar-teste): aprovação instantânea, como no Tipe Pay.
 6. **Cobrança real** depende das chaves do Pagar.me (ainda pendentes).
 
-## Decisões em aberto
+## Decisões do Roberto (03/11/2026)
 
-- Quem paga a tarifa do Pix/carteira quando há estorno (restaurante ou Tipe).
-- Se o Tipe fica com parte do valor retido em ausência, ou se vai tudo para o restaurante (o plano assume
-  tudo para o restaurante).
+- O dinheiro da garantia fica com o Tipe: o Tipe recebe a garantia, retém em ausência ou cancelamento fora do
+  prazo e, quando o cliente senta, repassa o valor ao restaurante como parte do pagamento da conta.
+- Se houver estorno, a tarifa é paga pelo Tipe.
+- Na conta da mesa do Tipe Pay há uma aba **Tipe Guest**. Quando a mesa é aberta pela reserva (check-in no
+  painel, que já grava `seated_table_id`), a conta reconhece o cliente e aplica o desconto sozinha. Se a mesa
+  foi aberta sem passar pela reserva, o garçom vincula pelo código da reserva.
+- Pendente: como calcular o valor (card enviado; recomendação: por pessoa, definido pelo restaurante).

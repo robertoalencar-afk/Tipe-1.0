@@ -911,7 +911,7 @@ export const PRODUTOS: Produto[] = [
       ],
       [
         "O cliente paga para reservar?",
-        "Só se o restaurante pedir uma garantia, um valor simbólico por pessoa pago com Pix, Apple Pay ou Google Pay. No dia, o valor vira crédito na conta. Cancelou no prazo, recebe tudo de volta; não compareceu ou cancelou fora do prazo, o valor fica com o restaurante. As regras aparecem antes de pagar.",
+        "Só se o restaurante pedir uma garantia, um valor simbólico por pessoa pago com Pix, Apple Pay ou Google Pay. No dia, o valor vira crédito na conta. Cancelou no prazo, recebe tudo de volta; não compareceu ou cancelou fora do prazo, o valor não é devolvido. As regras aparecem antes de pagar.",
       ],
       [
         "E se o horário estiver lotado?",

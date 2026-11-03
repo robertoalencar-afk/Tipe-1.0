@@ -252,6 +252,7 @@ export function SimuladorGuest() {
   const [metodoGar, setMetodoGar] = useState<Metodo | null>(null);
   const [aceitouRegras, setAceitouRegras] = useState(false);
   const [confirmarCancelar, setConfirmarCancelar] = useState(false);
+  const [abaMesa, setAbaMesa] = useState<"conta" | "guest">("guest");
   const [pago, setPago] = useState(0);
   const [gorjeta, setGorjeta] = useState<number | null>(null);
   const [outro, setOutro] = useState("");
@@ -897,7 +898,7 @@ export function SimuladorGuest() {
                       {reserva.garantia > 0 && (
                         <p className="mt-2 rounded-lg bg-white/70 px-2.5 py-1.5 text-xs text-[#021E34]">
                           {reserva.garantiaFim === "retida"
-                            ? `Garantia de ${brl(reserva.garantia)} ficou com o restaurante.`
+                            ? `Garantia de ${brl(reserva.garantia)} não foi devolvida (ausência).`
                             : `Garantia de ${brl(reserva.garantia)} paga. Vira crédito na conta da mesa.`}
                         </p>
                       )}
@@ -947,14 +948,14 @@ export function SimuladorGuest() {
                         });
                         const cancelar = () => {
                           anotar(
-                            `${reserva.nome} cancelou pelo app; garantia de ${brl(reserva.garantia)} ${fim === "devolvida" ? "devolvida" : "retida pelo restaurante (fora do prazo)"}; mesa ${reserva.mesa} livre`,
+                            `${reserva.nome} cancelou pelo app; garantia de ${brl(reserva.garantia)} ${fim === "devolvida" ? "devolvida" : "retida pelo Tipe (fora do prazo)"}; mesa ${reserva.mesa} livre`,
                           );
                           setReserva(null);
                           setConfirmarCancelar(false);
                           setAviso(
                             fim === "devolvida"
                               ? `Reserva cancelada. Devolvemos ${brl(reserva.garantia)}.`
-                              : `Reserva cancelada fora do prazo. A garantia ficou com o restaurante.`,
+                              : `Reserva cancelada fora do prazo. A garantia não é devolvida.`,
                           );
                           setTela("restaurante");
                         };
@@ -1010,76 +1011,153 @@ export function SimuladorGuest() {
                     titulo={`Mesa ${reserva.mesa}`}
                     sub={`${reserva.restaurante.nome} · atendida por ${reserva.restaurante.garcom}`}
                   >
-                    <p className="text-sm">Olá, {reserva.nome}! A conta da mesa abre aqui.</p>
-                    <ul className="mt-3 divide-y divide-[#021E34]/8 rounded-2xl border border-[#021E34]/10 text-sm">
-                      {reserva.restaurante.cardapio.map((i) => (
-                        <li key={i.nome} className="flex justify-between gap-2 px-3 py-2">
-                          <span>
-                            {Math.max(1, Math.ceil(reserva.pessoas / 2))}× {i.nome}
-                          </span>
-                          <span className="tabular-nums">
-                            {brl(i.preco * Math.max(1, Math.ceil(reserva.pessoas / 2)))}
-                          </span>
-                        </li>
-                      ))}
-                      <li className="flex justify-between gap-2 px-3 py-2 text-[#5b6b78]">
-                        <span>Serviço (10%)</span>
-                        <span className="tabular-nums">{brl(servico)}</span>
-                      </li>
-                      {credito.used > 0 && (
-                        <li className="flex justify-between gap-2 px-3 py-2 text-[#03665f]">
-                          <span>Crédito da garantia</span>
-                          <span className="tabular-nums">−{brl(credito.used)}</span>
-                        </li>
-                      )}
-                      <li className="flex justify-between gap-2 px-3 py-2 font-semibold">
-                        <span>{credito.used > 0 ? "A pagar" : "Total"}</span>
-                        <span className="tabular-nums">{brl(credito.toPay)}</span>
-                      </li>
-                    </ul>
-                    {tela === "mesa" ? (
-                      <button
-                        type="button"
-                        onClick={() => setTela("metodos")}
-                        className="mt-auto min-h-12 w-full rounded-full bg-[#021E34] font-semibold text-white"
+                    {reserva.garantia > 0 && (
+                      <div
+                        role="tablist"
+                        aria-label="Conta da mesa"
+                        className="mb-3 grid grid-cols-2 rounded-full bg-[#f4f6f8] p-1 text-xs font-semibold"
                       >
-                        Pagar {brl(credito.toPay)}
-                      </button>
-                    ) : (
-                      <div className="mt-3 grid gap-1.5">
-                        {METODOS.map((m) => (
+                        {(
+                          [
+                            ["conta", "Conta da mesa"],
+                            ["guest", "Tipe Guest"],
+                          ] as const
+                        ).map(([k, l]) => (
                           <button
-                            key={m.id}
+                            key={k}
                             type="button"
-                            onClick={() => setMetodo(m.id)}
-                            aria-pressed={metodo === m.id}
+                            role="tab"
+                            aria-selected={abaMesa === k}
+                            onClick={() => setAbaMesa(k)}
                             className={cn(
-                              "flex items-center justify-between rounded-xl border px-3 py-2 text-left",
-                              metodo === m.id
-                                ? "border-[#021E34] bg-[#021E34] text-white"
-                                : "border-[#021E34]/12",
+                              "min-h-9 rounded-full",
+                              abaMesa === k ? "bg-[#021E34] text-white" : "text-[#5b6b78]",
                             )}
                           >
-                            <span className="text-sm font-semibold">{m.nome}</span>
-                            <span
-                              className={cn(
-                                "text-[0.65rem]",
-                                metodo === m.id ? "text-white/70" : "text-[#5b6b78]",
-                              )}
-                            >
-                              {m.desc}
-                            </span>
+                            {l}
                           </button>
                         ))}
+                      </div>
+                    )}
+                    {reserva.garantia > 0 && abaMesa === "guest" ? (
+                      <div className="flex flex-1 flex-col">
+                        <div className="rounded-2xl bg-[#e6faf8] p-4">
+                          <BadgeCheck className="h-6 w-6 text-[#03665f]" aria-hidden />
+                          <p className="mt-2 font-display text-lg tracking-[-0.02em]">
+                            Reserva reconhecida
+                          </p>
+                          <p className="mt-1 text-sm">
+                            {reserva.codigo} · {reserva.nome} · {reserva.pessoas} pessoas
+                          </p>
+                          <p className="mt-2 text-xs text-[#5b6b78]">
+                            A mesa {reserva.mesa} foi aberta pela sua reserva, então o desconto
+                            entrou sozinho.
+                          </p>
+                        </div>
+                        <ul className="mt-3 divide-y divide-[#021E34]/8 rounded-2xl border border-[#021E34]/10 text-sm">
+                          <li className="flex justify-between gap-2 px-3 py-2">
+                            <span>Garantia paga</span>
+                            <span className="tabular-nums">{brl(reserva.garantia)}</span>
+                          </li>
+                          <li className="flex justify-between gap-2 px-3 py-2 text-[#03665f]">
+                            <span>Desconto nesta conta</span>
+                            <span className="tabular-nums">−{brl(credito.used)}</span>
+                          </li>
+                          {credito.refund > 0 && (
+                            <li className="flex justify-between gap-2 px-3 py-2">
+                              <span>Devolvido a você</span>
+                              <span className="tabular-nums">{brl(credito.refund)}</span>
+                            </li>
+                          )}
+                        </ul>
+                        <p className="mt-3 text-[0.7rem] text-[#5b6b78]">
+                          Chegou sem passar pela recepção? Mostre o código {reserva.codigo} ao
+                          garçom e o desconto entra na conta.
+                        </p>
                         <button
                           type="button"
-                          onClick={pagar}
-                          disabled={!metodo}
-                          className="mt-1 min-h-12 w-full rounded-full bg-[#0FC9BD] font-semibold text-[#021E34] disabled:opacity-50"
+                          onClick={() => setAbaMesa("conta")}
+                          className="mt-auto min-h-12 w-full rounded-full bg-[#021E34] font-semibold text-white"
                         >
-                          {metodo === "estabelecimento" ? "Avisar o garçom" : "Pagar (simulação)"}
+                          Ver a conta com desconto
                         </button>
                       </div>
+                    ) : (
+                      <>
+                        <p className="text-sm">Olá, {reserva.nome}! A conta da mesa abre aqui.</p>
+                        <ul className="mt-3 divide-y divide-[#021E34]/8 rounded-2xl border border-[#021E34]/10 text-sm">
+                          {reserva.restaurante.cardapio.map((i) => (
+                            <li key={i.nome} className="flex justify-between gap-2 px-3 py-2">
+                              <span>
+                                {Math.max(1, Math.ceil(reserva.pessoas / 2))}× {i.nome}
+                              </span>
+                              <span className="tabular-nums">
+                                {brl(i.preco * Math.max(1, Math.ceil(reserva.pessoas / 2)))}
+                              </span>
+                            </li>
+                          ))}
+                          <li className="flex justify-between gap-2 px-3 py-2 text-[#5b6b78]">
+                            <span>Serviço (10%)</span>
+                            <span className="tabular-nums">{brl(servico)}</span>
+                          </li>
+                          {credito.used > 0 && (
+                            <li className="flex justify-between gap-2 px-3 py-2 text-[#03665f]">
+                              <span>Desconto Tipe Guest</span>
+                              <span className="tabular-nums">−{brl(credito.used)}</span>
+                            </li>
+                          )}
+                          <li className="flex justify-between gap-2 px-3 py-2 font-semibold">
+                            <span>{credito.used > 0 ? "A pagar" : "Total"}</span>
+                            <span className="tabular-nums">{brl(credito.toPay)}</span>
+                          </li>
+                        </ul>
+                        {tela === "mesa" ? (
+                          <button
+                            type="button"
+                            onClick={() => setTela("metodos")}
+                            className="mt-auto min-h-12 w-full rounded-full bg-[#021E34] font-semibold text-white"
+                          >
+                            Pagar {brl(credito.toPay)}
+                          </button>
+                        ) : (
+                          <div className="mt-3 grid gap-1.5">
+                            {METODOS.map((m) => (
+                              <button
+                                key={m.id}
+                                type="button"
+                                onClick={() => setMetodo(m.id)}
+                                aria-pressed={metodo === m.id}
+                                className={cn(
+                                  "flex items-center justify-between rounded-xl border px-3 py-2 text-left",
+                                  metodo === m.id
+                                    ? "border-[#021E34] bg-[#021E34] text-white"
+                                    : "border-[#021E34]/12",
+                                )}
+                              >
+                                <span className="text-sm font-semibold">{m.nome}</span>
+                                <span
+                                  className={cn(
+                                    "text-[0.65rem]",
+                                    metodo === m.id ? "text-white/70" : "text-[#5b6b78]",
+                                  )}
+                                >
+                                  {m.desc}
+                                </span>
+                              </button>
+                            ))}
+                            <button
+                              type="button"
+                              onClick={pagar}
+                              disabled={!metodo}
+                              className="mt-1 min-h-12 w-full rounded-full bg-[#0FC9BD] font-semibold text-[#021E34] disabled:opacity-50"
+                            >
+                              {metodo === "estabelecimento"
+                                ? "Avisar o garçom"
+                                : "Pagar (simulação)"}
+                            </button>
+                          </div>
+                        )}
+                      </>
                     )}
                   </Tela>
                 )}
@@ -1256,7 +1334,7 @@ export function SimuladorGuest() {
                             r ? { ...r, status: "nao_compareceu", garantiaFim: "retida" } : r,
                           );
                           anotar(
-                            `${reserva.nome} não compareceu; garantia de ${brl(reserva.garantia)} retida para o restaurante (simulado, no real só depois do horário)`,
+                            `${reserva.nome} não compareceu; garantia de ${brl(reserva.garantia)} retida pelo Tipe (simulado, no real só depois do horário)`,
                           );
                           if (tela !== "confirmada") setTela("confirmada");
                         }}
@@ -1280,8 +1358,12 @@ export function SimuladorGuest() {
                         onClick={() => {
                           mudarStatus(
                             "sentada",
-                            `${reserva.nome} levado à mesa ${reserva.mesa}; a conta da mesa abriu no app`,
+                            `${reserva.nome} levado à mesa ${reserva.mesa}; a conta da mesa abriu no app` +
+                              (reserva.garantia > 0
+                                ? ` e reconheceu a reserva: desconto Tipe Guest de ${brl(reserva.garantia)}`
+                                : ""),
                           );
+                          setAbaMesa(reserva.garantia > 0 ? "guest" : "conta");
                           setTela("mesa");
                         }}
                       >
