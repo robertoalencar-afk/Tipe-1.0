@@ -16,6 +16,7 @@ import mp4 from "@/assets/video/produto-fluxo.mp4";
 import webm from "@/assets/video/produto-fluxo.webm";
 import poster from "@/assets/video/produto-fluxo-poster.webp";
 import { reduzMovimento } from "./movimento";
+import { tocarMudo } from "./videoAuto";
 
 const W = 1080;
 const H = 1350;
@@ -58,7 +59,8 @@ export function VideoProduto({ className }: { className?: string }) {
     const io = new IntersectionObserver(
       ([e]) => {
         visivel.current = !!e?.isIntersecting;
-        if (visivel.current && !pausadoPelaPessoa.current) v.play().catch(() => undefined);
+        if (visivel.current && !pausadoPelaPessoa.current)
+          tocarMudo(v, () => visivel.current && !pausadoPelaPessoa.current);
         else v.pause();
       },
       { threshold: 0.35 },
@@ -87,7 +89,10 @@ export function VideoProduto({ className }: { className?: string }) {
   return (
     <div
       ref={caixa}
-      className={cn("relative overflow-hidden rounded-[1.75rem] bg-[#0FC9BD] sm:rounded-[2.25rem]", className)}
+      className={cn(
+        "relative overflow-hidden rounded-[1.75rem] bg-[#0FC9BD] sm:rounded-[2.25rem]",
+        className,
+      )}
       style={{ aspectRatio: `${W} / ${H}` }}
     >
       <video

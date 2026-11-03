@@ -17,6 +17,7 @@ import mp4Alto from "@/assets/video/lebre-tartaruga-4x5.mp4";
 import webmAlto from "@/assets/video/lebre-tartaruga-4x5.webm";
 import posterAlto from "@/assets/video/poster-4x5.webp";
 import { reduzMovimento } from "./movimento";
+import { tocarMudo } from "./videoAuto";
 
 const FORMATOS = {
   largo: { mp4: mp4Largo, webm: webmLargo, poster: posterLargo, w: 1600, h: 900 },
@@ -28,6 +29,7 @@ export function VideoLebre({ className }: { className?: string }) {
   const [formato, setFormato] = useState<keyof typeof FORMATOS>("largo");
   const [tocando, setTocando] = useState(false);
   const pausadoPelaPessoa = useRef(false);
+  const visivel = useRef(false);
 
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
@@ -47,7 +49,9 @@ export function VideoLebre({ className }: { className?: string }) {
     }
     const io = new IntersectionObserver(
       ([e]) => {
-        if (e?.isIntersecting && !pausadoPelaPessoa.current) v.play().catch(() => undefined);
+        visivel.current = !!e?.isIntersecting;
+        if (visivel.current && !pausadoPelaPessoa.current)
+          tocarMudo(v, () => visivel.current && !pausadoPelaPessoa.current);
         else v.pause();
       },
       { threshold: 0.35 },
