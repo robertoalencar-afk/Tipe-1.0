@@ -24,15 +24,24 @@ async function limit(action: string, userId: string | null, max: number) {
   if (userId) await enforceRate(`guest:${action}:user:${userId}`, max, 60);
 }
 
-export async function createHold(a: { restaurantId: string; userId: string | null; sessionKey: string; party: number; start: string }) {
+export async function createHold(a: {
+  restaurantId: string;
+  userId: string | null;
+  sessionKey: string;
+  party: number;
+  start: string;
+}) {
   await limit("hold", a.userId, 10);
-  const rows = await rpc<{ hold_id: string; expires_at: string; table_ids: string[] }[]>("guest_create_hold", {
-    p_restaurant_id: a.restaurantId,
-    p_guest_user_id: a.userId,
-    p_session_key: a.sessionKey,
-    p_party: a.party,
-    p_start: a.start,
-  });
+  const rows = await rpc<{ hold_id: string; expires_at: string; table_ids: string[] }[]>(
+    "guest_create_hold",
+    {
+      p_restaurant_id: a.restaurantId,
+      p_guest_user_id: a.userId,
+      p_session_key: a.sessionKey,
+      p_party: a.party,
+      p_start: a.start,
+    },
+  );
   const h = rows[0];
   if (!h) throw new ReservationError("Não foi possível segurar o horário");
   return { holdId: h.hold_id, expiresAt: h.expires_at };
@@ -62,7 +71,12 @@ export async function confirmReservation(a: {
   });
 }
 
-export async function cancelReservation(a: { reservationId: string; actorId: string; by: "cliente" | "restaurante"; reason?: string }) {
+export async function cancelReservation(a: {
+  reservationId: string;
+  actorId: string;
+  by: "cliente" | "restaurante";
+  reason?: string | undefined;
+}) {
   await limit("cancel", a.actorId, 10);
   return rpc<string>("guest_cancel_reservation", {
     p_reservation_id: a.reservationId,
@@ -72,7 +86,12 @@ export async function cancelReservation(a: { reservationId: string; actorId: str
   });
 }
 
-export async function changeReservation(a: { reservationId: string; userId: string; start: string; party: number }) {
+export async function changeReservation(a: {
+  reservationId: string;
+  userId: string;
+  start: string;
+  party: number;
+}) {
   await limit("change", a.userId, 10);
   return rpc<string[]>("guest_change_reservation", {
     p_reservation_id: a.reservationId,
@@ -82,19 +101,38 @@ export async function changeReservation(a: { reservationId: string; userId: stri
   });
 }
 
-export async function setReservationStatus(a: { reservationId: string; actorId: string; to: string }) {
+export async function setReservationStatus(a: {
+  reservationId: string;
+  actorId: string;
+  to: string;
+}) {
   await limit("status", a.actorId, 60);
-  return rpc<string>("guest_set_reservation_status", { p_reservation_id: a.reservationId, p_actor: a.actorId, p_to: a.to });
+  return rpc<string>("guest_set_reservation_status", {
+    p_reservation_id: a.reservationId,
+    p_actor: a.actorId,
+    p_to: a.to,
+  });
 }
 
 export async function availableSlots(a: { restaurantId: string; day: string; party: number }) {
   await limit("slots", null, 60);
-  return rpc<string[]>("guest_available_slots", { p_restaurant_id: a.restaurantId, p_day: a.day, p_party: a.party });
+  return rpc<string[]>("guest_available_slots", {
+    p_restaurant_id: a.restaurantId,
+    p_day: a.day,
+    p_party: a.party,
+  });
 }
 
 const range = (from: string, to: string) => `[${from},${to})`;
 
-export async function joinWaitlist(a: { restaurantId: string; userId: string; name: string; party: number; from: string; to: string }) {
+export async function joinWaitlist(a: {
+  restaurantId: string;
+  userId: string;
+  name: string;
+  party: number;
+  from: string;
+  to: string;
+}) {
   await limit("waitlist", a.userId, 5);
   const rows = await rpc<{ entry_id: string; position_estimate: number }[]>("guest_join_waitlist", {
     p_restaurant_id: a.restaurantId,
@@ -106,12 +144,40 @@ export async function joinWaitlist(a: { restaurantId: string; userId: string; na
   return { entryId: rows[0]?.entry_id, positionEstimate: rows[0]?.position_estimate };
 }
 
-export async function createAlert(a: { restaurantId: string; userId: string; party: number; from: string; to: string }) {
+export async function createAlert(a: {
+  restaurantId: string;
+  userId: string;
+  party: number;
+  from: string;
+  to: string;
+}) {
   await limit("alert", a.userId, 5);
   return rpc<string>("guest_create_alert", {
     p_restaurant_id: a.restaurantId,
     p_guest_user_id: a.userId,
     p_party: a.party,
     p_wanted: range(a.from, a.to),
+  });
+}
+
+export async function seatReservation(a: {
+  reservationId: string;
+  actorId: string;
+  tableId: string;
+}) {
+  await limit("seat", a.actorId, 60);
+  return rpc<string>("guest_seat_reservation", {
+    p_reservation_id: a.reservationId,
+    p_actor: a.actorId,
+    p_table_id: a.tableId,
+  });
+}
+
+export async function callWaitlist(a: { entryId: string; actorId: string; minutes?: number }) {
+  await limit("waitlist_call", a.actorId, 30);
+  return rpc<string>("guest_call_waitlist", {
+    p_entry_id: a.entryId,
+    p_actor: a.actorId,
+    p_minutes: a.minutes ?? 15,
   });
 }

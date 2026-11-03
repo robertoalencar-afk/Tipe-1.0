@@ -61,6 +61,8 @@ CREATE TABLE IF NOT EXISTS public.guest_reservation_settings (
   hold_ttl_sec smallint NOT NULL DEFAULT 300 CHECK (hold_ttl_sec BETWEEN 60 AND 900),
   auto_confirm boolean NOT NULL DEFAULT true,
   updated_at timestamptz NOT NULL DEFAULT now(),
+  -- O dono liga quando quiser receber reservas (além da flag do ambiente, que é da equipe Tipe).
+  accepting boolean NOT NULL DEFAULT false,
   CHECK (min_party <= max_party)
 );
 
@@ -182,6 +184,9 @@ CREATE TABLE IF NOT EXISTS public.guest_reservations (
   hold_id uuid REFERENCES public.guest_holds (id) ON DELETE SET NULL,
   table_ids uuid[] NOT NULL DEFAULT '{}',
   cancel_reason text CHECK (cancel_reason IS NULL OR length(cancel_reason) <= 300),
+  -- Mesa real em que o grupo sentou (check-in). O pagamento continua lendo só a mesa.
+  seated_table_id uuid REFERENCES public.restaurant_tables (id) ON DELETE SET NULL,
+  seated_at timestamptz,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE (restaurant_id, idempotency_key)
@@ -311,7 +316,7 @@ RETURNS public.guest_reservation_settings LANGUAGE sql STABLE SECURITY DEFINER S
   -- Sem linha de configuração, valem os padrões da tabela.
   SELECT COALESCE(
     (SELECT s FROM public.guest_reservation_settings s WHERE s.restaurant_id = p_restaurant_id),
-    (p_restaurant_id, 'America/Fortaleza', 15, 90, 15, 60, 30, 1, 12, 120, 300, true, now())::public.guest_reservation_settings)
+    (p_restaurant_id, 'America/Fortaleza', 15, 90, 15, 60, 30, 1, 12, 120, 300, true, now(), false)::public.guest_reservation_settings)
 $$;
 
 -- Motivo pelo qual o horário não está aberto para o grupo (NULL = aberto). Não olha mesas.
@@ -419,6 +424,7 @@ BEGIN
   IF NOT public.guest_flag_enabled(p_restaurant_id, 'guest.reservations') THEN
     RAISE EXCEPTION 'Reservas desligadas para este restaurante';
   END IF;
+  IF NOT s.accepting THEN RAISE EXCEPTION 'Este restaurante não está aceitando reservas no momento'; END IF;
   v_reason := public.guest_slot_closed_reason(p_restaurant_id, p_start, p_party);
   IF v_reason IS NOT NULL THEN RAISE EXCEPTION '%', v_reason; END IF;
   PERFORM public.guest_release_expired_holds(p_restaurant_id);
@@ -460,7 +466,7 @@ BEGIN
   RETURNING id INTO v_id;
   UPDATE public.guest_table_allocations SET hold_id = NULL, reservation_id = v_id WHERE hold_id = h.id;
   UPDATE public.guest_holds SET released_at = now() WHERE id = h.id;
-  PERFORM public.guest_log_reservation(v_id, h.guest_user_id, 'cliente', 'criada', NULL, v_status, jsonb_build_object('party_size', h.party_size));
+  PERFORM public.guest_log_reservation(v_id, h.guest_user_id, CASE WHEN p_channel IN ('painel', 'telefone') THEN 'restaurante' ELSE 'cliente' END, 'criada', NULL, v_status, jsonb_build_object('party_size', h.party_size, 'canal', p_channel));
   RETURN v_id;
 END $$;
 
@@ -559,6 +565,37 @@ BEGIN
   END IF;
   PERFORM public.guest_log_reservation(r.id, p_actor, 'restaurante', 'estado', r.status, p_to);
   RETURN p_to;
+END $$;
+
+-- Check-in na mesa: chegou → sentada, na mesa reservada ou em outra livre do restaurante.
+-- Trocar de mesa move a ocupação; se a nova mesa estiver reservada no período, o EXCLUDE recusa.
+CREATE OR REPLACE FUNCTION public.guest_seat_reservation(p_reservation_id uuid, p_actor uuid, p_table_id uuid)
+RETURNS text LANGUAGE plpgsql SECURITY DEFINER SET search_path = public, pg_temp AS $$
+DECLARE r public.guest_reservations; v_end timestamptz;
+BEGIN
+  SELECT * INTO r FROM public.guest_reservations WHERE id = p_reservation_id FOR UPDATE;
+  IF r.id IS NULL THEN RAISE EXCEPTION 'Reserva não encontrada'; END IF;
+  IF NOT public.has_restaurant_role(p_actor, r.restaurant_id, ARRAY['owner', 'cashier', 'waiter']::app_role[]) THEN
+    RAISE EXCEPTION 'Sem permissão para operar reservas deste restaurante';
+  END IF;
+  IF r.status <> 'chegou' THEN RAISE EXCEPTION 'Marque a chegada antes de levar à mesa'; END IF;
+  IF NOT EXISTS (SELECT 1 FROM public.restaurant_tables t WHERE t.id = p_table_id AND t.restaurant_id = r.restaurant_id AND t.active) THEN
+    RAISE EXCEPTION 'Mesa não encontrada neste restaurante';
+  END IF;
+  IF NOT (p_table_id = ANY (r.table_ids)) THEN
+    v_end := greatest(now(), upper(r.slot)) + make_interval(mins => (public.guest_settings(r.restaurant_id)).buffer_min);
+    DELETE FROM public.guest_table_allocations WHERE reservation_id = r.id;
+    BEGIN
+      INSERT INTO public.guest_table_allocations (restaurant_id, table_id, occupied, reservation_id)
+      VALUES (r.restaurant_id, p_table_id, tstzrange(now(), v_end), r.id);
+    EXCEPTION WHEN exclusion_violation THEN
+      RAISE EXCEPTION 'Esta mesa está reservada para outro grupo neste período';
+    END;
+    UPDATE public.guest_reservations SET table_ids = ARRAY[p_table_id] WHERE id = r.id;
+  END IF;
+  UPDATE public.guest_reservations SET status = 'sentada', seated_table_id = p_table_id, seated_at = now() WHERE id = r.id;
+  PERFORM public.guest_log_reservation(r.id, p_actor, 'restaurante', 'estado', 'chegou', 'sentada', jsonb_build_object('mesa', p_table_id));
+  RETURN 'sentada';
 END $$;
 
 -- Horários abertos e com mesa livre para o grupo num dia (data local do restaurante).
@@ -701,6 +738,7 @@ BEGIN
     'guest_log_reservation(uuid, uuid, text, text, text, text, jsonb)', 'guest_create_hold(uuid, uuid, text, integer, timestamptz)',
     'guest_confirm_reservation(uuid, text, text, text, text, text, text, text)', 'guest_cancel_reservation(uuid, uuid, text, text)',
     'guest_change_reservation(uuid, uuid, timestamptz, integer)', 'guest_set_reservation_status(uuid, uuid, text)',
+    'guest_seat_reservation(uuid, uuid, uuid)',
     'guest_available_slots(uuid, date, integer)', 'guest_join_waitlist(uuid, uuid, text, integer, tstzrange)',
     'guest_call_waitlist(uuid, uuid, integer)', 'guest_cancel_waitlist(uuid, uuid)', 'guest_expire_waitlist()',
     'guest_create_alert(uuid, uuid, integer, tstzrange)', 'guest_match_alerts(uuid)'] LOOP

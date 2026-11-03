@@ -35,3 +35,7 @@ RLS em todas as tabelas. O consumidor lê só o que é dele; membros do restaura
 ## Domínio puro
 
 `src/lib/tipe/guest/reservas.ts` repete as regras (grade, turnos, exceções, escolha de mesa, estados, política) para o `/demo` e o app Expo calcularem o mesmo que o banco, sem decidir nada sozinhos.
+
+## Painel do restaurante (Fase 5)
+
+Seção "Reservas" do painel, atrás da flag `guest.reservations`. O dono abre para o público com `guest_reservation_settings.accepting`. O check-in usa `guest_seat_reservation` (chegou → sentada, na mesa reservada ou noutra livre, sem sobrepor outra reserva) e grava `seated_table_id`; a conta da mesa não muda. Funções de servidor em `src/lib/tipe/guest/reservas.functions.ts`. Detalhes em `FASE-5.md`.

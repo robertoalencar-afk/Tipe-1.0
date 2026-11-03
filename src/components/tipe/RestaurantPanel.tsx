@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
 import {
   ArrowRightLeft,
+  CalendarDays,
   BarChart3,
   ChefHat,
   Check,
@@ -70,6 +71,8 @@ import { AvisoPendencias, PendenciasFinanceiras } from "@/components/tipe/Penden
 import { grantWaiterAccess } from "@/lib/tipe/waiter.functions";
 import { Landmark } from "lucide-react";
 import { DesempenhoGarcons } from "@/components/tipe/DesempenhoGarcons";
+import { ReservasPainel } from "@/components/tipe/ReservasPainel";
+import { getReservasAcesso } from "@/lib/tipe/guest/reservas.functions";
 import { OnboardingPdv } from "@/components/tipe/OnboardingPdv";
 import { PrecisaDeVoce } from "@/components/tipe/PrecisaDeVoce";
 import { LebreAssistant } from "@/components/tipe/LebreAssistant";
@@ -168,6 +171,15 @@ const secoes = [
     i: ChefHat,
     g: "Operação",
     d: "Pedidos por setor, do recebido ao entregue, e o painel de senhas.",
+  },
+  {
+    k: "reservas",
+    l: "Reservas",
+    i: CalendarDays,
+    g: "Operação",
+    // Só aparece com a flag guest.reservations ligada para o restaurante (Tipe Guest).
+    flag: "reservas",
+    d: "Reservas do dia, chegadas, mesas, lista de espera e regras de horário.",
   },
   {
     k: "caixa",
@@ -306,6 +318,13 @@ export function RestaurantPanel({
     queryFn: () => fetchInteg({ data: { slug } }),
     refetchInterval: 30000,
   });
+  const fetchReservas = useServerFn(getReservasAcesso);
+  const reservas = useQuery({
+    queryKey: ["reservas-acesso", slug],
+    queryFn: () => fetchReservas({ data: { slug } }),
+    staleTime: 5 * 60_000,
+  });
+  const reservasOn = reservas.data?.enabled === true;
   const [mesaAberta, setMesaAberta] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState<string | null>(null);
   const [aba, setAba] = useState("inicio");
@@ -418,7 +437,9 @@ export function RestaurantPanel({
   const mesaSel = mesas.find((m) => m.number === mesaAberta);
   const abertas = mesas.filter((m) => m.status === "ocupada" || m.status === "aguardando");
   // O Lançamento TIPE fica sempre disponível, inclusive como reserva de uma integração.
-  const visiveis = secoes.filter((x) => !("dono" in x) || podeDono);
+  const visiveis = secoes.filter(
+    (x) => (!("dono" in x) || podeDono) && (!("flag" in x) || reservasOn),
+  );
   const pdvLabel =
     !integ.data || integ.data.adapter === "lancamento_tipe"
       ? "Lançamento TIPE"
@@ -808,6 +829,7 @@ export function RestaurantPanel({
 
         {aba === "pdv" && <LancarPedido slug={slug} pdv={pdv.data} mesa={mesaPedido} setMesa={setMesaPedido} podeBalcao={podeConfirmar} onDone={refresh} />}
         {aba === "cozinha" && <Cozinha slug={slug} podePainel={podeConfirmar} />}
+        {aba === "reservas" && reservasOn && <ReservasPainel slug={slug} podeDono={podeDono} />}
         {aba === "caixa" && <><PendenciasFinanceiras slug={slug} enabled={podeConfirmar} /><Caixa slug={slug} podeCaixa={podeConfirmar} confirmacoes={confirmacoes} /></>}
 
         {aba === "historico" && (

@@ -56,6 +56,10 @@ BEGIN
   PERFORM pg_temp.falha(format($q$SELECT * FROM guest_create_hold(%L, %L, 'sessao-ana-1', 2, %L)$q$, v_rid, u_ana, v_t19),
     'desligadas', 'com a flag guest.reservations desligada o hold é recusado');
   INSERT INTO guest_feature_flags (restaurant_id, flag_key, enabled) VALUES (v_rid, 'guest.reservations', true), (v_outro, 'guest.reservations', true);
+  -- Flag ligada, mas o dono ainda não abriu as reservas.
+  PERFORM pg_temp.falha(format($q$SELECT * FROM guest_create_hold(%L, %L, 'sessao-ana-1', 2, %L)$q$, v_rid, u_ana, v_t19),
+    'não está aceitando', 'com as reservas fechadas pelo dono o hold é recusado');
+  UPDATE guest_reservation_settings SET accepting = true WHERE restaurant_id IN (v_rid, v_outro);
 
   -- Regras: grade, turno, antecedência, grupo e bloqueios.
   PERFORM pg_temp.falha(format($q$SELECT * FROM guest_create_hold(%L, %L, 'sessao-ana-1', 2, %L)$q$, v_rid, u_ana, pg_temp.t(3, 19, 10)),
@@ -160,8 +164,13 @@ BEGIN
     'depois do horário', 'ausência só depois do horário');
   PERFORM pg_temp.falha(format($q$SELECT guest_set_reservation_status(%L, %L, 'chegou')$q$, v_res2, u_ana),
     'Sem permissão', 'cliente não muda estado operacional');
-  PERFORM pg_temp.ok(guest_set_reservation_status(v_res2, u_garcom, 'chegou') = 'chegou'
-    AND guest_set_reservation_status(v_res2, u_garcom, 'sentada') = 'sentada', 'garçom marca chegada e mesa');
+  PERFORM pg_temp.ok(guest_set_reservation_status(v_res2, u_garcom, 'chegou') = 'chegou', 'garçom marca a chegada');
+  PERFORM pg_temp.falha(format($q$SELECT guest_seat_reservation(%L, %L, %L)$q$, v_res2, u_garcom, v_t2),
+    'reservada para outro grupo', 'check-in não leva o grupo para mesa reservada por outro no período');
+  PERFORM pg_temp.falha(format($q$SELECT guest_seat_reservation(%L, %L, %L)$q$, v_res2, u_garcom, v_t_outro),
+    'não encontrada', 'check-in não usa mesa de outro restaurante');
+  PERFORM pg_temp.ok(guest_seat_reservation(v_res2, u_garcom, v_t4) = 'sentada', 'garçom leva o grupo à mesa reservada');
+  PERFORM pg_temp.ok((SELECT seated_table_id FROM guest_reservations WHERE id = v_res2) = v_t4, 'o check-in registra a mesa usada');
   PERFORM pg_temp.ok((SELECT count(*) FROM guest_reservation_events WHERE reservation_id = v_res2 AND action = 'estado') = 2, 'cada mudança de estado auditada');
   PERFORM pg_temp.falha(format($q$UPDATE guest_reservation_events SET action = 'x' WHERE reservation_id = %L$q$, v_res2),
     'não pode ser alterada', 'trilha de reservas é imutável');
