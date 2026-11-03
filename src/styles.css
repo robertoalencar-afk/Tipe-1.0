@@ -1569,50 +1569,50 @@
     transform: none !important;
   }
 }
-/* Ícone dos CTAs (02/11): só o bigode, três fios em leque na cor do texto. No hover os
-   fios balançam em sequência e o leque anda 2px; nunca aparece nariz nem boca. */
+/* Ícone dos CTAs (03/11): só bigodes, três de cada lado, na cor do texto. Balançam o tempo
+   todo, cada fio no seu ritmo; no hover, foco e toque balançam mais. Nada aponta para lado. */
 .bigode-cta {
-  height: 0.8em;
-  width: 1em;
+  height: 0.75em;
+  width: 1.8em;
+  margin-left: 0.25em;
   overflow: visible;
   flex-shrink: 0;
-  transition: transform 500ms var(--ease-expo);
 }
 .bigode-cta .bc-fio {
   fill: none;
   stroke: currentColor;
-  stroke-width: 1.7;
+  stroke-width: 1.25;
   stroke-linecap: round;
   transform-box: view-box;
-  transform-origin: 2.5px 8.2px;
+  --a: 7deg;
+  animation: bc-vento calc(2.4s + var(--i) * 0.37s) ease-in-out calc(var(--i) * -0.83s) infinite;
 }
-.bigode-cta .bc-fio:nth-child(2) {
-  --i: 1;
+.bigode-cta .bc-e {
+  transform-origin: 13px 7.5px;
 }
-.bigode-cta .bc-fio:nth-child(3) {
-  --i: 2;
-}
-.com-fios:is(:hover, :focus-visible, :active) .bigode-cta,
-.group:is(:hover, :focus-visible) .com-fios .bigode-cta {
-  transform: translateX(2px);
+.bigode-cta .bc-d {
+  transform-origin: 23px 7.5px;
+  --a: -7deg;
 }
 .com-fios:is(:hover, :focus-visible, :active) .bigode-cta .bc-fio,
 .group:is(:hover, :focus-visible) .com-fios .bigode-cta .bc-fio {
-  animation: bc-balanca 900ms ease-in-out calc(var(--i, 0) * 70ms) both;
+  --a: 14deg;
+  animation-duration: calc(0.9s + var(--i) * 0.11s);
 }
-@keyframes bc-balanca {
+.com-fios:is(:hover, :focus-visible, :active) .bigode-cta .bc-d,
+.group:is(:hover, :focus-visible) .com-fios .bigode-cta .bc-d {
+  --a: -14deg;
+}
+@keyframes bc-vento {
   0%,
   100% {
-    transform: none;
+    transform: rotate(0deg);
   }
-  20% {
-    transform: rotate(-6deg) scaleX(1.06);
+  30% {
+    transform: rotate(var(--a)) scaleX(1.04);
   }
-  42% {
-    transform: rotate(3deg);
-  }
-  62% {
-    transform: rotate(-1.2deg);
+  65% {
+    transform: rotate(calc(var(--a) * -0.6));
   }
 }
 .sem-movimento .bigode-cta,

@@ -212,14 +212,13 @@ export function FocinhoCta({
 }
 
 /**
- * O ícone dos CTAs. Fica dentro do botão (que precisa da classe "com-fios"). Desde 02/11
- * é só o bigode (três fios em leque, sem nariz nem boca, também no hover; pedido do
- * Roberto). Sem `seta`, sobram só os fios, soltos na margem
- * direita do botão (para links secundários como "Entrar").
+ * O ícone dos CTAs. Fica dentro do botão (que precisa da classe "com-fios"). Desde 03/11
+ * são só bigodes se mexendo, três de cada lado, sem nada que lembre uma seta (pedido do
+ * Roberto). `seta` ficou só por compatibilidade: com ou sem ela o desenho é o mesmo.
  */
 export function SetaFios({
-  auto = false,
-  seta = true,
+  auto: _auto = false,
+  seta: _seta = true,
   className,
 }: {
   /** Mantido por compatibilidade: o focinho já fareja sozinho, de leve. */
@@ -227,33 +226,28 @@ export function SetaFios({
   seta?: boolean;
   className?: string;
 }) {
-  if (!seta) {
-    return (
-      <svg
-        viewBox="12 0 16 16"
-        aria-hidden
-        focusable="false"
-        className={cn("seta-fios seta-fios-solto", auto && "seta-fios-auto", className)}
-      >
-        <path className="sf-fio" d="M14.5 5.4 Q20 3.2 26 2" pathLength={1} />
-        <path className="sf-fio" d="M15 8 Q21 7.7 27 8.4" pathLength={1} />
-        <path className="sf-fio" d="M14.5 10.6 Q20 12.8 26 14" pathLength={1} />
-      </svg>
-    );
-  }
   return (
-    <svg
-      viewBox="0 0 20 16"
-      aria-hidden
-      focusable="false"
-      className={cn("bigode-cta", className)}
-    >
-      <path className="bc-fio" d="M2.5 6 Q9.5 3.7 17.5 2.4" />
-      <path className="bc-fio" d="M2.5 8.2 Q10 7.9 18.5 8.5" />
-      <path className="bc-fio" d="M2.5 10.4 Q9.5 12.6 17.5 14" />
+    <svg viewBox="0 0 36 15" aria-hidden focusable="false" className={cn("bigode-cta", className)}>
+      {BC_FIOS.map(([lado, d], i) => (
+        <path key={d} className={`bc-fio bc-${lado}`} d={d} style={{ "--i": i } as CSSProperties} />
+      ))}
     </svg>
   );
 }
+
+/**
+ * Bigodes dos CTAs (03/11): três fios de cada lado, espelhados, com um vão no meio onde
+ * estaria o focinho. Sem nariz, boca nem ponta de seta. Cada fio balança sozinho, o tempo
+ * todo, no seu ritmo; no hover o balanço fica maior.
+ */
+const BC_FIOS: ReadonlyArray<readonly ["e" | "d", string]> = [
+  ["e", "M13 4.9 Q7 3.4 1 3"],
+  ["e", "M13 7.5 Q7 7.2 0.6 7.6"],
+  ["e", "M13 10.1 Q7 11.4 1 12.2"],
+  ["d", "M23 4.9 Q29 3.4 35 3"],
+  ["d", "M23 7.5 Q29 7.2 35.4 7.6"],
+  ["d", "M23 10.1 Q29 11.4 35 12.2"],
+];
 
 /** Alias antigo (o meio focinho virou a seta de bigodes em 27/10 e o focinho na V62). */
 export const MeioFocinho = SetaFios;
