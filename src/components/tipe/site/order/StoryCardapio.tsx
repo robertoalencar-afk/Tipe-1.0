@@ -20,6 +20,7 @@ import { useCallback, useEffect, useRef, useState, type PointerEvent } from "rea
 import { Box, Minus, Pause, Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMovimentoReduzido } from "../produto/useVisivel";
+import { Foto3D } from "./Foto3D";
 
 export type ItemStory = {
   code: string;
@@ -29,6 +30,8 @@ export type ItemStory = {
   cat: string;
   foto?: string;
   modelo?: string;
+  /** Mapa de profundidade da foto: liga o efeito de foto 3D. */
+  profundidade?: string;
   selo?: string;
   alergenicos?: string[];
 };
@@ -291,6 +294,8 @@ export function StoryCardapio({
               </p>
             )}
           </div>
+        ) : item.foto && item.profundidade ? (
+          <Foto3D foto={item.foto} profundidade={item.profundidade} alt={item.nome} />
         ) : item.foto ? (
           <img
             src={item.foto}
