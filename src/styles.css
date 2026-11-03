@@ -1896,3 +1896,23 @@
     linear-gradient(90deg, oklch(0.2 0.04 250 / 0.035) 1px, transparent 1px);
   background-size: 32px 32px;
 }
+
+/* Cardápio em stories (StoryCardapio.tsx) */
+@keyframes story-zoom {
+  from { transform: scale(1); }
+  to { transform: scale(1.09); }
+}
+.story-zoom { animation: story-zoom linear forwards; transform-origin: 50% 60%; }
+@keyframes story-entra-esq {
+  from { transform: translateX(28%) rotateY(-18deg); opacity: 0.4; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes story-entra-dir {
+  from { transform: translateX(-28%) rotateY(18deg); opacity: 0.4; }
+  to { transform: none; opacity: 1; }
+}
+.story-entra-esq { animation: story-entra-esq 360ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+.story-entra-dir { animation: story-entra-dir 360ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+@media (prefers-reduced-motion: reduce) {
+  .story-zoom, .story-entra-esq, .story-entra-dir { animation: none; }
+}
