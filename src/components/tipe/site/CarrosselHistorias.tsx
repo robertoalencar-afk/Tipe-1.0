@@ -1,7 +1,7 @@
 /**
  * Logo abaixo do herói (V6, opção 2 "Vídeo fixo", escolhida pelo Roberto em 26/10).
  * À esquerda fica o filme do fluxo do produto, sempre visível; à direita, as histórias
- * por papel (cliente, família, garçom, gerente, caixa, salão) com as cenas do casting.
+ * por papel (cliente, família, cozinha, garçom, caixa, dono) com as cenas do casting.
  * As histórias trocam sozinhas a cada 6 s enquanto a seção está na tela; o chip ativo
  * mostra o tempo restante, um toque troca e o mouse por cima pausa. Com movimento
  * reduzido nada troca sozinho. Só funcionalidades que existem no produto.
@@ -28,12 +28,12 @@ type Historia = {
 const HISTORIAS: Historia[] = [
   {
     papel: "Cliente",
-    cena: "cena-casal",
-    foco: "45% 40%",
+    cena: "cena-praia",
+    foco: "40% 45%",
     frase: "Ninguém levanta a mão para pedir a conta.",
     dado: "Sem app",
     legenda: "A conta abre na câmera do celular.",
-    alt: "Casal à mesa abrindo a conta pelo QR Code do totem",
+    alt: "Amigos numa barraca de praia abrindo a conta pelo QR Code do totem",
   },
   {
     papel: "Família",
@@ -45,6 +45,15 @@ const HISTORIAS: Historia[] = [
     alt: "Família almoçando e dividindo a conta pelo celular",
   },
   {
+    papel: "Cozinha",
+    cena: "cena-cozinha",
+    foco: "40% 45%",
+    frase: "O pedido da mesa cai direto na tela da cozinha.",
+    dado: "Tipe Order",
+    legenda: "sem comanda de papel no caminho.",
+    alt: "Cozinheiro montando um prato com os pedidos da Tipe na tela da cozinha",
+  },
+  {
     papel: "Garçom",
     cena: "cena-garcom",
     foco: "50% 25%",
@@ -52,15 +61,6 @@ const HISTORIAS: Historia[] = [
     dado: "70%",
     legenda: "da gorjeta extra vai para o saldo do garçom da mesa.",
     alt: "Garçom sorrindo ao lado de uma mesa com o totem da Tipe",
-  },
-  {
-    papel: "Gerente",
-    cena: "cena-gerente",
-    foco: "40% 30%",
-    frase: "O salão inteiro, mesa por mesa, ao vivo.",
-    dado: "Ao vivo",
-    legenda: "cada mesa mostra quanto já foi pago.",
-    alt: "Gerente acompanhando as mesas no tablet durante o serviço",
   },
   {
     papel: "Caixa",
@@ -72,13 +72,13 @@ const HISTORIAS: Historia[] = [
     alt: "Caixa do restaurante com o painel da Tipe aberto no monitor",
   },
   {
-    papel: "Salão",
-    cena: "cena-mesa-liberada",
-    foco: "45% 35%",
-    frase: "Pagou, levantou. A mesa já está livre.",
-    dado: "Livre",
-    legenda: "e o próximo cliente senta mais cedo.",
-    alt: "Garçom recolhendo a mesa depois que os clientes pagaram",
+    papel: "Dono",
+    cena: "cena-dono",
+    foco: "55% 45%",
+    frase: "O dia fecha com o faturamento já somado.",
+    dado: "Relatórios",
+    legenda: "vendas, gorjetas e mesas no painel.",
+    alt: "Dono do restaurante conferindo o painel da Tipe no notebook depois do expediente",
   },
 ];
 
