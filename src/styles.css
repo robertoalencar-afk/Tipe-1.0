@@ -1569,62 +1569,54 @@
     transform: none !important;
   }
 }
-/* Ícone dos CTAs (03/11): só bigodes, três de cada lado, na cor do texto. Balançam o tempo
-   todo, cada fio no seu ritmo; no hover, foco e toque balançam mais. Nada aponta para lado. */
+/* Ícone dos CTAs (03/11): três bigodinhos turquesa no canto de cima do texto, em leque.
+   Saem do texto e voltam o tempo todo, um depois do outro; no hover, mais rápido. */
 .bigode-cta {
-  height: 0.75em;
-  width: 1.8em;
-  margin-left: 0.25em;
+  height: 0.9em;
+  width: 0.9em;
+  margin-left: -0.22em;
+  transform: translateY(-0.42em);
   overflow: visible;
   flex-shrink: 0;
 }
 .bigode-cta .bc-fio {
   fill: none;
-  stroke: currentColor;
-  stroke-width: 1.25;
+  stroke: var(--fio-cor, var(--fio, #0fc9bd));
+  stroke-width: 1.9;
   stroke-linecap: round;
-  transform-box: view-box;
-  --a: 7deg;
-  animation: bc-vento calc(2.4s + var(--i) * 0.37s) ease-in-out calc(var(--i) * -0.83s) infinite;
-}
-.bigode-cta .bc-e {
-  transform-origin: 13px 7.5px;
-}
-.bigode-cta .bc-d {
-  transform-origin: 23px 7.5px;
-  --a: -7deg;
+  stroke-dasharray: 1;
+  animation: bc-pisca 2.6s cubic-bezier(0.3, 0.7, 0.3, 1) calc(var(--i) * 0.12s) infinite;
 }
 .com-fios:is(:hover, :focus-visible, :active) .bigode-cta .bc-fio,
 .group:is(:hover, :focus-visible) .com-fios .bigode-cta .bc-fio {
-  --a: 14deg;
-  animation-duration: calc(0.9s + var(--i) * 0.11s);
+  animation-duration: 1.1s;
 }
-.com-fios:is(:hover, :focus-visible, :active) .bigode-cta .bc-d,
-.group:is(:hover, :focus-visible) .com-fios .bigode-cta .bc-d {
-  --a: -14deg;
-}
-@keyframes bc-vento {
+@keyframes bc-pisca {
   0%,
   100% {
-    transform: rotate(0deg);
+    stroke-dashoffset: 0;
   }
-  30% {
-    transform: rotate(var(--a)) scaleX(1.04);
+  55% {
+    stroke-dashoffset: 0;
   }
-  65% {
-    transform: rotate(calc(var(--a) * -0.6));
+  70% {
+    stroke-dashoffset: -1;
+  }
+  71% {
+    stroke-dashoffset: 1;
+  }
+  88% {
+    stroke-dashoffset: 0;
   }
 }
 .sem-movimento .bigode-cta,
 .sem-movimento .bigode-cta * {
   animation: none !important;
-  transform: none !important;
 }
 @media (prefers-reduced-motion: reduce) {
   .bigode-cta,
   .bigode-cta * {
     animation: none !important;
-    transform: none !important;
     transition: none !important;
   }
 }

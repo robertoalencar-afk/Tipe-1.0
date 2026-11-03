@@ -213,7 +213,7 @@ export function FocinhoCta({
 
 /**
  * O ícone dos CTAs. Fica dentro do botão (que precisa da classe "com-fios"). Desde 03/11
- * são só bigodes se mexendo, três de cada lado, sem nada que lembre uma seta (pedido do
+ * são só três bigodinhos se mexendo no canto do texto, sem nada que lembre uma seta (pedido do
  * Roberto). `seta` ficou só por compatibilidade: com ou sem ela o desenho é o mesmo.
  */
 export function SetaFios({
@@ -227,26 +227,29 @@ export function SetaFios({
   className?: string;
 }) {
   return (
-    <svg viewBox="0 0 36 15" aria-hidden focusable="false" className={cn("bigode-cta", className)}>
+    <svg viewBox="0 0 16 16" aria-hidden focusable="false" className={cn("bigode-cta", className)}>
       {BC_FIOS.map(([lado, d], i) => (
-        <path key={d} className={`bc-fio bc-${lado}`} d={d} style={{ "--i": i } as CSSProperties} />
+        <path
+          key={d}
+          className={`bc-fio bc-${lado}`}
+          d={d}
+          pathLength={1}
+          style={{ "--i": i } as CSSProperties}
+        />
       ))}
     </svg>
   );
 }
 
 /**
- * Bigodes dos CTAs (03/11): três fios de cada lado, espelhados, com um vão no meio onde
- * estaria o focinho. Sem nariz, boca nem ponta de seta. Cada fio balança sozinho, o tempo
- * todo, no seu ritmo; no hover o balanço fica maior.
+ * Bigodinhos dos CTAs (03/11, referência do Roberto): três tracinhos turquesa curtos que
+ * saem do canto de cima do texto, em leque (um quase vertical, um na diagonal, um quase
+ * deitado). Piscam para fora o tempo todo, um depois do outro; no hover, mais rápido.
  */
 const BC_FIOS: ReadonlyArray<readonly ["e" | "d", string]> = [
-  ["e", "M13 4.9 Q7 3.4 1 3"],
-  ["e", "M13 7.5 Q7 7.2 0.6 7.6"],
-  ["e", "M13 10.1 Q7 11.4 1 12.2"],
-  ["d", "M23 4.9 Q29 3.4 35 3"],
-  ["d", "M23 7.5 Q29 7.2 35.4 7.6"],
-  ["d", "M23 10.1 Q29 11.4 35 12.2"],
+  ["e", "M4.6 9.4 L5.6 1.6"],
+  ["e", "M7.4 10.4 L12.6 4.8"],
+  ["e", "M8.6 13.6 L14.4 11.4"],
 ];
 
 /** Alias antigo (o meio focinho virou a seta de bigodes em 27/10 e o focinho na V62). */
