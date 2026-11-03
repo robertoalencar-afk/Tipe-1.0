@@ -44,6 +44,7 @@ import { SequenciaCelular } from "../produto/SequenciaCelular";
 import { duvidasDe, type Produto } from "../produtos";
 import { ListaDuvidas, Relacionados } from "../ProdutoPagina";
 import { FormularioOrder } from "./FormularioOrder";
+import { SimuladorOrder } from "./SimuladorOrder";
 
 const ANCORA_FORM = "quero-o-order";
 
@@ -176,10 +177,10 @@ function Topo({ p, estado }: { p: Produto; estado: EstadoLancamento }) {
           >
             <BotaoEstado estado={estado} local="topo" />
             <a
-              href="#como-funciona"
+              href="#simulador"
               className="com-fios inline-flex min-h-12 items-center gap-2 rounded-full border border-foreground/25 px-7 text-[1rem] font-medium"
             >
-              Ver como funciona <ArrowDown className="h-4 w-4" aria-hidden />
+              Experimentar o simulador <ArrowDown className="h-4 w-4" aria-hidden />
             </a>
           </div>
           <p
@@ -580,6 +581,7 @@ export function PaginaOrder({ p, estado }: { p: Produto; estado: EstadoLancament
     <>
       <Topo p={p} estado={estado} />
       <Experiencia />
+      <SimuladorOrder />
       <PayEOrder estado={estado} />
       <TudoConectado />
       <Beneficios p={p} />
