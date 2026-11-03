@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   ArrowLeft,
+  BellRing,
   Check,
   ChevronRight,
   ClipboardList,
@@ -105,12 +106,12 @@ const METHOD_DETAILS: Record<Method, { label: string; description: string; Icon:
     pix: { label: "Pix", description: "Confirmação simulada na hora", Icon: QrCode },
     apple_pay: {
       label: "Apple Pay",
-      description: "Pagamento em um toque no iPhone",
+      description: "Um toque no iPhone, aprovado na simulação",
       Icon: Smartphone,
     },
     google_pay: {
       label: "Google Pay",
-      description: "Pagamento em um toque no Android",
+      description: "Um toque no Android, aprovado na simulação",
       Icon: WalletCards,
     },
     at_establishment: {
@@ -420,6 +421,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
           <p className="mt-1 text-sm text-muted-foreground">
             Atendimento de <strong className="text-foreground">Carlos</strong>
           </p>
+          <ChamarEquipeSimulado />
           <div className="mb-6 mt-5 grid grid-cols-2 gap-1 rounded-full bg-muted p-1">
             <Button
               variant={tab === "bill" ? "outline" : "ghost"}
@@ -1050,7 +1052,7 @@ function PaymentScreen<M extends Method | Exclude<Method, "at_establishment">>({
   cashReceived?: string;
   setCashReceived?: (value: string) => void;
 }) {
-  // Carteiras digitais ainda não estão ativas no produto real: aparecem como "Em breve", sem seleção.
+  // Restaurante fictício: Pix, Apple Pay e Google Pay são aprovados na hora, sem cobrança real.
   const methods = (Object.keys(METHOD_DETAILS) as Method[]).filter(
     (item) => allowEstablishment || item !== "at_establishment",
   ) as M[];
@@ -1218,5 +1220,45 @@ function Centered({ children }: { children: React.ReactNode }) {
     <main className="flex flex-1 flex-col items-center justify-center px-6 pb-20 text-center">
       {children}
     </main>
+  );
+}
+
+/** "Chamar garçom" e "Pedir a conta", como na conta real; aqui o aviso é só simulado. */
+function ChamarEquipeSimulado() {
+  const [avisado, setAvisado] = useState<"waiter" | "bill" | null>(null);
+  useEffect(() => {
+    if (!avisado) return;
+    const t = window.setTimeout(() => setAvisado(null), 8000);
+    return () => window.clearTimeout(t);
+  }, [avisado]);
+  return (
+    <div className="mt-4">
+      <div className="flex gap-2">
+        {(
+          [
+            ["waiter", "Chamar garçom", BellRing],
+            ["bill", "Pedir a conta", ReceiptText],
+          ] as const
+        ).map(([kind, rotulo, Icone]) => (
+          <Button
+            key={kind}
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-10 flex-1 rounded-full shadow-none"
+            disabled={avisado === kind}
+            onClick={() => setAvisado(kind)}
+          >
+            <Icone className="h-4 w-4" aria-hidden />
+            {avisado === kind ? "Carlos avisado" : rotulo}
+          </Button>
+        ))}
+      </div>
+      <p role="status" aria-live="polite" className="mt-2 min-h-4 text-xs text-muted-foreground">
+        {avisado
+          ? "Simulação: no restaurante real, o Carlos recebe o aviso no celular e no painel."
+          : ""}
+      </p>
+    </div>
   );
 }
