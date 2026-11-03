@@ -96,7 +96,7 @@ As tabelas não precisam ser criadas à mão: o primeiro deploy aplica todas as 
 
 ### 3. IA da Lebre (grátis)
 
-1. Cloudflare Workers AI: é o token `CLOUDFLARE_AI_TOKEN` do passo 5 (item 7). Ele serve para texto, leitura de fotos e PDFs e áudio.
+1. Cloudflare Workers AI: já vem ligado no próprio Worker (binding `AI` no `wrangler.jsonc`), sem token. Ele serve para texto, leitura de fotos e PDFs e áudio. O token `CLOUDFLARE_AI_TOKEN` do passo 5 (item 7) virou opcional.
 2. Groq (reserva grátis): em console.groq.com → **API Keys → Create API Key** → Segredo do GitHub `GROQ_API_KEY`. Não cadastre cartão: sem cartão, o Groq nunca cobra.
 3. Opcional, Variáveis do GitHub: `CLOUDFLARE_AI_DAILY_LIMIT` (padrão 150), `CLOUDFLARE_AI_MODEL` (padrão `@cf/meta/llama-4-scout-17b-16e-instruct`), `GROQ_MODEL` e `GROQ_VISION_MODEL` (padrão `meta-llama/llama-4-scout-17b-16e-instruct`).
 4. Opcional e pago: para usar o Claude quando as cotas grátis acabarem, cadastre `ANTHROPIC_API_KEY`, defina um limite de gasto em console.anthropic.com e crie a Variável `LEBRE_CLAUDE_FALLBACK` = `true`. Sem isso, a Anthropic nunca é chamada.
@@ -115,7 +115,7 @@ As tabelas não precisam ser criadas à mão: o primeiro deploy aplica todas as 
 4. Ainda no DNS da Cloudflare, **apague** os registros `A`/`CNAME` de `tipe.digital` e `www` que apontam para a Lovable. O deploy cria os novos sozinho (domínio personalizado do Worker).
 5. Copie o **Account ID** (barra lateral de Workers) → Segredo do GitHub `CLOUDFLARE_ACCOUNT_ID`.
 6. **My Profile → API Tokens → Create Token → modelo "Edit Cloudflare Workers"** → em Zone Resources escolha `tipe.digital` → Segredo do GitHub `CLOUDFLARE_API_TOKEN`.
-7. Para a IA grátis da Lebre (texto, fotos, PDFs e áudio), crie outro token com **Workers AI: Read** e **Workers AI: Edit** → Segredo do GitHub `CLOUDFLARE_AI_TOKEN`. Sem ele a Lebre usa só o Groq e não transcreve áudio.
+7. Opcional: a IA grátis da Lebre usa o binding `AI` do Worker e não precisa de token. Um token com **Workers AI: Read** e **Workers AI: Edit** em `CLOUDFLARE_AI_TOKEN` só é usado se o binding faltar.
 
 ### 6. Demais segredos do GitHub
 
