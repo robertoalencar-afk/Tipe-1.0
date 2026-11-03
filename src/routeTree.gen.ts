@@ -28,6 +28,7 @@ import { Route as TesteGratisRouteImport } from './routes/teste-gratis'
 import { Route as RestauranteIndexRouteImport } from './routes/$restaurante.index'
 import { Route as RestauranteMesaRouteImport } from './routes/$restaurante.$mesa'
 import { Route as RestauranteCozinhaRouteImport } from './routes/$restaurante.cozinha'
+import { Route as RestauranteFilaRouteImport } from './routes/$restaurante.fila'
 import { Route as RestauranteSenhasRouteImport } from './routes/$restaurante.senhas'
 import { Route as RestauranteTotemRouteImport } from './routes/$restaurante.totem'
 import { Route as AuthenticatedBackofficeRouteImport } from './routes/_authenticated/backoffice'
@@ -172,6 +173,11 @@ const RestauranteMesaRoute = RestauranteMesaRouteImport.update({
 const RestauranteCozinhaRoute = RestauranteCozinhaRouteImport.update({
   id: '/$restaurante/cozinha',
   path: '/$restaurante/cozinha',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RestauranteFilaRoute = RestauranteFilaRouteImport.update({
+  id: '/$restaurante/fila',
+  path: '/$restaurante/fila',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RestauranteSenhasRoute = RestauranteSenhasRouteImport.update({
@@ -452,6 +458,7 @@ export interface FileRoutesByFullPath {
   '/teste-gratis': typeof TesteGratisRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
   '/$restaurante/cozinha': typeof RestauranteCozinhaRoute
+  '/$restaurante/fila': typeof RestauranteFilaRoute
   '/$restaurante/senhas': typeof RestauranteSenhasRoute
   '/$restaurante/totem': typeof RestauranteTotemRoute
   '/backoffice': typeof AuthenticatedBackofficeRoute
@@ -522,6 +529,7 @@ export interface FileRoutesByTo {
   '/teste-gratis': typeof TesteGratisRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
   '/$restaurante/cozinha': typeof RestauranteCozinhaRoute
+  '/$restaurante/fila': typeof RestauranteFilaRoute
   '/$restaurante/senhas': typeof RestauranteSenhasRoute
   '/$restaurante/totem': typeof RestauranteTotemRoute
   '/backoffice': typeof AuthenticatedBackofficeRoute
@@ -595,6 +603,7 @@ export interface FileRoutesById {
   '/teste-gratis': typeof TesteGratisRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
   '/$restaurante/cozinha': typeof RestauranteCozinhaRoute
+  '/$restaurante/fila': typeof RestauranteFilaRoute
   '/$restaurante/senhas': typeof RestauranteSenhasRoute
   '/$restaurante/totem': typeof RestauranteTotemRoute
   '/_authenticated/backoffice': typeof AuthenticatedBackofficeRoute
@@ -668,6 +677,7 @@ export interface FileRouteTypes {
     | '/teste-gratis'
     | '/$restaurante/$mesa'
     | '/$restaurante/cozinha'
+    | '/$restaurante/fila'
     | '/$restaurante/senhas'
     | '/$restaurante/totem'
     | '/backoffice'
@@ -738,6 +748,7 @@ export interface FileRouteTypes {
     | '/teste-gratis'
     | '/$restaurante/$mesa'
     | '/$restaurante/cozinha'
+    | '/$restaurante/fila'
     | '/$restaurante/senhas'
     | '/$restaurante/totem'
     | '/backoffice'
@@ -810,6 +821,7 @@ export interface FileRouteTypes {
     | '/teste-gratis'
     | '/$restaurante/$mesa'
     | '/$restaurante/cozinha'
+    | '/$restaurante/fila'
     | '/$restaurante/senhas'
     | '/$restaurante/totem'
     | '/_authenticated/backoffice'
@@ -883,6 +895,7 @@ export interface RootRouteChildren {
   TesteGratisRoute: typeof TesteGratisRoute
   RestauranteMesaRoute: typeof RestauranteMesaRoute
   RestauranteCozinhaRoute: typeof RestauranteCozinhaRoute
+  RestauranteFilaRoute: typeof RestauranteFilaRoute
   RestauranteSenhasRoute: typeof RestauranteSenhasRoute
   RestauranteTotemRoute: typeof RestauranteTotemRoute
   LegalLivroRoute: typeof LegalLivroRoute
@@ -1039,6 +1052,13 @@ declare module '@tanstack/react-router' {
       path: '/$restaurante/cozinha'
       fullPath: '/$restaurante/cozinha'
       preLoaderRoute: typeof RestauranteCozinhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$restaurante/fila': {
+      id: '/$restaurante/fila'
+      path: '/$restaurante/fila'
+      fullPath: '/$restaurante/fila'
+      preLoaderRoute: typeof RestauranteFilaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$restaurante/senhas': {
@@ -1499,6 +1519,7 @@ const rootRouteChildren: RootRouteChildren = {
   TesteGratisRoute: TesteGratisRoute,
   RestauranteMesaRoute: RestauranteMesaRoute,
   RestauranteCozinhaRoute: RestauranteCozinhaRoute,
+  RestauranteFilaRoute: RestauranteFilaRoute,
   RestauranteSenhasRoute: RestauranteSenhasRoute,
   RestauranteTotemRoute: RestauranteTotemRoute,
   LegalLivroRoute: LegalLivroRoute,
