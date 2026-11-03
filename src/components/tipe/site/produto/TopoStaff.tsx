@@ -7,7 +7,7 @@
  */
 import type { CSSProperties, ReactNode } from "react";
 import { Star } from "lucide-react";
-import { TipeSymbol } from "@/components/tipe/Logo";
+import { SimboloTipe } from "@/components/tipe/landing/Marcas";
 import { cn } from "@/lib/utils";
 import { fotoSrc } from "../Foto";
 import { useInView } from "@/components/tipe/landing/motion";
@@ -25,7 +25,7 @@ function Aviso({
   return (
     <li className="staff-aviso" style={{ "--d": `${atraso}ms` } as CSSProperties}>
       <span className="staff-aviso-icone" aria-hidden>
-        <TipeSymbol className="h-[58%] w-[58%] [--color-primary:#0FC9BD]" />
+        <SimboloTipe className="h-[62%] w-[62%] object-contain" />
       </span>
       <span className="min-w-0 flex-1">
         <span className="staff-aviso-titulo">{titulo}</span>

@@ -216,11 +216,11 @@ const PASSOS: Passo[] = [
 
 const QUADROS = PASSOS.map((p) => p.quadro);
 
-/** Os oito passos em três atos: abre a conta, paga, agradece. */
+/** Os oito passos em três momentos da mesa (03/11: sem "Ato 1, 2, 3", pedido do Roberto). */
 const ATOS = [
-  { nome: "Abre a conta", ate: "conta" },
-  { nome: "Paga", ate: "pago" },
-  { nome: "Agradece", ate: "avaliacao" },
+  { nome: "Na chegada da conta", ate: "conta" },
+  { nome: "Na hora de pagar", ate: "pago" },
+  { nome: "Depois de pagar", ate: "avaliacao" },
 ];
 const ATO_DE = PASSOS.map((p) => {
   const fim = PASSOS.findIndex((q) => q.id === p.id);
@@ -386,17 +386,24 @@ export function FluxoPagamento() {
                     role="presentation"
                     aria-hidden
                     className={cn(
-                      "flex items-baseline gap-3 pb-2 text-sm",
+                      "flex items-center gap-2.5 pb-2 text-sm",
                       i > 0 && "mt-7",
                       ATO_DE[ativo] === ATO_INICIO[i]!.n
                         ? "text-[#0A9A90]"
                         : "text-muted-foreground",
                     )}
                   >
-                    <span className="font-semibold uppercase tracking-[0.1em] text-[0.7rem]">
-                      Ato {ATO_INICIO[i]!.n}
+                    <span
+                      className={cn(
+                        "h-1.5 w-1.5 shrink-0 translate-y-[-0.1em] rounded-full",
+                        ATO_DE[ativo] === ATO_INICIO[i]!.n
+                          ? "bg-[#0FC9BD]"
+                          : "bg-current opacity-50",
+                      )}
+                    />
+                    <span className="font-semibold uppercase tracking-[0.1em] text-[0.72rem]">
+                      {ATO_INICIO[i]!.nome}
                     </span>
-                    <span className="font-medium">{ATO_INICIO[i]!.nome}</span>
                   </div>
                 )}
                 <button

@@ -39,7 +39,12 @@ export function NumerosHome() {
         />
         <ul className="mt-12 grid gap-px overflow-hidden rounded-[1.75rem] bg-border sm:mt-16 md:grid-cols-3">
           {NUMEROS.map((n, i) => (
-            <Reveal as="li" key={n.v} delay={i * 120} className="flex flex-col bg-background p-6 sm:p-8">
+            <Reveal
+              as="li"
+              key={n.v}
+              delay={i * 120}
+              className="flex flex-col bg-background p-6 sm:p-8"
+            >
               <p className="font-display text-[clamp(3rem,2.2rem+3vw,5.2rem)] font-normal leading-none tracking-[-0.06em]">
                 {n.v}
               </p>

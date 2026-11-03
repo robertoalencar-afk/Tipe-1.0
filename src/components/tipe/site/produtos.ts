@@ -33,7 +33,7 @@ import type { NomeFoto } from "./Foto";
 import type { TelaReal } from "./produto/TelaReal";
 
 /** Palco desenhado sem foto (conversa da Lebre) ou card sobre a foto. */
-export type Painel = "lebre-salao" | "lebre-acao" | "lebre-limite";
+export type Painel = "lebre-salao" | "lebre-acao" | "lebre-anexo";
 
 export type Status = "disponivel" | "em-breve";
 export type Grupo = "Na mesa" | "Na equipe" | "Na gestão";
@@ -713,9 +713,9 @@ export const PRODUTOS: Produto[] = [
         painel: "lebre-acao",
       },
       {
-        t: "Com limite diário",
-        d: "Cada restaurante tem um limite de mensagens por dia. Quando ele acaba, a Lebre avisa e volta no dia seguinte.",
-        painel: "lebre-limite",
+        t: "Lê foto e PDF",
+        d: "Mande a foto de um comprovante ou o PDF do cardápio. A Lebre lê só o que aparece nele e responde, ou propõe a ação certa para você confirmar.",
+        painel: "lebre-anexo",
       },
     ],
     banda: {
@@ -729,7 +729,7 @@ export const PRODUTOS: Produto[] = [
       { v: "PT-BR", t: "pergunta por texto ou por voz" },
       { v: "1 toque", t: "em Confirmar antes de qualquer mudança" },
       { v: "Foto e PDF", t: "anexos que a Lebre lê, como um cardápio" },
-      { v: "Diário", t: "limite de mensagens por restaurante" },
+      { v: "Só o seu", t: "restaurante: cada um vê apenas os próprios dados" },
     ],
     recursos: [
       {
@@ -774,7 +774,7 @@ export const PRODUTOS: Produto[] = [
     slug: "guest",
     grupo: "Na mesa",
     nome: "Tipe Guest",
-    resumo: "Avaliação depois de pagar e cliente lembrado; relacionamento em desenvolvimento",
+    resumo: "Reserva, lista de espera e volta do cliente, no mesmo app da conta",
     status: "em-breve",
     icone: Heart,
     foto: "casal",
@@ -782,114 +782,137 @@ export const PRODUTOS: Produto[] = [
     altFoto:
       "Casal num restaurante à luz de vela; ela confere a conta no celular, com o QR Code da Tipe na mesa",
     topo: {
-      foto: "cena-executiva",
+      foto: "cena-casal",
       posicao: "50% 35%",
-      alt: "Cliente sorrindo e avaliando o atendimento no celular, com o suporte da Tipe na mesa",
+      alt: "Casal à mesa de um restaurante conferindo a reserva no celular",
     },
-    heroTelas: ["pago", "gorjeta", "avaliacao"],
+    heroTelas: ["guest-descobrir", "guest-horarios", "guest-confirmada"],
     cenario: {
-      titulo: "A experiência termina bem. E o cliente lembra.",
+      titulo: "Da reserva à próxima visita, sem fila na porta.",
       texto:
-        "A avaliação aparece logo depois do pagamento, quando a mesa ainda está ali. O nome fica guardado para a próxima visita.",
+        "O cliente reserva no horário livre, chega e a conta abre na mesa. Pagou, agradece quem atendeu e salva o restaurante para voltar.",
       itens: [
         {
           foto: "cena-amigos",
           posicao: "50% 40%",
-          legenda: "Amigos avaliam o atendimento antes de levantar.",
+          legenda: "A mesa reservada já espera o grupo chegar.",
         },
         {
-          foto: "cena-mesa-liberada",
+          foto: "cena-garconete",
           posicao: "50% 40%",
-          legenda: "A nota chega ligada ao garçom que atendeu.",
+          legenda: "A equipe vê a reserva no painel e marca a chegada.",
         },
       ],
     },
     rotulo: "Tipe Guest",
-    titulo: "Quem paga bem, volta.",
+    titulo: "Reserve, chegue e volte.",
     texto:
-      "Cada pagamento é uma chance de conhecer o cliente. Hoje a Tipe já pede a avaliação logo depois do pagamento e lembra o nome de quem volta à mesma mesa. Relacionamento e campanhas estão em desenvolvimento.",
+      "O app do cliente para descobrir restaurantes, reservar o horário livre, entrar na lista de espera e voltar depois. Tudo ligado à conta da mesa da Tipe. Em desenvolvimento, com restaurantes fictícios no simulador.",
     cartao: {
-      titulo: "Avaliação · Mesa 12",
+      titulo: "Reserva · Maré Alta",
       linhas: [
-        ["Nota", "5 estrelas"],
-        ["Garçom", "Joyce"],
+        ["Amanhã", "12:00 · 2 pessoas"],
+        ["Status", "Confirmada"],
       ],
-      rodape: "Depois do pagamento",
+      rodape: "Simulação",
     },
     beneficios: [
       {
-        t: "Avaliação depois de pagar",
-        d: "Com a conta paga, o cliente dá a nota e, se quiser, deixa um comentário. A avaliação chega ligada a quem atendeu.",
-        foto: "cena-familia",
-        posicao: "50% 40%",
-        telaReal: "avaliacao",
-      },
-      {
-        t: "Nome lembrado no aparelho",
-        d: "Na próxima visita à mesma mesa, a conta abre com “Olá, Lucas”. O nome fica guardado no celular do cliente, sem cadastro.",
+        t: "Reserva no horário livre",
+        d: "O cliente escolhe o dia, quantas pessoas e um horário que existe de verdade. O horário fica seguro por 5 minutos enquanto ele confirma. Sem cartão.",
         foto: "cena-casal",
         posicao: "50% 35%",
-        telaReal: "conta",
+        telaReal: "guest-horarios",
       },
       {
-        t: "Relacionamento e campanhas",
-        d: "Em desenvolvimento. Ainda não está disponível para os restaurantes.",
-        foto: "cena-praia",
-        posicao: "50% 45%",
-        emDesenvolvimento: true,
+        t: "Lista de espera que avisa",
+        d: "Horário lotado? O cliente entra na fila. Quando uma mesa libera, o app avisa e ele tem 15 minutos para confirmar.",
+        foto: "cena-amigos",
+        posicao: "50% 40%",
+        telaReal: "guest-espera",
+      },
+      {
+        t: "Paga, agradece e volta",
+        d: "Na mesa, a conta abre no mesmo app. Depois de pagar, o cliente pode deixar uma gorjeta extra para quem atendeu, avaliar e salvar o restaurante nos favoritos.",
+        foto: "cena-familia",
+        posicao: "50% 40%",
+        telaReal: "guest-gorjeta",
       },
     ],
     banda: {
-      titulo: "Um obrigado vira uma visita de volta.",
+      titulo: "A reserva confirmada vira uma mesa pronta.",
       texto:
-        "Logo depois do pagamento, quando a experiência ainda está fresca, o cliente pode agradecer quem atendeu com uma gorjeta extra e avaliar o atendimento.",
-      telaReal: "avaliacao",
-      altTela: "Tela real de avaliação do atendimento depois de pagar a conta",
+        "O cliente recebe a confirmação com o código da reserva. No painel, o restaurante vê quem vem, em que horário e marca a chegada do grupo.",
+      telaReal: "guest-confirmada",
+      altTela:
+        "Tela de reserva confirmada para amanhã às 12:00, 2 pessoas, no restaurante fictício Maré Alta",
     },
     fatos: [
-      { v: "Depois", t: "do pagamento: a avaliação aparece na hora" },
-      { v: "Por garçom", t: "cada avaliação ligada a quem atendeu" },
-      { v: "Sem cadastro", t: "o nome fica guardado no celular do cliente" },
+      { v: "5 min", t: "de horário seguro enquanto o cliente confirma" },
+      { v: "15 min", t: "para confirmar quando a mesa da fila libera" },
+      { v: "Sem cartão", t: "para reservar" },
+      { v: "1 app", t: "da reserva à conta paga" },
     ],
     fluxoReal: {
-      titulo: "As telas que o cliente vê hoje.",
-      texto: "Capturadas do app do cliente, com dados de teste do restaurante fictício Maré Alta.",
+      titulo: "As telas do Tipe Guest.",
+      texto:
+        "Capturadas do simulador, com restaurantes fictícios. Nada é enviado e nenhuma cobrança acontece.",
       telas: [
         {
-          tela: "conta",
-          t: "Nome lembrado",
-          d: "A conta abre com o nome de quem já pagou nessa mesa.",
-          alt: "Conta da Mesa 12 com a saudação Olá, Lucas e o total de R$ 356,40",
+          tela: "guest-descobrir",
+          t: "Onde vamos comer?",
+          d: "Restaurantes com os próximos horários livres.",
+          alt: "Lista de restaurantes fictícios em Fortaleza com horários livres para amanhã",
         },
         {
-          tela: "pago",
-          t: "Pagamento realizado",
-          d: "Comprovante, gorjeta para a Joyce e avaliação.",
-          alt: "Pagamento realizado de R$ 118,79 no Maré Alta, Mesa 12",
+          tela: "guest-hold",
+          t: "Confirme sua reserva",
+          d: "O horário fica seguro por 5 minutos.",
+          alt: "Tela Confirme sua reserva, amanhã às 12:00 para 2 pessoas, com o horário seguro por 5 minutos",
         },
         {
-          tela: "gorjeta",
-          t: "Gorjeta, se quiser",
-          d: "Opcional, cobrada à parte. 70% vai para a Joyce.",
-          alt: "Tela de gorjeta extra com 3, 5 ou 8 por cento e Outro valor",
+          tela: "guest-pagar",
+          t: "A conta na mesa",
+          d: "Pix, Apple Pay, Google Pay ou no estabelecimento.",
+          alt: "Conta da Mesa 1 no Maré Alta com os itens e as formas de pagamento",
         },
         {
-          tela: "avaliacao",
-          t: "Avaliação",
-          d: "Estrelas e um comentário opcional.",
-          alt: "Tela Como foi seu atendimento, com cinco estrelas e campo de comentário",
+          tela: "guest-fim",
+          t: "Até a próxima",
+          d: "Salvar nos favoritos e reservar de novo.",
+          alt: "Tela Até a próxima, com Salvar nos favoritos e Reservar de novo",
         },
       ],
     },
     recursos: [
-      { icone: Star, t: "Avaliações", d: "Disponível hoje, logo depois do pagamento." },
-      { icone: UserRound, t: "Nome lembrado", d: "Disponível hoje, no celular do cliente." },
-      { icone: Clock, t: "Relacionamento e campanhas", d: "Em desenvolvimento." },
+      {
+        icone: Clock,
+        t: "Reservas",
+        d: "Horários livres saem do motor de reservas, sem overbooking.",
+      },
+      { icone: Users, t: "Lista de espera", d: "Avisa o cliente quando a mesa libera." },
+      {
+        icone: LayoutGrid,
+        t: "Painel do restaurante",
+        d: "Reservas do dia, da semana e a fila num lugar só.",
+      },
+      { icone: Star, t: "Avaliações", d: "Depois do pagamento, ligadas a quem atendeu." },
+      { icone: Heart, t: "Favoritos", d: "O cliente salva o restaurante para voltar." },
+      {
+        icone: UserRound,
+        t: "Nome lembrado",
+        d: "Na próxima visita, a conta abre com o nome do cliente.",
+      },
     ],
     faq: [
       [
-        "O programa de relacionamento já existe?",
-        "Ainda não. Avaliações e nome lembrado já funcionam; relacionamento e campanhas estão em desenvolvimento.",
+        "O Tipe Guest já está disponível?",
+        "Ainda não. Está em desenvolvimento; dá para experimentar no simulador, com restaurantes fictícios.",
+      ],
+      ["O cliente paga para reservar?", "Não. A reserva é grátis e não pede cartão."],
+      [
+        "E se o horário estiver lotado?",
+        "O cliente entra na lista de espera. Quando uma mesa libera, o app avisa e ele tem 15 minutos para confirmar.",
       ],
       [
         "Quem vê as avaliações?",

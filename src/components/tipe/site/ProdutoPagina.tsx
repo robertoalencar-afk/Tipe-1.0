@@ -216,7 +216,7 @@ function Topo({ p }: { p: Produto }) {
 const CONVERSA: Record<Painel, ConversaId> = {
   "lebre-salao": "salao",
   "lebre-acao": "acao",
-  "lebre-limite": "limite",
+  "lebre-anexo": "anexo",
 };
 
 function Abas({ p }: { p: Produto }) {
@@ -276,11 +276,20 @@ function Banda({ p }: { p: Produto }) {
           </Palavras>
           <p className="mt-5 max-w-md text-lg leading-relaxed text-[#021E34]/80">{p.banda.texto}</p>
         </div>
-        <div className="relative mx-auto flex h-full w-full max-w-md items-end justify-center gap-4 self-end lg:pt-14">
+        <div
+          className={cn(
+            "relative mx-auto flex h-full w-full max-w-md justify-center gap-4",
+            // a Lebre aparece inteira (conversa ao vivo); os outros celulares saem da borda
+            p.banda.lebre
+              ? "items-center self-center pb-12 lg:py-14"
+              : "items-end self-end lg:pt-14",
+          )}
+        >
           <Reveal
             className={cn(
-              "relative z-10 translate-y-6",
-              p.banda.tablet ? "w-full" : p.banda.lebre ? "w-[62%]" : "w-[55%]",
+              "relative z-10",
+              !p.banda.lebre && "translate-y-6",
+              p.banda.tablet ? "w-full" : p.banda.lebre ? "w-[64%] max-w-[17rem]" : "w-[55%]",
             )}
             delay={100}
           >
@@ -508,7 +517,10 @@ export function Relacionados({ p }: { p: Produto }) {
 }
 
 export function ProdutoPagina({ p, estado }: { p: Produto; estado?: EstadoLancamento | null }) {
-  if (p.slug === "order") return <PaginaOrder p={p} estado={estado ?? LANCAMENTO_PADRAO["order"] ?? "em-desenvolvimento"} />;
+  if (p.slug === "order")
+    return (
+      <PaginaOrder p={p} estado={estado ?? LANCAMENTO_PADRAO["order"] ?? "em-desenvolvimento"} />
+    );
   return (
     <>
       <Topo p={p} />

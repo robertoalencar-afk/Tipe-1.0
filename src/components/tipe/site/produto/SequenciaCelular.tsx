@@ -39,6 +39,61 @@ export const ETAPAS_TELA: Record<TelaReal, Omit<EtapaCelular, "tela">> = {
     alt: "Pedido montado no celular: 2 pastéis e 1 isca de peixe, com o botão Enviar 3 itens por R$ 118,00 (dados de exemplo)",
     toque: { x: 50, y: 93 },
   },
+  "guest-descobrir": {
+    alt: "Tipe Guest: busca de restaurantes em Fortaleza com os horários livres de cada um (restaurantes fictícios)",
+    toque: { x: 12, y: 32 },
+  },
+  "guest-horarios": {
+    alt: "Escolha de pessoas, dia e horário livre para reservar no Maré Alta (dados de exemplo)",
+    toque: { x: 50, y: 30 },
+  },
+  "guest-hold": {
+    alt: "Confirmação da reserva: o horário fica segurado por 5 minutos, reservar é grátis e sem cartão",
+    toque: { x: 50, y: 92 },
+  },
+  "guest-confirmada": {
+    alt: "Reserva confirmada para amanhã às 12:00, 2 pessoas, com o código da reserva",
+  },
+  "guest-pagar": {
+    alt: "Conta da mesa no Tipe Guest com Pix, Apple Pay, Google Pay e pagar no estabelecimento",
+    toque: { x: 50, y: 85 },
+  },
+  "guest-gorjeta": {
+    alt: "Depois de pagar, a gorjeta extra opcional para quem atendeu: 3%, 5% sugerida, 8% ou outro valor",
+    toque: { x: 50, y: 87 },
+  },
+  "guest-fim": {
+    alt: "Conta paga e avaliação registrada, com os botões Salvar nos favoritos e Reservar de novo",
+  },
+  "guest-espera": {
+    alt: "Lista de espera: o app avisa que uma mesa liberou e dá 15 minutos para confirmar",
+  },
+  "order-inicio": {
+    alt: "Cardápio da Mesa 12 no Tipe Order com categorias Petiscos, Pratos, Bebidas e Sobremesas",
+  },
+  "order-cozinha": {
+    alt: "Pedido enviado: os itens foram para a cozinha e já estão na conta da mesa",
+    toque: { x: 50, y: 70 },
+  },
+  "order-conta": {
+    alt: "Conta da Mesa 12 com o que foi pedido, a taxa de serviço e o botão Pagar R$ 74,80 (dados de exemplo)",
+    toque: { x: 50, y: 93 },
+  },
+  "order-fim": { alt: "Conta paga: o próximo pedido abre uma nova conta na mesma mesa" },
+  "order-story-baiao": {
+    alt: "Cardápio em stories: foto do Baião de dois em tela cheia, com o botão Adicionar (dados de exemplo)",
+    toque: { x: 50, y: 85 },
+  },
+  "order-story-peixe": {
+    alt: "Cardápio em stories: Peixe na brasa com o selo Saindo da brasa e 1 no pedido (dados de exemplo)",
+    toque: { x: 50, y: 85 },
+  },
+  "order-story-bebidas": {
+    alt: "Cardápio em stories: Suco de caju, copo de 400 ml (dados de exemplo)",
+  },
+  "order-story-3d": {
+    alt: "Cardápio em stories: sobremesa em 3D que o cliente gira no celular (em desenvolvimento)",
+  },
 };
 
 const ROTULO: Record<TelaReal, string> = {
@@ -53,6 +108,22 @@ const ROTULO: Record<TelaReal, string> = {
   avaliacao: "Avaliar",
   cardapio: "Cardápio",
   pedido: "Pedido",
+  "guest-descobrir": "Descobrir",
+  "guest-horarios": "Horário",
+  "guest-hold": "Reservar",
+  "guest-confirmada": "Confirmada",
+  "guest-pagar": "Pagar",
+  "guest-gorjeta": "Gorjeta",
+  "guest-fim": "Voltar",
+  "guest-espera": "Espera",
+  "order-inicio": "Cardápio",
+  "order-cozinha": "Cozinha",
+  "order-conta": "Conta",
+  "order-fim": "Pago",
+  "order-story-baiao": "Escolher",
+  "order-story-peixe": "Pedir",
+  "order-story-bebidas": "Bebidas",
+  "order-story-3d": "3D",
 };
 
 export const PASSO_MS = 2300;
