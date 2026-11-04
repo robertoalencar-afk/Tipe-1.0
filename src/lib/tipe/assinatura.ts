@@ -130,6 +130,7 @@ export const ABAS_LIVRES_BLOQUEADO = [
   "relatorios",
   "recebimentos",
   "assinatura",
+  "seguranca",
 ] as const;
 
 export function abaLiberada(aba: string, a: Access) {

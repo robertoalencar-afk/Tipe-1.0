@@ -10,6 +10,9 @@ import { EditorialPhoto } from "@/components/tipe/landing/EditorialPhoto";
 import { Toast } from "@/components/tipe/landing/Toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { MfaGate } from "@/components/tipe/FounderMfaGate";
+import { SenhaForteInput } from "@/components/tipe/SenhaForte";
+import { avaliarSenha, mensagemErroSenha } from "@/lib/tipe/senha";
 import { Check, HandCoins } from "lucide-react";
 
 export const Route = createFileRoute("/entrar")({
@@ -39,7 +42,13 @@ function Entrar() {
   const navigate = useNavigate();
   const { r } = Route.useSearch();
   const fetchAccess = useServerFn(getMyAccess);
-  const destino = async () => {
+  const [precisaMfa, setPrecisaMfa] = useState(false);
+  const destino = async (mfaConfirmado = false) => {
+    // Conta com 2FA: pede o código antes de qualquer chamada ao servidor (que recusa aal1).
+    if (!mfaConfirmado) {
+      const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
+      if (aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2") return setPrecisaMfa(true);
+    }
     if (r) return navigate({ to: "/$restaurante", params: { restaurante: r.slice(1) } });
     try {
       const a = await fetchAccess();
@@ -64,10 +73,10 @@ function Entrar() {
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
-      if (data.session) destino();
+      if (data.session) void destino();
     });
     const { data } = supabase.auth.onAuthStateChange((e, s) => {
-      if (e === "SIGNED_IN" && s) destino();
+      if (e === "SIGNED_IN" && s) void destino();
     });
     return () => data.subscription.unsubscribe();
   }, [navigate, r]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -80,6 +89,8 @@ function Entrar() {
         const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
         if (error) throw new Error("E-mail ou senha incorretos");
       } else if (modo === "criar") {
+        const forca = avaliarSenha(senha, { email });
+        if (!forca.ok) throw new Error(`Senha fraca: ${forca.faltam.join(", ").toLowerCase()}.`);
         const { error } = await supabase.auth.signUp({
           email,
           password: senha,
@@ -87,9 +98,7 @@ function Entrar() {
         });
         if (error)
           throw new Error(
-            error.message.includes("pwned") || error.message.toLowerCase().includes("weak")
-              ? "Essa senha é fraca ou já vazou. Escolha outra."
-              : "Não foi possível criar a conta",
+            mensagemErroSenha(error.message) ?? "Não foi possível criar a conta",
           );
         toast.success("Conta criada! Confirme pelo link enviado ao seu e-mail.");
         setModo("entrar");
@@ -115,6 +124,13 @@ function Entrar() {
     });
     if (error) toast.error("Não foi possível entrar com Google");
   }
+
+  if (precisaMfa)
+    return (
+      <MfaGate>
+        <SeguirAposMfa onPronto={() => void destino(true)} />
+      </MfaGate>
+    );
 
   const titulo =
     modo === "entrar"
@@ -201,18 +217,18 @@ function Entrar() {
                       </button>
                     )}
                   </div>
-                  <Input
-                    id="senha"
-                    type="password"
-                    required
-                    minLength={8}
-                    placeholder="••••••••"
-                    value={senha}
-                    onChange={(e) => setSenha(e.target.value)}
-                    autoComplete={modo === "criar" ? "new-password" : "current-password"}
-                  />
-                  {modo === "criar" && (
-                    <p className="text-xs text-muted-foreground">Mínimo de 8 caracteres</p>
+                  {modo === "criar" ? (
+                    <SenhaForteInput id="senha" label="" value={senha} onChange={setSenha} contexto={{ email }} />
+                  ) : (
+                    <Input
+                      id="senha"
+                      type="password"
+                      required
+                      placeholder="••••••••"
+                      value={senha}
+                      onChange={(e) => setSenha(e.target.value)}
+                      autoComplete="current-password"
+                    />
                   )}
                 </div>
               )}
@@ -279,4 +295,9 @@ function Entrar() {
       </div>
     </main>
   );
+}
+
+function SeguirAposMfa({ onPronto }: { onPronto: () => void }) {
+  useEffect(() => { onPronto(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  return <p className="p-10 text-center text-sm text-muted-foreground">Entrando…</p>;
 }

@@ -53,6 +53,9 @@ grep -qE "FALHOU|ERROR" /tmp/tipe-guest.log && FAIL=1
 $P -v ON_ERROR_STOP=1 -f "$DIR/founding_partner.sql" >/tmp/tipe-fundador.raw 2>&1 || FAIL=1
 grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-fundador.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-fundador.log
 grep -qE "FALHOU|ERROR" /tmp/tipe-fundador.log && FAIL=1
+$P -v ON_ERROR_STOP=1 -f "$DIR/mfa.sql" >/tmp/tipe-mfa.raw 2>&1 || FAIL=1
+grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-mfa.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-mfa.log
+grep -qE "FALHOU|ERROR" /tmp/tipe-mfa.log && FAIL=1
 $P -v ON_ERROR_STOP=1 -f "$DIR/guest-reservas.sql" >/tmp/tipe-reservas.raw 2>&1 || FAIL=1
 grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-reservas.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-reservas.log
 grep -qE "FALHOU|ERROR" /tmp/tipe-reservas.log && FAIL=1

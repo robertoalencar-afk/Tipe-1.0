@@ -61,6 +61,7 @@ import {
   importMenuCsv,
 } from "@/lib/tipe/pdv-integrations.functions";
 import { PixGarcons } from "@/components/tipe/PixGarcons";
+import { SegurancaConta } from "@/components/tipe/SegurancaConta";
 import { Caixa, Configuracoes, Inicio, Integracoes, Relatorios } from "@/components/tipe/AdminSections";
 import { Cozinha } from "@/components/tipe/Kds";
 import { TotemStudio } from "@/components/tipe/TotemStudio";
@@ -71,7 +72,7 @@ import { abaLiberada } from "@/lib/tipe/assinatura";
 import { Recebimentos } from "@/components/tipe/Recebimentos";
 import { AvisoPendencias, PendenciasFinanceiras } from "@/components/tipe/PendenciasFinanceiras";
 import { grantWaiterAccess } from "@/lib/tipe/waiter.functions";
-import { Landmark } from "lucide-react";
+import { Landmark, ShieldCheck } from "lucide-react";
 import { DesempenhoGarcons } from "@/components/tipe/DesempenhoGarcons";
 import { ReservasPainel } from "@/components/tipe/ReservasPainel";
 import { getReservasAcesso } from "@/lib/tipe/guest/reservas.functions";
@@ -257,6 +258,13 @@ const secoes = [
     i: Settings,
     g: "Configurações",
     d: "Dados do restaurante, taxa de serviço e formas de pagamento.",
+  },
+  {
+    k: "seguranca",
+    l: "Segurança da conta",
+    i: ShieldCheck,
+    g: "Configurações",
+    d: "Verificação em duas etapas e troca de senha.",
   },
   {
     k: "assinatura",
@@ -929,6 +937,7 @@ export function RestaurantPanel({
         {aba === "config" && <Configuracoes slug={slug} podeDono={podeDono} />}
         {aba === "recebimentos" && podeDono && <Recebimentos slug={slug} podeDono={podeDono} />}
         {aba === "assinatura" && podeDono && <Assinatura slug={slug} />}
+        {aba === "seguranca" && <SegurancaConta />}
         </>
         )}
       </div>

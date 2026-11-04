@@ -9,6 +9,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { TipeLogo } from "@/components/tipe/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { SenhaForteInput } from "@/components/tipe/SenhaForte";
+import { avaliarSenha, mensagemErroSenha, SENHA_MAX, SENHA_MIN } from "@/lib/tipe/senha";
 import { PLANS, SHOW_PLAN_PRICES, TRIAL_DAYS, priceLabel, type PlanId } from "@/lib/tipe/plans";
 import { signupRestaurant } from "@/lib/tipe/subscription.functions";
 import { recordLegalAcceptance } from "@/lib/tipe/legal.functions";
@@ -157,8 +159,8 @@ function Cadastro() {
         await criarRestaurante(f);
         return;
       }
-      if (conta.senha.length < 8 || !/[A-Za-z]/.test(conta.senha) || !/\d/.test(conta.senha))
-        throw new Error("A senha precisa ter 8 caracteres, com letras e números.");
+      const forca = avaliarSenha(conta.senha, { email: conta.email, nomes: [f.displayName] });
+      if (!forca.ok) throw new Error(`Senha fraca: ${forca.faltam.join(", ").toLowerCase()}.`);
       if (conta.senha !== conta.senha2) throw new Error("As senhas não conferem.");
       localStorage.setItem(PENDING, JSON.stringify(f));
       const { data, error } = await supabase.auth.signUp({
@@ -173,9 +175,7 @@ function Cadastro() {
         throw new Error(
           error.message.toLowerCase().includes("registered")
             ? "Este e-mail já tem conta. Entre com sua senha para continuar."
-            : error.message.includes("pwned") || error.message.toLowerCase().includes("weak")
-              ? "Essa senha é fraca ou já vazou. Escolha outra."
-              : "Não foi possível criar a conta",
+            : (mensagemErroSenha(error.message) ?? "Não foi possível criar a conta"),
         );
       if (data.session) {
         tentou.current = true;
@@ -377,24 +377,20 @@ function Cadastro() {
                   />
                 </label>
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <label className={campo}>
-                    Senha
-                    <Input
-                      type="password"
-                      required
-                      minLength={8}
-                      autoComplete="new-password"
-                      className="mt-1"
-                      value={conta.senha}
-                      onChange={(e) => setConta({ ...conta, senha: e.target.value })}
-                    />
-                  </label>
+                  <SenhaForteInput
+                    id="cadastro-senha"
+                    className={campo}
+                    value={conta.senha}
+                    onChange={(v) => setConta({ ...conta, senha: v })}
+                    contexto={{ email: conta.email, nomes: [f.displayName] }}
+                  />
                   <label className={campo}>
                     Confirmar senha
                     <Input
                       type="password"
                       required
-                      minLength={8}
+                      minLength={SENHA_MIN}
+                      maxLength={SENHA_MAX}
                       autoComplete="new-password"
                       className="mt-1"
                       value={conta.senha2}
@@ -403,7 +399,7 @@ function Cadastro() {
                   </label>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Mínimo de 8 caracteres, com letras e números. Senhas vazadas na internet são
+                  Senhas vazadas na internet são
                   recusadas. Esqueceu a senha de uma conta existente?{" "}
                   <Link to="/entrar" className="underline">
                     Recupere aqui
