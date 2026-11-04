@@ -2,7 +2,7 @@ import { useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Check, FileText, Loader2, MessageCircle, Mic, Paperclip, Square, X } from "lucide-react";
 import { VoiceWave } from "@/components/tipe/VoiceWave";
-import { HareOutline } from "@/components/tipe/HareOutline";
+import { classeBotaoLebre, ConteudoBotaoLebre } from "@/components/tipe/LebreBotao";
 import { Button } from "@/components/ui/button";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Conversation, ConversationContent, ConversationScrollButton } from "@/components/ai-elements/conversation";
@@ -59,7 +59,7 @@ function AttachButton({ disabled }: { disabled: boolean }) {
 
 const confirmWords = /^(sim|confirmo|confirmar|pode|ok|pode fazer|isso)[.! ]*$/i;
 
-export function LebreAssistant({ slug }: { slug?: string }) {
+export function LebreAssistant({ slug, inicialAberta = false }: { slug?: string | undefined; inicialAberta?: boolean }) {
   const askPublic = useServerFn(askPublicLebre);
   const askRestaurant = useServerFn(askRestaurantLebre);
   const execute = useServerFn(executeLebreProposal);
@@ -104,7 +104,7 @@ export function LebreAssistant({ slug }: { slug?: string }) {
   }
 
   function stopRecording() { if (recorderRef.current?.state === "recording") recorderRef.current.stop(); }
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(inicialAberta);
   const [busy, setBusy] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const suggestions = slug ? panelSuggestions : publicSuggestions;
@@ -147,9 +147,8 @@ export function LebreAssistant({ slug }: { slug?: string }) {
 
   return (
     <>
-      <button type="button" onClick={() => setOpen(true)} className={`group fixed right-3 z-40 grid place-items-center rounded-full bg-primary text-primary-foreground shadow-xl transition-transform hover:-translate-y-0.5 print:hidden ${slug ? "bottom-24 h-12 w-12 sm:right-5 lg:bottom-5 lg:h-14 lg:w-14" : "bottom-4 h-11 w-11 sm:bottom-6 sm:right-6 sm:h-12 sm:w-12"}`} aria-label="Pergunte à Lebre">
-        <HareOutline className="h-7 w-6" />
-        <span className="pointer-events-none absolute right-full mr-3 hidden whitespace-nowrap rounded-full bg-foreground px-3 py-1.5 text-xs font-semibold text-background opacity-0 shadow-md transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 sm:block">Pergunte à Lebre</span>
+      <button type="button" onClick={() => setOpen(true)} className={classeBotaoLebre(slug)} aria-label="Pergunte à Lebre">
+        <ConteudoBotaoLebre />
       </button>
       {open && (
         <section className={`fixed inset-x-3 z-50 flex flex-col overflow-hidden rounded-lg border bg-card shadow-2xl sm:left-auto sm:right-5 sm:w-[420px] ${slug ? "bottom-24 h-[min(680px,calc(100dvh-7rem))] lg:bottom-3 lg:h-[min(720px,calc(100dvh-1.5rem))]" : "bottom-3 h-[min(720px,calc(100dvh-1.5rem))]"}`} aria-label="Conversa com a Lebre">

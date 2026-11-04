@@ -2,6 +2,7 @@ import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { exigirSessao } from "@/integrations/supabase/lazy";
 import { Cozinha } from "@/components/tipe/Kds";
 import { useOps } from "@/components/tipe/AdminSections";
 
@@ -9,8 +10,7 @@ import { useOps } from "@/components/tipe/AdminSections";
 export const Route = createFileRoute("/$restaurante/cozinha")({
   ssr: false,
   beforeLoad: async ({ params }) => {
-    const { data } = await supabase.auth.getUser();
-    if (!data.user) throw redirect({ to: "/entrar", search: { r: `/${params.restaurante}/cozinha` } });
+    if (!(await exigirSessao())) throw redirect({ to: "/entrar", search: { r: `/${params.restaurante}/cozinha` } });
   },
   head: () => ({
     meta: [

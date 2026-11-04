@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { exigirSessao } from "@/integrations/supabase/lazy";
 import { Button } from "@/components/ui/button";
 import { RestaurantPanel } from "@/components/tipe/RestaurantPanel";
 import { PartnerTermsNotice } from "@/components/tipe/legal/PartnerTermsNotice";
@@ -14,8 +15,7 @@ import { PainelCarregando } from "@/components/tipe/RestaurantPanel";
 export const Route = createFileRoute("/$restaurante/")({
   ssr: false,
   beforeLoad: async ({ params }) => {
-    const { data } = await supabase.auth.getUser();
-    if (!data.user) throw redirect({ to: "/entrar", search: { r: `/${params.restaurante}` } });
+    if (!(await exigirSessao())) throw redirect({ to: "/entrar", search: { r: `/${params.restaurante}` } });
   },
   head: () => ({
     meta: [

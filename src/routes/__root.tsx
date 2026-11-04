@@ -15,8 +15,13 @@ import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
 import { CookieBanner } from "@/components/tipe/PrivacyPreferences";
 import { WhatsAppFloat } from "@/components/tipe/WhatsAppFloat";
+import { BarraNavegacao } from "@/components/tipe/BarraNavegacao";
 import { captureAttribution, loadMeasurement } from "@/lib/tipe/tracking";
-import { supabase } from "@/integrations/supabase/client";
+import {
+  carregarSupabase,
+  EVENTO_SUPABASE_PRONTO,
+  temSessaoSalva,
+} from "@/integrations/supabase/lazy";
 
 function NotFoundComponent() {
   return (
@@ -136,13 +141,30 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
 
+  // Ouvinte de login. O supabase-js só é baixado se já houver sessão salva ou quando
+  // alguma tela criar o cliente (entrar, painel, CRM...); landing e mesa não pagam esse peso.
   useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((event) => {
-      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
-      router.invalidate();
-      if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
-    });
-    return () => data.subscription.unsubscribe();
+    let ativo = true;
+    let cancelar: (() => void) | undefined;
+    const assinar = () => {
+      window.removeEventListener(EVENTO_SUPABASE_PRONTO, assinar);
+      void carregarSupabase().then((supabase) => {
+        if (!ativo || cancelar) return;
+        const { data } = supabase.auth.onAuthStateChange((event) => {
+          if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+          router.invalidate();
+          if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
+        });
+        cancelar = () => data.subscription.unsubscribe();
+      });
+    };
+    if (temSessaoSalva()) assinar();
+    else window.addEventListener(EVENTO_SUPABASE_PRONTO, assinar);
+    return () => {
+      ativo = false;
+      window.removeEventListener(EVENTO_SUPABASE_PRONTO, assinar);
+      cancelar?.();
+    };
   }, [router, queryClient]);
 
   // Atribuição (UTM/indicação) e medição só após consentimento.
@@ -173,6 +195,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <BarraNavegacao />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
       <Toaster position="top-center" />
