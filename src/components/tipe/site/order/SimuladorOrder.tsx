@@ -27,8 +27,21 @@ import {
 import { cn } from "@/lib/utils";
 import { Secao, Titulo } from "../Site";
 import { useMovimentoReduzido } from "../produto/useVisivel";
+import { AneisCategorias, StoryCardapio, type ItemStory } from "./StoryCardapio";
+import fotoPastel from "@/assets/cardapio/pastel-1080.webp";
+import profPastel from "@/assets/cardapio/pastel-depth.png";
+import fotoIsca from "@/assets/cardapio/isca-1080.webp";
+import profIsca from "@/assets/cardapio/isca-depth.png";
+import fotoBaiao from "@/assets/cardapio/baiao-1080.webp";
+import profBaiao from "@/assets/cardapio/baiao-depth.png";
+import fotoCartola from "@/assets/cardapio/cartola-1080.webp";
+import profCartola from "@/assets/cardapio/cartola-depth.png";
+import fotoPeixe from "@/assets/cardapio/peixe-720.webp";
+import fotoCaju from "@/assets/cardapio/caju-1080.webp";
+import profCaju from "@/assets/cardapio/caju-depth.png";
+import fotoCoco from "@/assets/cardapio/coco-720.webp";
 
-type Item = { code: string; nome: string; desc?: string; preco: number; cat: string };
+type Item = ItemStory;
 type Status = "recebido" | "preparando" | "pronto" | "entregue";
 type Pedido = { id: number; itens: { code: string; qtd: number }[]; status: Status; hora: string };
 type Metodo = "pix" | "apple_pay" | "google_pay" | "estabelecimento";
@@ -44,6 +57,9 @@ const CARDAPIO: Item[] = [
     desc: "Porção com 6 unidades",
     preco: 3400,
     cat: "Petiscos",
+    foto: fotoPastel,
+    profundidade: profPastel,
+    modelo: "/modelos/pastel-triposr.glb",
   },
   {
     code: "isca",
@@ -51,6 +67,10 @@ const CARDAPIO: Item[] = [
     desc: "Com molho tártaro da casa",
     preco: 5400,
     cat: "Petiscos",
+    foto: fotoIsca,
+    profundidade: profIsca,
+    selo: "Mais pedido",
+    alergenicos: ["peixe", "ovo", "glúten"],
   },
   {
     code: "baiao",
@@ -58,6 +78,9 @@ const CARDAPIO: Item[] = [
     desc: "Feijão-verde, queijo coalho e nata",
     preco: 4200,
     cat: "Pratos",
+    foto: fotoBaiao,
+    profundidade: profBaiao,
+    alergenicos: ["leite"],
   },
   {
     code: "peixe",
@@ -65,15 +88,45 @@ const CARDAPIO: Item[] = [
     desc: "Pargo com pirão e salada",
     preco: 6800,
     cat: "Pratos",
+    foto: fotoPeixe,
+    selo: "Saindo da brasa",
+    alergenicos: ["peixe"],
   },
-  { code: "caju", nome: "Suco de caju", desc: "Copo de 400 ml", preco: 950, cat: "Bebidas" },
-  { code: "coco", nome: "Água de coco", preco: 800, cat: "Bebidas" },
+  {
+    code: "caju",
+    nome: "Suco de caju",
+    desc: "Copo de 400 ml",
+    preco: 950,
+    cat: "Bebidas",
+    foto: fotoCaju,
+    profundidade: profCaju,
+  },
+  {
+    code: "coco",
+    nome: "Água de coco",
+    desc: "Servida no coco, bem gelada",
+    preco: 800,
+    cat: "Bebidas",
+    foto: fotoCoco,
+  },
   {
     code: "cartola",
     nome: "Cartola",
     desc: "Banana, queijo coalho e canela",
     preco: 1900,
     cat: "Sobremesas",
+    foto: fotoCartola,
+    profundidade: profCartola,
+    alergenicos: ["leite"],
+  },
+  {
+    code: "abacate",
+    nome: "Creme de abacate",
+    desc: "Com limão e raspas de rapadura. Gire o abacate em 3D.",
+    preco: 1600,
+    cat: "Sobremesas",
+    modelo: "/modelos/abacate.glb",
+    selo: "Em 3D",
   },
 ];
 const PRECO = Object.fromEntries(CARDAPIO.map((i) => [i.code, i])) as Record<string, Item>;
@@ -263,7 +316,7 @@ export function SimuladorOrder() {
               <Smartphone className="h-4 w-4" aria-hidden /> Celular do cliente
             </p>
             <div className="mx-auto w-full max-w-[22rem] rounded-[2.6rem] bg-[#021E34] p-2.5 shadow-[0_40px_80px_-30px_rgb(2_30_52/0.55)]">
-              <div className="flex h-[40rem] flex-col overflow-hidden rounded-[2.1rem] bg-white text-[#021E34]">
+              <div className="relative flex h-[40rem] flex-col overflow-hidden rounded-[2.1rem] bg-white text-[#021E34]">
                 <div className="flex items-center justify-between px-5 pb-2 pt-5">
                   <div>
                     <p className="text-[0.7rem] text-[#5b6b78]">Maré Alta</p>
@@ -507,6 +560,7 @@ function TelaPedir({
   totalCarrinho: number;
   enviar: () => void;
 }) {
+  const [story, setStory] = useState<string | null>(null);
   if (enviado !== null)
     return (
       <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
@@ -541,7 +595,8 @@ function TelaPedir({
             </p>
           </div>
         )}
-        <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1">
+        <AneisCategorias itens={CARDAPIO} categorias={CATEGORIAS} abrir={setStory} />
+        <div className="-mx-4 mt-3 flex gap-1.5 overflow-x-auto px-4 pb-1">
           {CATEGORIAS.map((c) => (
             <button
               key={c}
@@ -568,11 +623,36 @@ function TelaPedir({
                   q ? "border-[#0FC9BD] bg-[#f2fcfb]" : "border-[#021E34]/10",
                 )}
               >
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-semibold">{i.nome}</p>
-                  {i.desc && <p className="truncate text-xs text-[#5b6b78]">{i.desc}</p>}
-                  <p className="mt-0.5 text-sm font-semibold tabular-nums">{brl(i.preco)}</p>
-                </div>
+                <button
+                  type="button"
+                  onClick={() => setStory(i.code)}
+                  aria-label={`Ver ${i.nome} em tela cheia`}
+                  className="flex min-w-0 flex-1 items-center gap-3 text-left"
+                >
+                  <span className="relative h-14 w-14 shrink-0 overflow-hidden rounded-xl bg-[radial-gradient(circle_at_30%_20%,#0FC9BD,#021E34_80%)]">
+                    {i.foto ? (
+                      <img
+                        src={i.foto}
+                        alt=""
+                        loading="lazy"
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <span className="grid h-full w-full place-items-center text-[0.6rem] font-bold text-white">
+                        {i.modelo ? "3D" : i.nome.slice(0, 2)}
+                      </span>
+                    )}
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold">{i.nome}</span>
+                    {i.desc && (
+                      <span className="block truncate text-xs text-[#5b6b78]">{i.desc}</span>
+                    )}
+                    <span className="mt-0.5 block text-sm font-semibold tabular-nums">
+                      {brl(i.preco)}
+                    </span>
+                  </span>
+                </button>
                 {q > 0 ? (
                   <div className="flex items-center gap-2">
                     <button
@@ -625,6 +705,21 @@ function TelaPedir({
               : "Seu pedido fica guardado aqui até a mesa ser liberada."}
           </p>
         </div>
+      )}
+      {story && (
+        <StoryCardapio
+          itens={CARDAPIO}
+          categorias={CATEGORIAS}
+          inicio={story}
+          restaurante="Maré Alta"
+          carrinho={carrinho}
+          mudar={mudar}
+          onFechar={() => {
+            const it = PRECO[story];
+            if (it) setCat(it.cat);
+            setStory(null);
+          }}
+        />
       )}
     </>
   );

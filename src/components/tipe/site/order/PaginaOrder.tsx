@@ -41,6 +41,7 @@ import { duvidasDe, type Produto } from "../produtos";
 import { ListaDuvidas, Relacionados } from "../ProdutoPagina";
 import { FormularioOrder } from "./FormularioOrder";
 import { SimuladorOrder } from "./SimuladorOrder";
+import { CriarPratoDemo } from "./CriarPratoDemo";
 
 const ANCORA_FORM = "quero-o-order";
 
@@ -722,8 +723,9 @@ export function PaginaOrder({ p, estado }: { p: Produto; estado: EstadoLancament
     <>
       <Topo p={p} estado={estado} />
       <Experiencia />
-      <SimuladorOrder />
       <CardapioStories />
+      <SimuladorOrder />
+      <CriarPratoDemo />
       <PayEOrder estado={estado} />
       <TudoConectado />
       <Beneficios p={p} />
