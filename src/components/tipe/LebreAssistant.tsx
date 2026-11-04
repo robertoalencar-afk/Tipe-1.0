@@ -10,7 +10,7 @@ import { Message, MessageContent, MessageResponse } from "@/components/ai-elemen
 import { PromptInput, PromptInputBody, PromptInputButton, PromptInputFooter, PromptInputHeader, PromptInputSubmit, PromptInputTextarea, PromptInputTools, usePromptInputAttachments, type PromptInputMessage } from "@/components/ai-elements/prompt-input";
 import { Tool, ToolContent, ToolHeader, ToolInput, ToolOutput } from "@/components/ai-elements/tool";
 import { askPublicLebre, askRestaurantLebre, executeLebreProposal, transcribeLebreAudio, type LebreFile, type LebreProposal } from "@/lib/tipe/lebre.functions";
-import lebre from "@/assets/lebre/avatar-ola.webp";
+import lebre from "@/assets/lebre/avatar-feliz.webp";
 import lebrePensando from "@/assets/lebre/avatar-pensando.webp";
 
 type ChatMessage = { id: string; role: "user" | "assistant"; text: string; files?: { name: string; mediaType: string; url: string }[]; proposal?: LebreProposal; result?: string; error?: string };
