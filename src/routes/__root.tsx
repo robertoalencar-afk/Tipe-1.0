@@ -14,64 +14,66 @@ import { useEffect, useState, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
 import { CookieBanner } from "@/components/tipe/PrivacyPreferences";
+import { ErroPagina, botaoPrimario, botaoSecundario } from "@/components/tipe/ErroPagina";
+import { AvisoSemInternet } from "@/components/tipe/AvisoSemInternet";
 import { WhatsAppFloat } from "@/components/tipe/WhatsAppFloat";
 import { captureAttribution, loadMeasurement } from "@/lib/tipe/tracking";
 import { supabase } from "@/integrations/supabase/client";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
-        </p>
-        <div className="mt-6">
-          <Link
-            to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Go home
+    <ErroPagina
+      codigo="Erro 404"
+      titulo="Essa página saiu da mesa"
+      texto="O endereço pode ter mudado ou foi digitado com algum detalhe diferente. Se você leu o QR Code da mesa, peça ao garçom um código novo."
+      acoes={
+        <>
+          <Link to="/" className={botaoPrimario}>
+            Ir para a página inicial
           </Link>
-        </div>
-      </div>
-    </div>
+          <a href="/ajuda" className={botaoSecundario}>
+            Abrir a Central de ajuda
+          </a>
+        </>
+      }
+    />
   );
 }
 
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
+  const [ref] = useState(() => Date.now().toString(36).toUpperCase());
+  const offline = typeof navigator !== "undefined" && navigator.onLine === false;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
-        </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
+    <ErroPagina
+      codigo={offline ? "Sem internet" : "Erro 500"}
+      titulo={offline ? "Você está sem internet" : "Esta página não carregou"}
+      texto={
+        offline
+          ? "Confira o Wi-Fi ou os dados móveis. Nenhum pagamento é feito sem confirmação, então dá para tentar de novo com segurança."
+          : "Algo deu errado do nosso lado, não do seu. Tente de novo em instantes. Se você estava pagando, nada é cobrado duas vezes."
+      }
+      detalhe={offline ? undefined : ref}
+      acoes={
+        <>
           <button
+            type="button"
             onClick={() => {
               router.invalidate();
               reset();
             }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className={botaoPrimario}
           >
-            Try again
+            Tentar de novo
           </button>
-          <a
-            href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-          >
-            Go home
+          <a href="/" className={botaoSecundario}>
+            Ir para a página inicial
           </a>
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    />
   );
 }
 
@@ -176,6 +178,7 @@ function RootComponent() {
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
       <Toaster position="top-center" />
+      <AvisoSemInternet />
       {!embedded && !naContaDaMesa && <CookieBanner />}
       {!embedded && <WhatsAppFloat />}
     </QueryClientProvider>

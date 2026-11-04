@@ -1,4 +1,4 @@
--- Verificação em duas etapas no banco (migração 0035). Rode com tests/db/run.sh.
+-- Verificação em duas etapas no banco (migração 0037). Rode com tests/db/run.sh.
 \set ON_ERROR_STOP 1
 SET client_min_messages = notice;
 SET search_path = public, extensions;

@@ -60,6 +60,12 @@ $P -v ON_ERROR_STOP=1 -f "$DIR/guest-reservas.sql" >/tmp/tipe-reservas.raw 2>&1 
 grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-reservas.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-reservas.log
 grep -qE "FALHOU|ERROR" /tmp/tipe-reservas.log && FAIL=1
 
+# Assinatura (0036): reaplica sem erro e roda os cenários.
+$P -v ON_ERROR_STOP=1 -f "$REPO/drizzle/migrations/0036_subscription_access.sql" >/dev/null 2>/tmp/tipe-0036.log || { echo "FALHOU: 0036 não reaplica"; cat /tmp/tipe-0036.log; FAIL=1; }
+$P -v ON_ERROR_STOP=1 -f "$DIR/assinatura.sql" >/tmp/tipe-assinatura.raw 2>&1 || FAIL=1
+grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-assinatura.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-assinatura.log
+grep -qE "FALHOU|ERROR" /tmp/tipe-assinatura.log && FAIL=1
+
 # 1) Dois clientes pagando a conta inteira ao mesmo tempo, em conexões separadas.
 $P -c "SET search_path=public,extensions; DELETE FROM table_payment_requests WHERE restaurant_slug='mare-alta' AND table_number='8'; DELETE FROM table_bill_items WHERE restaurant_slug='mare-alta' AND table_number='8'; INSERT INTO table_bill_items (restaurant_slug, table_number, item_code, item_name, unit_price, ordered_quantity, ordered_by, ordered_at) VALUES ('mare-alta','8','pizza','Pizza',90,1,'Teste',now()),('mare-alta','8','suco','Suco',12,3,'Teste',now());" >/dev/null
 pay() { $P -c "SET search_path=public,extensions; BEGIN; SELECT register_table_payment('mare-alta','8','$1','restaurant','pix','pending',126,'{\"pizza\":1,\"suco\":3}','concorrencia-$2'); SELECT pg_sleep(0.5); COMMIT;" >/tmp/tipe-conc-$2.log 2>&1; }

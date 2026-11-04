@@ -66,7 +66,9 @@ import { Caixa, Configuracoes, Inicio, Integracoes, Relatorios } from "@/compone
 import { Cozinha } from "@/components/tipe/Kds";
 import { TotemStudio } from "@/components/tipe/TotemStudio";
 import { LiberarPedidosMesa } from "@/components/tipe/LiberarPedidosMesa";
-import { Assinatura } from "@/components/tipe/Assinatura";
+import { Assinatura, AvisoAssinatura, ContaBloqueada } from "@/components/tipe/Assinatura";
+import { getAccountAccess } from "@/lib/tipe/subscription.functions";
+import { abaLiberada } from "@/lib/tipe/assinatura";
 import { Recebimentos } from "@/components/tipe/Recebimentos";
 import { AvisoPendencias, PendenciasFinanceiras } from "@/components/tipe/PendenciasFinanceiras";
 import { grantWaiterAccess } from "@/lib/tipe/waiter.functions";
@@ -333,6 +335,14 @@ export function RestaurantPanel({
     staleTime: 5 * 60_000,
   });
   const reservasOn = reservas.data?.enabled === true;
+  // Conta vinculada à assinatura: o banco já trava mesas e pedidos novos; aqui só explicamos.
+  const fetchAcesso = useServerFn(getAccountAccess);
+  const acesso = useQuery({
+    queryKey: ["account-access", slug],
+    queryFn: () => fetchAcesso({ data: { slug } }),
+    staleTime: 60_000,
+    refetchInterval: 5 * 60_000,
+  });
   const [mesaAberta, setMesaAberta] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState<string | null>(null);
   const [aba, setAba] = useState("inicio");
@@ -719,9 +729,16 @@ export function RestaurantPanel({
             <strong>Atenção no cancelamento:</strong> {d.pdvAlerts[0].detail}
           </div>
         )}
+        {acesso.data && (
+          <AvisoAssinatura access={acesso.data} podeDono={podeDono} onOpen={() => ir("assinatura")} />
+        )}
         {aba !== "caixa" && aba !== "inicio" && (
           <AvisoPendencias slug={slug} enabled={podeConfirmar} onOpen={() => ir("caixa")} />
         )}
+        {acesso.data && !abaLiberada(aba, acesso.data) ? (
+          <ContaBloqueada podeDono={podeDono} onOpen={() => ir("assinatura")} />
+        ) : (
+        <>
         {aba === "inicio" && (
           <Inicio
             slug={slug}
@@ -921,6 +938,8 @@ export function RestaurantPanel({
         {aba === "recebimentos" && podeDono && <Recebimentos slug={slug} podeDono={podeDono} />}
         {aba === "assinatura" && podeDono && <Assinatura slug={slug} />}
         {aba === "seguranca" && <SegurancaConta />}
+        </>
+        )}
       </div>
 
       <Dialog open={!!mesaSel} onOpenChange={(o) => !o && setMesaAberta(null)}>
