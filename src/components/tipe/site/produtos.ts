@@ -607,8 +607,8 @@ export const PRODUTOS: Produto[] = [
       {
         t: "Relatórios",
         d: "Vendas, mais vendidos e gorjetas por garçom.",
-        foto: "cena-dono",
-        posicao: "50% 45%",
+        foto: "gestor",
+        posicao: "40% 55%",
       },
       {
         t: "Tudo registrado",
@@ -669,9 +669,9 @@ export const PRODUTOS: Produto[] = [
     posicao: "55% 40%",
     altFoto: "Gerente apoiada no balcão consultando o celular antes de abrir o restaurante",
     topo: {
-      foto: "cena-dono",
-      posicao: "50% 45%",
-      alt: "Dono do restaurante no notebook com o painel da Tipe, no salão ainda fechado",
+      foto: "ai",
+      posicao: "55% 40%",
+      alt: "Gerente apoiada no balcão perguntando à Lebre pelo celular antes de abrir o restaurante",
     },
     cenario: {
       titulo: "Pergunte de onde estiver.",

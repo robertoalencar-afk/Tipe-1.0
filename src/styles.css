@@ -2016,3 +2016,14 @@
 .bigode-cta.meio-focinho-redondo {
   margin: 0;
 }
+
+/* Barra de progresso do carrossel que anda sozinho (/teste-gratis) */
+@keyframes carrossel-progresso {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+.carrossel-progresso {
+  animation-name: carrossel-progresso;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}

@@ -8,7 +8,7 @@
 import type { CSSProperties, ReactNode } from "react";
 import { ArrowUpRight, Check, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
-import avatarLebre from "@/assets/lebre/avatar-ola.webp";
+import avatarLebre from "@/assets/lebre/avatar-feliz.webp";
 import { SetaFios } from "./Bigode";
 import { Celular, Janela, Tablet } from "./Dispositivo";
 import type { Produto } from "./produtos";
