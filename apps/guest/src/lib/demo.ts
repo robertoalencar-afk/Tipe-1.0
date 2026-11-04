@@ -25,6 +25,8 @@ export type Restaurante = {
   garcom: string;
   garantiaPorPessoa: number;
   descricao: string;
+  /** Clima do lugar, como as etiquetas do OpenTable. */
+  clima: string[];
   foto: number;
   turnos: [string, string][];
   mesas: (ReservableTable & { numero: string })[];
@@ -53,6 +55,7 @@ export const RESTAURANTES: Restaurante[] = [
     garcom: "Joyce",
     garantiaPorPessoa: 2500,
     descricao: "Peixe do dia na brasa, vista para o mar e caipirinha de caju.",
+    clima: ["Vista para o mar", "Romântico", "Bom para grupos"],
     foto: require("../../assets/restaurantes/casal.webp"),
     turnos: [
       ["12:00", "15:00"],
@@ -90,6 +93,7 @@ export const RESTAURANTES: Restaurante[] = [
     garcom: "Davi",
     garantiaPorPessoa: 1500,
     descricao: "Carne de sol, baião de dois e música ao vivo às sextas.",
+    clima: ["Animado", "Música ao vivo", "Bom para grupos"],
     foto: require("../../assets/restaurantes/amigos.webp"),
     turnos: [["18:00", "23:00"]],
     mesas: [
@@ -118,6 +122,7 @@ export const RESTAURANTES: Restaurante[] = [
     garcom: "Lia",
     garantiaPorPessoa: 0,
     descricao: "Tapioca na hora, cuscuz e café coado de torra local.",
+    clima: ["Tranquilo", "Café da manhã", "Bom para crianças"],
     foto: require("../../assets/restaurantes/familia.webp"),
     turnos: [["08:00", "13:30"]],
     mesas: [
@@ -167,6 +172,24 @@ export type Metodo = (typeof METODOS)[number]["id"];
 export const brl = (c: number) => (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 export const SERVICO = 0.1;
 export const OCASIOES = ["Sem ocasião", "Aniversário", "Negócios", "Romântico", "Comemoração"];
+
+/** Cinco horários da grade em volta do horário desejado, livres ou não (o lotado aparece apagado). */
+export function horariosCartao(r: Restaurante, dia: string, pessoas: number, alvo: string, n = 5) {
+  const livres = horariosPerto(r, dia, pessoas, alvo, 99).map((d) => d.getTime());
+  const grade = r.turnos.flatMap(([a, b]) => {
+    const out: Date[] = [];
+    for (let m = hhmm(a); m <= hhmm(b); m += SETTINGS.slotIntervalMin)
+      out.push(localInstant(dia, `${String(Math.floor(m / 60)).padStart(2, "0")}:${String(m % 60).padStart(2, "0")}`));
+    return out;
+  });
+  const a = localInstant(dia, alvo).getTime();
+  const perto = grade
+    .slice()
+    .sort((x, y) => Math.abs(x.getTime() - a) - Math.abs(y.getTime() - a))
+    .slice(0, n)
+    .sort((x, y) => x.getTime() - y.getTime());
+  return { slots: perto.map((d) => ({ d, livre: livres.includes(d.getTime()) })), livresNoDia: livres.length };
+}
 
 /** Próximos horários livres a partir de um horário desejado (cartões da busca, como no OpenTable). */
 export function horariosPerto(r: Restaurante, dia: string, pessoas: number, alvo: string, n = 3): Date[] {

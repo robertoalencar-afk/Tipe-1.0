@@ -7,13 +7,13 @@ import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native
 import { SafeAreaView } from "react-native-safe-area-context";
 import { C, F, R, S } from "@/constants/theme";
 import { Selo, T, st, toque } from "@/components/ui";
-import { brl, horariosPerto, RESERVADO_HOJE, RESTAURANTES } from "@/lib/demo";
+import { brl, horariosCartao, RESERVADO_HOJE, RESTAURANTES } from "@/lib/demo";
 import { useGuest } from "@/lib/store";
 
 const FILTROS = ["Todos", "Hoje à noite", "Com garantia", "Sem garantia", "Fundadores"] as const;
 
 export default function Descobrir() {
-  const { nome, favoritos } = useGuest();
+  const { nome, favoritos, alternarFavorito } = useGuest();
   const [busca, setBusca] = useState("");
   const [filtro, setFiltro] = useState<(typeof FILTROS)[number]>("Todos");
   const [pessoas, setPessoas] = useState(2);
@@ -109,11 +109,18 @@ export default function Descobrir() {
             <Image source={r.foto} style={s.foto} contentFit="cover" transition={200} />
             <View style={s.sobreFoto}>
               {r.fundador && <Selo>Fundador</Selo>}
-              {favoritos.includes(r.id) && (
-                <View style={s.coracao}>
-                  <Ionicons name="heart" size={16} color="#E5484D" />
-                </View>
-              )}
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={favoritos.includes(r.id) ? `Tirar ${r.nome} dos favoritos` : `Salvar ${r.nome} nos favoritos`}
+                onPress={() => {
+                  toque();
+                  alternarFavorito(r.id);
+                }}
+                hitSlop={8}
+                style={[s.coracao, { marginLeft: "auto" }]}
+              >
+                <Ionicons name={favoritos.includes(r.id) ? "heart" : "heart-outline"} size={18} color={favoritos.includes(r.id) ? "#E5484D" : C.navy} />
+              </Pressable>
             </View>
             <View style={{ padding: S.lg, gap: 6 }}>
               <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
@@ -126,35 +133,10 @@ export default function Descobrir() {
               <T tom="pequeno" cor={C.muted}>
                 {r.tipo} · {r.bairro} · {r.preco} · {r.avaliacoes} avaliações
               </T>
-              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                <Ionicons name="trending-up" size={14} color={C.tealDark} />
-                <T tom="pequeno" cor={C.tealDark}>
-                  Reservado {RESERVADO_HOJE[r.id] ?? 0} vezes hoje
-                </T>
-              </View>
-              <View style={{ flexDirection: "row", gap: S.sm, marginTop: 6 }}>
-                {horariosPerto(r, dia, pessoas, alvo).map((h) => (
-                  <Pressable
-                    key={h.toISOString()}
-                    accessibilityRole="button"
-                    accessibilityLabel={`Reservar ${r.nome} às ${localTime(h)}`}
-                    onPress={() => {
-                      toque();
-                      router.push({ pathname: "/reservar", params: { id: r.id, inicio: h.toISOString(), pessoas: String(pessoas) } });
-                    }}
-                    style={({ pressed }) => [s.horario, pressed && { backgroundColor: C.tealDark }]}
-                  >
-                    <T tom="h3" cor="#fff">
-                      {localTime(h)}
-                    </T>
-                  </Pressable>
-                ))}
-                {!horariosPerto(r, dia, pessoas, alvo).length && (
-                  <T tom="pequeno" cor={C.muted}>
-                    Sem mesa perto desse horário. Toque para ver o dia todo.
-                  </T>
-                )}
-              </View>
+              <T tom="pequeno" cor={C.muted}>
+                {r.clima.join(" · ")}
+              </T>
+              <Cartao_Horarios r={r} dia={dia} pessoas={pessoas} alvo={alvo} />
               <T tom="pequeno" cor={C.muted} style={{ marginTop: 2 }}>
                 {r.garantiaPorPessoa > 0
                   ? `Garantia de ${brl(r.garantiaPorPessoa)} por pessoa, vira crédito na conta`
@@ -176,6 +158,59 @@ export default function Descobrir() {
   );
 }
 
+function Cartao_Horarios({ r, dia, pessoas, alvo }: { r: (typeof RESTAURANTES)[number]; dia: string; pessoas: number; alvo: string }) {
+  const { slots, livresNoDia } = horariosCartao(r, dia, pessoas, alvo);
+  return (
+    <View style={{ gap: 6, marginTop: 4 }}>
+      {livresNoDia > 0 && livresNoDia <= 6 && (
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <Ionicons name="alarm-outline" size={14} color={C.warn} />
+          <T tom="pequeno" cor={C.warn}>
+            Restam {livresNoDia} horários para amanhã
+          </T>
+        </View>
+      )}
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+        <Ionicons name="trending-up" size={14} color={C.tealDark} />
+        <T tom="pequeno" cor={C.tealDark}>
+          Reservado {RESERVADO_HOJE[r.id] ?? 0} vezes hoje
+        </T>
+      </View>
+      <View style={{ flexDirection: "row", gap: 6, marginTop: 4 }}>
+        {slots.map(({ d, livre }) =>
+          livre ? (
+            <Pressable
+              key={d.toISOString()}
+              accessibilityRole="button"
+              accessibilityLabel={`Reservar ${r.nome} às ${localTime(d)}`}
+              onPress={() => {
+                toque();
+                router.push({ pathname: "/reservar", params: { id: r.id, inicio: d.toISOString(), pessoas: String(pessoas) } });
+              }}
+              style={({ pressed }) => [s.horario, pressed && { backgroundColor: C.tealDark }]}
+            >
+              <T tom="rotulo" cor="#fff" style={{ fontSize: 13 }}>
+                {localTime(d)}
+              </T>
+            </Pressable>
+          ) : (
+            <View key={d.toISOString()} accessibilityLabel={`${localTime(d)} lotado`} style={[s.horario, { backgroundColor: C.bgSoft }]}>
+              <T tom="rotulo" cor={C.muted} style={{ fontSize: 13, textDecorationLine: "line-through", opacity: 0.6 }}>
+                {localTime(d)}
+              </T>
+            </View>
+          ),
+        )}
+      </View>
+      {!slots.some((x) => x.livre) && (
+        <T tom="pequeno" cor={C.muted}>
+          Lotado perto desse horário. Toque no restaurante para a lista de espera.
+        </T>
+      )}
+    </View>
+  );
+}
+
 const s = StyleSheet.create({
   busca: {
     flexDirection: "row",
@@ -193,7 +228,7 @@ const s = StyleSheet.create({
   seletor: { flexDirection: "row", alignItems: "center", borderWidth: 1, borderColor: C.line, borderRadius: R.md, minHeight: 48 },
   seletorItem: { flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, minHeight: 48 },
   divisor: { width: 1, height: 24, backgroundColor: C.line },
-  horario: { flex: 1, minHeight: 40, maxWidth: 96, borderRadius: R.sm, backgroundColor: C.navy, alignItems: "center", justifyContent: "center" },
+  horario: { flex: 1, minHeight: 40, borderRadius: R.sm, backgroundColor: C.navy, alignItems: "center", justifyContent: "center" },
   sobreFoto: { position: "absolute", top: S.md, left: S.md, right: S.md, flexDirection: "row", justifyContent: "space-between" },
   coracao: { backgroundColor: "#fff", borderRadius: R.pill, padding: 6 },
 });

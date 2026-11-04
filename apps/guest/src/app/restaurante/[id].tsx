@@ -6,7 +6,7 @@ import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { addDays, availableSlots, localDay, localInstant, localTime } from "@core/reservas";
 import { C, R, S } from "@/constants/theme";
 import { Aviso, Botao, Cartao, Chip, Selo, T, st, toque } from "@/components/ui";
-import { brl, hhmm, ocupacoes, regras, restaurante, SETTINGS } from "@/lib/demo";
+import { brl, hhmm, ocupacoes, regras, RESERVADO_HOJE, restaurante, SETTINGS } from "@/lib/demo";
 import { useGuest } from "@/lib/store";
 
 const SEMANA = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
@@ -81,6 +81,15 @@ export default function Restaurante() {
             </T>
           </View>
           <T tom="corpo">{r.descricao}</T>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: S.sm }}>
+            {r.clima.map((c) => (
+              <View key={c} style={s.clima}>
+                <T tom="rotulo" cor={C.navy}>
+                  {c}
+                </T>
+              </View>
+            ))}
+          </View>
 
           <View style={{ gap: S.sm }}>
             <T tom="h3">Quando?</T>
@@ -167,9 +176,36 @@ export default function Restaurante() {
                 ))}
               </View>
             )}
-            <T tom="pequeno" cor={C.muted}>
-              Horário riscado está lotado: você pode entrar na lista de espera.
-            </T>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 4 }}>
+              <Ionicons name="trending-up" size={14} color={C.tealDark} />
+              <T tom="pequeno" cor={C.tealDark}>
+                Reservado {RESERVADO_HOJE[r.id] ?? 0} vezes hoje
+              </T>
+            </View>
+            {livres.length > 0 && livres.length <= 6 && (
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+                <Ionicons name="alarm-outline" size={14} color={C.warn} />
+                <T tom="pequeno" cor={C.warn}>
+                  Restam {livres.length} horários neste dia
+                </T>
+              </View>
+            )}
+            {grade.some((d) => !livre(d)) && (
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => {
+                  toque();
+                  const d = grade.find((x) => !livre(x));
+                  if (d) setEscolhido(d);
+                }}
+                style={s.aviseme}
+              >
+                <Ionicons name="notifications-outline" size={16} color={C.navy} />
+                <T tom="rotulo" cor={C.navy}>
+                  Avise-me se abrir um horário lotado
+                </T>
+              </Pressable>
+            )}
           </View>
 
           <Cartao suave>
@@ -215,6 +251,19 @@ export default function Restaurante() {
 }
 
 const s = StyleSheet.create({
+  aviseme: {
+    alignSelf: "flex-start",
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+    minHeight: 40,
+    paddingHorizontal: 14,
+    borderRadius: R.pill,
+    borderWidth: 1,
+    borderColor: C.navy,
+    marginTop: 4,
+  },
+  clima: { borderRadius: R.pill, borderWidth: 1, borderColor: C.line, paddingHorizontal: 12, paddingVertical: 6 },
   hero: { width: "100%", height: 230, backgroundColor: C.bgSoft },
   fav: { width: 44, height: 44, borderRadius: R.pill, borderWidth: 1, borderColor: C.line, alignItems: "center", justifyContent: "center" },
   dia: { width: 64, minHeight: 64, borderRadius: R.md, borderWidth: 1, borderColor: C.line, alignItems: "center", justifyContent: "center", gap: 2 },
