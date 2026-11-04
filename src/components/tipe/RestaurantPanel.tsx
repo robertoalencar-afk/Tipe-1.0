@@ -77,7 +77,7 @@ import { ReservasPainel } from "@/components/tipe/ReservasPainel";
 import { getReservasAcesso } from "@/lib/tipe/guest/reservas.functions";
 import { OnboardingPdv } from "@/components/tipe/OnboardingPdv";
 import { PrecisaDeVoce } from "@/components/tipe/PrecisaDeVoce";
-import { LebreAssistant } from "@/components/tipe/LebreAssistant";
+import { LazyLebreAssistant } from "@/components/tipe/LazyLebreAssistant";
 import { BalcaoCheckout, VendasBalcao } from "@/components/tipe/Balcao";
 import { EmptyState, PageHeader, StatusBadge, type Tone } from "@/components/tipe/ds";
 import { cn } from "@/lib/utils";
@@ -957,7 +957,7 @@ export function RestaurantPanel({
           )}
         </DialogContent>
       </Dialog>
-      <LebreAssistant slug={slug} />
+      <LazyLebreAssistant slug={slug} />
     </div>
   );
 }
