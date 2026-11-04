@@ -482,8 +482,8 @@ export function LandingFooter() {
                 </a>
               </li>
               <li>
-                <a href="/#duvidas" className={a}>
-                  Dúvidas frequentes
+                <a href="/ajuda" className={a}>
+                  Central de ajuda
                 </a>
               </li>
               <li>
