@@ -2027,3 +2027,13 @@
   animation-timing-function: linear;
   animation-fill-mode: forwards;
 }
+
+/* Telas de conta: a lebre flutua devagar (parada com movimento reduzido). */
+@keyframes tipe-lebre-flutua {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(-1.5deg); }
+}
+.tipe-lebre-flutua { animation: tipe-lebre-flutua 5.5s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .tipe-lebre-flutua { animation: none; }
+}

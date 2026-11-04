@@ -36,7 +36,7 @@ export const Route = createFileRoute("/entrar")({
   component: Entrar,
 });
 
-type Modo = "entrar" | "criar" | "esqueci";
+type Modo = "entrar" | "criar";
 
 function Entrar() {
   const navigate = useNavigate();
@@ -88,7 +88,7 @@ function Entrar() {
       if (modo === "entrar") {
         const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
         if (error) throw new Error("E-mail ou senha incorretos");
-      } else if (modo === "criar") {
+      } else {
         const forca = avaliarSenha(senha, { email });
         if (!forca.ok) throw new Error(`Senha fraca: ${forca.faltam.join(", ").toLowerCase()}.`);
         const { error } = await supabase.auth.signUp({
@@ -97,17 +97,8 @@ function Entrar() {
           options: { emailRedirectTo: `${window.location.origin}${r ?? "/painel"}` },
         });
         if (error)
-          throw new Error(
-            mensagemErroSenha(error.message) ?? "Não foi possível criar a conta",
-          );
+          throw new Error(mensagemErroSenha(error.message) ?? "Não foi possível criar a conta");
         toast.success("Conta criada! Confirme pelo link enviado ao seu e-mail.");
-        setModo("entrar");
-      } else {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/reset-password`,
-        });
-        if (error) throw new Error("Não foi possível enviar o e-mail");
-        toast.success("Enviamos um link para redefinir sua senha.");
         setModo("entrar");
       }
     } catch (err) {
@@ -120,7 +111,9 @@ function Entrar() {
   async function google() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: "google",
-      options: { redirectTo: `${window.location.origin}/entrar${r ? `?r=${encodeURIComponent(r)}` : ""}` },
+      options: {
+        redirectTo: `${window.location.origin}/entrar${r ? `?r=${encodeURIComponent(r)}` : ""}`,
+      },
     });
     if (error) toast.error("Não foi possível entrar com Google");
   }
@@ -132,18 +125,11 @@ function Entrar() {
       </MfaGate>
     );
 
-  const titulo =
-    modo === "entrar"
-      ? "Área do restaurante"
-      : modo === "criar"
-        ? "Criar conta da equipe"
-        : "Recuperar senha";
+  const titulo = modo === "entrar" ? "Área do restaurante" : "Criar conta da equipe";
   const subtitulo =
     modo === "entrar"
       ? "Entre com seu e-mail e senha para acessar o painel."
-      : modo === "criar"
-        ? "Crie sua conta para fazer parte da equipe."
-        : "Informe seu e-mail e enviamos o link de recuperação.";
+      : "Crie sua conta para fazer parte da equipe.";
 
   return (
     <main className="min-h-screen bg-background text-foreground">
@@ -201,64 +187,53 @@ function Entrar() {
                   autoComplete="email"
                 />
               </div>
-              {modo !== "esqueci" && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <label htmlFor="senha" className="text-sm font-medium">
-                      Senha
-                    </label>
-                    {modo === "entrar" && (
-                      <button
-                        type="button"
-                        onClick={() => setModo("esqueci")}
-                        className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-                      >
-                        Esqueci a senha
-                      </button>
-                    )}
-                  </div>
-                  {modo === "criar" ? (
-                    <SenhaForteInput id="senha" label="" value={senha} onChange={setSenha} contexto={{ email }} />
-                  ) : (
-                    <Input
-                      id="senha"
-                      type="password"
-                      required
-                      placeholder="••••••••"
-                      value={senha}
-                      onChange={(e) => setSenha(e.target.value)}
-                      autoComplete="current-password"
-                    />
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label htmlFor="senha" className="text-sm font-medium">
+                    Senha
+                  </label>
+                  {modo === "entrar" && (
+                    <Link
+                      to="/esqueci-a-senha"
+                      search={email.includes("@") ? { email } : {}}
+                      className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                    >
+                      Esqueci a senha
+                    </Link>
                   )}
                 </div>
-              )}
+                {modo === "criar" ? (
+                  <SenhaForteInput
+                    id="senha"
+                    label=""
+                    value={senha}
+                    onChange={setSenha}
+                    contexto={{ email }}
+                  />
+                ) : (
+                  <Input
+                    id="senha"
+                    type="password"
+                    required
+                    placeholder="••••••••"
+                    value={senha}
+                    onChange={(e) => setSenha(e.target.value)}
+                    autoComplete="current-password"
+                  />
+                )}
+              </div>
+
               <Button type="submit" size="lg" className="w-full" disabled={carregando}>
-                {carregando
-                  ? "Aguarde..."
-                  : modo === "entrar"
-                    ? "Entrar"
-                    : modo === "criar"
-                      ? "Criar conta"
-                      : "Enviar link"}
+                {carregando ? "Aguarde..." : modo === "entrar" ? "Entrar" : "Criar conta"}
               </Button>
-              {modo !== "esqueci" && (
-                <>
-                  <div className="flex items-center gap-3">
-                    <span className="h-px flex-1 bg-border" />
-                    <span className="text-xs text-muted-foreground">ou</span>
-                    <span className="h-px flex-1 bg-border" />
-                  </div>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="lg"
-                    className="w-full"
-                    onClick={google}
-                  >
-                    Continuar com Google
-                  </Button>
-                </>
-              )}
+              <div className="flex items-center gap-3">
+                <span className="h-px flex-1 bg-border" />
+                <span className="text-xs text-muted-foreground">ou</span>
+                <span className="h-px flex-1 bg-border" />
+              </div>
+              <Button type="button" variant="outline" size="lg" className="w-full" onClick={google}>
+                Continuar com Google
+              </Button>
             </form>
             <p className="mt-8 text-[0.95rem] text-muted-foreground">
               {modo === "entrar" ? (
@@ -298,6 +273,8 @@ function Entrar() {
 }
 
 function SeguirAposMfa({ onPronto }: { onPronto: () => void }) {
-  useEffect(() => { onPronto(); }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    onPronto();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
   return <p className="p-10 text-center text-sm text-muted-foreground">Entrando…</p>;
 }
