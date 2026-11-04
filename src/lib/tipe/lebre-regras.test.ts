@@ -4,9 +4,23 @@ import { lerComando, respostaFaq, respostaSalao, type SalaoResumo } from "./lebr
 describe("respostaFaq", () => {
   it("responde perguntas frequentes sem IA", () => {
     expect(respostaFaq("Quanto custa a TIPE?")).toContain("30 dias grátis");
-    expect(respostaFaq("funciona com o meu PDV?")).toContain("qualquer PDV");
+    expect(respostaFaq("Quanto custa a TIPE?")).toContain("sem tarifa da TIPE por transação");
+    expect(respostaFaq("funciona com o meu PDV?")).toContain("PDV próprio");
     expect(respostaFaq("Precisa baixar aplicativo?")).toContain("Não precisa baixar");
-    expect(respostaFaq("tem Apple Pay?")).toContain("habilitação comercial");
+    expect(respostaFaq("tem Apple Pay?")).toContain("Pix, Apple Pay ou Google Pay");
+  });
+
+  it("apresenta o Tipe Pay como carro chefe e os outros produtos", () => {
+    expect(respostaFaq("como funciona a TIPE?")).toContain("carro chefe da TIPE é o Tipe Pay");
+    expect(respostaFaq("quais produtos vocês têm?")).toContain("Tipe Kitchen");
+    expect(respostaFaq("dá para pedir pelo celular?")).toContain("Tipe Order");
+  });
+
+  it("não fala mais em PDV obrigatório nem em Apple Pay inativo", () => {
+    for (const q of ["tem pdv proprio?", "tem Google Pay?", "como funciona"]) {
+      const r = respostaFaq(q) ?? "";
+      expect(r).not.toMatch(/ainda não|habilitação comercial|qualquer PDV do mercado/);
+    }
   });
 
   it("deixa para a IA o que não reconhece ou é longo demais", () => {

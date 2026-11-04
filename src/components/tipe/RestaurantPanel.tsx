@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
 import {
   ArrowRightLeft,
+  CalendarDays,
   BarChart3,
   ChefHat,
   Check,
@@ -60,19 +61,24 @@ import {
   importMenuCsv,
 } from "@/lib/tipe/pdv-integrations.functions";
 import { PixGarcons } from "@/components/tipe/PixGarcons";
+import { SegurancaConta } from "@/components/tipe/SegurancaConta";
 import { Caixa, Configuracoes, Inicio, Integracoes, Relatorios } from "@/components/tipe/AdminSections";
 import { Cozinha } from "@/components/tipe/Kds";
 import { TotemStudio } from "@/components/tipe/TotemStudio";
 import { LiberarPedidosMesa } from "@/components/tipe/LiberarPedidosMesa";
-import { Assinatura } from "@/components/tipe/Assinatura";
+import { Assinatura, AvisoAssinatura, ContaBloqueada } from "@/components/tipe/Assinatura";
+import { getAccountAccess } from "@/lib/tipe/subscription.functions";
+import { abaLiberada } from "@/lib/tipe/assinatura";
 import { Recebimentos } from "@/components/tipe/Recebimentos";
 import { AvisoPendencias, PendenciasFinanceiras } from "@/components/tipe/PendenciasFinanceiras";
 import { grantWaiterAccess } from "@/lib/tipe/waiter.functions";
-import { Landmark } from "lucide-react";
+import { Landmark, ShieldCheck } from "lucide-react";
 import { DesempenhoGarcons } from "@/components/tipe/DesempenhoGarcons";
+import { ReservasPainel } from "@/components/tipe/ReservasPainel";
+import { getReservasAcesso } from "@/lib/tipe/guest/reservas.functions";
 import { OnboardingPdv } from "@/components/tipe/OnboardingPdv";
 import { PrecisaDeVoce } from "@/components/tipe/PrecisaDeVoce";
-import { LebreAssistant } from "@/components/tipe/LebreAssistant";
+import { LazyLebreAssistant } from "@/components/tipe/LazyLebreAssistant";
 import { BalcaoCheckout, VendasBalcao } from "@/components/tipe/Balcao";
 import { EmptyState, PageHeader, StatusBadge, type Tone } from "@/components/tipe/ds";
 import { cn } from "@/lib/utils";
@@ -170,6 +176,15 @@ const secoes = [
     d: "Pedidos por setor, do recebido ao entregue, e o painel de senhas.",
   },
   {
+    k: "reservas",
+    l: "Reservas",
+    i: CalendarDays,
+    g: "Operação",
+    // Só aparece com a flag guest.reservations ligada para o restaurante (Tipe Guest).
+    flag: "reservas",
+    d: "Reservas do dia, chegadas, mesas, lista de espera e regras de horário.",
+  },
+  {
     k: "caixa",
     l: "Caixa",
     i: Wallet,
@@ -245,6 +260,13 @@ const secoes = [
     d: "Dados do restaurante, taxa de serviço e formas de pagamento.",
   },
   {
+    k: "seguranca",
+    l: "Segurança da conta",
+    i: ShieldCheck,
+    g: "Configurações",
+    d: "Verificação em duas etapas e troca de senha.",
+  },
+  {
     k: "assinatura",
     l: "Assinatura",
     i: CreditCard,
@@ -305,6 +327,21 @@ export function RestaurantPanel({
     queryKey: ["pdv-integ", slug],
     queryFn: () => fetchInteg({ data: { slug } }),
     refetchInterval: 30000,
+  });
+  const fetchReservas = useServerFn(getReservasAcesso);
+  const reservas = useQuery({
+    queryKey: ["reservas-acesso", slug],
+    queryFn: () => fetchReservas({ data: { slug } }),
+    staleTime: 5 * 60_000,
+  });
+  const reservasOn = reservas.data?.enabled === true;
+  // Conta vinculada à assinatura: o banco já trava mesas e pedidos novos; aqui só explicamos.
+  const fetchAcesso = useServerFn(getAccountAccess);
+  const acesso = useQuery({
+    queryKey: ["account-access", slug],
+    queryFn: () => fetchAcesso({ data: { slug } }),
+    staleTime: 60_000,
+    refetchInterval: 5 * 60_000,
   });
   const [mesaAberta, setMesaAberta] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState<string | null>(null);
@@ -418,7 +455,9 @@ export function RestaurantPanel({
   const mesaSel = mesas.find((m) => m.number === mesaAberta);
   const abertas = mesas.filter((m) => m.status === "ocupada" || m.status === "aguardando");
   // O Lançamento TIPE fica sempre disponível, inclusive como reserva de uma integração.
-  const visiveis = secoes.filter((x) => !("dono" in x) || podeDono);
+  const visiveis = secoes.filter(
+    (x) => (!("dono" in x) || podeDono) && (!("flag" in x) || reservasOn),
+  );
   const pdvLabel =
     !integ.data || integ.data.adapter === "lancamento_tipe"
       ? "Lançamento TIPE"
@@ -690,9 +729,16 @@ export function RestaurantPanel({
             <strong>Atenção no cancelamento:</strong> {d.pdvAlerts[0].detail}
           </div>
         )}
+        {acesso.data && (
+          <AvisoAssinatura access={acesso.data} podeDono={podeDono} onOpen={() => ir("assinatura")} />
+        )}
         {aba !== "caixa" && aba !== "inicio" && (
           <AvisoPendencias slug={slug} enabled={podeConfirmar} onOpen={() => ir("caixa")} />
         )}
+        {acesso.data && !abaLiberada(aba, acesso.data) ? (
+          <ContaBloqueada podeDono={podeDono} onOpen={() => ir("assinatura")} />
+        ) : (
+        <>
         {aba === "inicio" && (
           <Inicio
             slug={slug}
@@ -808,6 +854,7 @@ export function RestaurantPanel({
 
         {aba === "pdv" && <LancarPedido slug={slug} pdv={pdv.data} mesa={mesaPedido} setMesa={setMesaPedido} podeBalcao={podeConfirmar} onDone={refresh} />}
         {aba === "cozinha" && <Cozinha slug={slug} podePainel={podeConfirmar} />}
+        {aba === "reservas" && reservasOn && <ReservasPainel slug={slug} podeDono={podeDono} />}
         {aba === "caixa" && <><PendenciasFinanceiras slug={slug} enabled={podeConfirmar} /><Caixa slug={slug} podeCaixa={podeConfirmar} confirmacoes={confirmacoes} /></>}
 
         {aba === "historico" && (
@@ -890,6 +937,9 @@ export function RestaurantPanel({
         {aba === "config" && <Configuracoes slug={slug} podeDono={podeDono} />}
         {aba === "recebimentos" && podeDono && <Recebimentos slug={slug} podeDono={podeDono} />}
         {aba === "assinatura" && podeDono && <Assinatura slug={slug} />}
+        {aba === "seguranca" && <SegurancaConta />}
+        </>
+        )}
       </div>
 
       <Dialog open={!!mesaSel} onOpenChange={(o) => !o && setMesaAberta(null)}>
@@ -916,7 +966,7 @@ export function RestaurantPanel({
           )}
         </DialogContent>
       </Dialog>
-      <LebreAssistant slug={slug} />
+      <LazyLebreAssistant slug={slug} />
     </div>
   );
 }

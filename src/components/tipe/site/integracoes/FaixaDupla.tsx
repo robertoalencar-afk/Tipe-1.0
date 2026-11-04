@@ -1,7 +1,6 @@
 /**
- * Duas faixas em movimento, em sentidos opostos: em cima o que funciona hoje,
- * embaixo o que está em desenvolvimento ou planejado, rotulado. Sem logos de
- * terceiros. Usa a classe global `.marquee` (para no hover e com movimento reduzido).
+ * Duas faixas em movimento, em sentidos opostos: em cima o que a Tipe faz,
+ * embaixo os sistemas que ela conecta, com a marca de cada um. Usa a classe global `.marquee` (para no hover e com movimento reduzido).
  */
 import type { LucideIcon } from "lucide-react";
 import {
@@ -23,6 +22,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { INTEGRACOES_V5, STATUS_ROTULO, type Integracao } from "./dados";
+import { SISTEMAS } from "./catalogo";
+import { MarcaSistema } from "./CatalogoIntegracoes";
 
 export const ICONE_INTEGRACAO: Record<string, LucideIcon> = {
   Pix: QrCode,
@@ -105,13 +106,32 @@ function Faixa({ itens, sentido, aCaminho = false }: { itens: Integracao[]; sent
   );
 }
 
+/** Faixa de baixo (03/11): os sistemas que a Tipe conecta, com a marca de cada um. */
+function FaixaSistemas() {
+  const lista = [...SISTEMAS.filter((x) => x.id !== "outro-pdv"), ...SISTEMAS.filter((x) => x.id !== "outro-pdv")];
+  return (
+    <div className="relative overflow-hidden [mask-image:linear-gradient(90deg,transparent,#000_7%,#000_93%,transparent)]">
+      <ul className="marquee flex w-max gap-3 py-1.5 [animation-direction:reverse]" style={{ animationDuration: `${lista.length * 2.4}s` }}>
+        {lista.map((sis, i) => (
+          <li
+            key={i}
+            aria-hidden={i >= lista.length / 2 || undefined}
+            className="flex h-[4.5rem] shrink-0 items-center gap-3 rounded-[1.2rem] border border-white/12 bg-white/[0.04] pl-3 pr-5 text-white"
+          >
+            <MarcaSistema sis={sis} />
+            <span className="whitespace-nowrap font-display text-[1.05rem] font-medium tracking-[-0.03em]">{sis.nome}</span>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export function FaixaDuplaIntegracoes() {
-  const prontas = INTEGRACOES_V5.filter((i) => i.status === "disponivel");
-  const aCaminho = INTEGRACOES_V5.filter((i) => i.status !== "disponivel");
   return (
     <div className="space-y-3">
-      <Faixa itens={prontas} sentido={1} />
-      <Faixa itens={aCaminho} sentido={-1} aCaminho />
+      <Faixa itens={INTEGRACOES_V5} sentido={1} />
+      <FaixaSistemas />
     </div>
   );
 }

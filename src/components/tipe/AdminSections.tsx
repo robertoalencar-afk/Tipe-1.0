@@ -1,12 +1,12 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ConectarSistemas } from "@/components/tipe/ConectarSistemas";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ArrowRight, BarChart3, ChefHat, Clock, Copy, Download, KeyRound, LayoutGrid, MessageCircle, PlugZap, QrCode, Receipt, ShoppingCart, TrendingUp, Wallet } from "lucide-react";
+import { ArrowRight, BarChart3, ChefHat, Clock, Copy, Download, KeyRound, LayoutGrid, PlugZap, QrCode, Receipt, ShoppingCart, TrendingUp, Wallet } from "lucide-react";
 import { EmptyState, StatCard } from "@/components/tipe/ds";
 import { cn } from "@/lib/utils";
 import { getPdvEvents, getPdvIntegration, setPdvAdapter, testPdvConnection } from "@/lib/tipe/pdv-integrations.functions";
-import { whatsappLink } from "@/lib/tipe/contact";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cashAction, getOpsData, getReports, saveSettings } from "@/lib/tipe/admin.functions";
@@ -320,17 +320,7 @@ export function Integracoes({ slug, podeDono }: { slug: string; podeDono: boolea
         )}
       </Card>
       <Card>
-        <h3 className="font-display font-semibold">Integrações diretas disponíveis</h3>
-        {d.disponiveis.length === 0 ? (
-          <div className="mt-2 space-y-3">
-            <p className="text-sm text-muted-foreground">A integração direta com o seu sistema é feita pela equipe TIPE. Fale com a gente.</p>
-            <a href={whatsappLink("Olá! Quero integrar o sistema do meu restaurante com a TIPE.")} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
-              <MessageCircle className="h-4 w-4" />Falar no WhatsApp
-            </a>
-          </div>
-        ) : (
-          <ul className="mt-2 space-y-1 text-sm">{d.disponiveis.map((a) => <li key={a.id}>{a.nome}</li>)}</ul>
-        )}
+        <ConectarSistemas slug={slug} />
       </Card>
       {d.isFounder && (
         <Card className="space-y-3 border-dashed">

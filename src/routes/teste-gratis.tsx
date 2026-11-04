@@ -1,8 +1,8 @@
 /**
- * Página de teste grátis, no mesmo formato da página de demonstração da sunday
- * (estudada com o REA): formulário no topo, faixa rolando, frases grandes com
- * foto embutida guiadas pela rolagem e, por fim, os benefícios por público,
- * cada um num carrossel com setas.
+ * Página de teste grátis: formulário no topo, faixa rolando, frases grandes com foto
+ * embutida guiadas pela rolagem, o filme da lebre e da tartaruga, os benefícios por
+ * público em carrosséis que andam sozinhos e um fecho que volta ao formulário.
+ * 04/11: cada foto aparece uma vez só na página (cenas do casting).
  */
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
@@ -10,7 +10,9 @@ import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { TRIAL_DAYS } from "@/lib/tipe/plans";
 import { WaitlistForm } from "@/components/tipe/WaitlistForm";
 import { LandingFooter, LandingHeader } from "@/components/tipe/landing/LandingChrome";
-import { EditorialPhoto, type Scene } from "@/components/tipe/landing/EditorialPhoto";
+import { Foto, type NomeFoto } from "@/components/tipe/site/Foto";
+import { LebreTartaruga } from "@/components/tipe/landing/LebreTartaruga";
+import { useMovimentoReduzido, useVisivel } from "@/components/tipe/site/produto/useVisivel";
 import { SimboloTipe } from "@/components/tipe/landing/Marcas";
 import { useVelocidadeFaixa } from "@/components/tipe/landing/motion";
 import mascotWaiting from "@/assets/lebre/rosto-ola.webp";
@@ -43,7 +45,9 @@ function TesteGratis() {
         <Topo />
         <Faixa />
         <Destaques />
+        <LebreTartaruga />
         <Categorias />
+        <Fecho />
       </main>
       <LandingFooter />
     </div>
@@ -99,7 +103,9 @@ function Topo() {
           className="bob mt-8 hidden w-32 lg:block"
         />
       </div>
-      <div className="relative z-10 self-start rounded-[2rem] border border-border bg-surface p-5 shadow-[0_40px_80px_-40px_oklch(0.2_0.04_250/0.35)] sm:p-8">
+      <div
+        id="formulario"
+        className="relative z-10 scroll-mt-24 self-start rounded-[2rem] border border-border bg-surface p-5 shadow-[0_40px_80px_-40px_oklch(0.2_0.04_250/0.35)] sm:p-8">
         <WaitlistForm />
       </div>
     </section>
@@ -147,31 +153,31 @@ function Faixa() {
 
 /* ------------------------- Frases grandes com foto, guiadas pela rolagem */
 
-const FRASES: { antes: string; depois: string; scene: Scene; alt: string }[] = [
+const FRASES: { antes: string; depois: string; scene: NomeFoto; alt: string }[] = [
   {
     antes: "Mesas",
     depois: "giram mais rápido.",
-    scene: "salao",
-    alt: "Salão cheio com o totem da Tipe na mesa",
+    scene: "cena-mesa-liberada",
+    alt: "Garçom liberando a mesa com o totem da Tipe",
   },
-  { antes: "Cada um", depois: "paga o seu.", scene: "amigos", alt: "Amigos dividindo a conta" },
+  { antes: "Cada um", depois: "paga o seu.", scene: "cena-amigos", alt: "Amigos dividindo a conta" },
   {
     antes: "A gorjeta",
     depois: "vai direto para a equipe.",
-    scene: "garcom",
-    alt: "Garçom vendo a gorjeta extra no relógio",
+    scene: "cena-garcom",
+    alt: "Garçom sorrindo ao lado do totem da Tipe",
   },
   {
     antes: "A conta",
     depois: "fecha sem maquininha.",
-    scene: "mesa",
-    alt: "Cliente pagando pelo celular com o totem da Tipe ao lado",
+    scene: "cena-casal",
+    alt: "Casal pagando pelo celular com o totem da Tipe ao lado",
   },
   {
     antes: "O salão inteiro",
     depois: "numa tela só.",
-    scene: "gestor",
-    alt: "Dona de restaurante acompanhando as mesas no tablet",
+    scene: "cena-gerente",
+    alt: "Gerente acompanhando as mesas no tablet",
   },
 ];
 
@@ -226,15 +232,7 @@ function Destaques() {
                     i === ativa ? "opacity-100" : "opacity-30 grayscale",
                   )}
                 >
-                  <EditorialPhoto
-                    scene={f.scene}
-                    alt=""
-                    aspect="auto"
-                    radius="999px"
-                    reveal={false}
-                    sizes="120px"
-                    className="absolute inset-0 !aspect-auto h-full w-full"
-                  />
+                  <Foto nome={f.scene} alt="" sizes="120px" className="absolute inset-0 h-full w-full" />
                 </span>{" "}
                 {f.depois}
               </li>
@@ -250,15 +248,7 @@ function Destaques() {
                   i === ativa ? "scale-100 opacity-100" : "scale-105 opacity-0",
                 )}
               >
-                <EditorialPhoto
-                  scene={f.scene}
-                  alt={f.alt}
-                  aspect="4/5"
-                  radius="0"
-                  reveal={false}
-                  sizes="32vw"
-                  className="!aspect-auto h-full"
-                />
+                <Foto nome={f.scene} alt={f.alt} sizes="32vw" className="h-full w-full" />
               </div>
             ))}
           </div>
@@ -274,7 +264,7 @@ type Slide = {
   eyebrow: string;
   titulo: string;
   texto: string;
-  scene: Scene;
+  scene: NomeFoto;
   alt: string;
   selo: [string, string];
   link: [string, string];
@@ -290,8 +280,8 @@ const GRUPOS: { id: string; nome: string; cor: string; slides: Slide[] }[] = [
         eyebrow: "Para o cliente",
         titulo: "Pague sem esperar a maquininha.",
         texto: "QR Code na mesa, conta ao vivo e pagamento por Pix, Apple Pay ou Google Pay.",
-        scene: "mesa",
-        alt: "Cliente pagando pelo celular com o totem da Tipe na mesa",
+        scene: "pix-mao",
+        alt: "Cliente com o Pix aprovado no celular ao lado do totem da Tipe",
         selo: ["Pix aprovado", "Sua parte: R$ 51,97"],
         link: ["/produtos/pay", "Como o cliente paga"],
       },
@@ -299,8 +289,8 @@ const GRUPOS: { id: string; nome: string; cor: string; slides: Slide[] }[] = [
         eyebrow: "Para o cliente",
         titulo: "Cada um paga o que consumiu.",
         texto: "Por item, dividindo um prato, em partes iguais ou a conta inteira.",
-        scene: "amigos",
-        alt: "Amigos rindo enquanto dividem a conta pelo celular",
+        scene: "cena-praia",
+        alt: "Amigos na barraca de praia pagando cada um a sua parte",
         selo: ["Mesa 12 fechada", "3 pessoas pagaram"],
         link: ["/simulador", "Testar o simulador"],
       },
@@ -308,8 +298,8 @@ const GRUPOS: { id: string; nome: string; cor: string; slides: Slide[] }[] = [
         eyebrow: "Para o cliente",
         titulo: "Sem baixar aplicativo.",
         texto: "A conta abre direto na câmera do celular, em segundos.",
-        scene: "casal",
-        alt: "Casal sorrindo enquanto paga a conta pelo celular",
+        scene: "scan",
+        alt: "Cliente lendo o QR Code do totem com a câmera do celular",
         selo: ["Conta aberta", "Mesa 12 · Maré Alta"],
         link: ["/#como-funciona", "Ver a Mesa Viva"],
       },
@@ -325,8 +315,8 @@ const GRUPOS: { id: string; nome: string; cor: string; slides: Slide[] }[] = [
         titulo: "A gorjeta extra chega na hora.",
         texto:
           "70% da gorjeta extra vai para o saldo de quem atendeu, com saque por Pix a cada quinzena.",
-        scene: "garcom",
-        alt: "Garçom sorrindo ao ver a gorjeta extra no relógio",
+        scene: "gorjetas-garcom",
+        alt: "Garçom vendo a gorjeta extra no celular",
         selo: ["Gorjeta extra da Mesa 12", "R$ 7,00 no seu saldo"],
         link: ["/produtos/staff", "Área do garçom"],
       },
@@ -334,8 +324,8 @@ const GRUPOS: { id: string; nome: string; cor: string; slides: Slide[] }[] = [
         eyebrow: "Para a equipe",
         titulo: "Menos corrida com maquininha.",
         texto: "O garçom atende mais mesas e só leva a maquininha a quem escolher pagar no local.",
-        scene: "salao",
-        alt: "Garçom servindo um salão cheio",
+        scene: "cena-garconete",
+        alt: "Garçonete no balcão acompanhando as mesas pelo celular",
         selo: ["Mesa 07", "Paga pelo celular"],
         link: ["/produtos/staff", "Como a equipe usa"],
       },
@@ -351,8 +341,8 @@ const GRUPOS: { id: string; nome: string; cor: string; slides: Slide[] }[] = [
         titulo: "Cada pagamento já aparece no caixa.",
         texto:
           "O Pix aprovado baixa a conta da mesa sozinho. Dinheiro e maquininha são confirmados com um toque.",
-        scene: "gestor",
-        alt: "Dona de restaurante acompanhando os pagamentos no tablet",
+        scene: "cena-caixa",
+        alt: "Caixa do restaurante com os pagamentos no painel da Tipe",
         selo: ["Mesa 08 · Bruno S.", "Pix aprovado · R$ 150,60"],
         link: ["/produtos/restaurant", "Ver o painel"],
       },
@@ -360,8 +350,8 @@ const GRUPOS: { id: string; nome: string; cor: string; slides: Slide[] }[] = [
         eyebrow: "Para o caixa",
         titulo: "Fechamento sem susto.",
         texto: "Histórico de cada mesa, de cada pagamento e de quem atendeu, pronto para conferir.",
-        scene: "salao",
-        alt: "Salão de restaurante movimentado",
+        scene: "fechamento",
+        alt: "Gerente fechando o dia com o painel da Tipe no tablet",
         selo: ["Recebido hoje", "R$ 2.840,50"],
         link: ["/produtos/restaurant", "Ver o painel"],
       },
@@ -376,8 +366,8 @@ const GRUPOS: { id: string; nome: string; cor: string; slides: Slide[] }[] = [
         eyebrow: "Para o dono",
         titulo: "Seu salão inteiro numa tela só.",
         texto: "Mesas, pagamentos e equipe em tempo real, no computador, no tablet ou no celular.",
-        scene: "gestor",
-        alt: "Dona de restaurante trabalhando no tablet, no balcão",
+        scene: "tablet-maos",
+        alt: "Mãos segurando o tablet com o painel da Tipe no balcão",
         selo: ["Ao vivo", "5 de 8 mesas abertas"],
         link: ["/produtos/restaurant", "Conhecer o painel"],
       },
@@ -385,8 +375,8 @@ const GRUPOS: { id: string; nome: string; cor: string; slides: Slide[] }[] = [
         eyebrow: "Para o dono",
         titulo: "Mais giro, sem taxa para o cliente.",
         texto: "Assinatura mensal por número de mesas. Quem está na mesa não paga nada a mais.",
-        scene: "amigos",
-        alt: "Mesa cheia de amigos felizes",
+        scene: "cena-familia",
+        alt: "Família almoçando com o totem da Tipe na mesa",
         selo: ["Sem taxa para o cliente", "Assinatura por mesas"],
         link: ["/precos", "Ver preços"],
       },
@@ -426,13 +416,30 @@ function Categorias() {
   );
 }
 
+const PASSO_MS = 6000;
+
+/** Carrossel que anda sozinho na tela; para com o mouse ou o foco em cima e com movimento reduzido. */
 function Carrossel({ id, cor, slides }: { id: string; cor: string; slides: Slide[] }) {
   const [i, setI] = useState(0);
+  const [parado, setParado] = useState(false);
+  const [ref, visivel] = useVisivel<HTMLDivElement>();
+  const reduzido = useMovimentoReduzido();
+  const anda = slides.length > 1 && visivel && !parado && !reduzido;
   const s = slides[i] ?? slides[0]!;
   const ir = (d: number) => setI((v) => (v + d + slides.length) % slides.length);
+  useEffect(() => {
+    if (!anda) return;
+    const t = setTimeout(() => setI((v) => (v + 1) % slides.length), PASSO_MS);
+    return () => clearTimeout(t);
+  }, [anda, i, slides.length]);
   return (
     <div
+      ref={ref}
       id={id}
+      onPointerEnter={() => setParado(true)}
+      onPointerLeave={() => setParado(false)}
+      onFocus={() => setParado(true)}
+      onBlur={() => setParado(false)}
       className="grid scroll-mt-24 overflow-hidden rounded-[2.5rem] bg-background-muted lg:grid-cols-2"
     >
       <div className="flex flex-col justify-center p-8 sm:p-12 lg:p-16">
@@ -480,10 +487,22 @@ function Carrossel({ id, cor, slides }: { id: string; cor: string; slides: Slide
                   aria-current={n === i}
                   onClick={() => setI(n)}
                   className={cn(
-                    "h-2.5 rounded-full transition-all",
-                    n === i ? "w-7 bg-foreground" : "w-2.5 bg-foreground/20",
+                    "relative h-2.5 overflow-hidden rounded-full bg-foreground/20 transition-all",
+                    n === i ? "w-10" : "w-2.5",
                   )}
-                />
+                >
+                  {n === i && (
+                    <span
+                      key={`${i}-${anda}`}
+                      className="carrossel-progresso absolute inset-y-0 left-0 rounded-full bg-foreground"
+                      style={{
+                        animationDuration: `${PASSO_MS}ms`,
+                        animationPlayState: anda ? "running" : "paused",
+                        width: anda ? undefined : "100%",
+                      }}
+                    />
+                  )}
+                </button>
               ))}
             </div>
           </div>
@@ -499,14 +518,11 @@ function Carrossel({ id, cor, slides }: { id: string; cor: string; slides: Slide
               n === i ? "opacity-100" : "opacity-0",
             )}
           >
-            <EditorialPhoto
-              scene={x.scene}
+            <Foto
+              nome={x.scene}
               alt={x.alt}
-              aspect="4/3"
               sizes="(min-width: 1024px) 50vw, 100vw"
-              radius="0"
-              reveal={false}
-              className="!aspect-auto h-full"
+              className="h-full w-full"
             />
           </div>
         ))}
@@ -524,5 +540,44 @@ function Carrossel({ id, cor, slides }: { id: string; cor: string; slides: Slide
         </div>
       </div>
     </div>
+  );
+}
+
+/* ------------------------------------------------------------- Fecho */
+
+function Fecho() {
+  return (
+    <section className="container-page pb-24 sm:pb-32">
+      <div className="relative overflow-hidden rounded-[2.5rem] bg-[#021E34] px-6 py-14 text-white sm:px-14 sm:py-20">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_60%_at_85%_0%,rgb(15_201_189/0.35),transparent_70%)]"
+        />
+        <div className="relative grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
+          <div>
+            <p className="font-display text-[clamp(1.2rem,1rem+0.8vw,1.6rem)] text-[#0FC9BD]">
+              {TRIAL_DAYS} dias grátis, sem cartão de crédito
+            </p>
+            <h2 className="mt-4 max-w-[18ch] font-display text-[clamp(2.4rem,1.4rem+3.4vw,4.4rem)] font-medium leading-[1]">
+              Sua primeira mesa paga pela Tipe pode ser hoje.
+            </h2>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <a
+              href="#formulario"
+              className="btn-press inline-flex h-14 items-center justify-center gap-2 rounded-full bg-[#0FC9BD] px-8 font-medium text-[#021E34]"
+            >
+              Quero testar grátis <ArrowRight className="h-4 w-4" />
+            </a>
+            <Link
+              to="/simulador"
+              className="btn-press inline-flex h-14 items-center justify-center rounded-full border border-white/25 px-8 font-medium hover:border-white/60"
+            >
+              Testar o simulador
+            </Link>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 }

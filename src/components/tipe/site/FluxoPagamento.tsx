@@ -80,8 +80,8 @@ const PASSOS: Passo[] = [
     quem: "Cliente",
     titulo: "Vê a conta ao vivo",
     texto: "Os itens aparecem conforme o garçom lança, já com a taxa de serviço do restaurante.",
-    cena: "cena-familia",
-    foco: "40% 45%",
+    cena: "cena-casal",
+    foco: "30% 40%",
     quadro: {
       tipo: "tela",
       tela: "conta",
@@ -99,8 +99,8 @@ const PASSOS: Passo[] = [
     quem: "Cliente",
     titulo: "Divide do jeito da mesa",
     texto: "Pagar tudo, partes iguais, por valor, por porcentagem ou só os próprios itens.",
-    cena: "cena-amigos",
-    foco: "35% 40%",
+    cena: "cena-familia",
+    foco: "40% 45%",
     quadro: {
       tipo: "tela",
       tela: "dividir",
@@ -216,11 +216,11 @@ const PASSOS: Passo[] = [
 
 const QUADROS = PASSOS.map((p) => p.quadro);
 
-/** Os oito passos em três atos: abre a conta, paga, agradece. */
+/** Os oito passos em três momentos da mesa (03/11: sem "Ato 1, 2, 3", pedido do Roberto). */
 const ATOS = [
-  { nome: "Abre a conta", ate: "conta" },
-  { nome: "Paga", ate: "pago" },
-  { nome: "Agradece", ate: "avaliacao" },
+  { nome: "Na chegada da conta", ate: "conta" },
+  { nome: "Na hora de pagar", ate: "pago" },
+  { nome: "Depois de pagar", ate: "avaliacao" },
 ];
 const ATO_DE = PASSOS.map((p) => {
   const fim = PASSOS.findIndex((q) => q.id === p.id);
@@ -231,7 +231,9 @@ ATO_DE.forEach((n, i) => {
   if (i === 0 || ATO_DE[i - 1] !== n) ATO_INICIO[i] = { n, nome: ATOS[n - 1]!.nome };
 });
 const CENAS = [...new Set(PASSOS.map((p) => p.cena))];
-const TEMPO = 4600;
+const TEMPO = 3800;
+/** Depois de um toque manual, volta a andar sozinho após este tempo parado. */
+const RETOMA = 7000;
 const TOTAL = PASSOS.length;
 const dois = (n: number) => String(n).padStart(2, "0");
 
@@ -242,7 +244,7 @@ function useNaTela<T extends Element>() {
   useEffect(() => {
     const el = ref.current;
     if (!el || typeof IntersectionObserver === "undefined") return;
-    const io = new IntersectionObserver(([e]) => setNa(!!e?.isIntersecting), { threshold: 0.35 });
+    const io = new IntersectionObserver(([e]) => setNa(!!e?.isIntersecting), { threshold: 0.2 });
     io.observe(el);
     return () => io.disconnect();
   }, []);
@@ -263,6 +265,8 @@ function useAbaVisivel() {
 export function FluxoPagamento() {
   const [ativo, setAtivo] = useState(0);
   const [auto, setAuto] = useState(true);
+  // Pausado pelo botão de pausa: só volta quando a pessoa sai e volta para a seção.
+  const pausaFixa = useRef(false);
   const [reduzido, setReduzido] = useState(false);
   const [ref, naTela] = useNaTela<HTMLDivElement>();
   const abaVisivel = useAbaVisivel();
@@ -281,6 +285,13 @@ export function FluxoPagamento() {
   useEffect(() => {
     if (naTela) setCarregar(true);
   }, [naTela]);
+  // Ao voltar para a seção (rolando ou voltando de outro vídeo/aba), retoma sozinho.
+  useEffect(() => {
+    if (naTela && abaVisivel && !reduzMovimento()) {
+      pausaFixa.current = false;
+      setAuto(true);
+    }
+  }, [naTela, abaVisivel]);
 
   const correndo = auto && naTela && abaVisivel && !reduzido;
   const passo = PASSOS[ativo]!;
@@ -291,6 +302,13 @@ export function FluxoPagamento() {
     const t = window.setTimeout(() => setAtivo((a) => (a + 1) % TOTAL), TEMPO);
     return () => window.clearTimeout(t);
   }, [ativo, correndo]);
+
+  // Parado por um toque manual: retoma depois de alguns segundos sem mexer.
+  useEffect(() => {
+    if (auto || reduzido || !naTela || pausaFixa.current) return;
+    const t = window.setTimeout(() => setAuto(true), RETOMA);
+    return () => window.clearTimeout(t);
+  }, [auto, ativo, reduzido, naTela]);
 
   // Toque turquesa no botão perto do fim do passo, só quando anda sozinho.
   useEffect(() => {
@@ -363,7 +381,7 @@ export function FluxoPagamento() {
         <Titulo
           rotulo="Como funciona"
           titulo="Três momentos na mesa. Nenhuma espera."
-          texto="As telas reais do app do cliente, com o que acontece do lado do restaurante a cada toque."
+          texto="Cada toque do cliente na mesa e, ao mesmo tempo, o que acontece do lado do restaurante."
         />
       </div>
 
@@ -386,17 +404,24 @@ export function FluxoPagamento() {
                     role="presentation"
                     aria-hidden
                     className={cn(
-                      "flex items-baseline gap-3 pb-2 text-sm",
+                      "flex items-center gap-2.5 pb-2 text-sm",
                       i > 0 && "mt-7",
                       ATO_DE[ativo] === ATO_INICIO[i]!.n
                         ? "text-[#0A9A90]"
                         : "text-muted-foreground",
                     )}
                   >
-                    <span className="font-semibold uppercase tracking-[0.1em] text-[0.7rem]">
-                      Ato {ATO_INICIO[i]!.n}
+                    <span
+                      className={cn(
+                        "h-1.5 w-1.5 shrink-0 translate-y-[-0.1em] rounded-full",
+                        ATO_DE[ativo] === ATO_INICIO[i]!.n
+                          ? "bg-[#0FC9BD]"
+                          : "bg-current opacity-50",
+                      )}
+                    />
+                    <span className="font-semibold uppercase tracking-[0.1em] text-[0.72rem]">
+                      {ATO_INICIO[i]!.nome}
                     </span>
-                    <span className="font-medium">{ATO_INICIO[i]!.nome}</span>
                   </div>
                 )}
                 <button
@@ -504,7 +529,8 @@ export function FluxoPagamento() {
                   {passo.quem}
                 </span>
                 <span className="cf-meta-selo">
-                  Telas reais<span className="hidden sm:inline"> · Maré Alta (fictício)</span>
+                  Mesa 12
+                  <span className="hidden sm:inline"> · Maré Alta, restaurante fictício</span>
                 </span>
               </div>
             </div>
@@ -606,7 +632,12 @@ export function FluxoPagamento() {
             {!reduzido && (
               <button
                 type="button"
-                onClick={() => setAuto((a) => !a)}
+                onClick={() =>
+                  setAuto((a) => {
+                    pausaFixa.current = a;
+                    return !a;
+                  })
+                }
                 aria-label={auto ? "Pausar a demonstração" : "Continuar a demonstração"}
                 aria-pressed={!auto}
                 className="grid h-12 w-12 place-items-center rounded-full text-muted-foreground transition-colors duration-200 hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0FC9BD]"

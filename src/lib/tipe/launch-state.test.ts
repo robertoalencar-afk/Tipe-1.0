@@ -17,8 +17,8 @@ describe("estado de lançamento", () => {
     expect(TEXTOS_LANCAMENTO.disponivel.cta).toBe("Contratar");
   });
 
-  it("o Tipe Order começa em desenvolvimento", () => {
-    expect(LANCAMENTO_PADRAO["order"]).toBe("em-desenvolvimento");
+  it("o Tipe Order começa disponível", () => {
+    expect(LANCAMENTO_PADRAO["order"]).toBe("disponivel");
     expect(LANCAMENTO_PADRAO["guest"]).toBeUndefined();
   });
 

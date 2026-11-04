@@ -10,7 +10,7 @@ import { VideoLebre } from "@/components/tipe/site/VideoLebre";
 
 export function LebreTartaruga() {
   return (
-    <section id="jeito-tipe" className="scroll-mt-16 pb-14 pt-20 sm:pb-20 sm:pt-28">
+    <section id="jeito-tipe" className="scroll-mt-16 py-14 sm:py-20 lg:py-28">
       <div className="container-page">
         <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
           <div className="relative">
@@ -33,7 +33,6 @@ export function LebreTartaruga() {
         <Reveal delay={150} className="mt-10 sm:mt-14">
           <VideoLebre />
         </Reveal>
-
       </div>
     </section>
   );

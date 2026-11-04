@@ -11,11 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AjudaRouteImport } from './routes/ajuda'
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as CrmRouteImport } from './routes/crm'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as EntrarRouteImport } from './routes/entrar'
+import { Route as EsqueciASenhaRouteImport } from './routes/esqueci-a-senha'
 import { Route as FundadorRouteImport } from './routes/fundador'
 import { Route as IntegracoesRouteImport } from './routes/integracoes'
 import { Route as PrecosRouteImport } from './routes/precos'
@@ -64,6 +66,8 @@ import { Route as LegalVersoesRouteImport } from './routes/legal.versoes'
 import { Route as PrivacidadeIndexRouteImport } from './routes/privacidade.index'
 import { Route as PrivacidadeSolicitacaoRouteImport } from './routes/privacidade.solicitacao'
 import { Route as ProdutosProdutoRouteImport } from './routes/produtos.$produto'
+import { Route as RedefinirSenhaIndexRouteImport } from './routes/redefinir-senha.index'
+import { Route as RedefinirSenhaGarcomRouteImport } from './routes/redefinir-senha.garcom'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin.leads'
 import { Route as ApiPublicCspReportRouteImport } from './routes/api/public/csp-report'
 import { Route as CrmContasIndexRouteImport } from './routes/crm.contas.index'
@@ -89,6 +93,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AjudaRoute = AjudaRouteImport.update({
+  id: '/ajuda',
+  path: '/ajuda',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CadastroRoute = CadastroRouteImport.update({
   id: '/cadastro',
   path: '/cadastro',
@@ -112,6 +121,11 @@ const DemoRoute = DemoRouteImport.update({
 const EntrarRoute = EntrarRouteImport.update({
   id: '/entrar',
   path: '/entrar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EsqueciASenhaRoute = EsqueciASenhaRouteImport.update({
+  id: '/esqueci-a-senha',
+  path: '/esqueci-a-senha',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FundadorRoute = FundadorRouteImport.update({
@@ -354,6 +368,16 @@ const ProdutosProdutoRoute = ProdutosProdutoRouteImport.update({
   path: '/produtos/$produto',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RedefinirSenhaIndexRoute = RedefinirSenhaIndexRouteImport.update({
+  id: '/redefinir-senha/',
+  path: '/redefinir-senha/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RedefinirSenhaGarcomRoute = RedefinirSenhaGarcomRouteImport.update({
+  id: '/redefinir-senha/garcom',
+  path: '/redefinir-senha/garcom',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAdminLeadsRoute = AuthenticatedAdminLeadsRouteImport.update({
   id: '/admin/leads',
   path: '/admin/leads',
@@ -436,11 +460,13 @@ const ApiPublicPdvAdapterWebhookRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ajuda': typeof AjudaRoute
   '/cadastro': typeof CadastroRoute
   '/cookies': typeof CookiesRoute
   '/crm': typeof CrmRouteWithChildren
   '/demo': typeof DemoRoute
   '/entrar': typeof EntrarRoute
+  '/esqueci-a-senha': typeof EsqueciASenhaRoute
   '/fundador': typeof FundadorRoute
   '/integracoes': typeof IntegracoesRoute
   '/precos': typeof PrecosRoute
@@ -485,10 +511,12 @@ export interface FileRoutesByFullPath {
   '/legal/versoes': typeof LegalVersoesRoute
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
   '/produtos/$produto': typeof ProdutosProdutoRoute
+  '/redefinir-senha/garcom': typeof RedefinirSenhaGarcomRoute
   '/$restaurante/': typeof RestauranteIndexRoute
   '/crm/': typeof CrmIndexRoute
   '/legal/': typeof LegalIndexRoute
   '/privacidade/': typeof PrivacidadeIndexRoute
+  '/redefinir-senha/': typeof RedefinirSenhaIndexRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
   '/crm/contas/$id': typeof CrmContasIdRoute
@@ -507,10 +535,12 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ajuda': typeof AjudaRoute
   '/cadastro': typeof CadastroRoute
   '/cookies': typeof CookiesRoute
   '/demo': typeof DemoRoute
   '/entrar': typeof EntrarRoute
+  '/esqueci-a-senha': typeof EsqueciASenhaRoute
   '/fundador': typeof FundadorRoute
   '/integracoes': typeof IntegracoesRoute
   '/precos': typeof PrecosRoute
@@ -555,10 +585,12 @@ export interface FileRoutesByTo {
   '/legal/versoes': typeof LegalVersoesRoute
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
   '/produtos/$produto': typeof ProdutosProdutoRoute
+  '/redefinir-senha/garcom': typeof RedefinirSenhaGarcomRoute
   '/$restaurante': typeof RestauranteIndexRoute
   '/crm': typeof CrmIndexRoute
   '/legal': typeof LegalIndexRoute
   '/privacidade': typeof PrivacidadeIndexRoute
+  '/redefinir-senha': typeof RedefinirSenhaIndexRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
   '/crm/contas/$id': typeof CrmContasIdRoute
@@ -579,11 +611,13 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/ajuda': typeof AjudaRoute
   '/cadastro': typeof CadastroRoute
   '/cookies': typeof CookiesRoute
   '/crm': typeof CrmRouteWithChildren
   '/demo': typeof DemoRoute
   '/entrar': typeof EntrarRoute
+  '/esqueci-a-senha': typeof EsqueciASenhaRoute
   '/fundador': typeof FundadorRoute
   '/integracoes': typeof IntegracoesRoute
   '/precos': typeof PrecosRoute
@@ -628,10 +662,12 @@ export interface FileRoutesById {
   '/legal/versoes': typeof LegalVersoesRoute
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
   '/produtos/$produto': typeof ProdutosProdutoRoute
+  '/redefinir-senha/garcom': typeof RedefinirSenhaGarcomRoute
   '/$restaurante/': typeof RestauranteIndexRoute
   '/crm/': typeof CrmIndexRoute
   '/legal/': typeof LegalIndexRoute
   '/privacidade/': typeof PrivacidadeIndexRoute
+  '/redefinir-senha/': typeof RedefinirSenhaIndexRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
   '/crm/contas/$id': typeof CrmContasIdRoute
@@ -652,11 +688,13 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/ajuda'
     | '/cadastro'
     | '/cookies'
     | '/crm'
     | '/demo'
     | '/entrar'
+    | '/esqueci-a-senha'
     | '/fundador'
     | '/integracoes'
     | '/precos'
@@ -701,10 +739,12 @@ export interface FileRouteTypes {
     | '/legal/versoes'
     | '/privacidade/solicitacao'
     | '/produtos/$produto'
+    | '/redefinir-senha/garcom'
     | '/$restaurante/'
     | '/crm/'
     | '/legal/'
     | '/privacidade/'
+    | '/redefinir-senha/'
     | '/admin/leads'
     | '/api/public/csp-report'
     | '/crm/contas/$id'
@@ -723,10 +763,12 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/ajuda'
     | '/cadastro'
     | '/cookies'
     | '/demo'
     | '/entrar'
+    | '/esqueci-a-senha'
     | '/fundador'
     | '/integracoes'
     | '/precos'
@@ -771,10 +813,12 @@ export interface FileRouteTypes {
     | '/legal/versoes'
     | '/privacidade/solicitacao'
     | '/produtos/$produto'
+    | '/redefinir-senha/garcom'
     | '/$restaurante'
     | '/crm'
     | '/legal'
     | '/privacidade'
+    | '/redefinir-senha'
     | '/admin/leads'
     | '/api/public/csp-report'
     | '/crm/contas/$id'
@@ -794,11 +838,13 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/ajuda'
     | '/cadastro'
     | '/cookies'
     | '/crm'
     | '/demo'
     | '/entrar'
+    | '/esqueci-a-senha'
     | '/fundador'
     | '/integracoes'
     | '/precos'
@@ -843,10 +889,12 @@ export interface FileRouteTypes {
     | '/legal/versoes'
     | '/privacidade/solicitacao'
     | '/produtos/$produto'
+    | '/redefinir-senha/garcom'
     | '/$restaurante/'
     | '/crm/'
     | '/legal/'
     | '/privacidade/'
+    | '/redefinir-senha/'
     | '/_authenticated/admin/leads'
     | '/api/public/csp-report'
     | '/crm/contas/$id'
@@ -867,11 +915,13 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AjudaRoute: typeof AjudaRoute
   CadastroRoute: typeof CadastroRoute
   CookiesRoute: typeof CookiesRoute
   CrmRoute: typeof CrmRouteWithChildren
   DemoRoute: typeof DemoRoute
   EntrarRoute: typeof EntrarRoute
+  EsqueciASenhaRoute: typeof EsqueciASenhaRoute
   FundadorRoute: typeof FundadorRoute
   IntegracoesRoute: typeof IntegracoesRoute
   PrecosRoute: typeof PrecosRoute
@@ -891,9 +941,11 @@ export interface RootRouteChildren {
   LegalVersoesRoute: typeof LegalVersoesRoute
   PrivacidadeSolicitacaoRoute: typeof PrivacidadeSolicitacaoRoute
   ProdutosProdutoRoute: typeof ProdutosProdutoRoute
+  RedefinirSenhaGarcomRoute: typeof RedefinirSenhaGarcomRoute
   RestauranteIndexRoute: typeof RestauranteIndexRoute
   LegalIndexRoute: typeof LegalIndexRoute
   PrivacidadeIndexRoute: typeof PrivacidadeIndexRoute
+  RedefinirSenhaIndexRoute: typeof RedefinirSenhaIndexRoute
   ApiPublicCspReportRoute: typeof ApiPublicCspReportRoute
   LegalVersoesArquivoRoute: typeof LegalVersoesArquivoRoute
   MesaRestauranteMesaRoute: typeof MesaRestauranteMesaRoute
@@ -920,6 +972,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ajuda': {
+      id: '/ajuda'
+      path: '/ajuda'
+      fullPath: '/ajuda'
+      preLoaderRoute: typeof AjudaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cadastro': {
@@ -955,6 +1014,13 @@ declare module '@tanstack/react-router' {
       path: '/entrar'
       fullPath: '/entrar'
       preLoaderRoute: typeof EntrarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/esqueci-a-senha': {
+      id: '/esqueci-a-senha'
+      path: '/esqueci-a-senha'
+      fullPath: '/esqueci-a-senha'
+      preLoaderRoute: typeof EsqueciASenhaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/fundador': {
@@ -1293,6 +1359,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProdutosProdutoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/redefinir-senha/': {
+      id: '/redefinir-senha/'
+      path: '/redefinir-senha'
+      fullPath: '/redefinir-senha/'
+      preLoaderRoute: typeof RedefinirSenhaIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/redefinir-senha/garcom': {
+      id: '/redefinir-senha/garcom'
+      path: '/redefinir-senha/garcom'
+      fullPath: '/redefinir-senha/garcom'
+      preLoaderRoute: typeof RedefinirSenhaGarcomRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin/leads': {
       id: '/_authenticated/admin/leads'
       path: '/admin/leads'
@@ -1483,11 +1563,13 @@ const CrmRouteWithChildren = CrmRoute._addFileChildren(CrmRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AjudaRoute: AjudaRoute,
   CadastroRoute: CadastroRoute,
   CookiesRoute: CookiesRoute,
   CrmRoute: CrmRouteWithChildren,
   DemoRoute: DemoRoute,
   EntrarRoute: EntrarRoute,
+  EsqueciASenhaRoute: EsqueciASenhaRoute,
   FundadorRoute: FundadorRoute,
   IntegracoesRoute: IntegracoesRoute,
   PrecosRoute: PrecosRoute,
@@ -1507,9 +1589,11 @@ const rootRouteChildren: RootRouteChildren = {
   LegalVersoesRoute: LegalVersoesRoute,
   PrivacidadeSolicitacaoRoute: PrivacidadeSolicitacaoRoute,
   ProdutosProdutoRoute: ProdutosProdutoRoute,
+  RedefinirSenhaGarcomRoute: RedefinirSenhaGarcomRoute,
   RestauranteIndexRoute: RestauranteIndexRoute,
   LegalIndexRoute: LegalIndexRoute,
   PrivacidadeIndexRoute: PrivacidadeIndexRoute,
+  RedefinirSenhaIndexRoute: RedefinirSenhaIndexRoute,
   ApiPublicCspReportRoute: ApiPublicCspReportRoute,
   LegalVersoesArquivoRoute: LegalVersoesArquivoRoute,
   MesaRestauranteMesaRoute: MesaRestauranteMesaRoute,

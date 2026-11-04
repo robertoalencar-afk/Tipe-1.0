@@ -21,7 +21,7 @@ export const ehEstadoLancamento = (v: unknown): v is EstadoLancamento =>
 
 /** Produtos que têm estado de lançamento configurável, com o padrão de cada um. */
 export const LANCAMENTO_PADRAO: Record<string, EstadoLancamento> = {
-  order: "em-desenvolvimento",
+  order: "disponivel",
 };
 
 export const temLancamento = (slug: string) => slug in LANCAMENTO_PADRAO;

@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import {
   ArrowLeft,
+  BellRing,
   Check,
   ChevronRight,
   ClipboardList,
@@ -17,7 +18,14 @@ import { QRCodeSVG } from "qrcode.react";
 import { TipeLogo } from "@/components/tipe/Logo";
 import { markSimulatorUsed } from "@/lib/tipe/tracking";
 import { SplitPicker } from "@/components/tipe/SplitPicker";
-import { resolveServiceFee } from "@/lib/tipe/rules";
+import {
+  TIP_SPLIT,
+  gorjetaMaxima,
+  lerValor,
+  resolveServiceFee,
+  suggestedTips,
+  validarGorjeta,
+} from "@/lib/tipe/rules";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -105,12 +113,12 @@ const METHOD_DETAILS: Record<Method, { label: string; description: string; Icon:
     pix: { label: "Pix", description: "Confirmação simulada na hora", Icon: QrCode },
     apple_pay: {
       label: "Apple Pay",
-      description: "Pagamento em um toque no iPhone",
+      description: "Um toque no iPhone, aprovado na simulação",
       Icon: Smartphone,
     },
     google_pay: {
       label: "Google Pay",
-      description: "Pagamento em um toque no Android",
+      description: "Um toque no Android, aprovado na simulação",
       Icon: WalletCards,
     },
     at_establishment: {
@@ -150,6 +158,10 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
   const [stars, setStars] = useState(0);
   const [comment, setComment] = useState("");
   const [tip, setTip] = useState(0);
+  // "Outro valor" é uma opção ao lado dos percentuais, como na conta real.
+  const [tipOther, setTipOther] = useState("");
+  const [tipOtherOpen, setTipOtherOpen] = useState(false);
+  const [tipPaid, setTipPaid] = useState(false);
   const [paidAmount, setPaidAmount] = useState(0);
   const [demo, setDemo] = useState<DemoState>(EMPTY_STATE);
 
@@ -223,6 +235,8 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
   const payBill = () => {
     if (!method || total <= 0) return;
     setPaidAmount(total);
+    setTipPaid(false);
+    setTip(0);
     const status = method === "at_establishment" ? "pending" : "approved";
     const selected = Object.fromEntries(Object.entries(quantities).filter(([, qty]) => qty > 0));
     const nextPaid = { ...demo.paid };
@@ -283,11 +297,15 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
       payments,
       closedAt: closed ? Date.now() : null,
     });
-    setStage("rating");
+    setStage("approved");
   };
 
-  const continueAfterApproved = () => {
-    setStage("pitch");
+  // Como na conta real: a gorjeta extra é um segundo pagamento, depois da conta, e a avaliação vem por último.
+  const startTip = () => {
+    setTip(0);
+    setTipOther("");
+    setTipOtherOpen(false);
+    setStage("tip");
   };
   useEffect(() => {
     markSimulatorUsed();
@@ -420,6 +438,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
           <p className="mt-1 text-sm text-muted-foreground">
             Atendimento de <strong className="text-foreground">Carlos</strong>
           </p>
+          <ChamarEquipeSimulado />
           <div className="mb-6 mt-5 grid grid-cols-2 gap-1 rounded-full bg-muted p-1">
             <Button
               variant={tab === "bill" ? "outline" : "ghost"}
@@ -772,12 +791,20 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
             {money(paidAmount)} enviados ao Maré Alta.
           </p>
-          <Button
-            onClick={continueAfterApproved}
-            className="mt-8 h-12 w-full font-display text-base"
-          >
-            Avaliar atendimento <ChevronRight />
-          </Button>
+          <div className="mt-8 w-full space-y-2">
+            {!tipPaid && (
+              <Button onClick={startTip} className="h-12 w-full font-display text-base">
+                Agradecer Carlos com gorjeta <ChevronRight />
+              </Button>
+            )}
+            <Button
+              variant={tipPaid ? "default" : "outline"}
+              onClick={() => setStage("rating")}
+              className="h-12 w-full font-display text-base"
+            >
+              Avaliar atendimento <ChevronRight />
+            </Button>
+          </div>
         </Centered>
       )}
       {stage === "rating" && (
@@ -820,86 +847,167 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
             maxLength={400}
             className="mt-2 min-h-28"
           />
-          <Button onClick={() => setStage("tip")} className="mt-6 h-12 font-display text-base">
-            Continuar <ChevronRight />
+          <Button onClick={() => setStage("pitch")} className="mt-6 h-12 font-display text-base">
+            {stars > 0 ? "Enviar avaliação" : "Continuar"} <ChevronRight />
           </Button>
         </main>
       )}
-      {stage === "tip" && (
-        <main className="flex flex-1 flex-col px-6 pb-10">
-          <h1 className="mt-4 text-center text-[2.1rem] font-medium leading-[1.04] tracking-[-0.04em]">
-            Agradeça ao Carlos com uma gorjeta
-          </h1>
-          <p className="mt-3 text-center text-[0.95rem] leading-6 text-muted-foreground">
-            É opcional e separada da conta.
-          </p>
-          <div
-            className="mt-8 grid grid-cols-2 gap-3"
-            role="radiogroup"
-            aria-label="Valor da gorjeta"
-          >
-            {(
-              [
-                [5, "🙂"],
-                [10, "😊"],
-                [15, "😍"],
-                [20, "🤩"],
-              ] as const
-            ).map(([value, emoji]) => {
-              const ativo = tip === value;
-              return (
+      {stage === "tip" &&
+        (() => {
+          const options = suggestedTips(paidAmount);
+          const otherValue = lerValor(tipOther);
+          const otherError =
+            tipOtherOpen && tipOther ? validarGorjeta(otherValue, paidAmount) : null;
+          return (
+            <main className="flex flex-1 flex-col px-5 pb-8">
+              <h1 className="mt-4 text-center text-[2.1rem] font-medium leading-[1.04] tracking-[-0.04em]">
+                Agradeça ao Carlos com uma gorjeta
+              </h1>
+              <p className="mt-3 text-center text-[0.95rem] leading-6 text-muted-foreground">
+                É opcional e vai além da taxa de serviço da conta.
+              </p>
+              <div
+                className="mt-8 grid grid-cols-2 gap-2.5"
+                role="radiogroup"
+                aria-label="Valor da gorjeta"
+              >
+                {options.map((option) => {
+                  const ativo = tip === option.amount && !tipOtherOpen;
+                  return (
+                    <button
+                      key={option.label}
+                      type="button"
+                      role="radio"
+                      aria-checked={ativo}
+                      onClick={() => {
+                        setTipOtherOpen(false);
+                        setTipOther("");
+                        setTip(option.amount);
+                      }}
+                      className={cn(
+                        "relative flex h-24 flex-col items-center justify-center gap-1 rounded-[1.25rem] border bg-card transition-[border-color,transform] active:scale-[0.98]",
+                        ativo
+                          ? "border-foreground ring-1 ring-foreground"
+                          : "border-border hover:border-foreground/40",
+                      )}
+                    >
+                      {option.sugerida && (
+                        <span className="absolute left-2 top-2 rounded-full bg-brand-soft px-2 py-0.5 text-[0.68rem] font-semibold text-brand-strong">
+                          Sugerida
+                        </span>
+                      )}
+                      {ativo && (
+                        <span className="absolute right-2 top-2 grid h-5 w-5 place-items-center rounded-full bg-foreground text-background">
+                          <Check className="h-3 w-3" strokeWidth={3} />
+                        </span>
+                      )}
+                      <span className="text-xl font-medium">{option.label}</span>
+                      {option.label.endsWith("%") && (
+                        <span className="money text-xs text-muted-foreground">
+                          {money(option.amount)}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
                 <button
-                  key={value}
                   type="button"
                   role="radio"
-                  aria-checked={ativo}
-                  onClick={() => setTip(value)}
+                  aria-checked={tipOtherOpen}
+                  onClick={() => {
+                    setTipOtherOpen(true);
+                    const v = lerValor(tipOther);
+                    setTip(v !== null && !validarGorjeta(v, paidAmount) ? v : 0);
+                  }}
                   className={cn(
-                    "relative flex h-28 flex-col items-center justify-center gap-1.5 rounded-[1.25rem] border bg-card transition-[border-color,transform] active:scale-[0.98]",
-                    ativo
+                    "relative flex h-24 flex-col items-center justify-center gap-1 rounded-[1.25rem] border bg-card transition-[border-color,transform] active:scale-[0.98]",
+                    tipOtherOpen
                       ? "border-foreground ring-1 ring-foreground"
                       : "border-border hover:border-foreground/40",
                   )}
                 >
-                  {ativo && (
-                    <span className="absolute right-2.5 top-2.5 grid h-5 w-5 place-items-center rounded-full bg-foreground text-background">
-                      <Check className="h-3 w-3" strokeWidth={3} />
-                    </span>
-                  )}
-                  <span className="money text-xl font-medium">{money(value)}</span>
-                  <span aria-hidden className="text-2xl leading-none">
-                    {emoji}
-                  </span>
+                  <span className="text-xl font-medium">Outro valor</span>
+                  <span className="text-xs text-muted-foreground">você escolhe</span>
                 </button>
-              );
-            })}
-          </div>
-          <div className="mt-6 border-t border-border pt-5 text-center">
-            <p className="text-sm text-muted-foreground">Gorjeta {money(tip)}</p>
-            <p className="money mt-0.5 text-lg font-medium">Você paga {money(tip)}</p>
-          </div>
-          <Button
-            disabled={tip <= 0}
-            onClick={() => setStage("tip-payment")}
-            size="lg"
-            className="mt-5 w-full"
-          >
-            Continuar com gorjeta
-          </Button>
-          <Button variant="ghost" onClick={() => setStage("done")} className="mt-2 h-11">
-            Agora não, obrigado
-          </Button>
-          <Link
-            to="/legal/$livro"
-            params={{ livro: "termos-de-uso" }}
-            hash="gorjeta-extra"
-            target="_blank"
-            className="mt-3 block text-center text-sm font-semibold text-brand-strong underline-offset-2 hover:underline"
-          >
-            Como funciona a gorjeta?
-          </Link>
-        </main>
-      )}
+              </div>
+              {tipOtherOpen && (
+                <div className="mt-4">
+                  <label htmlFor="demo-tip-other" className="text-sm font-semibold">
+                    Digite o valor
+                  </label>
+                  <Input
+                    id="demo-tip-other"
+                    inputMode="decimal"
+                    maxLength={10}
+                    autoFocus
+                    value={tipOther}
+                    placeholder="R$ 0,00"
+                    aria-invalid={!!otherError}
+                    aria-describedby="demo-tip-other-help"
+                    className="mt-1 h-11"
+                    onChange={(e) => {
+                      const t = e.target.value.replace(/[^\d,.]/g, "");
+                      setTipOther(t);
+                      const v = lerValor(t);
+                      setTip(v !== null && !validarGorjeta(v, paidAmount) ? v : 0);
+                    }}
+                  />
+                  <p
+                    id="demo-tip-other-help"
+                    className={`mt-1.5 text-xs ${otherError ? "text-destructive" : "text-muted-foreground"}`}
+                  >
+                    {otherError ??
+                      `De ${money(2)} até ${money(gorjetaMaxima(paidAmount))}, o valor da sua conta.`}
+                  </p>
+                </div>
+              )}
+              {tip > 0 && (
+                <p className="mt-4 rounded-xl bg-muted px-3 py-2.5 text-xs leading-5 text-muted-foreground">
+                  Dos <strong className="money text-foreground">{money(tip)}</strong>,{" "}
+                  <strong className="money text-foreground">
+                    {money(+(tip * TIP_SPLIT.waiter).toFixed(2))}
+                  </strong>{" "}
+                  vão para o Carlos e{" "}
+                  <span className="money">{money(+(tip * TIP_SPLIT.tipe).toFixed(2))}</span> ficam
+                  com a TIPE. É cobrada à parte, logo depois da conta.
+                </p>
+              )}
+              <div className="mt-6 grid gap-2">
+                <Button
+                  disabled={tip <= 0}
+                  onClick={() => {
+                    setTipMethod((m) => m ?? "pix");
+                    setStage("tip-payment");
+                  }}
+                  className="h-12 w-full font-display text-base"
+                >
+                  {tip > 0 ? `Continuar com ${money(tip)}` : "Escolha um valor"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setTip(0);
+                    setTipOtherOpen(false);
+                    setTipOther("");
+                    setStage("rating");
+                  }}
+                  className="h-12 w-full"
+                >
+                  Sem gorjeta
+                </Button>
+              </div>
+              <Link
+                to="/legal/$livro"
+                params={{ livro: "termos-de-uso" }}
+                hash="gorjeta-extra"
+                target="_blank"
+                className="mt-3 block text-center text-sm font-semibold text-brand-strong underline-offset-2 hover:underline"
+              >
+                Como funciona a gorjeta?
+              </Link>
+            </main>
+          );
+        })()}
       {stage === "tip-payment" && (
         <PaymentScreen
           title="Pagamento da gorjeta"
@@ -910,7 +1018,10 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
           terms={true}
           setTerms={() => undefined}
           back={() => setStage("tip")}
-          pay={() => setStage("done")}
+          pay={() => {
+            setTipPaid(true);
+            setStage("rating");
+          }}
         />
       )}
       {stage === "pitch" && (
@@ -931,7 +1042,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
           </Link>
           <button
             type="button"
-            onClick={() => setStage("rating")}
+            onClick={() => setStage("done")}
             className="mt-4 text-xs text-muted-foreground underline"
           >
             Continuar a demonstração
@@ -974,7 +1085,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
             Sua conta foi paga e sua avaliação foi registrada nesta simulação.
           </p>
-          {tip > 0 && (
+          {tipPaid && tip > 0 && (
             <div className="mt-3 rounded-lg border border-border bg-card p-3 text-sm">
               <p className="font-semibold">Gorjeta extra de {money(tip)} simulada.</p>
             </div>
@@ -1050,7 +1161,7 @@ function PaymentScreen<M extends Method | Exclude<Method, "at_establishment">>({
   cashReceived?: string;
   setCashReceived?: (value: string) => void;
 }) {
-  // Carteiras digitais ainda não estão ativas no produto real: aparecem como "Em breve", sem seleção.
+  // Restaurante fictício: Pix, Apple Pay e Google Pay são aprovados na hora, sem cobrança real.
   const methods = (Object.keys(METHOD_DETAILS) as Method[]).filter(
     (item) => allowEstablishment || item !== "at_establishment",
   ) as M[];
@@ -1218,5 +1329,45 @@ function Centered({ children }: { children: React.ReactNode }) {
     <main className="flex flex-1 flex-col items-center justify-center px-6 pb-20 text-center">
       {children}
     </main>
+  );
+}
+
+/** "Chamar garçom" e "Pedir a conta", como na conta real; aqui o aviso é só simulado. */
+function ChamarEquipeSimulado() {
+  const [avisado, setAvisado] = useState<"waiter" | "bill" | null>(null);
+  useEffect(() => {
+    if (!avisado) return;
+    const t = window.setTimeout(() => setAvisado(null), 8000);
+    return () => window.clearTimeout(t);
+  }, [avisado]);
+  return (
+    <div className="mt-4">
+      <div className="flex gap-2">
+        {(
+          [
+            ["waiter", "Chamar garçom", BellRing],
+            ["bill", "Pedir a conta", ReceiptText],
+          ] as const
+        ).map(([kind, rotulo, Icone]) => (
+          <Button
+            key={kind}
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-10 flex-1 rounded-full shadow-none"
+            disabled={avisado === kind}
+            onClick={() => setAvisado(kind)}
+          >
+            <Icone className="h-4 w-4" aria-hidden />
+            {avisado === kind ? "Carlos avisado" : rotulo}
+          </Button>
+        ))}
+      </div>
+      <p role="status" aria-live="polite" className="mt-2 min-h-4 text-xs text-muted-foreground">
+        {avisado
+          ? "Simulação: no restaurante real, o Carlos recebe o aviso no celular e no painel."
+          : ""}
+      </p>
+    </div>
   );
 }

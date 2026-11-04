@@ -242,7 +242,7 @@ export function LandingHeader() {
               className="btn-tema com-fios hidden h-11 items-center gap-2 rounded-full pl-6 pr-5 text-[0.95rem] font-medium sm:inline-flex"
             >
               Teste grátis
-              <SetaFios />
+              <SetaFios auto />
             </a>
             <button
               ref={botaoMenu}
@@ -349,7 +349,7 @@ export function LandingHeader() {
                 className="btn-tema com-fios flex h-12 items-center justify-center gap-2 rounded-full font-medium"
               >
                 Teste grátis
-                <SetaFios />
+                <SetaFios auto />
               </a>
             </div>
           </div>
@@ -364,7 +364,7 @@ export function LandingHeader() {
         className="cta-fixo btn-tema com-fios fixed right-4 top-3 z-40 inline-flex h-11 items-center gap-2 rounded-full pl-6 pr-5 text-[0.95rem] font-medium shadow-lift sm:right-6"
       >
         Teste grátis
-        <SetaFios />
+        <SetaFios auto />
       </a>
     </>
   );
@@ -482,8 +482,8 @@ export function LandingFooter() {
                 </a>
               </li>
               <li>
-                <a href="/#duvidas" className={a}>
-                  Dúvidas frequentes
+                <a href="/ajuda" className={a}>
+                  Central de ajuda
                 </a>
               </li>
               <li>

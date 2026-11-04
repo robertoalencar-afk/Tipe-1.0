@@ -8,11 +8,14 @@ import type { CSSProperties } from "react";
 import { useInView } from "@/components/tipe/landing/motion";
 import { cn } from "@/lib/utils";
 
-const ARQUIVOS = import.meta.glob(["/src/assets/produtos/*.webp", "/src/assets/fotos/*.webp", "/src/assets/cenas/*.webp"], {
-  eager: true,
-  query: "?url",
-  import: "default",
-}) as Record<string, string>;
+const ARQUIVOS = import.meta.glob(
+  ["/src/assets/produtos/*.webp", "/src/assets/fotos/*.webp", "/src/assets/cenas/*.webp"],
+  {
+    eager: true,
+    query: "?url",
+    import: "default",
+  },
+) as Record<string, string>;
 
 export type NomeFoto =
   | "pay"

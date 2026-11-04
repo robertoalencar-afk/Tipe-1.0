@@ -72,8 +72,9 @@ jobs:
             exit 1
           fi
           # A IA da Lebre é grátis (Cloudflare Workers AI, depois Groq); sem as duas, ela só responde o que não precisa de IA.
-          if [[ -z "${CLOUDFLARE_AI_TOKEN:-}" && -z "${GROQ_API_KEY:-}" ]]; then
-            echo "::warning title=Lebre sem IA::Cadastre CLOUDFLARE_AI_TOKEN e/ou GROQ_API_KEY para a Lebre responder com IA."
+          # O Workers AI vem pelo binding do Worker (sem token); o Groq é a reserva grátis.
+          if [[ -z "${GROQ_API_KEY:-}" ]]; then
+            echo "::warning title=Lebre sem reserva::Sem GROQ_API_KEY, a Lebre só usa a cota grátis diária do Workers AI."
           fi
           # Evita misturar a service key ou o banco de staging com o URL publico de production.
           expected_id="bnggnbwmihqexvihrqvy"

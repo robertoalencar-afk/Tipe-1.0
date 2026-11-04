@@ -12,5 +12,7 @@
     { "pattern": "tipe.digital", "custom_domain": true },
     { "pattern": "www.tipe.digital", "custom_domain": true }
   ],
-  "observability": { "enabled": true }
+  "observability": { "enabled": true },
+  // IA grátis da Lebre (Workers AI) direto no Worker, sem token: ver src/lib/tipe/ai.server.ts.
+  "ai": { "binding": "AI" }
 }

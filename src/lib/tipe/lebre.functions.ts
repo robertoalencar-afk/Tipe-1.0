@@ -24,14 +24,20 @@ export type LebreProposal = {
 export type LebreReply = { answer: string; proposal?: LebreProposal };
 
 const publicFacts = `
-A TIPE leva a conta para o celular pelo QR Code da mesa, sem precisar baixar nada.
-O cliente vê os itens, escolhe o que deseja pagar e pode dividir um item por duas, três ou quatro pessoas.
-Pagamentos no estabelecimento podem ser feitos em dinheiro ou maquininha e aguardam confirmação do restaurante.
-A TIPE oferece 30 dias grátis, sem cartão. Os valores dos planos serão divulgados no lançamento.
-O restaurante conecta obrigatoriamente o PDV que já usa (qualquer PDV do mercado é aceito); a TIPE ainda não oferece PDV próprio.
-Não afirme que uma marca específica já está homologada. Diga que a equipe confirma a compatibilidade.
-Apple Pay e Google Pay dependem da habilitação comercial do provedor e ainda não devem ser apresentados como ativos.
-Para experimentar, indique /simulador. Para criar a conta, indique /cadastro. Para falar com a equipe, indique o WhatsApp oficial no site.
+A TIPE é uma plataforma para restaurantes, bares e cafés. O carro chefe é o Tipe Pay; os outros produtos se somam a ele.
+Tipe Pay: a conta abre no celular pelo QR Code da mesa, sem baixar nada. O cliente vê os itens, escolhe o que vai pagar e pode dividir um item por duas, três ou quatro pessoas. Paga com Pix, Apple Pay ou Google Pay, ou escolhe pagar no estabelecimento (dinheiro ou maquininha), que aparece para o restaurante confirmar. Não há cartão digitado na conta.
+Os pagamentos digitais são processados pelo Pagar.me e o dinheiro cai direto na conta do restaurante. A TIPE não retém o valor das contas e não cobra taxa do cliente.
+Gorjeta extra: depois da conta paga, o cliente pode dar uma gorjeta extra como um segundo pagamento, separado e opcional (3%, 5%, 8% ou outro valor). 70% vão para quem atendeu e 30% são a taxa da plataforma.
+Tipe Order: o mesmo QR Code abre o cardápio, o cliente pede pelo celular, o pedido vai para a cozinha e entra na conta da mesa. É um módulo adicional do Tipe Pay, já disponível.
+Tipe Kitchen: tela da cozinha e do bar (KDS) com os pedidos por ordem de chegada e por setor.
+Tipe Staff: área do garçom com gorjetas, saldo e avaliações.
+Tipe Restaurant: painel do salão, caixa e relatórios em tempo real.
+Tipe AI: a Lebre, que resume o salão para o dono e executa pedidos simples no painel, sempre com confirmação.
+Tipe Guest: reserva, lista de espera e volta do cliente. Ainda está em breve; não diga que já está disponível.
+PDV: a TIPE tem PDV próprio, o Lançamento TIPE, para lançar os pedidos no próprio painel sem outro sistema. Quem já usa um PDV pode enviar mesas e itens pela API TIPE ou usar os conectores (Saipos, Consumer, Linx, TOTVS Chef e outros), com integração assistida e baixa automática do item pago. A equipe confirma os detalhes do sistema de cada restaurante.
+Planos: assinatura mensal pelo número de mesas, sem tarifa da TIPE por transação; o restaurante paga só as tarifas do Pagar.me. Essencial até 10 mesas, Profissional até 20, Premium até 40 (inclui cozinha e bar e controle de caixa) e Personalizado acima de 40. Mensal sem fidelidade; no anual, os totens com QR Code estão incluídos. Os valores serão divulgados no lançamento: não informe preços.
+Teste grátis: 30 dias, sem cartão de crédito. A implantação é acompanhada: a equipe cadastra as mesas, gera os QR Codes e treina a equipe.
+Para ver como funciona, indique /simulador. Para criar a conta, /cadastro. Preços em /precos, integrações em /integracoes, produtos em /produtos/pay (e order, kitchen, staff, restaurant, ai). Para falar com a equipe, o WhatsApp oficial no site.
 `;
 
 export type LebreFile = { name: string; mediaType: string; dataUrl: string };
@@ -296,26 +302,40 @@ export const transcribeLebreAudio = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { enforceRate, clientIp } = await import("./security.server");
     await enforceRate(`lebre-audio:${clientIp()}`, 10, 60);
+    // A transcrição usa o Whisper do Workers AI (Cloudflare), de preferência pelo binding do Worker
+    // (sem token), e conta no teto diário grátis.
+    const { aiBinding, consumeProviderQuota, cloudflareDailyLimit } = await import("./ai.server");
+    const binding = aiBinding();
     const accountId = process.env["CLOUDFLARE_ACCOUNT_ID"];
     const token = process.env["CLOUDFLARE_AI_TOKEN"];
-    if (!accountId || !token) throw new Error("O áudio ainda não está disponível. Escreva sua pergunta.");
-    // A transcrição usa o Whisper do Workers AI (Cloudflare) e conta no teto diário grátis.
-    const { consumeProviderQuota, cloudflareDailyLimit } = await import("./ai.server");
+    if (!binding && (!accountId || !token)) throw new Error("O áudio ainda não está disponível. Escreva sua pergunta.");
     if (!(await consumeProviderQuota("cloudflare", cloudflareDailyLimit()))) throw new Error("O áudio da Lebre descansa por hoje. Escreva sua pergunta.");
-    const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/@cf/openai/whisper-large-v3-turbo`, {
-      method: "POST",
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-      body: JSON.stringify({
-        audio: data.base64,
-        language: "pt",
-        initial_prompt: "Conversa com a Lebre, assistente da TIPE (marca pronunciada \"tchípi\", escrita TIPE). Termos: TIPE, Lebre, mesa, garçom, restaurante, PDV, Pix, QR Code, gorjeta, cardápio.",
-      }),
-    });
-    if (!response.ok) {
-      console.error("lebre transcription", response.status, (await response.text()).slice(0, 300));
-      throw new Error(response.status === 429 ? "Muitos áudios agora. Tente em instantes." : "Não consegui entender o áudio. Tente de novo ou escreva.");
+    const whisper = "@cf/openai/whisper-large-v3-turbo";
+    const input = {
+      audio: data.base64,
+      language: "pt",
+      initial_prompt: "Conversa com a Lebre, assistente da TIPE (marca pronunciada \"tchípi\", escrita TIPE). Termos: TIPE, Lebre, mesa, garçom, restaurante, PDV, Pix, QR Code, gorjeta, cardápio.",
+    };
+    let body: { text?: string };
+    if (binding) {
+      try {
+        body = (await binding.run(whisper, input)) as { text?: string };
+      } catch (error) {
+        console.error("lebre transcription", error);
+        throw new Error("Não consegui entender o áudio. Tente de novo ou escreva.");
+      }
+    } else {
+      const response = await fetch(`https://api.cloudflare.com/client/v4/accounts/${accountId}/ai/run/${whisper}`, {
+        method: "POST",
+        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        body: JSON.stringify(input),
+      });
+      if (!response.ok) {
+        console.error("lebre transcription", response.status, (await response.text()).slice(0, 300));
+        throw new Error(response.status === 429 ? "Muitos áudios agora. Tente em instantes." : "Não consegui entender o áudio. Tente de novo ou escreva.");
+      }
+      body = ((await response.json()) as { result?: { text?: string } }).result ?? {};
     }
-    const body = ((await response.json()) as { result?: { text?: string } }).result ?? {};
     const text = fixBrand(body.text?.trim() ?? "");
     if (!text) throw new Error("Não ouvi nada no áudio. Tente falar mais perto do microfone.");
     return { text: text.slice(0, 600) };

@@ -38,7 +38,12 @@ function Selo({ status }: { status: StatusIntegracao }) {
 export function GradeIntegracoes({ compacta = false }: { compacta?: boolean }) {
   const itens = INTEGRACOES_V5.filter((i) => i.status === "disponivel");
   return (
-    <ul className={cn("grid grid-cols-2 gap-3", compacta ? "sm:grid-cols-3" : "sm:grid-cols-3 lg:grid-cols-5")}>
+    <ul
+      className={cn(
+        "grid grid-cols-2 gap-3",
+        compacta ? "sm:grid-cols-3" : "sm:grid-cols-3 lg:grid-cols-5",
+      )}
+    >
       {itens.map((it, i) => {
         const Icone = ICONE_INTEGRACAO[it.nome] ?? Plug;
         return (
@@ -47,7 +52,9 @@ export function GradeIntegracoes({ compacta = false }: { compacta?: boolean }) {
               <Icone className="h-5 w-5 text-brand-strong" strokeWidth={1.8} aria-hidden />
               <span>
                 <span className="block text-xs text-muted-foreground">{it.grupo}</span>
-                <span className="mt-1 block font-display text-[1.3rem] font-medium leading-tight tracking-[-0.03em]">{it.nome}</span>
+                <span className="mt-1 block font-display text-[1.3rem] font-medium leading-tight tracking-[-0.03em]">
+                  {it.nome}
+                </span>
               </span>
             </div>
           </Reveal>
@@ -58,8 +65,12 @@ export function GradeIntegracoes({ compacta = false }: { compacta?: boolean }) {
 }
 
 const GRUPOS: { status: StatusIntegracao; t: string; d: string }[] = [
-  { status: "disponivel", t: "Disponível", d: "Funciona hoje, em produção." },
-  { status: "desenvolvimento", t: "Em desenvolvimento", d: "A base já está no código. Nenhum restaurante usa ainda." },
+  { status: "disponivel", t: "Disponível", d: "Pronto para usar. Os sistemas de terceiros ligam a partir da sua chave ou do seu arquivo." },
+  {
+    status: "desenvolvimento",
+    t: "Em desenvolvimento",
+    d: "A base já está no código. Nenhum restaurante usa ainda.",
+  },
   { status: "planejada", t: "Planejada", d: "No plano, sem data. Nada aqui está pronto." },
 ];
 
@@ -67,7 +78,7 @@ const GRUPOS: { status: StatusIntegracao; t: string; d: string }[] = [
 export function ListaIntegracoes() {
   return (
     <div className="space-y-14 sm:space-y-16">
-      {GRUPOS.map((g) => (
+      {GRUPOS.filter((g) => INTEGRACOES_V5.some((it) => it.status === g.status)).map((g) => (
         <div key={g.status} className="grid gap-6 lg:grid-cols-[0.55fr_1.45fr] lg:gap-14">
           <div>
             <Selo status={g.status} />
@@ -91,7 +102,9 @@ export function ListaIntegracoes() {
                   <span
                     className={cn(
                       "grid h-12 w-12 shrink-0 place-items-center rounded-2xl",
-                      g.status === "disponivel" ? "bg-[#0FC9BD] text-[#021E34]" : "bg-background-muted text-muted-foreground",
+                      g.status === "disponivel"
+                        ? "bg-[#0FC9BD] text-[#021E34]"
+                        : "bg-background-muted text-muted-foreground",
                     )}
                   >
                     <Icone className="h-5 w-5" strokeWidth={1.8} aria-hidden />
@@ -99,7 +112,9 @@ export function ListaIntegracoes() {
                   <span>
                     <span className="block font-medium">{it.nome}</span>
                     <span className="block text-xs text-muted-foreground">{it.grupo}</span>
-                    <span className="mt-1.5 block text-[0.95rem] leading-relaxed text-muted-foreground">{it.d}</span>
+                    <span className="mt-1.5 block text-[0.95rem] leading-relaxed text-muted-foreground">
+                      {it.d}
+                    </span>
                   </span>
                 </Reveal>
               );

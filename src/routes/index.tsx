@@ -7,6 +7,7 @@ import { LebreTartaruga } from "@/components/tipe/landing/LebreTartaruga";
 import { LineReveal, Reveal } from "@/components/tipe/landing/motion";
 import { IntegracoesHome, PlanosHome, ProdutosHome } from "@/components/tipe/site/Home";
 import { AberturaMesa } from "@/components/tipe/site/AberturaMesa";
+import { HeroVideo, TEM_VIDEO_HERO, usePreviaHeroVideo } from "@/components/tipe/site/HeroVideo";
 import { CarrosselHistorias } from "@/components/tipe/site/CarrosselHistorias";
 import { FluxoPagamento } from "@/components/tipe/site/FluxoPagamento";
 import { ImpactoECalculadora } from "@/components/tipe/site/CalculadoraGiro";
@@ -17,8 +18,7 @@ import { SitePage } from "@/components/tipe/site/Site";
 const TITLE = "Tipe | Pague. Sem esperar. | Pagamento na mesa por QR Code";
 const DESCRIPTION =
   "Com a Tipe, o cliente confere a conta, divide o que consumiu e paga com Pix pelo celular, direto na mesa. Sem aplicativo e sem esperar a maquininha. Pré-lançamento com 30 dias grátis para restaurantes.";
-const OG_IMAGE =
-  "https://tipe.digital/marca/tipe-logo-redondo.png";
+const OG_IMAGE = "https://tipe.digital/marca/tipe-logo-redondo.png";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -40,10 +40,18 @@ export const Route = createFileRoute("/")({
 });
 
 function LandingPage() {
+  const previaHero = usePreviaHeroVideo();
   return (
     <SitePage extra={<LazyLebreAssistant />}>
       <span id="principal" aria-hidden />
-      <AberturaMesa />
+      {TEM_VIDEO_HERO || previaHero ? (
+        <>
+          <HeroVideo />
+          <AberturaMesa secao />
+        </>
+      ) : (
+        <AberturaMesa />
+      )}
       <ProdutosHome />
       <CarrosselHistorias />
       <FluxoPagamento />
@@ -118,7 +126,7 @@ const FAQ: { label: string; faqs: [string, string][] }[] = [
 
 function Duvidas() {
   return (
-    <section id="duvidas" className="scroll-mt-16 bg-background-muted py-20 sm:py-28">
+    <section id="duvidas" className="scroll-mt-16 bg-background-muted py-14 sm:py-20 lg:py-28">
       <div className="container-page grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
         <div>
           <Eyebrow>Dúvidas</Eyebrow>

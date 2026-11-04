@@ -13,9 +13,32 @@ import { TABLES } from "@/lib/tipe/leads-score";
 import { TEXTOS_LANCAMENTO, type EstadoLancamento } from "@/lib/tipe/launch-state";
 import { cn } from "@/lib/utils";
 
-const UFS = "AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO".split(" ");
-const PDVS = ["Saipos", "Consumer", "Goomer", "Colibri", "Linx", "TOTVS Chef", "iFood PDV", "Anota AI", "Não uso PDV"];
-const MAQUININHAS = ["Stone", "Cielo", "Rede", "Getnet", "PagBank", "Mercado Pago", "SumUp", "InfinitePay", "Ton", "Safrapay", "Não uso maquininha"];
+const UFS =
+  "AC AL AP AM BA CE DF ES GO MA MT MS MG PA PB PR PE PI RJ RN RS RO RR SC SP SE TO".split(" ");
+const PDVS = [
+  "Saipos",
+  "Consumer",
+  "Goomer",
+  "Colibri",
+  "Linx",
+  "TOTVS Chef",
+  "iFood PDV",
+  "Anota AI",
+  "Não uso PDV",
+];
+const MAQUININHAS = [
+  "Stone",
+  "Cielo",
+  "Rede",
+  "Getnet",
+  "PagBank",
+  "Mercado Pago",
+  "SumUp",
+  "InfinitePay",
+  "Ton",
+  "Safrapay",
+  "Não uso maquininha",
+];
 const OUTRO = "__outro";
 
 function mascaraFone(v: string) {
@@ -54,9 +77,11 @@ function validar(f: Campos): Erros {
   if (!f.cargo) e.cargo = "Escolha o seu cargo.";
   if (!f.mesas) e.mesas = "Escolha o número de mesas.";
   const pdv = f.pdv === OUTRO ? f.pdvOutro.trim() : f.pdv;
-  if (pdv.length < 2) e.pdv = f.pdv === OUTRO ? "Escreva qual sistema." : "Escolha o sistema (PDV).";
+  if (pdv.length < 2)
+    e.pdv = f.pdv === OUTRO ? "Escreva qual sistema." : "Escolha o sistema (PDV).";
   const maq = f.maquininha === OUTRO ? f.maquininhaOutro.trim() : f.maquininha;
-  if (maq.length < 2) e.maquininha = f.maquininha === OUTRO ? "Escreva qual maquininha." : "Escolha a maquininha.";
+  if (maq.length < 2)
+    e.maquininha = f.maquininha === OUTRO ? "Escreva qual maquininha." : "Escolha a maquininha.";
   if (!f.privacidade) e.privacidade = "Para enviar, aceite a Política de Privacidade.";
   return e;
 }
@@ -204,7 +229,12 @@ export function FormularioOrder({ estado }: { estado: EstadoLancamento }) {
       className="rounded-[1.75rem] bg-background p-6 text-foreground sm:p-9"
     >
       <div className="grid gap-4 sm:grid-cols-2">
-        <Campo id={id("nome")} rotulo="Nome e sobrenome" erro={erroDe("nome")} className="sm:col-span-2">
+        <Campo
+          id={id("nome")}
+          rotulo="Nome e sobrenome"
+          erro={erroDe("nome")}
+          className="sm:col-span-2"
+        >
           <input
             id={id("nome")}
             autoComplete="name"
@@ -242,7 +272,12 @@ export function FormularioOrder({ estado }: { estado: EstadoLancamento }) {
             {...aria("email")}
           />
         </Campo>
-        <Campo id={id("restaurante")} rotulo="Nome do restaurante" erro={erroDe("restaurante")} className="sm:col-span-2">
+        <Campo
+          id={id("restaurante")}
+          rotulo="Nome do restaurante"
+          erro={erroDe("restaurante")}
+          className="sm:col-span-2"
+        >
           <input
             id={id("restaurante")}
             autoComplete="organization"
@@ -268,7 +303,12 @@ export function FormularioOrder({ estado }: { estado: EstadoLancamento }) {
             />
           </Campo>
           <Campo id={id("uf")} rotulo="Estado">
-            <select id={id("uf")} className={campo} value={f.uf} onChange={(e) => mudar("uf", e.target.value)}>
+            <select
+              id={id("uf")}
+              className={campo}
+              value={f.uf}
+              onChange={(e) => mudar("uf", e.target.value)}
+            >
               {UFS.map((u) => (
                 <option key={u}>{u}</option>
               ))}
@@ -401,7 +441,10 @@ export function FormularioOrder({ estado }: { estado: EstadoLancamento }) {
       </div>
 
       {envio === "erro" && (
-        <div role="alert" className="mt-5 flex gap-3 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-sm">
+        <div
+          role="alert"
+          className="mt-5 flex gap-3 rounded-2xl border border-destructive/40 bg-destructive/10 p-4 text-sm"
+        >
           <TriangleAlert className="mt-0.5 h-5 w-5 shrink-0 text-destructive" aria-hidden />
           <div>
             <p className="font-medium">Não conseguimos registrar o seu contato agora.</p>

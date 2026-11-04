@@ -30,6 +30,52 @@ import cardapio390 from "@/assets/telas-reais/cardapio-390.webp";
 import cardapio780 from "@/assets/telas-reais/cardapio-780.webp";
 import pedido390 from "@/assets/telas-reais/pedido-390.webp";
 import pedido780 from "@/assets/telas-reais/pedido-780.webp";
+
+// Tipe Guest e Tipe Order (03/11): telas dos simuladores de cada produto, capturadas do
+// código em desenvolvimento com restaurantes fictícios (/mnt/project-files/tipe-guest e tipe-order).
+import guestDescobrir390 from "@/assets/telas-reais/guest-descobrir-390.webp";
+import guestDescobrir780 from "@/assets/telas-reais/guest-descobrir-780.webp";
+import guestHorarios390 from "@/assets/telas-reais/guest-horarios-390.webp";
+import guestHorarios780 from "@/assets/telas-reais/guest-horarios-780.webp";
+import guestHold390 from "@/assets/telas-reais/guest-hold-390.webp";
+import guestHold780 from "@/assets/telas-reais/guest-hold-780.webp";
+import guestConfirmada390 from "@/assets/telas-reais/guest-confirmada-390.webp";
+import guestConfirmada780 from "@/assets/telas-reais/guest-confirmada-780.webp";
+import guestPagar390 from "@/assets/telas-reais/guest-pagar-390.webp";
+import guestPagar780 from "@/assets/telas-reais/guest-pagar-780.webp";
+import guestGorjeta390 from "@/assets/telas-reais/guest-gorjeta-390.webp";
+import guestGorjeta780 from "@/assets/telas-reais/guest-gorjeta-780.webp";
+import guestFim390 from "@/assets/telas-reais/guest-fim-390.webp";
+import guestFim780 from "@/assets/telas-reais/guest-fim-780.webp";
+import guestEspera390 from "@/assets/telas-reais/guest-espera-390.webp";
+import guestEspera780 from "@/assets/telas-reais/guest-espera-780.webp";
+import orderInicio390 from "@/assets/telas-reais/order-inicio-390.webp";
+import orderInicio780 from "@/assets/telas-reais/order-inicio-780.webp";
+import orderCozinha390 from "@/assets/telas-reais/order-cozinha-390.webp";
+import orderCozinha780 from "@/assets/telas-reais/order-cozinha-780.webp";
+import orderConta390 from "@/assets/telas-reais/order-conta-390.webp";
+import orderConta780 from "@/assets/telas-reais/order-conta-780.webp";
+import orderFim390 from "@/assets/telas-reais/order-fim-390.webp";
+import orderFim780 from "@/assets/telas-reais/order-fim-780.webp";
+import orderStoryBaiao390 from "@/assets/telas-reais/order-story-baiao-390.webp";
+import orderStoryBaiao780 from "@/assets/telas-reais/order-story-baiao-780.webp";
+import orderStoryPeixe390 from "@/assets/telas-reais/order-story-peixe-390.webp";
+import orderStoryPeixe780 from "@/assets/telas-reais/order-story-peixe-780.webp";
+import orderStoryBebidas390 from "@/assets/telas-reais/order-story-bebidas-390.webp";
+import orderStoryBebidas780 from "@/assets/telas-reais/order-story-bebidas-780.webp";
+import orderStory3d390 from "@/assets/telas-reais/order-story-3d-390.webp";
+import orderStory3d780 from "@/assets/telas-reais/order-story-3d-780.webp";
+// App Tipe Guest (apps/guest, 03/11): telas do app nativo em modo demonstração, até a garantia.
+import appDescobrir390 from "@/assets/telas-reais/app-descobrir-390.webp";
+import appDescobrir780 from "@/assets/telas-reais/app-descobrir-780.webp";
+import appHorarios390 from "@/assets/telas-reais/app-horarios-390.webp";
+import appHorarios780 from "@/assets/telas-reais/app-horarios-780.webp";
+import appDados390 from "@/assets/telas-reais/app-dados-390.webp";
+import appDados780 from "@/assets/telas-reais/app-dados-780.webp";
+import appGarantia390 from "@/assets/telas-reais/app-garantia-390.webp";
+import appGarantia780 from "@/assets/telas-reais/app-garantia-780.webp";
+import appConfirmada390 from "@/assets/telas-reais/app-confirmada-390.webp";
+import appConfirmada780 from "@/assets/telas-reais/app-confirmada-780.webp";
 import salao560 from "@/assets/telas-reais/salao-560.webp";
 import salao1000 from "@/assets/telas-reais/salao-1000.webp";
 
@@ -45,6 +91,27 @@ export const TELAS_REAIS = {
   avaliacao: [avaliacao390, avaliacao780],
   cardapio: [cardapio390, cardapio780],
   pedido: [pedido390, pedido780],
+  "guest-descobrir": [guestDescobrir390, guestDescobrir780],
+  "guest-horarios": [guestHorarios390, guestHorarios780],
+  "guest-hold": [guestHold390, guestHold780],
+  "guest-confirmada": [guestConfirmada390, guestConfirmada780],
+  "guest-pagar": [guestPagar390, guestPagar780],
+  "guest-gorjeta": [guestGorjeta390, guestGorjeta780],
+  "guest-fim": [guestFim390, guestFim780],
+  "guest-espera": [guestEspera390, guestEspera780],
+  "app-descobrir": [appDescobrir390, appDescobrir780],
+  "app-horarios": [appHorarios390, appHorarios780],
+  "app-dados": [appDados390, appDados780],
+  "app-garantia": [appGarantia390, appGarantia780],
+  "app-confirmada": [appConfirmada390, appConfirmada780],
+  "order-inicio": [orderInicio390, orderInicio780],
+  "order-cozinha": [orderCozinha390, orderCozinha780],
+  "order-conta": [orderConta390, orderConta780],
+  "order-fim": [orderFim390, orderFim780],
+  "order-story-baiao": [orderStoryBaiao390, orderStoryBaiao780],
+  "order-story-peixe": [orderStoryPeixe390, orderStoryPeixe780],
+  "order-story-bebidas": [orderStoryBebidas390, orderStoryBebidas780],
+  "order-story-3d": [orderStory3d390, orderStory3d780],
 } as const;
 
 export type TelaReal = keyof typeof TELAS_REAIS;
@@ -74,7 +141,10 @@ export function CelularReal({
       )}
     >
       <div className="relative overflow-hidden rounded-[11%/5%] bg-white pt-[7%]">
-        <span aria-hidden className="absolute left-1/2 top-[1.4%] h-[2.2%] w-[30%] -translate-x-1/2 rounded-full bg-black" />
+        <span
+          aria-hidden
+          className="absolute left-1/2 top-[1.4%] h-[2.2%] w-[30%] -translate-x-1/2 rounded-full bg-black"
+        />
         <img
           src={p}
           srcSet={`${p} 390w, ${g} 780w`}
@@ -91,12 +161,19 @@ export function CelularReal({
   );
 }
 
-
 /**
  * Tablet com a tela REAL do Salão do painel do restaurante (Maré Alta, mesa 12 já paga).
  * Captura do componente RestaurantPanel com dados de teste respondidos no navegador.
  */
-export function TabletSalao({ alt, className, sizes = "320px" }: { alt: string; className?: string; sizes?: string }) {
+export function TabletSalao({
+  alt,
+  className,
+  sizes = "320px",
+}: {
+  alt: string;
+  className?: string;
+  sizes?: string;
+}) {
   return (
     <figure
       className={cn(
