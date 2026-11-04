@@ -861,8 +861,8 @@ export const PRODUTOS: Produto[] = [
         {
           tela: "app-descobrir",
           t: "Onde vamos comer?",
-          d: "Pessoas, dia e hora no topo. Cada restaurante já mostra os horários livres.",
-          alt: "App Tipe Guest: lista de restaurantes fictícios de Fortaleza com 2 pessoas, amanhã, 20:00 e horários livres em cada cartão",
+          d: "Pergunte à Lebre ou escolha pessoas, dia e hora. Cada restaurante já mostra os horários livres.",
+          alt: "App Tipe Guest: Pergunte à Lebre com sugestões, barra de 2 pessoas, amanhã, 20:00 e o destaque A Lebre recomenda, com restaurantes fictícios de Fortaleza",
         },
         {
           tela: "app-horarios",

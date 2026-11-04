@@ -1,6 +1,9 @@
 // Estado do app em modo demonstração (memória do aparelho durante a sessão).
 import { createContext, useContext, useMemo, useState, type ReactNode } from "react";
 import type { ReservationStatus } from "@core/reservas";
+import { CREDITO_RESGATE, PONTOS_POR_RESGATE } from "@/lib/pontos";
+
+const brlCurto = (c: number) => (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export type Reserva = {
   codigo: string;
@@ -39,6 +42,13 @@ type Estado = {
   favoritos: string[];
   alternarFavorito: (id: string) => void;
   novoCodigo: () => string;
+  pontos: number;
+  extrato: { t: string; pts: number }[];
+  ganharPontos: (t: string, pts: number) => void;
+  /** Crédito de pontos já trocado, em centavos, usado na próxima conta. */
+  creditoPontos: number;
+  resgatar: () => boolean;
+  usarCredito: (c: number) => void;
 };
 
 const Ctx = createContext<Estado | null>(null);
@@ -49,6 +59,12 @@ export function GuestProvider({ children }: { children: ReactNode }) {
   const [fila, setFila] = useState<EntradaFila | null>(null);
   const [favoritos, setFavoritos] = useState<string[]>([]);
   const [seq, setSeq] = useState(4821);
+  const [pontos, setPontos] = useState(700);
+  const [extrato, setExtrato] = useState<{ t: string; pts: number }[]>([
+    { t: "Boas-vindas ao Tipe Guest", pts: 300 },
+    { t: "Jangada Café · reserva honrada", pts: 400 },
+  ]);
+  const [creditoPontos, setCreditoPontos] = useState(0);
   const v = useMemo<Estado>(
     () => ({
       nome,
@@ -66,8 +82,23 @@ export function GuestProvider({ children }: { children: ReactNode }) {
         setSeq((s) => s + 1);
         return `TG-${seq}`;
       },
+      pontos,
+      extrato,
+      ganharPontos: (t, pts) => {
+        setPontos((p) => p + pts);
+        setExtrato((e) => [{ t, pts }, ...e]);
+      },
+      creditoPontos,
+      resgatar: () => {
+        if (pontos < PONTOS_POR_RESGATE) return false;
+        setPontos((p) => p - PONTOS_POR_RESGATE);
+        setExtrato((e) => [{ t: `Troca por ${brlCurto(CREDITO_RESGATE)} de crédito`, pts: -PONTOS_POR_RESGATE }, ...e]);
+        setCreditoPontos((c) => c + CREDITO_RESGATE);
+        return true;
+      },
+      usarCredito: (c) => setCreditoPontos((x) => Math.max(0, x - c)),
     }),
-    [nome, reservas, fila, favoritos, seq],
+    [nome, reservas, fila, favoritos, seq, pontos, extrato, creditoPontos],
   );
   return <Ctx.Provider value={v}>{children}</Ctx.Provider>;
 }

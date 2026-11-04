@@ -69,8 +69,8 @@ export const ETAPAS_TELA: Record<TelaReal, Omit<EtapaCelular, "tela">> = {
     alt: "Lista de espera: o app avisa que uma mesa liberou e dá 15 minutos para confirmar",
   },
   "app-descobrir": {
-    alt: "App Tipe Guest: restaurantes fictícios de Fortaleza com os horários livres em cada cartão",
-    toque: { x: 50, y: 75 },
+    alt: "App Tipe Guest: Pergunte à Lebre, pessoas, dia e hora, e o destaque A Lebre recomenda (restaurantes fictícios)",
+    toque: { x: 28, y: 36 },
   },
   "app-horarios": {
     alt: "Maré Alta: dia, pessoas e horário escolhido, com o botão Reservar às 21:00",

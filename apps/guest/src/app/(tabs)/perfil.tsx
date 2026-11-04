@@ -7,6 +7,9 @@ import { C, F, R, S } from "@/constants/theme";
 import { Aviso, T, st } from "@/components/ui";
 import { restaurante } from "@/lib/demo";
 import { useGuest } from "@/lib/store";
+import { brl } from "@/lib/demo";
+import { CREDITO_RESGATE, fmtPontos, PONTOS_POR_RESGATE } from "@/lib/pontos";
+import { Botao } from "@/components/ui";
 
 function Item({ icone, titulo, sub, onPress }: { icone: ComponentProps<typeof Ionicons>["name"]; titulo: string; sub?: string; onPress?: () => void }) {
   return (
@@ -30,7 +33,7 @@ function Item({ icone, titulo, sub, onPress }: { icone: ComponentProps<typeof Io
 }
 
 export default function Perfil() {
-  const { nome, setNome, favoritos, reservas } = useGuest();
+  const { nome, setNome, favoritos, reservas, pontos, extrato, resgatar, creditoPontos } = useGuest();
   const visitas = reservas.filter((r) => r.status === "sentada" || r.status === "concluida").length;
   return (
     <SafeAreaView style={st.tela} edges={["top"]}>
@@ -64,6 +67,54 @@ export default function Perfil() {
               <T tom="h1">{n}</T>
               <T tom="pequeno" cor={C.muted}>
                 {l}
+              </T>
+            </View>
+          ))}
+        </View>
+        <View style={{ backgroundColor: C.navy, borderRadius: R.lg, padding: S.lg, gap: S.md }}>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+            <T tom="rotulo" cor={C.teal}>
+              TIPE PONTOS
+            </T>
+            <Ionicons name="sparkles" size={18} color={C.teal} />
+          </View>
+          <T tom="titulo" cor="#fff">
+            {fmtPontos(pontos)}
+          </T>
+          <View style={{ height: 8, borderRadius: 4, backgroundColor: "rgba(255,255,255,0.15)", overflow: "hidden" }}>
+            <View style={{ width: `${Math.min(100, (pontos / PONTOS_POR_RESGATE) * 100)}%`, height: 8, backgroundColor: C.teal }} />
+          </View>
+          <T tom="pequeno" cor="rgba(255,255,255,0.75)">
+            {pontos >= PONTOS_POR_RESGATE
+              ? `Você já pode trocar ${fmtPontos(PONTOS_POR_RESGATE)} por ${brl(CREDITO_RESGATE)} de crédito.`
+              : `Faltam ${fmtPontos(PONTOS_POR_RESGATE - pontos)} para ${brl(CREDITO_RESGATE)} de crédito na conta.`}
+          </T>
+          {pontos >= PONTOS_POR_RESGATE && (
+            <Botao onPress={() => resgatar()} icone="gift-outline">
+              Trocar por {brl(CREDITO_RESGATE)}
+            </Botao>
+          )}
+          {creditoPontos > 0 && (
+            <T tom="h3" cor={C.teal}>
+              {brl(creditoPontos)} de crédito: entra sozinho na próxima conta Tipe.
+            </T>
+          )}
+          <T tom="pequeno" cor="rgba(255,255,255,0.6)">
+            Ganhe 100 pts por reserva honrada e +300 em horário calmo.
+          </T>
+        </View>
+        <View>
+          <T tom="rotulo" cor={C.muted}>
+            EXTRATO DE PONTOS
+          </T>
+          {extrato.slice(0, 5).map((e, i) => (
+            <View key={i} style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: C.line }}>
+              <T tom="corpo" style={{ flex: 1 }}>
+                {e.t}
+              </T>
+              <T tom="h3" cor={e.pts > 0 ? C.tealDark : C.muted}>
+                {e.pts > 0 ? "+" : ""}
+                {fmtPontos(e.pts)}
               </T>
             </View>
           ))}

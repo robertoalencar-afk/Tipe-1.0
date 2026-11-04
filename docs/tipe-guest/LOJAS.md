@@ -21,6 +21,7 @@ Navegador: `npx expo start --web`.
 | Conta Google Play Console | US$ 25, uma vez | Roberto |
 | Build na nuvem (EAS Build) | plano grátis: poucos builds por mês, fila mais lenta | Claude prepara, Roberto autoriza |
 | Ligar o app à API do Tipe (sair do modo demonstração) | sem custo extra | Claude, em PR próprio |
+| Chave do Google Maps SDK para Android (mapa do app) | grátis no SDK mobile, precisa de conta Google Cloud | Roberto cria; vai em `android.config.googleMaps.apiKey` |
 | Pagamento real da garantia (Pagar.me: Pix, Apple Pay, Google Pay) | taxas do Pagar.me | depende das chaves do Pagar.me |
 
 Nada disso foi contratado nem enviado. Cada custo precisa do ok do Roberto.

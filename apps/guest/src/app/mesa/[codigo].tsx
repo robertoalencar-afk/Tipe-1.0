@@ -28,7 +28,10 @@ export default function Mesa() {
   const consumo = r.cardapio.reduce((s, i) => s + i.preco * qtd, 0);
   const servico = Math.round(consumo * SERVICO);
   const total = consumo + servico;
-  const credito = applyGuaranteeCredit(total, res.garantia);
+  const garantia = applyGuaranteeCredit(total, res.garantia);
+  // Crédito de pontos entra depois da garantia e nunca vira devolução.
+  const pontosUsados = Math.min(g.creditoPontos, garantia.toPay);
+  const credito = { ...garantia, used: garantia.used + pontosUsados, toPay: garantia.toPay - pontosUsados };
   const outroCent = Math.round(Number(outro.replace(",", ".")) * 100) || 0;
   const valorGorjeta = gorjeta === -1 ? outroCent : gorjeta ? Math.round((total * gorjeta) / 100) : 0;
   const outroValido = gorjeta !== -1 || (outroCent >= 200 && outroCent <= total);
@@ -83,7 +86,8 @@ export default function Mesa() {
                 </Cartao>
                 <Cartao>
                   <Linha a="Garantia paga" b={brl(res.garantia)} />
-                  <Linha a="Desconto nesta conta" b={`−${brl(credito.used)}`} cor={C.tealDark} />
+                  <Linha a="Desconto nesta conta" b={`−${brl(garantia.used)}`} cor={C.tealDark} />
+                  {pontosUsados > 0 && <Linha a="Crédito dos seus pontos" b={`−${brl(pontosUsados)}`} cor={C.tealDark} />}
                   {credito.refund > 0 && <Linha a="Devolvido a você" b={brl(credito.refund)} />}
                 </Cartao>
                 <Aviso>Chegou sem passar pela recepção? Mostre o código {res.codigo} ao garçom e o desconto entra na conta.</Aviso>
@@ -129,6 +133,7 @@ export default function Mesa() {
                   desativado={!metodo}
                   onPress={() => {
                     g.atualizarReserva(res.codigo, { pago: credito.toPay });
+                    if (pontosUsados) g.usarCredito(pontosUsados);
                     setEtapa("gorjeta");
                   }}
                 >

@@ -8,6 +8,7 @@ import { C, R, S } from "@/constants/theme";
 import { Aviso, Botao, Cartao, Chip, Selo, T, st, toque } from "@/components/ui";
 import { brl, hhmm, ocupacoes, regras, RESERVADO_HOJE, restaurante, SETTINGS } from "@/lib/demo";
 import { useGuest } from "@/lib/store";
+import { BONUS_HORARIO_CALMO, fmtPontos, PONTOS_RESERVA } from "@/lib/pontos";
 
 const SEMANA = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
 
@@ -50,7 +51,14 @@ export default function Restaurante() {
         <View style={[st.conteudo, { marginTop: -28, backgroundColor: C.bg, borderTopLeftRadius: 28, borderTopRightRadius: 28 }]}>
           <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: S.md }}>
             <View style={{ flex: 1, gap: 6 }}>
-              {r.fundador && <Selo>Restaurante Fundador</Selo>}
+              <View style={{ flexDirection: "row", gap: 6, flexWrap: "wrap" }}>
+                {r.fundador && <Selo>Restaurante Fundador</Selo>}
+                {r.destaque && (
+                  <Selo cor={C.navy} fundo={C.bgSoft}>
+                    A Lebre recomenda · Patrocinado
+                  </Selo>
+                )}
+              </View>
               <T tom="h1">{r.nome}</T>
               <T tom="pequeno" cor={C.muted}>
                 {r.tipo} · {r.bairro} · {r.preco}
@@ -180,6 +188,12 @@ export default function Restaurante() {
               <Ionicons name="trending-up" size={14} color={C.tealDark} />
               <T tom="pequeno" cor={C.tealDark}>
                 Reservado {RESERVADO_HOJE[r.id] ?? 0} vezes hoje
+              </T>
+            </View>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <Ionicons name="sparkles" size={14} color={C.tealDark} />
+              <T tom="pequeno" cor={C.tealDark}>
+                {fmtPontos(PONTOS_RESERVA)} por reserva honrada, +{BONUS_HORARIO_CALMO} em horário calmo
               </T>
             </View>
             {livres.length > 0 && livres.length <= 6 && (

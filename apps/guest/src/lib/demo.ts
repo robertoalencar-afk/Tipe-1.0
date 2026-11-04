@@ -27,6 +27,8 @@ export type Restaurante = {
   descricao: string;
   /** Clima do lugar, como as etiquetas do OpenTable. */
   clima: string[];
+  /** Destaque pago "A Lebre recomenda" (sempre marcado como patrocinado). */
+  destaque?: { motivo: string };
   foto: number;
   turnos: [string, string][];
   mesas: (ReservableTable & { numero: string })[];
@@ -93,6 +95,7 @@ export const RESTAURANTES: Restaurante[] = [
     garcom: "Davi",
     garantiaPorPessoa: 1500,
     descricao: "Carne de sol, baião de dois e música ao vivo às sextas.",
+    destaque: { motivo: "A carne de sol mais pedida da semana, com forró ao vivo na sexta." },
     clima: ["Animado", "Música ao vivo", "Bom para grupos"],
     foto: require("../../assets/restaurantes/amigos.webp"),
     turnos: [["18:00", "23:00"]],
@@ -215,3 +218,28 @@ export function horariosPerto(r: Restaurante, dia: string, pessoas: number, alvo
 
 /** Prova social fictícia do modo demonstração. */
 export const RESERVADO_HOJE: Record<string, number> = { mare: 23, brasa: 14, jangada: 9 };
+
+/** Pergunte à Lebre (modo demonstração): regras simples sobre tipo, clima e descrição, sem IA paga. */
+export const SUGESTOES_LEBRE = [
+  "Frutos do mar com vista",
+  "Jantar romântico a dois",
+  "Música ao vivo com a turma",
+  "Café da manhã com crianças",
+];
+
+export function perguntarLebre(pergunta: string): Restaurante[] {
+  const termos = pergunta
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .split(/[^a-z]+/)
+    .filter((t) => t.length > 3);
+  const pontua = (r: Restaurante) => {
+    const txt = `${r.tipo} ${r.clima.join(" ")} ${r.descricao}`.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    return termos.filter((t) => txt.includes(t.slice(0, 5))).length;
+  };
+  return RESTAURANTES.map((r) => [r, pontua(r)] as const)
+    .filter(([, n]) => n > 0)
+    .sort((a, b) => b[1] - a[1])
+    .map(([r]) => r);
+}

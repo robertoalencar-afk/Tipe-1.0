@@ -9,6 +9,7 @@ import { C, S } from "@/constants/theme";
 import { Aviso, Botao, Cartao, Linha, Selo, T, st } from "@/components/ui";
 import { brl, restaurante, SETTINGS } from "@/lib/demo";
 import { useGuest } from "@/lib/store";
+import { fmtPontos, pontosDaReserva } from "@/lib/pontos";
 
 export default function Reserva() {
   const { codigo, nova } = useLocalSearchParams<{ codigo: string; nova?: string }>();
@@ -61,6 +62,7 @@ export default function Reserva() {
           {res.ocasiao !== "Sem ocasião" && <Linha a="Ocasião" b={res.ocasiao} />}
           <Linha a="Endereço" b={`${r.bairro}, Fortaleza`} />
           <Linha a="Código" b={res.codigo} />
+          <Linha a="Pontos ao chegar" b={`+${fmtPontos(pontosDaReserva(new Date(res.inicio)))}`} cor={C.tealDark} />
           {res.garantia > 0 && (
             <Linha
               a="Garantia"
@@ -99,6 +101,7 @@ export default function Reserva() {
             icone="restaurant-outline"
             onPress={() => {
               g.atualizarReserva(res.codigo, { status: "sentada", ...(res.garantia > 0 ? { garantiaFim: "credito" as const } : {}) });
+              g.ganharPontos(`${r.nome} · reserva honrada`, pontosDaReserva(new Date(res.inicio)));
               router.push({ pathname: "/mesa/[codigo]", params: { codigo: res.codigo } });
             }}
           >
