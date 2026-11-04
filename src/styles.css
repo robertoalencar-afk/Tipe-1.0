@@ -1982,6 +1982,14 @@
     animation: bc-pisca 1.1s cubic-bezier(0.3, 0.7, 0.3, 1) calc(0.35s + var(--i) * 0.12s) infinite;
   }
 }
+/* 03/11 (Roberto): o "Teste grátis" do cabeçalho mexe sempre; com o mouse em cima, os
+   bigodinhos crescem um pouco e inclinam, sem parar de mexer. */
+.bigode-cta.bc-auto {
+  transition: transform 0.35s cubic-bezier(0.3, 0.7, 0.3, 1);
+}
+.com-fios:is(:hover, :focus-visible) .bigode-cta.bc-auto {
+  transform: translateY(-0.5em) translateX(0.06em) rotate(-10deg) scale(1.16);
+}
 /* Botão redondo dos cards: seta parada; no hover do card ela dá lugar aos bigodinhos. */
 .cp-seta {
   transition: opacity 0.25s ease;
