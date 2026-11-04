@@ -7,3 +7,5 @@ O `public/vendor/model-viewer/model-viewer.min.js` é o `@google/model-viewer` 4
 - `pastel-triposr.glb`: gerado de graça a partir de uma única foto (pastel-1080.webp) com o TripoSR (licença MIT), na CPU do Mac do Roberto. É teste de qualidade: a forma é reconhecível, mas a textura é simples.
 
 As fotos `src/assets/cardapio/*-1080.webp` foram geradas localmente com DreamShaper 8 LCM (CreativeML OpenRAIL-M), e os mapas `*-depth.png` com Depth Anything V2 Small (Apache-2.0). Detalhes em docs/tipe-order/cardapio-story/FOTOS-PROMPTS.md. O peixe e o coco seguem com recortes do casting, porque as versões geradas saíram erradas (peixe cru e coco como vitamina).
+
+- `pastel-360.glb`: gerado de graça a partir de uma única foto (pastel-1080.webp, fundo removido com rembg) com o TRELLIS (Microsoft, licença MIT), no Space público `trellis-community/TRELLIS` (ZeroGPU), e compactado com `@gltf-transform/cli` (1,44 MB → 220 KB, textura WebP 1024). Detalhes em docs/tipe-order/cardapio-story/360/RELATORIO-360.md.
