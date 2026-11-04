@@ -783,7 +783,7 @@ export const PRODUTOS: Produto[] = [
       posicao: "50% 35%",
       alt: "Casal à mesa de um restaurante conferindo a reserva no celular",
     },
-    heroTelas: ["guest-descobrir", "guest-horarios", "guest-confirmada"],
+    heroTelas: ["app-descobrir", "app-garantia", "app-confirmada"],
     cenario: {
       titulo: "Da reserva à próxima visita, sem fila na porta.",
       texto:
@@ -816,7 +816,7 @@ export const PRODUTOS: Produto[] = [
     beneficios: [
       {
         t: "Reserva no horário livre",
-        d: "O cliente escolhe o dia, quantas pessoas e um horário que existe de verdade. O horário fica seguro por 5 minutos enquanto ele confirma. Sem cartão.",
+        d: "O cliente escolhe o dia, quantas pessoas e um horário que existe de verdade. O horário fica seguro por 5 minutos enquanto ele confirma. Se o restaurante pedir, uma garantia simbólica confirma a mesa e vira crédito na conta.",
         foto: "cena-casal",
         posicao: "50% 35%",
         telaReal: "guest-horarios",
@@ -847,37 +847,43 @@ export const PRODUTOS: Produto[] = [
     fatos: [
       { v: "5 min", t: "de horário seguro enquanto o cliente confirma" },
       { v: "15 min", t: "para confirmar quando a mesa da fila libera" },
-      { v: "Sem cartão", t: "para reservar" },
+      { v: "100%", t: "da garantia vira crédito na conta" },
       { v: "1 app", t: "da reserva à conta paga" },
     ],
     fluxoReal: {
-      titulo: "Da fome ao até a próxima.",
+      titulo: "Da vontade à mesa garantida.",
       texto:
-        "Quatro toques entre escolher onde comer e sair com a conta paga. Os restaurantes são fictícios: explore à vontade, nada é cobrado.",
+        "Cinco telas do app Tipe Guest, da busca até a reserva confirmada. A garantia de R$ 50,00 vira crédito de consumação na conta. Restaurantes fictícios, nada é cobrado.",
       telas: [
         {
-          tela: "guest-descobrir",
+          tela: "app-descobrir",
           t: "Onde vamos comer?",
-          d: "Restaurantes com os próximos horários livres.",
-          alt: "Lista de restaurantes fictícios em Fortaleza com horários livres para amanhã",
+          d: "Pergunte à Lebre ou escolha pessoas, dia e hora. Cada restaurante já mostra os horários livres.",
+          alt: "App Tipe Guest: Pergunte à Lebre com sugestões, barra de 2 pessoas, amanhã, 20:00 e o destaque A Lebre recomenda, com restaurantes fictícios de Fortaleza",
         },
         {
-          tela: "guest-hold",
-          t: "Confirme sua reserva",
-          d: "O horário fica seguro por 5 minutos.",
-          alt: "Tela Confirme sua reserva, amanhã às 12:00 para 2 pessoas, com o horário seguro por 5 minutos",
+          tela: "app-horarios",
+          t: "Escolha o horário",
+          d: "Dia, quantas pessoas e um horário que existe de verdade.",
+          alt: "Página do Maré Alta com dia, número de pessoas, grade de horários e o botão Reservar às 21:00",
         },
         {
-          tela: "guest-pagar",
-          t: "A conta na mesa",
-          d: "Pix, Apple Pay, Google Pay ou no estabelecimento.",
-          alt: "Conta da Mesa 1 no Maré Alta com os itens e as formas de pagamento",
+          tela: "app-dados",
+          t: "Confirme os dados",
+          d: "O horário fica seguro por 5 minutos enquanto você confirma.",
+          alt: "Tela Confirmar reserva com o horário seguro por 5 minutos, nome e ocasião",
         },
         {
-          tela: "guest-fim",
-          t: "Até a próxima",
-          d: "Salvar nos favoritos e reservar de novo.",
-          alt: "Tela Até a próxima, com Salvar nos favoritos e Reservar de novo",
+          tela: "app-garantia",
+          t: "Pague a garantia",
+          d: "R$ 50,00 com Pix, Apple Pay ou Google Pay. No dia, vira consumação.",
+          alt: "Tela da garantia de R$ 50,00 com as regras de cancelamento e os métodos Pix, Apple Pay e Google Pay",
+        },
+        {
+          tela: "app-confirmada",
+          t: "Reserva confirmada",
+          d: "Código, detalhes e a garantia paga, prontos no app.",
+          alt: "Tela Reserva confirmada no Maré Alta, quarta às 21:00 para 2 pessoas, garantia de R$ 50,00 paga com Pix",
         },
       ],
     },
@@ -906,7 +912,10 @@ export const PRODUTOS: Produto[] = [
         "O Tipe Guest já está disponível?",
         "Ainda não. Está em desenvolvimento; dá para experimentar no simulador, com restaurantes fictícios.",
       ],
-      ["O cliente paga para reservar?", "Não. A reserva é grátis e não pede cartão."],
+      [
+        "O cliente paga para reservar?",
+        "Só se o restaurante pedir uma garantia, um valor simbólico por pessoa pago com Pix, Apple Pay ou Google Pay. No dia, o valor vira crédito na conta. Cancelou no prazo, recebe tudo de volta; não compareceu ou cancelou fora do prazo, o valor não é devolvido. As regras aparecem antes de pagar.",
+      ],
       [
         "E se o horário estiver lotado?",
         "O cliente entra na lista de espera. Quando uma mesa libera, o app avisa e ele tem 15 minutos para confirmar.",

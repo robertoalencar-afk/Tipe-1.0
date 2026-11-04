@@ -379,7 +379,7 @@ function FluxoReal({ p }: { p: Produto }) {
     <Secao tema="claro">
       <div className="container-page">
         <Titulo rotulo="Passo a passo" titulo={f.titulo} texto={f.texto} />
-        <ol className="sem-barra -mx-4 mt-10 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-px-4 px-4 pb-4 sm:mx-0 sm:mt-12 sm:grid sm:grid-cols-2 sm:gap-8 sm:overflow-visible sm:px-0 lg:grid-cols-4">
+        <ol className="sem-barra -mx-4 mt-10 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-px-4 px-4 pb-4 sm:mx-0 sm:mt-12 sm:grid sm:grid-cols-2 sm:gap-8 sm:overflow-visible sm:px-0 lg:grid-cols-5 lg:gap-6">
           {f.telas.map((t, i) => (
             <Reveal
               as="li"
@@ -390,7 +390,7 @@ function FluxoReal({ p }: { p: Produto }) {
               <CelularReal
                 tela={t.tela}
                 alt={t.alt}
-                sizes="(min-width: 1024px) 18vw, (min-width: 640px) 40vw, 62vw"
+                sizes="(min-width: 1024px) 16vw, (min-width: 640px) 40vw, 62vw"
                 className="mx-auto max-w-[15rem]"
               />
               <p className="mt-5 flex items-baseline gap-2 font-display text-[1.2rem] tracking-[-0.02em]">
