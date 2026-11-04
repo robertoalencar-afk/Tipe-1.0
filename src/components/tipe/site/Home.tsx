@@ -285,7 +285,7 @@ export function IntegracoesHome() {
           centro
           rotulo="Integrações"
           titulo="Conversa com o que você já usa."
-          texto="Pagamentos e lançamento de pedidos funcionam hoje. O que está em desenvolvimento aparece separado, sem promessa de data."
+          texto="PDV, delivery, ERP, nota fiscal e maquininhas. Saipos, iFood, Omie, Bling, TOTVS e mais, com passo a passo para cada um."
         />
       </div>
       <div className="container-page mt-12 sm:mt-16">
@@ -294,7 +294,7 @@ export function IntegracoesHome() {
       <div className="container-page mt-10 flex flex-col items-center gap-3 text-center">
         <BotaoSecundario href="/integracoes">Ver todas as integrações</BotaoSecundario>
         <p className="text-sm text-muted-foreground">
-          Usa outro sistema? Conte qual na conversa de implantação.
+          Usa outro sistema? Conecte pela API TIPE ou por arquivo.
         </p>
       </div>
     </Secao>

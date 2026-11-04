@@ -32,9 +32,35 @@ function Entrar() {
     e.preventDefault();
     setTouched(true);
     if (!s) return;
+    const destino = voltar && voltar !== "/crm/entrar" ? voltar : "/crm";
     const r = runCommand({ type: "login", email, password });
-    if (!r.ok) return setError(r.error);
-    navigate({ to: voltar && voltar !== "/crm/entrar" ? voltar : "/crm", replace: true });
+    if (r.ok) {
+      void navigate({ to: destino, replace: true });
+      return;
+    }
+    // 04/11 (Roberto): o mesmo login da Tipe entra no CRM de demonstração. A senha é
+    // conferida pela conta real (Supabase); dentro do CRM a pessoa entra como a proprietária.
+    void (async () => {
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { error: e } = await supabase.auth.signInWithPassword({
+        email: email.trim(),
+        password,
+      });
+      if (e) {
+        setError(r.error);
+        return;
+      }
+      const dono = runCommand({
+        type: "login",
+        email: DEMO_ACCOUNTS[0]!.email,
+        password: DEMO_PASSWORD,
+      });
+      if (!dono.ok) {
+        setError(dono.error);
+        return;
+      }
+      void navigate({ to: destino, replace: true });
+    })();
   }
 
   return (

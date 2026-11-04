@@ -252,7 +252,7 @@ export const PRODUTOS: Produto[] = [
     grupo: "Na mesa",
     nome: "Tipe Order",
     resumo: "Cardápio e pedido pelo celular, direto da mesa",
-    status: "em-breve",
+    status: "disponivel",
     icone: UtensilsCrossed,
     foto: "order",
     posicao: "50% 50%",
@@ -265,7 +265,7 @@ export const PRODUTOS: Produto[] = [
     cenario: {
       titulo: "Pediu, comeu, pagou. Na mesma mesa.",
       texto:
-        "O pedido pelo celular está em desenvolvimento. Enquanto isso, a conta e o pagamento já funcionam pelo mesmo QR Code.",
+        "O cliente abre o cardápio, pede pelo celular e, no fim, paga pelo mesmo QR Code.",
       itens: [
         {
           foto: "cena-amigos",
@@ -290,7 +290,6 @@ export const PRODUTOS: Produto[] = [
         ["1× Chope 300 ml", "R$ 14,00"],
       ],
       rodape: "Enviado para a cozinha",
-      ilustracao: true,
     },
     beneficios: [
       {
@@ -298,14 +297,12 @@ export const PRODUTOS: Produto[] = [
         d: "Sempre atualizado, sem reimprimir nada.",
         foto: "cena-familia",
         posicao: "50% 40%",
-        emDesenvolvimento: true,
       },
       {
         t: "Pedido direto na cozinha",
         d: "Sem papel e sem passar pelo garçom.",
         foto: "cena-cozinha",
         posicao: "50% 40%",
-        emDesenvolvimento: true,
       },
       {
         t: "Entra na conta sozinho",
@@ -965,13 +962,13 @@ export const INTEGRACOES: { nome: string; tipo: string; status: Status; d: strin
   {
     nome: "Conectores de PDV",
     tipo: "PDV",
-    status: "em-breve",
-    d: "Integração assistida com os PDVs mais usados no Brasil.",
+    status: "disponivel",
+    d: "Saipos, Consumer, Linx, TOTVS Chef e outros, a partir da sua chave ou do seu arquivo.",
   },
   {
     nome: "Baixa automática no PDV",
     tipo: "PDV",
-    status: "em-breve",
+    status: "disponivel",
     d: "O pagamento fecha o item no seu sistema.",
   },
 ];

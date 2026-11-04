@@ -92,7 +92,7 @@ export const ETAPAS_TELA: Record<TelaReal, Omit<EtapaCelular, "tela">> = {
     alt: "Cardápio em stories: Suco de caju, copo de 400 ml (dados de exemplo)",
   },
   "order-story-3d": {
-    alt: "Cardápio em stories: sobremesa em 3D que o cliente gira no celular (em desenvolvimento)",
+    alt: "Cardápio em stories: sobremesa em 3D que o cliente gira no celular",
   },
 };
 
