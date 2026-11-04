@@ -65,7 +65,7 @@ export function GradeIntegracoes({ compacta = false }: { compacta?: boolean }) {
 }
 
 const GRUPOS: { status: StatusIntegracao; t: string; d: string }[] = [
-  { status: "disponivel", t: "Disponível", d: "Funciona hoje, em produção." },
+  { status: "disponivel", t: "Disponível", d: "Pronto para usar. Os sistemas de terceiros ligam a partir da sua chave ou do seu arquivo." },
   {
     status: "desenvolvimento",
     t: "Em desenvolvimento",
@@ -78,7 +78,7 @@ const GRUPOS: { status: StatusIntegracao; t: string; d: string }[] = [
 export function ListaIntegracoes() {
   return (
     <div className="space-y-14 sm:space-y-16">
-      {GRUPOS.map((g) => (
+      {GRUPOS.filter((g) => INTEGRACOES_V5.some((it) => it.status === g.status)).map((g) => (
         <div key={g.status} className="grid gap-6 lg:grid-cols-[0.55fr_1.45fr] lg:gap-14">
           <div>
             <Selo status={g.status} />

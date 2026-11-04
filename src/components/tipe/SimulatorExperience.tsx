@@ -284,11 +284,12 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
       payments,
       closedAt: closed ? Date.now() : null,
     });
-    setStage("rating");
+    setStage("tip");
   };
 
+  // Ordem aprovada (21/10): conta paga, depois a gorjeta extra como 2º pagamento, depois a avaliação.
   const continueAfterApproved = () => {
-    setStage("pitch");
+    setStage("tip");
   };
   useEffect(() => {
     markSimulatorUsed();
@@ -778,7 +779,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
             onClick={continueAfterApproved}
             className="mt-8 h-12 w-full font-display text-base"
           >
-            Avaliar atendimento <ChevronRight />
+            Continuar <ChevronRight />
           </Button>
         </Centered>
       )}
@@ -822,8 +823,8 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
             maxLength={400}
             className="mt-2 min-h-28"
           />
-          <Button onClick={() => setStage("tip")} className="mt-6 h-12 font-display text-base">
-            Continuar <ChevronRight />
+          <Button onClick={() => setStage("pitch")} className="mt-6 h-12 font-display text-base">
+            Enviar avaliação <ChevronRight />
           </Button>
         </main>
       )}
@@ -888,7 +889,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
           >
             Continuar com gorjeta
           </Button>
-          <Button variant="ghost" onClick={() => setStage("done")} className="mt-2 h-11">
+          <Button variant="ghost" onClick={() => setStage("rating")} className="mt-2 h-11">
             Agora não, obrigado
           </Button>
           <Link
@@ -912,7 +913,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
           terms={true}
           setTerms={() => undefined}
           back={() => setStage("tip")}
-          pay={() => setStage("done")}
+          pay={() => setStage("rating")}
         />
       )}
       {stage === "pitch" && (
@@ -933,7 +934,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
           </Link>
           <button
             type="button"
-            onClick={() => setStage("rating")}
+            onClick={() => setStage("done")}
             className="mt-4 text-xs text-muted-foreground underline"
           >
             Continuar a demonstração
