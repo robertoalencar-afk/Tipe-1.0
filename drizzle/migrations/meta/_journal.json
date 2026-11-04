@@ -241,6 +241,13 @@
       "breakpoints": true
     },
     {
+      "idx": 32,
+      "version": "7",
+      "when": 1792700600000,
+      "tag": "0036_order_disponivel",
+      "breakpoints": true
+    },
+    {
       "idx": 33,
       "version": "7",
       "when": 1792500000000,

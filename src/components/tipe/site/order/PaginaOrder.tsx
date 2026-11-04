@@ -637,19 +637,19 @@ function Futuro() {
       <div className="container-page grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-16">
         <div>
           <Titulo
-            rotulo="No laboratório"
+            rotulo="Novidades"
             titulo="O prato antes de chegar."
-            texto="Duas ideias que a Tipe está desenvolvendo para o cardápio. Ainda não existem no produto e não têm data."
+            texto="Duas novidades do cardápio da Tipe para o cliente ver o prato antes de pedir."
           />
           <figure className="m-0 mt-8 flex items-end gap-4">
             <CelularReal
               tela="order-story-3d"
-              alt="Protótipo do cardápio em 3D: um abacate que o cliente gira no celular (em desenvolvimento)"
+              alt="Cardápio em 3D: um abacate que o cliente gira no celular"
               sizes="180px"
               className="w-[42%] max-w-[11rem]"
             />
             <figcaption className="max-w-[13rem] pb-2 text-[0.9rem] leading-relaxed text-muted-foreground">
-              Protótipo do story em 3D, em teste com dados de exemplo.
+              O story em 3D, com dados de exemplo.
             </figcaption>
           </figure>
         </div>
@@ -664,7 +664,7 @@ function Futuro() {
               <div className="flex items-center justify-between gap-3">
                 <it.icone className="h-7 w-7 text-brand-strong" aria-hidden />
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-[#021E34] px-2.5 py-1 text-[0.72rem] font-medium text-white">
-                  <Clock className="h-3.5 w-3.5 text-[#0FC9BD]" aria-hidden /> Em desenvolvimento
+                  <Clock className="h-3.5 w-3.5 text-[#0FC9BD]" aria-hidden /> Novo
                 </span>
               </div>
               <div>

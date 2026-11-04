@@ -171,7 +171,9 @@ function Vitrine({ p }: { p: Produto }) {
           >
             {p.cartao.rodape}
           </p>
-          <p className="mt-3 text-center text-xs text-white/50">Ilustração · em desenvolvimento</p>
+          {p.status === "em-breve" && (
+            <p className="mt-3 text-center text-xs text-white/50">Ilustração · em breve</p>
+          )}
         </div>
       );
   }
