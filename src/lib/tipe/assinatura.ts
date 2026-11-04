@@ -1,7 +1,7 @@
 // Conta do estabelecimento vinculada à assinatura. A regra vive no banco
-// (restaurant_access, migração 0035); aqui só há textos e o mapa do webhook.
+// (restaurant_access, migração 0036); aqui só há textos e o mapa do webhook.
 
-/** Módulos que um plano pode incluir (mesmo CHECK da migração 0035). */
+/** Módulos que um plano pode incluir (mesmo CHECK da migração 0036). */
 export const PLAN_MODULES = ["order", "kds", "totem", "three_d", "guest"] as const;
 export const MODULE_LABEL: Record<string, string> = {
   order: "Tipe Order",

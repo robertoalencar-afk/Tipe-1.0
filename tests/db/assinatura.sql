@@ -1,4 +1,4 @@
--- Conta do estabelecimento vinculada à assinatura (migração 0035).
+-- Conta do estabelecimento vinculada à assinatura (migração 0036).
 -- Rode com tests/db/run.sh. Cada bloco falha com RAISE EXCEPTION se a regra não for cumprida.
 \set ON_ERROR_STOP 1
 SET client_min_messages = notice;

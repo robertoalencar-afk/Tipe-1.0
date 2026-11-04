@@ -57,8 +57,8 @@ $P -v ON_ERROR_STOP=1 -f "$DIR/guest-reservas.sql" >/tmp/tipe-reservas.raw 2>&1 
 grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-reservas.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-reservas.log
 grep -qE "FALHOU|ERROR" /tmp/tipe-reservas.log && FAIL=1
 
-# Assinatura (0035): reaplica sem erro e roda os cenários.
-$P -v ON_ERROR_STOP=1 -f "$REPO/drizzle/migrations/0035_subscription_access.sql" >/dev/null 2>/tmp/tipe-0035.log || { echo "FALHOU: 0035 não reaplica"; cat /tmp/tipe-0035.log; FAIL=1; }
+# Assinatura (0036): reaplica sem erro e roda os cenários.
+$P -v ON_ERROR_STOP=1 -f "$REPO/drizzle/migrations/0036_subscription_access.sql" >/dev/null 2>/tmp/tipe-0036.log || { echo "FALHOU: 0036 não reaplica"; cat /tmp/tipe-0036.log; FAIL=1; }
 $P -v ON_ERROR_STOP=1 -f "$DIR/assinatura.sql" >/tmp/tipe-assinatura.raw 2>&1 || FAIL=1
 grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-assinatura.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-assinatura.log
 grep -qE "FALHOU|ERROR" /tmp/tipe-assinatura.log && FAIL=1

@@ -1,6 +1,6 @@
 # Conta do estabelecimento vinculada à assinatura
 
-Regra única no banco: `restaurant_access(rid)` (migração 0035) devolve `full`, `grace` ou `blocked`.
+Regra única no banco: `restaurant_access(rid)` (migração 0036) devolve `full`, `grace` ou `blocked`.
 
 | Situação | Estado |
 |---|---|
