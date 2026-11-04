@@ -26,6 +26,7 @@ import {
 } from "@/lib/tipe/subscription.functions";
 import { accessNotice, diasAte, MOTIVOS_CANCELAMENTO, type Access } from "@/lib/tipe/assinatura";
 import { priceLabel, SHOW_PLAN_PRICES } from "@/lib/tipe/plans";
+import { whatsappLink } from "@/lib/tipe/contact";
 
 const STATUS: Record<string, { l: string; t: Tone }> = {
   trialing: { l: "Teste grátis", t: "brand" },
@@ -69,7 +70,9 @@ export function AvisoAssinatura({
     >
       <span>
         <strong className="font-medium">{n.title}.</strong> {n.text}
-        {!podeDono && " Peça ao responsável pelo restaurante para regularizar."}
+        {!podeDono &&
+          access.reason !== "suspensa" &&
+          " Peça ao responsável pelo restaurante para regularizar."}
       </span>
       {podeDono && (
         <Button size="sm" variant={n.tone === "error" ? "default" : "outline"} onClick={onOpen}>
@@ -161,8 +164,14 @@ export function Assinatura({ slug }: { slug: string }) {
     );
 
   const plano = s.catalog.find((c) => c.id === s.plan);
-  const st = STATUS[s.status] ?? { l: s.status, t: "neutral" as Tone };
+  const st =
+    s.status === "trialing" && s.access.state === "blocked"
+      ? STATUS["expired"]!
+      : (STATUS[s.status] ?? { l: s.status, t: "neutral" as Tone });
   const aviso = accessNotice(s.access);
+  // Até quando a conta segue funcionando se cancelar agora (só datas futuras).
+  const fimUsoBruto = s.current_period_end ?? (s.status === "trialing" ? s.trial_ends_at : null);
+  const fimUso = fimUsoBruto && Date.parse(fimUsoBruto) > Date.now() ? fimUsoBruto : null;
   const podeEscolher =
     !s.exempt && !(s.hasCard && ["active", "past_due"].includes(s.status)) && !!plano;
   const precisaCartao = !s.exempt && (s.status !== "active" || !s.hasCard);
@@ -294,22 +303,36 @@ export function Assinatura({ slug }: { slug: string }) {
               sua conta.
             </p>
           )}
-          <Button
-            className="mt-4 w-full"
-            disabled={!!busy || (!!pk && !cardValid(card))}
-            onClick={() =>
-              rodar("ativar", async () => {
-                const cardToken = pk ? await tokenizeCard(pk, card) : undefined;
-                const r = await start({ data: { slug, cardToken } });
-                if (r.ok) {
-                  toast.success(r.message);
-                  atualizar();
-                } else toast.info(r.message);
-              })
-            }
-          >
-            {busy === "ativar" ? "Processando…" : textoBotao}
-          </Button>
+          {!pk ? (
+            <Button asChild className="mt-4 w-full">
+              <a
+                href={whatsappLink(
+                  `Olá, TIPE! Quero ativar a assinatura do plano ${plano?.name ?? s.plan} para o restaurante tipe.digital/${slug}.`,
+                )}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Falar com a equipe TIPE
+              </a>
+            </Button>
+          ) : (
+            <Button
+              className="mt-4 w-full"
+              disabled={!!busy || !cardValid(card)}
+              onClick={() =>
+                rodar("ativar", async () => {
+                  const cardToken = await tokenizeCard(pk, card);
+                  const r = await start({ data: { slug, cardToken } });
+                  if (r.ok) {
+                    toast.success(r.message);
+                    atualizar();
+                  } else toast.info(r.message);
+                })
+              }
+            >
+              {busy === "ativar" ? "Processando…" : textoBotao}
+            </Button>
+          )}
         </Panel>
       )}
 
@@ -343,8 +366,8 @@ export function Assinatura({ slug }: { slug: string }) {
           <DialogHeader>
             <DialogTitle>Cancelar a assinatura da TIPE?</DialogTitle>
             <DialogDescription>
-              {s.current_period_end || s.status === "trialing"
-                ? `Você continua usando até ${dia(s.current_period_end ?? s.trial_ends_at)}. Depois, novas mesas e pedidos ficam bloqueados.`
+              {fimUso
+                ? `Você continua usando até ${dia(fimUso)}. Depois, novas mesas e pedidos ficam bloqueados.`
                 : "Novas mesas e pedidos ficam bloqueados na hora."}{" "}
               Mesas abertas podem ser pagas, e relatórios e recebimentos continuam disponíveis.
             </DialogDescription>

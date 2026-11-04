@@ -177,7 +177,7 @@ export const cancelSubscription = createServerFn({ method: "POST" })
     if (error) throw new Error("Não foi possível cancelar a assinatura");
     const { logSecurityEvent } = await import("./security.server");
     await logSecurityEvent({ action: "subscription_canceled", resource: `restaurante:${r.id}`, restaurantId: r.id, actorId: context.userId, detail: data.reason.slice(0, 120) });
-    return { ok: true as const, until };
+    return { ok: true as const, until: until && Date.parse(until) > Date.now() ? until : null };
   });
 
 export const finishOnboarding = createServerFn({ method: "POST" })
