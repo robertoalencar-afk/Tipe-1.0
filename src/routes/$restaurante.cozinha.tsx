@@ -1,3 +1,4 @@
+import { MfaGate } from "@/components/tipe/FounderMfaGate";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft } from "lucide-react";
@@ -18,7 +19,11 @@ export const Route = createFileRoute("/$restaurante/cozinha")({
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
-  component: TelaCozinha,
+  component: () => (
+    <MfaGate>
+      <TelaCozinha />
+    </MfaGate>
+  ),
 });
 
 function Relogio() {

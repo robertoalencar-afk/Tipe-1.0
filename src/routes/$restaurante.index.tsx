@@ -1,3 +1,4 @@
+import { MfaGate } from "@/components/tipe/FounderMfaGate";
 import { AreaShell } from "@/components/tipe/AreaShell";
 import { AvisosCelular } from "@/components/tipe/AvisosCelular";
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
@@ -27,7 +28,11 @@ export const Route = createFileRoute("/$restaurante/")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: AreaRestaurante,
+  component: () => (
+    <MfaGate>
+      <AreaRestaurante />
+    </MfaGate>
+  ),
 });
 
 function AreaRestaurante() {
