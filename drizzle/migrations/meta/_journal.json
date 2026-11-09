@@ -267,6 +267,13 @@
       "when": 1792600000000,
       "tag": "0042_guest_reservations",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1792700000000,
+      "tag": "0043_guest_walkin_queue",
+      "breakpoints": true
     }
   ]
 }
