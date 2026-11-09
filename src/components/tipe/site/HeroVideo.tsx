@@ -150,7 +150,7 @@ export function HeroVideo() {
           imediato
           className="block font-display text-[clamp(1.05rem,0.95rem+0.45vw,1.35rem)] tracking-[-0.02em] text-[#0FC9BD]"
         >
-          Pagamento na mesa por QR Code
+          Tipe Pay · pagamento na mesa para restaurantes
         </Palavras>
         <h1 className="mt-4 max-w-[14ch] font-display text-[clamp(3rem,1.2rem+5.6vw,6.25rem)] font-normal leading-[0.94] tracking-[-0.055em]">
           <Palavras imediato delay={200}>
@@ -166,14 +166,13 @@ export function HeroVideo() {
           className="hero-in mt-5 max-w-xl text-[1.05rem] leading-relaxed text-white/85 text-pretty sm:text-lg"
           style={{ "--d": "480ms" } as CSSProperties}
         >
-          O cliente aponta a câmera, divide a conta e paga com Pix, Apple Pay ou Google Pay. Depois,
-          se quiser, deixa uma gorjeta extra para quem atendeu.
+          Seu cliente confere a conta, divide e paga pelo celular. Sua equipe ganha tempo para atender, e você acompanha cada mesa em tempo real.
         </p>
         <div
           className="hero-in mt-8 flex flex-wrap gap-3"
           style={{ "--d": "620ms" } as CSSProperties}
         >
-          <BotaoPrincipal vivo>Começar o teste grátis</BotaoPrincipal>
+          <BotaoPrincipal vivo>Solicitar demonstração</BotaoPrincipal>
           <BotaoSecundario href="/simulador" className="border-white/40">
             Testar o simulador
           </BotaoSecundario>
@@ -182,7 +181,7 @@ export function HeroVideo() {
           className="hero-in mt-5 text-sm text-white/75"
           style={{ "--d": "720ms" } as CSSProperties}
         >
-          {TRIAL_DAYS} dias grátis · Sem taxa para o cliente · Sem aplicativo
+          Pré-lançamento: {TRIAL_DAYS} dias grátis para restaurantes · Sem taxa para o cliente
         </p>
       </div>
       <button

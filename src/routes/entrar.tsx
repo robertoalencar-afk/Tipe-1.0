@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MfaGate } from "@/components/tipe/FounderMfaGate";
 import { SenhaForteInput } from "@/components/tipe/SenhaForte";
+import { caminhoRetornoSeguro } from "@/lib/tipe/retorno";
 import { avaliarSenha, mensagemErroSenha } from "@/lib/tipe/senha";
 import { Check, HandCoins } from "lucide-react";
 
@@ -19,7 +20,7 @@ export const Route = createFileRoute("/entrar")({
   validateSearch: z.object({
     r: z
       .string()
-      .regex(/^\/[a-z0-9-]+$/)
+      .transform((v) => caminhoRetornoSeguro(v))
       .optional()
       .catch(undefined),
   }),
@@ -49,7 +50,7 @@ function Entrar() {
       const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
       if (aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2") return setPrecisaMfa(true);
     }
-    if (r) return navigate({ to: "/$restaurante", params: { restaurante: r.slice(1) } });
+    if (r) return navigate({ to: r, replace: true } as never);
     try {
       const a = await fetchAccess();
       if (a.isFounder) return navigate({ to: "/backoffice", replace: true });

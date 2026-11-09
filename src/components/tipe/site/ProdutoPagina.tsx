@@ -128,7 +128,7 @@ function TextoTopo({ p }: { p: Produto }) {
         style={{ "--d": "600ms" } as CSSProperties}
       >
         <BotaoPrincipal>
-          {p.status === "disponivel" ? "Começar o teste grátis" : "Quero saber primeiro"}
+          {p.status === "disponivel" ? "Solicitar demonstração" : "Quero saber primeiro"}
         </BotaoPrincipal>
         <BotaoSecundario href="#simulador">
           Testar o simulador

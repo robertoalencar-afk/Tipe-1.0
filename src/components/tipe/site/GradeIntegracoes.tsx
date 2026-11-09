@@ -4,7 +4,7 @@
  */
 import { Reveal } from "@/components/tipe/landing/motion";
 import { cn } from "@/lib/utils";
-import { INTEGRACOES_V5, STATUS_ROTULO, type StatusIntegracao } from "./integracoes/dados";
+import { ehParcial, INTEGRACOES_V5, STATUS_ROTULO, type StatusIntegracao } from "./integracoes/dados";
 import { ICONE_INTEGRACAO } from "./integracoes/FaixaDupla";
 import { Plug } from "lucide-react";
 
@@ -17,7 +17,7 @@ function Selo({ status }: { status: StatusIntegracao }) {
       className={cn(
         "inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-0.5 text-[0.72rem] font-medium",
         status === "disponivel" && "bg-brand/15 text-brand-strong",
-        status === "desenvolvimento" && "border border-dashed border-brand/60 text-brand-strong",
+        ehParcial(status) && "border border-dashed border-brand/60 text-brand-strong",
         status === "planejada" && "border border-border text-muted-foreground",
       )}
     >
@@ -25,7 +25,7 @@ function Selo({ status }: { status: StatusIntegracao }) {
         className={cn(
           "h-1.5 w-1.5 rounded-full",
           status === "disponivel" && "bg-brand",
-          status === "desenvolvimento" && "border border-brand",
+          ehParcial(status) && "border border-brand",
           status === "planejada" && "bg-muted-foreground/50",
         )}
       />
@@ -65,11 +65,16 @@ export function GradeIntegracoes({ compacta = false }: { compacta?: boolean }) {
 }
 
 const GRUPOS: { status: StatusIntegracao; t: string; d: string }[] = [
-  { status: "disponivel", t: "Disponível", d: "Pronto para usar. Os sistemas de terceiros ligam a partir da sua chave ou do seu arquivo." },
+  { status: "disponivel", t: "Disponível", d: "Funciona hoje, sem depender de terceiros para ligar." },
+  {
+    status: "piloto",
+    t: "Em piloto",
+    d: "Pronto e testado em ambiente de teste. A cobrança real começa restaurante a restaurante, depois de ativar a conta Pagar.me.",
+  },
   {
     status: "desenvolvimento",
     t: "Em desenvolvimento",
-    d: "A base já está no código. Nenhum restaurante usa ainda.",
+    d: "A base já está no código. Nenhum restaurante usa ainda; hoje a ligação é assistida pela nossa equipe.",
   },
   { status: "planejada", t: "Planejada", d: "No plano, sem data. Nada aqui está pronto." },
 ];
