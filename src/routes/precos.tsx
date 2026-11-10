@@ -47,8 +47,8 @@ function Precos() {
             as="h1"
             centro
             rotulo="Planos"
-            titulo="Preço simples. Sem surpresa."
-            texto={`Você paga pelo número de mesas, não por transação. ${TRIAL_DAYS} dias grátis para começar.`}
+            titulo="Um plano para cada tamanho de restaurante."
+            texto={`A assinatura é pelo número de mesas, sem tarifa da Tipe por transação. Os valores são informados antes da contratação; o processamento de pagamentos tem custos do provedor, combinados na contratação. ${TRIAL_DAYS} dias grátis no pré-lançamento.`}
           />
           <ul className="mx-auto mt-8 flex max-w-3xl flex-wrap justify-center gap-2 text-[0.95rem]">
             {[

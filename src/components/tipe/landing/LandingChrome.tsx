@@ -19,7 +19,7 @@ import { useHeaderEscondido } from "./motion";
 const NAV = [
   { href: "/produtos/ai", label: "Tipe AI" },
   { href: "/integracoes", label: "Integrações" },
-  { href: "/precos", label: "Preços" },
+  { href: "/precos", label: "Planos" },
 ] as const;
 
 /** Logo oficial; troca para a versão branca quando o fundo da página fica escuro. */
@@ -473,7 +473,7 @@ export function LandingFooter() {
               </li>
               <li>
                 <a href="/precos" className={a}>
-                  Preços
+                  Planos
                 </a>
               </li>
               <li>

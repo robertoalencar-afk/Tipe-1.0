@@ -310,8 +310,8 @@ export function PlanosHome() {
         <div className="flex flex-wrap items-end justify-between gap-6">
           <Titulo
             rotulo="Planos"
-            titulo="Preço simples. Sem surpresa."
-            texto={`Você paga pelo número de mesas, não por transação. ${TRIAL_DAYS} dias grátis, sem cartão de crédito.`}
+            titulo="Um plano para cada tamanho de restaurante."
+            texto={`A assinatura é pelo número de mesas, sem tarifa da Tipe por transação. Os valores são informados antes da contratação. ${TRIAL_DAYS} dias grátis no pré-lançamento.`}
           />
           <a
             href="/precos"

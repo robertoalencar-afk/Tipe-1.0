@@ -380,7 +380,7 @@ export function FluxoPagamento() {
       <div className="container-page">
         <Titulo
           rotulo="Como funciona"
-          titulo="Três momentos na mesa. Nenhuma espera."
+          titulo="Da leitura do QR Code à conta paga."
           texto="Cada toque do cliente na mesa e, ao mesmo tempo, o que acontece do lado do restaurante."
         />
       </div>

@@ -49,11 +49,6 @@ export function CardsPlanos() {
         >
           <div className="flex items-center justify-between gap-3">
             <h3 className="font-display text-[1.6rem] font-normal tracking-[-0.03em]">{p.nome}</h3>
-            {p.popular && (
-              <span className="rounded-full bg-[#0FC9BD] px-3 py-1 text-xs font-medium text-[#021E34]">
-                Mais escolhido
-              </span>
-            )}
           </div>
           <p
             className={cn(
