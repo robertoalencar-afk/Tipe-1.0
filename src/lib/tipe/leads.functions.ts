@@ -1,6 +1,14 @@
 import { createServerFn } from "@tanstack/react-start";
+import { COMO_PEDEM, ESTABELECIMENTOS, MELHORIAS, MODALIDADES, recomendar, resumoParaCrm, type Estabelecimento } from "@/lib/tipe/order/modalidades";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+
+/** venue_type do CRM a partir do tipo de estabelecimento do configurador (valores de VENUE em leads-score). */
+function venueDoEstabelecimento(e: Estabelecimento | null): string | null {
+  if (!e) return null;
+  if (e === "lanchonete" || e === "beach_club") return e === "beach_club" ? "quiosque" : "outro";
+  return e;
+}
 
 const opt = (max: number) => z.string().trim().max(max).optional().transform((v) => (v ? v : null));
 const enumOpt = (vals: [string, ...string[]]) => z.enum(vals).optional().nullable();
@@ -22,7 +30,17 @@ const step1Schema = z.object({
   utm_source: opt(120), utm_medium: opt(120), utm_campaign: opt(120), utm_content: opt(120), utm_term: opt(120),
   ref: z.string().regex(/^[a-z0-9]{4,16}$/i).optional(),
   // "tipe-order": formulário da página /produtos/order (origin_page é text, sem migração).
-  originPage: z.enum(["home", "simulador", "calculadora", "tipe-order"]).default("home"),
+  // "configurador-order": "Monte sua operação" em /produtos/order; as respostas vão em `operacao`.
+  originPage: z.enum(["home", "simulador", "calculadora", "tipe-order", "configurador-order"]).default("home"),
+  /** Respostas do configurador (só para originPage "configurador-order"); viram resumo nas notas do CRM. */
+  operacao: z
+    .object({
+      estabelecimento: z.enum(ESTABELECIMENTOS).nullable(),
+      modalidades: z.array(z.enum(MODALIDADES)).max(7),
+      comoPedem: z.enum(COMO_PEDEM).nullable(),
+      melhorias: z.array(z.enum(MELHORIAS)).max(6),
+    })
+    .optional(),
   /** Estado de lançamento do produto quando a pessoa se cadastrou (só para originPage "tipe-order"). */
   launchState: z.enum(["em-desenvolvimento", "acesso-antecipado", "piloto", "disponivel"]).optional(),
   usedSimulator: z.boolean().default(false),
@@ -43,6 +61,10 @@ export const submitLead = createServerFn({ method: "POST" })
       referred_by_code: data.ref?.toLowerCase() ?? null, origin_page: data.originPage, used_simulator: data.usedSimulator, calculator: data.calculator ?? null,
       // Interesse no Tipe Order vai nas notas do CRM para a equipe comercial ver de cara.
       ...(data.originPage === "tipe-order" ? { notes: `Interesse: Tipe Order (estado na hora do cadastro: ${data.launchState ?? "não informado"})` } : {}),
+      // Configurador: o resumo (modalidades, necessidades, módulos sugeridos, interesse em totem) vai nas notas.
+      ...(data.originPage === "configurador-order" && data.operacao
+        ? { notes: resumoParaCrm(data.operacao, recomendar(data.operacao)), venue_type: venueDoEstabelecimento(data.operacao.estabelecimento) }
+        : {}),
     } as never).select("id, ref_code, update_token").single() as unknown as { data: { id: string; ref_code: string; update_token: string } | null; error: { message: string } | null };
     if (error || !row) {
       console.error("lead_insert", error?.message);

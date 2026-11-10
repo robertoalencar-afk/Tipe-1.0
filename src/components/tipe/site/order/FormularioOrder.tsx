@@ -7,6 +7,7 @@ import { Link } from "@tanstack/react-router";
 import { useId, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { CheckCircle2, MessageCircle, TriangleAlert } from "lucide-react";
 import { submitLead } from "@/lib/tipe/leads.functions";
+import type { RespostasConfigurador } from "@/lib/tipe/order/modalidades";
 import { getAttribution, trackLead, trackProduto } from "@/lib/tipe/tracking";
 import { whatsappLink } from "@/lib/tipe/contact";
 import { TABLES } from "@/lib/tipe/leads-score";
@@ -117,7 +118,7 @@ function Campo({
   );
 }
 
-export function FormularioOrder({ estado }: { estado: EstadoLancamento }) {
+export function FormularioOrder({ estado, operacao }: { estado: EstadoLancamento; operacao?: RespostasConfigurador }) {
   const t = TEXTOS_LANCAMENTO[estado];
   const base = useId();
   const id = (k: string) => `${base}-${k}`;
@@ -191,7 +192,7 @@ export function FormularioOrder({ estado }: { estado: EstadoLancamento }) {
           utm_content: a.utm_content,
           utm_term: a.utm_term,
           ...(a.ref ? { ref: a.ref } : {}),
-          originPage: "tipe-order",
+          ...(operacao ? { originPage: "configurador-order" as const, operacao } : { originPage: "tipe-order" as const }),
           launchState: estado,
           usedSimulator: !!a.usedSimulator,
         },
