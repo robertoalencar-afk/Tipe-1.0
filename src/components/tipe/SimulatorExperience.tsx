@@ -208,6 +208,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
     () => ITEMS.reduce((sum, item) => sum + item.price * (quantities[item.id] ?? 0), 0),
     [quantities],
   );
+  const tableTotal = useMemo(() => ITEMS.reduce((sum, item) => sum + item.price * item.qty, 0), []);
   const [feeWaived, setFeeWaived] = useState(false);
   const service = resolveServiceFee(subtotal, feeWaived ? 0 : 0.1, { kind: "suggested" })!.amount;
   const total = +(subtotal + service).toFixed(2);
@@ -599,7 +600,8 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
                   })}
                 </ul>
                 <div className="mt-6 rounded-2xl border border-border bg-card p-5 text-sm shadow-sm">
-                  <Summary label="Subtotal selecionado" value={subtotal} />
+                  <Summary label="Total da mesa" value={tableTotal} />
+                  <Summary label="Subtotal selecionado" value={subtotal} className="mt-2" />
                   <Summary
                     label={
                       feeWaived
@@ -610,7 +612,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
                     className="mt-2"
                   />
                   <Summary
-                    label="Total da conta"
+                    label="Total a pagar"
                     value={total}
                     className="mt-3 border-t border-border pt-3 font-display text-base font-extrabold"
                   />

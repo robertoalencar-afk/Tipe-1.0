@@ -144,7 +144,7 @@ export function Titulo({
  */
 export function BotaoPrincipal({
   href = "/teste-gratis",
-  children = "Teste grátis",
+  children = "Solicitar demonstração",
   className,
   vivo = false,
 }: {
@@ -220,7 +220,7 @@ export function FaixaCta({
               href="/teste-gratis"
               className="com-fios inline-flex min-h-14 items-center gap-2.5 rounded-full bg-white pl-8 pr-7 text-lg font-medium text-[#021E34] hover:bg-white/90"
             >
-              Começar o teste grátis <SetaFios />
+              Solicitar demonstração <SetaFios />
             </a>
             <a
               href="/simulador"

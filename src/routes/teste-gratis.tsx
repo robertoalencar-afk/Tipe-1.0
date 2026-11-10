@@ -559,7 +559,7 @@ function Fecho() {
               {TRIAL_DAYS} dias grátis, sem cartão de crédito
             </p>
             <h2 className="mt-4 max-w-[18ch] font-display text-[clamp(2.4rem,1.4rem+3.4vw,4.4rem)] font-medium leading-[1]">
-              Sua primeira mesa paga pela Tipe pode ser hoje.
+              Peça sua demonstração e comece pela primeira mesa.
             </h2>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row">
