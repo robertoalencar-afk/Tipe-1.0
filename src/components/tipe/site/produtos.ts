@@ -817,14 +817,14 @@ export const PRODUTOS: Produto[] = [
       {
         t: "Reserva no horário livre",
         d: "O cliente escolhe o dia, quantas pessoas e um horário que existe de verdade. O horário fica seguro por 5 minutos enquanto ele confirma. Se o restaurante pedir, uma garantia simbólica confirma a mesa e vira crédito na conta.",
-        foto: "cena-casal",
+        foto: "cena-executiva",
         posicao: "50% 35%",
         telaReal: "guest-horarios",
       },
       {
         t: "Lista de espera que avisa",
         d: "Horário lotado? O cliente entra na fila. Quando uma mesa libera, o app avisa e ele tem 15 minutos para confirmar.",
-        foto: "cena-amigos",
+        foto: "cena-praia",
         posicao: "50% 40%",
         telaReal: "guest-espera",
       },
