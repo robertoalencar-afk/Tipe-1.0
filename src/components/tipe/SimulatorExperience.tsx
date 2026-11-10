@@ -7,6 +7,7 @@ import {
   ChevronRight,
   ClipboardList,
   HandCoins,
+  ListChecks,
   QrCode,
   ReceiptText,
   Smartphone,
@@ -18,6 +19,8 @@ import { QRCodeSVG } from "qrcode.react";
 import { TipeLogo } from "@/components/tipe/Logo";
 import { markSimulatorUsed } from "@/lib/tipe/tracking";
 import { SplitPicker } from "@/components/tipe/SplitPicker";
+import { DividirConta } from "@/components/tipe/DividirConta";
+import { remainingSubtotal, type ShareItem } from "@/lib/tipe/bill-math";
 import {
   TIP_SPLIT,
   gorjetaMaxima,
@@ -212,9 +215,6 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
   const [feeWaived, setFeeWaived] = useState(false);
   const service = resolveServiceFee(subtotal, feeWaived ? 0 : 0.1, { kind: "suggested" })!.amount;
   const total = +(subtotal + service).toFixed(2);
-  const allSelected = ITEMS.every(
-    (item) => Math.abs((quantities[item.id] ?? 0) - available(item.id, item.qty)) < EPSILON,
-  );
   const pendingEstablishmentPayment = demo.payments.find(
     (payment) => payment.status === "pending" && payment.establishmentMethod,
   );
@@ -434,10 +434,11 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
       {stage === "bill" && (
         <main className="flex flex-1 flex-col px-5 pb-8">
           <h1 className="mt-1 text-[1.9rem] font-medium leading-[1.06] tracking-[-0.035em]">
-            Olá, {name.trim()}.
+            Olá, {name.trim().split(" ")[0]}.
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Atendimento de <strong className="text-foreground">Carlos</strong>
+            Você está sendo atendido por{" "}
+            <strong className="font-semibold text-foreground">Carlos</strong>.
           </p>
           <ChamarEquipeSimulado />
           <div className="mb-6 mt-5 grid grid-cols-2 gap-1 rounded-full bg-muted p-1">
@@ -474,30 +475,83 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
               </div>
             ) : (
               <>
-                {ITEMS.some((item) => available(item.id, item.qty) > 0) && (
-                  <Button
-                    variant={allSelected ? "default" : "outline"}
-                    onClick={() =>
-                      setQuantities(
-                        Object.fromEntries(
-                          ITEMS.map((item) => [
-                            item.id,
-                            allSelected ? 0 : available(item.id, item.qty),
-                          ]),
-                        ),
-                      )
-                    }
-                    className="mb-3 h-12 w-full font-display text-base"
-                  >
-                    <ReceiptText /> {allSelected ? "Limpar seleção" : "Pagar a conta inteira"}
-                  </Button>
-                )}
-                <h2 className="font-display text-lg font-semibold tracking-heading">
-                  O que você vai pagar?
+                {ITEMS.some((item) => available(item.id, item.qty) > 0) &&
+                  (() => {
+                    const itensDivisao: ShareItem[] = ITEMS.map((item) => ({
+                      code: item.id,
+                      unitPrice: item.price,
+                      ordered: item.qty,
+                      available: available(item.id, item.qty),
+                    }));
+                    const fee = feeWaived ? 0 : 0.1;
+                    const emAberto = remainingSubtotal(itensDivisao);
+                    const emAbertoComTaxa = +(
+                      emAberto + resolveServiceFee(emAberto, fee, { kind: "suggested" })!.amount
+                    ).toFixed(2);
+                    const algumPago = demo.payments.length > 0;
+                    const tudo = Object.fromEntries(
+                      ITEMS.map((item) => [item.id, available(item.id, item.qty)]),
+                    );
+                    return (
+                      <section
+                        aria-labelledby="em-aberto-title"
+                        className="rounded-[1.75rem] bg-background-muted p-5"
+                      >
+                        <p id="em-aberto-title" className="text-sm text-muted-foreground">
+                          {algumPago ? "Ainda em aberto na mesa" : "Total da mesa"}
+                        </p>
+                        <p className="money mt-1 text-[2.75rem] font-medium leading-none tracking-[-0.045em]">
+                          {money(emAbertoComTaxa)}
+                        </p>
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          {fee <= 0
+                            ? "Sem taxa de serviço nesta conta."
+                            : "Inclui a taxa de serviço de 10%."}
+                        </p>
+                        <Button
+                          onClick={() => {
+                            setQuantities(tudo);
+                            setStage("payment");
+                          }}
+                          className="mt-5 h-13 w-full justify-between px-6 font-display text-base"
+                        >
+                          <span>Pagar tudo</span>
+                          <span className="money">{money(emAbertoComTaxa)}</span>
+                        </Button>
+                        <div className="mt-2 grid grid-cols-2 gap-2">
+                          <DividirConta
+                            items={itensDivisao}
+                            serviceRate={fee}
+                            triggerClassName="h-12 w-full rounded-full bg-card font-display text-[0.95rem] font-medium"
+                            onApply={(q) =>
+                              setQuantities(
+                                Object.fromEntries(ITEMS.map((item) => [item.id, q[item.id] ?? 0])),
+                              )
+                            }
+                            onPay={() => setStage("payment")}
+                          />
+                          <Button
+                            variant="outline"
+                            onClick={() =>
+                              document
+                                .getElementById("itens-da-conta")
+                                ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                            }
+                            className="h-12 w-full bg-card font-display text-[0.95rem] font-medium"
+                          >
+                            <ListChecks /> Escolher itens
+                          </Button>
+                        </div>
+                      </section>
+                    );
+                  })()}
+                <h2
+                  id="itens-da-conta"
+                  className="mt-8 scroll-mt-4 font-display text-lg font-medium tracking-heading"
+                >
+                  Ou escolha o que você vai pagar
                 </h2>
-                <p className="mb-4 mt-1 text-sm text-muted-foreground">
-                  Escolha quanto de cada item ficará com você.
-                </p>
+                <div className="mb-3" />
                 <ul className="flex flex-col gap-3">
                   {ITEMS.filter((item) => available(item.id, item.qty) > 0).map((item) => {
                     const qty = quantities[item.id] ?? 0;
