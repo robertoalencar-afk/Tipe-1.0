@@ -188,7 +188,9 @@ export function LeadForm({
     setTocados(Object.fromEntries(Object.keys(f).map((k) => [k, true])));
     const primeiro = Object.keys(e)[0];
     if (primeiro) {
-      formRef.current?.querySelector<HTMLElement>(`#${CSS.escape(id(primeiro))}`)?.focus();
+      const invalid = formRef.current?.querySelector<HTMLElement>(`#${CSS.escape(id(primeiro))}`);
+      invalid?.closest("details")?.setAttribute("open", "");
+      invalid?.focus();
       return;
     }
     submitting.current = true;
@@ -300,6 +302,7 @@ export function LeadForm({
         >
           <input
             id={id("nome")}
+            required
             autoComplete="name"
             maxLength={120}
             className={campo}
@@ -312,6 +315,7 @@ export function LeadForm({
         <Campo id={id("fone")} rotulo="WhatsApp" erro={erroDe("fone")}>
           <input
             id={id("fone")}
+            required
             inputMode="tel"
             autoComplete="tel"
             placeholder="(DD) 9XXXX-XXXX"
@@ -325,6 +329,7 @@ export function LeadForm({
         <Campo id={id("email")} rotulo="E-mail" erro={erroDe("email")}>
           <input
             id={id("email")}
+            required
             type="email"
             autoComplete="email"
             maxLength={200}
@@ -343,6 +348,7 @@ export function LeadForm({
         >
           <input
             id={id("restaurante")}
+            required
             autoComplete="organization"
             maxLength={120}
             className={campo}
@@ -356,6 +362,7 @@ export function LeadForm({
           <Campo id={id("cidade")} rotulo="Cidade" erro={erroDe("cidade")}>
             <input
               id={id("cidade")}
+              required
               autoComplete="address-level2"
               maxLength={80}
               className={campo}
@@ -368,6 +375,7 @@ export function LeadForm({
           <Campo id={id("uf")} rotulo="Estado" erro={erroDe("uf")}>
             <select
               id={id("uf")}
+              required
               className={campo}
               value={f.uf}
               onChange={(e) => mudar("uf", e.target.value)}
@@ -385,6 +393,7 @@ export function LeadForm({
         <Campo id={id("cargo")} rotulo="Seu cargo" erro={erroDe("cargo")}>
           <select
             id={id("cargo")}
+            required
             className={campo}
             value={f.cargo}
             onChange={(e) => mudar("cargo", e.target.value)}
@@ -400,6 +409,7 @@ export function LeadForm({
         <Campo id={id("mesas")} rotulo="Número de mesas" erro={erroDe("mesas")}>
           <select
             id={id("mesas")}
+            required
             className={campo}
             value={f.mesas}
             onChange={(e) => mudar("mesas", e.target.value)}
@@ -487,6 +497,7 @@ export function LeadForm({
         <label className="flex min-h-11 cursor-pointer items-start gap-3 text-sm leading-relaxed">
           <input
             id={id("privacidade")}
+            required
             type="checkbox"
             className="mt-1 h-5 w-5 shrink-0 accent-[#03665f]"
             checked={f.privacidade}
