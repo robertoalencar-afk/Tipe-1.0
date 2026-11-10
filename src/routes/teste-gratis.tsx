@@ -42,7 +42,13 @@ export const Route = createFileRoute("/teste-gratis")({
 
 function TesteGratis() {
   return (
-    <div className="sunday min-h-screen bg-background text-foreground">
+    <div id="top" className="sunday min-h-screen bg-background text-foreground">
+      <a
+        href="#conteudo"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-ink focus:px-4 focus:py-2 focus:text-white"
+      >
+        Pular para o conteúdo
+      </a>
       <LandingHeader />
       <main id="conteudo">
         <Topo />

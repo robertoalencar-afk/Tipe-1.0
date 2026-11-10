@@ -179,7 +179,7 @@ export function HeroVideo() {
           </BotaoSecundario>
         </div>
         <p
-          className="hero-in mt-5 text-sm text-white/75"
+          className="hero-in mt-5 pr-14 text-sm text-white/85 sm:pr-0"
           style={{ "--d": "720ms" } as CSSProperties}
         >
           {TRIAL_DAYS} dias grátis no pré-lançamento · Sem cartão para solicitar
