@@ -3,19 +3,18 @@ import { Link } from "@tanstack/react-router";
 import { Clock3, KeyRound, ShieldCheck } from "lucide-react";
 import { TipeLogo } from "@/components/tipe/Logo";
 import { cn } from "@/lib/utils";
+import { MascoteVivo } from "@/components/tipe/site/MascoteVivo";
 
 /**
  * Moldura das telas de conta (esqueci a senha, nova senha): lebre ilustrando o momento
  * à esquerda no desktop e no topo no celular, conteúdo à direita.
  */
 export function TelaConta({
-  lebre,
   lebreAlt,
   balao,
   fundo = "menta",
   children,
 }: {
-  lebre: string;
   lebreAlt: string;
   /** Fala curta da lebre, no balão do painel ilustrado. */
   balao: string;
@@ -50,13 +49,7 @@ export function TelaConta({
             >
               {balao}
             </p>
-            <img
-              src={lebre}
-              alt=""
-              width={512}
-              height={512}
-              className="tipe-lebre-flutua h-[min(26rem,46vh)] w-auto select-none drop-shadow-[0_24px_30px_rgb(15_23_42/0.18)]"
-            />
+            <MascoteVivo className="tipe-lebre-flutua w-[min(24rem,44vh)] drop-shadow-[0_24px_30px_rgb(15_23_42/0.18)]" />
           </div>
           <ul
             className={cn(
@@ -91,13 +84,7 @@ export function TelaConta({
                     : "bg-[var(--brand-primary-soft)]",
               )}
             >
-              <img
-                src={lebre}
-                alt={lebreAlt}
-                width={512}
-                height={512}
-                className="h-24 w-24 object-contain"
-              />
+              <MascoteVivo alt={lebreAlt} className="w-24" />
             </div>
             {children}
           </div>
