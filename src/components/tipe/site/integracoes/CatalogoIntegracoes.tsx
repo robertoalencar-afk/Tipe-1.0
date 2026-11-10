@@ -129,7 +129,7 @@ export function CatalogoIntegracoes({
                   <MarcaSistema sis={s} />
                   <span className="inline-flex items-center gap-1 rounded-full bg-[#0FC9BD]/12 px-2 py-0.5 text-[0.68rem] font-medium text-[#08766f]">
                     <span className="h-1.5 w-1.5 rounded-full bg-[#0FC9BD]" />
-                    {s.nativo ? "Conectado" : "Pronto"}
+                    {s.id === "pagarme" ? "Em piloto" : s.nativo ? "Disponível" : "Sob consulta"}
                   </span>
                 </span>
                 <span>

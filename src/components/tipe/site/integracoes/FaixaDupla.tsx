@@ -21,7 +21,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { INTEGRACOES_V5, STATUS_ROTULO, type Integracao } from "./dados";
+import { ehParcial, INTEGRACOES_V5, STATUS_ROTULO, type Integracao } from "./dados";
 import { SISTEMAS } from "./catalogo";
 import { MarcaSistema } from "./CatalogoIntegracoes";
 
@@ -30,7 +30,7 @@ export const ICONE_INTEGRACAO: Record<string, LucideIcon> = {
   "Apple Pay": Smartphone,
   "Google Pay": Wallet,
   "Pagar no estabelecimento": Banknote,
-  "Pagar.me": CreditCard,
+  "Provedor de pagamento": CreditCard,
   "Lançamento TIPE": ListChecks,
   "API TIPE": Code2,
   "Conectores de PDV": Plug,
@@ -67,7 +67,7 @@ function Faixa({ itens, sentido, aCaminho = false }: { itens: Integracao[]; sent
                 aCaminho
                   ? cn(
                       "border border-dashed text-white",
-                      it.status === "desenvolvimento" ? "border-[#0FC9BD]/55 bg-[#0FC9BD]/[0.06]" : "border-white/20 text-white/70",
+                      ehParcial(it.status) ? "border-[#0FC9BD]/55 bg-[#0FC9BD]/[0.06]" : "border-white/20 text-white/70",
                     )
                   : "text-[#021E34]",
               )}
@@ -86,7 +86,7 @@ function Faixa({ itens, sentido, aCaminho = false }: { itens: Integracao[]; sent
                   className={cn(
                     "rounded-full px-2 py-0.5 text-[0.68rem] font-medium",
                     aCaminho
-                      ? it.status === "desenvolvimento"
+                      ? ehParcial(it.status)
                         ? "text-[#7fe9e1]"
                         : "text-white/55"
                       : "bg-[#021E34]/[0.08]",

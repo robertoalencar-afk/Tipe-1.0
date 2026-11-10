@@ -10,7 +10,7 @@ import { useEffect, useId, useRef, type CSSProperties } from "react";
 import { Check, ChefHat, ConciergeBell, FileSpreadsheet, Plug, QrCode, Truck } from "lucide-react";
 import logoBranco from "@/assets/marca/tipe-logo-branco.svg";
 import { cn } from "@/lib/utils";
-import { NOS_HUB, STATUS_ROTULO, type NoHub, type StatusIntegracao } from "./dados";
+import { ehParcial, NOS_HUB, STATUS_ROTULO, type NoHub, type StatusIntegracao } from "./dados";
 
 const ICONES = {
   pagamento: QrCode,
@@ -51,7 +51,7 @@ const CSS = `
   14% { box-shadow: 0 0 0 4px rgb(15 201 189 / .22), 0 18px 50px -12px rgb(15 201 189 / .55); border-color: rgb(15 201 189 / .9); }
   42%, 100% { box-shadow: 0 0 0 0 rgb(15 201 189 / 0); border-color: rgb(255 255 255 / .12); }
 }
-.hub-no[data-status="desenvolvimento"] { animation-name: hub-no-dev; }
+.hub-no[data-status="piloto"], .hub-no[data-status="desenvolvimento"] { animation-name: hub-no-dev; }
 @keyframes hub-no-dev {
   0%, 10% { border-color: rgb(15 201 189 / .35); }
   15% { border-color: rgb(15 201 189 / .8); }
@@ -87,7 +87,7 @@ function Selo({ status, pequeno }: { status: StatusIntegracao; pequeno?: boolean
         "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full font-medium",
         pequeno ? "px-2 py-0.5 text-[0.66rem]" : "px-2.5 py-1 text-[0.7rem]",
         status === "disponivel" && "bg-[#0FC9BD] text-[#021E34]",
-        status === "desenvolvimento" && "border border-dashed border-[#0FC9BD]/70 text-[#7fe9e1]",
+        ehParcial(status) && "border border-dashed border-[#0FC9BD]/70 text-[#7fe9e1]",
         status === "planejada" && "border border-white/20 text-white/60",
       )}
     >
@@ -95,7 +95,7 @@ function Selo({ status, pequeno }: { status: StatusIntegracao; pequeno?: boolean
         className={cn(
           "h-1.5 w-1.5 rounded-full",
           status === "disponivel" && "bg-[#021E34]",
-          status === "desenvolvimento" && "border border-[#7fe9e1]",
+          ehParcial(status) && "border border-[#7fe9e1]",
           status === "planejada" && "bg-white/35",
         )}
       />
@@ -115,7 +115,7 @@ function No({ no, compacto, className, style }: { no: NoHub; compacto: boolean; 
         "hub-no rounded-[1.35rem] border bg-[#08304d] text-left",
         compacto ? "p-3" : "p-3.5 sm:p-4",
         no.status === "disponivel" && "border-white/12",
-        no.status === "desenvolvimento" && "border-dashed border-[#0FC9BD]/40 bg-[#062a43]",
+        ehParcial(no.status) && "border-dashed border-[#0FC9BD]/40 bg-[#062a43]",
         no.status === "planejada" && "border-dashed border-white/15 bg-[#04233a] opacity-80",
         className,
       )}
@@ -241,7 +241,7 @@ export function HubIntegracoes({ compacto = false, className }: { compacto?: boo
             if (no.status === "planejada") {
               return <path key={no.id} d={d} stroke="#ffffff" strokeOpacity=".16" strokeWidth="1.2" strokeDasharray="1 7" strokeLinecap="round" />;
             }
-            const dev = no.status === "desenvolvimento";
+            const dev = ehParcial(no.status);
             return (
               <g key={no.id} style={estilo}>
                 <path
@@ -316,7 +316,7 @@ export function HubIntegracoes({ compacto = false, className }: { compacto?: boo
                 <span
                   className={cn(
                     "absolute left-[1.1rem] top-7 h-px w-6 sm:hidden", compacto && "hidden",
-                    no.status === "planejada" ? "border-t border-dashed border-white/20" : no.status === "desenvolvimento" ? "border-t border-dashed border-[#0FC9BD]/60" : "bg-[#0FC9BD]/70",
+                    no.status === "planejada" ? "border-t border-dashed border-white/20" : ehParcial(no.status) ? "border-t border-dashed border-[#0FC9BD]/60" : "bg-[#0FC9BD]/70",
                   )}
                 />
                 <span
