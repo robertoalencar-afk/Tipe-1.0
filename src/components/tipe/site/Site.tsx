@@ -42,11 +42,19 @@ function useTemaPorSecao(raiz: React.RefObject<HTMLDivElement | null>) {
   }, [raiz]);
 }
 
-export function SitePage({ children, extra }: { children: ReactNode; extra?: ReactNode }) {
+export function SitePage({
+  children,
+  extra,
+  initialTheme = "claro",
+}: {
+  children: ReactNode;
+  extra?: ReactNode;
+  initialTheme?: "claro" | "escuro";
+}) {
   const raiz = useRef<HTMLDivElement>(null);
   useTemaPorSecao(raiz);
   return (
-    <div ref={raiz} data-tema="claro" className="sunday min-h-screen">
+    <div ref={raiz} data-tema={initialTheme} className="sunday min-h-screen">
       <a
         href="#conteudo"
         className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-ink focus:px-4 focus:py-2 focus:text-white"

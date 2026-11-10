@@ -264,8 +264,7 @@ export const PRODUTOS: Produto[] = [
     },
     cenario: {
       titulo: "Pediu, comeu, pagou. Na mesma mesa.",
-      texto:
-        "O cliente abre o cardápio, pede pelo celular e, no fim, paga pelo mesmo QR Code.",
+      texto: "O cliente abre o cardápio, pede pelo celular e, no fim, paga pelo mesmo QR Code.",
       itens: [
         {
           foto: "cena-amigos",
@@ -348,7 +347,7 @@ export const PRODUTOS: Produto[] = [
       ],
       [
         "Como o cliente paga o que pediu?",
-        "Pela conta da mesa, como no Tipe Pay: divide se quiser e paga com Apple Pay, Google Pay, Pix ou no estabelecimento. A gorjeta extra é opcional e vem depois, como um segundo pagamento.",
+        "Pela conta da mesa, como no Tipe Pay: divide se quiser e paga em dinheiro ou na maquininha no local. Pix, Apple Pay e Google Pay estão em piloto, com habilitação por restaurante. A gorjeta extra é opcional e vem depois, como um segundo pagamento.",
       ],
     ],
   },

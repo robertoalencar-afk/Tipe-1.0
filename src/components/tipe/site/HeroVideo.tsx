@@ -166,7 +166,8 @@ export function HeroVideo() {
           className="hero-in mt-5 max-w-xl text-[1.05rem] leading-relaxed text-white/85 text-pretty sm:text-lg"
           style={{ "--d": "480ms" } as CSSProperties}
         >
-          Seu cliente confere a conta, divide e paga pelo celular. Sua equipe ganha tempo para atender, e você acompanha cada mesa em tempo real.
+          Seu cliente confere a conta, divide e paga pelo celular. Sua equipe ganha tempo para
+          atender, e você acompanha cada mesa em tempo real.
         </p>
         <div
           className="hero-in mt-8 flex flex-wrap gap-3"
@@ -178,10 +179,13 @@ export function HeroVideo() {
           </BotaoSecundario>
         </div>
         <p
-          className="hero-in mt-5 text-sm text-white/75"
+          className="hero-in mt-5 pr-14 text-sm text-white/85 sm:pr-0"
           style={{ "--d": "720ms" } as CSSProperties}
         >
-          Pré-lançamento: {TRIAL_DAYS} dias grátis para restaurantes · Sem taxa para o cliente
+          {TRIAL_DAYS} dias grátis no pré-lançamento · Sem cartão para solicitar
+          <span className="mt-2 block">
+            Dinheiro e maquininha no local disponíveis. Pix e carteiras digitais em piloto.
+          </span>
         </p>
       </div>
       <button

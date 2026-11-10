@@ -232,7 +232,7 @@ const PASSOS: {
   {
     n: "04",
     t: "Pague",
-    d: "Na aba Pagar está a conta com tudo o que foi pedido. Apple Pay, Google Pay, Pix ou no estabelecimento.",
+    d: "Na aba Pagar está a conta com tudo o que foi pedido. Dinheiro ou maquininha no local; Pix, Apple Pay e Google Pay em piloto.",
     icone: Wallet,
     tela: "order-conta",
     alt: "Conta da Mesa 12 com o pastel de camarão, o serviço e o botão Pagar R$ 74,80 (dados de exemplo)",
@@ -375,7 +375,7 @@ function PayEOrder({ estado }: { estado: EstadoLancamento }) {
       itens: [
         "Conta da mesa ao vivo no celular",
         "Dividir por item, em partes iguais ou por valor",
-        "Apple Pay, Google Pay, Pix ou pagar no estabelecimento",
+        "Dinheiro ou maquininha no local; Pix, Apple Pay e Google Pay em piloto",
         "Gorjeta extra opcional depois, como um segundo pagamento",
       ],
       href: "/produtos/pay",
@@ -641,7 +641,7 @@ function Futuro() {
           <Titulo
             rotulo="Novidades"
             titulo="O prato antes de chegar."
-            texto="Duas novidades do cardápio da Tipe para o cliente ver o prato antes de pedir."
+            texto="Demonstrações do cardápio para explorar o prato. A apresentação abaixo não significa que 3D e realidade aumentada estejam liberados para todos os restaurantes."
           />
           <figure className="m-0 mt-8 flex items-end gap-4">
             <CelularReal
@@ -666,7 +666,7 @@ function Futuro() {
               <div className="flex items-center justify-between gap-3">
                 <it.icone className="h-7 w-7 text-brand-strong" aria-hidden />
                 <span className="inline-flex items-center gap-1.5 rounded-full bg-[#021E34] px-2.5 py-1 text-[0.72rem] font-medium text-white">
-                  <Clock className="h-3.5 w-3.5 text-[#0FC9BD]" aria-hidden /> Novo
+                  <Clock className="h-3.5 w-3.5 text-[#0FC9BD]" aria-hidden /> Demonstração
                 </span>
               </div>
               <div>
