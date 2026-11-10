@@ -264,8 +264,7 @@ export const PRODUTOS: Produto[] = [
     },
     cenario: {
       titulo: "Pediu, comeu, pagou. Na mesma mesa.",
-      texto:
-        "O cliente abre o cardápio, pede pelo celular e, no fim, paga pelo mesmo QR Code.",
+      texto: "O cliente abre o cardápio, pede pelo celular e, no fim, paga pelo mesmo QR Code.",
       itens: [
         {
           foto: "cena-amigos",
