@@ -371,7 +371,7 @@ function Cenario({ p }: { p: Produto }) {
   );
 }
 
-/** Só no Tipe Guest: as telas reais do app do cliente, em sequência. */
+/** Só no Tipe Reserva: as telas reais do app do cliente, em sequência. */
 function FluxoReal({ p }: { p: Produto }) {
   if (!p.fluxoReal) return null;
   const f = p.fluxoReal;

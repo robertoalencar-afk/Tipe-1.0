@@ -1,5 +1,5 @@
 /**
- * Topo do Tipe Staff, na montagem do Staff app da sunday (referência só visual): a foto
+ * Topo do Tipe Equipe, na montagem do Staff app da sunday (referência só visual): a foto
  * vertical da garçonete com cantos arredondados e três avisos de vidro escuro translúcido
  * empilhados à direita, na altura do balcão, saindo pela borda direita. O rosto (no alto,
  * à esquerda) e o celular ficam sempre fora da pilha. Entram um a um; com movimento
@@ -64,7 +64,7 @@ export function MontagemStaff({
             decoding="async"
           />
         </div>
-        <ol aria-label="Exemplo de avisos do Tipe Staff" className="staff-avisos">
+        <ol aria-label="Exemplo de avisos do Tipe Equipe" className="staff-avisos">
           <Aviso titulo="Mesa 14 · Conta paga" atraso={350}>
             + <span className="money">R$ 37,80</span> de gorjeta extra para você
           </Aviso>

@@ -31,7 +31,7 @@ import cardapio780 from "@/assets/telas-reais/cardapio-780.webp";
 import pedido390 from "@/assets/telas-reais/pedido-390.webp";
 import pedido780 from "@/assets/telas-reais/pedido-780.webp";
 
-// Tipe Guest e Tipe Order (03/11): telas dos simuladores de cada produto, capturadas do
+// Tipe Reserva e Tipe Order (03/11): telas dos simuladores de cada produto, capturadas do
 // código em desenvolvimento com restaurantes fictícios (/mnt/project-files/tipe-guest e tipe-order).
 import guestDescobrir390 from "@/assets/telas-reais/guest-descobrir-390.webp";
 import guestDescobrir780 from "@/assets/telas-reais/guest-descobrir-780.webp";
@@ -65,7 +65,7 @@ import orderStoryBebidas390 from "@/assets/telas-reais/order-story-bebidas-390.w
 import orderStoryBebidas780 from "@/assets/telas-reais/order-story-bebidas-780.webp";
 import orderStory3d390 from "@/assets/telas-reais/order-story-3d-390.webp";
 import orderStory3d780 from "@/assets/telas-reais/order-story-3d-780.webp";
-// App Tipe Guest (apps/guest, 03/11): telas do app nativo em modo demonstração, até a garantia.
+// App Tipe Reserva (apps/guest, 03/11): telas do app nativo em modo demonstração, até a garantia.
 import appDescobrir390 from "@/assets/telas-reais/app-descobrir-390.webp";
 import appDescobrir780 from "@/assets/telas-reais/app-descobrir-780.webp";
 import appHorarios390 from "@/assets/telas-reais/app-horarios-390.webp";

@@ -29,11 +29,12 @@ Tipe Pay: a conta abre no celular pelo QR Code da mesa, sem baixar nada. O clien
 Os pagamentos digitais são processados pelo Pagar.me e o dinheiro cai direto na conta do restaurante. A TIPE não retém o valor das contas e não cobra taxa do cliente.
 Gorjeta extra: depois da conta paga, o cliente pode dar uma gorjeta extra como um segundo pagamento, separado e opcional (3%, 5%, 8% ou outro valor). 70% vão para quem atendeu e 30% são a taxa da plataforma.
 Tipe Order: o mesmo QR Code abre o cardápio, o cliente pede pelo celular, o pedido vai para a cozinha e entra na conta da mesa. É um módulo adicional do Tipe Pay, já disponível.
-Tipe Kitchen: tela da cozinha e do bar (KDS) com os pedidos por ordem de chegada e por setor.
-Tipe Staff: área do garçom com gorjetas, saldo e avaliações.
-Tipe Restaurant: painel do salão, caixa e relatórios em tempo real.
-Tipe AI: a Lebre, que resume o salão para o dono e executa pedidos simples no painel, sempre com confirmação.
-Tipe Guest: reserva, lista de espera e volta do cliente. Ainda está em breve; não diga que já está disponível.
+Tipe Cozinha: tela da cozinha e do bar (KDS) com os pedidos por ordem de chegada e por setor.
+Tipe Equipe: área do garçom com gorjetas, saldo e avaliações.
+Tipe Gestão: painel do salão, caixa e relatórios em tempo real.
+Lebre: a inteligência artificial da Tipe, que resume o salão para o dono e executa pedidos simples no painel, sempre com confirmação.
+Tipe Reserva: reserva, lista de espera e volta do cliente. Ainda está em breve; não diga que já está disponível.
+Nomes antigos: Tipe Kitchen hoje é Tipe Cozinha, Tipe Staff é Tipe Equipe, Tipe Restaurant é Tipe Gestão, Tipe Guest é Tipe Reserva e Tipe AI é a Lebre. Use sempre os nomes novos.
 PDV: a TIPE tem PDV próprio, o Lançamento TIPE, para lançar os pedidos no próprio painel sem outro sistema. Quem já usa um PDV pode enviar mesas e itens pela API TIPE ou usar os conectores (Saipos, Consumer, Linx, TOTVS Chef e outros), com integração assistida e baixa automática do item pago. A equipe confirma os detalhes do sistema de cada restaurante.
 Planos: assinatura mensal pelo número de mesas, sem tarifa da TIPE por transação; o restaurante paga só as tarifas do Pagar.me. Essencial até 10 mesas, Profissional até 20, Premium até 40 (inclui cozinha e bar e controle de caixa) e Personalizado acima de 40. Mensal sem fidelidade; no anual, os totens com QR Code estão incluídos. Os valores serão divulgados no lançamento: não informe preços.
 Teste grátis: 30 dias, sem cartão de crédito. A implantação é acompanhada: a equipe cadastra as mesas, gera os QR Codes e treina a equipe.

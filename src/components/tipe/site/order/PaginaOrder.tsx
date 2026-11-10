@@ -475,7 +475,7 @@ const ETAPAS: { nome: string; href: string; icone: typeof ChefHat; d: string }[]
     d: "O pedido aparece na tela da cozinha e do bar.",
   },
   {
-    nome: "Staff",
+    nome: "Equipe",
     href: "/produtos/staff",
     icone: Users,
     d: "A equipe acompanha a mesa e leva o pedido.",

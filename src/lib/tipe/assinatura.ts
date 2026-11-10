@@ -5,10 +5,10 @@
 export const PLAN_MODULES = ["order", "kds", "totem", "three_d", "guest"] as const;
 export const MODULE_LABEL: Record<string, string> = {
   order: "Tipe Order",
-  kds: "Cozinha (KDS)",
+  kds: "Tipe Cozinha",
   totem: "Totem",
   three_d: "Cardápio 3D",
-  guest: "Tipe Guest",
+  guest: "Tipe Reserva",
 };
 
 export type AccessState = "full" | "grace" | "blocked";

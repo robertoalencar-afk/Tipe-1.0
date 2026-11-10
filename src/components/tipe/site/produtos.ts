@@ -332,7 +332,7 @@ export const PRODUTOS: Produto[] = [
       {
         icone: ChefHat,
         t: "Integrado à cozinha",
-        d: "Cada pedido vira um ticket no Tipe Kitchen.",
+        d: "Cada pedido vira um ticket no Tipe Cozinha.",
       },
       {
         icone: ReceiptText,
@@ -355,7 +355,7 @@ export const PRODUTOS: Produto[] = [
   {
     slug: "staff",
     grupo: "Na equipe",
-    nome: "Tipe Staff",
+    nome: "Tipe Equipe",
     resumo: "Área do garçom com gorjetas, saldo e avaliações",
     status: "disponivel",
     icone: HandCoins,
@@ -384,7 +384,7 @@ export const PRODUTOS: Produto[] = [
         },
       ],
     },
-    rotulo: "Tipe Staff",
+    rotulo: "Tipe Equipe",
     titulo: "Mais tempo para servir. Menos para cobrar.",
     texto:
       "Sem levar conta impressa e maquininha de mesa em mesa. O garçom acompanha as mesas, recebe a gorjeta extra no saldo e saca por Pix.",
@@ -457,7 +457,7 @@ export const PRODUTOS: Produto[] = [
   {
     slug: "kitchen",
     grupo: "Na equipe",
-    nome: "Tipe Kitchen",
+    nome: "Tipe Cozinha",
     resumo: "Tela da cozinha e do bar com pedidos por ordem",
     status: "disponivel",
     icone: ChefHat,
@@ -486,7 +486,7 @@ export const PRODUTOS: Produto[] = [
         },
       ],
     },
-    rotulo: "Tipe Kitchen",
+    rotulo: "Tipe Cozinha",
     titulo: "A cozinha vê o pedido na hora certa.",
     texto:
       "Os pedidos chegam numa tela para a cozinha e para o bar, na ordem em que foram feitos, com o tempo de cada um. Sem comanda de papel perdida.",
@@ -548,7 +548,7 @@ export const PRODUTOS: Produto[] = [
   {
     slug: "restaurant",
     grupo: "Na gestão",
-    nome: "Tipe Restaurant",
+    nome: "Tipe Gestão",
     resumo: "Painel do salão, caixa e relatórios em tempo real",
     status: "disponivel",
     icone: LayoutGrid,
@@ -577,7 +577,7 @@ export const PRODUTOS: Produto[] = [
         },
       ],
     },
-    rotulo: "Tipe Restaurant",
+    rotulo: "Tipe Gestão",
     titulo: "Seu salão inteiro, numa tela só.",
     texto:
       "Cada mesa, cada item e cada pagamento em tempo real, no computador, no tablet ou no celular. O caixa fecha sem susto.",
@@ -661,7 +661,7 @@ export const PRODUTOS: Produto[] = [
   {
     slug: "ai",
     grupo: "Na gestão",
-    nome: "Tipe AI",
+    nome: "Lebre",
     resumo: "A Lebre resume o salão e faz o que você pedir, com confirmação",
     status: "disponivel",
     icone: Bot,
@@ -686,7 +686,7 @@ export const PRODUTOS: Produto[] = [
         { painel: "lebre-acao", legenda: "Nada muda sem o seu Confirmar." },
       ],
     },
-    rotulo: "Tipe AI",
+    rotulo: "Lebre",
     titulo: "Você cuida do salão. A Lebre cuida das respostas.",
     texto:
       "Pergunte em português, digitando ou falando, como está o salão agora. E peça o que precisa: abrir uma mesa, pausar um item, convidar um garçom. A Lebre prepara e você confirma.",
@@ -770,7 +770,7 @@ export const PRODUTOS: Produto[] = [
   {
     slug: "guest",
     grupo: "Na mesa",
-    nome: "Tipe Guest",
+    nome: "Tipe Reserva",
     resumo: "Reserva, lista de espera e volta do cliente, no mesmo app da conta",
     status: "em-breve",
     icone: Heart,
@@ -801,7 +801,7 @@ export const PRODUTOS: Produto[] = [
         },
       ],
     },
-    rotulo: "Tipe Guest",
+    rotulo: "Tipe Reserva",
     titulo: "Reserve, chegue e volte.",
     texto:
       "O app do cliente para descobrir restaurantes, reservar o horário livre, entrar na lista de espera e voltar depois. Tudo ligado à conta da mesa da Tipe. Em desenvolvimento, com restaurantes fictícios no simulador.",
@@ -853,13 +853,13 @@ export const PRODUTOS: Produto[] = [
     fluxoReal: {
       titulo: "Da vontade à mesa garantida.",
       texto:
-        "Cinco telas do app Tipe Guest, da busca até a reserva confirmada. A garantia de R$ 50,00 vira crédito de consumação na conta. Restaurantes fictícios, nada é cobrado.",
+        "Cinco telas do app Tipe Reserva, da busca até a reserva confirmada. A garantia de R$ 50,00 vira crédito de consumação na conta. Restaurantes fictícios, nada é cobrado.",
       telas: [
         {
           tela: "app-descobrir",
           t: "Onde vamos comer?",
           d: "Pergunte à Lebre ou escolha pessoas, dia e hora. Cada restaurante já mostra os horários livres.",
-          alt: "App Tipe Guest: Pergunte à Lebre com sugestões, barra de 2 pessoas, amanhã, 20:00 e o destaque A Lebre recomenda, com restaurantes fictícios de Fortaleza",
+          alt: "App Tipe Reserva: Pergunte à Lebre com sugestões, barra de 2 pessoas, amanhã, 20:00 e o destaque A Lebre recomenda, com restaurantes fictícios de Fortaleza",
         },
         {
           tela: "app-horarios",
@@ -909,7 +909,7 @@ export const PRODUTOS: Produto[] = [
     ],
     faq: [
       [
-        "O Tipe Guest já está disponível?",
+        "O Tipe Reserva já está disponível?",
         "Ainda não. Está em desenvolvimento; dá para experimentar no simulador, com restaurantes fictícios.",
       ],
       [

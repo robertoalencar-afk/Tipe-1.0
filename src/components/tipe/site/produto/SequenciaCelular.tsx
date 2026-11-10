@@ -40,7 +40,7 @@ export const ETAPAS_TELA: Record<TelaReal, Omit<EtapaCelular, "tela">> = {
     toque: { x: 50, y: 93 },
   },
   "guest-descobrir": {
-    alt: "Tipe Guest: busca de restaurantes em Fortaleza com os horários livres de cada um (restaurantes fictícios)",
+    alt: "Tipe Reserva: busca de restaurantes em Fortaleza com os horários livres de cada um (restaurantes fictícios)",
     toque: { x: 12, y: 32 },
   },
   "guest-horarios": {
@@ -55,7 +55,7 @@ export const ETAPAS_TELA: Record<TelaReal, Omit<EtapaCelular, "tela">> = {
     alt: "Reserva confirmada para amanhã às 12:00, 2 pessoas, com o código da reserva",
   },
   "guest-pagar": {
-    alt: "Conta da mesa no Tipe Guest com Pix, Apple Pay, Google Pay e pagar no estabelecimento",
+    alt: "Conta da mesa no Tipe Reserva com Pix, Apple Pay, Google Pay e pagar no estabelecimento",
     toque: { x: 50, y: 85 },
   },
   "guest-gorjeta": {
@@ -69,7 +69,7 @@ export const ETAPAS_TELA: Record<TelaReal, Omit<EtapaCelular, "tela">> = {
     alt: "Lista de espera: o app avisa que uma mesa liberou e dá 15 minutos para confirmar",
   },
   "app-descobrir": {
-    alt: "App Tipe Guest: Pergunte à Lebre, pessoas, dia e hora, e o destaque A Lebre recomenda (restaurantes fictícios)",
+    alt: "App Tipe Reserva: Pergunte à Lebre, pessoas, dia e hora, e o destaque A Lebre recomenda (restaurantes fictícios)",
     toque: { x: 28, y: 36 },
   },
   "app-horarios": {

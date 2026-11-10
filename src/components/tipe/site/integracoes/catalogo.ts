@@ -189,7 +189,7 @@ export function passosPara(sis: Sistema, metodo: MetodoId): Passo[] {
           },
           painel("envie as fotos ou o PDF"),
           {
-            titulo: "A Tipe AI monta o cardápio",
+            titulo: "A Lebre monta o cardápio",
             texto:
               "A Lebre lê categorias, itens e preços e monta o cardápio. Você revisa antes de publicar.",
           },
@@ -210,7 +210,7 @@ export function passosPara(sis: Sistema, metodo: MetodoId): Passo[] {
         {
           titulo: "Revise antes de valer",
           texto:
-            "CSV e Excel entram na hora para você revisar. Outros formatos a Tipe AI lê e organiza; nada muda no salão até você confirmar.",
+            "CSV e Excel entram na hora para você revisar. Outros formatos a Lebre lê e organiza; nada muda no salão até você confirmar.",
         },
         {
           titulo: "Pronto",
