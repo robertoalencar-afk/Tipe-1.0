@@ -1,4 +1,4 @@
-// Tipe Guest · acesso do servidor ao motor de reservas (0042). Só o servidor chama as funções do banco
+// Tipe Reserva · acesso do servidor ao motor de reservas (0042). Só o servidor chama as funções do banco
 // (service_role); quem chama aqui já validou a sessão do usuário. Toda escrita passa por limite por
 // usuário e por IP antes de chegar ao banco, que ainda revalida flag, regras e capacidade.
 import { clientIp, enforceRate } from "@/lib/tipe/security.server";

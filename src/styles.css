@@ -1692,7 +1692,7 @@
     animation: none;
   }
 }
-/* Avisos do Tipe Staff: o mais novo desce do topo, os outros abrem espaço. */
+/* Avisos do Tipe Equipe: o mais novo desce do topo, os outros abrem espaço. */
 @keyframes aviso-chega {
   from {
     opacity: 0;

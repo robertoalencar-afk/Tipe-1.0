@@ -38,10 +38,10 @@ const STATUS: Record<string, { l: string; t: Tone }> = {
 };
 const MODULO: Record<string, string> = {
   order: "Tipe Order",
-  kds: "Cozinha (KDS)",
+  kds: "Tipe Cozinha",
   totem: "Totem",
   three_d: "Cardápio 3D",
-  guest: "Tipe Guest",
+  guest: "Tipe Reserva",
 };
 const dia = (iso: string | null | undefined) =>
   iso ? new Date(iso).toLocaleDateString("pt-BR") : "";
