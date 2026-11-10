@@ -1,3 +1,9 @@
+> **Estado validado em 10/11/2026:** o Worker gerencia apenas o Custom Domain
+> `tipe.digital`. `www.tipe.digital` já redireciona no edge para o domínio canônico,
+> preservando caminho e query/UTMs. Não adicionar `www` aos Custom Domains sem antes
+> planejar a substituição desse redirecionamento. O workflow agora falha em qualquer
+> erro do Wrangler; não tolera mais publicação parcial por erro 100117.
+
 # Publicação da TIPE sem a Lovable
 
 > **Proteção de produção:** o pipeline de deploy foi colocado atrás da variável de repositório
