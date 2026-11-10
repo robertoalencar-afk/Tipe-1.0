@@ -30,7 +30,7 @@ export const ICONE_INTEGRACAO: Record<string, LucideIcon> = {
   "Apple Pay": Smartphone,
   "Google Pay": Wallet,
   "Pagar no estabelecimento": Banknote,
-  "Pagar.me": CreditCard,
+  "Provedor de pagamento": CreditCard,
   "Lançamento TIPE": ListChecks,
   "API TIPE": Code2,
   "Conectores de PDV": Plug,

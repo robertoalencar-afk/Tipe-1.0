@@ -81,7 +81,7 @@ const FAQ: { label: string; faqs: [string, string][] }[] = [
       ],
       [
         "Quais formas de pagamento estão disponíveis?",
-        "Pagamento no estabelecimento (dinheiro ou maquininha), confirmado pelo caixa, já funciona. Pix, Apple Pay e Google Pay pelo celular, via Pagar.me, estão em piloto: a cobrança real começa restaurante a restaurante, depois de ativar a conta Pagar.me. O restaurante escolhe no painel quais formas oferecer.",
+        "Pagamento no estabelecimento (dinheiro ou maquininha), confirmado pelo caixa, já funciona. Pix, Apple Pay e Google Pay pelo celular, via provedor de pagamento, estão em piloto: a cobrança real começa restaurante a restaurante, depois de ativar a conta no provedor de pagamento. O restaurante escolhe no painel quais formas oferecer.",
       ],
       [
         "Dá para pagar só a minha parte?",
@@ -98,7 +98,7 @@ const FAQ: { label: string; faqs: [string, string][] }[] = [
     faqs: [
       [
         "É seguro?",
-        "Nos pagamentos digitais, processados pelo Pagar.me, o dinheiro vai direto para a conta do restaurante; a Tipe não retém o valor das contas. O sistema protege contra pagamento em duplicidade, confere o valor pago antes de aprovar e registra cada ação com data e responsável.",
+        "Nos pagamentos digitais, processados pelo provedor de pagamento, o dinheiro vai direto para a conta do restaurante; a Tipe não retém o valor das contas. O sistema protege contra pagamento em duplicidade, confere o valor pago antes de aprovar e registra cada ação com data e responsável.",
       ],
       [
         "Funciona com o meu PDV?",
@@ -110,7 +110,7 @@ const FAQ: { label: string; faqs: [string, string][] }[] = [
       ],
       [
         "Quanto custa?",
-        `Assinatura mensal de acordo com o número de mesas, sem tarifa por transação nas contas; o restaurante paga apenas as tarifas do Pagar.me. Os valores serão divulgados no lançamento e os primeiros restaurantes ganham ${TRIAL_DAYS} dias grátis, sem cartão de crédito.`,
+        `Assinatura mensal de acordo com o número de mesas, sem tarifa por transação nas contas; o restaurante paga apenas as tarifas do provedor de pagamento. Os valores serão divulgados no lançamento e os primeiros restaurantes ganham ${TRIAL_DAYS} dias grátis, sem cartão de crédito.`,
       ],
       [
         "De onde vêm os números da página?",
@@ -118,7 +118,7 @@ const FAQ: { label: string; faqs: [string, string][] }[] = [
       ],
       [
         "E se um pagamento sair errado?",
-        "Pagamentos presenciais podem ser cancelados pelo caixa e os itens voltam para a conta. Estornos e contestações do Pagar.me aparecem como pendência no caixa, com registro de quem resolveu.",
+        "Pagamentos presenciais podem ser cancelados pelo caixa e os itens voltam para a conta. Estornos e contestações do provedor de pagamento aparecem como pendência no caixa, com registro de quem resolveu.",
       ],
     ],
   },

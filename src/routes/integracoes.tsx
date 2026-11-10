@@ -5,7 +5,7 @@ import { BotaoPrincipal, BotaoSecundario, FaixaCta, Secao, SitePage, Titulo } fr
 
 const TITLE = "Integrações da Tipe · Pagamentos, PDV e o que vem a seguir";
 const DESC =
-  "Veja o que a Tipe integra hoje (Lançamento TIPE, API TIPE, Pagar.me em piloto) e o que está em desenvolvimento ou planejado para PDVs, delivery, ERP e nota fiscal.";
+  "Veja o que a Tipe integra hoje (Lançamento TIPE, API TIPE, pagamentos digitais em piloto) e o que está em desenvolvimento ou planejado para PDVs, delivery, ERP e nota fiscal.";
 
 export const Route = createFileRoute("/integracoes")({
   head: () => ({

@@ -69,7 +69,7 @@ const GRUPOS: { status: StatusIntegracao; t: string; d: string }[] = [
   {
     status: "piloto",
     t: "Em piloto",
-    d: "Pronto e testado em ambiente de teste. A cobrança real começa restaurante a restaurante, depois de ativar a conta Pagar.me.",
+    d: "Pronto e testado em ambiente de teste. A cobrança real começa restaurante a restaurante, depois de ativar a conta no provedor de pagamento.",
   },
   {
     status: "desenvolvimento",

@@ -32,7 +32,7 @@ const SEMPRE = [
 ] as const;
 
 const PERGUNTAS: [string, string][] = [
-  ["A Tipe cobra por transação?", "Não. Você paga a assinatura pelo número de mesas. O restaurante paga apenas as tarifas do Pagar.me nos pagamentos digitais."],
+  ["A Tipe cobra por transação?", "Não. Você paga a assinatura pelo número de mesas. O restaurante paga apenas as tarifas do provedor de pagamento nos pagamentos digitais."],
   ["Tem fidelidade?", "Os planos mensais não têm fidelidade. No plano anual, os totens com QR Code estão incluídos."],
   ["Como funciona o teste grátis?", `Os primeiros restaurantes ganham ${TRIAL_DAYS} dias grátis, sem cartão de crédito. A gente cadastra as mesas e treina a equipe com você.`],
   ["E se eu passar do limite de mesas?", "As mesas acima do limite do plano não abrem novas contas. É só mudar de plano para liberar."],

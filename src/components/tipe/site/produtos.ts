@@ -207,7 +207,7 @@ export const PRODUTOS: Produto[] = [
       {
         icone: Smartphone,
         t: "Pix, Apple Pay e Google Pay",
-        d: "Processados pelo Pagar.me, com o dinheiro direto na conta do restaurante.",
+        d: "Processados pelo provedor de pagamento, com o dinheiro direto na conta do restaurante.",
       },
       {
         icone: Wallet,
@@ -930,58 +930,6 @@ export const PRODUTOS: Produto[] = [
 
 export const produtoPorSlug = (slug: string) => PRODUTOS.find((p) => p.slug === slug);
 
-/** Integrações reais hoje e as que estão a caminho. */
-export const INTEGRACOES: { nome: string; tipo: string; status: Status; d: string }[] = [
-  {
-    nome: "Pix",
-    tipo: "Pagamento",
-    status: "disponivel",
-    d: "Pelo Pagar.me, com o dinheiro direto na conta do restaurante.",
-  },
-  {
-    nome: "Apple Pay",
-    tipo: "Pagamento",
-    status: "disponivel",
-    d: "Pagamento em um toque no iPhone.",
-  },
-  {
-    nome: "Google Pay",
-    tipo: "Pagamento",
-    status: "disponivel",
-    d: "Pagamento em um toque no Android.",
-  },
-  {
-    nome: "Pagar.me",
-    tipo: "Processamento",
-    status: "disponivel",
-    d: "Processa os pagamentos digitais das contas.",
-  },
-  {
-    nome: "Lançamento TIPE",
-    tipo: "PDV",
-    status: "disponivel",
-    d: "Lance os pedidos no próprio painel, sem outro sistema.",
-  },
-  {
-    nome: "API TIPE",
-    tipo: "PDV",
-    status: "disponivel",
-    d: "Envie mesas e itens do seu sistema para a Tipe.",
-  },
-  {
-    nome: "Conectores de PDV",
-    tipo: "PDV",
-    status: "disponivel",
-    d: "Saipos, Consumer, Linx, TOTVS Chef e outros, a partir da sua chave ou do seu arquivo.",
-  },
-  {
-    nome: "Baixa automática no PDV",
-    tipo: "PDV",
-    status: "disponivel",
-    d: "O pagamento fecha o item no seu sistema.",
-  },
-];
-
 /**
  * Dúvidas que valem para qualquer produto (mesmos textos do FAQ da home). Completam as
  * dúvidas de cada página até pelo menos quatro, sem repetir pergunta.
@@ -993,7 +941,7 @@ export const DUVIDAS_COMUNS: Record<string, [string, string]> = {
   ],
   seguro: [
     "É seguro?",
-    "Os pagamentos digitais são processados pelo Pagar.me e o dinheiro cai direto na conta do restaurante; a Tipe não retém o valor das contas. O sistema protege contra pagamento em duplicidade, confere o valor pago antes de aprovar e registra cada ação com data e responsável.",
+    "Os pagamentos digitais são processados pelo provedor de pagamento e o dinheiro cai direto na conta do restaurante; a Tipe não retém o valor das contas. O sistema protege contra pagamento em duplicidade, confere o valor pago antes de aprovar e registra cada ação com data e responsável.",
   ],
   pdv: [
     "Funciona com o meu PDV?",
@@ -1001,7 +949,7 @@ export const DUVIDAS_COMUNS: Record<string, [string, string]> = {
   ],
   custo: [
     "Quanto custa?",
-    "Assinatura mensal de acordo com o número de mesas, sem tarifa por transação nas contas; o restaurante paga apenas as tarifas do Pagar.me. Os valores serão divulgados no lançamento.",
+    "Assinatura mensal de acordo com o número de mesas, sem tarifa por transação nas contas; o restaurante paga apenas as tarifas do provedor de pagamento. Os valores serão divulgados no lançamento.",
   ],
   gorjeta: [
     "Como funciona a gorjeta extra?",

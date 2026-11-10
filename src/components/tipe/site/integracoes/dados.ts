@@ -4,7 +4,7 @@
  * - disponivel: código funcionando e sem dependência externa para ligar (Lançamento TIPE, API TIPE,
  *   pagamento no estabelecimento, CSV).
  * - piloto: código pronto e testado em ambiente de teste, mas a cobrança real depende de credenciais
- *   e habilitação do Pagar.me/carteiras (docs/deploy/README.md). Não afirmar que já processa em produção.
+ *   e habilitação no provedor/carteiras (docs/deploy/README.md). Não afirmar que já processa em produção.
  * - desenvolvimento: a base existe (catálogo, recebimento de arquivo/chave), sem adaptador em produção.
  * - planejada: nenhuma linha de código no repositório.
  * Sistemas de terceiros (Saipos, Linx, TOTVS...) não têm adaptador no registro
@@ -28,11 +28,11 @@ export type Integracao = {
 
 export const INTEGRACOES_V5: Integracao[] = [
   // Pagamentos: src/lib/tipe/payments.functions.ts, pagarme.server.ts, routes/api/public/pagarme/webhook.ts
-  { nome: "Pix", grupo: "Pagamentos", status: "piloto", d: "Gerado pelo Pagar.me. Em piloto: a cobrança real começa quando o restaurante ativa a conta Pagar.me." },
+  { nome: "Pix", grupo: "Pagamentos", status: "piloto", d: "Gerado pelo provedor de pagamento. Em piloto: a cobrança real começa quando o restaurante ativa a conta no provedor de pagamento." },
   { nome: "Apple Pay", grupo: "Pagamentos", status: "piloto", d: "Em piloto: depende da habilitação da carteira no Pagar.me e do aceite do restaurante." },
   { nome: "Google Pay", grupo: "Pagamentos", status: "piloto", d: "Em piloto: depende da habilitação da carteira no Pagar.me e do aceite do restaurante." },
   { nome: "Pagar no estabelecimento", grupo: "Pagamentos", status: "disponivel", d: "O cliente escolhe pagar no caixa. A equipe registra e a mesa fecha igual." },
-  { nome: "Pagar.me", grupo: "Pagamentos", status: "piloto", d: "Processa os pagamentos e confirma por webhook. Em piloto: ativado conta a conta, com as credenciais do restaurante." },
+  { nome: "Provedor de pagamento", grupo: "Pagamentos", status: "piloto", d: "Processa os pagamentos e confirma por webhook. Em piloto: ativado conta a conta, com as credenciais do restaurante." },
   // Pedidos e PDV: src/lib/tipe/pdv/registry.server.ts e adapters/
   { nome: "Lançamento TIPE", grupo: "Pedidos e PDV", status: "disponivel", d: "Os pedidos são lançados no próprio painel, sem outro sistema." },
   { nome: "API TIPE", grupo: "Pedidos e PDV", status: "disponivel", d: "Seu sistema envia mesas e itens para a Tipe por webhook. Ativação assistida pela equipe." },
@@ -59,7 +59,7 @@ export type NoHub = {
 
 /** Nós do hub, na ordem em que os fluxos acendem. */
 export const NOS_HUB: NoHub[] = [
-  { id: "pag", titulo: "Pagamentos", sub: "Pix, Apple Pay e Google Pay via Pagar.me", status: "piloto", icone: "pagamento", cartao: { titulo: "Pix aprovado", linha: "Mesa 12 · R$ 118,79" } },
+  { id: "pag", titulo: "Pagamentos", sub: "Pix, Apple Pay e Google Pay via provedor de pagamento", status: "piloto", icone: "pagamento", cartao: { titulo: "Pix aprovado", linha: "Mesa 12 · R$ 118,79" } },
   { id: "salao", titulo: "Salão e garçom", sub: "Aviso no celular de quem serve a mesa", status: "disponivel", icone: "salao", cartao: { titulo: "Mesa 12 paga", linha: "Joyce · R$ 4,20 de gorjeta" } },
   { id: "cozinha", titulo: "Cozinha e bar", sub: "Pedidos do Lançamento TIPE na tela", status: "disponivel", icone: "cozinha", cartao: { titulo: "Mesa 12 · 3 itens", linha: "Cozinha · em preparo" } },
   { id: "caixa", titulo: "Caixa e relatórios", sub: "Fechamento do dia por forma de pagamento", status: "disponivel", icone: "caixa", cartao: { titulo: "Fechamento do dia", linha: "CSV pronto para baixar" } },
