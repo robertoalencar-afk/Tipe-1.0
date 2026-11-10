@@ -39,7 +39,7 @@ export function TopoHome() {
           imediato
           className="block font-display text-[clamp(1.1rem,0.95rem+0.6vw,1.45rem)] tracking-[-0.02em] text-brand-strong"
         >
-          Tipe Pay · pagamento na mesa para restaurantes
+          Tipe Pay · Pagamento na mesa para restaurantes
         </Palavras>
         <h1 className="mx-auto mt-4 font-display text-[clamp(2.75rem,1rem+7vw,8rem)] font-normal leading-[0.95] tracking-[-0.055em]">
           <Palavras imediato delay={250}>

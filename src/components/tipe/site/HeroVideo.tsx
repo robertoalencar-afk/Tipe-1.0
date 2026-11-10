@@ -150,7 +150,7 @@ export function HeroVideo() {
           imediato
           className="block font-display text-[clamp(1.05rem,0.95rem+0.45vw,1.35rem)] tracking-[-0.02em] text-[#0FC9BD]"
         >
-          Tipe Pay · pagamento na mesa para restaurantes
+          Tipe Pay · Pagamento na mesa para restaurantes
         </Palavras>
         <h1 className="mt-4 max-w-[14ch] font-display text-[clamp(3rem,1.2rem+5.6vw,6.25rem)] font-normal leading-[0.94] tracking-[-0.055em]">
           <Palavras imediato delay={200}>
