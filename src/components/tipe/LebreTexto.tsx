@@ -7,15 +7,15 @@ import { Fragment, type ReactNode } from "react";
  * Monta elementos React, sem HTML cru, então nada do texto vira código na página.
  */
 
-const INLINE = /\*\*(.+?)\*\*|\*(.+?)\*|\[([^\]]+)\]\(((?:https?:\/\/|\/)[^\s)]+)\)|(?<![\w/.])(\/[a-z][a-z0-9-]*(?:\/[a-z0-9-]+)*)(?![\w/])/gi;
+const INLINE =
+  /\*\*(.+?)\*\*|\*(.+?)\*|\[([^\]]+)\]\(((?:https?:\/\/|\/)[^\s)]+)\)|(?<![\w/.])(\/[a-z][a-z0-9-]*(?:\/[a-z0-9-]+)*)(?![\w/])/gi;
 
 function linkProps(href: string) {
-  return href.startsWith("/")
-    ? { href }
-    : { href, target: "_blank", rel: "noopener noreferrer" };
+  return href.startsWith("/") ? { href } : { href, target: "_blank", rel: "noopener noreferrer" };
 }
 
-const LINK = "font-medium text-brand-strong underline decoration-primary/50 underline-offset-2 hover:decoration-primary";
+const LINK =
+  "font-medium text-brand-strong underline decoration-primary/50 underline-offset-2 hover:decoration-primary";
 
 export function inline(texto: string, chave = "i"): ReactNode[] {
   const out: ReactNode[] = [];
@@ -25,10 +25,25 @@ export function inline(texto: string, chave = "i"): ReactNode[] {
     const i = m.index ?? 0;
     if (i > ultimo) out.push(texto.slice(ultimo, i));
     const k = `${chave}-${n++}`;
-    if (m[1] !== undefined) out.push(<strong key={k} className="font-semibold text-foreground">{inline(m[1], k)}</strong>);
+    if (m[1] !== undefined)
+      out.push(
+        <strong key={k} className="font-semibold text-ink">
+          {inline(m[1], k)}
+        </strong>,
+      );
     else if (m[2] !== undefined) out.push(<em key={k}>{inline(m[2], k)}</em>);
-    else if (m[3] !== undefined && m[4]) out.push(<a key={k} className={LINK} {...linkProps(m[4])}>{m[3]}</a>);
-    else if (m[5]) out.push(<a key={k} className={LINK} href={m[5]}>{m[5]}</a>);
+    else if (m[3] !== undefined && m[4])
+      out.push(
+        <a key={k} className={LINK} {...linkProps(m[4])}>
+          {m[3]}
+        </a>,
+      );
+    else if (m[5])
+      out.push(
+        <a key={k} className={LINK} href={m[5]}>
+          {m[5]}
+        </a>,
+      );
     ultimo = i + m[0].length;
   }
   if (ultimo < texto.length) out.push(texto.slice(ultimo));
@@ -76,13 +91,19 @@ export function LebreTexto({ children }: { children: string }) {
         ) : b.tipo === "ul" ? (
           <ul key={i} className="space-y-1.5">
             {b.itens.map((t, j) => (
-              <li key={j} className="relative pl-4 before:absolute before:left-0 before:top-[0.6em] before:h-1.5 before:w-1.5 before:rounded-full before:bg-primary">
+              <li
+                key={j}
+                className="relative pl-4 before:absolute before:left-0 before:top-[0.6em] before:h-1.5 before:w-1.5 before:rounded-full before:bg-primary"
+              >
                 {inline(t, `${i}-${j}`)}
               </li>
             ))}
           </ul>
         ) : (
-          <ol key={i} className="list-decimal space-y-1.5 pl-5 marker:font-semibold marker:text-brand-strong">
+          <ol
+            key={i}
+            className="list-decimal space-y-1.5 pl-5 marker:font-semibold marker:text-brand-strong"
+          >
             {b.itens.map((t, j) => (
               <li key={j}>{inline(t, `${i}-${j}`)}</li>
             ))}
