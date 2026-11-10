@@ -3,7 +3,7 @@ export const TRIAL_DAYS = 30;
 export const SHOW_PLAN_PRICES = false;
 export const PLANS = [
   { id: "essencial", name: "Essencial", price: 59, fullPrice: 79, maxTables: 10, features: ["Pagamento na mesa por QR Code", "Gorjeta extra para a equipe", "Painel em tempo real", "Lançamento TIPE incluso"] },
-  { id: "profissional", name: "Profissional", price: 89, fullPrice: 119, maxTables: 20, popular: true, features: ["Tudo do Essencial", "Integração assistida com seu PDV", "Relatórios por garçom", "Totens personalizados"] },
+  { id: "profissional", name: "Profissional", price: 89, fullPrice: 119, maxTables: 20, popular: true, features: ["Tudo do Essencial", "Integração via API TIPE (sob análise)", "Relatórios por garçom", "Totens personalizados"] },
   { id: "premium", name: "Premium", price: 129, fullPrice: 179, maxTables: 40, features: ["Tudo do Profissional", "Cozinha e bar (KDS)", "Controle de caixa", "Suporte prioritário"] },
 ] as const;
 export type PlanId = (typeof PLANS)[number]["id"];

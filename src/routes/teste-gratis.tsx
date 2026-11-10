@@ -20,7 +20,7 @@ import { cn } from "@/lib/utils";
 
 const TITLE = `Teste grátis por ${TRIAL_DAYS} dias | TIPE`;
 const DESC =
-  "Coloque a Tipe nas mesas do seu restaurante: pagamento por QR Code com Pix, Apple Pay e Google Pay, divisão da conta e gorjeta extra para a equipe.";
+  "Solicite uma demonstração do Tipe Pay: conta e divisão pelo QR Code, painel do salão e implantação acompanhada. Pix e carteiras digitais em piloto.";
 
 export const Route = createFileRoute("/teste-gratis")({
   head: () => ({
@@ -31,8 +31,11 @@ export const Route = createFileRoute("/teste-gratis")({
       { property: "og:description", content: DESC },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "theme-color", content: "#ffffff" },
+      { name: "theme-color", content: "#021E34" },
+      { property: "og:url", content: "https://tipe.digital/teste-gratis" },
+      { property: "og:image", content: "https://tipe.digital/marca/tipe-logo-redondo.png" },
     ],
+    links: [{ rel: "canonical", href: "https://tipe.digital/teste-gratis" }],
   }),
   component: TesteGratis,
 });
@@ -47,6 +50,10 @@ function TesteGratis() {
         <Destaques />
         <LebreTartaruga />
         <Categorias />
+        <p className="container-page pb-8 text-sm text-muted-foreground">
+          Telas, valores e notificações desta página são exemplos demonstrativos, sem cobranças ou
+          resultados reais de restaurantes.
+        </p>
         <Fecho />
       </main>
       <LandingFooter />
@@ -73,7 +80,7 @@ function Topo() {
         <ul className="mt-8 space-y-3 text-[1.05rem]">
           {[
             "Demonstração gratuita com a equipe",
-            "Implantação acompanhada, do totem ao primeiro pagamento",
+            "Implantação acompanhada, do QR Code ao painel do salão",
             "Sem taxa nenhuma para quem está na mesa",
           ].map((t) => (
             <li key={t} className="flex items-start gap-3">
@@ -105,8 +112,18 @@ function Topo() {
       </div>
       <div
         id="formulario"
-        className="relative z-10 scroll-mt-24 self-start rounded-[2rem] border border-border bg-surface p-5 shadow-[0_40px_80px_-40px_oklch(0.2_0.04_250/0.35)] sm:p-8">
+        className="relative z-10 scroll-mt-24 self-start rounded-[2rem] border border-border bg-surface p-5 shadow-[0_40px_80px_-40px_oklch(0.2_0.04_250/0.35)] sm:p-8"
+      >
+        <h2 className="font-display text-2xl leading-tight">Solicite sua demonstração</h2>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          Conheça o Pay e os módulos Order, Cozinha, Equipe, Gestão e Lebre. A equipe confirma
+          plano, integração e condições antes da contratação.
+        </p>
         <WaitlistForm />
+        <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
+          Hoje você pode pagar em dinheiro ou na maquininha do local. Pix, Apple Pay e Google Pay
+          estão em piloto, com ativação por restaurante. Reserva V2: em breve.
+        </p>
       </div>
     </section>
   );
@@ -160,16 +177,21 @@ const FRASES: { antes: string; depois: string; scene: NomeFoto; alt: string }[] 
     scene: "cena-mesa-liberada",
     alt: "Garçom liberando a mesa com o totem da Tipe",
   },
-  { antes: "Cada um", depois: "paga o seu.", scene: "cena-amigos", alt: "Amigos dividindo a conta" },
+  {
+    antes: "Cada um",
+    depois: "paga o seu.",
+    scene: "cena-amigos",
+    alt: "Amigos dividindo a conta",
+  },
   {
     antes: "A gorjeta",
-    depois: "vai direto para a equipe.",
+    depois: "extra tem divisão transparente.",
     scene: "cena-garcom",
     alt: "Garçom sorrindo ao lado do totem da Tipe",
   },
   {
     antes: "A conta",
-    depois: "fecha sem maquininha.",
+    depois: "fica clara no celular.",
     scene: "cena-casal",
     alt: "Casal pagando pelo celular com o totem da Tipe ao lado",
   },
@@ -232,7 +254,12 @@ function Destaques() {
                     i === ativa ? "opacity-100" : "opacity-30 grayscale",
                   )}
                 >
-                  <Foto nome={f.scene} alt="" sizes="120px" className="absolute inset-0 h-full w-full" />
+                  <Foto
+                    nome={f.scene}
+                    alt=""
+                    sizes="120px"
+                    className="absolute inset-0 h-full w-full"
+                  />
                 </span>{" "}
                 {f.depois}
               </li>
@@ -279,7 +306,8 @@ const GRUPOS: { id: string; nome: string; cor: string; slides: Slide[] }[] = [
       {
         eyebrow: "Para o cliente",
         titulo: "Pague sem esperar a maquininha.",
-        texto: "QR Code na mesa, conta ao vivo e pagamento por Pix, Apple Pay ou Google Pay.",
+        texto:
+          "QR Code na mesa e conta ao vivo. Dinheiro e maquininha no local disponíveis; Pix, Apple Pay e Google Pay em piloto.",
         scene: "pix-mao",
         alt: "Cliente com o Pix aprovado no celular ao lado do totem da Tipe",
         selo: ["Pix aprovado", "Sua parte: R$ 51,97"],
@@ -312,9 +340,9 @@ const GRUPOS: { id: string; nome: string; cor: string; slides: Slide[] }[] = [
     slides: [
       {
         eyebrow: "Para a equipe",
-        titulo: "A gorjeta extra chega na hora.",
+        titulo: "A gorjeta extra tem destino claro.",
         texto:
-          "70% da gorjeta extra vai para o saldo de quem atendeu, com saque por Pix a cada quinzena.",
+          "70% da gorjeta extra vai para quem atendeu e 30% para a Tipe. Saques seguem ciclos quinzenais e confirmação do Pix.",
         scene: "gorjetas-garcom",
         alt: "Garçom vendo a gorjeta extra no celular",
         selo: ["Gorjeta extra da Mesa 12", "R$ 7,00 no seu saldo"],
@@ -340,7 +368,7 @@ const GRUPOS: { id: string; nome: string; cor: string; slides: Slide[] }[] = [
         eyebrow: "Para o caixa",
         titulo: "Cada pagamento já aparece no caixa.",
         texto:
-          "O Pix aprovado baixa a conta da mesa sozinho. Dinheiro e maquininha são confirmados com um toque.",
+          "Dinheiro e maquininha aguardam confirmação do caixa. No piloto digital, só pagamentos confirmados pelo provedor são aprovados.",
         scene: "cena-caixa",
         alt: "Caixa do restaurante com os pagamentos no painel da Tipe",
         selo: ["Mesa 08 · Bruno S.", "Pix aprovado · R$ 150,60"],

@@ -6,6 +6,9 @@ const opt = (max: number) => z.string().trim().max(max).optional().transform((v)
 const enumOpt = (vals: [string, ...string[]]) => z.enum(vals).optional().nullable();
 
 const step1Schema = z.object({
+  selectedPlan: z.enum(["essencial", "profissional", "premium", "personalizado"]).optional(),
+  submissionKey: z.string().uuid().optional(),
+  website: z.string().max(200).default(""),
   contactName: z.string().trim().min(5).max(120).refine((v) => v.split(/\s+/).length >= 2, "Informe nome e sobrenome"),
   phone: z.string().trim().regex(/^\(\d{2}\) 9\d{4}-\d{4}$/, "WhatsApp inválido"),
   email: z.string().trim().email().max(200),
@@ -34,16 +37,28 @@ export const submitLead = createServerFn({ method: "POST" })
   .handler(async ({ data }) => {
     const { enforceRate, clientIp } = await import("./security.server");
     await enforceRate(`lead:${clientIp()}`, 5, 600);
+    if (data.website) throw new Error("Não foi possível validar o envio");
     // Entrada validada e limitada por IP; gravação apenas nesta tabela.
     const { supabaseAdmin: db } = await import("@/integrations/supabase/client.server");
     const { data: row, error } = await db.from("restaurant_leads").insert({
+      submission_key: data.submissionKey ?? null,
       restaurant_name: data.restaurantName, contact_name: data.contactName, email: data.email, phone: data.phone,
       city: data.city, state: data.state, contact_role: data.role, tables_range: data.tablesRange, pdv_system: data.pdvSystem, acquirer: data.acquirer, privacy_accepted_at: new Date().toISOString(), marketing_opt_in: data.marketingOptIn,
       utm_source: data.utm_source, utm_medium: data.utm_medium, utm_campaign: data.utm_campaign, utm_content: data.utm_content, utm_term: data.utm_term,
       referred_by_code: data.ref?.toLowerCase() ?? null, origin_page: data.originPage, used_simulator: data.usedSimulator, calculator: data.calculator ?? null,
       // Interesse no Tipe Order vai nas notas do CRM para a equipe comercial ver de cara.
-      ...(data.originPage === "tipe-order" ? { notes: `Interesse: Tipe Order (estado na hora do cadastro: ${data.launchState ?? "não informado"})` } : {}),
-    } as never).select("id, ref_code, update_token").single() as unknown as { data: { id: string; ref_code: string; update_token: string } | null; error: { message: string } | null };
+      notes: [data.originPage === "tipe-order" ? `Interesse: Tipe Order (estado na hora do cadastro: ${data.launchState ?? "não informado"})` : "Interesse: demonstração Tipe Pay e ecossistema", data.selectedPlan ? `Plano de interesse: ${data.selectedPlan}` : null].filter(Boolean).join("\n"),
+    } as never).select("id, ref_code, update_token").single() as unknown as { data: { id: string; ref_code: string; update_token: string } | null; error: { message: string; code?: string } | null };
+    // A chave aleatória pertence a esta tentativa; nunca procuramos tokens por e-mail/telefone.
+    // O índice único resolve até dois requests concorrentes e não altera cadastros anteriores.
+    if (error?.code === "23505" && data.submissionKey) {
+      const { data: previous, error: retryError } = await db.from("restaurant_leads")
+        .select("id, ref_code, update_token").eq("submission_key" as never, data.submissionKey).single();
+      if (!retryError && previous) {
+        const saved = previous as unknown as { id: string; ref_code: string; update_token: string };
+        return { ok: true as const, leadId: saved.id, token: saved.update_token, refCode: saved.ref_code };
+      }
+    }
     if (error || !row) {
       console.error("lead_insert", error?.message);
       throw new Error("Falha ao registrar o contato");

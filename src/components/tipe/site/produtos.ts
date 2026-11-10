@@ -348,7 +348,7 @@ export const PRODUTOS: Produto[] = [
       ],
       [
         "Como o cliente paga o que pediu?",
-        "Pela conta da mesa, como no Tipe Pay: divide se quiser e paga com Apple Pay, Google Pay, Pix ou no estabelecimento. A gorjeta extra é opcional e vem depois, como um segundo pagamento.",
+        "Pela conta da mesa, como no Tipe Pay: divide se quiser e paga em dinheiro ou na maquininha no local. Pix, Apple Pay e Google Pay estão em piloto, com habilitação por restaurante. A gorjeta extra é opcional e vem depois, como um segundo pagamento.",
       ],
     ],
   },

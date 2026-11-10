@@ -42,7 +42,10 @@ export const Route = createFileRoute("/")({
 function LandingPage() {
   const previaHero = usePreviaHeroVideo();
   return (
-    <SitePage extra={<LazyLebreAssistant />}>
+    <SitePage
+      initialTheme={TEM_VIDEO_HERO || previaHero ? "escuro" : "claro"}
+      extra={<LazyLebreAssistant />}
+    >
       <span id="principal" aria-hidden />
       {TEM_VIDEO_HERO || previaHero ? (
         <>
@@ -103,6 +106,10 @@ const FAQ: { label: string; faqs: [string, string][] }[] = [
       [
         "Funciona com o meu PDV?",
         "Você pode usar a Tipe completa, lançando os pedidos pelo Lançamento TIPE no próprio painel, ou enviar mesas e itens pela API TIPE. Conectores para outros PDVs estão em desenvolvimento, com integração assistida pela nossa equipe.",
+      ],
+      [
+        "A demonstração ativa cobranças ou reservas?",
+        "Não. Os simuladores usam dados de exemplo e não movimentam dinheiro. Enviar o formulário solicita contato da equipe, sem contratação automática. O Tipe Order é um módulo adicional do Pay; Pix e carteiras dependem da habilitação do restaurante. O Tipe Reserva V2 está em breve e não recebe reservas reais por esta demonstração.",
       ],
       [
         "Quanto tempo leva para começar?",
