@@ -2,21 +2,9 @@ import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { TipeLogo } from "@/components/tipe/Logo";
 import { cn } from "@/lib/utils";
-import lebreOla from "@/assets/lebre/rosto-ola.webp";
-import lebreDormindo from "@/assets/lebre/rosto-dormindo.webp";
-import lebrePensando from "@/assets/lebre/rosto-pensando.webp";
-import lebrePiscando from "@/assets/lebre/rosto-piscando.webp";
-import lebreFeliz from "@/assets/lebre/rosto-feliz.webp";
+import { MascoteVivo } from "@/components/tipe/site/MascoteVivo";
 
 export type HumorLebre = "ola" | "senha" | "pensando" | "enviado" | "feliz";
-
-const LEBRE: Record<HumorLebre, string> = {
-  ola: lebreOla,
-  senha: lebreDormindo,
-  pensando: lebrePensando,
-  enviado: lebrePiscando,
-  feliz: lebreFeliz,
-};
 
 /**
  * Login "cartão que vira" (opção A escolhida pelo Roberto em 09/11): um cartão central que
@@ -49,25 +37,12 @@ export function CartaoConta({
           <div className="relative w-full max-w-[27rem] [perspective:1600px]">
             {/* A lebre espiando: abaixa um pouco e fecha os olhos quando a senha é digitada */}
             <div
-              aria-hidden
               className={cn(
                 "absolute left-1/2 top-0 z-10 w-32 -translate-x-1/2 -translate-y-[78%] transition-transform duration-500 ease-[cubic-bezier(.22,1,.36,1)] motion-reduce:transition-none",
                 humor === "senha" && "-translate-y-[66%]",
               )}
             >
-              {Object.entries(LEBRE).map(([k, src]) => (
-                <img
-                  key={k}
-                  src={src}
-                  alt=""
-                  width={512}
-                  height={512}
-                  className={cn(
-                    "col-start-1 row-start-1 w-full select-none transition-opacity duration-200",
-                    k === humor ? "relative opacity-100" : "absolute inset-0 opacity-0",
-                  )}
-                />
-              ))}
+              <MascoteVivo fecharOlhos={humor === "senha"} className="w-full" />
             </div>
             <div
               className={cn(
