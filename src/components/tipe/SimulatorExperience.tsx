@@ -110,20 +110,20 @@ const formatPortion = (value: number) => {
 
 const METHOD_DETAILS: Record<Method, { label: string; description: string; Icon: typeof QrCode }> =
   {
-    pix: { label: "Pix", description: "Confirmação simulada na hora", Icon: QrCode },
+    pix: { label: "Pix", description: "Em piloto · aprovado na hora na simulação", Icon: QrCode },
     apple_pay: {
       label: "Apple Pay",
-      description: "Um toque no iPhone, aprovado na simulação",
+      description: "Em piloto · um toque no iPhone, aprovado na simulação",
       Icon: Smartphone,
     },
     google_pay: {
       label: "Google Pay",
-      description: "Um toque no Android, aprovado na simulação",
+      description: "Em piloto · um toque no Android, aprovado na simulação",
       Icon: WalletCards,
     },
     at_establishment: {
       label: "Pagar no estabelecimento",
-      description: "Dinheiro ou maquininha",
+      description: "Dinheiro ou maquininha, confirmado pelo caixa",
       Icon: HandCoins,
     },
   };
@@ -1163,7 +1163,8 @@ function PaymentScreen<M extends Method | Exclude<Method, "at_establishment">>({
   cashReceived?: string;
   setCashReceived?: (value: string) => void;
 }) {
-  // Restaurante fictício: Pix, Apple Pay e Google Pay são aprovados na hora, sem cobrança real.
+  // Restaurante fictício: Pix, Apple Pay e Google Pay (em piloto no produto) são aprovados na hora, sem cobrança real.
+  // REGRA: quando o fluxo real da plataforma mudar, este simulador deve mudar junto (ver docs/simuladores.md).
   const methods = (Object.keys(METHOD_DETAILS) as Method[]).filter(
     (item) => allowEstablishment || item !== "at_establishment",
   ) as M[];
