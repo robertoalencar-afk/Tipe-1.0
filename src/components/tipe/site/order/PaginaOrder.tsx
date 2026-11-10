@@ -232,7 +232,7 @@ const PASSOS: {
   {
     n: "04",
     t: "Pague",
-    d: "Na aba Pagar está a conta com tudo o que foi pedido. Apple Pay, Google Pay, Pix ou no estabelecimento.",
+    d: "Na aba Pagar está a conta com tudo o que foi pedido. Dinheiro ou maquininha no local; Pix, Apple Pay e Google Pay em piloto.",
     icone: Wallet,
     tela: "order-conta",
     alt: "Conta da Mesa 12 com o pastel de camarão, o serviço e o botão Pagar R$ 74,80 (dados de exemplo)",
