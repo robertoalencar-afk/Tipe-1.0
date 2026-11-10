@@ -661,8 +661,8 @@ export const PRODUTOS: Produto[] = [
   {
     slug: "ai",
     grupo: "Na gestão",
-    nome: "Tipe AI",
-    resumo: "A Lebre resume o salão e faz o que você pedir, com confirmação",
+    nome: "Lebre",
+    resumo: "A inteligência da Tipe: resume o salão e faz o que você pedir, com confirmação",
     status: "disponivel",
     icone: Bot,
     foto: "ai",
@@ -686,7 +686,7 @@ export const PRODUTOS: Produto[] = [
         { painel: "lebre-acao", legenda: "Nada muda sem o seu Confirmar." },
       ],
     },
-    rotulo: "Tipe AI",
+    rotulo: "Lebre, a inteligência da Tipe",
     titulo: "Você cuida do salão. A Lebre cuida das respostas.",
     texto:
       "Pergunte em português, digitando ou falando, como está o salão agora. E peça o que precisa: abrir uma mesa, pausar um item, convidar um garçom. A Lebre prepara e você confirma.",

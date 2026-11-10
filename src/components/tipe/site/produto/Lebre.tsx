@@ -1,5 +1,5 @@
 /**
- * Conversas da Lebre (Tipe AI) desenhadas em HTML, no lugar de fotos repetidas.
+ * Conversas da Lebre desenhadas em HTML, no lugar de fotos repetidas.
  * Os textos seguem o que a Lebre faz de verdade no painel (src/lib/tipe/lebre.functions.ts):
  * resume o salão (mesas com conta aberta, pagamentos esperando o caixa, equipe),
  * propõe ações que só acontecem depois do "Confirmar" (mesas, equipe e cardápio),
@@ -297,7 +297,7 @@ const LEGENDA: Record<ConversaId, string> = {
   anexo: "Lê foto e PDF",
 };
 
-/** Palco escuro com a conversa, para as abas e o mosaico da página Tipe AI. */
+/** Palco escuro com a conversa, para as abas e o mosaico da página da Lebre. */
 export function PainelLebre({ id, className }: { id: ConversaId; className?: string }) {
   return (
     <div

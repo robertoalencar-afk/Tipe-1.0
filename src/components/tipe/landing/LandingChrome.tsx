@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 import { useHeaderEscondido } from "./motion";
 
 const NAV = [
-  { href: "/produtos/ai", label: "Tipe AI" },
+  { href: "/produtos/ai", label: "Lebre" },
   { href: "/integracoes", label: "Integrações" },
   { href: "/precos", label: "Preços" },
 ] as const;
