@@ -1,3 +1,4 @@
+import { ImportarCardapio } from "./ImportarCardapio";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -58,7 +59,6 @@ import { transferTable } from "@/lib/tipe/admin.functions";
 import {
   getPdvIntegration,
   getTopItems,
-  importMenuCsv,
 } from "@/lib/tipe/pdv-integrations.functions";
 import { PixGarcons } from "@/components/tipe/PixGarcons";
 import { SegurancaConta } from "@/components/tipe/SegurancaConta";
@@ -1731,33 +1731,6 @@ function Cardapio({ slug, pdv, onDone, midia }: { slug: string; pdv: PdvData; on
   const salvarFoto = useServerFn(saveFotoItem);
   const saveItem = useServerFn(saveMenuItem);
   const saveCat = useServerFn(saveCategory);
-  const importCsv = useServerFn(importMenuCsv);
-  async function importar(file: File) {
-    const texto = await file.text();
-    const linhas = texto
-      .split(/\r?\n/)
-      .map((l) => l.trim())
-      .filter(Boolean);
-    const sep = (linhas[0] ?? "").includes(";") ? ";" : ",";
-    const rows = linhas
-      .filter((l, i) => !(i === 0 && /categoria/i.test(l)))
-      .map((l) => {
-        const [category = "", code = "", name = "", price = "0", ativo = "sim"] = l
-          .split(sep)
-          .map((x) => x.trim().replace(/^"|"$/g, ""));
-        return {
-          category,
-          code,
-          name,
-          price: Number(price.replace(/\./g, "").replace(",", ".")) || Number(price) || 0,
-          available: !/^(n|nao|não|0|false|inativo)$/i.test(ativo),
-        };
-      });
-    await run(async () => {
-      const r = await importCsv({ data: { slug, rows } });
-      toast.message(`${r.imported} itens importados`);
-    }, "Cardápio importado");
-  }
   const vazio = {
     id: undefined as string | undefined,
     categoryId: pdv.categories[0]?.id ?? null,
@@ -1792,7 +1765,19 @@ function Cardapio({ slug, pdv, onDone, midia }: { slug: string; pdv: PdvData; on
   });
   return (
     <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-      <div>
+      <details className="surface-card p-4 sm:p-5 lg:col-span-2">
+        <summary className="cursor-pointer font-semibold">Como colocar uma foto com efeito 3D</summary>
+        <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
+          <li>Fotografe o prato com boa luz, inteiro e com espaço ao redor. Envie a foto no produto abaixo ou escolha no banco de imagens.</li>
+          <li>Prepare um mapa de profundidade da mesma foto, no mesmo enquadramento: branco indica o que está perto e preto o fundo. Você pode experimentar a geração no demonstrador do Tipe Order.</li>
+          <li>Ao lado da foto do produto, envie esse arquivo em “Mapa 3D (opcional)”. O selo 3D confirma que foto e mapa estão salvos.</li>
+          <li>Abra o cardápio do cliente e toque no prato para conferir o movimento. Sem mapa ou sem suporte ao efeito, a foto continua aparecendo normalmente.</li>
+        </ol>
+        <p className="mt-3 text-sm text-muted-foreground">Ao trocar a foto, envie um novo mapa. O efeito cria profundidade na foto; não é um modelo que gira em 360°. As imagens enviadas ficam públicas: use apenas material autorizado para o cardápio.</p>
+        <a href="/produtos/order" target="_blank" rel="noreferrer" className="mt-3 inline-block text-sm underline underline-offset-4">Abrir demonstrador do Tipe Order</a>
+      </details>
+      <div className="space-y-6">
+        <BancoImagens slug={slug} podeDono itens={pdv.items.map((i) => ({ id: i.id, name: i.name }))} onAplicada={() => { void qcM.invalidateQueries({ queryKey: ["midia", slug] }); onDone(); }} />
         {pdv.categories.map((cat) => (
           <section key={cat.id} className="mb-4">
             <h3 className="mb-2 text-sm font-semibold text-muted-foreground">{cat.name}</h3>
@@ -1941,22 +1926,7 @@ function Cardapio({ slug, pdv, onDone, midia }: { slug: string; pdv: PdvData; on
             )}
           </div>
         </form>
-        <div className="space-y-2 surface-card p-4 sm:p-5">
-          <h3 className="font-display font-semibold">Importar planilha CSV</h3>
-          <p className="text-xs text-muted-foreground">
-            Colunas: categoria; código; item; preço; ativo (sim/não). Itens com o mesmo código são
-            atualizados.
-          </p>
-          <Input
-            type="file"
-            accept=".csv,text/csv"
-            onChange={(e) => {
-              const f = e.target.files?.[0];
-              if (f) void importar(f);
-              e.currentTarget.value = "";
-            }}
-          />
-        </div>
+        <ImportarCardapio slug={slug} onDone={onDone} />
         <form
           className="flex gap-2 surface-card p-4 sm:p-5"
           onSubmit={async (e) => {
