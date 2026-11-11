@@ -761,6 +761,14 @@ export const PRODUTOS: Produto[] = [
         "Não. Ela responde e propõe. A ação só acontece quando você toca em Confirmar, e cada uma fica registrada.",
       ],
       [
+        "A Lebre tem memória?",
+        "Tem. Ela aprende com cada restaurante e com cada pessoa da equipe: como vocês chamam os pratos, qual mesa é a da varanda, como você prefere as respostas. Diga \"lembre que...\" para ensinar, \"o que você lembra?\" para ver e \"esqueça...\" para apagar. A memória de um restaurante nunca aparece para outro.",
+      ],
+      [
+        "A Lebre guarda dados sensíveis?",
+        "Não. Antes de guardar qualquer coisa, a Lebre barra CPF, CNPJ, número de cartão, senha, e-mail, telefone, chave Pix, endereço, saúde e salário. Ela lembra preferências e fatos da operação, nunca dados pessoais.",
+      ],
+      [
         "E se o limite do dia acabar?",
         "A Lebre avisa que o limite do dia foi atingido e volta a responder no dia seguinte.",
       ],

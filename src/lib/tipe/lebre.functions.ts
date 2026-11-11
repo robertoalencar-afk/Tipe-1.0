@@ -39,6 +39,7 @@ Tipe Cozinha: tela da cozinha e do bar (KDS) com os pedidos por ordem de chegada
 Tipe Equipe: área do garçom com gorjetas, saldo e avaliações.
 Tipe Gestão: painel do salão, caixa e relatórios em tempo real.
 Lebre, a inteligência da Tipe (é você; antes se chamava Tipe AI): resume o salão para o dono, responde dúvidas e executa pedidos simples no painel, como mesas, equipe e cardápio, sempre com confirmação. Também lê fotos e PDFs, como um cardápio, e entende áudio.
+Memória da Lebre: no painel, ela aprende com cada restaurante e com cada pessoa da equipe (nomes dos pratos, qual mesa é a varanda, como a pessoa gosta das respostas). Não guarda dado sensível: CPF, CNPJ, cartão, senha, e-mail, telefone, chave Pix, endereço, saúde e salário. A memória de um restaurante nunca aparece para outro, e cada pessoa pode ver e apagar a sua dizendo "o que você lembra?" ou "esqueça...".
 Tipe Reserva: reserva, lista de espera e volta do cliente. Ainda está em breve; não diga que já está disponível.
 Nomes antigos: Tipe Kitchen hoje é Tipe Cozinha, Tipe Staff é Tipe Equipe, Tipe Restaurant é Tipe Gestão, Tipe Guest é Tipe Reserva e Tipe AI é a Lebre. Use sempre os nomes novos.
 PDV: a TIPE tem PDV próprio, o Lançamento TIPE, para lançar os pedidos no próprio painel sem outro sistema. Quem já usa um PDV pode enviar mesas e itens pela API TIPE ou usar os conectores (Saipos, Consumer, Linx, TOTVS Chef e outros), com integração assistida e baixa automática do item pago. A equipe confirma os detalhes do sistema de cada restaurante.
@@ -190,6 +191,33 @@ export const askRestaurantLebre = createServerFn({ method: "POST" })
     const contextText = `Restaurante: ${restaurant.name}. Cargo do usuário: ${roleNames.join(", ")}. Mesas: ${tableList}. Mesas com conta aberta: ${busyTables}. Mesas com pagamento presencial aguardando confirmação: ${pendingTables}. Garçons: ${waiterList}. Pagamentos pendentes: ${pending.length}. Valor aproximado em aberto, sem taxa: R$ ${openValue.toFixed(2)}. PDV: ${restaurant.pos_mode === "external" ? `externo, ${restaurant.pos_provider ?? "não informado"}` : "TIPE"}.`;
     // Consultas rápidas e comandos claros são resolvidos sem IA e sem gastar a cota do dia.
     let raw: string | null = null;
+    // Memória: pedidos diretos ("lembre que...", "o que você lembra?", "esqueça...") sem IA.
+    const memoria = await import("./lebre-memoria.server");
+    const { lerPedidoMemoria, motivoSensivel } = await import("./lebre-memoria");
+    const pedidoMem = data.files?.length ? null : lerPedidoMemoria(data.question);
+    if (pedidoMem?.tipo === "listar") {
+      const m = await memoria.carregarMemorias(restaurant.id, context.userId);
+      if (!m.restaurante.length && !m.usuario.length) return { answer: 'Ainda não guardei nada. Para eu lembrar, diga "lembre que" e o que for, por exemplo: "lembre que a mesa 10 é a da varanda".' };
+      const linhas = [
+        ...(m.restaurante.length ? ["**Do restaurante**", ...m.restaurante.map((t) => `- ${t}`)] : []),
+        ...(m.usuario.length ? ["**Só sobre você**", ...m.usuario.map((t) => `- ${t}`)] : []),
+      ];
+      return { answer: `${linhas.join("\n")}\n\nPara apagar, diga "esqueça" e o assunto.` };
+    }
+    if (pedidoMem?.tipo === "esquecer") {
+      const n = await memoria.esquecerMemorias({ restaurantId: restaurant.id, userId: context.userId, podeRestaurante: canManage, pessoal: pedidoMem.tudo ? pedidoMem.pessoal : false, ...(pedidoMem.tudo ? {} : { trecho: pedidoMem.trecho }) });
+      return { answer: n ? `Pronto, esqueci ${n === 1 ? "1 lembrança" : `${n} lembranças`}.` : "Não achei nada com isso na minha memória." };
+    }
+    if (pedidoMem?.tipo === "lembrar") {
+      const motivo = motivoSensivel(pedidoMem.texto);
+      if (motivo) return { answer: `Isso eu não guardo: parece ${motivo}. Dado sensível fica fora da minha memória.` };
+      const pessoal = pedidoMem.pessoal || !canManage;
+      const salvo = await memoria.salvarMemoria({ restaurantId: restaurant.id, userId: context.userId, pessoal, texto: pedidoMem.texto });
+      if (salvo === "repetida") return { answer: "Isso eu já sabia. Segue anotado." };
+      if (!salvo) return { answer: "Não consegui guardar isso agora. Tente de novo em instantes." };
+      return { answer: `Anotado${pessoal ? " só para você" : " para todo o restaurante"}: ${salvo}` };
+    }
+    const lembrancas = await memoria.carregarMemorias(restaurant.id, context.userId);
     if (!data.files?.length) {
       const { lerComando, respostaSalao } = await import("./lebre-regras");
       const salao = respostaSalao(data.question, {
@@ -227,15 +255,23 @@ Você pode PROPOR estas ações (o sistema mostra um botão para o usuário conf
 - launch_order {number, items: [{name, qty, notes?}]}: lançar itens do cardápio na conta de uma mesa ("lança 2 chopp e 1 picanha na mesa 4"). Use os nomes do cardápio abaixo; qty é inteiro; notes é observação curta (ex.: "sem cebola")
 ${canManage ? "" : canOperate ? "Este usuário só pode propor open_table, launch_order e close_table. Para cadastros, explique que só o dono pode." : "Este usuário NÃO pode alterar nada. Nunca proponha ações."}
 Se faltar dado obrigatório (ex.: número da mesa ou e-mail incompleto), pergunte em vez de propor.
-Responda SEMPRE apenas com JSON: {"reply": "texto curto", "action": null ou {"action": "...", ...campos}}.
+Responda SEMPRE apenas com JSON: {"reply": "texto curto", "action": null ou {"action": "...", ...campos}, "lembrar": null ou {"para": "...", "texto": "..."}}.
 Contexto: ${contextText}
 Cardápio: ${menuText}.
+Memória do restaurante (use quando ajudar, sem citar que é memória): ${lembrancas.restaurante.join("; ") || "nada ainda"}.
+Sobre este usuário: ${lembrancas.usuario.join("; ") || "nada ainda"}.
+Aprenda: se o usuário contar uma preferência ou um fato duradouro da operação (como chamam um prato, qual mesa é a varanda, como gosta das respostas), inclua no JSON "lembrar": {"para": "restaurante" ou "usuario", "texto": "frase curta"}. Nunca lembre CPF, cartão, senha, e-mail, telefone, endereço, saúde, salário ou qualquer dado pessoal sensível; nesses casos use "lembrar": null.
 ${history ? `Conversa recente:\n${history}` : ""}
 Se houver anexos (foto, comprovante, cardápio ou PDF), leia com atenção, descreva só o que realmente aparece e use isso para responder ou propor ações.`,
       data.question,
       data.files,
     );
     const parsed = parseIntent(raw);
+    const aprender = (parsed as { lembrar?: { para?: unknown; texto?: unknown } } | null)?.lembrar;
+    if (aprender && typeof aprender.texto === "string") {
+      // Aprende em silêncio; o filtro de dado sensível roda dentro de salvarMemoria.
+      await memoria.salvarMemoria({ restaurantId: restaurant.id, userId: context.userId, pessoal: aprender.para !== "restaurante" || !canManage, texto: aprender.texto }).catch(() => null);
+    }
     const answer = parsed && typeof parsed.reply === "string" && parsed.reply.trim() ? parsed.reply.trim() : parsed ? "Certo." : raw;
     if (!canOperate) return { answer };
     const normalize = (value: unknown) => {
