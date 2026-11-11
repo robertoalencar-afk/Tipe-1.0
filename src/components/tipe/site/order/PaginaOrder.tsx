@@ -42,7 +42,6 @@ import { ListaDuvidas, Relacionados } from "../ProdutoPagina";
 import { FormularioOrder } from "./FormularioOrder";
 import { SimuladorMultiformato } from "./SimuladorMultiformato";
 import { EscolhaAtendimento } from "./EscolhaAtendimento";
-import { FuncionalidadesOrder } from "./FuncionalidadesOrder";
 import { type Modalidade } from "@/lib/tipe/order/modalidades";
 import { FAQ_ORDER } from "./faq";
 import { CriarPratoDemo } from "./CriarPratoDemo";
@@ -420,7 +419,6 @@ export function PaginaOrder({ p, estado }: { p: Produto; estado: EstadoLancament
       <CardapioStories />
       <CriarPratoDemo />
       <TudoConectado />
-      <FuncionalidadesOrder />
       <ListaDuvidas faq={faq} />
       <Contato estado={estado} />
       <Relacionados p={p} />
