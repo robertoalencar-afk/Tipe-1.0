@@ -937,6 +937,7 @@ export type Database = {
           founder_price: number | null
           full_price: number | null
           id: string
+          included_modules: string[]
           max_tables: number | null
           name: string
           position: number
@@ -947,6 +948,7 @@ export type Database = {
           founder_price?: number | null
           full_price?: number | null
           id: string
+          included_modules?: string[]
           max_tables?: number | null
           name: string
           position?: number
@@ -957,6 +959,7 @@ export type Database = {
           founder_price?: number | null
           full_price?: number | null
           id?: string
+          included_modules?: string[]
           max_tables?: number | null
           name?: string
           position?: number
@@ -1283,6 +1286,72 @@ export type Database = {
         }
         Relationships: []
       }
+      restaurant_module_events: {
+        Row: {
+          actor_id: string | null
+          actor_kind: string
+          created_at: string
+          from_status: string | null
+          id: string
+          module: string
+          reason: string | null
+          restaurant_id: string
+          to_status: string
+        }
+        Insert: {
+          actor_id?: string | null
+          actor_kind: string
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          module: string
+          reason?: string | null
+          restaurant_id: string
+          to_status: string
+        }
+        Update: {
+          actor_id?: string | null
+          actor_kind?: string
+          created_at?: string
+          from_status?: string | null
+          id?: string
+          module?: string
+          reason?: string | null
+          restaurant_id?: string
+          to_status?: string
+        }
+        Relationships: []
+      }
+      restaurant_modules: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          created_at: string
+          module: string
+          reason: string | null
+          restaurant_id: string
+          status: string
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          created_at?: string
+          module: string
+          reason?: string | null
+          restaurant_id: string
+          status: string
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          created_at?: string
+          module?: string
+          reason?: string | null
+          restaurant_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
       restaurant_pagarme_accounts: {
         Row: {
           connected_at: string
@@ -1401,11 +1470,16 @@ export type Database = {
       restaurant_subscriptions: {
         Row: {
           billing_period: string
+          cancel_reason: string | null
+          canceled_at: string | null
           created_at: string
           current_period_end: string | null
           custom_table_limit: number | null
+          exempt: boolean
+          exempt_reason: string | null
           founder_price: boolean
           founder_price_until: string | null
+          past_due_since: string | null
           plan: string
           provider: string
           provider_customer_id: string | null
@@ -1417,6 +1491,11 @@ export type Database = {
         }
         Insert: {
           billing_period?: string
+          cancel_reason?: string | null
+          canceled_at?: string | null
+          exempt?: boolean
+          exempt_reason?: string | null
+          past_due_since?: string | null
           created_at?: string
           current_period_end?: string | null
           custom_table_limit?: number | null
@@ -1433,6 +1512,11 @@ export type Database = {
         }
         Update: {
           billing_period?: string
+          cancel_reason?: string | null
+          canceled_at?: string | null
+          exempt?: boolean
+          exempt_reason?: string | null
+          past_due_since?: string | null
           created_at?: string
           current_period_end?: string | null
           custom_table_limit?: number | null
@@ -1527,6 +1611,7 @@ export type Database = {
           id: string
           name: string
           onboarding_step: string
+          order_session_mode: string
           opening_hours: string | null
           phone: string | null
           pos_mode: string
@@ -1546,6 +1631,7 @@ export type Database = {
           id?: string
           name: string
           onboarding_step?: string
+          order_session_mode?: string
           opening_hours?: string | null
           phone?: string | null
           pos_mode?: string
@@ -1565,6 +1651,7 @@ export type Database = {
           id?: string
           name?: string
           onboarding_step?: string
+          order_session_mode?: string
           opening_hours?: string | null
           phone?: string | null
           pos_mode?: string
@@ -1713,6 +1800,50 @@ export type Database = {
           },
         ]
       }
+      subscription_events: {
+        Row: {
+          actor_id: string | null
+          created_at: string
+          detail: string | null
+          from_plan: string | null
+          from_status: string | null
+          id: string
+          restaurant_id: string
+          to_plan: string | null
+          to_status: string
+        }
+        Insert: {
+          actor_id?: string | null
+          created_at?: string
+          detail?: string | null
+          from_plan?: string | null
+          from_status?: string | null
+          id?: string
+          restaurant_id: string
+          to_plan?: string | null
+          to_status: string
+        }
+        Update: {
+          actor_id?: string | null
+          created_at?: string
+          detail?: string | null
+          from_plan?: string | null
+          from_status?: string | null
+          id?: string
+          restaurant_id?: string
+          to_plan?: string | null
+          to_status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "subscription_events_restaurant_id_fkey"
+            columns: ["restaurant_id"]
+            isOneToOne: false
+            referencedRelation: "restaurants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       table_bill_items: {
         Row: {
           created_at: string
@@ -1807,6 +1938,75 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      table_order_devices: {
+        Row: {
+          created_at: string
+          id: string
+          session_id: string
+          token_hash: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          session_id: string
+          token_hash: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          session_id?: string
+          token_hash?: string
+        }
+        Relationships: []
+      }
+      table_order_sessions: {
+        Row: {
+          bill_session: string
+          close_reason: string | null
+          closed_at: string | null
+          closed_by: string | null
+          expires_at: string
+          failed_attempts: number
+          id: string
+          opened_at: string
+          opened_by: string | null
+          requires_code: boolean
+          restaurant_id: string
+          short_code: string | null
+          table_number: string
+        }
+        Insert: {
+          bill_session: string
+          close_reason?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          expires_at?: string
+          failed_attempts?: number
+          id?: string
+          opened_at?: string
+          opened_by?: string | null
+          requires_code?: boolean
+          restaurant_id: string
+          short_code?: string | null
+          table_number: string
+        }
+        Update: {
+          bill_session?: string
+          close_reason?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          expires_at?: string
+          failed_attempts?: number
+          id?: string
+          opened_at?: string
+          opened_by?: string | null
+          requires_code?: boolean
+          restaurant_id?: string
+          short_code?: string | null
+          table_number?: string
+        }
+        Relationships: []
       }
       table_payment_requests: {
         Row: {
@@ -2140,6 +2340,30 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      claim_table_ordering: {
+        Args: { p_bill_session: string; p_code: string; p_slug: string; p_table: string }
+        Returns: Json
+      }
+      close_table_ordering: {
+        Args: { p_slug: string; p_table: string }
+        Returns: undefined
+      }
+      open_table_ordering: {
+        Args: { p_slug: string; p_table: string }
+        Returns: Json
+      }
+      restaurant_has_module: {
+        Args: { p_module: string; p_rid: string }
+        Returns: boolean
+      }
+      set_restaurant_module: {
+        Args: { p_actor: string | null; p_actor_kind: string; p_module: string; p_reason: string | null; p_rid: string; p_status: string }
+        Returns: Json
+      }
+      table_ordering_block: {
+        Args: { p_device: string | null; p_rid: string; p_table: string }
+        Returns: string | null
+      }
       archive_and_reopen_table: {
         Args: { p_slug: string; p_table: string }
         Returns: undefined
@@ -2224,6 +2448,7 @@ export type Database = {
       pdv_customer_order: {
         Args: {
           p_customer: string
+          p_device?: string
           p_items: Json
           p_request_id: string
           p_slug: string
@@ -2363,6 +2588,9 @@ export type Database = {
         Returns: undefined
       }
       restaurant_table_limit: { Args: { p_rid: string }; Returns: number }
+      restaurant_access: { Args: { p_rid: string }; Returns: Json }
+      restaurant_can_operate: { Args: { p_rid: string }; Returns: boolean }
+      my_restaurant_access: { Args: { p_rid: string }; Returns: Json }
       signup_restaurant: {
         Args: {
           p_address: string

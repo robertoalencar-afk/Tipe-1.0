@@ -1,0 +1,136 @@
+/* ---------- render(t) ---------- */
+// V6: cenas mais longas (cada lebre fica ~3 s na tela), sem a cena dos três amigos e com fusão entre as lebres.
+const T_WIPE0=3.9, T_WIPE1=4.7, T_H2=7.6, T_PH=9.7, T_IRIS=12.95, T_LOOP=14.35;
+
+function render(tReal){
+  const t = tReal >= T_LOOP ? 0 : tReal;   // na volta, a cena base é o primeiro quadro
+
+  // --- tartaruga ---
+  const pT = t / T_WIPE1;
+  const sT = lerp(L.T.s0, L.T.s1, IO(clamp(pT))*0.35 + clamp(pT)*0.65);
+  place($('pT'), 'T-cliente', sT, L.T.ax, L.T.ay, lerp(L.T.sx0, L.T.sx1, clamp(pT)), L.T.sy);
+  if (t < T_WIPE1) drawRig('pT', 'T-cliente', t);
+
+  // a troca de base acontece no meio do wipe (tela coberta)
+  const wp = IO(P(t, T_WIPE0, T_WIPE1));
+  const swapped = t >= T_WIPE0 + (T_WIPE1-T_WIPE0)*0.5;
+  show($('scT'), swapped ? 0 : 1);
+
+  // --- lebres ---
+  const hk=[['scH1','pH1','H-cliente',L.H1, T_WIPE0+0.4, T_H2+0.5],
+            ['scH3','pH3','H-gorjeta',L.H3, T_H2, T_PH+0.6]];
+  hk.forEach(([sc,img,key,c,a,b],i)=>{
+    const local = P(t, a, b);
+    const s = lerp(c.s0, c.s1, E(local));
+    place($(img), key, s, c.ax, c.ay, lerp(c.sx0, c.sx1, local), c.sy);
+    let o;
+    // V6: da lebre do celular para a da gorjeta, fusão com desfoque curto (0,5 s): a cena que
+    // sai desfoca e a que entra foca, então as duas lebres nunca aparecem nítidas ao mesmo tempo.
+    const q = IO(P(t, T_H2, T_H2+0.5));
+    if (i===0) o = swapped && t < T_H2+0.5 ? 1 : 0;
+    else o = q;
+    if (t >= b) o = 0;
+    const blur = i===0 ? q*16 : (1-q)*16;
+    $(sc).style.filter = blur > 0.05 ? `blur(${blur.toFixed(2)}px)` : 'none';
+    show($(sc), o);
+    if (o > 0) drawRig(img, key, t);
+  });
+
+  // --- textos tartaruga ---
+  fadeEl($('eb1'), t, 0.05, 0.6, null);
+  revealWords(w1, t, 0.3, 0.2, 0.7, null);
+  const stretch = E(P(t, 1.9, 3.8));
+  dem.style.letterSpacing = lerp(-0.045, 0.045, stretch).toFixed(4)+'em';
+  const mins = 14 + Math.floor(clamp(t-0.9,0,9)/0.8);
+  $('st1').textContent = `Esperando a conta · há ${Math.min(mins,17)} min`;
+  fadeEl($('st1'), t, 0.9, 1.5, null);
+  const t1vis = swapped ? 0 : 1;
+  if(!t1vis) ['eb1','cap1','st1'].forEach(id=>show($(id),0)); else show($('cap1'),1);
+
+  // --- textos lebre ---
+  const outH=[T_PH-0.05, T_PH+0.25];
+  fadeEl($('eb2'), t, 4.6, 5.0, outH);
+  revealWords(w2, t, 4.65, 0.08, 0.6, outH);
+  horaUl.style.width = (E(P(t,5.4,5.95))*100).toFixed(2)+'%';
+  fadeEl($('st2'), t, 5.1, 5.5, outH);
+
+  // --- barra de progresso ---
+  const bf=$('barFill');
+  if (!swapped){ bf.style.background='rgba(2,30,52,.42)'; bf.style.width=(clamp(t/T_WIPE0)*13).toFixed(3)+'%'; }
+  else { bf.style.background='#0FC9BD'; bf.style.width=(E(P(t,4.75,T_PH))*100).toFixed(3)+'%'; }
+  $('bar').style.background='rgba(2,30,52,.08)';
+  show($('bar'), 1-IO(P(t, T_PH, T_PH+0.3)));
+
+  // logo no topo
+  show($('logoTop'), (1-IO(P(t, T_PH, T_PH+0.3))) * E(P(t,0.1,0.8)));
+
+  // --- celular ---
+  const pin = IO(P(t, T_PH, T_PH+0.32));
+  show($('scP'), t < T_IRIS+0.8 ? pin : 0);
+  const rise = E(P(t, T_PH+0.1, T_PH+1.0));
+  const floatY = Math.sin((t-T_PH)*1.6)*4*rise;
+  $('phoneWrap').style.transform = `translateY(${((1-rise)*H*0.75 + floatY).toFixed(2)}px) rotate(${((1-rise)*-7).toFixed(3)}deg)`;
+  const nav = E(P(t, 10.9, 11.35)) + E(P(t, 11.7, 12.15));
+  ['s0','s1','s2'].forEach((id,i)=>{
+    const x=(i-nav)*100;
+    $(id).style.transform=`translateX(${x.toFixed(3)}%)`;
+    $(id).style.visibility = Math.abs(x)<100 ? 'visible':'hidden';
+  });
+  // toques
+  const tap=$('tap'); const taps=[[10.57,0.48,0.524],[11.43,0.5,0.899]];
+  let tapO=0; for(const [tt,x,y] of taps){ const q=P(t,tt,tt+0.42); if(q>0&&q<1){
+    const sz=lerp(scrW*0.10,scrW*0.24,E(q)); tap.style.width=tap.style.height=sz+'px';
+    tap.style.left=(x*scrW)+'px'; tap.style.top=(y*scrH)+'px'; tapO=Math.sin(q*Math.PI); } }
+  show(tap, tapO);
+  // selo de aprovado
+  const bp = P(t, 12.15, 12.6);
+  $('badge').style.transform = `scale(${bp>0?backOut(bp).toFixed(4):0})`;
+  show($('badge'), bp>0?1:0);
+  $('chk').setAttribute('stroke-dashoffset', ((1-E(P(t,12.33,12.75)))*1.1).toFixed(4));
+  const rp = P(t, 12.27, 12.95);
+  $('ring').style.transform = `scale(${lerp(1,2.8,E(rp)).toFixed(4)})`;
+  show($('ring'), rp>0 && rp<1 ? (1-rp)*0.9 : 0);
+  // textos do celular
+  fadeEl($('eb3'), t, T_PH+0.25, T_PH+0.7, null);
+  const act = t<10.9?0 : t<11.7?1 : 2;
+  w3.forEach((w,i)=>{
+    const p=E(P(t, T_PH+0.32+i*0.09, T_PH+0.32+i*0.09+0.6));
+    const on = i===act;
+    const k = E(P(t, [0,10.9,11.7][i], [0,10.9,11.7][i]+0.3));
+    const lvl = i===0 ? (act===0?1:0.22) : (i<=act ? lerp(0.22,1,k) : 0.22);
+    const lv = (i===0 && act>0) ? lerp(1,0.22,E(P(t,10.9,11.2))) : (i===1 && act>1) ? lerp(1,0.22,E(P(t,11.7,12))) : lvl;
+    w.style.color = (i===2 && act===2) ? `rgba(2,30,52,1)` : `rgba(2,30,52,${lv.toFixed(3)})`;
+    w.style.opacity = p.toFixed(3);
+    w.style.transform = `translateY(${((1-p)*0.4).toFixed(3)}em)`;
+    w.style.filter = p<1?`blur(${((1-p)*8).toFixed(2)}px)`:'none';
+  });
+  const showP = t >= T_PH-0.05 && t < T_IRIS+0.8;
+  if(!showP) ['eb3','cap3'].forEach(id=>show($(id),0)); else show($('cap3'),1);
+
+  // --- wipe ---
+  const wOn = t >= T_WIPE0-0.35 && t <= T_WIPE1+0.05;
+  wipe.style.visibility = wOn ? 'visible':'hidden';
+  if (wOn){
+    const head = lerp(-0.12*W, W + LEN + 0.12*W, wp);
+    strokes.forEach((p,i)=>{ p.setAttribute('transform', `translate(${(head - LEN + wstag[i]).toFixed(2)} 0)`); });
+    hairs.forEach((p,i)=>{
+      const a=T_WIPE0-0.35+i*0.05, q=E(P(t,a,a+0.45));
+      p.setAttribute('stroke-dashoffset',(1-q).toFixed(4));
+      p.style.opacity = (1-P(t,T_WIPE0+0.15,T_WIPE0+0.3)).toFixed(3);
+    });
+  }
+
+  // --- assinatura (usa o tempo real) ---
+  const end=$('end');
+  if (tReal >= T_IRIS){
+    const bRect = { x: ph.cx + devW/2 - devW*0.2*0.12, y: ph.cy - devH/2 + devH*0.16 + devW*0.1 };
+    const maxR = Math.hypot(Math.max(bRect.x, W-bRect.x), Math.max(bRect.y, H-bRect.y));
+    const r = maxR * IO(P(tReal, T_IRIS, T_IRIS+0.55));
+    const ir=$('iris'); ir.style.width=ir.style.height=(2*r)+'px'; ir.style.left=(bRect.x-r)+'px'; ir.style.top=(bRect.y-r)+'px';
+    fadeEl($('endLogo'), tReal, T_IRIS+0.35, T_IRIS+0.95, null, 18);
+    const g1=E(P(tReal,T_IRIS+0.55,T_IRIS+1.05)), g2=E(P(tReal,T_IRIS+0.72,T_IRIS+1.22));
+    [[$('tg1'),g1],[$('tg2'),g2]].forEach(([el,g])=>{ el.style.opacity=g; el.style.transform=`translateY(${((1-g)*0.35).toFixed(3)}em)`; el.style.filter=g<1?`blur(${((1-g)*8).toFixed(2)}px)`:'none'; });
+    show(end, 1 - IO(P(tReal, T_LOOP, DUR)));
+  } else show(end, 0);
+}
+

@@ -10,10 +10,10 @@
 import type { CSSProperties, ReactNode } from "react";
 import { useInView } from "@/components/tipe/landing/motion";
 import { cn } from "@/lib/utils";
-import mascotThanks from "@/assets/mascot-thanks-hd.webp";
-import mascotWaiting from "@/assets/mascot-waiting-hd.webp";
-import mascotRating from "@/assets/mascot-rating-hd.webp";
-import mascotClosed from "@/assets/mascot-table-closed-hd.webp";
+import mascotThanks from "@/assets/lebre/rosto-feliz.webp";
+import mascotWaiting from "@/assets/lebre/rosto-ola.webp";
+import mascotRating from "@/assets/lebre/rosto-piscando.webp";
+import mascotClosed from "@/assets/lebre/rosto-dormindo.webp";
 
 export type Scene = "mesa" | "garcom" | "amigos" | "casal" | "gestor" | "salao";
 

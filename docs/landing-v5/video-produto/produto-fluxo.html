@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Tipe · fluxo do produto</title>
+<meta name="viewport" content="width=1080,initial-scale=1">
+<!--
+  Tipe · "Pagar a conta fica tão bom quanto a refeição." Animação determinística (13 s, loop)
+  para o card do carrossel de histórias da home. Formato 4:5, 1080x1350.
+
+  Não abra este arquivo direto: rode `node render.mjs` (ele injeta os SVGs oficiais da marca
+  e chama window.render(t) quadro a quadro). Com ?preview=1 no arquivo montado, toca em loop.
+
+  Linha do tempo (s)
+    0.00–0.30  card vazio com título (ponto de loop)
+    0.30–2.80  totem da mesa 12 sobe, gira em 3D, a moldura de leitura enquadra o QR, câmera "atravessa" o QR
+    2.55–4.10  celular sobe com a tela real "conta"; toque em "Dividir a conta"
+    4.00–5.70  tela real "dividir"; ficha flutuante: 1 → 3 pessoas, "R$ 118,79 cada"; toque em "Pagar minha parte"
+    5.70–7.60  celular recua; fichas Pix, Apple Pay e Google Pay explodem do centro e orbitam em profundidade
+    7.40–9.40  fichas convergem numa moeda que gira, o check é desenhado, a moeda vira o cartão "Pagamento realizado"
+    9.35–11.50 gorjeta extra opcional (segundo pagamento): 3% · 5% Sugerida · 8%; toque em 5%, corações sobem
+    11.50–12.90 as fichas colapsam num ponto que se abre na notificação "Joyce recebeu R$ 4,20"
+    12.90–13.00 volta ao card vazio
+-->
+<style>
+@font-face{font-family:"Inter Tight";src:url(inter-tight-latin-var.woff2) format("woff2");font-weight:100 900}
+:root{--turq:#0FC9BD;--navy:#021E34}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#021E34;overflow:hidden;width:1080px;height:1350px}
+#card{position:relative;width:1080px;height:1350px;overflow:hidden;font-family:"Inter Tight",system-ui,sans-serif;color:var(--navy);
+  -webkit-font-smoothing:antialiased;background:#0FC9BD}
+#bg{position:absolute;inset:-200px}
+#title{position:absolute;left:72px;top:78px;width:900px;font-size:68px;line-height:1.02;letter-spacing:-.045em;font-weight:500;color:var(--navy)}
+#logo{position:absolute;left:72px;bottom:60px;height:40px;opacity:.92}
+#logo svg{height:40px;width:auto;display:block}
+#stage{position:absolute;inset:0;perspective:1700px;perspective-origin:540px 780px;transform-style:preserve-3d}
+.abs{position:absolute;left:0;top:0;will-change:transform,opacity}
+.shadow{position:absolute;border-radius:50%;background:radial-gradient(closest-side,rgba(2,30,52,.38),rgba(2,30,52,0))}
+
+/* totem */
+#totem{width:300px;height:600px;transform-style:preserve-3d}
+#totem .face{position:absolute;inset:0;border-radius:24px;overflow:hidden;box-shadow:0 0 0 1px rgba(255,255,255,.12) inset}
+#totem .face img{width:100%;height:100%;display:block}
+#totem .acr{position:absolute;inset:-14px -14px -2px -14px;border-radius:30px;background:linear-gradient(115deg,rgba(255,255,255,.55),rgba(255,255,255,.12) 35%,rgba(255,255,255,.05) 60%,rgba(255,255,255,.35));
+  border:2px solid rgba(255,255,255,.7);transform:translateZ(-10px)}
+#totem .acr2{position:absolute;inset:-14px -14px -2px -14px;border-radius:30px;border:1.5px solid rgba(255,255,255,.55);transform:translateZ(10px);
+  background:linear-gradient(105deg,rgba(255,255,255,0) 30%,rgba(255,255,255,.28) 42%,rgba(255,255,255,0) 54%)}
+#totem .base{position:absolute;left:-46px;right:-46px;bottom:-58px;height:70px;border-radius:22px;
+  background:linear-gradient(180deg,#e9fbf9 0%,#bfeeea 40%,#8fd9d3 100%);box-shadow:0 2px 0 rgba(255,255,255,.9) inset,0 30px 40px -18px rgba(2,30,52,.5);transform:translateZ(0)}
+#scan{width:250px;height:250px}
+#scan i{position:absolute;width:62px;height:62px;border:7px solid #fff;filter:drop-shadow(0 4px 10px rgba(2,30,52,.35))}
+#scan i:nth-child(1){left:0;top:0;border-right:0;border-bottom:0;border-radius:22px 0 0 0}
+#scan i:nth-child(2){right:0;top:0;border-left:0;border-bottom:0;border-radius:0 22px 0 0}
+#scan i:nth-child(3){left:0;bottom:0;border-right:0;border-top:0;border-radius:0 0 0 22px}
+#scan i:nth-child(4){right:0;bottom:0;border-left:0;border-top:0;border-radius:0 0 22px 0}
+#scanline{position:absolute;left:24px;right:24px;height:4px;border-radius:4px;background:#fff;box-shadow:0 0 24px 6px rgba(255,255,255,.7)}
+.pill{position:absolute;display:flex;align-items:center;gap:14px;background:#fff;border-radius:999px;padding:16px 26px 16px 18px;font-size:30px;font-weight:600;letter-spacing:-.02em;
+  box-shadow:0 30px 60px -24px rgba(2,30,52,.45),0 8px 16px -8px rgba(2,30,52,.2);white-space:nowrap}
+.pill .dot{width:16px;height:16px;border-radius:50%;background:var(--turq);box-shadow:0 0 0 6px rgba(15,201,189,.22)}
+
+/* celular */
+#phone{width:470px;height:1016px;border-radius:66px;background:#0b1520;padding:13px;
+  box-shadow:0 0 0 2px #26323d inset,0 60px 90px -40px rgba(2,30,52,.65),0 24px 40px -24px rgba(2,30,52,.45)}
+#screen{position:relative;width:100%;height:100%;border-radius:54px;overflow:hidden;background:#fff}
+#screen img{position:absolute;left:0;top:0;width:100%;height:auto;display:block}
+#island{position:absolute;left:50%;top:22px;width:120px;height:34px;margin-left:-60px;border-radius:20px;background:#0b1520;z-index:3}
+.tap{position:absolute;width:96px;height:96px;margin:-48px 0 0 -48px;border-radius:50%;background:rgba(2,30,52,.18);border:3px solid rgba(2,30,52,.55);z-index:4}
+
+/* ficha dividir */
+#split{width:400px;border-radius:40px;background:var(--navy);color:#fff;padding:34px 34px 36px;
+  box-shadow:0 50px 80px -30px rgba(2,30,52,.7),0 0 0 1px rgba(255,255,255,.06) inset}
+#split .lb{font-size:24px;color:rgba(255,255,255,.66);font-weight:500;letter-spacing:-.01em}
+#split .row{display:flex;align-items:center;justify-content:space-between;margin-top:14px}
+#split .avs{display:flex}
+#split .av{width:58px;height:58px;border-radius:50%;border:4px solid var(--navy);margin-right:-14px;display:grid;place-items:center;font-size:22px;font-weight:700;color:var(--navy)}
+#split .stp{display:flex;align-items:center;gap:16px;font-size:24px;color:rgba(255,255,255,.6)}
+#split .stp b{display:grid;place-items:center;width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.25);font-weight:500}
+#split .num{position:relative;width:40px;height:62px;overflow:hidden;font-size:52px;font-weight:600;color:#fff;text-align:center}
+#split .num span{position:absolute;left:0;right:0;line-height:62px}
+#split hr{border:0;height:1px;background:rgba(255,255,255,.14);margin:26px 0 22px}
+#split .val{font-size:62px;font-weight:600;letter-spacing:-.045em;line-height:1}
+#split .val small{font-size:30px;color:var(--turq);font-weight:600;letter-spacing:-.02em;margin-left:10px}
+
+/* fichas de pagamento */
+.tile{width:210px;height:210px;border-radius:50px;background:linear-gradient(160deg,#fff 0%,#f1fbfa 100%);display:flex;align-items:center;justify-content:center;gap:10px;
+  font-weight:600;letter-spacing:-.03em;color:#0b0b0b;box-shadow:0 40px 60px -28px rgba(2,30,52,.55),0 2px 0 #fff inset}
+.tile.dark{background:linear-gradient(160deg,#16222c,#000);color:#fff}
+.tile .w{font-size:50px}
+.tile.sm .w{font-size:50px}
+
+/* moeda e cartões */
+#coin{width:200px;height:200px;border-radius:100px;transform-style:preserve-3d}
+#coinface{position:absolute;inset:0;border-radius:inherit;background:radial-gradient(circle at 35% 30%,#ffffff,#e4f7f5 60%,#c9eeea);
+  box-shadow:0 40px 70px -26px rgba(2,30,52,.55),0 0 0 2px rgba(255,255,255,.9) inset;overflow:hidden}
+#ck{position:absolute;width:110px;height:110px;border-radius:50%;background:var(--navy);display:grid;place-items:center}
+#ok{position:absolute;white-space:nowrap}
+#ok .t1{font-size:44px;font-weight:650;letter-spacing:-.035em;line-height:1.05}
+#ok .t2{font-size:28px;color:rgba(2,30,52,.6);font-weight:500;margin-top:8px;letter-spacing:-.01em}
+#ring{width:200px;height:200px;border-radius:50%;border:5px solid #fff}
+
+/* gorjeta */
+#tipHead{width:1080px;text-align:center}
+#tipHead .h{font-size:46px;font-weight:600;letter-spacing:-.04em;line-height:1.05}
+#tipHead .s{font-size:27px;font-weight:500;color:rgba(2,30,52,.68);margin-top:12px;letter-spacing:-.01em}
+.chip{width:232px;height:232px;border-radius:44px;background:var(--navy);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  box-shadow:0 40px 60px -28px rgba(2,30,52,.65)}
+.chip .p{font-size:66px;font-weight:600;letter-spacing:-.05em;line-height:1}
+.chip .v{font-size:26px;font-weight:500;opacity:.7;margin-top:12px;letter-spacing:-.01em}
+.chip .tag{position:absolute;top:-20px;left:50%;transform:translateX(-50%);background:#fff;color:var(--navy);font-size:21px;font-weight:650;padding:8px 16px;border-radius:999px;
+  box-shadow:0 10px 20px -8px rgba(2,30,52,.4);white-space:nowrap}
+.chip .sel{position:absolute;inset:0;border-radius:inherit;background:#fff;color:var(--navy);display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 0 0 5px var(--turq) inset}
+#payTip{width:740px;height:104px;border-radius:999px;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:34px;font-weight:600;letter-spacing:-.025em;overflow:hidden;
+  box-shadow:0 34px 50px -26px rgba(2,30,52,.7)}
+#payTip .sh{position:absolute;top:0;bottom:0;width:180px;background:linear-gradient(90deg,rgba(15,201,189,0),rgba(15,201,189,.55),rgba(15,201,189,0))}
+.heart{width:70px;height:64px}
+
+/* notificação */
+#note{border-radius:46px;background:rgba(255,255,255,.96);overflow:hidden;box-shadow:0 50px 80px -30px rgba(2,30,52,.6),0 0 0 1px rgba(255,255,255,.8) inset}
+#noteIn{position:absolute;left:30px;top:30px;width:800px;display:flex;gap:26px;align-items:center}
+#noteIn .ic{flex:none;width:104px;height:104px;border-radius:28px;background:var(--navy);display:grid;place-items:center}
+#noteIn .ic svg{width:64px;height:auto}
+#noteIn .top{display:flex;justify-content:space-between;font-size:24px;font-weight:600;color:rgba(2,30,52,.55);letter-spacing:.02em;width:640px}
+#noteIn .m{font-size:42px;font-weight:650;letter-spacing:-.035em;margin-top:4px}
+#noteIn .d{font-size:26px;color:rgba(2,30,52,.62);font-weight:500;margin-top:4px}
+</style>
+</head>
+<body>
+<div id="card">
+  <div id="bg"></div>
+  <div id="title">Pagar a conta fica tão bom<br>quanto a refeição.</div>
+  <div id="logo">__LOGO__</div>
+
+  <div id="stage">
+    <!-- 1. totem -->
+    <div class="shadow abs" id="totemShadow" style="width:520px;height:90px"></div>
+    <div class="abs" id="totem">
+      <div class="acr"></div>
+      <div class="base"></div>
+      <div class="face"><img src="totem-mesa12.webp" alt=""></div>
+      <div class="acr2"></div>
+      <div class="abs" id="scan"><i></i><i></i><i></i><i></i><div id="scanline"></div></div>
+    </div>
+    <div class="pill abs" id="mesaPill"><span class="dot"></span>Mesa 12 · Maré Alta</div>
+
+    <!-- 2/3. celular com telas reais -->
+    <div class="abs" id="phone"><div id="screen">
+      <div id="island"></div>
+      <img id="sConta" src="../../../src/assets/telas-reais/conta-780.webp" alt="">
+      <img id="sDividir" src="../../../src/assets/telas-reais/dividir-780.webp" alt="">
+      <div class="tap" id="tap1"></div>
+      <div class="tap" id="tap2"></div>
+    </div></div>
+    <div class="abs" id="split">
+      <div class="lb">Dividir a conta</div>
+      <div class="row">
+        <div class="avs" id="avs">
+          <div class="av" style="background:#0FC9BD">L</div>
+          <div class="av" style="background:#fff">A</div>
+          <div class="av" style="background:#9be8e1">M</div>
+        </div>
+        <div class="stp"><b>−</b><div class="num"><span id="n1">1</span><span id="n2">2</span><span id="n3">3</span></div><b>+</b></div>
+      </div>
+      <hr>
+      <div class="lb">Sua parte</div>
+      <div class="val" style="margin-top:10px">R$ 118,79<small>cada</small></div>
+    </div>
+
+    <!-- 4. fichas de pagamento -->
+    <div id="tiles" style="position:absolute;inset:0;transform-style:preserve-3d"></div>
+
+    <!-- 5. moeda / pagamento realizado -->
+    <div class="abs" id="ring"></div>
+    <div class="abs" id="coin"><div id="coinface">
+      <div id="ck"><svg width="60" height="60" viewBox="0 0 60 60"><path id="ckp" d="M15 31 L26 42 L46 19" fill="none" stroke="#0FC9BD" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="50" stroke-dashoffset="50"/></svg></div>
+      <div id="ok"><div class="t1">Pagamento realizado</div><div class="t2">R$ 118,79 · Mesa 12 · Pix</div></div>
+    </div></div>
+
+    <!-- 6. gorjeta extra -->
+    <div class="abs" id="tipHead"><div class="h">Quer agradecer a Joyce?</div><div class="s">Gorjeta extra opcional, num segundo pagamento.</div></div>
+    <div class="abs chip" id="c0"><div class="p">3%</div><div class="v">R$ 3,50</div></div>
+    <div class="abs chip" id="c1"><div class="p">5%</div><div class="v">R$ 6,00</div>
+      <div class="sel" id="c1sel"><div class="p">5%</div><div class="v" style="opacity:.7">R$ 6,00</div></div>
+      <div class="tag">Sugerida</div></div>
+    <div class="abs chip" id="c2"><div class="p">8%</div><div class="v">R$ 9,50</div></div>
+    <div class="tap abs" id="tap3" style="margin:0"></div>
+    <div class="abs" id="payTip"><div class="sh" id="shine"></div><span style="position:relative">Pagar gorjeta · R$ 6,00</span></div>
+    <div id="hearts" style="position:absolute;inset:0;transform-style:preserve-3d"></div>
+
+    <!-- 7. notificação -->
+    <div class="abs" id="note"><div id="noteIn">
+      <div class="ic">__SIMBOLO__</div>
+      <div><div class="top"><span>TIPE · GORJETA</span><span>agora</span></div>
+        <div class="m">Joyce recebeu R$ 4,20</div>
+        <div class="d">Gorjeta extra da mesa 12, Maré Alta.</div></div>
+    </div></div>
+  </div>
+</div>
+
+<script>
+const DUR = 13.0; window.DUR = DUR;
+const $ = id => document.getElementById(id);
+const cl = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const P = (t, a, b) => cl((t - a) / (b - a));
+const L = (a, b, k) => a + (b - a) * k;
+const E = {
+  outCubic: k => 1 - Math.pow(1 - k, 3),
+  outQuint: k => 1 - Math.pow(1 - k, 5),
+  outExpo: k => k >= 1 ? 1 : 1 - Math.pow(2, -10 * k),
+  inCubic: k => k * k * k,
+  inOutCubic: k => k < .5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2,
+  inOutSine: k => -(Math.cos(Math.PI * k) - 1) / 2,
+  outBack: k => { const c1 = 1.55, c3 = c1 + 1; return 1 + c3 * Math.pow(k - 1, 3) + c1 * Math.pow(k - 1, 2); },
+  inBack: k => { const c1 = 1.7, c3 = c1 + 1; return c3 * k * k * k - c1 * k * k; },
+};
+const TAU = Math.PI * 2;
+function set(el, { x = 0, y = 0, z = 0, s = 1, rx = 0, ry = 0, rz = 0, o = 1, blur = 0, origin } = {}) {
+  el.style.transform = `translate3d(${x}px,${y}px,${z}px) rotateX(${rx}deg) rotateY(${ry}deg) rotateZ(${rz}deg) scale(${s})`;
+  el.style.opacity = o;
+  el.style.visibility = o <= 0.001 ? 'hidden' : 'visible';
+  el.style.filter = blur > 0.05 ? `blur(${blur}px)` : 'none';
+  if (origin) el.style.transformOrigin = origin;
+}
+// posiciona pelo centro
+function setC(el, w, h, cx, cy, o) { set(el, Object.assign({}, o, { x: cx - w / 2 + (o.x || 0), y: cy - h / 2 + (o.y || 0) })); }
+
+/* ---------- fichas de pagamento (montadas uma vez) ---------- */
+const APPLE = '<svg width="44" height="52" viewBox="0 0 24 28"><path fill="currentColor" d="M19.6 14.9c0-2.7 2.2-4 2.3-4.1-1.3-1.8-3.2-2.1-3.9-2.1-1.7-.2-3.2 1-4.1 1-.8 0-2.1-.9-3.5-.9-1.8 0-3.5 1.1-4.4 2.7-1.9 3.3-.5 8.1 1.4 10.8.9 1.3 2 2.8 3.4 2.7 1.4-.1 1.9-.9 3.5-.9s2.1.9 3.5.9c1.5 0 2.4-1.3 3.3-2.6 1-1.5 1.5-3 1.5-3.1-.1 0-2.9-1.1-3-4.4zM16.9 6.9c.7-.9 1.3-2.2 1.1-3.5-1.1 0-2.5.8-3.3 1.7-.7.8-1.4 2.1-1.2 3.4 1.3.1 2.6-.7 3.4-1.6z"/></svg>';
+const GOOG = '<svg width="50" height="50" viewBox="0 0 48 48"><g fill="none" stroke-width="8.5"><path d="M41 21.5H24" stroke="#4285F4"/><path d="M41.2 21.5A17 17 0 0 1 35.8 36.3" stroke="#4285F4"/><path d="M35.8 36.3A17 17 0 0 1 9.4 32.7" stroke="#34A853"/><path d="M9.4 32.7A17 17 0 0 1 9.4 15.3" stroke="#FBBC05"/><path d="M9.4 15.3A17 17 0 0 1 36 12" stroke="#EA4335"/></g></svg>';
+const PIX = '<svg width="54" height="54" viewBox="0 0 48 48"><g fill="none" stroke="#0FC9BD" stroke-width="5" stroke-linejoin="round"><path d="M24 4 L44 24 L24 44 L4 24 Z"/><path d="M14 24 L24 14 L34 24 L24 34 Z" fill="#021E34" stroke="#021E34"/></g></svg>';
+const RS = '<span style="font-size:58px;font-weight:700;color:#021E34;letter-spacing:-.05em">R$</span>';
+const TILE_DEFS = [
+  // tipo, ângulo no anel (graus), y, raio, tamanho relativo
+  { h: PIX + '<span class="w">Pix</span>', cls: '', a: 0, y: -40, r: 300, s: 1.08 },
+  { h: APPLE + '<span class="w">Pay</span>', cls: 'dark', a: 120, y: 90, r: 300, s: 1.0 },
+  { h: GOOG + '<span class="w" style="color:#3c4043">Pay</span>', cls: '', a: 240, y: -150, r: 300, s: 1.0 },
+  { h: RS, cls: '', a: 60, y: -210, r: 230, s: .62 },
+  { h: PIX, cls: '', a: 180, y: 180, r: 210, s: .6 },
+  { h: APPLE, cls: 'dark', a: 300, y: 150, r: 250, s: .58 },
+  { h: GOOG, cls: '', a: 210, y: -60, r: 120, s: .5 },
+];
+const tiles = TILE_DEFS.map(d => {
+  const el = document.createElement('div');
+  el.className = 'abs tile ' + d.cls;
+  el.innerHTML = d.h;
+  $('tiles').appendChild(el);
+  return el;
+});
+/* ---------- corações ---------- */
+const HEART = '<svg class="heart" viewBox="0 0 70 64"><path d="M35 58 C18 46 5 35 5 21 C5 11 13 5 21 5 C27 5 32 8 35 13 C38 8 43 5 49 5 C57 5 65 11 65 21 C65 35 52 46 35 58 Z" fill="none" stroke="#fff" stroke-width="5" stroke-linejoin="round"/></svg>';
+const HEART_F = '<svg class="heart" viewBox="0 0 70 64"><path d="M35 58 C18 46 5 35 5 21 C5 11 13 5 21 5 C27 5 32 8 35 13 C38 8 43 5 49 5 C57 5 65 11 65 21 C65 35 52 46 35 58 Z" fill="#fff"/></svg>';
+const HEART_DEFS = [
+  { t0: 10.42, dx: -40, sw: 30, s: 1.0, f: 0 }, { t0: 10.52, dx: 70, sw: -26, s: .7, f: 1 },
+  { t0: 10.62, dx: 10, sw: 34, s: 1.25, f: 0 }, { t0: 10.74, dx: -90, sw: -22, s: .6, f: 1 },
+  { t0: 10.84, dx: 110, sw: 24, s: .9, f: 0 }, { t0: 10.96, dx: -20, sw: -30, s: .75, f: 0 },
+  { t0: 11.06, dx: 60, sw: 20, s: .55, f: 1 },
+];
+const hearts = HEART_DEFS.map(d => {
+  const el = document.createElement('div'); el.className = 'abs'; el.innerHTML = d.f ? HEART_F : HEART;
+  $('hearts').appendChild(el); return el;
+});
+
+/* ---------- render(t) ---------- */
+function render(t) {
+  t = ((t % DUR) + DUR) % DUR;
+  const loop = t / DUR * TAU;
+
+  // fundo: luz que passeia devagar (período = duração, loop perfeito)
+  const gx = 72 + 8 * Math.sin(loop), gy = 18 + 6 * Math.cos(loop);
+  $('bg').style.background =
+    `radial-gradient(60% 45% at ${gx}% ${gy}%, rgba(214,255,251,.95) 0%, rgba(120,236,226,.55) 38%, rgba(15,201,189,0) 70%),` +
+    `radial-gradient(70% 55% at ${20 - 6 * Math.sin(loop)}% 100%, rgba(5,140,140,.55) 0%, rgba(15,201,189,0) 70%), #0FC9BD`;
+
+  /* 1. TOTEM 0.30–2.85 */
+  {
+    const kin = E.outQuint(P(t, .30, 1.15));
+    const kout = E.inCubic(P(t, 2.3, 2.72));
+    const drift = E.inOutSine(P(t, .30, 2.6));
+    const cx = 540, cy = 800;
+    const o = Math.min(P(t, .30, .6), 1 - P(t, 2.45, 2.72));
+    set($('totem'), {
+      x: cx - 150, y: cy - 300 + L(300, 0, kin) + 8 * Math.sin(t * 2.2) * (1 - kout) - 110 * kout,
+      z: L(0, 760, kout), rx: L(26, 4, kin), ry: L(-28, -8, drift) + L(0, 8, kout), rz: L(-3, 0, kin),
+      s: L(.82, 1, kin) * 1.24, o, origin: '50% 50%',
+    });
+    set($('totemShadow'), { x: cx - 260, y: cy + 340, s: L(.6, 1.25, kin) * (1 - .5 * kout), o: o * (1 - kout) });
+    // moldura de leitura enquadra o QR (QR ocupa ~15%–85% da largura, 20%–55% da altura do totem)
+    const ks = E.outBack(P(t, 1.25, 1.7));
+    set($('scan'), { x: 25, y: 101, z: 18, s: L(1.35, 1, ks), o: P(t, 1.25, 1.45), origin: '50% 50%' });
+    const kl = E.inOutSine(P(t, 1.65, 2.25));
+    $('scanline').style.top = L(22, 224, kl) + 'px';
+    $('scanline').style.opacity = Math.sin(Math.PI * kl);
+    const kp = E.outBack(P(t, 1.45, 1.85));
+    set($('mesaPill'), { x: 640, y: 420 + L(30, 0, kp), z: 140, s: L(.7, 1, kp), o: Math.min(P(t, 1.45, 1.6), 1 - P(t, 2.3, 2.5)) });
+  }
+
+  /* 2–3. CELULAR 2.55–6.10 */
+  {
+    const kin = E.outQuint(P(t, 2.58, 3.38));
+    const kout = E.inOutCubic(P(t, 5.62, 6.1));
+    const drift = E.inOutSine(P(t, 2.55, 5.7));
+    const o = Math.min(P(t, 2.64, 2.84), 1 - P(t, 5.8, 6.1));
+    set($('phone'), {
+      x: 540 - 235 - L(0, 60, drift), y: 330 + L(520, 0, kin) + 6 * Math.sin(t * 1.9),
+      z: L(-400, 0, kin) - 520 * kout, rx: L(28, 7, kin), ry: L(14, -10, drift), rz: L(5, -1.5, kin),
+      s: 1, o, blur: 6 * kout, origin: '50% 70%',
+    });
+    // telas: conta → dividir (desliza)
+    const ksw = E.inOutCubic(P(t, 3.92, 4.32));
+    $('sConta').style.transform = `translateX(${-30 * ksw}%)`;
+    $('sConta').style.opacity = 1 - ksw * .9;
+    $('sDividir').style.transform = `translateX(${100 - 100 * ksw}%)`;
+    $('sDividir').style.boxShadow = '-20px 0 40px rgba(0,0,0,.15)';
+    // toques: "Dividir a conta" e "Pagar minha parte"
+    const tap = (el, t0, x, y) => {
+      const k = P(t, t0, t0 + .5);
+      el.style.left = x + 'px'; el.style.top = y + 'px';
+      el.style.opacity = k > 0 && k < 1 ? Math.sin(Math.PI * k) : 0;
+      el.style.transform = `scale(${L(.55, 1.25, E.outCubic(k))})`;
+    };
+    tap($('tap1'), 3.45, 112, 573);
+    tap($('tap2'), 5.18, 222, 680);
+    // ficha flutuante "dividir"
+    const ks = E.outBack(P(t, 4.22, 4.72));
+    const kso = E.inCubic(P(t, 5.55, 5.9));
+    set($('split'), {
+      x: 600 - 30 * drift, y: 560 + L(90, 0, ks) - 60 * kso + 7 * Math.sin(t * 2.4 + 1),
+      z: 220 + L(-200, 0, ks) + 200 * kso, ry: L(-22, -6, ks), rx: 4, s: L(.8, 1, ks) * (1 - .25 * kso),
+      o: Math.min(P(t, 4.22, 4.42), 1 - kso), origin: '0% 50%',
+    });
+    // contador 1 → 2 → 3 e avatares
+    const k12 = E.outCubic(P(t, 4.62, 4.84)), k23 = E.outCubic(P(t, 4.92, 5.14));
+    $('n1').style.transform = `translateY(${-100 * k12}%)`;
+    $('n2').style.transform = `translateY(${100 - 100 * k12 - 100 * k23}%)`;
+    $('n3').style.transform = `translateY(${100 - 100 * k23}%)`;
+    const avs = $('avs').children;
+    [0, k12, k23].forEach((k, i) => {
+      const kb = i === 0 ? 1 : E.outBack(k);
+      avs[i].style.transform = `scale(${kb})`; avs[i].style.opacity = i === 0 ? 1 : cl(k * 2);
+    });
+  }
+
+  /* 4. FICHAS DE PAGAMENTO 5.75–7.70 (explodem, orbitam em 3D, convergem) */
+  {
+    const cx = 540, cy = 790;
+    const rot = L(-35, 95, E.inOutSine(P(t, 5.75, 7.6)));
+    tiles.forEach((el, i) => {
+      const d = TILE_DEFS[i];
+      const kin = E.outBack(P(t, 5.78 + i * .035, 6.28 + i * .035));
+      const kout = E.inBack(P(t, 7.18 + (6 - i) * .025, 7.6 + (6 - i) * .025));
+      const a = (d.a + rot) * Math.PI / 180;
+      const r = d.r * kin * (1 - kout);
+      const x = Math.sin(a) * r * 1.15, z = Math.cos(a) * r;
+      const y = d.y * kin * (1 - kout) + 10 * Math.sin(t * 2 + i);
+      const depth = cl((-z + 80) / 380); // 0 frente, 1 fundo
+      setC(el, 210, 210, cx + x, cy + y, {
+        z, s: d.s * L(.2, 1, Math.min(kin, 1.2)) * L(1, .25, kout), ry: -Math.sin(a) * 14, rz: 6 * Math.sin(t * 1.4 + i * 1.7),
+        o: Math.min(P(t, 5.78 + i * .035, 5.9 + i * .035), 1 - P(t, 7.5, 7.66)), blur: 5 * depth * (1 - kout),
+      });
+      el.style.zIndex = Math.round(1000 + z);
+    });
+  }
+
+  /* 5. MOEDA → "Pagamento realizado" 7.45–9.75 */
+  {
+    const cx = 540, cy = 790;
+    const kin = E.outCubic(P(t, 7.45, 8.0));
+    const km = E.outExpo(P(t, 8.45, 8.95));
+    const kup = E.inOutCubic(P(t, 9.2, 9.6));
+    const w = L(200, 820, km), h = L(200, 190, km);
+    const coin = $('coin');
+    coin.style.width = w + 'px'; coin.style.height = h + 'px'; coin.style.borderRadius = L(100, 52, km) + 'px';
+    setC(coin, w, h, cx, cy - 300 * kup, {
+      ry: L(540, 0, kin) * (1 - km), s: L(.35, 1, kin) * L(1, .8, kup), z: -120 * kup,
+      o: Math.min(P(t, 7.45, 7.6), 1 - P(t, 9.25, 9.55)), origin: '50% 50%',
+    });
+    const ck = $('ck');
+    ck.style.left = L((200 - 110) / 2, 40, km) + 'px'; ck.style.top = (h - 110) / 2 + 'px';
+    ck.style.transform = `scale(${L(.0, 1, E.outBack(P(t, 7.85, 8.15)))})`;
+    $('ckp').setAttribute('stroke-dashoffset', 50 * (1 - E.inOutCubic(P(t, 8.0, 8.32))));
+    const ok = $('ok'); ok.style.left = '180px'; ok.style.top = (h - 110) / 2 + 'px';
+    ok.style.opacity = P(t, 8.7, 8.95); ok.style.transform = `translateX(${L(-20, 0, E.outCubic(P(t, 8.7, 9.0)))}px)`;
+    const kr = P(t, 8.05, 8.7);
+    setC($('ring'), 200, 200, cx, cy, { s: L(1, 1.9, E.outCubic(kr)), o: kr > 0 && kr < 1 ? (1 - kr) * .9 : 0 });
+  }
+
+  /* 6. GORJETA EXTRA 9.40–11.55 */
+  {
+    const kh = E.outCubic(P(t, 9.5, 9.9));
+    const out = (i) => E.inBack(P(t, 11.12 + i * .05, 11.45 + i * .05));
+    const ho = out(3);
+    set($('tipHead'), { x: 0, y: 352 + L(40, 0, kh), o: Math.min(P(t, 9.5, 9.75), 1 - P(t, 11.1, 11.3)) });
+    const cxs = [540 - 262, 540, 540 + 262];
+    let selK = E.outBack(P(t, 10.32, 10.6));
+    ['c0', 'c1', 'c2'].forEach((id, i) => {
+      const k = E.outBack(P(t, 9.58 + i * .07, 10.0 + i * .07));
+      const ko = out(i);
+      let s = L(.6, 1, k) * (1 - ko);
+      if (i === 1) s *= (1 - .07 * Math.sin(Math.PI * P(t, 10.2, 10.38))) * L(1, 1.06, selK);
+      // os três colapsam para o centro, como um ponto
+      setC($(id), 232, 232, L(cxs[i], 540, ko), 790 + L(60, 0, k), {
+        s: Math.max(s, 0), o: Math.min(P(t, 9.58 + i * .07, 9.75 + i * .07), 1 - P(t, 11.38 + i * .05, 11.5 + i * .05)),
+        z: i === 1 ? 110 : 50, rx: L(30, 0, k) + 6 * Math.sin(t * 1.6 + i) * (1 - ko), ry: 6 * Math.sin(t * 1.3 + i * 2),
+      });
+    });
+    $('c1sel').style.opacity = cl(P(t, 10.32, 10.42));
+    const kt = P(t, 10.12, 10.6);
+    set($('tap3'), { x: 540 - 48, y: 790 - 48, s: L(.55, 1.3, E.outCubic(kt)), o: kt > 0 && kt < 1 ? Math.sin(Math.PI * kt) : 0 });
+    // botão do segundo pagamento
+    const kb = E.outBack(P(t, 10.55, 10.95));
+    setC($('payTip'), 740, 104, 540, 1020 + L(40, 0, kb), { s: L(.85, 1, kb) * (1 - out(4)), o: Math.min(P(t, 10.55, 10.7), 1 - P(t, 11.32, 11.48)) });
+    const ksh = P(t, 10.95, 11.35);
+    $('shine').style.left = L(-200, 760, E.inOutSine(ksh)) + 'px';
+    // corações sobem do 5%
+    hearts.forEach((el, i) => {
+      const d = HEART_DEFS[i];
+      const k = P(t, d.t0, d.t0 + 1.25);
+      const y = 690 - 205 * E.outCubic(k);
+      const x = 610 + Math.abs(d.dx) * 1.9 * E.outCubic(k) + d.sw * Math.sin(k * Math.PI * 2.2);
+      setC(el, 70, 64, x, y, { z: 30, s: d.s * L(.3, 1.15, E.outBack(cl(k * 3))), rz: d.sw * .5 * Math.sin(k * 6), o: k > 0 ? 1 - P(k, .45, .95) : 0 });
+    });
+  }
+
+  /* 7. NOTIFICAÇÃO 11.50–12.92 */
+  {
+    const kin = E.outExpo(P(t, 11.5, 12.0));
+    const kout = E.inOutCubic(P(t, 12.5, 12.92));
+    const w = L(48, 900, kin), h = L(48, 168, E.outExpo(P(t, 11.5, 11.85)));
+    const n = $('note');
+    n.style.width = w + 'px'; n.style.height = h + 'px'; n.style.borderRadius = Math.min(46, h / 2) + 'px';
+    setC(n, w, h, 540, 790 + 6 * Math.sin(t * 2), { s: L(1, .94, kout), y: 24 * kout, o: Math.min(P(t, 11.48, 11.56), 1 - kout) });
+    $('noteIn').style.opacity = P(t, 11.78, 12.02);
+    $('noteIn').style.transform = `translateY(${L(14, 0, E.outCubic(P(t, 11.78, 12.1)))}px)`;
+  }
+}
+window.render = render;
+window.ready = document.fonts.ready.then(() => Promise.all([...document.images].map(i => i.decode().catch(() => null)))).then(() => { render(0); return true; });
+if (new URLSearchParams(location.search).has('preview')) {
+  const t0 = performance.now();
+  const tick = () => { render((performance.now() - t0) / 1000); requestAnimationFrame(tick); };
+  requestAnimationFrame(tick);
+}
+const qt = new URLSearchParams(location.search).get('t'); if (qt) window.ready.then(() => render(+qt));
+</script>
+</body>
+</html>

@@ -1,0 +1,72 @@
+name: Preparar Worker Tipe sem assumir dominio
+on:
+  push:
+    branches: [ops/cloudflare-dns-cutover-20261027]
+    paths: [.github/workflows/preparar-worker-tipe.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preparar:
+    runs-on: ubuntu-latest
+    environment: producao
+    timeout-minutes: 15
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+      SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+      ANTHROPIC_MODEL: ${{ vars.ANTHROPIC_MODEL }}
+      RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+      EMAIL_FROM: ${{ vars.EMAIL_FROM }}
+      CRON_SECRET: ${{ secrets.CRON_SECRET }}
+      TIPE_ENCRYPTION_KEY: ${{ secrets.TIPE_ENCRYPTION_KEY }}
+      PAGARME_SECRET_KEY: ${{ secrets.PAGARME_SECRET_KEY }}
+      PAGARME_PUBLIC_KEY: ${{ secrets.PAGARME_PUBLIC_KEY }}
+      PAGARME_WEBHOOK_SECRET: ${{ secrets.PAGARME_WEBHOOK_SECRET }}
+      PAGARME_TIPE_RECIPIENT_ID: ${{ secrets.PAGARME_TIPE_RECIPIENT_ID }}
+      TIPE_PLATFORM_FEE_PERCENT: ${{ vars.TIPE_PLATFORM_FEE_PERCENT }}
+      CLOUDFLARE_AI_TOKEN: ${{ secrets.CLOUDFLARE_AI_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: Validar credenciais essenciais
+        shell: bash
+        run: |
+          set -euo pipefail
+          for name in CLOUDFLARE_API_TOKEN CLOUDFLARE_ACCOUNT_ID SUPABASE_URL SUPABASE_PUBLISHABLE_KEY SUPABASE_SERVICE_ROLE_KEY ANTHROPIC_API_KEY RESEND_API_KEY CRON_SECRET TIPE_ENCRYPTION_KEY; do
+            [[ -n "${!name:-}" ]] || { echo "::error::Falta $name"; exit 1; }
+          done
+          [[ "$SUPABASE_URL" == "https://bnggnbwmihqexvihrqvy.supabase.co" ]] || { echo "::error::Supabase incorreto"; exit 1; }
+      - run: bun install --frozen-lockfile
+      - name: Build Worker principal com banco de producao
+        run: bun run build
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          VITE_SUPABASE_PROJECT_ID: ${{ vars.VITE_SUPABASE_PROJECT_ID }}
+      - name: Implantar Worker sem vincular dominios e carregar segredos
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          p=Path('.output/server/wrangler.json')
+          d=json.loads(p.read_text())
+          assert d.get('name') == 'tipe', 'Nome do Worker diferente de tipe.'
+          d.pop('route',None)
+          d.pop('routes',None)
+          d['workers_dev']=False
+          d['preview_urls']=False
+          assert 'route' not in d and 'routes' not in d
+          p.write_text(json.dumps(d,indent=2)+'\n')
+          print('Configuracao do Worker: sem DNS, sem rotas, sem URL publica de desenvolvimento.')
+          PY
+          bunx wrangler deploy --config .output/server/wrangler.json
+          node scripts/deploy/segredos.mjs app | bunx wrangler secret bulk --config .output/server/wrangler.json
+          echo "Worker tipe carregado com segredos, sem alterar DNS, www ou tipe.digital." >> "$GITHUB_STEP_SUMMARY"
