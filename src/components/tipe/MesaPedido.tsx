@@ -1,3 +1,4 @@
+import { createPortal } from "react-dom";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Check, Minus, Plus, Search, UtensilsCrossed } from "lucide-react";
 import { nanoid } from "nanoid";
@@ -180,7 +181,7 @@ export function MesaPedido({ slug, code, session, nome, device, onPlaced, onBloc
 
       {erro && <p className="mt-3 rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm">{erro}</p>}
 
-      {story && (
+      {story && typeof document !== "undefined" && createPortal(
         <Suspense fallback={null}>
           <StoryCardapio
             itens={itensStory}
@@ -190,8 +191,10 @@ export function MesaPedido({ slug, code, session, nome, device, onPlaced, onBloc
             carrinho={carrinho}
             mudar={add}
             onFechar={() => setStory(null)}
+            tela
           />
-        </Suspense>
+        </Suspense>,
+        document.body,
       )}
 
       {linhas.length > 0 && (

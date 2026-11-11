@@ -66,7 +66,9 @@ export function StoryCardapio({
   carrinho,
   mudar,
   onFechar,
+  tela = false,
 }: {
+  tela?: boolean;
   itens: ItemStory[];
   categorias: string[];
   inicio: string;
@@ -234,7 +236,7 @@ export function StoryCardapio({
       aria-label={`Cardápio em stories, ${grupo.cat}`}
       tabIndex={-1}
       onKeyDown={teclado}
-      className="absolute inset-0 z-30 overflow-hidden bg-[#021E34] text-white outline-none"
+      className={cn(tela ? "fixed inset-0 z-[100] h-dvh w-screen" : "absolute inset-0 z-30", "overflow-hidden bg-[#021E34] text-white outline-none")}
       style={{
         transform: arraste.y
           ? `translateY(${arraste.y * 0.6}px) scale(${1 - Math.min(arraste.y, 300) / 1500})`
