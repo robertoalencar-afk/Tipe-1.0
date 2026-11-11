@@ -33,7 +33,7 @@ const daySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
 /**
  * Restaurante, papéis do usuário, flag e módulo contratado. Recusa quem não é da equipe e quem
- * não tem a permissão da matriz do Guest (permissoes.ts; no banco, 0056 quando aplicada).
+ * não tem a permissão da matriz do Guest (permissoes.ts; no banco, 0057 quando aplicada).
  */
 async function acesso(ctx: Ctx, slug: string, need: GuestAction = "ver_reservas") {
   const { data: r } = await ctx.supabase

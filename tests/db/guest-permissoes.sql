@@ -1,4 +1,4 @@
--- Tipe Guest · permissões da equipe (0056). Rode com tests/db/run.sh.
+-- Tipe Guest · permissões da equipe (0057). Rode com tests/db/run.sh.
 \set ON_ERROR_STOP 1
 SET client_min_messages = notice;
 SET search_path = public, extensions;

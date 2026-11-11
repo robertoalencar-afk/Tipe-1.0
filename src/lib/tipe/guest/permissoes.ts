@@ -1,5 +1,5 @@
 // Tipe Guest Manager · matriz de permissões (Projeto 4). Regra pura, igual no app, no servidor e
-// no banco (ver drizzle/migrations/0056_guest_staff_permissions.sql, só para revisão).
+// no banco (ver drizzle/migrations/0057_guest_staff_permissions.sql, só para revisão).
 // "Conforme autorização" e "permissão explícita" = desligado até o administrador conceder.
 
 export const GUEST_ROLES = ["admin", "gerente", "caixa", "garcom"] as const;
