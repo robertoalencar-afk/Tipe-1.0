@@ -56,7 +56,7 @@ function AreaRestaurante() {
   return (
     <AreaShell eyebrow="Área do restaurante"
       actions={<>
-        {access.data?.isFounder && <Button asChild size="sm" variant="ghost"><Link to="/backoffice">Voltar ao Backoffice</Link></Button>}
+        {access.data?.isFounder && <Button asChild size="sm" variant="ghost"><Link to="/central">Voltar à Central</Link></Button>}
         {(myRoles.includes("owner") || myRoles.includes("cashier")) && <AvisosCelular papel="gestao" />}
         <Button size="sm" variant="ghost" onClick={sair} className="text-muted-foreground"><LogOut className="h-4 w-4" />Sair</Button>
       </>}>

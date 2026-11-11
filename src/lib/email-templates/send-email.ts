@@ -17,6 +17,22 @@ export interface SendTemplateEmailOptions {
   /** Dedupes retries of the same logical send; defaults to a random UUID (no dedupe). */
   idempotencyKey?: string
   replyTo?: string
+  /** Vínculos para o histórico de e-mails da Central Tipe (email_log). */
+  leadId?: string | null
+  restaurantId?: string | null
+}
+
+// Histórico na Central Tipe: grava o envio em email_log sem nunca bloquear o envio.
+async function registrarEnvio(r: { template: string; to: string; subject: string; resendId?: string | null; status: 'sent' | 'failed' | 'suppressed'; error?: string | null; leadId?: string | null | undefined; restaurantId?: string | null | undefined }) {
+  try {
+    const { supabaseAdmin } = await import('@/integrations/supabase/client.server')
+    await (supabaseAdmin as unknown as { from: (t: string) => any }).from('email_log').insert({
+      template: r.template, to_email: r.to.toLowerCase(), subject: r.subject, resend_id: r.resendId ?? null,
+      status: r.status, error: r.error ?? null, lead_id: r.leadId ?? null, restaurant_id: r.restaurantId ?? null,
+    })
+  } catch (e) {
+    console.warn('[email_log] não gravou histórico:', (e as Error).message)
+  }
 }
 
 /**
@@ -74,11 +90,18 @@ export async function sendTemplateEmail(
       ...(options.replyTo ? { reply_to: options.replyTo } : {}),
     }),
   })
+  const base = { template: templateName, to: recipient, subject, leadId: options.leadId, restaurantId: options.restaurantId }
   if (!response.ok) {
     const body = await response.text().catch(() => '')
-    if (/suppress/i.test(body)) return { sent: false, reason: 'recipient_suppressed' }
+    if (/suppress/i.test(body)) {
+      await registrarEnvio({ ...base, status: 'suppressed', error: body.slice(0, 200) })
+      return { sent: false, reason: 'recipient_suppressed' }
+    }
+    await registrarEnvio({ ...base, status: 'failed', error: `${response.status}: ${body.slice(0, 200)}` })
     throw new Error(`Falha ao enviar e-mail (${response.status}): ${body.slice(0, 200)}`)
   }
+  const resendId = await response.json().then((j: { id?: string }) => j?.id ?? null).catch(() => null)
+  await registrarEnvio({ ...base, status: 'sent', resendId })
 
   return { sent: true }
 }
