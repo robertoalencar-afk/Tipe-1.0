@@ -181,7 +181,7 @@ export function EscolhaAtendimento({
           role="tabpanel"
           aria-labelledby={`${base}-aba-${modalidade}`}
           className={cn(
-            "mt-6 grid gap-8 lg:mt-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14",
+            "mt-6 grid gap-8 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#03665f] lg:mt-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14",
             !reduzido && "sobe-suave",
           )}
         >

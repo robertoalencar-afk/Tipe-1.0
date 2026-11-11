@@ -1,8 +1,7 @@
-import { Nfc, QrCode } from "lucide-react";
-import logo from "@/assets/marca/tipe-logo.svg";
+import praiaPulseira from "@/assets/cenas/cena-praia-pulseira-1120.jpg";
+import praiaPulseiraPequena from "@/assets/cenas/cena-praia-pulseira-640.jpg";
 import { TotemPedido } from "@/components/tipe/TotemPedido";
 import { CelularReal } from "../produto/TelaReal";
-import { Foto } from "../Foto";
 
 const noop = () => {};
 const itens = [
@@ -89,22 +88,22 @@ export function TotemDemonstracao() {
 export function PulseiraDemonstracao() {
   return (
     <div className="relative h-full overflow-hidden bg-[#021E34]">
-      <Foto
-        nome="cena-praia"
-        alt="Casting oficial da Tipe em uma mesa na praia"
-        className="h-full w-full opacity-60"
+      <img
+        src={praiaPulseira}
+        srcSet={`${praiaPulseiraPequena} 516w, ${praiaPulseira} 902w`}
+        sizes="(min-width: 1024px) 48vw, 100vw"
+        width={902}
+        height={1120}
+        alt="Na foto oficial da Tipe, a cliente toma água de coco usando uma pulseira NFC turquesa numerada no pulso; a equipe atende à mesa na praia"
+        loading="lazy"
+        decoding="async"
+        className="h-full w-full object-cover"
       />
-      <div className="absolute bottom-7 left-5 flex w-[48%] -rotate-12 items-center gap-3 rounded-[2rem] bg-[#0FC9BD] px-4 py-5 text-[#021E34] shadow-[0_20px_45px_-15px_#0008] sm:left-8 sm:py-7">
-        <img src={logo} alt="Tipe" width="74" height="28" className="w-[40%]" loading="lazy" />
-        <span className="font-display text-xl font-semibold tabular-nums sm:text-3xl">0421</span>
-        <Nfc aria-hidden className="size-5 shrink-0" />
-      </div>
-      <QrCode aria-hidden className="absolute bottom-[27%] left-[24%] size-7 text-white" />
       <CelularReal
         tela="order-inicio"
-        alt="Cardápio real do Tipe Order aberto no celular após a leitura NFC ou QR da pulseira"
-        sizes="(min-width: 1024px) 240px, 42vw"
-        className="absolute right-5 top-[12%] w-[43%] max-w-[15rem] sm:right-8"
+        alt="Cardápio real do Tipe Order aberto no celular, com dados de exemplo"
+        sizes="(min-width: 1024px) 150px, 28vw"
+        className="absolute bottom-5 right-4 w-[28%] max-w-[9rem] sm:bottom-7 sm:right-6"
       />
     </div>
   );
