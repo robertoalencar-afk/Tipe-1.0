@@ -1,11 +1,10 @@
 /**
- * O filme curto da lebre e da tartaruga (21 s, sem som, em loop). V6.1: composição
- * HyperFrames com os personagens articulados (cabeça, orelhas, braços e pálpebras
- * recortados da ilustração, cada um girando no seu pivô; relógio em time-lapse e as três
- * lebres comemorando no fim), renderizada a 60 quadros/s e
- * juntada em 30 com desfoque de movimento (fonte em docs/landing-v7/video-lebre/). No computador usa a versão
- * 16:9 e no celular a 4:5. Só toca quando está na tela; com movimento reduzido
- * fica o pôster e a pessoa decide se quer ver.
+ * O filme da lebre e da tartaruga (28 s, sem som, em loop). Versão cinema (03/11): os
+ * clipes animados de cada personagem montados em Python com câmera, foco, cor e granulação;
+ * a tartaruga espera 12 min, a maquininha está na mesa 9 há mais 10, a lebre paga pelo QR
+ * (o ok verde entra de uma vez, sem balão antes) e as telas reais da Tipe fecham o filme
+ * ("Confira. Escolha. Pague."). No computador usa a versão 16:9 e no celular a 4:5. Só toca
+ * quando está na tela; com movimento reduzido fica o pôster e a pessoa decide se quer ver.
  */
 import { useEffect, useRef, useState } from "react";
 import { Pause, Play } from "lucide-react";
@@ -52,12 +51,27 @@ export function VideoLebre({ className }: { className?: string }) {
         visivel.current = !!e?.isIntersecting;
         if (visivel.current && !pausadoPelaPessoa.current)
           tocarMudo(v, () => visivel.current && !pausadoPelaPessoa.current);
-        else v.pause();
+        else {
+          v.pause();
+          // Saiu da tela: quando a pessoa voltar, o vídeo retoma sozinho.
+          if (!visivel.current && !reduzMovimento()) pausadoPelaPessoa.current = false;
+        }
       },
-      { threshold: 0.35 },
+      { threshold: 0.2 },
     );
     io.observe(v);
-    return () => io.disconnect();
+    // Volta de outra aba ou app (o celular pausa o vídeo): retoma de onde parou.
+    const voltar = () => {
+      if (document.visibilityState === "visible" && visivel.current && !pausadoPelaPessoa.current)
+        tocarMudo(v, () => visivel.current && !pausadoPelaPessoa.current);
+    };
+    document.addEventListener("visibilitychange", voltar);
+    window.addEventListener("pageshow", voltar);
+    return () => {
+      io.disconnect();
+      document.removeEventListener("visibilitychange", voltar);
+      window.removeEventListener("pageshow", voltar);
+    };
   }, [formato]);
 
   const alternar = () => {
@@ -86,7 +100,7 @@ export function VideoLebre({ className }: { className?: string }) {
         muted
         loop
         playsInline
-        preload="none"
+        preload="metadata"
         poster={f.poster}
         width={f.w}
         height={f.h}

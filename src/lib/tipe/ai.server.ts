@@ -26,6 +26,18 @@ export function cloudflareDailyLimit(): number {
   return Number.isFinite(n) && n >= 0 ? Math.floor(n) : 150;
 }
 
+/** Binding do Workers AI ("ai" no wrangler.jsonc). Não precisa de token: o Worker já tem acesso. */
+export type AIBinding = {
+  run(model: string, input: Record<string, unknown>): Promise<unknown>;
+  toMarkdown?(files: Array<{ name: string; blob: Blob }>): Promise<Array<{ data?: string }>>;
+};
+
+/** O Nitro guarda o env do Worker em globalThis.__env__ a cada requisição. */
+export function aiBinding(): AIBinding | null {
+  const env = (globalThis as { __env__?: { AI?: AIBinding } }).__env__;
+  return env?.AI && typeof env.AI.run === "function" ? env.AI : null;
+}
+
 function cloudflareCreds() {
   const accountId = process.env["CLOUDFLARE_ACCOUNT_ID"];
   const token = process.env["CLOUDFLARE_AI_TOKEN"];
@@ -57,10 +69,23 @@ export async function consumeProviderQuota(
 
 /** Transforma PDFs em texto com o conversor da Cloudflare (sem custo para PDF). */
 async function pdfToText(file: AIFile): Promise<string | null> {
-  const creds = cloudflareCreds();
-  if (!creds) return null;
   const base64 = file.dataUrl.slice(`data:${file.mediaType};base64,`.length);
   const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
+  const binding = aiBinding();
+  if (binding?.toMarkdown) {
+    try {
+      const [doc] = await binding.toMarkdown([
+        { name: file.name, blob: new Blob([bytes], { type: "application/pdf" }) },
+      ]);
+      const text = doc?.data?.trim();
+      return text ? text.slice(0, 12_000) : null;
+    } catch (error) {
+      console.error("ai pdf", error);
+      return null;
+    }
+  }
+  const creds = cloudflareCreds();
+  if (!creds) return null;
   const form = new FormData();
   form.append(
     "files",
@@ -152,14 +177,37 @@ async function chatCompletion(
   return text;
 }
 
+/** Texto da resposta do binding: { response } nos modelos @cf, ou choices no formato OpenAI. */
+function bindingText(out: unknown): string | undefined {
+  const o = out as {
+    response?: unknown;
+    choices?: Array<{ message?: { content?: string | null } }>;
+  };
+  if (typeof o?.response === "string") return o.response.trim();
+  if (o?.response && typeof o.response === "object") return JSON.stringify(o.response);
+  return o?.choices?.[0]?.message?.content?.trim() ?? undefined;
+}
+
 async function askCloudflare(messages: ChatMessage[], maxTokens: number): Promise<string> {
+  const binding = aiBinding();
   const creds = cloudflareCreds();
-  if (!creds) throw new ProviderFailed("sem credenciais");
+  if (!binding && !creds) throw new ProviderFailed("sem credenciais");
   if (!(await consumeProviderQuota("cloudflare", cloudflareDailyLimit())))
     throw new ProviderFailed("teto diário atingido");
+  if (binding) {
+    let out: unknown;
+    try {
+      out = await binding.run(CF_MODEL(), { messages, max_tokens: maxTokens, temperature: 0.3 });
+    } catch (error) {
+      throw new ProviderFailed(`binding: ${String(error)}`);
+    }
+    const text = bindingText(out);
+    if (!text) throw new ProviderFailed("resposta vazia");
+    return text;
+  }
   return chatCompletion(
-    `https://api.cloudflare.com/client/v4/accounts/${creds.accountId}/ai/v1/chat/completions`,
-    creds.token,
+    `https://api.cloudflare.com/client/v4/accounts/${creds!.accountId}/ai/v1/chat/completions`,
+    creds!.token,
     CF_MODEL(),
     messages,
     maxTokens,

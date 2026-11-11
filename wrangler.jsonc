@@ -9,8 +9,11 @@
   "workers_dev": true,
   "preview_urls": false,
   "routes": [
-    { "pattern": "tipe.digital", "custom_domain": true },
-    { "pattern": "www.tipe.digital", "custom_domain": true }
+    // www já redireciona no edge para o domínio canônico, preservando caminho e query.
+    // Não disputar o registro DNS desse redirecionamento (erro Cloudflare 100117).
+    { "pattern": "tipe.digital", "custom_domain": true }
   ],
-  "observability": { "enabled": true }
+  "observability": { "enabled": true },
+  // IA grátis da Lebre (Workers AI) direto no Worker, sem token: ver src/lib/tipe/ai.server.ts.
+  "ai": { "binding": "AI" }
 }

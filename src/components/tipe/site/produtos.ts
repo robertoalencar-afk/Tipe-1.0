@@ -207,7 +207,7 @@ export const PRODUTOS: Produto[] = [
       {
         icone: Smartphone,
         t: "Pix, Apple Pay e Google Pay",
-        d: "Processados pelo Pagar.me, com o dinheiro direto na conta do restaurante.",
+        d: "Processados pelo provedor de pagamento, com o dinheiro direto na conta do restaurante.",
       },
       {
         icone: Wallet,
@@ -252,7 +252,7 @@ export const PRODUTOS: Produto[] = [
     grupo: "Na mesa",
     nome: "Tipe Order",
     resumo: "Cardápio e pedido pelo celular, direto da mesa",
-    status: "em-breve",
+    status: "disponivel",
     icone: UtensilsCrossed,
     foto: "order",
     posicao: "50% 50%",
@@ -264,8 +264,7 @@ export const PRODUTOS: Produto[] = [
     },
     cenario: {
       titulo: "Pediu, comeu, pagou. Na mesma mesa.",
-      texto:
-        "O pedido pelo celular está em desenvolvimento. Enquanto isso, a conta e o pagamento já funcionam pelo mesmo QR Code.",
+      texto: "O cliente abre o cardápio, pede pelo celular e, no fim, paga pelo mesmo QR Code.",
       itens: [
         {
           foto: "cena-amigos",
@@ -290,7 +289,6 @@ export const PRODUTOS: Produto[] = [
         ["1× Chope 300 ml", "R$ 14,00"],
       ],
       rodape: "Enviado para a cozinha",
-      ilustracao: true,
     },
     beneficios: [
       {
@@ -298,14 +296,12 @@ export const PRODUTOS: Produto[] = [
         d: "Sempre atualizado, sem reimprimir nada.",
         foto: "cena-familia",
         posicao: "50% 40%",
-        emDesenvolvimento: true,
       },
       {
         t: "Pedido direto na cozinha",
         d: "Sem papel e sem passar pelo garçom.",
         foto: "cena-cozinha",
         posicao: "50% 40%",
-        emDesenvolvimento: true,
       },
       {
         t: "Entra na conta sozinho",
@@ -335,7 +331,7 @@ export const PRODUTOS: Produto[] = [
       {
         icone: ChefHat,
         t: "Integrado à cozinha",
-        d: "Cada pedido vira um ticket no Tipe Kitchen.",
+        d: "Cada pedido vira um ticket no Tipe Cozinha.",
       },
       {
         icone: ReceiptText,
@@ -351,14 +347,14 @@ export const PRODUTOS: Produto[] = [
       ],
       [
         "Como o cliente paga o que pediu?",
-        "Pela conta da mesa, como no Tipe Pay: divide se quiser e paga com Apple Pay, Google Pay, Pix ou no estabelecimento. A gorjeta extra é opcional e vem depois, como um segundo pagamento.",
+        "Pela conta da mesa, como no Tipe Pay: divide se quiser e paga em dinheiro ou na maquininha no local. Pix, Apple Pay e Google Pay estão em piloto, com habilitação por restaurante. A gorjeta extra é opcional e vem depois, como um segundo pagamento.",
       ],
     ],
   },
   {
     slug: "staff",
     grupo: "Na equipe",
-    nome: "Tipe Staff",
+    nome: "Tipe Equipe",
     resumo: "Área do garçom com gorjetas, saldo e avaliações",
     status: "disponivel",
     icone: HandCoins,
@@ -387,7 +383,7 @@ export const PRODUTOS: Produto[] = [
         },
       ],
     },
-    rotulo: "Tipe Staff",
+    rotulo: "Tipe Equipe",
     titulo: "Mais tempo para servir. Menos para cobrar.",
     texto:
       "Sem levar conta impressa e maquininha de mesa em mesa. O garçom acompanha as mesas, recebe a gorjeta extra no saldo e saca por Pix.",
@@ -460,7 +456,7 @@ export const PRODUTOS: Produto[] = [
   {
     slug: "kitchen",
     grupo: "Na equipe",
-    nome: "Tipe Kitchen",
+    nome: "Tipe Cozinha",
     resumo: "Tela da cozinha e do bar com pedidos por ordem",
     status: "disponivel",
     icone: ChefHat,
@@ -489,7 +485,7 @@ export const PRODUTOS: Produto[] = [
         },
       ],
     },
-    rotulo: "Tipe Kitchen",
+    rotulo: "Tipe Cozinha",
     titulo: "A cozinha vê o pedido na hora certa.",
     texto:
       "Os pedidos chegam numa tela para a cozinha e para o bar, na ordem em que foram feitos, com o tempo de cada um. Sem comanda de papel perdida.",
@@ -551,7 +547,7 @@ export const PRODUTOS: Produto[] = [
   {
     slug: "restaurant",
     grupo: "Na gestão",
-    nome: "Tipe Restaurant",
+    nome: "Tipe Gestão",
     resumo: "Painel do salão, caixa e relatórios em tempo real",
     status: "disponivel",
     icone: LayoutGrid,
@@ -580,7 +576,7 @@ export const PRODUTOS: Produto[] = [
         },
       ],
     },
-    rotulo: "Tipe Restaurant",
+    rotulo: "Tipe Gestão",
     titulo: "Seu salão inteiro, numa tela só.",
     texto:
       "Cada mesa, cada item e cada pagamento em tempo real, no computador, no tablet ou no celular. O caixa fecha sem susto.",
@@ -610,8 +606,8 @@ export const PRODUTOS: Produto[] = [
       {
         t: "Relatórios",
         d: "Vendas, mais vendidos e gorjetas por garçom.",
-        foto: "cena-dono",
-        posicao: "50% 45%",
+        foto: "gestor",
+        posicao: "40% 55%",
       },
       {
         t: "Tudo registrado",
@@ -664,17 +660,17 @@ export const PRODUTOS: Produto[] = [
   {
     slug: "ai",
     grupo: "Na gestão",
-    nome: "Tipe AI",
-    resumo: "A Lebre resume o salão e faz o que você pedir, com confirmação",
+    nome: "Lebre",
+    resumo: "A inteligência da Tipe: resume o salão e faz o que você pedir, com confirmação",
     status: "disponivel",
     icone: Bot,
     foto: "ai",
     posicao: "55% 40%",
     altFoto: "Gerente apoiada no balcão consultando o celular antes de abrir o restaurante",
     topo: {
-      foto: "cena-dono",
-      posicao: "50% 45%",
-      alt: "Dono do restaurante no notebook com o painel da Tipe, no salão ainda fechado",
+      foto: "ai",
+      posicao: "55% 40%",
+      alt: "Gerente apoiada no balcão perguntando à Lebre pelo celular antes de abrir o restaurante",
     },
     cenario: {
       titulo: "Pergunte de onde estiver.",
@@ -689,7 +685,7 @@ export const PRODUTOS: Produto[] = [
         { painel: "lebre-acao", legenda: "Nada muda sem o seu Confirmar." },
       ],
     },
-    rotulo: "Tipe AI",
+    rotulo: "Lebre, a inteligência da Tipe",
     titulo: "Você cuida do salão. A Lebre cuida das respostas.",
     texto:
       "Pergunte em português, digitando ou falando, como está o salão agora. E peça o que precisa: abrir uma mesa, pausar um item, convidar um garçom. A Lebre prepara e você confirma.",
@@ -773,7 +769,7 @@ export const PRODUTOS: Produto[] = [
   {
     slug: "guest",
     grupo: "Na mesa",
-    nome: "Tipe Guest",
+    nome: "Tipe Reserva",
     resumo: "Reserva, lista de espera e volta do cliente, no mesmo app da conta",
     status: "em-breve",
     icone: Heart,
@@ -786,7 +782,7 @@ export const PRODUTOS: Produto[] = [
       posicao: "50% 35%",
       alt: "Casal à mesa de um restaurante conferindo a reserva no celular",
     },
-    heroTelas: ["guest-descobrir", "guest-horarios", "guest-confirmada"],
+    heroTelas: ["app-descobrir", "app-garantia", "app-confirmada"],
     cenario: {
       titulo: "Da reserva à próxima visita, sem fila na porta.",
       texto:
@@ -804,7 +800,7 @@ export const PRODUTOS: Produto[] = [
         },
       ],
     },
-    rotulo: "Tipe Guest",
+    rotulo: "Tipe Reserva",
     titulo: "Reserve, chegue e volte.",
     texto:
       "O app do cliente para descobrir restaurantes, reservar o horário livre, entrar na lista de espera e voltar depois. Tudo ligado à conta da mesa da Tipe. Em desenvolvimento, com restaurantes fictícios no simulador.",
@@ -820,14 +816,14 @@ export const PRODUTOS: Produto[] = [
       {
         t: "Reserva no horário livre",
         d: "O cliente escolhe o dia, quantas pessoas e um horário que existe de verdade. O horário fica seguro por 5 minutos enquanto ele confirma. Se o restaurante pedir, uma garantia simbólica confirma a mesa e vira crédito na conta.",
-        foto: "cena-casal",
+        foto: "cena-executiva",
         posicao: "50% 35%",
         telaReal: "guest-horarios",
       },
       {
         t: "Lista de espera que avisa",
         d: "Horário lotado? O cliente entra na fila. Quando uma mesa libera, o app avisa e ele tem 15 minutos para confirmar.",
-        foto: "cena-amigos",
+        foto: "cena-praia",
         posicao: "50% 40%",
         telaReal: "guest-espera",
       },
@@ -854,33 +850,39 @@ export const PRODUTOS: Produto[] = [
       { v: "1 app", t: "da reserva à conta paga" },
     ],
     fluxoReal: {
-      titulo: "Da fome ao até a próxima.",
+      titulo: "Da vontade à mesa garantida.",
       texto:
-        "Quatro toques entre escolher onde comer e sair com a conta paga. Os restaurantes são fictícios: explore à vontade, nada é cobrado.",
+        "Cinco telas do app Tipe Reserva, da busca até a reserva confirmada. A garantia de R$ 50,00 vira crédito de consumação na conta. Restaurantes fictícios, nada é cobrado.",
       telas: [
         {
-          tela: "guest-descobrir",
+          tela: "app-descobrir",
           t: "Onde vamos comer?",
-          d: "Restaurantes com os próximos horários livres.",
-          alt: "Lista de restaurantes fictícios em Fortaleza com horários livres para amanhã",
+          d: "Pergunte à Lebre ou escolha pessoas, dia e hora. Cada restaurante já mostra os horários livres.",
+          alt: "App Tipe Reserva: Pergunte à Lebre com sugestões, barra de 2 pessoas, amanhã, 20:00 e o destaque A Lebre recomenda, com restaurantes fictícios de Fortaleza",
         },
         {
-          tela: "guest-hold",
-          t: "Confirme sua reserva",
-          d: "O horário fica seguro por 5 minutos.",
-          alt: "Tela Confirme sua reserva, amanhã às 12:00 para 2 pessoas, com o horário seguro por 5 minutos",
+          tela: "app-horarios",
+          t: "Escolha o horário",
+          d: "Dia, quantas pessoas e um horário que existe de verdade.",
+          alt: "Página do Maré Alta com dia, número de pessoas, grade de horários e o botão Reservar às 21:00",
         },
         {
-          tela: "guest-pagar",
-          t: "A conta na mesa",
-          d: "Pix, Apple Pay, Google Pay ou no estabelecimento.",
-          alt: "Conta da Mesa 1 no Maré Alta com os itens e as formas de pagamento",
+          tela: "app-dados",
+          t: "Confirme os dados",
+          d: "O horário fica seguro por 5 minutos enquanto você confirma.",
+          alt: "Tela Confirmar reserva com o horário seguro por 5 minutos, nome e ocasião",
         },
         {
-          tela: "guest-fim",
-          t: "Até a próxima",
-          d: "Salvar nos favoritos e reservar de novo.",
-          alt: "Tela Até a próxima, com Salvar nos favoritos e Reservar de novo",
+          tela: "app-garantia",
+          t: "Pague a garantia",
+          d: "R$ 50,00 com Pix, Apple Pay ou Google Pay. No dia, vira consumação.",
+          alt: "Tela da garantia de R$ 50,00 com as regras de cancelamento e os métodos Pix, Apple Pay e Google Pay",
+        },
+        {
+          tela: "app-confirmada",
+          t: "Reserva confirmada",
+          d: "Código, detalhes e a garantia paga, prontos no app.",
+          alt: "Tela Reserva confirmada no Maré Alta, quarta às 21:00 para 2 pessoas, garantia de R$ 50,00 paga com Pix",
         },
       ],
     },
@@ -906,7 +908,7 @@ export const PRODUTOS: Produto[] = [
     ],
     faq: [
       [
-        "O Tipe Guest já está disponível?",
+        "O Tipe Reserva já está disponível?",
         "Ainda não. Está em desenvolvimento; dá para experimentar no simulador, com restaurantes fictícios.",
       ],
       [
@@ -927,58 +929,6 @@ export const PRODUTOS: Produto[] = [
 
 export const produtoPorSlug = (slug: string) => PRODUTOS.find((p) => p.slug === slug);
 
-/** Integrações reais hoje e as que estão a caminho. */
-export const INTEGRACOES: { nome: string; tipo: string; status: Status; d: string }[] = [
-  {
-    nome: "Pix",
-    tipo: "Pagamento",
-    status: "disponivel",
-    d: "Pelo Pagar.me, com o dinheiro direto na conta do restaurante.",
-  },
-  {
-    nome: "Apple Pay",
-    tipo: "Pagamento",
-    status: "disponivel",
-    d: "Pagamento em um toque no iPhone.",
-  },
-  {
-    nome: "Google Pay",
-    tipo: "Pagamento",
-    status: "disponivel",
-    d: "Pagamento em um toque no Android.",
-  },
-  {
-    nome: "Pagar.me",
-    tipo: "Processamento",
-    status: "disponivel",
-    d: "Processa os pagamentos digitais das contas.",
-  },
-  {
-    nome: "Lançamento TIPE",
-    tipo: "PDV",
-    status: "disponivel",
-    d: "Lance os pedidos no próprio painel, sem outro sistema.",
-  },
-  {
-    nome: "API TIPE",
-    tipo: "PDV",
-    status: "disponivel",
-    d: "Envie mesas e itens do seu sistema para a Tipe.",
-  },
-  {
-    nome: "Conectores de PDV",
-    tipo: "PDV",
-    status: "em-breve",
-    d: "Integração assistida com os PDVs mais usados no Brasil.",
-  },
-  {
-    nome: "Baixa automática no PDV",
-    tipo: "PDV",
-    status: "em-breve",
-    d: "O pagamento fecha o item no seu sistema.",
-  },
-];
-
 /**
  * Dúvidas que valem para qualquer produto (mesmos textos do FAQ da home). Completam as
  * dúvidas de cada página até pelo menos quatro, sem repetir pergunta.
@@ -990,7 +940,7 @@ export const DUVIDAS_COMUNS: Record<string, [string, string]> = {
   ],
   seguro: [
     "É seguro?",
-    "Os pagamentos digitais são processados pelo Pagar.me e o dinheiro cai direto na conta do restaurante; a Tipe não retém o valor das contas. O sistema protege contra pagamento em duplicidade, confere o valor pago antes de aprovar e registra cada ação com data e responsável.",
+    "Os pagamentos digitais são processados pelo provedor de pagamento e o dinheiro cai direto na conta do restaurante; a Tipe não retém o valor das contas. O sistema protege contra pagamento em duplicidade, confere o valor pago antes de aprovar e registra cada ação com data e responsável.",
   ],
   pdv: [
     "Funciona com o meu PDV?",
@@ -998,7 +948,7 @@ export const DUVIDAS_COMUNS: Record<string, [string, string]> = {
   ],
   custo: [
     "Quanto custa?",
-    "Assinatura mensal de acordo com o número de mesas, sem tarifa por transação nas contas; o restaurante paga apenas as tarifas do Pagar.me. Os valores serão divulgados no lançamento.",
+    "Assinatura mensal de acordo com o número de mesas, sem tarifa por transação nas contas; o restaurante paga apenas as tarifas do provedor de pagamento. Os valores serão divulgados no lançamento.",
   ],
   gorjeta: [
     "Como funciona a gorjeta extra?",

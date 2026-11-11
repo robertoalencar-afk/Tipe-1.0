@@ -6,9 +6,9 @@
  * com um card ilustrativo, nunca com uma tela que finja ser real.
  */
 import type { CSSProperties, ReactNode } from "react";
-import { Check, Sparkles } from "lucide-react";
+import { ArrowUpRight, Check, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
-import avatarLebre from "@/assets/lebre/avatar-ola.webp";
+import avatarLebre from "@/assets/lebre/avatar-feliz.webp";
 import { SetaFios } from "./Bigode";
 import { Celular, Janela, Tablet } from "./Dispositivo";
 import type { Produto } from "./produtos";
@@ -171,7 +171,9 @@ function Vitrine({ p }: { p: Produto }) {
           >
             {p.cartao.rodape}
           </p>
-          <p className="mt-3 text-center text-xs text-white/50">Ilustração · em desenvolvimento</p>
+          {p.status === "em-breve" && (
+            <p className="mt-3 text-center text-xs text-white/50">Ilustração · em breve</p>
+          )}
         </div>
       );
   }
@@ -217,7 +219,11 @@ export function CardProduto({ p, className }: { p: Produto; className?: string }
         />
       </div>
       <span className="com-fios absolute bottom-6 right-6 z-10 grid h-11 w-11 place-items-center rounded-full bg-white text-[#021E34] transition-transform duration-500 group-hover:scale-105">
-        <SetaFios className="meio-focinho-redondo" />
+        <ArrowUpRight
+          aria-hidden
+          className="cp-seta col-start-1 row-start-1 h-[1.15rem] w-[1.15rem]"
+        />
+        <SetaFios className="meio-focinho-redondo col-start-1 row-start-1" />
       </span>
     </a>
   );

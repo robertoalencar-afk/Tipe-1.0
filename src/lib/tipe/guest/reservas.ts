@@ -1,4 +1,4 @@
-// Tipe Guest · motor de reservas: regras puras (sem React, sem Supabase).
+// Tipe Reserva · motor de reservas: regras puras (sem React, sem Supabase).
 // Espelham as funções da migração 0042 para o /demo e o app Expo calcularem o mesmo que o banco.
 // A garantia contra overbooking é do Postgres (EXCLUDE em guest_table_allocations); aqui é só cálculo.
 

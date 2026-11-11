@@ -40,7 +40,7 @@ export const ETAPAS_TELA: Record<TelaReal, Omit<EtapaCelular, "tela">> = {
     toque: { x: 50, y: 93 },
   },
   "guest-descobrir": {
-    alt: "Tipe Guest: busca de restaurantes em Fortaleza com os horários livres de cada um (restaurantes fictícios)",
+    alt: "Tipe Reserva: busca de restaurantes em Fortaleza com os horários livres de cada um (restaurantes fictícios)",
     toque: { x: 12, y: 32 },
   },
   "guest-horarios": {
@@ -55,7 +55,7 @@ export const ETAPAS_TELA: Record<TelaReal, Omit<EtapaCelular, "tela">> = {
     alt: "Reserva confirmada para amanhã às 12:00, 2 pessoas, com o código da reserva",
   },
   "guest-pagar": {
-    alt: "Conta da mesa no Tipe Guest com Pix, Apple Pay, Google Pay e pagar no estabelecimento",
+    alt: "Conta da mesa no Tipe Reserva com Pix, Apple Pay, Google Pay e pagar no estabelecimento",
     toque: { x: 50, y: 85 },
   },
   "guest-gorjeta": {
@@ -67,6 +67,25 @@ export const ETAPAS_TELA: Record<TelaReal, Omit<EtapaCelular, "tela">> = {
   },
   "guest-espera": {
     alt: "Lista de espera: o app avisa que uma mesa liberou e dá 15 minutos para confirmar",
+  },
+  "app-descobrir": {
+    alt: "App Tipe Reserva: Pergunte à Lebre, pessoas, dia e hora, e o destaque A Lebre recomenda (restaurantes fictícios)",
+    toque: { x: 28, y: 36 },
+  },
+  "app-horarios": {
+    alt: "Maré Alta: dia, pessoas e horário escolhido, com o botão Reservar às 21:00",
+    toque: { x: 50, y: 93 },
+  },
+  "app-dados": {
+    alt: "Confirmar reserva: horário seguro por 5 minutos, nome e ocasião",
+    toque: { x: 50, y: 54 },
+  },
+  "app-garantia": {
+    alt: "Garantia de R$ 50,00 que vira crédito de consumação, paga com Pix, Apple Pay ou Google Pay",
+    toque: { x: 50, y: 89 },
+  },
+  "app-confirmada": {
+    alt: "Reserva confirmada no Maré Alta para 2 pessoas, com a garantia de R$ 50,00 paga",
   },
   "order-inicio": {
     alt: "Cardápio da Mesa 12 no Tipe Order com categorias Petiscos, Pratos, Bebidas e Sobremesas",
@@ -92,7 +111,7 @@ export const ETAPAS_TELA: Record<TelaReal, Omit<EtapaCelular, "tela">> = {
     alt: "Cardápio em stories: Suco de caju, copo de 400 ml (dados de exemplo)",
   },
   "order-story-3d": {
-    alt: "Cardápio em stories: sobremesa em 3D que o cliente gira no celular (em desenvolvimento)",
+    alt: "Cardápio em stories: sobremesa em 3D que o cliente gira no celular",
   },
 };
 
@@ -116,6 +135,11 @@ const ROTULO: Record<TelaReal, string> = {
   "guest-gorjeta": "Gorjeta",
   "guest-fim": "Voltar",
   "guest-espera": "Espera",
+  "app-descobrir": "Descobrir",
+  "app-horarios": "Horário",
+  "app-dados": "Dados",
+  "app-garantia": "Garantia",
+  "app-confirmada": "Confirmada",
   "order-inicio": "Cardápio",
   "order-cozinha": "Cozinha",
   "order-conta": "Conta",

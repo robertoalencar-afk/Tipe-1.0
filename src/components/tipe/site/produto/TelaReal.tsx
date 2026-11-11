@@ -31,7 +31,7 @@ import cardapio780 from "@/assets/telas-reais/cardapio-780.webp";
 import pedido390 from "@/assets/telas-reais/pedido-390.webp";
 import pedido780 from "@/assets/telas-reais/pedido-780.webp";
 
-// Tipe Guest e Tipe Order (03/11): telas dos simuladores de cada produto, capturadas do
+// Tipe Reserva e Tipe Order (03/11): telas dos simuladores de cada produto, capturadas do
 // código em desenvolvimento com restaurantes fictícios (/mnt/project-files/tipe-guest e tipe-order).
 import guestDescobrir390 from "@/assets/telas-reais/guest-descobrir-390.webp";
 import guestDescobrir780 from "@/assets/telas-reais/guest-descobrir-780.webp";
@@ -65,6 +65,17 @@ import orderStoryBebidas390 from "@/assets/telas-reais/order-story-bebidas-390.w
 import orderStoryBebidas780 from "@/assets/telas-reais/order-story-bebidas-780.webp";
 import orderStory3d390 from "@/assets/telas-reais/order-story-3d-390.webp";
 import orderStory3d780 from "@/assets/telas-reais/order-story-3d-780.webp";
+// App Tipe Reserva (apps/guest, 03/11): telas do app nativo em modo demonstração, até a garantia.
+import appDescobrir390 from "@/assets/telas-reais/app-descobrir-390.webp";
+import appDescobrir780 from "@/assets/telas-reais/app-descobrir-780.webp";
+import appHorarios390 from "@/assets/telas-reais/app-horarios-390.webp";
+import appHorarios780 from "@/assets/telas-reais/app-horarios-780.webp";
+import appDados390 from "@/assets/telas-reais/app-dados-390.webp";
+import appDados780 from "@/assets/telas-reais/app-dados-780.webp";
+import appGarantia390 from "@/assets/telas-reais/app-garantia-390.webp";
+import appGarantia780 from "@/assets/telas-reais/app-garantia-780.webp";
+import appConfirmada390 from "@/assets/telas-reais/app-confirmada-390.webp";
+import appConfirmada780 from "@/assets/telas-reais/app-confirmada-780.webp";
 import salao560 from "@/assets/telas-reais/salao-560.webp";
 import salao1000 from "@/assets/telas-reais/salao-1000.webp";
 
@@ -88,6 +99,11 @@ export const TELAS_REAIS = {
   "guest-gorjeta": [guestGorjeta390, guestGorjeta780],
   "guest-fim": [guestFim390, guestFim780],
   "guest-espera": [guestEspera390, guestEspera780],
+  "app-descobrir": [appDescobrir390, appDescobrir780],
+  "app-horarios": [appHorarios390, appHorarios780],
+  "app-dados": [appDados390, appDados780],
+  "app-garantia": [appGarantia390, appGarantia780],
+  "app-confirmada": [appConfirmada390, appConfirmada780],
   "order-inicio": [orderInicio390, orderInicio780],
   "order-cozinha": [orderCozinha390, orderCozinha780],
   "order-conta": [orderConta390, orderConta780],

@@ -17,7 +17,7 @@ import { SitePage } from "@/components/tipe/site/Site";
 
 const TITLE = "Tipe | Pague. Sem esperar. | Pagamento na mesa por QR Code";
 const DESCRIPTION =
-  "Com a Tipe, o cliente confere a conta, divide o que consumiu e paga com Pix pelo celular, direto na mesa. Sem aplicativo e sem esperar a maquininha. Pré-lançamento com 30 dias grátis para restaurantes.";
+  "Tipe Pay: seu cliente confere, divide e paga a conta pelo celular, e sua equipe ganha tempo para atender. Pré-lançamento com 30 dias grátis para restaurantes.";
 const OG_IMAGE = "https://tipe.digital/marca/tipe-logo-redondo.png";
 
 export const Route = createFileRoute("/")({
@@ -42,16 +42,26 @@ export const Route = createFileRoute("/")({
 function LandingPage() {
   const previaHero = usePreviaHeroVideo();
   return (
-    <SitePage extra={<LazyLebreAssistant />}>
+    <SitePage
+      initialTheme={TEM_VIDEO_HERO || previaHero ? "escuro" : "claro"}
+      extra={<LazyLebreAssistant />}
+    >
       <span id="principal" aria-hidden />
-      {TEM_VIDEO_HERO || previaHero ? <HeroVideo /> : <AberturaMesa />}
-      <ProdutosHome />
+      {TEM_VIDEO_HERO || previaHero ? (
+        <>
+          <HeroVideo />
+          <AberturaMesa secao />
+        </>
+      ) : (
+        <AberturaMesa />
+      )}
       <CarrosselHistorias />
       <FluxoPagamento />
       <LebreTartaruga />
       <StaffHome />
       <IntegracoesHome />
       <ImpactoECalculadora />
+      <ProdutosHome />
       <PlanosHome />
       <Duvidas />
     </SitePage>
@@ -74,7 +84,7 @@ const FAQ: { label: string; faqs: [string, string][] }[] = [
       ],
       [
         "Quais formas de pagamento estão disponíveis?",
-        "Hoje: Pix, Apple Pay e Google Pay pelo celular, processados pelo Pagar.me, e pagamento no estabelecimento (dinheiro ou maquininha), confirmado pelo caixa. O restaurante escolhe no painel quais formas oferecer.",
+        "Pagamento no estabelecimento (dinheiro ou maquininha), confirmado pelo caixa, já funciona. Pix, Apple Pay e Google Pay pelo celular, via provedor de pagamento, estão em piloto: a cobrança real começa restaurante a restaurante, depois de ativar a conta no provedor de pagamento. O restaurante escolhe no painel quais formas oferecer.",
       ],
       [
         "Dá para pagar só a minha parte?",
@@ -82,7 +92,7 @@ const FAQ: { label: string; faqs: [string, string][] }[] = [
       ],
       [
         "Como funciona a gorjeta extra?",
-        "Ela vem depois que a conta está paga, como um segundo pagamento, separado. A taxa de serviço é definida pelo restaurante e entra na conta; pela Lei 13.419/2017, gorjeta e taxa de serviço pertencem aos trabalhadores. A gorjeta extra é opcional, nunca vem marcada, e o cliente vê o valor antes de confirmar. A Tipe recebe a gorjeta extra e separa 70% para quem atendeu e 30% como taxa da plataforma.",
+        "Ela vem depois que a conta está paga, como um segundo pagamento, separado. A taxa de serviço é definida pelo restaurante e entra na conta; pela Lei 13.419/2017, gorjeta e taxa de serviço pertencem aos trabalhadores. A gorjeta extra é opcional, nunca vem marcada, e o cliente vê o valor antes de confirmar. A Tipe recebe a gorjeta extra e separa 70% para o garçom e 30% para a Tipe.",
       ],
     ],
   },
@@ -91,11 +101,15 @@ const FAQ: { label: string; faqs: [string, string][] }[] = [
     faqs: [
       [
         "É seguro?",
-        "Os pagamentos digitais são processados pelo Pagar.me e o dinheiro cai direto na conta do restaurante; a Tipe não retém o valor das contas. O sistema protege contra pagamento em duplicidade, confere o valor pago antes de aprovar e registra cada ação com data e responsável.",
+        "Nos pagamentos digitais, processados pelo provedor de pagamento, o dinheiro vai direto para a conta do restaurante; a Tipe não retém o valor das contas. O sistema protege contra pagamento em duplicidade, confere o valor pago antes de aprovar e registra cada ação com data e responsável.",
       ],
       [
         "Funciona com o meu PDV?",
         "Você pode usar a Tipe completa, lançando os pedidos pelo Lançamento TIPE no próprio painel, ou enviar mesas e itens pela API TIPE. Conectores para outros PDVs estão em desenvolvimento, com integração assistida pela nossa equipe.",
+      ],
+      [
+        "A demonstração ativa cobranças ou reservas?",
+        "Não. Os simuladores usam dados de exemplo e não movimentam dinheiro. Enviar o formulário solicita contato da equipe, sem contratação automática. O Tipe Order é um módulo adicional do Pay; Pix e carteiras dependem da habilitação do restaurante. O Tipe Reserva V2 está em breve e não recebe reservas reais por esta demonstração.",
       ],
       [
         "Quanto tempo leva para começar?",
@@ -103,7 +117,7 @@ const FAQ: { label: string; faqs: [string, string][] }[] = [
       ],
       [
         "Quanto custa?",
-        `Assinatura mensal de acordo com o número de mesas, sem tarifa por transação nas contas; o restaurante paga apenas as tarifas do Pagar.me. Os valores serão divulgados no lançamento e os primeiros restaurantes ganham ${TRIAL_DAYS} dias grátis, sem cartão de crédito.`,
+        `Assinatura mensal de acordo com o número de mesas, sem tarifa por transação nas contas; o restaurante paga apenas as tarifas do provedor de pagamento. Os valores serão divulgados no lançamento e os primeiros restaurantes ganham ${TRIAL_DAYS} dias grátis, sem cartão de crédito.`,
       ],
       [
         "De onde vêm os números da página?",
@@ -111,7 +125,7 @@ const FAQ: { label: string; faqs: [string, string][] }[] = [
       ],
       [
         "E se um pagamento sair errado?",
-        "Pagamentos presenciais podem ser cancelados pelo caixa e os itens voltam para a conta. Estornos e contestações do Pagar.me aparecem como pendência no caixa, com registro de quem resolveu.",
+        "Pagamentos presenciais podem ser cancelados pelo caixa e os itens voltam para a conta. Estornos e contestações do provedor de pagamento aparecem como pendência no caixa, com registro de quem resolveu.",
       ],
     ],
   },

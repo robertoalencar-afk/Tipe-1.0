@@ -1,0 +1,352 @@
+/**
+ * Moldura dos sistemas internos da Tipe (Central Tipe e Tipe Gestão).
+ *
+ * Um só esqueleto para os dois ambientes: barra lateral azul-marinho recolhível
+ * com grupos de navegação, cabeçalho claro com título, busca global (Ctrl+K) e
+ * ações, e gaveta no celular. Os ambientes mudam só o conteúdo dos grupos.
+ * Tokens: docs/design-system.md. Nada de cor nova aqui.
+ */
+import { useCallback, useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
+import { ChevronsLeft, ChevronsRight, Menu, Search, X } from "lucide-react";
+import { TipeLogo } from "@/components/tipe/Logo";
+import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import {
+  CommandDialog,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
+import { cn } from "@/lib/utils";
+
+export type Icone = ComponentType<{ className?: string | undefined }>;
+
+export type ItemNav = {
+  /** Chave única; é o que `ativo` compara e o que `onNavegar` recebe. */
+  k: string;
+  l: string;
+  i: Icone;
+  /** Número à direita (pendências). Zero ou undefined não aparece. */
+  badge?: number | undefined;
+  /** Tom do badge: atenção (laranja) ou neutro. */
+  badgeTone?: "warning" | "neutral" | undefined;
+  /** Palavras extras para a busca global encontrar este item. */
+  busca?: string | undefined;
+};
+export type GrupoNav = { l: string; itens: ItemNav[] };
+
+export type AcaoBusca = {
+  k: string;
+  l: string;
+  grupo: string;
+  i?: Icone | undefined;
+  /** Texto de apoio (restaurante, e-mail…). */
+  d?: string | undefined;
+  onSelect: () => void;
+};
+
+const COLAPSO_KEY = "tipe-painel-recolhido";
+
+function lerColapso() {
+  try {
+    return window.localStorage.getItem(COLAPSO_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+export function Shell({
+  ambiente,
+  contexto,
+  grupos,
+  ativo,
+  onNavegar,
+  titulo,
+  descricao,
+  acoes,
+  rodape,
+  busca,
+  children,
+}: {
+  /** Nome do ambiente: "Central Tipe" ou "Tipe Gestão". */
+  ambiente: string;
+  /** Linha de apoio sob o nome (restaurante, e-mail do fundador…). */
+  contexto?: ReactNode;
+  grupos: GrupoNav[];
+  ativo: string;
+  onNavegar: (k: string) => void;
+  titulo?: ReactNode;
+  descricao?: ReactNode;
+  acoes?: ReactNode;
+  /** Área fixa no fim da barra lateral (sair, perfil). */
+  rodape?: ReactNode;
+  /** Itens extras da busca global além da navegação (registros, atalhos). */
+  busca?: AcaoBusca[] | undefined;
+  children: ReactNode;
+}) {
+  const [recolhida, setRecolhida] = useState(false);
+  const [gaveta, setGaveta] = useState(false);
+  const [buscaAberta, setBuscaAberta] = useState(false);
+
+  useEffect(() => setRecolhida(lerColapso()), []);
+  const alternar = useCallback(() => {
+    setRecolhida((v) => {
+      try {
+        window.localStorage.setItem(COLAPSO_KEY, v ? "0" : "1");
+      } catch {
+        // sem armazenamento: só nesta aba
+      }
+      return !v;
+    });
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") {
+        e.preventDefault();
+        setBuscaAberta((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+
+  const ir = useCallback(
+    (k: string) => {
+      onNavegar(k);
+      setGaveta(false);
+      setBuscaAberta(false);
+      if (typeof window !== "undefined") window.scrollTo({ top: 0 });
+    },
+    [onNavegar],
+  );
+
+  const itensBusca = useMemo<AcaoBusca[]>(
+    () => [
+      ...grupos.flatMap((g) =>
+        g.itens.map<AcaoBusca>((it) => ({
+          k: `nav:${it.k}`,
+          l: it.l,
+          grupo: g.l,
+          i: it.i,
+          d: it.busca,
+          onSelect: () => ir(it.k),
+        })),
+      ),
+      ...(busca ?? []),
+    ],
+    [grupos, busca, ir],
+  );
+
+  const nav = (compacta: boolean) => (
+    <nav aria-label={`Seções de ${ambiente}`} className="flex-1 space-y-4 overflow-y-auto px-2 py-3">
+      {grupos.map((g) => (
+        <div key={g.l}>
+          {!compacta && (
+            <p className="px-3 pb-1 text-[11px] font-medium uppercase tracking-[0.08em] text-white/45">
+              {g.l}
+            </p>
+          )}
+          {compacta && <div className="mx-3 mb-2 h-px bg-white/10 first:hidden" aria-hidden />}
+          <ul className="space-y-0.5">
+            {g.itens.map(({ k, l, i: Icon, badge, badgeTone }) => {
+              const on = ativo === k;
+              return (
+                <li key={k}>
+                  <button
+                    type="button"
+                    onClick={() => ir(k)}
+                    aria-current={on ? "page" : undefined}
+                    title={compacta ? l : undefined}
+                    className={cn(
+                      "group relative flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-[0.9rem] transition-colors duration-150",
+                      on
+                        ? "bg-white/[0.12] font-medium text-white"
+                        : "text-white/70 hover:bg-white/[0.07] hover:text-white",
+                      compacta && "justify-center px-0",
+                    )}
+                  >
+                    {on && (
+                      <span
+                        className="absolute left-0 top-1/2 h-5 w-[3px] -translate-y-1/2 rounded-r-full bg-brand"
+                        aria-hidden
+                      />
+                    )}
+                    <Icon className="h-[18px] w-[18px] shrink-0" />
+                    {!compacta && <span className="truncate">{l}</span>}
+                    {badge ? (
+                      <span
+                        className={cn(
+                          "ml-auto rounded-full px-1.5 py-0.5 text-[10.5px] font-semibold leading-none",
+                          badgeTone === "warning" ? "bg-highlight text-ink" : "bg-white/15 text-white",
+                          compacta && "absolute right-1.5 top-1 ml-0",
+                        )}
+                      >
+                        {badge > 99 ? "99+" : badge}
+                      </span>
+                    ) : null}
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
+    </nav>
+  );
+
+  return (
+    <div className="min-h-dvh bg-background-muted text-foreground">
+      <div
+        className={cn(
+          "lg:grid lg:min-h-dvh lg:transition-[grid-template-columns] lg:duration-200",
+          recolhida ? "lg:grid-cols-[72px_minmax(0,1fr)]" : "lg:grid-cols-[248px_minmax(0,1fr)]",
+        )}
+      >
+        {/* Barra lateral (computador) */}
+        <aside className="hidden bg-ink text-white print:hidden lg:sticky lg:top-0 lg:flex lg:h-dvh lg:flex-col">
+          <div
+            className={cn(
+              "flex h-16 items-center border-b border-white/10 px-4",
+              recolhida ? "justify-center" : "justify-between",
+            )}
+          >
+            {recolhida ? (
+              <TipeLogo className="h-6" />
+            ) : (
+              <div className="min-w-0">
+                <TipeLogo className="h-7" />
+                <p className="mt-1 truncate text-[11px] text-white/55">{ambiente}</p>
+              </div>
+            )}
+          </div>
+          {!recolhida && contexto && (
+            <div className="border-b border-white/10 px-4 py-3 text-xs text-white/70">{contexto}</div>
+          )}
+          {nav(recolhida)}
+          <div className="border-t border-white/10 p-2">
+            {!recolhida && rodape}
+            <button
+              type="button"
+              onClick={alternar}
+              className="mt-1 flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-xs text-white/55 hover:bg-white/[0.07] hover:text-white"
+              aria-label={recolhida ? "Expandir menu" : "Recolher menu"}
+            >
+              {recolhida ? <ChevronsRight className="h-4 w-4" /> : <ChevronsLeft className="h-4 w-4" />}
+              {!recolhida && "Recolher"}
+            </button>
+          </div>
+        </aside>
+
+        <div className="min-w-0">
+          {/* Cabeçalho */}
+          <header className="sticky top-0 z-30 border-b border-border bg-background/90 backdrop-blur-xl print:hidden">
+            <div className="flex h-14 items-center gap-2 px-3 sm:px-6 lg:h-16">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="lg:hidden"
+                onClick={() => setGaveta(true)}
+                aria-label="Abrir menu"
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+              <TipeLogo variant="dark" className="h-6 lg:hidden" />
+              <div className="min-w-0 flex-1" />
+              <button
+                type="button"
+                onClick={() => setBuscaAberta(true)}
+                className="hidden h-9 w-72 items-center gap-2 rounded-full border border-border bg-card px-3 text-sm text-muted-foreground shadow-xs transition-colors hover:border-foreground/25 md:flex"
+              >
+                <Search className="h-4 w-4" />
+                <span className="flex-1 text-left">Buscar</span>
+                <kbd className="rounded-md border border-border px-1.5 text-[10.5px] font-medium">Ctrl K</kbd>
+              </button>
+              <Button
+                size="icon"
+                variant="ghost"
+                className="md:hidden"
+                onClick={() => setBuscaAberta(true)}
+                aria-label="Buscar"
+              >
+                <Search className="h-5 w-5" />
+              </Button>
+              {acoes && <div className="flex items-center gap-1.5">{acoes}</div>}
+            </div>
+          </header>
+
+          <main className="mx-auto w-full max-w-[1440px] px-3 pb-24 pt-5 sm:px-6 lg:px-8 lg:pb-16 lg:pt-7">
+            {(titulo || descricao) && (
+              <div className="mb-5 flex flex-wrap items-end justify-between gap-3 lg:mb-7">
+                <div className="min-w-0">
+                  {titulo && (
+                    <h1 className="font-display text-[clamp(1.5rem,1.2rem+1vw,2.1rem)] font-medium leading-[1.08] tracking-[-0.03em]">
+                      {titulo}
+                    </h1>
+                  )}
+                  {descricao && <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{descricao}</p>}
+                </div>
+              </div>
+            )}
+            {children}
+          </main>
+        </div>
+      </div>
+
+      {/* Gaveta (celular) */}
+      <Sheet open={gaveta} onOpenChange={setGaveta}>
+        <SheetContent side="left" className="w-[280px] border-0 bg-ink p-0 text-white [&>button]:hidden">
+          <SheetTitle className="sr-only">Menu de {ambiente}</SheetTitle>
+          <div className="flex h-16 items-center justify-between border-b border-white/10 px-4">
+            <div>
+              <TipeLogo className="h-7" />
+              <p className="mt-1 text-[11px] text-white/55">{ambiente}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setGaveta(false)}
+              className="rounded-full p-2 text-white/70 hover:bg-white/10"
+              aria-label="Fechar menu"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+          {contexto && <div className="border-b border-white/10 px-4 py-3 text-xs text-white/70">{contexto}</div>}
+          <div className="flex h-[calc(100%-4rem)] flex-col">
+            {nav(false)}
+            {rodape && <div className="border-t border-white/10 p-2">{rodape}</div>}
+          </div>
+        </SheetContent>
+      </Sheet>
+
+      {/* Busca global */}
+      <CommandDialog open={buscaAberta} onOpenChange={setBuscaAberta}>
+        <CommandInput placeholder="Para onde você quer ir?" />
+        <CommandList>
+          <CommandEmpty>Nada encontrado.</CommandEmpty>
+          {Object.entries(
+            itensBusca.reduce<Record<string, AcaoBusca[]>>((acc, it) => {
+              (acc[it.grupo] ??= []).push(it);
+              return acc;
+            }, {}),
+          ).map(([grupo, itens]) => (
+            <CommandGroup key={grupo} heading={grupo}>
+              {itens.map((it) => {
+                const Icon = it.i;
+                return (
+                  <CommandItem key={it.k} value={`${it.l} ${it.d ?? ""} ${grupo}`} onSelect={it.onSelect}>
+                    {Icon && <Icon className="h-4 w-4 text-muted-foreground" />}
+                    <span className="truncate">{it.l}</span>
+                    {it.d && <span className="ml-auto truncate text-xs text-muted-foreground">{it.d}</span>}
+                  </CommandItem>
+                );
+              })}
+            </CommandGroup>
+          ))}
+        </CommandList>
+      </CommandDialog>
+    </div>
+  );
+}

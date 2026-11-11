@@ -147,7 +147,7 @@ export function Fios({
  * Roberto). `seta` ficou só por compatibilidade: com ou sem ela o desenho é o mesmo.
  */
 export function SetaFios({
-  auto: _auto = false,
+  auto = false,
   seta: _seta = true,
   className,
 }: {
@@ -157,7 +157,12 @@ export function SetaFios({
   className?: string;
 }) {
   return (
-    <svg viewBox="0 0 16 16" aria-hidden focusable="false" className={cn("bigode-cta", className)}>
+    <svg
+      viewBox="0 0 16 16"
+      aria-hidden
+      focusable="false"
+      className={cn("bigode-cta", auto && "bc-auto", className)}
+    >
       {BC_FIOS.map(([lado, d], i) => (
         <path
           key={d}

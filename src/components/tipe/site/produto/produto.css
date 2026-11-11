@@ -1,4 +1,4 @@
-/* Páginas de produto (/produtos/*): sequência rápida do celular, montagem do Tipe Staff,
+/* Páginas de produto (/produtos/*): sequência rápida do celular, montagem do Tipe Equipe,
    palco da Mesa Viva. Movimento: 250–450 ms, ease-out suave; com movimento reduzido,
    nada se desloca e o estado final fica visível. */
 
@@ -51,7 +51,7 @@
   background: #0fc9bd;
 }
 
-/* ---------- Tipe Staff: foto + avisos de vidro escuro ---------- */
+/* ---------- Tipe Equipe: foto + avisos de vidro escuro ---------- */
 /* Montagem da referência (22/10): avisos empilhados no alto, saindo pela borda de cima,
    alinhados à esquerda; a garçonete fica na metade de baixo, com o rosto livre. */
 .staff-montagem {
@@ -321,7 +321,7 @@
   }
 }
 
-/* Conversa ao vivo da Lebre (Tipe AI): mensagens entram subindo e a Lebre "digita". */
+/* Conversa ao vivo da Lebre (IA da Tipe): mensagens entram subindo e a Lebre "digita". */
 .lebre-entra {
   animation: lebre-entra 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }

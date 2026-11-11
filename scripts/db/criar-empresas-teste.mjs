@@ -119,6 +119,19 @@ for (const e of EMPRESAS) {
   console.log(`${e.nome}: criado em /${e.slug} (conta aberta na mesa 1)`);
 }
 
+// Módulos de demonstração: Tipe Order (mesas), Tipe Cozinha e totem ligados nas empresas de teste,
+// mesmo quando elas já existiam. Idempotente; só empresas virtuais (nunca cliente real).
+for (const e of EMPRESAS) {
+  const { data: r } = await admin.from("restaurants").select("id").eq("slug", e.slug).maybeSingle();
+  if (!r) continue;
+  for (const m of ["order", "kds", "totem"]) {
+    const { error } = await admin.rpc("set_restaurant_module", { p_rid: r.id, p_module: m, p_status: "active", p_reason: "demonstração", p_actor: null, p_actor_kind: "system" });
+    if (error) console.warn(`${e.nome}: módulo ${m}: ${error.message}`);
+  }
+  ok(await admin.from("restaurants").update({ self_order_enabled: true, order_session_mode: "staff_opens", totem_enabled: true }).eq("id", r.id), "ligar order/totem");
+  console.log(`${e.nome}: Tipe Order, Cozinha e totem ligados para simulação`);
+}
+
 if (process.env.FOUNDER_EMAIL) {
   const f = await garantirUsuario(process.env.FOUNDER_EMAIL, "Fundador");
   ok(await admin.from("user_roles").upsert({ user_id: f.id, role: "founder", restaurant_id: null }, { onConflict: "user_id,role,restaurant_id", ignoreDuplicates: true }), "papel fundador");

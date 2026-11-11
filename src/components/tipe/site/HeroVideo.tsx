@@ -4,7 +4,7 @@
  *
  * COMO TROCAR PELO VÍDEO FINAL: coloque os arquivos em src/assets/video/ com estes nomes e
  * publique. A home passa a usar este topo sozinha; sem eles, continua a abertura atual.
- *   hero.mp4            obrigatório · 16:9, H.264, mudo, 8 a 20 s em loop, até ~6 MB
+ *   hero.mp4            obrigatório · 16:9, H.264, mudo, em loop (hoje ~37 s, ~13 MB)
  *   hero.webm           opcional · a mesma cena em VP9, mais leve no Chrome/Android
  *   hero-vertical.mp4   opcional · 9:16 ou 4:5 para o celular (sem ele, o 16:9 é recortado)
  *   hero-poster.webp    recomendado · o primeiro quadro, mostrado enquanto o vídeo carrega
@@ -88,6 +88,17 @@ export function HeroVideo() {
       return;
     }
     tocarMudo(v, () => !pausadoPelaPessoa.current);
+    // Volta de outra aba ou app (o celular pausa o vídeo): retoma sozinho.
+    const voltar = () => {
+      if (document.visibilityState === "visible" && !pausadoPelaPessoa.current)
+        tocarMudo(v, () => !pausadoPelaPessoa.current);
+    };
+    document.addEventListener("visibilitychange", voltar);
+    window.addEventListener("pageshow", voltar);
+    return () => {
+      document.removeEventListener("visibilitychange", voltar);
+      window.removeEventListener("pageshow", voltar);
+    };
   }, [celular]);
 
   const alternar = () => {
@@ -109,7 +120,7 @@ export function HeroVideo() {
   return (
     <section
       data-tema="escuro"
-      className="relative -mt-16 flex min-h-[100svh] items-end overflow-hidden bg-[#021E34] pt-16 text-white lg:min-h-[min(100svh,56.25vw)]"
+      className="relative -mt-16 flex min-h-[100svh] items-end overflow-hidden bg-[#021E34] pt-16 text-white lg:min-h-[100svh]"
     >
       <video
         key={src}
@@ -126,6 +137,8 @@ export function HeroVideo() {
         {!celular && fontes.webm && <source src={fontes.webm} type="video/webm" />}
         <source src={src} type="video/mp4" />
       </video>
+      {/* No celular o texto ocupa a tela toda: um véu leve por cima do vídeo inteiro. */}
+      <div aria-hidden className="absolute inset-0 bg-[#021E34]/40 md:hidden" />
       {/* Degradê só onde o texto fica: embaixo e à esquerda. */}
       <div
         aria-hidden
@@ -137,7 +150,7 @@ export function HeroVideo() {
           imediato
           className="block font-display text-[clamp(1.05rem,0.95rem+0.45vw,1.35rem)] tracking-[-0.02em] text-[#0FC9BD]"
         >
-          Pagamento na mesa por QR Code
+          Tipe Pay · Pagamento na mesa para restaurantes
         </Palavras>
         <h1 className="mt-4 max-w-[14ch] font-display text-[clamp(3rem,1.2rem+5.6vw,6.25rem)] font-normal leading-[0.94] tracking-[-0.055em]">
           <Palavras imediato delay={200}>
@@ -153,30 +166,33 @@ export function HeroVideo() {
           className="hero-in mt-5 max-w-xl text-[1.05rem] leading-relaxed text-white/85 text-pretty sm:text-lg"
           style={{ "--d": "480ms" } as CSSProperties}
         >
-          O cliente aponta a câmera, divide a conta e paga com Pix, Apple Pay ou Google Pay. Depois,
-          se quiser, deixa uma gorjeta extra para quem atendeu.
+          Seu cliente confere a conta, divide e paga pelo celular. Sua equipe ganha tempo para
+          atender, e você acompanha cada mesa em tempo real.
         </p>
         <div
           className="hero-in mt-8 flex flex-wrap gap-3"
           style={{ "--d": "620ms" } as CSSProperties}
         >
-          <BotaoPrincipal vivo>Começar o teste grátis</BotaoPrincipal>
+          <BotaoPrincipal vivo>Solicitar demonstração</BotaoPrincipal>
           <BotaoSecundario href="/simulador" className="border-white/40">
             Testar o simulador
           </BotaoSecundario>
         </div>
         <p
-          className="hero-in mt-5 text-sm text-white/75"
+          className="hero-in mt-5 pr-14 text-sm text-white/85 sm:pr-0"
           style={{ "--d": "720ms" } as CSSProperties}
         >
-          {TRIAL_DAYS} dias grátis · Sem taxa para o cliente · Sem aplicativo
+          {TRIAL_DAYS} dias grátis no pré-lançamento · Sem cartão para solicitar
+          <span className="mt-2 block">
+            Dinheiro e maquininha no local disponíveis. Pix e carteiras digitais em piloto.
+          </span>
         </p>
       </div>
       <button
         type="button"
         onClick={alternar}
         aria-label={pausado ? "Tocar o vídeo" : "Pausar o vídeo"}
-        className="absolute bottom-5 right-5 grid h-11 w-11 place-items-center rounded-full bg-white/15 text-white ring-1 ring-white/30 backdrop-blur-md transition-colors hover:bg-white/25 sm:bottom-8 sm:right-8"
+        className="absolute right-4 top-20 grid h-11 w-11 place-items-center rounded-full bg-white/15 text-white ring-1 ring-white/30 backdrop-blur-md transition-colors hover:bg-white/25 sm:right-8 sm:top-24"
       >
         {pausado ? (
           <Play className="h-4 w-4" aria-hidden />

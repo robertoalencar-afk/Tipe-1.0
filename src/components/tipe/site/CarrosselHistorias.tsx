@@ -1,19 +1,21 @@
 /**
  * Logo abaixo do herói (V6, opção 2 "Vídeo fixo", escolhida pelo Roberto em 26/10).
  * À esquerda fica o filme do fluxo do produto, sempre visível; à direita, as histórias
- * por papel (cliente, família, garçom, gerente, caixa, salão) com as cenas do casting.
- * As histórias trocam sozinhas a cada 6 s enquanto a seção está na tela; o chip ativo
- * mostra o tempo restante, um toque troca e o mouse por cima pausa. Com movimento
+ * por papel (cliente, bar, cozinha, garçom, caixa, dono) com as cenas do casting.
+ * As histórias trocam sozinhas a cada 8 s enquanto a seção está na tela; o chip ativo
+ * mostra o tempo restante. Qualquer escolha manual (toque, setas, teclado) para o automático;
+ * há botões de anterior, próximo e pausa sempre visíveis. Mouse por cima ou foco também pausam. Com movimento
  * reduzido nada troca sozinho. Só funcionalidades que existem no produto.
  */
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { fotoSrc, type NomeFoto } from "./Foto";
 import { Secao } from "./Site";
 import { VideoProduto } from "./VideoProduto";
 import { useMovimentoReduzido, useVisivel } from "./produto/useVisivel";
 
-const PASSO_MS = 6000;
+const PASSO_MS = 8000;
 
 type Historia = {
   papel: string;
@@ -28,57 +30,57 @@ type Historia = {
 const HISTORIAS: Historia[] = [
   {
     papel: "Cliente",
-    cena: "cena-casal",
-    foco: "45% 40%",
-    frase: "Ninguém levanta a mão para pedir a conta.",
-    dado: "Sem app",
-    legenda: "A conta abre na câmera do celular.",
-    alt: "Casal à mesa abrindo a conta pelo QR Code do totem",
+    cena: "cena-praia",
+    foco: "40% 45%",
+    frase: "Confere, divide e paga sem esperar.",
+    dado: "Tipe Pay",
+    legenda: "Cada um vê seus itens e paga a sua parte pelo celular.",
+    alt: "Amigos numa barraca de praia abrindo a conta pelo QR Code do totem",
   },
   {
-    papel: "Família",
-    cena: "cena-familia",
-    foco: "50% 40%",
-    frase: "Cada um paga a sua parte, do próprio celular.",
-    dado: "Pix",
-    legenda: "Apple Pay e Google Pay também.",
-    alt: "Família almoçando e dividindo a conta pelo celular",
+    papel: "Bar",
+    cena: "cena-bartender",
+    foco: "55% 40%",
+    frase: "O balcão acompanha o fluxo da mesa.",
+    dado: "Tipe Cozinha",
+    legenda: "Cozinha e bar na mesma tela de pedidos.",
+    alt: "Bartender preparando um drinque no balcão, ao lado do totem da Tipe",
+  },
+  {
+    papel: "Cozinha",
+    cena: "cena-cozinha",
+    foco: "40% 45%",
+    frase: "Recebe e acompanha os pedidos na tela.",
+    dado: "Tipe Cozinha",
+    legenda: "sem comanda de papel no caminho.",
+    alt: "Cozinheiro montando um prato com os pedidos da Tipe na tela da cozinha",
   },
   {
     papel: "Garçom",
     cena: "cena-garcom",
     foco: "50% 25%",
-    frase: "A gorjeta chega com o nome de quem atendeu.",
-    dado: "70%",
-    legenda: "da gorjeta extra vai para o saldo do garçom da mesa.",
+    frase: "Menos tempo levando conta e maquininha.",
+    dado: "Tipe Equipe",
+    legenda: "Mais tempo na mesa. 70% da gorjeta extra vai para o garçom da mesa.",
     alt: "Garçom sorrindo ao lado de uma mesa com o totem da Tipe",
-  },
-  {
-    papel: "Gerente",
-    cena: "cena-gerente",
-    foco: "40% 30%",
-    frase: "O salão inteiro, mesa por mesa, ao vivo.",
-    dado: "Ao vivo",
-    legenda: "cada mesa mostra quanto já foi pago.",
-    alt: "Gerente acompanhando as mesas no tablet durante o serviço",
   },
   {
     papel: "Caixa",
     cena: "cena-caixa",
     foco: "45% 45%",
-    frase: "A mesa já aparece paga, sem fila no caixa.",
-    dado: "Baixa",
-    legenda: "automática quando o Pix é confirmado.",
+    frase: "Acompanha o fechamento das contas e as pendências.",
+    dado: "Caixa",
+    legenda: "mesas pagas e pendências na mesma tela.",
     alt: "Caixa do restaurante com o painel da Tipe aberto no monitor",
   },
   {
-    papel: "Salão",
-    cena: "cena-mesa-liberada",
-    foco: "45% 35%",
-    frase: "Pagou, levantou. A mesa já está livre.",
-    dado: "Livre",
-    legenda: "e o próximo cliente senta mais cedo.",
-    alt: "Garçom recolhendo a mesa depois que os clientes pagaram",
+    papel: "Dono",
+    cena: "cena-dono",
+    foco: "55% 45%",
+    frase: "Uma visão da operação para decidir.",
+    dado: "Tipe Gestão",
+    legenda: "vendas, gorjetas e mesas no painel.",
+    alt: "Dono do restaurante conferindo o painel da Tipe no notebook depois do expediente",
   },
 ];
 
@@ -86,8 +88,13 @@ export function CarrosselHistorias() {
   const [ref, visivel] = useVisivel<HTMLDivElement>("-10% 0px");
   const reduz = useMovimentoReduzido();
   const [pausado, setPausado] = useState(false);
+  const [manual, setManual] = useState(false);
   const [i, setI] = useState(0);
-  const anda = visivel && !reduz && !pausado;
+  const anda = visivel && !reduz && !pausado && !manual;
+  const ir = (n: number) => {
+    setManual(true);
+    setI((n + HISTORIAS.length) % HISTORIAS.length);
+  };
   const chips = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -121,6 +128,8 @@ export function CarrosselHistorias() {
             className="flex min-w-0 flex-col gap-5 md:col-span-7"
             onPointerEnter={(e) => e.pointerType === "mouse" && setPausado(true)}
             onPointerLeave={() => setPausado(false)}
+            onFocusCapture={() => setPausado(true)}
+            onBlurCapture={() => setPausado(false)}
           >
             <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-4 pt-4 md:pt-0">
               <h2 className="max-w-[16ch] font-display text-[clamp(1.75rem,1.2rem+1.8vw,2.75rem)] font-normal leading-[1.02] tracking-[-0.045em]">
@@ -142,7 +151,12 @@ export function CarrosselHistorias() {
                   id={`hist-tab-${n}`}
                   aria-selected={n === i}
                   aria-controls="hist-painel"
-                  onClick={() => setI(n)}
+                  tabIndex={n === i ? 0 : -1}
+                  onKeyDown={(e) => {
+                    if (e.key === "ArrowRight") (e.preventDefault(), ir(i + 1));
+                    if (e.key === "ArrowLeft") (e.preventDefault(), ir(i - 1));
+                  }}
+                  onClick={() => ir(n)}
                   className={cn(
                     "hist-chip relative h-10 shrink-0 overflow-hidden rounded-full border px-4 text-[0.92rem] transition-colors duration-300",
                     n === i
@@ -206,6 +220,39 @@ export function CarrosselHistorias() {
                   </span>
                   {h.legenda}
                 </p>
+              </div>
+              <div className="absolute right-3 top-3 flex items-center gap-2 sm:right-5 sm:top-5">
+                <span className="rounded-full bg-black/45 px-3 py-1 text-[0.8rem] tabular-nums text-white backdrop-blur">
+                  {i + 1} / {HISTORIAS.length}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setManual((v) => !v)}
+                  aria-label={manual || reduz ? "Voltar a trocar sozinho" : "Parar de trocar sozinho"}
+                  className="grid h-11 w-11 place-items-center rounded-full bg-black/45 text-white backdrop-blur transition-colors hover:bg-black/60"
+                >
+                  {manual || reduz ? <Play className="h-4 w-4" aria-hidden /> : <Pause className="h-4 w-4" aria-hidden />}
+                </button>
+              </div>
+              <div className="absolute inset-y-0 left-2 flex items-center sm:left-4">
+                <button
+                  type="button"
+                  onClick={() => ir(i - 1)}
+                  aria-label={`Anterior: ${HISTORIAS[(i + HISTORIAS.length - 1) % HISTORIAS.length]!.papel}`}
+                  className="grid h-11 w-11 place-items-center rounded-full bg-black/45 text-white backdrop-blur transition-colors hover:bg-black/60"
+                >
+                  <ChevronLeft className="h-5 w-5" aria-hidden />
+                </button>
+              </div>
+              <div className="absolute inset-y-0 right-2 flex items-center sm:right-4">
+                <button
+                  type="button"
+                  onClick={() => ir(i + 1)}
+                  aria-label={`Próximo: ${HISTORIAS[(i + 1) % HISTORIAS.length]!.papel}`}
+                  className="grid h-11 w-11 place-items-center rounded-full bg-black/45 text-white backdrop-blur transition-colors hover:bg-black/60"
+                >
+                  <ChevronRight className="h-5 w-5" aria-hidden />
+                </button>
               </div>
             </div>
           </div>

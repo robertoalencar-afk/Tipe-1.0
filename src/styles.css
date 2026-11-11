@@ -296,6 +296,16 @@
   border-radius: 1.25rem;
 }
 
+:root {
+  /* Ritmo do movimento (03/11, prioridade velocidade): mesmas curvas, durações curtas.
+   * --atraso-escala comprime os atrasos em cascata (--d) definidos nos componentes. */
+  --dur-rapida: 160ms;
+  --dur-media: 240ms;
+  --dur-entrada: 520ms;
+  --dur-entrada-longa: 700ms;
+  --atraso-escala: 0.45;
+}
+
 /* Revelação suave ao rolar (só com movimento permitido e JS ativo) */
 @keyframes tipe-rise {
   from {
@@ -308,7 +318,7 @@
   }
 }
 .tipe-rise {
-  animation: tipe-rise 700ms var(--ease-out-soft) both;
+  animation: tipe-rise var(--dur-entrada) var(--ease-out-soft) both;
 }
 @keyframes tipe-float {
   0%,
@@ -470,12 +480,12 @@
 }
 
 .tipe-demo-scene {
-  animation: tipe-demo-enter 360ms ease-out both;
+  animation: tipe-demo-enter var(--dur-media) ease-out both;
 }
 
 .tipe-value-update {
   display: inline-block;
-  animation: tipe-demo-value 280ms ease-out both;
+  animation: tipe-demo-value var(--dur-rapida) ease-out both;
 }
 
 .tipe-wallet-select {
@@ -524,7 +534,7 @@
   }
 }
 .legal-turn {
-  animation: legal-turn 240ms ease-out;
+  animation: legal-turn var(--dur-rapida) ease-out;
 }
 @media (prefers-reduced-motion: reduce) {
   .legal-turn {
@@ -570,8 +580,8 @@
  */
 [data-reveal] {
   transition:
-    opacity 1200ms var(--ease-expo) var(--d, 0ms),
-    transform 1500ms var(--ease-expo) var(--d, 0ms);
+    opacity var(--dur-entrada) var(--ease-expo) calc(var(--d, 0ms) * var(--atraso-escala)),
+    transform var(--dur-entrada-longa) var(--ease-expo) calc(var(--d, 0ms) * var(--atraso-escala));
 }
 [data-reveal="up"]:not([data-in]) {
   opacity: 0;
@@ -603,13 +613,13 @@
   opacity: 0;
 }
 [data-palavras][data-in] .palavra {
-  animation: palavra-in 1500ms var(--ease-expo) both;
-  animation-delay: var(--d, 0ms);
+  animation: palavra-in var(--dur-entrada-longa) var(--ease-expo) both;
+  animation-delay: calc(var(--d, 0ms) * var(--atraso-escala));
 }
 /* Botões em pílula da landing: 0,4 s expo-out; o contornado se preenche no hover. */
 .sunday :is(a, button).rounded-full {
   transition-property: background-color, border-color, color, box-shadow, transform;
-  transition-duration: 400ms;
+  transition-duration: var(--dur-rapida);
   transition-timing-function: var(--ease-expo);
 }
 .sunday :is(a, button).rounded-full.border:not([role="tab"]):not([aria-current]):hover {
@@ -629,22 +639,22 @@
   }
 }
 .menu-in {
-  animation: menu-in 750ms var(--ease-expo) both;
+  animation: menu-in var(--dur-media) var(--ease-expo) both;
 }
 /* Cabeçalho que some ao rolar e CTA que fica no topo. */
 .header-auto {
   transition:
-    transform 500ms var(--ease-expo),
-    background-color 300ms ease,
-    border-color 300ms ease;
+    transform var(--dur-media) var(--ease-expo),
+    background-color var(--dur-media) ease,
+    border-color var(--dur-media) ease;
 }
 .header-auto[data-escondido] {
   transform: translate3d(0, -100%, 0);
 }
 .cta-fixo {
   transition:
-    opacity 400ms var(--ease-expo),
-    transform 500ms var(--ease-expo);
+    opacity var(--dur-media) var(--ease-expo),
+    transform var(--dur-media) var(--ease-expo);
 }
 .cta-fixo:not([data-visivel]) {
   opacity: 0;
@@ -654,10 +664,10 @@
 /* Foto que "abre" de dentro de uma máscara com leve zoom-out. */
 .photo-reveal {
   clip-path: inset(0 0 0 0 round var(--photo-radius, 2rem));
-  transition: clip-path 1100ms var(--ease-out-soft);
+  transition: clip-path var(--dur-entrada-longa) var(--ease-out-soft);
 }
 .photo-reveal > .photo-zoom {
-  transition: transform 1600ms var(--ease-out-soft);
+  transition: transform 900ms var(--ease-out-soft);
 }
 .photo-reveal:not([data-in]) {
   clip-path: inset(8% 6% 8% 6% round var(--photo-radius, 2rem));
@@ -676,8 +686,8 @@
   }
 }
 .hero-in {
-  animation: tipe-hero-in 900ms var(--ease-out-soft) both;
-  animation-delay: var(--d, 0ms);
+  animation: tipe-hero-in var(--dur-entrada) var(--ease-out-soft) both;
+  animation-delay: calc(var(--d, 0ms) * var(--atraso-escala));
 }
 @keyframes tipe-pop {
   0% {
@@ -690,8 +700,8 @@
   }
 }
 .pop-in {
-  animation: tipe-pop 700ms var(--ease-spring) both;
-  animation-delay: var(--d, 0ms);
+  animation: tipe-pop var(--dur-entrada) var(--ease-spring) both;
+  animation-delay: calc(var(--d, 0ms) * var(--atraso-escala));
 }
 @keyframes tipe-bob {
   0%,
@@ -732,7 +742,24 @@
 .btn-press:active {
   transform: scale(0.97);
 }
+/* Barra de navegação entre telas (BarraNavegacao.tsx). */
+@keyframes barra-navegacao {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(300%);
+  }
+}
+.barra-navegacao {
+  animation: barra-navegacao 900ms var(--ease-out-soft) infinite;
+}
 @media (prefers-reduced-motion: reduce) {
+  .barra-navegacao {
+    animation: none;
+    width: 100%;
+    opacity: 0.6;
+  }
   [data-reveal],
   .line-reveal-inner,
   .photo-reveal,
@@ -1665,7 +1692,7 @@
     animation: none;
   }
 }
-/* Avisos do Tipe Staff: o mais novo desce do topo, os outros abrem espaço. */
+/* Avisos do Tipe Equipe: o mais novo desce do topo, os outros abrem espaço. */
 @keyframes aviso-chega {
   from {
     opacity: 0;
@@ -1866,10 +1893,14 @@
   background-color: var(--background);
 }
 
-.crm-theme body { background-color: var(--background); }
+.crm-theme body {
+  background-color: var(--background);
+}
 
 /* Turquesa da marca como texto precisa do tom forte para ter contraste no fundo claro. */
-.crm-theme .text-primary { color: var(--brand-primary-strong); }
+.crm-theme .text-primary {
+  color: var(--brand-primary-strong);
+}
 
 /* Cartão do CRM: branco, cantos generosos e sombra mínima. */
 @utility crm-panel {
@@ -1896,6 +1927,27 @@
     linear-gradient(90deg, oklch(0.2 0.04 250 / 0.035) 1px, transparent 1px);
   background-size: 32px 32px;
 }
+
+/* Cardápio em stories (StoryCardapio.tsx) */
+@keyframes story-zoom {
+  from { transform: scale(1); }
+  to { transform: scale(1.09); }
+}
+.story-zoom { animation: story-zoom linear forwards; transform-origin: 50% 60%; }
+@keyframes story-entra-esq {
+  from { transform: translateX(28%) rotateY(-18deg); opacity: 0.4; }
+  to { transform: none; opacity: 1; }
+}
+@keyframes story-entra-dir {
+  from { transform: translateX(-28%) rotateY(18deg); opacity: 0.4; }
+  to { transform: none; opacity: 1; }
+}
+.story-entra-esq { animation: story-entra-esq 360ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+.story-entra-dir { animation: story-entra-dir 360ms cubic-bezier(0.2, 0.8, 0.2, 1); }
+@media (prefers-reduced-motion: reduce) {
+  .story-zoom, .story-entra-esq, .story-entra-dir { animation: none; }
+}
+
 /* Ícone dos CTAs (03/11): três bigodinhos turquesa no canto de cima do texto, em leque.
    Saem do texto e voltam o tempo todo, um depois do outro; no hover, mais rápido. */
 .bigode-cta {
@@ -1936,6 +1988,41 @@
     stroke-dashoffset: 0;
   }
 }
+/* 03/11 (Roberto): no computador, só o CTA principal do topo (`vivo`) pisca sozinho. Nos
+   outros botões os bigodinhos ficam escondidos e saem quando o mouse passa ou o botão
+   recebe foco. Em telas de toque (sem hover) continuam como antes. */
+@media (hover: hover) and (pointer: fine) {
+  .bigode-cta:not(.bc-auto) .bc-fio {
+    animation: none;
+    stroke-dashoffset: 1;
+    transition: stroke-dashoffset 0.35s cubic-bezier(0.3, 0.7, 0.3, 1) calc(var(--i) * 0.06s);
+  }
+  .com-fios:is(:hover, :focus-visible, :active) .bigode-cta:not(.bc-auto) .bc-fio,
+  .group:is(:hover, :focus-visible) .com-fios .bigode-cta:not(.bc-auto) .bc-fio {
+    stroke-dashoffset: 0;
+    animation: bc-pisca 1.1s cubic-bezier(0.3, 0.7, 0.3, 1) calc(0.35s + var(--i) * 0.12s) infinite;
+  }
+}
+/* 03/11 (Roberto): o "Teste grátis" do cabeçalho mexe sempre; com o mouse em cima, os
+   bigodinhos crescem um pouco e inclinam, sem parar de mexer. */
+.bigode-cta.bc-auto {
+  transition: transform 0.35s cubic-bezier(0.3, 0.7, 0.3, 1);
+}
+.com-fios:is(:hover, :focus-visible) .bigode-cta.bc-auto {
+  transform: translateY(-0.5em) translateX(0.06em) rotate(-10deg) scale(1.16);
+}
+/* Botão redondo dos cards: seta parada; no hover do card ela dá lugar aos bigodinhos. */
+.cp-seta {
+  transition: opacity 0.25s ease;
+}
+.group:is(:hover, :focus-visible) .cp-seta {
+  opacity: 0;
+}
+@media not ((hover: hover) and (pointer: fine)) {
+  .cp-seta {
+    display: none;
+  }
+}
 .sem-movimento .bigode-cta,
 .sem-movimento .bigode-cta * {
   animation: none !important;
@@ -1950,3 +2037,77 @@
 .bigode-cta.meio-focinho-redondo {
   margin: 0;
 }
+
+/* Barra de progresso do carrossel que anda sozinho (/teste-gratis) */
+@keyframes carrossel-progresso {
+  from { width: 0%; }
+  to { width: 100%; }
+}
+.carrossel-progresso {
+  animation-name: carrossel-progresso;
+  animation-timing-function: linear;
+  animation-fill-mode: forwards;
+}
+
+/* Telas de conta: a lebre flutua devagar (parada com movimento reduzido). */
+@keyframes tipe-lebre-flutua {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-10px) rotate(-1.5deg); }
+}
+.tipe-lebre-flutua { animation: tipe-lebre-flutua 5.5s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .tipe-lebre-flutua { animation: none; }
+}
+
+/* Troca de painel do seletor de atendimento (/produtos/order): sobe de leve, sem reflow. */
+@keyframes tipe-sobe-suave {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.sobe-suave {
+  animation: tipe-sobe-suave 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sobe-suave {
+    animation: none !important;
+  }
+}
+
+/* Lebre: o painel abre num salto curto, as mensagens entram rápido e o "pensando"
+   são três passos de lebre. Com movimento reduzido, tudo aparece parado. */
+@keyframes lebre-abre {
+  from { opacity: 0; transform: translateY(14px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes lebre-entra {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes lebre-passo {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.35; }
+  30% { transform: translateY(-5px); opacity: 1; }
+}
+.lebre-painel { animation: lebre-abre var(--dur-media) cubic-bezier(0.16, 1, 0.3, 1) both; transform-origin: bottom right; }
+.lebre-entra { animation: lebre-entra var(--dur-media) cubic-bezier(0.16, 1, 0.3, 1) both; }
+.lebre-passos > span { display: block; width: 7px; height: 7px; border-radius: 9999px; background: var(--brand-primary); animation: lebre-passo 0.9s ease-in-out infinite; }
+.lebre-passos > span:nth-child(2) { animation-delay: 0.12s; }
+.lebre-passos > span:nth-child(3) { animation-delay: 0.24s; }
+@media (prefers-reduced-motion: reduce) {
+  .lebre-painel, .lebre-entra { animation: none; }
+  .lebre-passos > span { animation: none; opacity: 0.7; }
+}
+
+/* Lebre cansada nas telas de conta: os "zzz" sobem devagar. */
+@keyframes tipe-zzz {
+  0% { opacity: 0; transform: translate(0, 6px); }
+  30%, 70% { opacity: 1; }
+  100% { opacity: 0; transform: translate(10px, -14px); }
+}
+.tipe-zzz { animation: tipe-zzz 2.8s ease-in-out infinite; font-size: clamp(1rem, 6%, 1.6rem); }
+@media (prefers-reduced-motion: reduce) { .tipe-zzz { animation: none; } }
