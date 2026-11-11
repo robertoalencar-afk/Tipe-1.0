@@ -42,6 +42,12 @@ async function acesso(ctx: Ctx, slug: string, need: GuestAction = "ver_reservas"
     .eq("slug", slug)
     .maybeSingle();
   if (!r) throw new Error("Restaurante não encontrado ou sem acesso");
+  const { data: activeMember, error: memberError } = await ctx.supabase.rpc("has_restaurant_role", {
+    _user_id: ctx.userId,
+    _restaurant_id: r.id,
+    _roles: ["owner", "cashier", "waiter"],
+  });
+  if (memberError || activeMember !== true) throw new Error("Sem permissão");
   const db = await admin();
   const { data: rs } = await db
     .from("user_roles")
