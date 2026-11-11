@@ -77,7 +77,14 @@ export type NomeFoto =
   | "cena-dono-vertical"
   | "cena-dono-larga"
   | "cena-mesa-liberada"
-  | "cena-mesa-liberada-vertical";
+  | "cena-mesa-liberada-vertical"
+  /* Ilustrações existentes usadas nos storyboards internos. */
+  | "lebre-tartaruga-cliente"
+  | "lebre-tartaruga-dono"
+  | "lebre-tartaruga-familia"
+  | "lebre-tartaruga-garcom"
+  | "lebre-tartaruga-amigos"
+  | "lebre-tartaruga-gorjeta";
 
 export function fotoSrc(nome: NomeFoto) {
   const tamanhos = Object.entries(ARQUIVOS)
