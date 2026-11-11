@@ -1,3 +1,4 @@
+import { MenuImportRows } from "./menu-csv";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -117,7 +118,7 @@ export const importMenuCsv = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({
     slug: Slug,
-    rows: z.array(z.object({ category: z.string().trim().min(2).max(60), code: z.string().trim().min(1).max(16), name: z.string().trim().min(2).max(80), price: z.number().min(0).max(10000), available: z.boolean() })).min(1).max(500),
+    rows: MenuImportRows,
   }).parse(d))
   .handler(async ({ data, context }) => {
     const sb = (context as Ctx).supabase;
