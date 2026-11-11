@@ -22,7 +22,8 @@ jobs:
       - name: Verificar sintaxe do configurador (sem acessar segredos)
         run: bash -n scripts/deploy/configurar-github.sh
       - name: Verificar ordem dos Hooks do painel
-        run: bunx eslint src/components/tipe/RestaurantPanel.tsx --rule 'prettier/prettier: off'
+        run: >-
+          bunx eslint src/components/tipe/RestaurantPanel.tsx --rule 'prettier/prettier: off'
       - run: bunx tsc --noEmit -p .
       - run: bunx vitest run
       - name: Build
