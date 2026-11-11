@@ -769,8 +769,9 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
 
       {stage === "payment" && (
         <PaymentScreen
-          title="Pagamento da conta"
-          description="Este pagamento corresponde apenas aos itens escolhidos. Após a confirmação, a conta da mesa será atualizada automaticamente."
+          title="Como você quer pagar?"
+          valueLabel="Sua parte da conta"
+          description="Este pagamento cobre só os itens que você escolheu. Depois da confirmação, a conta da mesa é atualizada sozinha."
           value={total}
           method={method}
           setMethod={setMethod}
@@ -842,11 +843,28 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
           />
           <p className="eyebrow text-brand-strong">Conta paga</p>
           <h1 className="mt-2 text-[1.9rem] font-medium leading-[1.06] tracking-[-0.035em]">
-            Pagamento confirmado!
+            Pagamento realizado!
           </h1>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            {money(paidAmount)} enviados ao Maré Alta.
+          <p className="mt-2 text-[0.95rem] text-muted-foreground">
+            Obrigado, {name.trim().split(" ")[0]}, por pagar com o TIPE.
           </p>
+          <dl className="mt-7 w-full rounded-2xl border border-border bg-card p-4 text-left text-sm">
+            {[
+              ["Valor pago", money(paidAmount)],
+              ["Forma de pagamento", method ? METHOD_DETAILS[method].label : "—"],
+              ["Restaurante", "Maré Alta"],
+              ["Mesa", "12"],
+              [
+                "Data e hora",
+                new Date().toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }),
+              ],
+            ].map(([k, v]) => (
+              <div key={k} className="flex items-center justify-between gap-3 py-1.5">
+                <dt className="text-muted-foreground">{k}</dt>
+                <dd className="money font-semibold">{v}</dd>
+              </div>
+            ))}
+          </dl>
           <div className="mt-8 w-full space-y-2">
             {!tipPaid && (
               <Button onClick={startTip} className="h-12 w-full font-display text-base">
@@ -1188,6 +1206,7 @@ function PaymentScreen<M extends Method | Exclude<Method, "at_establishment">>({
   extra,
   title,
   description,
+  valueLabel = "Total",
   value,
   method,
   setMethod,
@@ -1204,6 +1223,7 @@ function PaymentScreen<M extends Method | Exclude<Method, "at_establishment">>({
   extra?: React.ReactNode;
   title: string;
   description: string;
+  valueLabel?: string;
   value: number;
   method: M | null;
   setMethod: (method: M) => void;
@@ -1234,7 +1254,7 @@ function PaymentScreen<M extends Method | Exclude<Method, "at_establishment">>({
       <h1 className="text-[1.9rem] font-medium leading-[1.06] tracking-[-0.035em]">{title}</h1>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
       <div className="my-6 rounded-[1.5rem] bg-background-muted px-5 py-7 text-center">
-        <p className="text-sm text-muted-foreground">Total</p>
+        <p className="text-sm text-muted-foreground">{valueLabel}</p>
         <p className="money mt-1.5 text-[2.9rem] font-medium leading-none tracking-[-0.04em]">
           {money(value)}
         </p>
