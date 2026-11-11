@@ -24,7 +24,7 @@ export async function listOperations(db:OperationsDb) {
  if(result.length!==heads.size)throw new Error("A consulta de operações ficou incompleta. Atualize os dados.");
  return result;
 }
-export async function operationHistory(db:OperationsDb,id:string,offset=0){
+export async function operationHistory(db:OperationsDb,id:string,offset=0):Promise<{revisions:OperationRevision[];nextOffset:number|null}>{
  const {data,error}=await scoped(db).eq('meta->>recordId',id).order('meta->version',{ascending:false}).range(offset,offset+19);
  if(error)throw new Error('Não foi possível carregar o histórico.');
  return {revisions:(data??[]).map(snapshot),nextOffset:(data??[]).length===20?offset+20:null};
