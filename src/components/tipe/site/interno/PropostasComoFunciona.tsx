@@ -64,7 +64,7 @@ export const ETAPAS: Etapa[] = [
 ];
 
 const TELAS: (TelaReal | "camera")[] = ["camera", "conta", "cardapio", "dividir", "pago"];
-const ALT: Record<TelaReal | "camera", string> = {
+const ALT: Partial<Record<TelaReal | "camera", string>> = {
   camera: "Câmera do celular lendo o QR Code do totem da mesa",
   conta: "Tela real da conta da mesa 12 no celular",
   cardapio: "Tela do cardápio do Tipe Order (em desenvolvimento)",
