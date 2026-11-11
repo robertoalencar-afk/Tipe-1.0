@@ -12,13 +12,14 @@ for (const [nome, vp] of [["desktop", { width: 1366, height: 900 }], ["mobile", 
   p.on("pageerror", (e) => erros.push(e.message));
   await p.goto(`${BASE}/produtos/order`, { waitUntil: "networkidle" });
   assert.match(await p.locator("h1").innerText(), /jeito de atender/i);
-  const abas = p.getByRole("tab");
+  const sel = p.getByRole("tablist", { name: "Modalidades de atendimento" });
+  const abas = sel.getByRole("tab");
   assert.equal(await abas.count() >= 7, true, "7 modalidades no seletor");
-  await p.getByRole("tab", { name: /Pulseira/ }).click();
+  await sel.getByRole("tab", { name: /Pulseira/ }).click();
   assert.match(await p.getByRole("tabpanel").first().innerText(), /Planejada|planejamento/i);
-  await p.getByRole("tab", { name: /Totem/ }).focus();
+  await sel.getByRole("tab", { name: /Totem/ }).focus();
   await p.keyboard.press("ArrowRight");
-  await p.getByRole("tab", { name: /Mesas/ }).click();
+  await sel.getByRole("tab", { name: /Mesas/ }).click();
   await p.locator("#atendimento").screenshot({ path: `${OUT}/${nome}-seletor.png` });
   await p.locator("#simulador").scrollIntoViewIfNeeded();
   await p.waitForTimeout(600);
