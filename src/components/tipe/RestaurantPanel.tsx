@@ -696,6 +696,7 @@ export function RestaurantPanel({
             emAberto={abertas.reduce((s, m) => s + m.total - m.pago, 0)}
             pendentes={pendentes.length}
             onGo={ir}
+            papel={papel}
             agora={
               <PrecisaDeVoce
                 slug={slug}
@@ -882,7 +883,7 @@ export function RestaurantPanel({
             <EquipePermissoes slug={slug} />
           </div>
         )}
-        {aba === "relatorios" && <Relatorios slug={slug} />}
+        {aba === "relatorios" && <Relatorios slug={slug} papel={papel} />}
         {aba === "identidade" && <Identidade slug={slug} podeDono={podeDono} funcao={usuario.funcao} onSair={onSair} />}
         {aba === "integracoes" && <Integracoes slug={slug} podeDono={podeDono} />}
         {aba === "config" && <Configuracoes slug={slug} podeDono={podeDono} />}
