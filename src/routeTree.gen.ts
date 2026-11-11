@@ -19,6 +19,7 @@ import { Route as DemoRouteImport } from './routes/demo'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as EsqueciASenhaRouteImport } from './routes/esqueci-a-senha'
 import { Route as FundadorRouteImport } from './routes/fundador'
+import { Route as GuestDemoRouteImport } from './routes/guest-demo'
 import { Route as IntegracoesRouteImport } from './routes/integracoes'
 import { Route as PrecosRouteImport } from './routes/precos'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
@@ -132,6 +133,11 @@ const EsqueciASenhaRoute = EsqueciASenhaRouteImport.update({
 const FundadorRoute = FundadorRouteImport.update({
   id: '/fundador',
   path: '/fundador',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuestDemoRoute = GuestDemoRouteImport.update({
+  id: '/guest-demo',
+  path: '/guest-demo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IntegracoesRoute = IntegracoesRouteImport.update({
@@ -474,6 +480,7 @@ export interface FileRoutesByFullPath {
   '/entrar': typeof EntrarRoute
   '/esqueci-a-senha': typeof EsqueciASenhaRoute
   '/fundador': typeof FundadorRoute
+  '/guest-demo': typeof GuestDemoRoute
   '/integracoes': typeof IntegracoesRoute
   '/precos': typeof PrecosRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -549,6 +556,7 @@ export interface FileRoutesByTo {
   '/entrar': typeof EntrarRoute
   '/esqueci-a-senha': typeof EsqueciASenhaRoute
   '/fundador': typeof FundadorRoute
+  '/guest-demo': typeof GuestDemoRoute
   '/integracoes': typeof IntegracoesRoute
   '/precos': typeof PrecosRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -627,6 +635,7 @@ export interface FileRoutesById {
   '/entrar': typeof EntrarRoute
   '/esqueci-a-senha': typeof EsqueciASenhaRoute
   '/fundador': typeof FundadorRoute
+  '/guest-demo': typeof GuestDemoRoute
   '/integracoes': typeof IntegracoesRoute
   '/precos': typeof PrecosRoute
   '/reset-password': typeof ResetPasswordRoute
@@ -705,6 +714,7 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/esqueci-a-senha'
     | '/fundador'
+    | '/guest-demo'
     | '/integracoes'
     | '/precos'
     | '/reset-password'
@@ -780,6 +790,7 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/esqueci-a-senha'
     | '/fundador'
+    | '/guest-demo'
     | '/integracoes'
     | '/precos'
     | '/reset-password'
@@ -857,6 +868,7 @@ export interface FileRouteTypes {
     | '/entrar'
     | '/esqueci-a-senha'
     | '/fundador'
+    | '/guest-demo'
     | '/integracoes'
     | '/precos'
     | '/reset-password'
@@ -935,6 +947,7 @@ export interface RootRouteChildren {
   EntrarRoute: typeof EntrarRoute
   EsqueciASenhaRoute: typeof EsqueciASenhaRoute
   FundadorRoute: typeof FundadorRoute
+  GuestDemoRoute: typeof GuestDemoRoute
   IntegracoesRoute: typeof IntegracoesRoute
   PrecosRoute: typeof PrecosRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
@@ -1041,6 +1054,13 @@ declare module '@tanstack/react-router' {
       path: '/fundador'
       fullPath: '/fundador'
       preLoaderRoute: typeof FundadorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guest-demo': {
+      id: '/guest-demo'
+      path: '/guest-demo'
+      fullPath: '/guest-demo'
+      preLoaderRoute: typeof GuestDemoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/integracoes': {
@@ -1591,6 +1611,7 @@ const rootRouteChildren: RootRouteChildren = {
   EntrarRoute: EntrarRoute,
   EsqueciASenhaRoute: EsqueciASenhaRoute,
   FundadorRoute: FundadorRoute,
+  GuestDemoRoute: GuestDemoRoute,
   IntegracoesRoute: IntegracoesRoute,
   PrecosRoute: PrecosRoute,
   ResetPasswordRoute: ResetPasswordRoute,
