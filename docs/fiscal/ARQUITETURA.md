@@ -15,7 +15,10 @@ NFC-e (venda ao consumidor) e NF-e são os primeiros documentos de produto. NFS-
 - `src/lib/tipe/fiscal/contract.ts`: contrato de emissores, estados fiscais independentes do pagamento e seleção de perfis por UF, regime e vigência. Falta de revisão ou sobreposição bloqueia a seleção.
 - `src/lib/tipe/fiscal/focus.server.ts`: transporte server-side inicial da API Focus NFe para emitir, consultar e cancelar NF-e/NFC-e. Origens fixas, ambiente separado, validação do emitente e nenhuma repetição automática após resultado incerto. Não suporta NFS-e e não emite pela aplicação neste estágio.
 - `src/lib/tipe/fiscal/fiscal.test.ts`: testes locais com respostas simuladas. Não são comprovação de homologação na SEFAZ ou no serviço emissor.
-- A base não está conectada a rotas, credenciais, banco, vendas ou ao painel. Não habilita emissão e não substitui as etapas descritas abaixo.
+- `drizzle/migrations/0060_fiscal_foundation.sql`: configuração por restaurante/ambiente, perfis versionados, documentos com snapshots imutáveis, auditoria e fila com leases. Migração testada somente em PostgreSQL local isolado; ainda não aplicada em produção.
+- `src/lib/tipe/fiscal.functions.ts`: configuração com credenciais cifradas, perfis e consultas autorizadas por papel explícito do restaurante. As respostas nunca incluem o token ou seu ciphertext.
+- `schemas.test.ts` e `authorization.test.ts`: CNPJ numérico/alfanumérico, validação de vigência e escopo. O script `scripts/db/tests/fiscal-foundation.sql` cobre RLS/ACL, isolamento, trilha, sobreposição e imutabilidade em banco de teste.
+- Ainda não há interface fiscal, vínculo com vendas nem processamento da fila na aplicação. Esta etapa não habilita emissão em produção nem comprova homologação.
 
 ## Reforma tributária e manutenção nacional
 
@@ -63,7 +66,7 @@ Estorno financeiro e cancelamento fiscal são fluxos distintos. Um não executa 
 
 ## Persistência e segurança
 
-Modelo proposto, ainda sujeito ao contrato do emissor: `restaurant_fiscal_settings`, `menu_item_fiscal_profiles`, `fiscal_documents`, `fiscal_document_items`, `fiscal_document_payments`, `fiscal_events` e `fiscal_outbox`.
+Modelo atual da fundação: `restaurant_fiscal_settings`, `fiscal_product_profiles`, `fiscal_documents` (snapshots de payload e pagamentos), `fiscal_events` e `fiscal_outbox`. O vínculo com a venda e os artefatos fiscais ainda precisam ser conectados.
 
 - RLS e escopo explícito por restaurante em todas as tabelas. Founder não ganha acesso operacional por ser founder.
 - Configuração pelo dono; permissões específicas de emissão/cancelamento para o caixa conforme a matriz do projeto. Todas as chamadas administrativas reautorizadas no servidor.

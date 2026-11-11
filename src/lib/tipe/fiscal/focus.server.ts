@@ -81,7 +81,7 @@ export function criarEmissorFocus(
         throw new ErroEmissorFiscal("resultado_incerto");
       }
       const chave =
-        typeof r["chave_nfe"] === "string" && /^\d{44}$/.test(r["chave_nfe"])
+        typeof r["chave_nfe"] === "string" && /^[0-9]{6}[A-Z0-9]{12}[0-9]{26}$/.test(r["chave_nfe"])
           ? r["chave_nfe"]
           : null;
       const estados: Record<string, ResultadoFiscal["estado"]> = {

@@ -19,6 +19,16 @@ const transporte = (body: unknown = autorizado, status = 200) =>
   vi.fn<typeof fetch>().mockResolvedValue(resposta(body, status));
 
 describe("conector fiscal Focus — sem chamadas externas", () => {
+  it("aceita chave com CNPJ alfanumérico retornada pelo emissor", async () => {
+    const cnpj = "12ABC34501DE35";
+    const chave = `232611${cnpj}650010000000011000000000`;
+    expect(chave).toHaveLength(44);
+    const e = criarEmissorFocus(
+      { ...config, cnpj },
+      transporte({ ...autorizado, chave_nfe: chave }),
+    );
+    expect((await e.consultar("nfce", "conta-1")).chave).toBe(chave);
+  });
   it("separa homologação, insere o CNPJ e preserva campos novos da reforma sem inventar taxas", async () => {
     const fetcher = transporte();
     const e = criarEmissorFocus(config, fetcher);
