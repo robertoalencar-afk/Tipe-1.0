@@ -1,6 +1,6 @@
 /**
- * Tipe Guest Manager · demonstração (Projeto 4). Recepção com "Próximas chegadas", mapa do salão
- * com as MESMAS mesas do Tipe Restaurant (estados livre, reservada, ocupada, fechando conta, em
+ * Tipe Reserva Manager · demonstração (Projeto 4). Recepção com "Próximas chegadas", mapa do salão
+ * com as MESMAS mesas do Tipe Gestão (estados livre, reservada, ocupada, fechando conta, em
  * limpeza, bloqueada) e prévia da disponibilidade. A troca de mesa valida conflito com a mesma
  * regra do banco (podeAlocar). Dados fictícios do Maré Alta; nada é salvo.
  */
@@ -218,7 +218,7 @@ export function GuestManagerDemo() {
       <header className="border-b border-[#021E34]/10 bg-white">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-3">
           <p className="font-display text-lg font-semibold tracking-[-0.02em]">
-            Guest Manager{" "}
+            Gestão de reservas{" "}
             <span className="text-sm font-normal text-[#5b6b78]">· Maré Alta (fictício)</span>
           </p>
           <label className="ml-auto flex items-center gap-2 text-sm">
@@ -334,7 +334,7 @@ export function GuestManagerDemo() {
                 {reservaSel
                   ? `Toque numa mesa para colocar ${reservaSel.nome.split(" ")[0]} (${reservaSel.pessoas}p às ${reservaSel.hora}).`
                   : "Escolha uma reserva."}{" "}
-                As mesas são as mesmas do Tipe Restaurant.
+                As mesas são as mesmas do Tipe Gestão.
               </p>
             </div>
             <div className="relative mt-3 aspect-[16/9] rounded-xl bg-[#F6F8FA]">

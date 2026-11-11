@@ -5,13 +5,13 @@ import { cn } from "@/lib/utils";
 import { VitrineCliente } from "@/components/tipe/guest-demo/VitrineCliente";
 import { GuestManagerDemo } from "@/components/tipe/guest-demo/GuestManagerDemo";
 
-// Demonstração do Tipe Guest (Projeto 4). Fora do índice, sem login, sem reserva real: tudo roda no
+// Demonstração do Tipe Reserva (Projeto 4). Fora do índice, sem login, sem reserva real: tudo roda no
 // navegador com restaurantes fictícios. O Guest segue "Em breve" para clientes e restaurantes.
 export const Route = createFileRoute("/guest-demo")({
   validateSearch: z.object({ lado: z.enum(["cliente", "restaurante"]).optional() }),
   head: () => ({
     meta: [
-      { title: "Demonstração · Tipe Guest" },
+      { title: "Demonstração · Tipe Reserva" },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),

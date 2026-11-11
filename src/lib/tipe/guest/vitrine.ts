@@ -1,4 +1,4 @@
-// Tipe Guest · vitrine do cliente e salão do Guest Manager (Projeto 4). Regras puras, sem rede,
+// Tipe Reserva · vitrine do cliente e salão do Guest Manager (Projeto 4). Regras puras, sem rede,
 // usadas pela demonstração web (/guest-demo) e prontas para o app (apps/guest). Os restaurantes
 // daqui são FICTÍCIOS e rotulados como demonstração: nunca se misturam com dados de produção.
 
@@ -355,7 +355,7 @@ export function perguntarLebre(
   if (!entendeu || !r.length)
     return {
       texto:
-        "Não achei nada exato para isso entre os restaurantes do Tipe Guest. Estes são os mais bem avaliados:",
+        "Não achei nada exato para isso entre os restaurantes do Tipe Reserva. Estes são os mais bem avaliados:",
       restaurantes: ordenar(lista, "nota").slice(0, 3),
     };
   return {
@@ -369,7 +369,7 @@ export function perguntarLebre(
 
 // ---------------------------------------------------------------- salão do Guest Manager
 
-/** Estados da mesa, os mesmos do Tipe Restaurant (uma mesa só, sem cópia). */
+/** Estados da mesa, os mesmos do Tipe Gestão (uma mesa só, sem cópia). */
 export type EstadoMesa = "livre" | "reservada" | "ocupada" | "fechando" | "limpeza" | "bloqueada";
 
 export const ESTADO_MESA_LABEL: Record<EstadoMesa, string> = {

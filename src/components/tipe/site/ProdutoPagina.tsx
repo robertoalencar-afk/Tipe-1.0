@@ -24,6 +24,14 @@ import { TopoStaff } from "./produto/TopoStaff";
 import { Tablet } from "./Dispositivo";
 import { BaixaAutomatica } from "./produto/BaixaAutomatica";
 import { SimuladorGuest } from "./guest/SimuladorGuest";
+import {
+  GuestAvaliacoesSecao,
+  GuestComoReservar,
+  GuestFundadorSecao,
+  GuestManagerSecao,
+  GuestPaySecao,
+  GuestVitrine,
+} from "./guest/GuestSecoes";
 import { PaginaOrder } from "./order/PaginaOrder";
 import { LANCAMENTO_PADRAO, type EstadoLancamento } from "@/lib/tipe/launch-state";
 
@@ -130,9 +138,7 @@ function TextoTopo({ p }: { p: Produto }) {
         <BotaoPrincipal>
           {p.status === "disponivel" ? "Solicitar demonstração" : "Quero saber primeiro"}
         </BotaoPrincipal>
-        <BotaoSecundario href="#simulador">
-          Testar o simulador
-        </BotaoSecundario>
+        <BotaoSecundario href="#simulador">Testar o simulador</BotaoSecundario>
       </div>
     </>
   );
@@ -510,11 +516,27 @@ export function ProdutoPagina({ p, estado }: { p: Produto; estado?: EstadoLancam
     return (
       <PaginaOrder p={p} estado={estado ?? LANCAMENTO_PADRAO["order"] ?? "em-desenvolvimento"} />
     );
+  if (p.slug === "guest")
+    return (
+      <>
+        <Topo p={p} />
+        <Abas p={p} />
+        <GuestVitrine />
+        <SimuladorGuest />
+        <GuestComoReservar />
+        <GuestManagerSecao />
+        <GuestPaySecao />
+        <GuestAvaliacoesSecao />
+        <GuestFundadorSecao />
+        <Duvidas p={p} />
+        <Relacionados p={p} />
+      </>
+    );
   return (
     <>
       <Topo p={p} />
       <Abas p={p} />
-      {p.slug === "guest" ? <SimuladorGuest /> : <Banda p={p} />}
+      <Banda p={p} />
       {p.slug === "pay" ? (
         <DemonstracaoPay p={p} />
       ) : (

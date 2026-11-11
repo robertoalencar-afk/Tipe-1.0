@@ -1,5 +1,5 @@
 /**
- * Tipe Guest · demonstração web do cliente (Projeto 4). Descobrir, buscar, filtrar, ver no mapa,
+ * Tipe Reserva · demonstração web do cliente (Projeto 4). Descobrir, buscar, filtrar, ver no mapa,
  * abrir o restaurante, reservar, acompanhar em "Minhas reservas", favoritar e perguntar à Lebre.
  * Tudo roda no navegador com restaurantes FICTÍCIOS; nada é enviado e nenhuma cobrança acontece.
  * Horários saem do motor real (src/lib/tipe/guest/reservas.ts via vitrine.ts).
@@ -125,7 +125,7 @@ export function VitrineCliente() {
             onClick={() => setTela({ k: "home" })}
             className="font-display text-lg font-semibold tracking-[-0.02em]"
           >
-            Tipe <span style={{ color: TURQ }}>Guest</span>
+            Tipe <span style={{ color: TURQ }}>Reserva</span>
           </button>
           <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[0.65rem] font-medium text-amber-900">
             Demonstração · restaurantes fictícios
@@ -691,7 +691,7 @@ function Lebre({ ctx }: { ctx: Ctx }) {
             ))}
           </div>
           <p className="mt-2 text-[0.7rem] text-[#5b6b78]">
-            A Lebre só sugere restaurantes do Tipe Guest e nunca inventa horário, preço ou
+            A Lebre só sugere restaurantes do Tipe Reserva e nunca inventa horário, preço ou
             avaliação.
           </p>
         </div>
@@ -858,7 +858,7 @@ function Perfil({
           {aba === "sobre" && (
             <div className="space-y-4 py-4 text-sm">
               <p>
-                Restaurante fictício da demonstração do Tipe Guest, em {r.bairro}. A conta é paga
+                Restaurante fictício da demonstração do Tipe Reserva, em {r.bairro}. A conta é paga
                 pelo Tipe Pay: Pix, Apple Pay, Google Pay ou no estabelecimento.
               </p>
               {r.experiencias.length > 0 && (
