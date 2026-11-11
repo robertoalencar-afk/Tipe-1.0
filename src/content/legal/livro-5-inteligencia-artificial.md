@@ -16,10 +16,10 @@ summary: A TIPE usa IA em dois lugares: na Lebre, assistente do painel do restau
 
 | Recurso | Quem usa | O que faz |
 | --- | --- | --- |
-| Lebre AI | Equipe do restaurante, no painel | Responde dúvidas, resume a operação, analisa fotos e PDFs e prepara ações |
+| Lebre | Equipe do restaurante, no painel | Responde dúvidas, resume a operação, analisa fotos e PDFs e prepara ações |
 | Sugestão de divisão | Clientes na mesa | Sugere frações de um item a partir de um texto digitado, por exemplo "dividir a pizza entre 3" |
 
-## 5.2 Lebre AI no painel {#lebre-ai-no-painel}
+## 5.2 Lebre no painel {#lebre-ai-no-painel}
 
 A Lebre aceita texto, voz, fotos e arquivos em PDF. Ela pode explicar o sistema, resumir pagamentos e métricas, ler comandas e cardápios enviados em foto e preparar ações, como abrir uma mesa. A voz é transcrita em texto, e você pode revisar a transcrição antes de enviar.
 
@@ -40,3 +40,11 @@ Quando você descreve como quer dividir um item, o texto é enviado à IA para s
 - A TIPE não autoriza o uso desses conteúdos para treinar modelos de IA. Eles são usados apenas para gerar a resposta pedida e ficam com o provedor somente pelo tempo necessário ao processamento e à segurança.
 - Evite enviar à Lebre documentos com dados pessoais que não sejam necessários, como CPF de clientes ou dados bancários.
 - O histórico de conversas fica guardado pelo prazo do Livro 3, seção 3.13.
+
+## 5.6 Memória da Lebre {#memoria-da-lebre}
+
+- No painel, a Lebre guarda lembranças curtas para atender melhor: preferências e fatos da operação, como o nome que a casa dá a um prato, qual mesa fica na varanda ou como a pessoa prefere as respostas. Ela aprende quando alguém pede ("lembre que...") ou quando a conversa revela uma preferência duradoura.
+- Há dois tipos: lembranças do restaurante, visíveis para a equipe daquele restaurante, e lembranças pessoais, visíveis só para quem as criou. A memória de um restaurante nunca é usada em outro.
+- A Lebre não guarda dados sensíveis nem dados de pagamento. Antes de gravar qualquer lembrança, o sistema barra CPF, CNPJ, número de cartão, senha, token, chave Pix, dados bancários, RG, e-mail, telefone, endereço, informações de saúde e salário.
+- Você controla a memória: diga "o que você lembra?" para ver o que está guardado e "esqueça..." para apagar uma lembrança ou todas. Cada pessoa apaga as suas; o dono também pode apagar as do restaurante.
+- A memória não é usada para treinar modelos de IA e segue o prazo do Livro 3, seção 3.13.

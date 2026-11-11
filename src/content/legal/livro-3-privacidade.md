@@ -18,7 +18,7 @@ Tipe Tecnologia de Integração para Pagamento Eletrônico LTDA (TIPE), CNPJ 69.
 
 ## 3.2 Onde esta política se aplica {#onde-esta-politica-se-aplica}
 
-Ao site tipe.digital, à página da mesa acessada por QR Code, ao simulador, à lista de espera, ao painel do restaurante e à Lebre AI.
+Ao site tipe.digital, à página da mesa acessada por QR Code, ao simulador, à lista de espera, ao painel do restaurante e à Lebre.
 
 ## 3.3 Papéis: controlador e operador {#papeis-controlador-e-operador}
 
@@ -74,7 +74,7 @@ Endereço IP, data e hora de acesso, tipo de navegador, tentativas negadas e exc
 | Origem da visita e indicação, ligadas ao cadastro | Legítimo interesse (art. 7º, IX) |
 | Envio de novidades por WhatsApp e e-mail | Consentimento (art. 7º, I) |
 | Medição de audiência e anúncios (cookies opcionais) | Consentimento (art. 7º, I) |
-| Lebre AI e sugestão de divisão | Execução de contrato (art. 7º, V) |
+| Lebre e sugestão de divisão | Execução de contrato (art. 7º, V) |
 | Estatísticas e melhoria do serviço com dados anonimizados | Fora do alcance da LGPD após anonimização (art. 12) |
 
 ## 3.10 Compartilhamento {#compartilhamento}
@@ -113,7 +113,8 @@ Conexão criptografada (HTTPS); controle de acesso por restaurante e por perfil;
 | Lista de espera | 24 meses sem interação, ou até você pedir exclusão | Contato comercial |
 | Consentimentos e preferências de cookies | Enquanto válidos + 5 anos | Prova do consentimento |
 | Solicitações de titulares | 5 anos | Prova do atendimento |
-| Conversas com a Lebre AI | 12 meses, ou até o usuário apagar a conversa | Histórico do usuário |
+| Conversas com a Lebre | 12 meses, ou até o usuário apagar a conversa | Histórico do usuário |
+| Memória da Lebre (preferências e fatos da operação, sem dados sensíveis) | Enquanto a conta do restaurante existir, com no máximo 40 lembranças por restaurante e 20 por pessoa, ou até o usuário pedir para esquecer | Personalização do atendimento (Livro 5, seção 5.6) |
 
 Ao fim do prazo, os dados são eliminados ou anonimizados.
 

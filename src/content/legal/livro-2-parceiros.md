@@ -69,7 +69,7 @@ O Parceiro decide se oferece a gorjeta extra aos clientes. Quando ativada, a gor
 
 ## 2.12 Disponibilidade e suporte {#disponibilidade-e-suporte}
 
-Suporte humano por WhatsApp (+55 85 98559-1062) e e-mail (contato@tipe.digital), das 8h às 18h, horário de Fortaleza. Fora desse horário, a Lebre AI atende 24 horas no painel, para dúvidas e orientações; questões que exijam análise humana são respondidas no período de atendimento seguinte. Manutenções programadas são avisadas com antecedência sempre que possível, de preferência fora dos horários de pico. Níveis de serviço específicos podem constar da proposta comercial.
+Suporte humano por WhatsApp (+55 85 98559-1062) e e-mail (contato@tipe.digital), das 8h às 18h, horário de Fortaleza. Fora desse horário, a Lebre atende 24 horas no painel, para dúvidas e orientações; questões que exijam análise humana são respondidas no período de atendimento seguinte. Manutenções programadas são avisadas com antecedência sempre que possível, de preferência fora dos horários de pico. Níveis de serviço específicos podem constar da proposta comercial.
 
 ## 2.13 Totens e materiais {#totens-e-materiais}
 
