@@ -204,7 +204,7 @@ const GRUPOS: { id: string; nome: string; cor: string; slides: Slide[] }[] = [
       {
         eyebrow: "Para o cliente",
         titulo: "Cada um paga o que consumiu.",
-        texto: "Por item, dividindo um prato, em partes iguais ou a conta inteira.",
+        texto: "Por item ou dividindo um prato. Quem sai primeiro não deixa a conta para os outros.",
         scene: "cena-praia",
         alt: "Amigos na barraca de praia pagando cada um a sua parte",
         selo: ["Mesa 12 fechada", "3 pessoas pagaram"],
