@@ -21,7 +21,7 @@ Livro 3. Política de Privacidade 3.1 Quem somos · 3.2 Onde esta política se a
 
 Livro 4. Política de Cookies 4.1 O que são cookies · 4.2 Categorias · 4.3 Inventário · 4.4 Como dar, mudar ou retirar o consentimento · 4.5 Fontes e serviços de terceiros
 
-Livro 5. Inteligência artificial na TIPE 5.1 Onde usamos IA · 5.2 Lebre AI no painel · 5.3 Sugestão de divisão na mesa · 5.4 Limites e supervisão humana · 5.5 Dados enviados à IA
+Livro 5. Inteligência artificial na TIPE 5.1 Onde usamos IA · 5.2 Lebre no painel · 5.3 Sugestão de divisão na mesa · 5.4 Limites e supervisão humana · 5.5 Dados enviados à IA · 5.6 Memória da Lebre
 
 Livro 6. Seus direitos e como exercê-los 6.1 Seus direitos pela LGPD · 6.2 Como fazer uma solicitação · 6.3 Prazos · 6.4 Quando o pedido vai para o restaurante · 6.5 Encarregado (DPO) · 6.6 ANPD
 
