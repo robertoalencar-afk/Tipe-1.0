@@ -260,7 +260,7 @@ export function Shell({
     <div className="min-h-dvh overflow-x-clip bg-background-muted text-foreground">
       <div
         className={cn(
-          "lg:grid lg:min-h-dvh lg:transition-[grid-template-columns] lg:duration-200",
+          "lg:grid lg:min-h-dvh lg:transition-[grid-template-columns] lg:duration-200 print:block",
           recolhida ? "lg:grid-cols-[72px_minmax(0,1fr)]" : "lg:grid-cols-[248px_minmax(0,1fr)]",
         )}
       >
