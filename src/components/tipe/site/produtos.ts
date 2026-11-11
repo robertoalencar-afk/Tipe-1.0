@@ -170,7 +170,7 @@ export const PRODUTOS: Produto[] = [
       },
       {
         t: "Cada um paga o seu",
-        d: "Por item, em partes iguais, por valor ou porcentagem. A tela mostra quanto falta.",
+        d: "Cada pessoa escolhe os itens que consumiu. A tela mostra quanto falta.",
         foto: "cena-amigos",
         posicao: "50% 40%",
         telaReal: "dividir",

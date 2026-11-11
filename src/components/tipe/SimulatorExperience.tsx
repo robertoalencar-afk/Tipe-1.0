@@ -7,7 +7,6 @@ import {
   ChevronRight,
   ClipboardList,
   HandCoins,
-  ListChecks,
   QrCode,
   ReceiptText,
   Smartphone,
@@ -19,7 +18,6 @@ import { QRCodeSVG } from "qrcode.react";
 import { TipeLogo } from "@/components/tipe/Logo";
 import { markSimulatorUsed } from "@/lib/tipe/tracking";
 import { SplitPicker } from "@/components/tipe/SplitPicker";
-import { DividirConta } from "@/components/tipe/DividirConta";
 import { remainingSubtotal, type ShareItem } from "@/lib/tipe/bill-math";
 import {
   TIP_SPLIT,
@@ -518,30 +516,6 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
                           <span>Pagar tudo</span>
                           <span className="money">{money(emAbertoComTaxa)}</span>
                         </Button>
-                        <div className="mt-2 grid grid-cols-2 gap-2">
-                          <DividirConta
-                            items={itensDivisao}
-                            serviceRate={fee}
-                            triggerClassName="h-12 w-full rounded-full bg-card font-display text-[0.95rem] font-medium"
-                            onApply={(q) =>
-                              setQuantities(
-                                Object.fromEntries(ITEMS.map((item) => [item.id, q[item.id] ?? 0])),
-                              )
-                            }
-                            onPay={() => setStage("payment")}
-                          />
-                          <Button
-                            variant="outline"
-                            onClick={() =>
-                              document
-                                .getElementById("itens-da-conta")
-                                ?.scrollIntoView({ behavior: "smooth", block: "start" })
-                            }
-                            className="h-12 w-full bg-card font-display text-[0.95rem] font-medium"
-                          >
-                            <ListChecks /> Escolher itens
-                          </Button>
-                        </div>
                       </section>
                     );
                   })()}
@@ -1409,7 +1383,7 @@ function Centered({ children }: { children: React.ReactNode }) {
   );
 }
 
-/** "Chamar garçom" e "Pedir a conta", como na conta real; aqui o aviso é só simulado. */
+/** "Chamar garçom", como na conta real; aqui o aviso é só simulado. */
 function ChamarEquipeSimulado() {
   const [avisado, setAvisado] = useState<"waiter" | "bill" | null>(null);
   useEffect(() => {
@@ -1420,12 +1394,7 @@ function ChamarEquipeSimulado() {
   return (
     <div className="mt-4">
       <div className="flex gap-2">
-        {(
-          [
-            ["waiter", "Chamar garçom", BellRing],
-            ["bill", "Pedir a conta", ReceiptText],
-          ] as const
-        ).map(([kind, rotulo, Icone]) => (
+        {([["waiter", "Chamar garçom", BellRing]] as const).map(([kind, rotulo, Icone]) => (
           <Button
             key={kind}
             type="button"

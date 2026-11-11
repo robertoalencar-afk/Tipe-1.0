@@ -9,7 +9,6 @@ import {
   Copy,
   CreditCard,
   HandCoins,
-  ListChecks,
   QrCode,
   ReceiptText,
   RefreshCw,
@@ -25,7 +24,6 @@ import logoLight from "@/assets/marca/tipe-logo-branco.svg";
 import logoDark from "@/assets/marca/tipe-logo.svg";
 import { cn } from "@/lib/utils";
 import { SplitPicker } from "@/components/tipe/SplitPicker";
-import { DividirConta } from "@/components/tipe/DividirConta";
 import { remainingSubtotal, selectionSubtotal, type ShareItem } from "@/lib/tipe/bill-math";
 import { PAYMENT_STATUS_LABEL } from "@/lib/tipe/payment-state";
 import { MesaPedido } from "@/components/tipe/MesaPedido";
@@ -883,32 +881,6 @@ function MesaPage() {
                         <span>Pagar tudo</span>
                         <span className="money">{money(emAbertoComTaxa)}</span>
                       </Button>
-                      <div className="mt-2 grid grid-cols-2 gap-2">
-                        <DividirConta
-                          items={itensDivisao}
-                          serviceRate={taxaSugerida}
-                          triggerClassName="h-12 w-full rounded-full bg-card font-display text-[0.95rem] font-medium"
-                          onApply={(quantidades) =>
-                            setQtds(
-                              Object.fromEntries(
-                                dados.itens.map((item) => [item.id, quantidades[item.id] ?? 0]),
-                              ),
-                            )
-                          }
-                          onPay={irParaPagamento}
-                        />
-                        <Button
-                          variant="outline"
-                          onClick={() =>
-                            document
-                              .getElementById("itens-da-conta")
-                              ?.scrollIntoView({ behavior: "smooth", block: "start" })
-                          }
-                          className="h-12 w-full bg-card font-display text-[0.95rem] font-medium"
-                        >
-                          <ListChecks /> Escolher itens
-                        </Button>
-                      </div>
                     </section>
                   );
                 })()}
