@@ -1,0 +1,36 @@
+<!-- cena do celular -->
+  <div class="layer" id="scP" style="background:radial-gradient(120% 90% at 70% 45%,#FFFFFF 0%,#F6F5F1 55%,#EDEBE4 100%)">
+    <div id="phoneWrap">
+      <div class="device" id="device">
+        <div class="screen" id="screen">
+          <img id="s0" src="__conta__"><img id="s1" src="__metodos__"><img id="s2" src="__pago__">
+          <div class="tap" id="tap"></div>
+        </div>
+      </div>
+      <div id="ring"></div>
+      <div id="badge"><svg viewBox="0 0 24 24" width="56%" height="56%"><path id="chk" d="M5 12.5l4.2 4.2L19 7" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" pathLength="1" stroke-dasharray="1 1.2" stroke-dashoffset="1.1"/></svg></div>
+    </div>
+  </div>
+
+  <!-- textos -->
+  <div class="eyebrow" id="eb1"><i style="background:#8B9686"></i><span>A tartaruga</span></div>
+  <div class="cap" id="cap1"></div>
+  <div class="status" id="st1"></div>
+
+  <div class="eyebrow" id="eb2"><i style="background:var(--turq)"></i><span>A lebre</span></div>
+  <div class="cap" id="cap2"></div>
+  <div class="status" id="st2">Conta paga · na hora</div>
+
+  <div class="eyebrow" id="eb3"><i style="background:var(--turq)"></i><span>Com a Tipe, no celular</span></div>
+  <div class="cap" id="cap3"></div>
+
+  <img id="logoTop" src="__logo__" alt="Tipe">
+  <div id="bar"><div id="barFill"></div></div>
+
+  <svg id="wipe"></svg>
+
+  <div id="end">
+    <div id="iris"></div>
+    <img id="endLogo" src="__logoBranco__" alt="Tipe">
+    <div id="endTag"><span class="w" id="tg1">Pague.</span> <span class="w" id="tg2" style="color:var(--turq)">Sem esperar.</span></div>
+  </div>

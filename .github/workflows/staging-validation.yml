@@ -1,0 +1,31 @@
+# Validacao isolada do novo Supabase de testes. Nao publica o dominio.
+name: Validar staging Supabase
+on:
+  workflow_dispatch:
+jobs:
+  validar:
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+      VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+      VITE_SUPABASE_PROJECT_ID: ${{ vars.VITE_SUPABASE_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - name: Validar projeto e credenciais sem revela-las
+        run: |
+          set -eu
+          [ -n "$DATABASE_URL" ] || { echo "::error::DATABASE_URL ausente em staging"; exit 1; }
+          [ -n "$VITE_SUPABASE_PUBLISHABLE_KEY" ] || { echo "::error::Chave publica ausente em staging"; exit 1; }
+          [ "$VITE_SUPABASE_PROJECT_ID" = "nduqqnevstlidmxbghcj" ] || { echo "::error::Projeto staging incorreto"; exit 1; }
+          [ "$VITE_SUPABASE_URL" = "https://nduqqnevstlidmxbghcj.supabase.co" ] || { echo "::error::URL staging incorreta"; exit 1; }
+      - run: bun install --frozen-lockfile
+      - run: bunx tsc --noEmit -p .
+      - run: bunx vitest run
+      - run: bun run build
+      - name: Validar compilacao Cloudflare sem publicar
+        run: bunx wrangler deploy --dry-run --outdir /tmp/tipe-staging-dry-run
+      # Migrações só após revisão independente do script, RLS e funções SECURITY DEFINER.
+      # Não modificar banco automaticamente nesta etapa.

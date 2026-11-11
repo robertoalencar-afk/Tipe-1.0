@@ -1,0 +1,26 @@
+# Cria as duas empresas virtuais de teste no banco de produção (rodar à mão, uma vez).
+name: Empresas de teste
+
+on:
+  workflow_dispatch:
+    inputs:
+      founder_email:
+        description: E-mail que vira fundador (backoffice)
+        required: false
+        default: roberto@tipe.digital
+
+jobs:
+  criar:
+    runs-on: ubuntu-latest
+    environment: producao
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: node scripts/db/criar-empresas-teste.mjs
+        env:
+          SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SENHA_TESTE: ${{ secrets.SENHA_TESTE }}
+          FOUNDER_EMAIL: ${{ inputs.founder_email }}

@@ -18,6 +18,23 @@ function deviceId() {
 
 /** Áreas de founder só abrem com verificação em duas etapas (aplicativo autenticador). */
 export function FounderMfaGate({ children }: { children: ReactNode }) {
+  return <MfaGate obrigatorio registrarDispositivo>{children}</MfaGate>;
+}
+
+/**
+ * Pede o código do autenticador quando a conta tem 2FA ativo e a sessão ainda não foi
+ * confirmada (aal1). Com `obrigatorio`, quem não tem 2FA precisa cadastrar antes de entrar.
+ * O servidor repete a regra (requireSupabaseAuth recusa aal1 de quem tem 2FA).
+ */
+export function MfaGate({
+  children,
+  obrigatorio = false,
+  registrarDispositivo = false,
+}: {
+  children: ReactNode;
+  obrigatorio?: boolean;
+  registrarDispositivo?: boolean;
+}) {
   const [state, setState] = useState<State>("loading");
   const [factorId, setFactorId] = useState<string | null>(null);
   const [qr, setQr] = useState<string | null>(null);
@@ -38,6 +55,7 @@ export function FounderMfaGate({ children }: { children: ReactNode }) {
     const { data: f } = await supabase.auth.mfa.listFactors();
     const verified = f?.totp?.find((x) => x.status === "verified");
     if (verified) { setFactorId(verified.id); setState("verify"); return; }
+    if (!obrigatorio) { setState("ok"); return; }
     for (const u of f?.all?.filter((x) => x.status !== "verified") ?? []) await supabase.auth.mfa.unenroll({ factorId: u.id });
     const { data, error: e } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: `TIPE ${new Date().toISOString().slice(0, 10)}` });
     if (e || !data) { setError("Não foi possível iniciar a verificação em duas etapas."); setState("enroll"); return; }
@@ -46,8 +64,8 @@ export function FounderMfaGate({ children }: { children: ReactNode }) {
 
   useEffect(() => { void refresh(); }, []);
   useEffect(() => {
-    if (state === "ok") void record({ data: { device: deviceId(), ua: navigator.userAgent } }).catch(() => undefined);
-  }, [state, record]);
+    if (state === "ok" && registrarDispositivo) void record({ data: { device: deviceId(), ua: navigator.userAgent } }).catch(() => undefined);
+  }, [state, record, registrarDispositivo]);
 
   async function verify(enrolling: boolean) {
     if (!factorId) return;
@@ -78,7 +96,7 @@ export function FounderMfaGate({ children }: { children: ReactNode }) {
       {state === "enroll" && (
         <>
           <h1 className="font-display text-2xl font-extrabold">Ative a verificação em duas etapas</h1>
-          <p className="mt-2 text-sm text-muted-foreground">Ela é obrigatória para acessar o backoffice. Abra um aplicativo autenticador (Google Authenticator, Microsoft Authenticator, 1Password ou Authy) e leia o QR Code.</p>
+          <p className="mt-2 text-sm text-muted-foreground">Ela é obrigatória para esta área. Abra um aplicativo autenticador (Google Authenticator, Microsoft Authenticator, 1Password ou Authy) e leia o QR Code.</p>
           {qr && <img src={qr} alt="QR Code para o aplicativo autenticador" className="mx-auto my-5 h-48 w-48 rounded-xl bg-card p-2" />}
           {secret && <p className="text-center text-xs text-muted-foreground">Ou digite a chave: <span className="select-all font-mono">{secret}</span></p>}
           <label htmlFor="mfa-code" className="mt-5 text-sm font-semibold">Código de 6 dígitos</label>
@@ -94,6 +112,7 @@ export function FounderMfaGate({ children }: { children: ReactNode }) {
           <Input aria-label="Código de 6 dígitos" inputMode="numeric" autoComplete="one-time-code" maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} className="mt-5 h-12 text-center text-lg tracking-widest" />
           <Button disabled={busy || code.length !== 6} onClick={() => verify(false)} className="mt-4 h-12">Entrar</Button>
           <button type="button" onClick={() => setUseRecovery(true)} className="mt-4 text-sm text-primary underline">Perdi o acesso ao aplicativo</button>
+          <button type="button" onClick={() => void supabase.auth.signOut().then(() => window.location.assign("/entrar"))} className="mt-2 text-sm text-muted-foreground underline">Sair e entrar com outra conta</button>
         </>
       )}
 

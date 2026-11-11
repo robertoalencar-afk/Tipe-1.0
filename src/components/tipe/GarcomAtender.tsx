@@ -18,6 +18,7 @@ import {
   Utensils,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { LiberarPedidosMesa, useOrderAccess } from "@/components/tipe/LiberarPedidosMesa";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -34,6 +35,8 @@ import {
   avisosDeNotas,
   type AvisoMesa,
   type StatusMesaSalao,
+  chaveLancamento,
+  type ChaveLancamento,
 } from "@/lib/tipe/pdv/comanda";
 import { beep, unlockSound } from "@/lib/tipe/beep";
 
@@ -57,6 +60,7 @@ export function GarcomAtender() {
     refetchInterval: 15000,
   });
   const [mesaSel, setMesaSel] = useState<string | null>(null);
+  const orderAccess = useOrderAccess(q.data?.restaurantSlug);
   const [lancarMesa, setLancarMesa] = useState<string | null>(null);
 
   // Tempo real: um pagamento ou item novo atualiza o salão na hora.
@@ -123,6 +127,8 @@ export function GarcomAtender() {
     );
   const pos = q.data;
   const mesa = pos.tables.find((m) => m.number === mesaSel);
+  const orderAtivo = !!orderAccess.data?.orderActive;
+  const orderAberta = new Set((orderAccess.data?.open ?? []).map((o) => o.table));
   const ativas = pos.tables.filter((m) => m.active);
   const minhas = ativas.filter((m) => m.minhaMesa && m.status !== "livre").length;
 
@@ -227,7 +233,7 @@ export function GarcomAtender() {
             <button
               key={m.number}
               type="button"
-              onClick={() => (temItens ? setMesaSel(m.number) : setLancarMesa(m.number))}
+              onClick={() => (temItens || orderAtivo ? setMesaSel(m.number) : setLancarMesa(m.number))}
               className={`flex min-h-[120px] flex-col rounded-2xl border-2 p-3 text-left transition active:scale-[.98] ${statusInfo[m.status].cls}`}
             >
               <div className="flex items-start justify-between gap-1">
@@ -250,7 +256,9 @@ export function GarcomAtender() {
                   </div>
                 </div>
               ) : (
-                <div className="mt-auto pt-2 text-xs">Toque para lançar</div>
+                <div className="mt-auto pt-2 text-xs">
+                  {orderAberta.has(m.number) ? "Pedidos pelo celular liberados" : orderAtivo ? "Toque para atender" : "Toque para lançar"}
+                </div>
               )}
             </button>
           );
@@ -263,6 +271,7 @@ export function GarcomAtender() {
           {mesa && (
             <ComandaMesa
               mesa={mesa}
+              slug={pos.restaurantSlug}
               onLancar={() => {
                 setLancarMesa(mesa.number);
                 setMesaSel(null);
@@ -289,13 +298,14 @@ export function GarcomAtender() {
   );
 }
 
-function ComandaMesa({ mesa, onLancar }: { mesa: WaiterTable; onLancar: () => void }) {
+function ComandaMesa({ mesa, slug, onLancar }: { mesa: WaiterTable; slug: string; onLancar: () => void }) {
   return (
     <>
       <DialogHeader>
         <DialogTitle className="font-display text-2xl">Mesa {mesa.number}</DialogTitle>
       </DialogHeader>
       <div className="space-y-4">
+        <LiberarPedidosMesa slug={slug} table={mesa.number} />
         <div className="rounded-2xl bg-muted/60 p-3">
           <div className="flex items-baseline justify-between">
             <span className="text-sm text-muted-foreground">Total da conta</span>
@@ -345,6 +355,7 @@ function LancarPedido({
   onDone: () => void;
 }) {
   const launch = useServerFn(waiterLaunchOrder);
+  const chave = useRef<ChaveLancamento | null>(null);
   const [busca, setBusca] = useState("");
   const [cat, setCat] = useState<string>("");
   const [carrinho, setCarrinho] = useState<Record<string, number>>({});
@@ -373,8 +384,11 @@ function LancarPedido({
   async function enviar() {
     if (!linhas.length) return;
     setEnviando(true);
+    // Mesmo pedido reenviado (toque duplo, rede caiu) usa a mesma chave e não duplica.
+    chave.current = chaveLancamento(chave.current, { mesa, linhas });
     try {
-      await launch({ data: { table: mesa, items: linhas } });
+      await launch({ data: { table: mesa, items: linhas, requestId: chave.current.id } });
+      chave.current = null;
       toast.success(`Pedido enviado para a cozinha · Mesa ${mesa}`);
       onDone();
     } catch (e) {

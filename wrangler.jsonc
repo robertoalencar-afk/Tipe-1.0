@@ -1,0 +1,19 @@
+// Worker principal da TIPE (Cloudflare). O build (`bun run build`) junta este
+// arquivo com o que o Nitro gera em .output/server/wrangler.json.
+// Segredos não ficam aqui: veja docs/deploy/README.md.
+{
+  "name": "tipe",
+  "compatibility_flags": ["nodejs_compat"],
+  // Endereço próprio do Worker (tipe.<conta>.workers.dev): o site funciona e
+  // pode ser testado mesmo antes de o domínio apontar para a Cloudflare.
+  "workers_dev": true,
+  "preview_urls": false,
+  "routes": [
+    // www já redireciona no edge para o domínio canônico, preservando caminho e query.
+    // Não disputar o registro DNS desse redirecionamento (erro Cloudflare 100117).
+    { "pattern": "tipe.digital", "custom_domain": true }
+  ],
+  "observability": { "enabled": true },
+  // IA grátis da Lebre (Workers AI) direto no Worker, sem token: ver src/lib/tipe/ai.server.ts.
+  "ai": { "binding": "AI" }
+}

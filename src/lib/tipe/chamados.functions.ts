@@ -10,7 +10,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 export type TipoChamado = "waiter" | "bill";
 export type ChamadoAberto = { id: string; table: string; kind: TipoChamado; at: string };
 
-// Tabela nova (migração 0034): ainda fora dos tipos gerados.
+// Tabela nova (migração 0054): ainda fora dos tipos gerados.
 type LinhaChamado = { id: string; table_number: string; kind: TipoChamado; created_at: string; session_token: string };
 
 const Chamar = z.object({
