@@ -82,3 +82,69 @@ export const saveFotoItem = createServerFn({ method: "POST" })
     if (error) throw new Error("Não foi possível salvar a imagem");
     return { url };
   });
+
+/* ---------------- Banco de imagens ----------------
+ * Biblioteca de fotos do restaurante em "<restaurante>/banco/" no mesmo bucket. Dono, gerente e
+ * caixa veem; só o administrador envia, remove ou aplica uma foto a um item do cardápio.
+ */
+async function comoMembro(ctx: { supabase: any; userId: string }, slug: string) {
+  const { data: r } = await ctx.supabase.from("restaurants").select("id").eq("slug", slug).maybeSingle();
+  if (!r) throw new Error("Restaurante não encontrado");
+  const { data: ok } = await ctx.supabase.rpc("has_restaurant_role", { _user_id: ctx.userId, _restaurant_id: r.id, _roles: ["owner", "manager", "cashier"] });
+  if (!ok) throw new Error("Sem acesso ao banco de imagens");
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  return { rid: r.id as string, db: supabaseAdmin as unknown as Db };
+}
+
+export const getBancoImagens = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ slug: Slug }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { rid, db } = await comoMembro(context, data.slug);
+    const { data: lista, error } = await db.storage.from("restaurante-midia").list(`${rid}/banco`, { limit: 200, sortBy: { column: "created_at", order: "desc" } });
+    if (error) throw new Error("Não foi possível carregar o banco de imagens");
+    return {
+      imagens: ((lista ?? []) as { name: string; created_at?: string }[])
+        .filter((f) => /\.(webp|png|jpg)$/.test(f.name))
+        .map((f) => ({ nome: f.name, url: db.storage.from("restaurante-midia").getPublicUrl(`${rid}/banco/${f.name}`).data.publicUrl as string, em: f.created_at ?? null })),
+    };
+  });
+
+export const addBancoImagem = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ slug: Slug, imagem: z.string().max(2_300_000) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { rid, db } = await comoAdmin(context, data.slug);
+    const { ext } = decodificar(data.imagem);
+    const { data: lista } = await db.storage.from("restaurante-midia").list(`${rid}/banco`, { limit: 201 });
+    if ((lista?.length ?? 0) >= 200) throw new Error("O banco chegou a 200 imagens. Remova algumas para enviar novas");
+    const nome = `${crypto.randomUUID()}.${ext}`;
+    const url = await enviar(db, `${rid}/banco/${nome}`, data.imagem);
+    return { nome, url };
+  });
+
+export const removeBancoImagem = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ slug: Slug, nome: z.string().regex(/^[0-9a-f-]{36}\.(webp|png|jpg)$/) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { rid, db } = await comoAdmin(context, data.slug);
+    const { error } = await db.storage.from("restaurante-midia").remove([`${rid}/banco/${data.nome}`]);
+    if (error) throw new Error("Não foi possível remover a imagem");
+    return { ok: true };
+  });
+
+/** Aplica uma imagem do banco como foto de um item (a URL precisa ser deste restaurante). */
+export const usarImagemDoBanco = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ slug: Slug, itemId: z.string().uuid(), nome: z.string().regex(/^[0-9a-f-]{36}\.(webp|png|jpg)$/) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { rid, db } = await comoAdmin(context, data.slug);
+    const { data: item } = await db.from("pdv_menu_items").select("id").eq("id", data.itemId).eq("restaurant_id", rid).maybeSingle();
+    if (!item) throw new Error("Item não encontrado neste restaurante");
+    const { data: lista } = await db.storage.from("restaurante-midia").list(`${rid}/banco`, { search: data.nome, limit: 5 });
+    if (!(lista ?? []).some((f: { name: string }) => f.name === data.nome)) throw new Error("Imagem não encontrada no banco");
+    const url = db.storage.from("restaurante-midia").getPublicUrl(`${rid}/banco/${data.nome}`).data.publicUrl as string;
+    const { error } = await db.from("pdv_menu_items").update({ image_url: url }).eq("id", data.itemId);
+    if (error) throw new Error("Não foi possível aplicar a imagem");
+    return { url };
+  });
