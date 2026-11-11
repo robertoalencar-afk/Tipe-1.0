@@ -364,6 +364,8 @@ export function RestaurantPanel({
   const fetchPdv = useServerFn(getPdvData);
   const resolve = useServerFn(resolvePayment);
   const qc = useQueryClient();
+  // O perfil participa de toda renderização, inclusive carregamento, erro e onboarding.
+  const meuPerfil = useMeuPerfil();
   const q = useQuery({
     queryKey: ["panel", slug],
     queryFn: () => fetchPanel({ data: { slug } }),
@@ -609,7 +611,6 @@ export function RestaurantPanel({
       })),
   })).filter((g) => g.itens.length > 0);
 
-  const meuPerfil = useMeuPerfil();
   const eu = d.staff.find((x) => x.email.toLowerCase() === (email ?? "").toLowerCase());
   const papel = myRoles.includes("owner") ? "owner" : myRoles.includes("manager") ? "manager" : myRoles.includes("cashier") ? "cashier" : "waiter";
   const usuario = {
