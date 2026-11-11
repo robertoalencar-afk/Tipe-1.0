@@ -33,7 +33,8 @@ describe("lerComando", () => {
   const mesas = ["1", "2", "12"];
 
   it("lê comandos de mesa", () => {
-    expect(lerComando("abrir mesa 12", mesas)).toEqual({
+    expect(lerComando("abrir mesa 12", mesas)).toEqual({ action: "open_table", number: "12" });
+    expect(lerComando("reativar mesa 12", mesas)).toEqual({
       action: "set_table_active",
       number: "12",
       active: true,
@@ -48,6 +49,25 @@ describe("lerComando", () => {
       action: "set_table_active",
       number: "1",
       active: false,
+    });
+  });
+
+  it("lê pedidos para lançar na mesa", () => {
+    expect(lerComando("lança 2 chopp e 1 picanha na mesa 4", mesas)).toEqual({
+      action: "launch_order",
+      number: "4",
+      items: [
+        { name: "chopp", qty: 2 },
+        { name: "picanha", qty: 1 },
+      ],
+    });
+    expect(lerComando("lançar duas caipirinhas, uma coca na mesa 12", mesas)).toEqual({
+      action: "launch_order",
+      number: "12",
+      items: [
+        { name: "caipirinhas", qty: 2 },
+        { name: "coca", qty: 1 },
+      ],
     });
   });
 
