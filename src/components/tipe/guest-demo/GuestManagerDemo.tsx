@@ -337,7 +337,7 @@ export function GuestManagerDemo() {
                 As mesas são as mesmas do Tipe Gestão.
               </p>
             </div>
-            <div className="relative mt-3 aspect-[16/9] rounded-xl bg-[#F6F8FA]">
+            <div className="relative mt-3 aspect-[4/3] sm:aspect-[16/9] rounded-xl bg-[#F6F8FA]">
               <span className="absolute bottom-2 left-3 text-[0.65rem] uppercase tracking-wide text-[#5b6b78]">
                 Entrada
               </span>

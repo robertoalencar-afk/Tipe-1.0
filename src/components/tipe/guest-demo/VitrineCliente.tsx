@@ -925,14 +925,16 @@ function Perfil({
         <aside className="hidden lg:block">
           <div className="sticky top-20">{painel}</div>
         </aside>
-        <div className="lg:hidden">{painel}</div>
+        <div id="painel-reserva" className="scroll-mt-20 lg:hidden">
+          {painel}
+        </div>
       </div>
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-[#021E34]/10 bg-white p-3 lg:hidden">
+      <div className="sticky bottom-0 z-20 border-t border-[#021E34]/10 bg-white p-3 lg:hidden">
         <a
           href="#painel-reserva"
           onClick={(e) => {
             e.preventDefault();
-            window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
+            document.getElementById("painel-reserva")?.scrollIntoView({ behavior: "smooth" });
           }}
           className="block rounded-full bg-[#021E34] py-3 text-center text-sm font-semibold text-white"
         >
