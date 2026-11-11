@@ -64,6 +64,7 @@ import { PixGarcons } from "@/components/tipe/PixGarcons";
 import { SegurancaConta } from "@/components/tipe/SegurancaConta";
 import { Caixa, Configuracoes, Inicio, Integracoes, Relatorios } from "@/components/tipe/AdminSections";
 import { Cozinha } from "@/components/tipe/Kds";
+import { EquipePermissoes } from "@/components/tipe/EquipePermissoes";
 import { TotemStudio } from "@/components/tipe/TotemStudio";
 import { LiberarPedidosMesa } from "@/components/tipe/LiberarPedidosMesa";
 import { Assinatura, AvisoAssinatura, ContaBloqueada } from "@/components/tipe/Assinatura";
@@ -93,8 +94,9 @@ const hora = (s: string) =>
   });
 const cargoLabel: Record<StaffRole, string> = {
   founder: "Fundador",
-  owner: "Dono",
-  cashier: "Caixa / gerente",
+  owner: "Administrador",
+  manager: "Gerente",
+  cashier: "Caixa",
   waiter: "Garçom",
 };
 const metodoLabel: Record<string, string> = {
@@ -379,7 +381,7 @@ export function RestaurantPanel({
     };
   }, [slug, qc]);
 
-  const podeConfirmar = isFounder || myRoles.includes("owner") || myRoles.includes("cashier");
+  const podeConfirmar = isFounder || myRoles.includes("owner") || myRoles.includes("manager") || myRoles.includes("cashier");
   const podeDono = isFounder || myRoles.includes("owner");
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ["panel", slug] });
@@ -929,7 +931,7 @@ export function RestaurantPanel({
           <div className="space-y-6">
             <Garcons slug={slug} pdv={pdv.data} onDone={refresh} />
             <PixGarcons slug={slug} />
-            <Equipe slug={slug} staff={d.staff} />
+            <EquipePermissoes slug={slug} />
           </div>
         )}
         {aba === "relatorios" && <Relatorios slug={slug} />}
