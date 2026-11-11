@@ -51,7 +51,7 @@ function Entrar() {
     if (r) return navigate({ to: r, replace: true } as never);
     try {
       const a = await fetchAccess();
-      if (a.isFounder) return navigate({ to: "/backoffice", replace: true });
+      if (a.isFounder) return navigate({ to: "/central", replace: true });
       if (a.roles.length > 0 && a.roles.every((x) => x.role === "waiter"))
         return navigate({ to: "/garcom", replace: true });
       if (a.restaurants.length === 1)

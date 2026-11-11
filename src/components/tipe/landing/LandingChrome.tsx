@@ -1,3 +1,4 @@
+import { trackCta } from "@/lib/tipe/tracking";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
 import { ArrowRight, ChevronDown, Instagram, Menu, MessageCircle, X } from "lucide-react";
@@ -239,6 +240,7 @@ export function LandingHeader() {
             </Link>
             <a
               href="/solicitar-demonstracao"
+              onClick={() => trackCta("demonstracao_header")}
               className="btn-tema com-fios hidden h-11 items-center gap-2 rounded-full pl-6 pr-5 text-[0.95rem] font-medium sm:inline-flex"
             >
               Demonstração
@@ -345,7 +347,10 @@ export function LandingHeader() {
               </Link>
               <a
                 href="/solicitar-demonstracao"
-                onClick={() => setMenu(false)}
+                onClick={() => {
+                  trackCta("demonstracao_menu_mobile");
+                  setMenu(false);
+                }}
                 className="btn-tema com-fios flex h-12 items-center justify-center gap-2 rounded-full font-medium"
               >
                 Demonstração
@@ -418,6 +423,7 @@ export function LandingFooter() {
           {!noTeste && (
             <a
               href="/solicitar-demonstracao"
+              onClick={() => trackCta("demonstracao_final")}
               className="com-fios inline-flex min-h-14 items-center justify-center gap-2.5 rounded-full bg-[#021E34] pl-8 pr-7 text-lg font-medium text-white transition-colors hover:bg-[#06304f]"
             >
               Solicitar demonstração

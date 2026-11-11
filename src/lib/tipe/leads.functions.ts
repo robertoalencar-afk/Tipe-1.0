@@ -1,5 +1,14 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { COMO_PEDEM, ESTABELECIMENTOS, MELHORIAS, MODALIDADES, recomendar, resumoParaCrm, type Estabelecimento } from "@/lib/tipe/order/modalidades";
+
+/** venue_type do CRM a partir do tipo de estabelecimento do configurador (valores de VENUE em leads-score). */
+function venueDoEstabelecimento(e: Estabelecimento | null): string | null {
+  if (!e) return null;
+  if (e === "beach_club") return "quiosque";
+  if (e === "lanchonete") return "outro";
+  return e;
+}
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const opt = (max: number) =>
@@ -50,7 +59,17 @@ const step1Schema = z.object({
     .regex(/^[a-z0-9]{4,16}$/i)
     .optional(),
   // "tipe-order": formulário da página /order (origin_page é text, sem migração).
-  originPage: z.enum(["home", "simulador", "calculadora", "tipe-order"]).default("home"),
+  // "configurador-order": "Monte sua operação" em /order; as respostas vão em `operacao`.
+  originPage: z.enum(["home", "simulador", "calculadora", "tipe-order", "configurador-order"]).default("home"),
+  /** Respostas do configurador (só para originPage "configurador-order"); viram resumo nas notas do CRM. */
+  operacao: z
+    .object({
+      estabelecimento: z.enum(ESTABELECIMENTOS).nullable(),
+      modalidades: z.array(z.enum(MODALIDADES)).max(7),
+      comoPedem: z.enum(COMO_PEDEM).nullable(),
+      melhorias: z.array(z.enum(MELHORIAS)).max(6),
+    })
+    .optional(),
   /** Estado de lançamento do produto quando a pessoa se cadastrou (só para originPage "tipe-order"). */
   launchState: z
     .enum(["em-desenvolvimento", "acesso-antecipado", "piloto", "disponivel"])
@@ -90,13 +109,18 @@ export const submitLead = createServerFn({ method: "POST" })
         utm_term: data.utm_term,
         referred_by_code: data.ref?.toLowerCase() ?? null,
         origin_page: data.originPage,
+        ...(data.originPage === "configurador-order" && data.operacao
+          ? { venue_type: venueDoEstabelecimento(data.operacao.estabelecimento) }
+          : {}),
         used_simulator: data.usedSimulator,
         calculator: data.calculator ?? null,
         // Interesse no Tipe Order vai nas notas do CRM para a equipe comercial ver de cara.
         notes: [
-          data.originPage === "tipe-order"
-            ? `Interesse: Tipe Order (estado na hora do cadastro: ${data.launchState ?? "não informado"})`
-            : "Interesse: demonstração Tipe Pay e ecossistema",
+          data.originPage === "configurador-order" && data.operacao
+            ? resumoParaCrm(data.operacao, recomendar(data.operacao))
+            : data.originPage === "tipe-order"
+              ? `Interesse: Tipe Order (estado na hora do cadastro: ${data.launchState ?? "não informado"})`
+              : "Interesse: demonstração Tipe Pay e ecossistema",
           data.selectedPlan ? `Plano de interesse: ${data.selectedPlan}` : null,
         ]
           .filter(Boolean)

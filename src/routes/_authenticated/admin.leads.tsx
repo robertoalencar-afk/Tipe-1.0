@@ -1,5 +1,5 @@
 import { FounderMfaGate } from "@/components/tipe/FounderMfaGate";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
@@ -12,6 +12,7 @@ import { listLeads, updateLead, type Lead } from "@/lib/tipe/leads.functions";
 import { CLOSE_TIMES, LEAD_STATUS, LOST_REASONS, PAINS, PEAKS, QUEUES, ROLE_LABEL, SOURCES, TABLES, TICKETS, VENUE, WAITERS, PAGARME, leadScore } from "@/lib/tipe/leads-score";
 
 export const Route = createFileRoute("/_authenticated/admin/leads")({
+  beforeLoad: () => { throw redirect({ to: "/central", search: { s: "comercial", aba: "leads" } }); },
   head: () => ({ meta: [
     { title: "Leads da lista de espera | TIPE" },
     { name: "description", content: "Área interna da TIPE para acompanhar os restaurantes da lista de espera." },
