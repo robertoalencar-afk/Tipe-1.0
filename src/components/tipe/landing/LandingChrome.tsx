@@ -488,6 +488,9 @@ export function LandingFooter() {
                 </a>
               </li>
               <li>
+                <a href="/restaurante-fundador" className={a}>Restaurante Fundador</a>
+              </li>
+              <li>
                 <a href="/ajuda" className={a}>
                   Central de ajuda
                 </a>
