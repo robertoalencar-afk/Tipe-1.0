@@ -1,6 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { chaveLancamento, type ChaveLancamento } from "@/lib/tipe/pdv/comanda";
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
@@ -64,6 +64,7 @@ import { PixGarcons } from "@/components/tipe/PixGarcons";
 import { SegurancaConta } from "@/components/tipe/SegurancaConta";
 import { Caixa, Configuracoes, Inicio, Integracoes, Relatorios } from "@/components/tipe/AdminSections";
 import { Cozinha } from "@/components/tipe/Kds";
+import { Shell, type GrupoNav } from "@/components/tipe/painel/Shell";
 import { EquipePermissoes } from "@/components/tipe/EquipePermissoes";
 import { TotemStudio } from "@/components/tipe/TotemStudio";
 import { LiberarPedidosMesa } from "@/components/tipe/LiberarPedidosMesa";
@@ -309,10 +310,14 @@ export function RestaurantPanel({
   slug,
   myRoles,
   isFounder,
+  topoAcoes,
+  rodape,
 }: {
   slug: string;
   myRoles: StaffRole[];
   isFounder: boolean;
+  topoAcoes?: ReactNode;
+  rodape?: ReactNode;
 }) {
   const fetchPanel = useServerFn(getPanelData);
   const fetchPdv = useServerFn(getPdvData);
@@ -548,167 +553,39 @@ export function RestaurantPanel({
 
   const contagem = (s: Status) => mesas.filter((m) => m.status === s).length;
 
+  const grupos: GrupoNav[] = GRUPOS.map((g) => ({
+    l: g,
+    itens: visiveis
+      .filter((x) => x.g === g)
+      .map((x) => ({
+        k: x.k,
+        l: x.k === "pdv" ? "Lançar pedido" : x.l,
+        i: x.i,
+        busca: x.d,
+        ...(x.k === "caixa" && pendentes.length > 0 ? { badge: pendentes.length, badgeTone: "warning" as const } : {}),
+      })),
+  })).filter((g) => g.itens.length > 0);
+
   return (
-    <div className="lg:grid lg:grid-cols-[232px_minmax(0,1fr)] lg:gap-8">
-      <aside className="hidden print:hidden lg:block">
-        <nav aria-label="Seções do painel" className="sticky top-20 space-y-5">
-          <div className="px-3">
-            <p className="truncate text-base font-medium">{d.restaurant.name}</p>
-            <p className="truncate text-xs text-muted-foreground">tipe.digital/{slug}</p>
-          </div>
-          {GRUPOS.map((g) => {
-            const itens = visiveis.filter((x) => x.g === g);
-            if (!itens.length) return null;
-            return (
-              <div key={g}>
-                <p className="px-3 pb-1.5 text-xs font-medium text-muted-foreground">{g}</p>
-                <ul className="space-y-0.5">
-                  {itens.map(({ k, l, i: Icon }) => (
-                    <li key={k}>
-                      <button
-                        type="button"
-                        onClick={() => ir(k)}
-                        aria-current={aba === k ? "page" : undefined}
-                        className={cn(
-                          "flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm transition-colors",
-                          aba === k
-                            ? "bg-foreground font-medium text-background"
-                            : "text-foreground/75 hover:bg-background-muted hover:text-foreground",
-                        )}
-                      >
-                        <Icon className="h-4 w-4 shrink-0" />
-                        {l}
-                        {k === "caixa" && pendentes.length > 0 && (
-                          <span
-                            className={cn(
-                              "ml-auto rounded-full px-1.5 text-[11px] font-semibold",
-                              aba === k ? "bg-white/15" : "bg-warning/25 text-foreground",
-                            )}
-                          >
-                            {pendentes.length}
-                          </span>
-                        )}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            );
-          })}
-        </nav>
-      </aside>
-
-      {/* Navegação móvel: quatro atalhos principais e o restante em "Mais". */}
-      <nav
-        aria-label="Seções do painel"
-        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border bg-surface/95 px-1 pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur-xl print:hidden lg:hidden"
-      >
-        {PRINCIPAIS_MOBILE.map((k) => {
-          const sec = visiveis.find((x) => x.k === k);
-          if (!sec) return null;
-          const Icon = sec.i;
-          return (
-            <button
-              key={k}
-              type="button"
-              onClick={() => ir(k)}
-              aria-current={aba === k ? "page" : undefined}
-              className={cn(
-                "relative flex flex-col items-center gap-0.5 rounded-xl py-1.5 text-[10.5px] font-medium",
-                aba === k ? "text-foreground" : "text-muted-foreground",
-              )}
-            >
-              <span
-                className={cn(
-                  "grid h-7 w-12 place-items-center rounded-full transition-colors",
-                  aba === k && "bg-foreground text-background",
-                )}
-              >
-                <Icon className="h-[18px] w-[18px]" />
-              </span>
-              {k === "pdv" ? "Lançar" : sec.l}
-              {k === "caixa" && pendentes.length > 0 && (
-                <span
-                  className="absolute right-3 top-1 h-2 w-2 rounded-full bg-warning"
-                  aria-label={`${pendentes.length} pagamentos a confirmar`}
-                />
-              )}
-            </button>
-          );
-        })}
-        <button
-          type="button"
-          onClick={() => setMaisAberto(true)}
-          aria-haspopup="dialog"
-          className={cn(
-            "flex flex-col items-center gap-0.5 rounded-xl py-1.5 text-[10.5px] font-medium",
-            !(PRINCIPAIS_MOBILE as readonly string[]).includes(aba)
-              ? "text-foreground"
-              : "text-muted-foreground",
-          )}
-        >
-          <span
-            className={cn(
-              "grid h-7 w-12 place-items-center rounded-full",
-              !(PRINCIPAIS_MOBILE as readonly string[]).includes(aba) &&
-                "bg-foreground text-background",
-            )}
-          >
-            <MoreHorizontal className="h-[18px] w-[18px]" />
-          </span>
-          Mais
-        </button>
-      </nav>
-      <Dialog open={maisAberto} onOpenChange={setMaisAberto}>
-        <DialogContent className="top-auto bottom-3 max-h-[80svh] translate-y-0 overflow-y-auto p-4 lg:hidden">
-          <DialogHeader>
-            <DialogTitle>Todas as seções</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            {GRUPOS.map((g) => {
-              const itens = visiveis.filter((x) => x.g === g);
-              if (!itens.length) return null;
-              return (
-                <div key={g}>
-                  <p className="pb-1.5 text-xs font-medium text-muted-foreground">{g}</p>
-                  <div className="grid grid-cols-2 gap-1.5">
-                    {itens.map(({ k, l, i: Icon }) => (
-                      <button
-                        key={k}
-                        type="button"
-                        onClick={() => ir(k)}
-                        className={cn(
-                          "flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-sm",
-                          aba === k
-                            ? "border-foreground bg-foreground font-medium text-background"
-                            : "border-border bg-background hover:border-foreground/25",
-                        )}
-                      >
-                        <Icon className="h-4 w-4 shrink-0" />
-                        <span className="truncate">{l}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </DialogContent>
-      </Dialog>
-
+    <Shell
+      ambiente="Tipe Gestão"
+      contexto={<span className="truncate">{d.restaurant.name} · tipe.digital/{slug}</span>}
+      grupos={grupos}
+      ativo={secaoAtual.k}
+      onNavegar={ir}
+      titulo={secaoAtual.l}
+      descricao={secaoAtual.d}
+      acoes={
+        <>
+          <StatusBadge tone={syncErro ? "error" : "neutral"} className="print:hidden">
+            {pdvLabel}
+          </StatusBadge>
+          {topoAcoes}
+        </>
+      }
+      rodape={rodape}
+    >
       <div className="min-w-0">
-        <PageHeader
-          eyebrow={<span className="lg:hidden">{d.restaurant.name}</span>}
-          title={secaoAtual.l}
-          description={secaoAtual.d}
-          actions={
-            <StatusBadge tone={syncErro ? "error" : "neutral"} className="print:hidden">
-              {pdvLabel}
-            </StatusBadge>
-          }
-          className="print:hidden"
-        />
-
         {syncErro && aba !== "inicio" && (
           <div
             role="alert"
@@ -969,7 +846,7 @@ export function RestaurantPanel({
         </DialogContent>
       </Dialog>
       <LazyLebreAssistant slug={slug} />
-    </div>
+    </Shell>
   );
 }
 
