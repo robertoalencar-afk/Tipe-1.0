@@ -279,7 +279,7 @@ export const DEFINICOES: Record<Modalidade, DefinicaoModalidade> = {
     ],
     beneficios: [
       { t: "Sem comanda de papel", d: "A pulseira numerada substitui a cartela e o cartão." },
-      { t: "Reutilizável", d: "Encerrou, limpou, liga para o próximo cliente." },
+      { t: "Reutilizável", d: "Depois de encerrar a comanda e higienizar a pulseira, ela fica pronta para um novo atendimento." },
       { t: "Garçom encontra o cliente", d: "Mapa do evento e localização com consentimento." },
       { t: "Sem aplicativo", d: "Android e iPhone abrem a URL ao aproximar." },
     ],

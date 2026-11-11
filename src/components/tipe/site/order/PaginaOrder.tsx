@@ -410,9 +410,8 @@ function Contato({ estado }: { estado: EstadoLancamento }) {
 }
 
 export function PaginaOrder({ p, estado }: { p: Produto; estado: EstadoLancamento }) {
-  const t = TEXTOS_LANCAMENTO[estado];
   const [modalidade, setModalidade] = useState<Modalidade>("mesas");
-  const faq: [string, string][] = [[PERGUNTA_QUANDO, t.quando], ...FAQ_ORDER];
+  const faq: [string, string][] = FAQ_ORDER;
   return (
     <>
       <Topo p={p} estado={estado} />

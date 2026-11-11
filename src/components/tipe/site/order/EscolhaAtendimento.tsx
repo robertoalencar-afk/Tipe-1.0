@@ -100,7 +100,6 @@ export function EscolhaAtendimento({
   const def = DEFINICOES[modalidade];
   const vis = VISUAL[modalidade];
   const Icone = ICONE_MODALIDADE[modalidade];
-  const contratavel = def.disponibilidade === "operacional" || def.disponibilidade === "piloto";
 
   const escolher = (m: Modalidade) => {
     if (m === modalidade) return;
@@ -127,7 +126,7 @@ export function EscolhaAtendimento({
         <Titulo
           rotulo="Escolha seu atendimento"
           titulo="Mesa, balcão, totem, pulseira. Um cadastro só."
-          texto="O mesmo cardápio, a mesma cozinha e a mesma conta, no formato em que a sua casa atende. Escolha um formato para acompanhar o caminho do pedido. A disponibilidade de cada modalidade aparece ao lado."
+          texto="O mesmo cardápio, a mesma cozinha e a mesma conta, no formato em que a sua casa atende. Escolha um formato para acompanhar o caminho do pedido."
         />
 
         <div
@@ -165,10 +164,6 @@ export function EscolhaAtendimento({
                   aria-hidden
                 />
                 {d.nome}
-                <span
-                  className={cn("ml-1 h-1.5 w-1.5 rounded-full", COR_STATUS[d.disponibilidade])}
-                  aria-hidden
-                />
               </button>
             );
           })}
@@ -228,13 +223,9 @@ export function EscolhaAtendimento({
               <h3 className="font-display text-[1.7rem] leading-none tracking-[-0.035em] sm:text-[2rem]">
                 {def.nome}
               </h3>
-              <SeloDisponibilidade d={def.disponibilidade} className="text-[#021E34]" />
             </div>
             <p className="mt-4 text-[1.1rem] leading-relaxed text-muted-foreground sm:text-xl">
               {def.promessa}
-            </p>
-            <p className="mt-2 text-[0.9rem] leading-relaxed text-muted-foreground/90">
-              {TEXTO_DISPONIBILIDADE[def.disponibilidade].longo}
             </p>
 
             <ul className="mt-6 space-y-2.5">
@@ -289,9 +280,7 @@ export function EscolhaAtendimento({
                 }
                 className="inline-flex min-h-12 items-center rounded-full border border-[#021E34]/30 px-6 text-[0.95rem] font-medium text-[#021E34] transition-colors hover:border-[#021E34]"
               >
-                {contratavel
-                  ? `Quero ${def.nome.toLowerCase()} na minha casa`
-                  : "Avisar quando estiver pronta"}
+                Conversar sobre este formato
               </a>
             </div>
           </div>

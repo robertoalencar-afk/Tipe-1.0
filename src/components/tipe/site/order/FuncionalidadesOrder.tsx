@@ -98,9 +98,9 @@ export function FuncionalidadesOrder() {
           </div>
         </div>
         <p className="mt-8 max-w-3xl text-sm leading-relaxed text-white/70">
-          Telas do produto com dados de exemplo. As modalidades em piloto, desenvolvimento ou
-          planejamento seguem identificadas nos formatos acima. No totem, a cozinha recebe após o
-          caixa confirmar o pagamento.
+          Telas do produto com dados de exemplo. Converse com a equipe da Tipe sobre a implantação
+          dos formatos na sua operação. No totem, a cozinha recebe após o caixa confirmar o
+          pagamento.
         </p>
       </div>
     </Secao>
