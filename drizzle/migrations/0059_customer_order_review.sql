@@ -95,7 +95,7 @@ BEGIN
  -- Ler a referência antes do lock mantém a mesma ordem de locks do envio:
  -- mesa primeiro, revisão depois. Não divulga existência a não membros.
  SELECT * INTO v_review FROM customer_order_reviews WHERE id=p_id;
- IF NOT FOUND OR NOT has_restaurant_role(auth.uid(),v_review.restaurant_id,ARRAY['owner','manager','cashier','waiter']::app_role[]) THEN RAISE EXCEPTION 'Sem permissão'; END IF;
+ IF NOT FOUND OR NOT (has_restaurant_role(auth.uid(),v_review.restaurant_id,ARRAY['owner','manager','cashier']::app_role[]) OR (has_restaurant_role(auth.uid(),v_review.restaurant_id,ARRAY['waiter']::app_role[]) AND EXISTS(SELECT 1 FROM pdv_waiters w WHERE w.restaurant_id=v_review.restaurant_id AND w.user_id=auth.uid() AND w.active))) THEN RAISE EXCEPTION 'Sem permissão'; END IF;
  SELECT session_token INTO v_session FROM restaurant_tables WHERE restaurant_id=v_review.restaurant_id AND number=v_review.table_number AND active FOR UPDATE;
  SELECT * INTO v_review FROM customer_order_reviews WHERE id=p_id FOR UPDATE;
  IF v_review.state<>'pending' THEN RETURN jsonb_build_object('state',v_review.state); END IF;
@@ -124,7 +124,7 @@ RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp A
 DECLARE v_rid uuid; v_result jsonb;
 BEGIN
  SELECT id INTO v_rid FROM restaurants WHERE slug=p_slug;
- IF v_rid IS NULL OR NOT has_restaurant_role(auth.uid(),v_rid,ARRAY['owner','manager','cashier','waiter']::app_role[]) THEN RAISE EXCEPTION 'Sem permissão'; END IF;
+ IF v_rid IS NULL OR NOT (has_restaurant_role(auth.uid(),v_rid,ARRAY['owner','manager','cashier']::app_role[]) OR (has_restaurant_role(auth.uid(),v_rid,ARRAY['waiter']::app_role[]) AND EXISTS(SELECT 1 FROM pdv_waiters w WHERE w.restaurant_id=v_rid AND w.user_id=auth.uid() AND w.active))) THEN RAISE EXCEPTION 'Sem permissão'; END IF;
  SELECT coalesce(jsonb_agg(row_to_json(x) ORDER BY x.created_at),'[]'::jsonb) INTO v_result FROM (
   SELECT r.id,r.table_number,r.customer_name,r.quantity,r.total,r.preview,r.created_at
   FROM customer_order_reviews r JOIN restaurant_tables t ON t.restaurant_id=r.restaurant_id AND t.number=r.table_number

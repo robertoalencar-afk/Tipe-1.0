@@ -51,6 +51,7 @@ async function destinatarios(
       .from("pdv_waiters")
       .select("user_id")
       .eq("id", waiterId)
+      .eq("active", true)
       .eq("restaurant_id", restaurantId)
       .maybeSingle();
     if (data?.user_id) url.set(data.user_id, "/garcom");

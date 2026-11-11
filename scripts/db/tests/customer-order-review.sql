@@ -3,6 +3,7 @@ BEGIN;
 INSERT INTO auth.users(id) VALUES ('10000000-0000-0000-0000-000000000001'),('10000000-0000-0000-0000-000000000002'),('10000000-0000-0000-0000-000000000003');
 INSERT INTO restaurants(id,slug) VALUES('20000000-0000-0000-0000-000000000001','review-test'),('20000000-0000-0000-0000-000000000002','other-test');
 INSERT INTO user_roles(user_id,restaurant_id,role) VALUES('10000000-0000-0000-0000-000000000001','20000000-0000-0000-0000-000000000001','waiter'),('10000000-0000-0000-0000-000000000002',NULL,'founder'),('10000000-0000-0000-0000-000000000003','20000000-0000-0000-0000-000000000002','owner');
+INSERT INTO pdv_waiters(user_id,restaurant_id,active) VALUES('10000000-0000-0000-0000-000000000001','20000000-0000-0000-0000-000000000001',true);
 INSERT INTO restaurant_tables(restaurant_id,number,active,session_token) VALUES('20000000-0000-0000-0000-000000000001','1',true,'session-one');
 INSERT INTO pdv_menu_items(restaurant_id,code,name,price,sector,available) VALUES('20000000-0000-0000-0000-000000000001','X','Produto teste',10,'cozinha',true);
 DO $$
@@ -25,6 +26,9 @@ BEGIN
  PERFORM set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000003',true);
  BEGIN PERFORM resolve_customer_order_review(id,true); RAISE EXCEPTION 'Outro restaurante aprovou'; EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'Sem permissão' THEN RAISE; END IF; END;
  PERFORM set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000001',true);
+ UPDATE pdv_waiters SET active=false;
+ BEGIN PERFORM resolve_customer_order_review(id,true); RAISE EXCEPTION 'Garçom inativo aprovou'; EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'Sem permissão' THEN RAISE; END IF; END;
+ UPDATE pdv_waiters SET active=true;
  IF jsonb_array_length(pending_customer_order_reviews('review-test'))<>1 THEN RAISE EXCEPTION 'Fila sem pedido'; END IF;
  r:=resolve_customer_order_review(id,true);
  PERFORM resolve_customer_order_review(id,true);

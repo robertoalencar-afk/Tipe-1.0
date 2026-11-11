@@ -13,6 +13,7 @@ CREATE TYPE app_role AS ENUM('founder','owner','manager','cashier','waiter');
 CREATE TABLE restaurants(id uuid PRIMARY KEY,slug text);
 CREATE TABLE user_roles(user_id uuid,restaurant_id uuid,role app_role);
 CREATE FUNCTION has_restaurant_role(uuid,uuid,app_role[]) RETURNS boolean LANGUAGE sql STABLE AS $$ SELECT EXISTS(SELECT 1 FROM user_roles WHERE user_id=$1 AND restaurant_id=$2 AND role=ANY($3)) $$;
+CREATE TABLE pdv_waiters(user_id uuid,restaurant_id uuid,active boolean);
 CREATE TABLE restaurant_tables(restaurant_id uuid,number text,active boolean,session_token text, PRIMARY KEY(restaurant_id,number));
 CREATE TABLE pdv_menu_items(restaurant_id uuid,code text,name text,price numeric,sector text,available boolean);
 CREATE TABLE pdv_orders(id uuid PRIMARY KEY DEFAULT gen_random_uuid(),restaurant_id uuid,table_number text,channel text,customer_name text,request_id text,UNIQUE(restaurant_id,request_id));
