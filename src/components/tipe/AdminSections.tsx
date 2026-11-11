@@ -4,7 +4,8 @@ import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ArrowRight, BarChart3, ChefHat, Clock, Copy, Download, KeyRound, LayoutGrid, PlugZap, QrCode, Receipt, ShoppingCart, TrendingUp, Wallet } from "lucide-react";
-import { EmptyState, StatCard } from "@/components/tipe/ds";
+import { EmptyState } from "@/components/tipe/ds";
+import { Kpi as PainelKpi } from "@/components/tipe/painel/ui";
 import { cn } from "@/lib/utils";
 import { getPdvEvents, getPdvIntegration, setPdvAdapter, testPdvConnection } from "@/lib/tipe/pdv-integrations.functions";
 import { Button } from "@/components/ui/button";
@@ -33,9 +34,13 @@ function useReports(slug: string, days: number) {
   return useQuery({ queryKey: ["reports", slug, days], queryFn: () => fetchR({ data: { slug, days } }) });
 }
 const Card = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => <div className={cn("surface-card p-4 sm:p-5", className)}>{children}</div>;
-const Kpi = ({ label, value, hint, icon, tone }: { label: string; value: string; hint?: string | undefined; icon?: React.ComponentType<{ className?: string }>; tone?: "brand" | "warning" | undefined }) => (
-  <StatCard label={label} value={value} hint={hint} icon={icon} tone={tone} />
+const Kpi = ({ label, value, hint, icon, tone, delta }: { label: string; value: string; hint?: string | undefined; icon?: React.ComponentType<{ className?: string }>; tone?: "brand" | "warning" | undefined; delta?: number | undefined }) => (
+  <PainelKpi label={label} value={value} hint={hint} icon={icon} tone={tone} delta={delta} />
 );
+/** Variação % contra o período anterior; undefined quando não havia base. */
+const variacao = (atual: number, anterior: number) => (anterior > 0 ? Math.round(((atual - anterior) / anterior) * 100) : undefined);
+export type PapelPainel = "owner" | "manager" | "cashier" | "waiter";
+const DIA = 86_400_000;
 /** Seletor segmentado (períodos, setores, tipos). */
 function Segmentado<T extends string | number>({ value, onChange, options, label }: { value: T; onChange: (v: T) => void; options: readonly (readonly [T, string])[]; label: string }) {
   return (
@@ -48,26 +53,60 @@ function Segmentado<T extends string | number>({ value, onChange, options, label
 }
 
 // ---------------- Início ----------------
-export function Inicio({ slug, mesasAbertas, emAberto, pendentes, onGo, agora }: { slug: string; mesasAbertas: number; emAberto: number; pendentes: number; onGo: (s: string) => void; agora?: React.ReactNode }) {
-  const rep = useReports(slug, 1);
-  const vendas = rep.data?.items.reduce((s, i) => s + i.price * i.qty, 0) ?? 0;
-  const pedidos = new Set(rep.data?.items.map((i) => `${i.table}-${i.at}`)).size;
+export function Inicio({ slug, mesasAbertas, emAberto, pendentes, onGo, agora, papel = "owner" }: { slug: string; mesasAbertas: number; emAberto: number; pendentes: number; onGo: (s: string) => void; agora?: React.ReactNode; papel?: PapelPainel }) {
+  // 48h: as últimas 24h são o presente; as 24h anteriores servem de comparação.
+  const rep = useReports(slug, 2);
+  const { atual, anterior } = useMemo(() => {
+    const corte = Date.now() - DIA;
+    const todos = rep.data?.items ?? [];
+    return { atual: todos.filter((i) => new Date(i.at).getTime() >= corte), anterior: todos.filter((i) => new Date(i.at).getTime() < corte) };
+  }, [rep.data]);
+  const soma = (a: typeof atual) => a.reduce((s, i) => s + i.price * i.qty, 0);
+  const contaPedidos = (a: typeof atual) => new Set(a.map((i) => `${i.table}-${i.at}`)).size;
+  const vendas = soma(atual);
+  const pedidos = contaPedidos(atual);
+  const ticket = pedidos ? vendas / pedidos : 0;
+  const ticketAnt = contaPedidos(anterior) ? soma(anterior) / contaPedidos(anterior) : 0;
+  const porHora = useMemo(() => {
+    const h = Array.from({ length: 24 }, () => 0);
+    atual.forEach((i) => { h[new Date(i.at).getHours()]! += i.price * i.qty; });
+    return h;
+  }, [atual]);
+  const maxHora = Math.max(1, ...porHora);
+  const horaPico = porHora.indexOf(Math.max(...porHora));
   const top = useMemo(() => {
     const m = new Map<string, number>();
-    rep.data?.items.forEach((i) => m.set(i.name, (m.get(i.name) ?? 0) + i.qty));
+    atual.forEach((i) => m.set(i.name, (m.get(i.name) ?? 0) + i.qty));
     return [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
-  }, [rep.data]);
+  }, [atual]);
+  const verFaturamento = papel === "owner" || papel === "manager";
   const atalhos = [["pdv", "Lançar pedido", ShoppingCart], ["salao", "Ver salão", LayoutGrid], ["caixa", "Caixa", Wallet], ["cozinha", "Cozinha e bar", ChefHat], ["relatorios", "Relatórios", BarChart3], ["qr", "Mesas e QR", QrCode]] as const;
   const maxTop = Math.max(1, ...top.map(([, q]) => q));
   return (
     <div className="space-y-4">
       {agora}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <Kpi icon={TrendingUp} label="Vendas lançadas (24h)" value={brl(vendas)} />
+        {verFaturamento && <Kpi icon={TrendingUp} label="Vendas lançadas (24h)" value={brl(vendas)} delta={variacao(vendas, soma(anterior))} hint={`${pedidos} pedidos`} tone="brand" />}
         <Kpi icon={LayoutGrid} label="Mesas abertas" value={String(mesasAbertas)} hint={`${brl(emAberto)} em aberto`} />
-        <Kpi icon={Receipt} label="Ticket médio (24h)" value={brl(pedidos ? vendas / pedidos : 0)} />
+        {verFaturamento && <Kpi icon={Receipt} label="Ticket médio (24h)" value={brl(ticket)} delta={variacao(ticket, ticketAnt)} />}
         <Kpi icon={Clock} tone={pendentes > 0 ? "warning" : undefined} label="Aguardando confirmação" value={String(pendentes)} hint={pendentes > 0 ? "Confirme no Caixa" : undefined} />
       </div>
+      {verFaturamento && (
+        <Card>
+          <div className="flex flex-wrap items-baseline justify-between gap-2">
+            <h3 className="font-display font-semibold">Vendas por hora</h3>
+            <span className="text-xs text-muted-foreground">{vendas > 0 ? `pico às ${String(horaPico).padStart(2, "0")}h · ${brl(porHora[horaPico] ?? 0)}` : "últimas 24h"}</span>
+          </div>
+          <div className="mt-4 flex h-32 items-end gap-1" role="img" aria-label="Vendas por hora nas últimas 24 horas">
+            {porHora.map((v, h) => (
+              <div key={h} className="group flex h-full min-w-0 flex-1 flex-col justify-end" title={`${String(h).padStart(2, "0")}h: ${brl(v)}`}>
+                <div className={cn("w-full rounded-t-sm", h === horaPico && v > 0 ? "bg-ink" : "bg-brand/70 group-hover:bg-brand")} style={{ height: `${v > 0 ? Math.max(4, (v / maxHora) * 100) : 2}%`, opacity: v > 0 ? 1 : 0.25 }} />
+              </div>
+            ))}
+          </div>
+          <div className="mt-1.5 flex justify-between text-[10px] text-muted-foreground"><span>00h</span><span>06h</span><span>12h</span><span>18h</span><span>23h</span></div>
+        </Card>
+      )}
       <div className="grid gap-4 lg:grid-cols-[1.3fr_1fr]">
         <Card>
           <div className="flex items-baseline justify-between gap-2">
@@ -204,11 +243,37 @@ export function Caixa({ slug, podeCaixa, confirmacoes }: { slug: string; podeCai
 }
 
 // ---------------- Relatórios ----------------
-export function Relatorios({ slug }: { slug: string }) {
+type VisaoRel = "geral" | "produtos" | "equipe" | "caixa";
+const VISOES_POR_PAPEL: Record<PapelPainel, readonly (readonly [VisaoRel, string])[]> = {
+  owner: [["geral", "Visão geral"], ["produtos", "Produtos"], ["equipe", "Equipe"], ["caixa", "Caixa e pagamentos"]],
+  manager: [["geral", "Visão geral"], ["produtos", "Produtos"], ["equipe", "Equipe"], ["caixa", "Caixa e pagamentos"]],
+  cashier: [["caixa", "Caixa e pagamentos"]],
+  waiter: [["caixa", "Caixa e pagamentos"]],
+};
+const SUBTITULO: Record<PapelPainel, string> = {
+  owner: "Visão completa do negócio: faturamento, produtos, equipe e caixa.",
+  manager: "Acompanhe o desempenho do salão, dos produtos e da equipe.",
+  cashier: "Fechamento do dia, formas de pagamento, taxas e estornos.",
+  waiter: "Seus recebimentos e estornos.",
+};
+export function Relatorios({ slug, papel = "owner" }: { slug: string; papel?: PapelPainel }) {
   const [days, setDays] = useState(7);
-  const rep = useReports(slug, days);
-  const d = rep.data;
+  const visoes = VISOES_POR_PAPEL[papel];
+  const [visao, setVisao] = useState<VisaoRel>(visoes[0]![0]);
+  // Busca o dobro do período para comparar com o período anterior.
+  const rep2 = useReports(slug, days * 2);
+  const corte = Date.now() - days * DIA;
+  const d = useMemo(() => {
+    const r = rep2.data;
+    if (!r) return undefined;
+    return { ...r, items: r.items.filter((i) => new Date(i.at).getTime() >= corte) };
+  }, [rep2.data, corte]);
+  const rep = { isLoading: rep2.isLoading };
+  const itensAnt = rep2.data?.items.filter((i) => new Date(i.at).getTime() < corte) ?? [];
   const vendas = d?.items.reduce((s, i) => s + i.price * i.qty, 0) ?? 0;
+  const vendasAnt = itensAnt.reduce((s, i) => s + i.price * i.qty, 0);
+  const pedidosN = new Set(d?.items.map((i) => `${i.table}-${i.at}`)).size;
+  const itensN = d?.items.reduce((s, i) => s + i.qty, 0) ?? 0;
   const recebido = d?.payments.filter((p) => p.target === "restaurant").reduce((s, p) => s + p.amount, 0) ?? 0;
   const gorjetas = d?.payments.filter((p) => p.target === "tipe").reduce((s, p) => s + p.amount, 0) ?? 0;
   const agrupa = <T,>(arr: T[], key: (x: T) => string, val: (x: T) => number) => {
@@ -235,20 +300,24 @@ export function Relatorios({ slug }: { slug: string }) {
   );
   return (
     <div className="space-y-4">
-      <FechamentoDia slug={slug} />
+      <p className="text-sm text-muted-foreground">{SUBTITULO[papel]}</p>
       <div className="flex flex-wrap items-center gap-2">
+        {visoes.length > 1 && <Segmentado label="Relatório" value={visao} onChange={setVisao} options={visoes} />}
         <Segmentado label="Período" value={days} onChange={setDays} options={[[1, "24h"], [7, "7 dias"], [30, "30 dias"]] as const} />
-        <Button size="sm" variant="outline" className="ml-auto" onClick={exportar}><Download className="mr-1 h-4 w-4" />Exportar planilha</Button>
+        {(papel === "owner" || papel === "manager") && <Button size="sm" variant="outline" className="ml-auto" onClick={exportar}><Download className="mr-1 h-4 w-4" />Exportar planilha</Button>}
       </div>
+      {visao === "caixa" && <FechamentoDia slug={slug} />}
       {rep.isLoading ? <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">{[0, 1, 2, 3].map((i) => <div key={i} className="h-28 animate-pulse rounded-2xl bg-surface motion-reduce:animate-none" />)}</div> : (
         <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-            <Kpi icon={TrendingUp} label="Vendas lançadas" value={brl(vendas)} />
-            <Kpi icon={Wallet} label="Recebido pela TIPE (conta)" value={brl(recebido)} />
-            <Kpi icon={Receipt} label="Gorjetas extras" value={brl(gorjetas)} />
-            <Kpi label="Estornos" value={String(d?.voids.length ?? 0)} hint={brl(d?.voids.reduce((s, v) => s + v.unit_price * v.quantity, 0) ?? 0)} />
+            {visao === "geral" && <><Kpi icon={TrendingUp} label="Vendas lançadas" value={brl(vendas)} delta={variacao(vendas, vendasAnt)} tone="brand" hint={`${pedidosN} pedidos`} />
+            <Kpi icon={Receipt} label="Ticket médio" value={brl(pedidosN ? vendas / pedidosN : 0)} hint={`${itensN} itens vendidos`} /></>}
+            {(visao === "geral" || visao === "caixa") && <Kpi icon={Wallet} label="Recebido pela TIPE (conta)" value={brl(recebido)} />}
+            {visao === "caixa" && <Kpi label="Taxa de serviço" value={brl(taxaTotal)} hint={`${brl(d?.feeWaivers.reduce((s, w) => s + w.amount, 0) ?? 0)} removida`} />}
+            {(visao === "geral" || visao === "caixa") && <Kpi icon={Receipt} label="Gorjetas extras" value={brl(gorjetas)} />}
+            {(visao === "geral" || visao === "caixa") && <Kpi label="Estornos" value={String(d?.voids.length ?? 0)} hint={brl(d?.voids.reduce((s, v) => s + v.unit_price * v.quantity, 0) ?? 0)} tone={(d?.voids.length ?? 0) > 0 ? "warning" : undefined} />}
           </div>
-          <Card>
+          {visao === "geral" && <Card>
             <h3 className="mb-4 font-display font-semibold">Vendas por dia</h3>
             {porDia.length === 0 ? <EmptyState icon={BarChart3} title="Sem vendas no período" text="Os pedidos lançados aparecem aqui, dia a dia." className="border-0 bg-transparent py-6" /> : (
               <div className="flex h-44 items-end gap-1.5 sm:gap-2" role="img" aria-label="Gráfico de vendas por dia">
@@ -261,26 +330,26 @@ export function Relatorios({ slug }: { slug: string }) {
                 ))}
               </div>
             )}
-          </Card>
-          <div className="grid gap-4 md:grid-cols-3">
-            <Lista t="Por produto" rows={porProduto} />
-            <Lista t="Por garçom" rows={porGarcom} />
-            <Lista t="Por forma de pagamento" rows={porMetodo} />
-            <Lista t={`Taxa de serviço recebida: ${brl(taxaTotal)}`} rows={taxaPorGarcom} />
+          </Card>}
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {visao === "produtos" && <Lista t="Por produto" rows={porProduto} />}
+            {visao === "equipe" && <Lista t="Vendas por garçom" rows={porGarcom} />}
+            {visao === "equipe" && <Lista t={`Taxa de serviço recebida: ${brl(taxaTotal)}`} rows={taxaPorGarcom} />}
+            {visao === "caixa" && <Lista t="Por forma de pagamento" rows={porMetodo} />}
           </div>
-          {d && <PagamentosRelatorio slug={slug} days={days} pagamentos={d.billPayments} garcons={d.waiters} />}
-          <Card>
+          {visao === "caixa" && d && <PagamentosRelatorio slug={slug} days={days} pagamentos={d.billPayments} garcons={d.waiters} />}
+          {visao === "caixa" && <Card>
             <h3 className="mb-3 font-display font-semibold">Taxas de serviço removidas: {brl(d?.feeWaivers.reduce((s, w) => s + w.amount, 0) ?? 0)}</h3>
             {!d?.feeWaivers.length ? <p className="text-sm text-muted-foreground">Nenhuma taxa removida no período.</p> : (
               <ul className="space-y-1 text-sm">{d.feeWaivers.map((w, i) => <li key={i} className="flex justify-between gap-2"><span>Mesa {w.table} · {w.reason} · por {w.by}</span><span className="shrink-0 text-muted-foreground">{brl(w.amount)} · {new Date(w.at).toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</span></li>)}</ul>
             )}
-          </Card>
-          <Card>
+          </Card>}
+          {visao === "caixa" && <Card>
             <h3 className="mb-3 font-display font-semibold">Estornos</h3>
             {!d?.voids.length ? <p className="text-sm text-muted-foreground">Nenhum estorno no período.</p> : (
               <ul className="space-y-1 text-sm">{d.voids.map((v, i) => <li key={i} className="flex justify-between gap-2"><span>{v.quantity}× {v.item_name} · {v.reason}</span><span className="text-muted-foreground">{hora(v.created_at)}</span></li>)}</ul>
             )}
-          </Card>
+          </Card>}
         </>
       )}
     </div>
