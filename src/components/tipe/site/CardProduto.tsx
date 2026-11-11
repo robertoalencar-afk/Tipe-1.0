@@ -5,13 +5,15 @@
  * tablet, relatórios no computador). O que ainda não existe aparece como "Em breve"
  * com um card ilustrativo, nunca com uma tela que finja ser real.
  */
+import { CAMINHO_PRODUTO } from "@/components/tipe/site/produtos";
 import type { CSSProperties, ReactNode } from "react";
-import { Check, Sparkles } from "lucide-react";
+import { ArrowUpRight, Check, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
-import avatarLebre from "@/assets/lebre/avatar-ola.webp";
+import avatarLebre from "@/assets/lebre/avatar-feliz.webp";
 import { SetaFios } from "./Bigode";
 import { Celular, Janela, Tablet } from "./Dispositivo";
 import type { Produto } from "./produtos";
+import { seloDoProduto, useEstadosLancamento } from "./useLancamento";
 
 export const LUZ: Record<string, string> = {
   pay: "#0FC9BD",
@@ -183,7 +185,9 @@ function Vitrine({ p }: { p: Produto }) {
           >
             {p.cartao.rodape}
           </p>
-          <p className="mt-3 text-center text-xs text-white/50">Ilustração · em desenvolvimento</p>
+          {p.status === "em-breve" && (
+            <p className="mt-3 text-center text-xs text-white/50">Ilustração · em breve</p>
+          )}
         </div>
       );
   }
@@ -191,10 +195,11 @@ function Vitrine({ p }: { p: Produto }) {
 
 export function CardProduto({ p, className }: { p: Produto; className?: string }) {
   const cor = LUZ[p.slug] ?? "#0FC9BD";
+  const selo = seloDoProduto(p, useEstadosLancamento());
   return (
     <a
-      href={`/produtos/${p.slug}`}
-      aria-label={`${p.nome}${p.status === "em-breve" ? " (em breve)" : ""}: ${p.resumo}`}
+      href={CAMINHO_PRODUTO[p.slug]}
+      aria-label={`${p.nome}${selo ? ` (${selo.toLowerCase()})` : ""}: ${p.resumo}`}
       className={cn(
         "group relative flex flex-col overflow-hidden rounded-[1.75rem] bg-[oklch(0.16_0_0)] text-white ring-1 ring-white/[0.07] transition-[transform,box-shadow] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 hover:ring-white/15 focus-visible:-translate-y-1",
         className,
@@ -205,9 +210,9 @@ export function CardProduto({ p, className }: { p: Produto; className?: string }
         <p className="flex h-7 items-center gap-2 text-[0.95rem] text-white/65">
           <span className="h-2 w-2 rounded-full" style={{ background: cor }} />
           {p.nome}
-          {p.status === "em-breve" && (
+          {selo && (
             <span className="rounded-full border border-white/25 px-2 py-0.5 text-[11px] text-white/80">
-              Em breve
+              {selo}
             </span>
           )}
         </p>
@@ -228,7 +233,11 @@ export function CardProduto({ p, className }: { p: Produto; className?: string }
         />
       </div>
       <span className="com-fios absolute bottom-6 right-6 z-10 grid h-11 w-11 place-items-center rounded-full bg-white text-[#021E34] transition-transform duration-500 group-hover:scale-105">
-        <SetaFios className="meio-focinho-redondo" />
+        <ArrowUpRight
+          aria-hidden
+          className="cp-seta col-start-1 row-start-1 h-[1.15rem] w-[1.15rem]"
+        />
+        <SetaFios className="meio-focinho-redondo col-start-1 row-start-1" />
       </span>
     </a>
   );

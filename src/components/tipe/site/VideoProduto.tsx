@@ -16,6 +16,7 @@ import mp4 from "@/assets/video/produto-fluxo.mp4";
 import webm from "@/assets/video/produto-fluxo.webm";
 import poster from "@/assets/video/produto-fluxo-poster.webp";
 import { reduzMovimento } from "./movimento";
+import { tocarMudo } from "./videoAuto";
 
 const W = 1080;
 const H = 1350;
@@ -58,13 +59,29 @@ export function VideoProduto({ className }: { className?: string }) {
     const io = new IntersectionObserver(
       ([e]) => {
         visivel.current = !!e?.isIntersecting;
-        if (visivel.current && !pausadoPelaPessoa.current) v.play().catch(() => undefined);
-        else v.pause();
+        if (visivel.current && !pausadoPelaPessoa.current)
+          tocarMudo(v, () => visivel.current && !pausadoPelaPessoa.current);
+        else {
+          v.pause();
+          // Saiu da tela: quando a pessoa voltar, o vídeo retoma sozinho.
+          if (!visivel.current && !reduzMovimento()) pausadoPelaPessoa.current = false;
+        }
       },
-      { threshold: 0.35 },
+      { threshold: 0.2 },
     );
     io.observe(v);
-    return () => io.disconnect();
+    // Volta de outra aba ou app (o celular pausa o vídeo): retoma de onde parou.
+    const voltar = () => {
+      if (document.visibilityState === "visible" && visivel.current && !pausadoPelaPessoa.current)
+        tocarMudo(v, () => visivel.current && !pausadoPelaPessoa.current);
+    };
+    document.addEventListener("visibilitychange", voltar);
+    window.addEventListener("pageshow", voltar);
+    return () => {
+      io.disconnect();
+      document.removeEventListener("visibilitychange", voltar);
+      window.removeEventListener("pageshow", voltar);
+    };
   }, [carregar]);
 
   const alternar = () => {
@@ -87,7 +104,10 @@ export function VideoProduto({ className }: { className?: string }) {
   return (
     <div
       ref={caixa}
-      className={cn("relative overflow-hidden rounded-[1.75rem] bg-[#0FC9BD] sm:rounded-[2.25rem]", className)}
+      className={cn(
+        "relative overflow-hidden rounded-[1.75rem] bg-[#0FC9BD] sm:rounded-[2.25rem]",
+        className,
+      )}
       style={{ aspectRatio: `${W} / ${H}` }}
     >
       <video

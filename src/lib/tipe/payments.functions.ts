@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { SERVICE_FEE, resolveServiceFee } from "./rules";
+import { GORJETA_MINIMA, SERVICE_FEE, resolveServiceFee } from "./rules";
 
 const Input = z.object({
   method: z.enum(["pix", "card", "apple_pay", "google_pay", "at_establishment"]),
@@ -13,11 +13,18 @@ const Input = z.object({
   itemQuantities: z.record(z.string(), z.number().min(0).max(99).multipleOf(0.0001)),
   target: z.enum(["restaurant", "tipe"]),
   cardToken: z.string().min(8).max(120).regex(/^[A-Za-z0-9_-]+$/).optional(),
+  // Token criptografado do Apple Pay ou do Google Pay (JSON da carteira, validado em carteiras.ts).
+  walletToken: z.string().min(32).max(16000).optional(),
   establishmentMethod: z.enum(["cash", "card_terminal"]).optional(),
   cashReceived: z.number().min(0).max(100000).optional(),
   // Só a escolha da taxa vem do navegador; o servidor valida e recalcula.
   serviceFee: z.object({ kind: z.enum(["suggested", "percent", "amount"]), value: z.unknown().optional() }).optional(),
+  // Gorjeta extra: pagamento da conta a que ela se refere (o teto é o valor dessa conta).
+  billPaymentId: z.string().uuid().optional(),
 }).superRefine((data, ctx) => {
+  if (data.target === "tipe" && data.tip < GORJETA_MINIMA) {
+    ctx.addIssue({ code: "custom", path: ["tip"], message: "A gorjeta mínima é R$ 2,00" });
+  }
   if (data.method === "at_establishment" && !data.establishmentMethod) {
     ctx.addIssue({ code: "custom", path: ["establishmentMethod"], message: "Escolha dinheiro ou maquininha" });
   }
@@ -106,6 +113,14 @@ export const createPayment = createServerFn({ method: "POST" })
     } else {
       if (data.tip <= 0) throw new Error("Informe o valor da gorjeta");
       amount = Math.round(data.tip * 100) / 100;
+      if (data.billPaymentId) {
+        // Teto: a gorjeta extra não passa do valor pago pela conta desta mesa.
+        const { data: conta } = await supabaseAdmin.from("table_payment_requests").select("amount")
+          .eq("id", data.billPaymentId).eq("restaurant_slug", data.restaurantId).eq("table_number", data.tableId)
+          .eq("payment_target", "restaurant").maybeSingle();
+        if (!conta) throw new Error("Pague a conta antes de deixar a gorjeta");
+        if (amount > Number(conta.amount) + 0.005) throw new Error("A gorjeta não pode passar do valor da sua conta");
+      }
     }
     const cents = Math.round(amount * 100);
 
@@ -148,6 +163,8 @@ export const createPayment = createServerFn({ method: "POST" })
         change_due: changeDue,
       }).eq("id", payId);
       if (detailError) throw new Error("Não foi possível registrar a forma de pagamento");
+      const { avisarPagamento } = await import("./avisos-equipe.server");
+      await avisarPagamento(supabaseAdmin, payId);
       return { id, status: "pending", provider: "estabelecimento" };
     }
 
@@ -156,15 +173,19 @@ export const createPayment = createServerFn({ method: "POST" })
     // Restaurante de teste: aprova simulado sem tocar em nenhuma conta Pagar.me.
     if (isSimulationRestaurant(data.restaurantId)) {
       const simId = await register("approved");
+      const { avisarPagamento } = await import("./avisos-equipe.server");
+      await avisarPagamento(supabaseAdmin, simId);
       return { id: simId, status: "approved", provider: "simulado" };
     }
 
     const split: unknown[] | undefined = undefined;
     let secretKey: string | undefined;
+    let restauranteDbId: string | undefined;
     if (data.target === "restaurant") {
       // A conta vai direto para a conta Pagar.me do próprio restaurante.
       const { restaurantPagarmeKey } = await import("./pagarme.server");
       const { data: rest } = await supabaseAdmin.from("restaurants").select("id").eq("slug", data.restaurantId).maybeSingle();
+      restauranteDbId = rest?.id;
       secretKey = (rest ? await restaurantPagarmeKey(rest.id) : null) ?? undefined;
     }
 
@@ -177,11 +198,21 @@ export const createPayment = createServerFn({ method: "POST" })
           : "A gorjeta digital ainda não está disponível. Você pode deixar a gorjeta diretamente com a equipe.");
       }
       const simId = await register("approved");
+      const { avisarPagamento } = await import("./avisos-equipe.server");
+      await avisarPagamento(supabaseAdmin, simId);
       return { id: simId, status: "approved", provider: "simulado" };
     }
 
+    // Apple Pay e Google Pay: cobrados como cartão no Pagar.me, com o token da carteira.
+    let carteira: Record<string, unknown> | undefined;
     if (data.method === "apple_pay" || data.method === "google_pay") {
-      throw new Error("Apple Pay e Google Pay serão liberados em breve. Use Pix por enquanto.");
+      const nomeCarteira = data.method === "apple_pay" ? "Apple Pay" : "Google Pay";
+      if (data.target !== "restaurant") throw new Error(`A gorjeta extra ainda não aceita ${nomeCarteira}. Use Pix.`);
+      const { data: conta } = await supabaseAdmin.from("restaurant_pagarme_accounts").select("account_id" as never)
+        .eq("restaurant_id", restauranteDbId ?? "").maybeSingle() as unknown as { data: { account_id: string | null } | null };
+      if (!data.walletToken || !conta?.account_id) throw new Error(`O ${nomeCarteira} ainda não está ativo neste restaurante. Use Pix.`);
+      const { payloadCarteira } = await import("./carteiras");
+      carteira = payloadCarteira(data.method, data.walletToken, conta.account_id);
     }
     if (data.method === "card" && !data.cardToken) throw new Error("Informe os dados do cartão");
 
@@ -192,7 +223,9 @@ export const createPayment = createServerFn({ method: "POST" })
 
     const payment = data.method === "pix"
       ? { payment_method: "pix", pix: { expires_in: 900 }, ...(split ? { split } : {}) }
-      : { payment_method: "credit_card", credit_card: { installments: 1, statement_descriptor: "TIPE", card_token: data.cardToken }, ...(split ? { split } : {}) };
+      : carteira
+        ? { payment_method: "credit_card", credit_card: { installments: 1, statement_descriptor: "TIPE", payload: carteira }, ...(split ? { split } : {}) }
+        : { payment_method: "credit_card", credit_card: { installments: 1, statement_descriptor: "TIPE", card_token: data.cardToken }, ...(split ? { split } : {}) };
 
     let order;
     try {
@@ -210,7 +243,7 @@ export const createPayment = createServerFn({ method: "POST" })
       });
     } catch {
       await supabaseAdmin.rpc("provider_settle_payment" as never, { p_order_id: localRef, p_paid: false } as never);
-      throw new Error(data.method === "pix" ? "Não foi possível gerar o Pix. Tente novamente." : "Pagamento recusado. Confira os dados do cartão.");
+      throw new Error(data.method === "pix" ? "Não foi possível gerar o Pix. Tente novamente." : carteira ? "A carteira recusou o pagamento. Tente outro cartão da carteira ou use Pix." : "Pagamento recusado. Confira os dados do cartão.");
     }
 
     await supabaseAdmin.from("table_payment_requests").update({ provider_order_id: order.id }).eq("id", payId);
@@ -299,7 +332,8 @@ export const reopenClosedTable = createServerFn({ method: "POST" })
 export const getPaymentConfig = createServerFn({ method: "GET" })
   .inputValidator((d: { slug?: string } | undefined) => ({ slug: typeof d?.slug === "string" ? d.slug.slice(0, 80) : undefined }))
   .handler(async ({ data }) => {
-    const sim = data.slug === "teste-tipe";
+    const { isSimulationRestaurant } = await import("./pagarme.server");
+    const sim = isSimulationRestaurant(data.slug);
     return {
       live: !sim && !!process.env["PAGARME_SECRET_KEY"],
       publicKey: sim ? null : process.env["PAGARME_PUBLIC_KEY"] ?? null,
@@ -369,6 +403,10 @@ export const submitRating = createServerFn({ method: "POST" })
       stars: data.stars, comment: data.comment ? data.comment : null,
     });
     if (error) throw new Error("Não foi possível registrar a avaliação");
+    if (data.stars <= 2) {
+      const { avisarNota } = await import("./avisos-equipe.server");
+      await avisarNota(supabaseAdmin, ok.restaurantId, t?.waiter_id ?? null, data.tableId, data.stars, data.comment);
+    }
     return { ok: true };
   });
 

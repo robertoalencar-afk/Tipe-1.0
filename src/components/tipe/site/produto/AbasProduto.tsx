@@ -85,10 +85,15 @@ export function AbasProduto({ itens, className }: { itens: AbaProduto[]; classNa
                 )}
               >
                 <div className="min-h-0 overflow-hidden">
-                  <p className="pb-6 text-[1rem] leading-relaxed text-muted-foreground">{it.texto}</p>
+                  <p className="pb-6 text-[1rem] leading-relaxed text-muted-foreground">
+                    {it.texto}
+                  </p>
                 </div>
               </div>
-              <span aria-hidden className="absolute inset-x-0 bottom-0 h-[2px] lg:bottom-auto lg:top-[-1px]">
+              <span
+                aria-hidden
+                className="absolute inset-x-0 bottom-0 h-[2px] lg:bottom-auto lg:top-[-1px]"
+              >
                 <span
                   key={`${ativa}-${andando}`}
                   className={cn(
@@ -103,11 +108,20 @@ export function AbasProduto({ itens, className }: { itens: AbaProduto[]; classNa
         </div>
       </div>
 
-      <div id={`painel-${atual.id}`} role="tabpanel" aria-labelledby={`aba-${atual.id}`} className="relative min-w-0">
+      <div
+        id={`painel-${atual.id}`}
+        role="tabpanel"
+        aria-labelledby={`aba-${atual.id}`}
+        className="relative min-w-0"
+      >
         <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-background-muted sm:aspect-[16/12] lg:aspect-[16/13]">
           {itens.map((it, i) => {
             const on = i === ativa;
-            const base = cn("absolute inset-0 transition-[opacity,transform] duration-[1400ms]", EASE, on ? "scale-100 opacity-100" : "scale-[1.04] opacity-0");
+            const base = cn(
+              "absolute inset-0 transition-[opacity,transform] duration-[1400ms]",
+              EASE,
+              on ? "scale-100 opacity-100" : "scale-[1.04] opacity-0",
+            );
             if (it.foto) {
               const f = fotoSrc(it.foto);
               return (
@@ -132,11 +146,18 @@ export function AbasProduto({ itens, className }: { itens: AbaProduto[]; classNa
             );
           })}
           {atual.foto && (
-            <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/45 to-transparent" />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/45 to-transparent"
+            />
           )}
           {itens.map((it, i) => {
             const on = i === ativa;
-            const cls = cn("absolute transition-[opacity,transform] duration-[1000ms]", EASE, on ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0");
+            const cls = cn(
+              "absolute transition-[opacity,transform] duration-[1000ms]",
+              EASE,
+              on ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0",
+            );
             const delay = { transitionDelay: on ? "250ms" : "0ms" };
             if (it.tela)
               return (
@@ -164,7 +185,9 @@ export function AbasProduto({ itens, className }: { itens: AbaProduto[]; classNa
           })}
         </div>
         <div key={atual.id} className="troca-in mt-6 lg:hidden">
-          <p className="font-display text-[1.6rem] leading-[1.1] tracking-[-0.03em]">{atual.rotulo}</p>
+          <p className="font-display text-[1.6rem] leading-[1.1] tracking-[-0.03em]">
+            {atual.rotulo}
+          </p>
           <p className="mt-3 leading-relaxed text-muted-foreground">{atual.texto}</p>
         </div>
       </div>

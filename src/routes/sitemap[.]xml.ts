@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 const BASE_URL = "https://tipe.digital";
 // Páginas públicas e indexáveis. Áreas privadas, mesas, login e rotas técnicas ficam de fora.
-const PATHS = ["/", "/simulador", "/teste-gratis", "/precos", "/integracoes", "/produtos/pay", "/produtos/order", "/produtos/staff", "/produtos/kitchen", "/produtos/restaurant", "/produtos/ai", "/produtos/guest", "/restaurante-fundador", "/legal", "/legal/termos-de-uso", "/legal/parceiros", "/legal/privacidade", "/legal/cookies", "/legal/inteligencia-artificial", "/legal/seus-direitos", "/legal/glossario", "/legal/versoes"];
+const PATHS = ["/", "/simulador", "/solicitar-demonstracao", "/precos", "/integracoes", "/pay", "/order", "/equipe", "/cozinha", "/gestao", "/lebre", "/guest", "/legal", "/legal/termos-de-uso", "/legal/parceiros", "/legal/privacidade", "/legal/cookies", "/legal/inteligencia-artificial", "/legal/seus-direitos", "/legal/glossario", "/legal/versoes", "/ajuda", "/restaurante-fundador"];
 
 export const Route = createFileRoute("/sitemap.xml")({
   server: {

@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Check, Copy, ExternalLink, Lock, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { connectPagarme, disconnectPagarme, getPayoutAccount } from "@/lib/tipe/payout.functions";
+import { connectPagarme, disconnectPagarme, getPayoutAccount, savePagarmeAccountId } from "@/lib/tipe/payout.functions";
 
 function CopyField({ label, value }: { label: string; value: string }) {
   return (
@@ -32,7 +32,9 @@ export function Recebimentos({ slug, podeDono }: { slug: string; podeDono: boole
   const fetchAcc = useServerFn(getPayoutAccount);
   const connect = useServerFn(connectPagarme);
   const disconnect = useServerFn(disconnectPagarme);
+  const saveAccountId = useServerFn(savePagarmeAccountId);
   const qc = useQueryClient();
+  const [accountId, setAccountId] = useState("");
   const q = useQuery({ queryKey: ["payout", slug], queryFn: () => fetchAcc({ data: { slug } }), enabled: podeDono });
   const [key, setKey] = useState("");
   const [busy, setBusy] = useState(false);
@@ -56,6 +58,22 @@ export function Recebimentos({ slug, podeDono }: { slug: string; podeDono: boole
             <p className="text-xs text-muted-foreground">No painel da Pagar.me, vá em Configurações, Webhooks, e crie um novo com estes dados. Marque os eventos de pedido (order), cobrança (charge) e contestação (chargeback). Assim a mesa atualiza sozinha quando o cliente paga, e estornos ou contestações aparecem como pendência no caixa.</p>
             <CopyField label="URL" value={a.webhook.url} />
             <div className="grid gap-3 sm:grid-cols-2"><CopyField label="Usuário" value={a.webhook.user} /><CopyField label="Senha" value={a.webhook.password} /></div>
+          </div>
+          <div className="space-y-2 rounded-xl bg-muted/40 p-4">
+            <p className="text-sm font-semibold">Google Pay e Apple Pay</p>
+            {a.accountId ? (
+              <p className="text-sm text-muted-foreground">Conta {a.accountId} ligada às carteiras digitais.</p>
+            ) : (
+              <form className="space-y-2" onSubmit={async (e) => {
+                e.preventDefault(); setBusy(true);
+                try { await saveAccountId({ data: { slug, accountId } }); setAccountId(""); qc.invalidateQueries({ queryKey: ["payout", slug] }); toast.success("Carteiras digitais ligadas"); }
+                catch (err) { toast.error((err as Error).message); } finally { setBusy(false); }
+              }}>
+                <label htmlFor="pagarme-account-id" className="text-xs text-muted-foreground">ID da conta Pagar.me (em Configurações, Conta; começa com acc_)</label>
+                <Input id="pagarme-account-id" autoComplete="off" placeholder="acc_..." value={accountId} onChange={(e) => setAccountId(e.target.value.trim())} />
+                <Button type="submit" variant="outline" disabled={busy || accountId.length < 12}>Ligar carteiras digitais</Button>
+              </form>
+            )}
           </div>
           <Button variant="outline" disabled={busy} onClick={async () => {
             if (!confirm("Desconectar a conta Pagar.me? Os clientes só poderão pagar no estabelecimento até você conectar de novo.")) return;

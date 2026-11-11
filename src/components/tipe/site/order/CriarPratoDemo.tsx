@@ -1,0 +1,283 @@
+/**
+ * "Monte o cardápio com uma foto": a tela do dono para cadastrar um prato. Ele tira UMA foto,
+ * preenche nome, preço e categoria, e o prato aparece no celular do cliente como story, com
+ * volume (efeito de foto 3D).
+ *
+ * Aqui é a demonstração do site, e tudo roda no navegador de quem testa:
+ * - a foto não é enviada a lugar nenhum;
+ * - o volume é calculado localmente (Depth Anything V2 Small em ONNX, Apache-2.0).
+ * No painel real, o mesmo cálculo roda no navegador do dono antes do envio, então não há
+ * servidor de IA nem custo por prato.
+ */
+import { useEffect, useRef, useState } from "react";
+import { Camera, Check, ChevronDown, ImagePlus, Lightbulb, Loader2, RotateCcw } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { gerarProfundidade } from "@/lib/tipe/order/profundidade";
+import { Secao, Titulo } from "../Site";
+import { Foto3D } from "./Foto3D";
+
+const MODELO = "/modelos/depth/model.onnx";
+const CATEGORIAS = ["Petiscos", "Pratos", "Bebidas", "Sobremesas"];
+
+const DICAS: { titulo: string; texto: string }[] = [
+  {
+    titulo: "Luz de janela",
+    texto: "Luz natural de lado, sem flash. Evite sol direto e sombra forte em cima do prato.",
+  },
+  {
+    titulo: "Ângulo de 45°",
+    texto:
+      "Celular na altura de quem está sentado, inclinado para o prato. Nem de cima, nem de frente.",
+  },
+  {
+    titulo: "Prato inteiro e no centro",
+    texto: "Deixe uma margem em volta. Nada cortado na borda da foto.",
+  },
+  {
+    titulo: "Fundo limpo",
+    texto: "Mesa lisa ou toalha neutra. Tire copos, celulares e mãos do quadro.",
+  },
+  {
+    titulo: "Foco e lente limpa",
+    texto: "Limpe a lente, toque no prato para focar e use a câmera principal (1x), sem zoom.",
+  },
+  {
+    titulo: "Na vertical",
+    texto: "Segure o celular em pé: a foto vira o story do cliente sem cortes.",
+  },
+];
+
+type Etapa = "vazio" | "processando" | "pronto" | "sem-volume";
+
+const brl = (c: number) =>
+  (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+export function CriarPratoDemo() {
+  const [foto, setFoto] = useState<string | null>(null);
+  const [prof, setProf] = useState<string | null>(null);
+  const [etapa, setEtapa] = useState<Etapa>("vazio");
+  const [status, setStatus] = useState("");
+  const [nome, setNome] = useState("Moqueca de arraia");
+  const [preco, setPreco] = useState("79,00");
+  const [cat, setCat] = useState("Pratos");
+  const [dicas, setDicas] = useState(true);
+  const entrada = useRef<HTMLInputElement>(null);
+  const urls = useRef<string[]>([]);
+
+  useEffect(() => () => urls.current.forEach((u) => URL.revokeObjectURL(u)), []);
+
+  const precoCentavos = Math.round(Number(preco.replace(/\./g, "").replace(",", ".")) * 100) || 0;
+
+  async function escolher(arquivo: File | undefined) {
+    if (!arquivo || !arquivo.type.startsWith("image/")) return;
+    const url = URL.createObjectURL(arquivo);
+    urls.current.push(url);
+    setFoto(url);
+    setProf(null);
+    setEtapa("processando");
+    setStatus("Abrindo a foto…");
+    try {
+      const img = await createImageBitmap(arquivo);
+      const mapa = await gerarProfundidade(img, MODELO, setStatus);
+      const u = URL.createObjectURL(mapa);
+      urls.current.push(u);
+      setProf(u);
+      setEtapa("pronto");
+    } catch {
+      setEtapa("sem-volume");
+    }
+  }
+
+  function recomecar() {
+    setFoto(null);
+    setProf(null);
+    setEtapa("vazio");
+    if (entrada.current) entrada.current.value = "";
+  }
+
+  return (
+    <Secao id="monte-com-uma-foto" ariaLabel="Monte o cardápio com uma foto">
+      <Titulo
+        rotulo="Para o dono"
+        titulo="Uma foto. O prato ganha volume."
+        texto="Fotografe o prato no celular, preencha nome e preço, e ele já aparece em story para o cliente. Teste com uma foto sua: ela não sai do seu aparelho."
+      />
+      <div className="mt-10 grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:items-start">
+        <div className="rounded-3xl border border-border bg-background p-5 sm:p-7">
+          <p className="text-sm font-semibold">Novo prato</p>
+
+          <div className="mt-4">
+            {foto ? (
+              <div className="flex items-center gap-3">
+                <img src={foto} alt="" className="h-20 w-16 rounded-xl object-cover" />
+                <div className="min-w-0 text-sm">
+                  <p role="status" className="flex items-center gap-1.5 font-medium">
+                    {etapa === "processando" && (
+                      <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+                    )}
+                    {etapa === "pronto" && <Check className="h-4 w-4 text-[#03665f]" aria-hidden />}
+                    {etapa === "processando"
+                      ? status
+                      : etapa === "pronto"
+                        ? "Volume pronto. Veja no celular ao lado."
+                        : "Foto pronta. O volume não pôde ser calculado neste aparelho, então o prato aparece com a foto."}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={recomecar}
+                    className="mt-1 inline-flex min-h-9 items-center gap-1 text-sm text-muted-foreground"
+                  >
+                    <RotateCcw className="h-3.5 w-3.5" aria-hidden /> Trocar foto
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <label
+                htmlFor="foto-prato"
+                className="flex min-h-36 cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border bg-background-muted px-4 text-center hover:border-[#0FC9BD]"
+              >
+                <span className="flex gap-2 text-[#03665f]">
+                  <Camera className="h-6 w-6" aria-hidden />
+                  <ImagePlus className="h-6 w-6" aria-hidden />
+                </span>
+                <span className="text-sm font-semibold">Tirar foto ou escolher da galeria</span>
+                <span className="text-xs text-muted-foreground">
+                  Uma foto só, na vertical. Sem scanner.
+                </span>
+              </label>
+            )}
+            <input
+              ref={entrada}
+              id="foto-prato"
+              type="file"
+              accept="image/*"
+              capture="environment"
+              className="sr-only"
+              onChange={(e) => escolher(e.target.files?.[0])}
+            />
+          </div>
+
+          <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_9rem]">
+            <label className="grid gap-1 text-sm">
+              <span className="font-medium">Nome do prato</span>
+              <input
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+                className="min-h-11 w-full min-w-0 rounded-xl border border-border bg-background px-3"
+              />
+            </label>
+            <label className="grid gap-1 text-sm">
+              <span className="font-medium">Preço (R$)</span>
+              <input
+                value={preco}
+                inputMode="decimal"
+                onChange={(e) => setPreco(e.target.value.replace(/[^0-9,.]/g, ""))}
+                className="min-h-11 w-full min-w-0 rounded-xl border border-border bg-background px-3 tabular-nums"
+              />
+            </label>
+          </div>
+          <fieldset className="mt-3">
+            <legend className="text-sm font-medium">Categoria</legend>
+            <div className="mt-1 flex flex-wrap gap-1.5">
+              {CATEGORIAS.map((c) => (
+                <button
+                  key={c}
+                  type="button"
+                  aria-pressed={cat === c}
+                  onClick={() => setCat(c)}
+                  className={cn(
+                    "min-h-9 rounded-full border px-3 text-xs font-semibold",
+                    cat === c ? "border-[#0FC9BD] bg-[#0FC9BD] text-[#021E34]" : "border-border",
+                  )}
+                >
+                  {c}
+                </button>
+              ))}
+            </div>
+          </fieldset>
+
+          <div className="mt-6 rounded-2xl bg-[#e6faf8] p-4 text-[#021E34]">
+            <button
+              type="button"
+              onClick={() => setDicas((v) => !v)}
+              aria-expanded={dicas}
+              className="flex w-full items-center justify-between gap-2 text-left text-sm font-semibold"
+            >
+              <span className="flex items-center gap-2">
+                <Lightbulb className="h-4 w-4" aria-hidden /> Como tirar a foto perfeita
+              </span>
+              <ChevronDown
+                className={cn("h-4 w-4 transition-transform", dicas && "rotate-180")}
+                aria-hidden
+              />
+            </button>
+            {dicas && (
+              <ol className="mt-3 grid gap-2 sm:grid-cols-2">
+                {DICAS.map((d, i) => (
+                  <li key={d.titulo} className="flex gap-2 text-sm">
+                    <span className="grid h-5 w-5 shrink-0 place-items-center rounded-full bg-[#021E34] text-[0.65rem] font-bold text-white">
+                      {i + 1}
+                    </span>
+                    <span>
+                      <span className="font-semibold">{d.titulo}.</span> {d.texto}
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
+        </div>
+
+        {/* Prévia no celular do cliente */}
+        <div className="mx-auto w-full max-w-[22rem] rounded-[2.6rem] bg-[#021E34] p-2.5 shadow-[0_40px_80px_-30px_rgb(2_30_52/0.55)]">
+          <div className="relative h-[36rem] overflow-hidden rounded-[2.1rem] bg-[#021E34] text-white">
+            {foto ? (
+              prof ? (
+                <Foto3D foto={foto} profundidade={prof} alt={nome} intensidade={0.05} />
+              ) : (
+                <img
+                  src={foto}
+                  alt={nome}
+                  className="absolute inset-0 h-full w-full object-cover"
+                />
+              )
+            ) : (
+              <div className="absolute inset-0 grid place-items-center bg-[radial-gradient(circle_at_30%_20%,#0FC9BD_0%,#03665f_35%,#021E34_75%)] px-8 text-center">
+                <p className="text-sm text-white/85">
+                  A foto do seu prato aparece aqui, como o cliente vai ver.
+                </p>
+              </div>
+            )}
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/50 to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 px-3 pt-3">
+              <div className="flex gap-1">
+                <span className="h-[3px] flex-1 rounded-full bg-white" />
+                <span className="h-[3px] flex-1 rounded-full bg-white/30" />
+              </div>
+              <p className="mt-2.5 text-sm font-semibold">
+                {cat}
+                <span className="block text-[0.68rem] font-normal text-white/75">
+                  Seu restaurante
+                </span>
+              </p>
+            </div>
+            <div className="absolute inset-x-0 bottom-0 px-4 pb-5">
+              {etapa === "pronto" && (
+                <span className="rounded-full bg-[#0FC9BD] px-2 py-0.5 text-[0.68rem] font-semibold text-[#021E34]">
+                  Com volume
+                </span>
+              )}
+              <p className="mt-2 font-display text-[1.6rem] leading-[1.05] tracking-[-0.03em]">
+                {nome || "Nome do prato"}
+              </p>
+              <div className="mt-3 flex h-12 items-center justify-center rounded-full bg-white text-sm font-semibold text-[#021E34]">
+                Adicionar · {brl(precoCentavos)}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Secao>
+  );
+}

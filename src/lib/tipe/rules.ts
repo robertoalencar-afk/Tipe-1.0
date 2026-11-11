@@ -75,18 +75,58 @@ export function splitGorjeta(extra: number) {
 }
 
 /**
- * Gorjeta sugerida em percentual do que o cliente pagou. Contas pequenas
- * recebem valores fixos (percentual de conta pequena vira centavos).
+ * Gorjeta extra, escolhida antes de pagar a conta. No Brasil a conta já traz a
+ * taxa de serviço, então os percentuais são menores que os dos EUA. Nada vem
+ * marcado: a gorjeta é opcional e o cliente escolhe.
  */
-export function suggestedTips(paid: number): { label: string; amount: number }[] {
-  const cents = Math.round((Number.isFinite(paid) ? paid : 0) * 100);
-  if (cents < 2000) return [2, 5, 10].map((v) => ({ label: brl(v), amount: v }));
-  return [5, 10, 15].map((pct) => {
-    // arredonda para o múltiplo de R$ 0,50 mais próximo, mínimo R$ 1,00
-    const raw = (cents * pct) / 100;
-    const amount = Math.max(100, Math.round(raw / 50) * 50) / 100;
-    return { label: `${pct}%`, amount };
+export const GORJETA_MINIMA = 2;
+export const GORJETA_PERCENTUAIS = [3, 5, 8] as const;
+/** Percentual em destaque ("Sugerida"), sem vir pré-selecionado. */
+export const GORJETA_SUGERIDA = 5;
+
+export type OpcaoGorjeta = { label: string; amount: number; sugerida: boolean };
+
+/** Teto da gorjeta extra: o valor pago pela conta (nunca menos que o mínimo). */
+export function gorjetaMaxima(conta: number) {
+  return Math.floor((Number.isFinite(conta) ? conta : 0) * 100) / 100;
+}
+
+export function suggestedTips(conta: number): OpcaoGorjeta[] {
+  const cents = Math.round((Number.isFinite(conta) ? conta : 0) * 100);
+  const teto = gorjetaMaxima(conta);
+  if (teto < GORJETA_MINIMA) return [];
+  // Conta pequena: o menor percentual daria menos que o mínimo; usa valores fixos.
+  if ((cents * GORJETA_PERCENTUAIS[0]) / 100 < GORJETA_MINIMA * 100) {
+    return [2, 3, 5]
+      .filter((v) => v <= teto)
+      .map((v) => ({ label: brl(v), amount: v, sugerida: v === 3 }));
+  }
+  const vistos = new Set<number>();
+  return GORJETA_PERCENTUAIS.flatMap((pct) => {
+    // arredonda para o múltiplo de R$ 0,50 mais próximo, dentro do mínimo e do teto
+    const raw = Math.round((cents * pct) / 100 / 50) * 50;
+    const amount = Math.min(teto, Math.max(GORJETA_MINIMA, raw / 100));
+    if (vistos.has(amount)) return [];
+    vistos.add(amount);
+    return [{ label: `${pct}%`, amount, sugerida: pct === GORJETA_SUGERIDA }];
   });
+}
+
+/** Valor digitado em "Outro valor": aceita "12,50", "12.50" e "1.234,56". */
+export function lerValor(texto: string): number | null {
+  const t = texto.replace(/[^\d,.]/g, "");
+  if (!t) return null;
+  const v = Number(t.includes(",") ? t.replace(/\./g, "").replace(",", ".") : t);
+  return Number.isFinite(v) ? Math.round(v * 100) / 100 : null;
+}
+
+/** Confere a gorjeta extra contra o mínimo (R$ 2,00) e o teto (o valor da conta). */
+export function validarGorjeta(valor: number | null, conta: number): string | null {
+  if (valor === null || valor <= 0) return "Digite um valor";
+  if (valor < GORJETA_MINIMA) return `O mínimo é ${brl(GORJETA_MINIMA)}`;
+  const teto = gorjetaMaxima(conta);
+  if (valor > teto + 0.005) return `O máximo é ${brl(teto)}, o valor da sua conta`;
+  return null;
 }
 
 /** Link de avaliação aceito: só endereços do Google, sempre https. */

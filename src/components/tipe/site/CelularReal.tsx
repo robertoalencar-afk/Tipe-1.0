@@ -22,7 +22,30 @@ export type TelaReal =
   | "gorjeta"
   | "gorjeta-metodo"
   | "gorjeta-pix"
-  | "avaliacao";
+  | "avaliacao"
+  | "cardapio"
+  | "pedido"
+  | "guest-descobrir"
+  | "guest-horarios"
+  | "guest-hold"
+  | "guest-confirmada"
+  | "guest-pagar"
+  | "guest-gorjeta"
+  | "guest-fim"
+  | "guest-espera"
+  | "app-descobrir"
+  | "app-horarios"
+  | "app-dados"
+  | "app-garantia"
+  | "app-confirmada"
+  | "order-inicio"
+  | "order-cozinha"
+  | "order-conta"
+  | "order-fim"
+  | "order-story-baiao"
+  | "order-story-peixe"
+  | "order-story-bebidas"
+  | "order-story-3d";
 
 export function telaReal(nome: TelaReal) {
   const u = (w: number) => ARQUIVOS[`/src/assets/telas-reais/${nome}-${w}.webp`] ?? "";
@@ -95,7 +118,16 @@ export function CelularReal({
                 <rect x="10" y="3" width="3" height="9" rx="1" />
                 <rect x="15" y="0" width="3" height="12" rx="1" />
                 <path d="M28 3.5a9 9 0 0 1 12 0l-1.6 1.7a6.6 6.6 0 0 0-8.8 0zM30.9 6.6a5 5 0 0 1 6.2 0L34 10z" />
-                <rect x="45" y="1" width="16" height="10" rx="3" fill="none" stroke="#0b1418" strokeOpacity=".45" />
+                <rect
+                  x="45"
+                  y="1"
+                  width="16"
+                  height="10"
+                  rx="3"
+                  fill="none"
+                  stroke="#0b1418"
+                  strokeOpacity=".45"
+                />
                 <rect x="47" y="3" width="11" height="6" rx="1.5" />
                 <rect x="62" y="4.5" width="1.5" height="3" rx=".7" fillOpacity=".45" />
               </g>

@@ -1,11 +1,6 @@
 {
   "version": 1,
-  "asset_id": "e1ae979c-845e-4557-902d-b5c41eb08573",
-  "project_id": "109e2366-b3e7-4b22-b1bb-eec1756f0b89",
-  "url": "/__l5e/assets-v1/e1ae979c-845e-4557-902d-b5c41eb08573/logo.png",
-  "r2_key": "a/v1/109e2366-b3e7-4b22-b1bb-eec1756f0b89/e1ae979c-845e-4557-902d-b5c41eb08573/logo.png",
+  "url": "/marca/logo.png",
   "original_filename": "logo.png",
-  "size": 15961,
-  "content_type": "image/png",
-  "created_at": "2026-09-24T17:00:57Z"
+  "content_type": "image/png"
 }

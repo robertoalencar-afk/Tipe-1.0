@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-export type StaffRole = "founder" | "owner" | "cashier" | "waiter";
+export type StaffRole = "founder" | "owner" | "manager" | "cashier" | "waiter";
 
 export const getMyAccess = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -72,6 +72,11 @@ export const resolvePayment = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.rpc("resolve_table_payment", { p_payment_id: data.paymentId, p_action: data.action });
     if (error) throw new Error(error.message.includes("permissão") ? "Seu cargo não permite confirmar pagamentos" : error.message.includes("resolvido") ? "Este pagamento já foi resolvido" : "Não foi possível atualizar o pagamento");
+    if (data.action === "confirm") {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { avisarPagamento } = await import("./avisos-equipe.server");
+      await avisarPagamento(supabaseAdmin, data.paymentId);
+    }
     return { ok: true };
   });
 
@@ -81,7 +86,7 @@ export const inviteStaff = createServerFn({ method: "POST" })
     slug: z.string().min(1).max(64),
     email: z.string().trim().email().max(255),
     name: z.string().trim().min(2).max(80),
-    role: z.enum(["owner", "cashier", "waiter"]),
+    role: z.enum(["owner", "manager", "cashier", "waiter"]),
   }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: restaurant } = await context.supabase.from("restaurants").select("id").eq("slug", data.slug).maybeSingle();

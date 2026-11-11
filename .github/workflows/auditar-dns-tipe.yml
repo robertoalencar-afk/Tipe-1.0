@@ -1,0 +1,68 @@
+name: Auditar DNS antes da migracao Tipe
+on:
+  push:
+    branches: [ops/cloudflare-dns-cutover-20261027]
+    paths: [.github/workflows/auditar-dns-tipe.yml]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  dns:
+    runs-on: ubuntu-latest
+    environment: producao
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+    steps:
+      - name: Consultar zona e DNS sem modificar nada
+        shell: bash
+        run: |
+          set -euo pipefail
+          python3 - <<'PY'
+          import os,json,urllib.request,urllib.parse,urllib.error
+          base="https://api.cloudflare.com/client/v4"
+          token=os.environ["CLOUDFLARE_API_TOKEN"]
+          def call(path):
+              req=urllib.request.Request(base+path,headers={"Authorization":"Bearer "+token})
+              try:
+                  with urllib.request.urlopen(req,timeout=22) as f:
+                      return json.load(f)
+              except urllib.error.HTTPError as ex:
+                  print("Consulta DNS: HTTP",ex.code)
+                  try:
+                      data=json.loads(ex.read())
+                      print("Erros Cloudflare:",[{"code":e.get("code"),"message":e.get("message")} for e in data.get("errors",[])])
+                  except Exception: pass
+                  raise SystemExit(1)
+          zones=call("/zones?name=tipe.digital&per_page=10")
+          if not zones.get("success"): raise SystemExit("API negou leitura das zonas.")
+          found=zones.get("result",[])
+          if not found: raise SystemExit("Token nao enxerga zona tipe.digital; DNS nao sera alterado.")
+          for zone in found:
+              zid=zone["id"]
+              print("Zona:",zone.get("name"),"id:",zid,"status:",zone.get("status"),"account:",zone.get("account",{}).get("id")); print("Nameservers atribuídos:",zone.get("name_servers")); print("Nameservers anteriores:",zone.get("original_name_servers"))
+              path="/zones/"+zid+"/dns_records?per_page=100"
+              try:
+                  dns=call(path)
+              except SystemExit:
+                  print("Sem permissão DNS Read; verificacao de registros nesta conta bloqueada.")
+                  continue
+              if not dns.get("success"): raise SystemExit("API negou leitura de DNS")
+              for rec in dns.get("result",[]):
+                  if rec.get("name") in ("tipe.digital","www.tipe.digital"):
+                      info={"id":rec.get("id"),"name":rec.get("name"),"type":rec.get("type"),"proxied":rec.get("proxied"),"managed":rec.get("meta",{}).get("managed_by_apps")}
+                      if rec.get("type") in ("A","AAAA","CNAME"):info["content"]=rec.get("content")
+                      print("RECORD:",json.dumps(info,ensure_ascii=False))
+          print("DNS público delegado atualmente (consultado via Google DNS):")
+          for qtype in ("NS","A","CNAME","MX"):
+              q=urllib.parse.urlencode({"name":"tipe.digital","type":qtype})
+              try:
+                  with urllib.request.urlopen("https://dns.google/resolve?"+q,timeout=15) as response: 
+                      public=json.load(response)
+                  answers=public.get("Answer",[])
+                  print(qtype,[(a.get("type"),a.get("data")) for a in answers])
+              except Exception as ex: print("DNS publico",qtype,"indisponivel",type(ex).__name__)
+          print("AUDITORIA APENAS LEITURA: nenhum registro foi alterado.")
+          PY

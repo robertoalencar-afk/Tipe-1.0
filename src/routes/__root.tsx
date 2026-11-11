@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useMatches,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
@@ -13,68 +14,71 @@ import { useEffect, useState, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { Toaster } from "@/components/ui/sonner";
 import { CookieBanner } from "@/components/tipe/PrivacyPreferences";
+import { ErroPagina, botaoPrimario, botaoSecundario } from "@/components/tipe/ErroPagina";
+import { AvisoSemInternet } from "@/components/tipe/AvisoSemInternet";
 import { WhatsAppFloat } from "@/components/tipe/WhatsAppFloat";
-import { captureAttribution, loadMeasurement } from "@/lib/tipe/tracking";
-import { reportLovableError } from "../lib/lovable-error-reporting";
-import { supabase } from "@/integrations/supabase/client";
+import { BarraNavegacao } from "@/components/tipe/BarraNavegacao";
+import { captureAttribution, loadMeasurement, trackPagina } from "@/lib/tipe/tracking";
+import {
+  carregarSupabase,
+  EVENTO_SUPABASE_PRONTO,
+  temSessaoSalva,
+} from "@/integrations/supabase/lazy";
 
 function NotFoundComponent() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-7xl font-bold text-foreground">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
-        </p>
-        <div className="mt-6">
-          <Link
-            to="/"
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
-          >
-            Go home
+    <ErroPagina
+      codigo="Erro 404"
+      titulo="Essa página saiu da mesa"
+      texto="O endereço pode ter mudado ou foi digitado com algum detalhe diferente. Se você leu o QR Code da mesa, peça ao garçom um código novo."
+      acoes={
+        <>
+          <Link to="/" className={botaoPrimario}>
+            Ir para a página inicial
           </Link>
-        </div>
-      </div>
-    </div>
+          <a href="/ajuda" className={botaoSecundario}>
+            Abrir a Central de ajuda
+          </a>
+        </>
+      }
+    />
   );
 }
 
 function ErrorComponent({ error, reset }: ErrorComponentProps) {
   console.error(error);
   const router = useRouter();
-  useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
+  const [ref] = useState(() => Date.now().toString(36).toUpperCase());
+  const offline = typeof navigator !== "undefined" && navigator.onLine === false;
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
-        </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
-        </p>
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
+    <ErroPagina
+      codigo={offline ? "Sem internet" : "Erro 500"}
+      titulo={offline ? "Você está sem internet" : "Esta página não carregou"}
+      texto={
+        offline
+          ? "Confira o Wi-Fi ou os dados móveis. Nenhum pagamento é feito sem confirmação, então dá para tentar de novo com segurança."
+          : "Algo deu errado do nosso lado, não do seu. Tente de novo em instantes. Se você estava pagando, nada é cobrado duas vezes."
+      }
+      detalhe={offline ? undefined : ref}
+      acoes={
+        <>
           <button
+            type="button"
             onClick={() => {
               router.invalidate();
               reset();
             }}
-            className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            className={botaoPrimario}
           >
-            Try again
+            Tentar de novo
           </button>
-          <a
-            href="/"
-            className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-          >
-            Go home
+          <a href="/" className={botaoSecundario}>
+            Ir para a página inicial
           </a>
-        </div>
-      </div>
-    </div>
+        </>
+      }
+    />
   );
 }
 
@@ -139,13 +143,30 @@ function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const router = useRouter();
 
+  // Ouvinte de login. O supabase-js só é baixado se já houver sessão salva ou quando
+  // alguma tela criar o cliente (entrar, painel, CRM...); landing e mesa não pagam esse peso.
   useEffect(() => {
-    const { data } = supabase.auth.onAuthStateChange((event) => {
-      if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
-      router.invalidate();
-      if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
-    });
-    return () => data.subscription.unsubscribe();
+    let ativo = true;
+    let cancelar: (() => void) | undefined;
+    const assinar = () => {
+      window.removeEventListener(EVENTO_SUPABASE_PRONTO, assinar);
+      void carregarSupabase().then((supabase) => {
+        if (!ativo || cancelar) return;
+        const { data } = supabase.auth.onAuthStateChange((event) => {
+          if (event !== "SIGNED_IN" && event !== "SIGNED_OUT" && event !== "USER_UPDATED") return;
+          router.invalidate();
+          if (event !== "SIGNED_OUT") queryClient.invalidateQueries();
+        });
+        cancelar = () => data.subscription.unsubscribe();
+      });
+    };
+    if (temSessaoSalva()) assinar();
+    else window.addEventListener(EVENTO_SUPABASE_PRONTO, assinar);
+    return () => {
+      ativo = false;
+      window.removeEventListener(EVENTO_SUPABASE_PRONTO, assinar);
+      cancelar?.();
+    };
   }, [router, queryClient]);
 
   // Atribuição (UTM/indicação) e medição só após consentimento.
@@ -154,26 +175,44 @@ function RootComponent() {
     // Página da mesa do cliente fica sem scripts de medição para carregar rápido no 4G fraco.
     if (
       /^\/(mesa\/)?[^/]+\/[^/]+$/.test(window.location.pathname) &&
-      !/^\/(legal|privacidade|_authenticated)\//.test(window.location.pathname)
+      !/^\/(legal|privacidade|produtos|_authenticated)\//.test(window.location.pathname)
     )
       return;
     loadMeasurement();
+    // Troca de rota na SPA: nova visualização de página (só com consentimento).
+    let ultimo = window.location.pathname;
+    const sair = router.subscribe("onResolved", () => {
+      if (window.location.pathname === ultimo) return;
+      ultimo = window.location.pathname;
+      trackPagina();
+    });
     const on = () => loadMeasurement();
     window.addEventListener("tipe:consent", on);
-    return () => window.removeEventListener("tipe:consent", on);
-  }, []);
+    return () => {
+      sair();
+      window.removeEventListener("tipe:consent", on);
+    };
+  }, [router]);
 
   // Dentro de um iframe (simulador embutido na landing) o aviso de cookies e o
   // botão do WhatsApp já aparecem na página que contém o iframe.
   const [embedded, setEmbedded] = useState(false);
   useEffect(() => setEmbedded(window.self !== window.top), []);
+  // Na conta da mesa o aviso cobria o botão de pagar. Lá nada opcional carrega
+  // sem consentimento (loadMeasurement só roda com escolha salva), então o aviso
+  // fica para as demais páginas.
+  const naContaDaMesa = useMatches({
+    select: (matches) => matches.some((match) => match.routeId === "/$restaurante/$mesa"),
+  });
 
   return (
     <QueryClientProvider client={queryClient}>
+      <BarraNavegacao />
       {/* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */}
       <Outlet />
       <Toaster position="top-center" />
-      {!embedded && <CookieBanner />}
+      <AvisoSemInternet />
+      {!embedded && !naContaDaMesa && <CookieBanner />}
       {!embedded && <WhatsAppFloat />}
     </QueryClientProvider>
   );

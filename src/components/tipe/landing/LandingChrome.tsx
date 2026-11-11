@@ -1,3 +1,4 @@
+import { trackCta } from "@/lib/tipe/tracking";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
 import { ArrowRight, ChevronDown, Instagram, Menu, MessageCircle, X } from "lucide-react";
@@ -7,7 +8,8 @@ import { Focinho, SetaFios } from "@/components/tipe/site/Bigode";
 import { LogoTipe } from "@/components/tipe/site/marca/LogoTipe";
 import { LUZ } from "@/components/tipe/site/CardProduto";
 import { fotoSrc } from "@/components/tipe/site/Foto";
-import { GRUPOS, PRODUTOS } from "@/components/tipe/site/produtos";
+import { CAMINHO_PRODUTO, GRUPOS, PRODUTOS } from "@/components/tipe/site/produtos";
+import { seloDoProduto, useEstadosLancamento } from "@/components/tipe/site/useLancamento";
 import { PrivacyPreferences } from "@/components/tipe/PrivacyPreferences";
 import { COMPANY } from "@/lib/tipe/legal";
 import { TRIAL_DAYS } from "@/lib/tipe/plans";
@@ -16,9 +18,9 @@ import { cn } from "@/lib/utils";
 import { useHeaderEscondido } from "./motion";
 
 const NAV = [
-  { href: "/produtos/ai", label: "Tipe AI" },
+  { href: "/lebre", label: "Lebre" },
   { href: "/integracoes", label: "Integrações" },
-  { href: "/precos", label: "Preços" },
+  { href: "/precos", label: "Planos" },
 ] as const;
 
 /** Logo oficial; troca para a versão branca quando o fundo da página fica escuro. */
@@ -39,6 +41,7 @@ function Logo({ className }: { className?: string }) {
 }
 
 export function LandingHeader() {
+  const lancamento = useEstadosLancamento();
   const [scrolled, setScrolled] = useState(false);
   const [menu, setMenu] = useState(false);
   const [solucoes, setSolucoes] = useState(false);
@@ -157,7 +160,7 @@ export function LandingHeader() {
                               {PRODUTOS.filter((p) => p.grupo === g).map((p) => (
                                 <li key={p.slug}>
                                   <a
-                                    href={`/produtos/${p.slug}`}
+                                    href={CAMINHO_PRODUTO[p.slug]}
                                     onClick={() => setSolucoes(false)}
                                     className="group flex items-center gap-3 rounded-2xl p-2.5 transition-colors hover:bg-background-muted focus-visible:bg-background-muted"
                                   >
@@ -176,9 +179,9 @@ export function LandingHeader() {
                                           style={{ background: LUZ[p.slug] ?? "#0FC9BD" }}
                                         />
                                         {p.nome}
-                                        {p.status === "em-breve" && (
+                                        {seloDoProduto(p, lancamento) && (
                                           <span className="rounded-full bg-background-muted px-2 py-0.5 text-[10px] font-medium text-muted-foreground">
-                                            Em breve
+                                            {seloDoProduto(p, lancamento)}
                                           </span>
                                         )}
                                       </span>
@@ -236,11 +239,12 @@ export function LandingHeader() {
               <SetaFios seta={false} />
             </Link>
             <a
-              href="/teste-gratis"
+              href="/solicitar-demonstracao"
+              onClick={() => trackCta("demonstracao_header")}
               className="btn-tema com-fios hidden h-11 items-center gap-2 rounded-full pl-6 pr-5 text-[0.95rem] font-medium sm:inline-flex"
             >
-              Teste grátis
-              <SetaFios />
+              Demonstração
+              <SetaFios auto />
             </a>
             <button
               ref={botaoMenu}
@@ -278,7 +282,7 @@ export function LandingHeader() {
                         style={{ "--i": gi * 4 + pi + 1 } as CSSProperties}
                       >
                         <a
-                          href={`/produtos/${p.slug}`}
+                          href={CAMINHO_PRODUTO[p.slug]}
                           onClick={() => setMenu(false)}
                           className="flex min-h-14 items-center gap-2.5 rounded-2xl border border-border p-2 transition-colors active:bg-background-muted"
                         >
@@ -298,9 +302,9 @@ export function LandingHeader() {
                           </span>
                           <span className="min-w-0 text-sm font-medium leading-tight">
                             {p.nome}
-                            {p.status === "em-breve" && (
+                            {seloDoProduto(p, lancamento) && (
                               <span className="block text-[11px] font-normal text-muted-foreground">
-                                Em breve
+                                {seloDoProduto(p, lancamento)}
                               </span>
                             )}
                           </span>
@@ -312,7 +316,7 @@ export function LandingHeader() {
               ))}
               <div className="mt-2">
                 {[
-                  ...NAV.filter((n) => n.href !== "/produtos/ai"),
+                  ...NAV.filter((n) => n.href !== "/lebre"),
                   { href: "/simulador", label: "Testar o simulador" },
                   { href: "/#duvidas", label: "Dúvidas" },
                 ].map((n, k) => (
@@ -342,12 +346,15 @@ export function LandingHeader() {
                 <SetaFios seta={false} />
               </Link>
               <a
-                href="/teste-gratis"
-                onClick={() => setMenu(false)}
+                href="/solicitar-demonstracao"
+                onClick={() => {
+                  trackCta("demonstracao_menu_mobile");
+                  setMenu(false);
+                }}
                 className="btn-tema com-fios flex h-12 items-center justify-center gap-2 rounded-full font-medium"
               >
-                Teste grátis
-                <SetaFios />
+                Demonstração
+                <SetaFios auto />
               </a>
             </div>
           </div>
@@ -355,14 +362,14 @@ export function LandingHeader() {
       </header>
       {/* Com o cabeçalho escondido, o CTA principal continua no topo (como na sunday). */}
       <a
-        href="/teste-gratis"
+        href="/solicitar-demonstracao"
         data-visivel={escondido || undefined}
         aria-hidden={!escondido}
         tabIndex={escondido ? undefined : -1}
         className="cta-fixo btn-tema com-fios fixed right-4 top-3 z-40 inline-flex h-11 items-center gap-2 rounded-full pl-6 pr-5 text-[0.95rem] font-medium shadow-lift sm:right-6"
       >
-        Teste grátis
-        <SetaFios />
+        Demonstração
+        <SetaFios auto />
       </a>
     </>
   );
@@ -382,8 +389,9 @@ function telefoneWhatsapp() {
  * assinatura com o logotipo animado e a linha legal. Com movimento reduzido nada vira.
  */
 export function LandingFooter() {
+  const lancamento = useEstadosLancamento();
   const { pathname } = useLocation();
-  const noTeste = pathname.startsWith("/teste-gratis");
+  const noTeste = pathname.startsWith("/solicitar-demonstracao");
   const grupo =
     "font-display text-[0.78rem] font-medium uppercase tracking-[0.14em] text-[#0FC9BD]";
   const a =
@@ -414,10 +422,11 @@ export function LandingFooter() {
         <div className="rodape-ctas mx-auto mt-8 flex max-w-sm flex-col gap-3 sm:max-w-none sm:flex-row sm:justify-center">
           {!noTeste && (
             <a
-              href="/teste-gratis"
+              href="/solicitar-demonstracao"
+              onClick={() => trackCta("demonstracao_final")}
               className="com-fios inline-flex min-h-14 items-center justify-center gap-2.5 rounded-full bg-[#021E34] pl-8 pr-7 text-lg font-medium text-white transition-colors hover:bg-[#06304f]"
             >
-              Começar o teste grátis
+              Solicitar demonstração
               <SetaFios />
             </a>
           )}
@@ -443,11 +452,11 @@ export function LandingFooter() {
             <ul className="mt-4 space-y-0.5">
               {PRODUTOS.map((p) => (
                 <li key={p.slug}>
-                  <a href={`/produtos/${p.slug}`} className={a}>
+                  <a href={CAMINHO_PRODUTO[p.slug]} className={a}>
                     {p.nome}
-                    {p.status === "em-breve" && (
+                    {seloDoProduto(p, lancamento) && (
                       <span className="ml-2 rounded-full bg-white/10 px-2 py-0.5 text-[10px] font-medium text-white/70">
-                        Em breve
+                        {seloDoProduto(p, lancamento)}
                       </span>
                     )}
                   </a>
@@ -470,22 +479,20 @@ export function LandingFooter() {
               </li>
               <li>
                 <a href="/precos" className={a}>
-                  Preços
+                  Planos
                 </a>
               </li>
               <li>
-                <a href="/teste-gratis" className={a}>
-                  Teste grátis
+                <a href="/solicitar-demonstracao" className={a}>
+                  Demonstração
                 </a>
               </li>
               <li>
-                <a href="/restaurante-fundador" className={a}>
-                  Restaurante Fundador
-                </a>
+                <a href="/restaurante-fundador" className={a}>Restaurante Fundador</a>
               </li>
               <li>
-                <a href="/#duvidas" className={a}>
-                  Dúvidas frequentes
+                <a href="/ajuda" className={a}>
+                  Central de ajuda
                 </a>
               </li>
               <li>
