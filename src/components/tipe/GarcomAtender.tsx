@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { LiberarPedidosMesa, useOrderAccess } from "@/components/tipe/LiberarPedidosMesa";
+import { PedidosConferencia } from "@/components/tipe/PedidosConferencia";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -134,6 +135,7 @@ export function GarcomAtender() {
 
   return (
     <div className="space-y-4">
+      <PedidosConferencia slug={pos.restaurantSlug} />
       <div className="flex items-center justify-between gap-2">
         <div className="flex flex-wrap gap-2 text-xs">
           {(["ocupada", "pagando", "aguardando"] as StatusMesaSalao[]).map((s) => (

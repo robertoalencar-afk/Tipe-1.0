@@ -4,7 +4,7 @@ import { Check, Minus, Plus, Search, UtensilsCrossed } from "lucide-react";
 import { nanoid } from "nanoid";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { getPublicMenu, placeCustomerOrder, type PublicMenu } from "@/lib/tipe/customer-order.functions";
+import { getPublicMenu, placeCustomerOrder, getCustomerOrderReview, type PublicMenu } from "@/lib/tipe/customer-order.functions";
 import { totalCarrinho, carrinhoParaPedido } from "@/lib/tipe/pdv/comanda";
 
 const StoryCardapio = lazy(() => import("@/components/tipe/site/order/StoryCardapio").then((m) => ({ default: m.StoryCardapio })));
@@ -32,7 +32,7 @@ export function MesaPedido({ slug, code, session, nome, device, onPlaced, onBloc
   const [obsAberta, setObsAberta] = useState<string | null>(null);
   const [story, setStory] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
-  const [enviado, setEnviado] = useState<{ itens: number } | null>(null);
+  const [enviado, setEnviado] = useState<{ itens: number; reviewId?: string; reviewState?: string } | null>(null);
   const requestId = useRef(nanoid(16));
 
   useEffect(() => {
@@ -45,6 +45,22 @@ export function MesaPedido({ slug, code, session, nome, device, onPlaced, onBloc
     return () => { vivo = false; };
   }, [slug]);
 
+  useEffect(() => {
+    if (!enviado?.reviewId || enviado.reviewState !== "pending") return;
+    let active = true;
+    const id = enviado.reviewId;
+    const poll = async () => {
+      try {
+        const r = await getCustomerOrderReview({ data: { slug, code, session, id } });
+        if (!active) return;
+        setEnviado((prev) => prev?.reviewId === id ? { ...prev, reviewState: r.state } : prev);
+        if (r.state === "approved") await onPlaced();
+      } catch { /* mantém a espera e tenta na próxima consulta */ }
+    };
+    const timer = window.setInterval(() => void poll(), 10000);
+    return () => { active = false; window.clearInterval(timer); };
+  }, [enviado?.reviewId, enviado?.reviewState, slug, code, session, onPlaced]);
+
   const precoDe = useMemo(() => {
     const m = new Map((menu?.items ?? []).map((i) => [i.code, i.price]));
     return (c: string) => m.get(c) ?? 0;
@@ -55,12 +71,14 @@ export function MesaPedido({ slug, code, session, nome, device, onPlaced, onBloc
   if (!menu.selfOrder) return <p className="rounded-2xl border border-border bg-card p-4 text-sm">O pedido pela mesa não está disponível. Chame o garçom.</p>;
 
   if (enviado) {
+    const esperando = enviado.reviewState === "pending";
+    const recusado = enviado.reviewState === "rejected" || enviado.reviewState === "expired";
     return (
       <div className="flex flex-col items-center gap-3 rounded-3xl border border-primary/30 bg-primary/10 p-6 text-center">
         <div className="grid h-14 w-14 place-items-center rounded-full bg-primary text-primary-foreground"><Check className="h-7 w-7" /></div>
-        <h2 className="font-display text-xl font-extrabold">Pedido enviado!</h2>
-        <p className="text-sm text-muted-foreground">{enviado.itens} {enviado.itens === 1 ? "item foi" : "itens foram"} para a cozinha. Em instantes aparecem na sua conta.</p>
-        <Button className="mt-1 w-full" onClick={() => { setEnviado(null); requestId.current = nanoid(16); }}>Pedir mais</Button>
+        <h2 className="font-display text-xl font-extrabold">{esperando ? "Vamos confirmar na mesa" : recusado ? "Pedido não enviado à cozinha" : "Pedido enviado!"}</h2>
+        <p className="text-sm text-muted-foreground">{esperando ? `Seu pedido de ${enviado.itens} itens está aguardando a conferência de um garçom na mesa. O preparo começa após a confirmação.` : recusado ? "Este pedido foi recusado ou expirou. Converse com o garçom antes de enviar novamente." : `${enviado.itens} itens foram para a cozinha. Em instantes aparecem na sua conta.`}</p>
+        {!esperando && <Button className="mt-1 w-full" onClick={() => { setEnviado(null); requestId.current = nanoid(16); }}>{recusado ? "Voltar ao cardápio" : "Pedir mais"}</Button>}
       </div>
     );
   }
@@ -93,7 +111,7 @@ export function MesaPedido({ slug, code, session, nome, device, onPlaced, onBloc
         return;
       }
       setCarrinho({}); setObs({});
-      setEnviado({ itens: r.items });
+      setEnviado({ itens: r.items, ...(r.reviewId ? { reviewId: r.reviewId, reviewState: r.reviewState } : {}) });
       await onPlaced();
     } catch {
       setErro("Não foi possível enviar o pedido. Tente de novo.");
@@ -203,7 +221,7 @@ export function MesaPedido({ slug, code, session, nome, device, onPlaced, onBloc
             {enviando ? "Enviando…" : <><UtensilsCrossed className="mr-2 h-5 w-5" />Enviar {qtdTotal} {qtdTotal === 1 ? "item" : "itens"} · {money(total)}</>}
           </Button>
           <p className="mt-1 text-center text-[11px] text-muted-foreground">
-            {podeEnviar ? "O pedido vai direto para a cozinha e entra na sua conta." : "Seu pedido fica guardado aqui. Envie assim que a mesa for liberada."}
+            {podeEnviar ? qtdTotal > 5 ? "Pedidos com mais de 5 itens aguardam a confirmação de um garçom na mesa antes do preparo." : "O pedido vai direto para a cozinha e entra na sua conta." : "Seu pedido fica guardado aqui. Envie assim que a mesa for liberada."}
           </p>
         </div>
       )}
