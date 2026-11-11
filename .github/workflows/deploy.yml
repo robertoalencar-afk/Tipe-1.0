@@ -46,6 +46,12 @@ jobs:
         run: >-
           bunx eslint src/components/tipe/RestaurantPanel.tsx --rule 'prettier/prettier: off'
       - run: bunx tsc --noEmit -p .
+      - name: Instalar PostgreSQL isolado para testes da Lebre
+        run: npm install --prefix "$RUNNER_TEMP/lebre-sql" --no-audit --no-fund @electric-sql/pglite@0.5.16
+      - name: Testar operações da Lebre em PostgreSQL isolado
+        env:
+          PGLITE_MODULE: ${{ runner.temp }}/lebre-sql/node_modules/@electric-sql/pglite/dist/index.js
+        run: node scripts/db/tests/lebre-operation.mjs
       - run: bunx vitest run
       - name: Build
         run: bun run build
