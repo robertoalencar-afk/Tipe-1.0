@@ -44,6 +44,9 @@ grep -qE "FALHOU|ERROR" /tmp/tipe-order-liberacao.log && FAIL=1
 $P -v ON_ERROR_STOP=1 -f "$DIR/lancamento.sql" >/tmp/tipe-lancamento.raw 2>&1 || FAIL=1
 grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-lancamento.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-lancamento.log
 grep -qE "FALHOU|ERROR" /tmp/tipe-lancamento.log && FAIL=1
+$P -v ON_ERROR_STOP=1 -f "$DIR/caixa.sql" >/tmp/tipe-caixa.raw 2>&1 || FAIL=1
+grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-caixa.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-caixa.log
+grep -qE "FALHOU|ERROR" /tmp/tipe-caixa.log && FAIL=1
 $P -v ON_ERROR_STOP=1 -f "$DIR/chamados.sql" >/tmp/tipe-chamados.raw 2>&1 || FAIL=1
 grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-chamados.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-chamados.log
 grep -qE "FALHOU|ERROR" /tmp/tipe-chamados.log && FAIL=1
@@ -56,6 +59,9 @@ grep -qE "FALHOU|ERROR" /tmp/tipe-guest.log && FAIL=1
 $P -v ON_ERROR_STOP=1 -f "$DIR/founding_partner.sql" >/tmp/tipe-fundador.raw 2>&1 || FAIL=1
 grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-fundador.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-fundador.log
 grep -qE "FALHOU|ERROR" /tmp/tipe-fundador.log && FAIL=1
+$P -v ON_ERROR_STOP=1 -f "$DIR/permissoes.sql" >/tmp/tipe-permissoes.raw 2>&1 || FAIL=1
+grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-permissoes.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-permissoes.log
+grep -qE "FALHOU|ERROR" /tmp/tipe-permissoes.log && FAIL=1
 $P -v ON_ERROR_STOP=1 -f "$DIR/mfa.sql" >/tmp/tipe-mfa.raw 2>&1 || FAIL=1
 grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-mfa.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-mfa.log
 grep -qE "FALHOU|ERROR" /tmp/tipe-mfa.log && FAIL=1
