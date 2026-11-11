@@ -121,7 +121,7 @@ for (const e of EMPRESAS) {
 
 // Logomarca de demonstração: sobe o PNG para o bucket público do restaurante e grava logo_url.
 async function logomarca(rid, e) {
-  const arquivo = new URL(`./assets/logo-${e.slug}.png`, import.meta.url);
+  const arquivo = new globalThis.URL(`./assets/logo-${e.slug}.png`, import.meta.url);
   const { readFile } = await import("node:fs/promises");
   const bytes = await readFile(arquivo).catch(() => null);
   if (!bytes) return;
