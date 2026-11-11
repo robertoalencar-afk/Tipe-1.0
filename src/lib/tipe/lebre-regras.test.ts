@@ -23,6 +23,10 @@ describe("respostaFaq", () => {
     }
   });
 
+  it("explica a memória e o que ela não guarda", () => {
+    expect(respostaFaq("a Lebre tem memória?")).toContain("Dado sensível eu não guardo");
+  });
+
   it("deixa para a IA o que não reconhece ou é longo demais", () => {
     expect(respostaFaq("Minha esposa quer saber se vocês atendem em Fortaleza")).toBeNull();
     expect(respostaFaq("preço ".repeat(40))).toBeNull();

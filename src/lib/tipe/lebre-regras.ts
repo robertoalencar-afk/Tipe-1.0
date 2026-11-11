@@ -111,6 +111,11 @@ const FAQ: Array<{ chave: RegExp; resposta: string }> = [
       "Para criar a conta do seu restaurante, é só ir em /cadastro. São 30 dias grátis, sem cartão.",
   },
   {
+    chave: /\b(memoria|lembra|lembrar|aprende|aprender|dados sensiveis|privacidade|lgpd)\b/,
+    resposta:
+      "Tenho memória, sim. No painel, eu aprendo com cada restaurante e com cada pessoa da equipe: nomes dos pratos, qual mesa é a varanda, como você gosta das respostas. Dado sensível eu não guardo: CPF, cartão, senha, e-mail, telefone, endereço, saúde e salário ficam de fora. Você pode ver e apagar tudo quando quiser.",
+  },
+  {
     chave: /\b(whatsapp|falar com|atendente|humano|contato|suporte)\b/,
     resposta: "Para falar com a equipe da TIPE, use o botão do WhatsApp aqui no site.",
   },
