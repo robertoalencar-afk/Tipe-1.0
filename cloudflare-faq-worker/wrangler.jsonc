@@ -1,0 +1,51 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "faq-ai-cache-worker",
+  "main": "src/index.ts",
+  // Data suportada pelo workerd instalado (1.20261019.x). Avance com testes.
+  "compatibility_date": "2026-10-19",
+  "workers_dev": true,
+  "observability": { "enabled": true },
+
+  // Configuração não secreta. Segredos (CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID)
+  // vêm de `wrangler secret put` em produção e de `.dev.vars` no desenvolvimento local.
+  "vars": {
+    "ENVIRONMENT": "development",
+    // "default" é criado automaticamente pelo AI Gateway na primeira requisição autenticada.
+    "AI_GATEWAY_ID": "default",
+    "AI_MODEL": "@cf/meta/llama-3.1-8b-instruct-fp8-fast",
+    "UPSTREAM_TIMEOUT_MS": "15000",
+    // Lista separada por vírgulas. "*" só é aceitável em desenvolvimento.
+    "ALLOWED_ORIGINS": "*",
+  },
+
+  // Controle básico contra abuso da rota pública: por IP, por localidade Cloudflare.
+  "ratelimits": [
+    {
+      "name": "FAQ_RATE_LIMITER",
+      "namespace_id": "4201",
+      "simple": { "limit": 30, "period": 60 },
+    },
+  ],
+
+  "env": {
+    // `wrangler deploy --env production` publica "faq-ai-cache-worker-production".
+    "production": {
+      "vars": {
+        "ENVIRONMENT": "production",
+        "AI_GATEWAY_ID": "default",
+        "AI_MODEL": "@cf/meta/llama-3.1-8b-instruct-fp8-fast",
+        "UPSTREAM_TIMEOUT_MS": "15000",
+        "ALLOWED_ORIGINS": "https://tipe.digital,https://www.tipe.digital",
+      },
+      // Bindings não são herdados entre ambientes: repetir aqui.
+      "ratelimits": [
+        {
+          "name": "FAQ_RATE_LIMITER",
+          "namespace_id": "4202",
+          "simple": { "limit": 30, "period": 60 },
+        },
+      ],
+    },
+  },
+}

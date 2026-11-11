@@ -5,6 +5,7 @@
  * tablet, relatórios no computador). O que ainda não existe aparece como "Em breve"
  * com um card ilustrativo, nunca com uma tela que finja ser real.
  */
+import { CAMINHO_PRODUTO } from "@/components/tipe/site/produtos";
 import type { CSSProperties, ReactNode } from "react";
 import { ArrowUpRight, Check, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -153,6 +154,19 @@ function Vitrine({ p }: { p: Produto }) {
           </p>
         </div>
       );
+    case "guest":
+      // Tela REAL de hoje (avaliação depois de pagar); descoberta e reserva ainda não têm tela.
+      return (
+        <>
+          <div className={`${EIXO} w-[54%]`}>
+            <Celular tela="avaliacao" alt="" sizes="200px" />
+          </div>
+          <Aviso className={AVISO_POS}>
+            <Selo cor={cor} />
+            <span>Disponível hoje: avaliação depois de pagar. Descobrir e reservar, em breve.</span>
+          </Aviso>
+        </>
+      );
     default:
       return (
         <div className="absolute inset-x-[6%] top-[8%] rounded-[1.5rem] border border-white/10 bg-[oklch(0.24_0_0)] p-4 text-white transition-transform duration-700 group-hover:-translate-y-2">
@@ -184,7 +198,7 @@ export function CardProduto({ p, className }: { p: Produto; className?: string }
   const selo = seloDoProduto(p, useEstadosLancamento());
   return (
     <a
-      href={`/produtos/${p.slug}`}
+      href={CAMINHO_PRODUTO[p.slug]}
       aria-label={`${p.nome}${selo ? ` (${selo.toLowerCase()})` : ""}: ${p.resumo}`}
       className={cn(
         "group relative flex flex-col overflow-hidden rounded-[1.75rem] bg-[oklch(0.16_0_0)] text-white ring-1 ring-white/[0.07] transition-[transform,box-shadow] duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] hover:-translate-y-1 hover:ring-white/15 focus-visible:-translate-y-1",

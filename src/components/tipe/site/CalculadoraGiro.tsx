@@ -167,9 +167,11 @@ export function CalculadoraGiro() {
   const [custoEditado, setCustoEditado] = useState(false);
   const [card, setCard] = useState<IdCard | null>(null);
   const premissas = useRef<HTMLDetailsElement>(null);
+  const personalizar = useRef<HTMLDetailsElement>(null);
   const abrirPremissas = () => {
     const d = premissas.current;
     if (!d) return;
+    if (personalizar.current) personalizar.current.open = true;
     d.open = true;
     d.scrollIntoView({ behavior: "smooth", block: "start" });
     d.querySelector<HTMLInputElement>("[data-campo-retorno] input[type=text]")?.focus({
@@ -323,7 +325,7 @@ export function CalculadoraGiro() {
         <Titulo
           rotulo="Calculadora de giro"
           titulo="Quanto vale cada minuto no seu salão?"
-          texto="Uma estimativa transparente com os seus números. Ajuste as hipóteses e veja de onde vem cada resultado."
+          texto="Veja quanto tempo seu restaurante poderia recuperar com pagamentos mais rápidos. É uma estimativa com os seus números, não uma garantia."
         />
 
         <div className="mt-10 grid items-start gap-4 sm:mt-12 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:gap-5">
@@ -334,11 +336,11 @@ export function CalculadoraGiro() {
                 Seu restaurante
               </h3>
               <p className="text-[0.75rem] text-[#021E34]/50">
-                Valores iniciais são hipóteses demonstrativas
+                Comece com três números. Os valores iniciais são exemplos
               </p>
             </div>
             <div className="mt-6 space-y-7">
-              <Grupo titulo="Salão e serviço">
+              <Grupo titulo="Para começar">
                 <Campo rotulo="Mesas" valor={e.mesas} onChange={setB("mesas")} min={1} max={80} />
                 <Campo
                   rotulo={
@@ -377,6 +379,27 @@ export function CalculadoraGiro() {
                     </div>
                   }
                 />
+                <Campo
+                  rotulo="Tempo para fechar uma conta"
+                  sufixo="min"
+                  valor={e.esperaPagamentoMin}
+                  onChange={setB("esperaPagamentoMin")}
+                  min={0}
+                  max={40}
+                  ajuda="Do pedido da conta ao pagamento: chamar o garçom, esperar a conta, dividir, esperar a maquininha e pagar. Se não souber, deixe o valor de exemplo."
+                />
+              </Grupo>
+
+              <details
+                ref={personalizar}
+                className="group scroll-mt-24 rounded-2xl border border-[#021E34]/10 px-4 py-3"
+              >
+                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-md text-[0.95rem] font-medium text-[#021E34] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#0FC9BD] [&::-webkit-details-marker]:hidden">
+                  Personalizar os cálculos
+                  <ChevronDown className="h-4 w-4 transition-transform duration-300 group-open:rotate-180" aria-hidden />
+                </summary>
+                <div className="mt-5 space-y-7">
+              <Grupo titulo="Salão e serviço">
                 <Campo
                   rotulo="Tíquete médio por conta"
                   prefixo="R$"
@@ -422,15 +445,6 @@ export function CalculadoraGiro() {
                   onChange={setB("permanenciaMin")}
                   min={10}
                   max={240}
-                />
-                <Campo
-                  rotulo="Do pedido da conta ao pagamento"
-                  sufixo="min"
-                  valor={e.esperaPagamentoMin}
-                  onChange={setB("esperaPagamentoMin")}
-                  min={0}
-                  max={40}
-                  ajuda="Chamar o garçom, esperar a conta, dividir, esperar a maquininha e pagar. A economia do cenário nunca passa deste tempo."
                 />
                 <Campo
                   rotulo="Liberar e preparar a mesa"
@@ -558,6 +572,8 @@ export function CalculadoraGiro() {
                       ajuda="Começa em 0%. Fica numa linha separada da receita por giro e só vale para as contas que já existem, para não contar duas vezes."
                     />
                   </Grupo>
+                </div>
+              </details>
                 </div>
               </details>
             </div>
@@ -843,7 +859,7 @@ export function CalculadoraGiro() {
 
         <div className="mt-8 flex flex-col items-start gap-3 sm:mt-10 sm:items-center sm:text-center">
           <a
-            href="/teste-gratis"
+            href="/solicitar-demonstracao"
             onClick={salvarECta}
             className="com-fios inline-flex min-h-12 max-w-full items-center gap-2 rounded-full bg-[#021E34] px-6 py-3 text-left text-[1rem] font-medium leading-snug text-white transition-colors hover:bg-[#062b47] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0FC9BD] sm:px-8 sm:text-[1.05rem]"
           >

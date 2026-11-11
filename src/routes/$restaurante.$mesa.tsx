@@ -9,7 +9,6 @@ import {
   Copy,
   CreditCard,
   HandCoins,
-  ListChecks,
   QrCode,
   ReceiptText,
   RefreshCw,
@@ -25,11 +24,11 @@ import logoLight from "@/assets/marca/tipe-logo-branco.svg";
 import logoDark from "@/assets/marca/tipe-logo.svg";
 import { cn } from "@/lib/utils";
 import { SplitPicker } from "@/components/tipe/SplitPicker";
-import { DividirConta } from "@/components/tipe/DividirConta";
 import { remainingSubtotal, selectionSubtotal, type ShareItem } from "@/lib/tipe/bill-math";
 import { PAYMENT_STATUS_LABEL } from "@/lib/tipe/payment-state";
 import { MesaPedido } from "@/components/tipe/MesaPedido";
 import { MesaLiberacao, lerTokenPedido } from "@/components/tipe/MesaLiberacao";
+import { ChamarEquipe } from "@/components/tipe/ChamarEquipe";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -763,6 +762,10 @@ function MesaPage() {
             )}
           </p>
 
+          {sessaoMesa && (
+            <ChamarEquipe slug={restaurante} mesa={String(dados.mesa)} session={sessaoMesa} />
+          )}
+
           {selfOrder && (
             <div
               role="tablist"
@@ -878,32 +881,6 @@ function MesaPage() {
                         <span>Pagar tudo</span>
                         <span className="money">{money(emAbertoComTaxa)}</span>
                       </Button>
-                      <div className="mt-2 grid grid-cols-2 gap-2">
-                        <DividirConta
-                          items={itensDivisao}
-                          serviceRate={taxaSugerida}
-                          triggerClassName="h-12 w-full rounded-full bg-card font-display text-[0.95rem] font-medium"
-                          onApply={(quantidades) =>
-                            setQtds(
-                              Object.fromEntries(
-                                dados.itens.map((item) => [item.id, quantidades[item.id] ?? 0]),
-                              ),
-                            )
-                          }
-                          onPay={irParaPagamento}
-                        />
-                        <Button
-                          variant="outline"
-                          onClick={() =>
-                            document
-                              .getElementById("itens-da-conta")
-                              ?.scrollIntoView({ behavior: "smooth", block: "start" })
-                          }
-                          className="h-12 w-full bg-card font-display text-[0.95rem] font-medium"
-                        >
-                          <ListChecks /> Escolher itens
-                        </Button>
-                      </div>
                     </section>
                   );
                 })()}
@@ -1262,8 +1239,13 @@ function MesaPage() {
 
       {etapaVisivel === "conta-confirmada" && (
         <TelaCentral>
-          <MarcaSucesso />
-          <h1 className="mt-6 text-[1.9rem] font-medium leading-[1.06] tracking-[-0.035em]">
+          <img
+            src={mascotThanks}
+            alt="Lebre da TIPE sorrindo com o pagamento aprovado"
+            className="bob mx-auto mb-1 h-32 w-32 object-contain"
+          />
+          <p className="eyebrow text-brand-strong">Conta paga</p>
+          <h1 className="mt-2 text-[1.9rem] font-medium leading-[1.06] tracking-[-0.035em]">
             Pagamento realizado!
           </h1>
           <p className="mt-2 text-[0.95rem] text-muted-foreground">
@@ -1901,15 +1883,6 @@ function EstadoPagamento({ status }: { status: SharedPayment["status"] }) {
   return (
     <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold ${cls}`}>
       {PAYMENT_STATUS_LABEL[status] ?? "Pendente"}
-    </span>
-  );
-}
-
-function MarcaSucesso() {
-  return (
-    <span className="tipe-approved-mark relative grid h-20 w-20 place-items-center rounded-full bg-primary text-primary-foreground shadow-[0_18px_40px_-14px_var(--brand-primary)]">
-      <span aria-hidden className="absolute inset-0 rounded-full ring-8 ring-primary/15" />
-      <Check className="h-10 w-10" strokeWidth={3} />
     </span>
   );
 }

@@ -189,3 +189,63 @@ const BC_FIOS: ReadonlyArray<readonly ["e" | "d", string]> = [
 
 /** Alias antigo (o meio focinho virou a seta de bigodes em 27/10). */
 export const MeioFocinho = SetaFios;
+
+// Variações disponíveis apenas na página interna de comparação.
+export type VarianteFocinho = 1 | 2 | 3;
+
+const FZ_NARIZ =
+  "M12 11.8 C9.5 11.1 7.7 9.7 7.8 8.4 C7.9 7.3 9.8 6.8 12 6.8 C14.2 6.8 16.1 7.3 16.2 8.4 C16.3 9.7 14.5 11.1 12 11.8Z";
+const FZ_BOCA =
+  "M12 11.8 V12.6 M12 12.6 C11.4 14.1 9.8 14.6 8.8 13.8 M12 12.6 C12.6 14.1 14.2 14.6 15.2 13.8";
+/** Cada variação recorta o desenho no seu viewBox, então o focinho ocupa a altura do texto. */
+const FZ_VIEWBOX: Record<VarianteFocinho, string> = {
+  1: "7.2 6.2 9.6 9.2",
+  2: "2.6 6.2 18.8 9.2",
+  3: "1.2 6.2 21.6 9.2",
+};
+const FZ_BIGODES: Record<VarianteFocinho, { esq: string[]; dir: string[] }> = {
+  1: { esq: [], dir: [] },
+  2: {
+    esq: ["M7.9 9.6 Q5.7 9 3.4 9.4", "M8 11.4 Q5.9 11.7 3.8 12.6"],
+    dir: ["M16.1 9.6 Q18.3 9 20.6 9.4", "M16 11.4 Q18.1 11.7 20.2 12.6"],
+  },
+  3: {
+    esq: ["M7.9 10.4 Q4.9 9.8 1.8 10.7"],
+    dir: ["M16.1 10.4 Q19.1 9.8 22.2 10.7"],
+  },
+};
+
+export function FocinhoCta({
+  variante = 2,
+  auto = true,
+  className,
+}: {
+  variante?: VarianteFocinho | undefined;
+  /** Farejada sutil sozinha, sem hover (padrão). */
+  auto?: boolean | undefined;
+  className?: string | undefined;
+}) {
+  const b = FZ_BIGODES[variante];
+  return (
+    <svg
+      viewBox={FZ_VIEWBOX[variante]}
+      aria-hidden
+      focusable="false"
+      data-v={variante}
+      className={cn("focinho-cta", auto && "focinho-cta-auto", className)}
+    >
+      {(["esq", "dir"] as const).map((lado) =>
+        b[lado].length ? (
+          <g key={lado} className={`fz-bigodes fz-${lado}`}>
+            {b[lado].map((d) => (
+              <path key={d} className="fz-fio" d={d} />
+            ))}
+          </g>
+        ) : null,
+      )}
+      <path className="fz-boca" d={FZ_BOCA} />
+      <path className="fz-nariz" d={FZ_NARIZ} />
+    </svg>
+  );
+}
+

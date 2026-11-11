@@ -120,7 +120,7 @@ function useAviso() {
   return [texto, mostrar] as const;
 }
 
-/* ------------------------------------------------------------------ Tipe Staff */
+/* ------------------------------------------------------------------ Tipe Equipe */
 
 type EstadoMesa = "livre" | "aberta" | "chamando" | "conta";
 type MesaStaff = { n: number; estado: EstadoMesa; itens: string[]; total: number };
@@ -351,7 +351,7 @@ export function SimuladorStaff() {
   );
 }
 
-/* ------------------------------------------------------------------ Tipe Kitchen */
+/* ------------------------------------------------------------------ Tipe Cozinha */
 
 type EtapaTicket = "novo" | "preparo" | "pronto";
 type Ticket = { id: number; mesa: number; itens: string[]; etapa: EtapaTicket; desde: number };
@@ -399,7 +399,7 @@ export function SimuladorKitchen() {
     if (t.etapa === "pronto") {
       setTickets((ts) => ts.filter((x) => x.id !== t.id));
       setEntregues((n) => n + 1);
-      avisar(`Mesa ${t.mesa} servida. O garçom foi avisado no Tipe Staff.`);
+      avisar(`Mesa ${t.mesa} servida. O garçom foi avisado no Tipe Equipe.`);
       return;
     }
     const etapa: EtapaTicket = t.etapa === "novo" ? "preparo" : "pronto";
@@ -487,7 +487,7 @@ export function SimuladorKitchen() {
   );
 }
 
-/* ------------------------------------------------------------------ Tipe Restaurant */
+/* ------------------------------------------------------------------ Tipe Gestão */
 
 type Pagto = {
   id: number;
@@ -688,7 +688,7 @@ export function SimuladorRestaurant() {
   );
 }
 
-/* ------------------------------------------------------------------ Lebre (Tipe AI) */
+/* ------------------------------------------------------------------ Lebre (IA da Tipe) */
 
 type Msg = {
   quem: "voce" | "lebre";
@@ -709,7 +709,7 @@ const PERGUNTAS: { q: string; r: string; voz?: boolean; proposta?: boolean }[] =
     proposta: true,
   },
   { q: "Quanto vendi hoje?", r: "R$ 3.184,60 em 41 pagamentos. Ticket médio de R$ 77,67." },
-  { q: "Quem está atendendo?", r: "Joyce, Caio e Rafael. O Rafael ainda não entrou no Tipe Staff." },
+  { q: "Quem está atendendo?", r: "Joyce, Caio e Rafael. O Rafael ainda não entrou no Tipe Equipe." },
 ];
 
 function responder(texto: string) {

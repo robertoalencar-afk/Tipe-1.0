@@ -39,12 +39,12 @@ const FAQ: Array<{ chave: RegExp; resposta: string }> = [
   {
     chave: /\b(como funciona|o que e a tipe|o que a tipe faz|qr ?code|tipe pay)\b/,
     resposta:
-      "O carro chefe da TIPE é o Tipe Pay: a conta abre no celular pelo QR Code da mesa, sem baixar nada. O cliente vê os itens, escolhe o que vai pagar, pode dividir um item e paga com Pix, Apple Pay ou Google Pay. Além dele, há o Tipe Order (pedido pelo celular), o Tipe Kitchen (tela da cozinha), o Tipe Staff (área do garçom), o Tipe Restaurant (painel) e a Lebre.",
+      "O carro chefe da TIPE é o Tipe Pay: a conta abre no celular pelo QR Code da mesa, sem baixar nada. O cliente vê os itens, escolhe o que vai pagar, pode dividir um item e paga com Pix, Apple Pay ou Google Pay. Além dele, há o Tipe Order (pedido pelo celular), o Tipe Cozinha (tela da cozinha), o Tipe Equipe (área do garçom), o Tipe Gestão (painel) e eu, a Lebre.",
   },
   {
     chave: /\b(produtos|modulos|funcionalidades|recursos)\b/,
     resposta:
-      "Os produtos da TIPE são o Tipe Pay (conta e pagamento pelo QR Code da mesa, o carro chefe), o Tipe Order (cardápio e pedido pelo celular), o Tipe Kitchen (tela da cozinha e do bar), o Tipe Staff (gorjetas e área do garçom), o Tipe Restaurant (painel, caixa e relatórios) e o Tipe AI, que sou eu. O Tipe Guest, de reservas e lista de espera, vem em breve.",
+      "Os produtos da TIPE são o Tipe Pay (conta e pagamento pelo QR Code da mesa, o carro chefe), o Tipe Order (cardápio e pedido pelo celular), o Tipe Cozinha (tela da cozinha e do bar), o Tipe Equipe (gorjetas e área do garçom), o Tipe Gestão (painel, caixa e relatórios) e a Lebre, a inteligência artificial da Tipe, que sou eu. O Tipe Reserva, de reservas e lista de espera, vem em breve.",
   },
   {
     chave: /\b(cardapio|pedir pelo celular|fazer pedido|tipe order)\b/,

@@ -98,7 +98,7 @@ const PASSOS: Passo[] = [
     id: "dividir",
     quem: "Cliente",
     titulo: "Divide do jeito da mesa",
-    texto: "Pagar tudo, partes iguais, por valor, por porcentagem ou só os próprios itens.",
+    texto: "Pagar tudo ou escolher só os próprios itens.",
     cena: "cena-familia",
     foco: "40% 45%",
     quadro: {
@@ -380,7 +380,7 @@ export function FluxoPagamento() {
       <div className="container-page">
         <Titulo
           rotulo="Como funciona"
-          titulo="Três momentos na mesa. Nenhuma espera."
+          titulo="Da leitura do QR Code à conta paga."
           texto="Cada toque do cliente na mesa e, ao mesmo tempo, o que acontece do lado do restaurante."
         />
       </div>

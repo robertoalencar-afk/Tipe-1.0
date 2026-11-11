@@ -1,0 +1,63 @@
+@font-face{font-family:"Inter Tight";src:url(assets/fonts/inter-tight.woff2) format("woff2");font-weight:100 900;font-style:normal}
+:root{--turq:#0FC9BD;--navy:#021E34;--off:#F6F5F1}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:#021E34;overflow:hidden}
+#stage{position:relative;overflow:hidden;font-family:"Inter Tight",system-ui,sans-serif;color:var(--navy);background:var(--off);
+  -webkit-font-smoothing:antialiased;text-rendering:geometricPrecision}
+.layer{position:absolute;inset:0}
+.plate{position:absolute;left:0;top:0;transform-origin:0 0;display:block}
+.cap{position:absolute;font-weight:400;letter-spacing:-0.045em;line-height:1.02}
+.cap .w{display:inline-block;will-change:transform,opacity}
+.eyebrow{position:absolute;font-weight:500;letter-spacing:-0.01em;display:flex;align-items:center;gap:.6em;white-space:nowrap}
+.eyebrow i{display:inline-block;width:.55em;height:.55em;border-radius:50%}
+.status{position:absolute;font-weight:500;letter-spacing:-0.005em;color:rgba(2,30,52,.62);white-space:nowrap;font-variant-numeric:tabular-nums}
+.hl{position:relative;display:inline-block}
+.hl .ul{position:absolute;left:0;height:.075em;bottom:-.06em;border-radius:99px;background:var(--turq);width:0}
+#bar{position:absolute;left:0;right:0;bottom:0}
+#barFill{position:absolute;left:0;top:0;bottom:0;width:0}
+#logoTop{position:absolute}
+#phoneWrap{position:absolute;transform-origin:50% 60%}
+.device{position:absolute;inset:0;background:#0b1520;box-shadow:0 2px 0 1px rgba(255,255,255,.06) inset,0 40px 80px -30px rgba(2,30,52,.45),0 18px 36px -18px rgba(2,30,52,.35)}
+.screen{position:absolute;overflow:hidden;background:#fff}
+.screen img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover}
+.notch{position:absolute;left:50%;transform:translateX(-50%);background:#0b1520;border-radius:99px}
+.tap{position:absolute;border-radius:50%;background:rgba(15,201,189,.35);border:2px solid rgba(15,201,189,.9);transform:translate(-50%,-50%)}
+#badge{position:absolute;border-radius:50%;background:var(--turq);display:flex;align-items:center;justify-content:center;box-shadow:0 10px 24px -8px rgba(15,201,189,.7)}
+#ring{position:absolute;border-radius:50%;border:3px solid var(--turq)}
+#steps .s{display:block}
+#end{position:absolute;inset:0;pointer-events:none}
+#iris{position:absolute;border-radius:50%;background:var(--navy)}
+#endLogo{position:absolute;left:50%}
+#endTag{position:absolute;left:0;right:0;text-align:center;color:#F6F5F1;font-weight:400;letter-spacing:-0.045em}
+#wipe{position:absolute;inset:0;pointer-events:none}
+#root{position:relative;width:__W__px;height:__H__px;overflow:hidden}
+#stage{width:__W__px;height:__H__px}
+.rigbox{position:absolute;left:0;top:0;transform-origin:0 0}
+.rigbox>.plate{position:absolute;left:0;top:0;width:100%;height:100%}
+.parte{position:absolute}
+.parte>img{position:absolute;left:0;top:0;width:100%;height:100%}
+.tampa{position:absolute;overflow:hidden}
+.tampa>img{position:absolute;left:0}
+.arco{position:absolute;left:0;top:0;opacity:0}
+.relogio{position:absolute;overflow:visible}
+.metade{position:absolute;overflow:hidden}
+.metade>.layer{position:absolute;inset:0}
+#costura{position:absolute;background:var(--turq)}
+.bloco{position:absolute}
+.bloco .eyebrow,.bloco .cap,.bloco .status{position:relative}
+.bloco .cap{display:block}
+.bloco .status{display:block}
+.bloco.centro{text-align:center}
+.bloco.centro .eyebrow{justify-content:center}
+.halo{background:radial-gradient(closest-side,rgba(246,245,241,.92),rgba(246,245,241,.75) 60%,rgba(246,245,241,0));padding:.5em 1.2em .6em}
+
+/* V9: cena em vídeo (warp9.py) no lugar das partes recortadas */
+.rigbox>video.painel{position:absolute;display:block;object-fit:fill;
+  /* as bordas do painel se fundem ao prato estendido, sem emenda */
+  -webkit-mask-image:linear-gradient(to right,transparent 0,#000 7%,#000 93%,transparent 100%),linear-gradient(to bottom,#000 0,#000 92%,transparent 100%);
+  -webkit-mask-composite:source-in;mask-composite:intersect}
+.com-video .parte{visibility:hidden}
+/* V9.1: a tartaruga garçom num salão mais quente (luz de restaurante, não estúdio frio) */
+#pB{filter:sepia(.32) saturate(1.25) hue-rotate(-10deg) brightness(1.03) contrast(1.02)}
+#scB::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(60% 55% at 70% 30%,rgba(255,196,120,.22),transparent 70%),radial-gradient(90% 80% at 50% 100%,rgba(140,80,30,.10),transparent 70%);mix-blend-mode:soft-light}

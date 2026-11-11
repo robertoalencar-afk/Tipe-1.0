@@ -13,7 +13,7 @@ export const AJUDA: Assunto[] = [
     perguntas: [
       { p: "Preciso baixar algum aplicativo?", r: "Não. Você lê o QR Code da mesa com a câmera do celular e a conta abre no navegador. Na primeira vez você informa nome e sobrenome; o celular guarda isso para as próximas visitas à mesma mesa." },
       { p: "O QR Code não abre a conta. O que faço?", r: "Confira se a câmera leu o código inteiro e se a internet está funcionando. Se aparecer que a mesa está fechada, o garçom ainda não abriu a conta ou ela já foi paga. Peça ao garçom para abrir a mesa ou trocar o código." },
-      { p: "Dá para pagar só a minha parte?", r: "Sim. Escolha os itens que você consumiu ou divida em partes iguais, por valor ou por porcentagem. Os itens pagos saem da conta na hora e a tela mostra quanto falta para fechar a mesa." },
+      { p: "Dá para pagar só a minha parte?", r: "Sim. Escolha os itens que você consumiu. Os itens pagos saem da conta na hora e a tela mostra quanto falta para fechar a mesa." },
       { p: "A conta mostra um item que eu não pedi.", r: "Não pague esse item e chame o garçom. Só a equipe do restaurante corrige ou cancela itens lançados." },
     ],
   },
@@ -32,7 +32,7 @@ export const AJUDA: Assunto[] = [
     id: "restaurante",
     titulo: "Para restaurantes",
     perguntas: [
-      { p: "Como começo a usar a Tipe?", r: "Crie a conta do restaurante em Teste grátis, com CNPJ e endereço, e conecte o PDV no primeiro acesso. A implantação é acompanhada: cadastramos as mesas, geramos os QR Codes e treinamos a equipe.", link: { href: "/teste-gratis", texto: "Começar o teste grátis" } },
+      { p: "Como começo a usar a Tipe?", r: "Crie a conta do restaurante em Teste grátis, com CNPJ e endereço, e conecte o PDV no primeiro acesso. A implantação é acompanhada: cadastramos as mesas, geramos os QR Codes e treinamos a equipe.", link: { href: "/solicitar-demonstracao", texto: "Começar o teste grátis" } },
       { p: "Funciona com o meu PDV?", r: "Você pode lançar os pedidos pelo Lançamento TIPE, no próprio painel, ou enviar mesas e itens pela API TIPE. Conectores para outros PDVs estão em desenvolvimento, com integração assistida pela nossa equipe.", link: { href: "/integracoes", texto: "Ver integrações" } },
       { p: "Quando o dinheiro cai na minha conta?", r: "Os pagamentos digitais vão para a conta de recebimento do restaurante no Pagar.me, nos prazos do Pagar.me. A Tipe não retém o valor das contas. Pagamentos no estabelecimento ficam com o restaurante e só entram no relatório depois que o caixa confirma." },
       { p: "Como convido garçons e a equipe do caixa?", r: "No painel, em Equipe e garçons, o dono convida cada pessoa pelo e-mail e escolhe o papel. Cada um entra com a própria senha; garçons veem só a área deles, com gorjetas e saques." },

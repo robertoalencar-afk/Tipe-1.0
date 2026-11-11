@@ -119,6 +119,53 @@ for (const e of EMPRESAS) {
   console.log(`${e.nome}: criado em /${e.slug} (conta aberta na mesa 1)`);
 }
 
+// Pratos com foto, foto 3D, modelo 3D, selo e alergênicos (arquivos em public/cardapio e public/modelos).
+// Upsert por código: pode rodar quantas vezes quiser e só mexe nestes itens do Bistrô Teste.
+async function cardapioComFotos(rid, nome) {
+  const F = (n, d) => ({ image_url: `/cardapio/${n}`, ...(d ? { depth_url: `/cardapio/${d}` } : {}) });
+  const grupos = [
+    ["Petiscos", [
+      ["MAR-PASTEL", "Pastel de camarão", 34, "cozinha", "Porção com 6 unidades", { ...F("pastel-1080.webp", "pastel-depth.png"), model_url: "/modelos/pastel-triposr.glb" }, []],
+      ["MAR-ISCA", "Isca de peixe", 54, "cozinha", "Com molho tártaro da casa", { ...F("isca-1080.webp", "isca-depth.png"), badge: "Mais pedido" }, ["peixe", "ovo", "glúten"]],
+    ]],
+    ["Pratos", [
+      ["MAR-BAIAO", "Baião de dois", 42, "cozinha", "Feijão-verde, queijo coalho e nata", F("baiao-1080.webp", "baiao-depth.png"), ["leite"]],
+      ["MAR-PEIXE", "Peixe na brasa", 68, "cozinha", "Pargo com pirão e salada", { ...F("peixe-720.webp"), badge: "Saindo da brasa" }, ["peixe"]],
+    ]],
+    ["Bebidas", [
+      ["MAR-CAJU", "Suco de caju", 9.5, "bar", "Copo de 400 ml", F("caju-1080.webp", "caju-depth.png"), []],
+      ["MAR-COCO", "Água de coco", 8, "bar", "Servida no coco, bem gelada", F("coco-720.webp"), []],
+    ]],
+    ["Sobremesas", [
+      ["MAR-CARTOLA", "Cartola", 19, "cozinha", "Banana, queijo coalho e canela", F("cartola-1080.webp", "cartola-depth.png"), ["leite"]],
+      ["MAR-ABACATE", "Creme de abacate", 16, "cozinha", "Com limão e raspas de rapadura. Gire o abacate em 3D.", { model_url: "/modelos/abacate.glb", badge: "Em 3D" }, []],
+    ]],
+  ];
+  let ordem = 100;
+  for (const [categoria, itens] of grupos) {
+    let { data: cat } = await admin.from("pdv_menu_categories").select("id").eq("restaurant_id", rid).eq("name", categoria).maybeSingle();
+    if (!cat) cat = ok(await admin.from("pdv_menu_categories").insert({ restaurant_id: rid, name: categoria, position: ordem }).select("id").single(), "categoria com fotos");
+    for (const [code, name, price, sector, description, midia, allergens] of itens) {
+      ok(await admin.from("pdv_menu_items").upsert({ restaurant_id: rid, category_id: cat.id, code, name, price, sector, description, allergens, available: true, position: ordem++, ...midia }, { onConflict: "restaurant_id,code" }), "item com foto");
+    }
+  }
+  console.log(`${nome}: cardápio com fotos e stories (8 pratos)`);
+}
+
+// Módulos de demonstração: Tipe Order (mesas), Tipe Cozinha e totem ligados nas empresas de teste,
+// mesmo quando elas já existiam. Idempotente; só empresas virtuais (nunca cliente real).
+for (const e of EMPRESAS) {
+  const { data: r } = await admin.from("restaurants").select("id").eq("slug", e.slug).maybeSingle();
+  if (!r) continue;
+  for (const m of ["order", "kds", "totem"]) {
+    const { error } = await admin.rpc("set_restaurant_module", { p_rid: r.id, p_module: m, p_status: "active", p_reason: "demonstração", p_actor: null, p_actor_kind: "system" });
+    if (error) console.warn(`${e.nome}: módulo ${m}: ${error.message}`);
+  }
+  ok(await admin.from("restaurants").update({ self_order_enabled: true, order_session_mode: "staff_opens", totem_enabled: true }).eq("id", r.id), "ligar order/totem");
+  console.log(`${e.nome}: Tipe Order, Cozinha e totem ligados para simulação`);
+  if (e.slug === "bistro-teste") await cardapioComFotos(r.id, e.nome);
+}
+
 if (process.env.FOUNDER_EMAIL) {
   const f = await garantirUsuario(process.env.FOUNDER_EMAIL, "Fundador");
   ok(await admin.from("user_roles").upsert({ user_id: f.id, role: "founder", restaurant_id: null }, { onConflict: "user_id,role,restaurant_id", ignoreDuplicates: true }), "papel fundador");

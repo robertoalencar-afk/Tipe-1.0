@@ -5,21 +5,20 @@ import { getMyAccess } from "@/lib/tipe/staff.functions";
 import { toast } from "sonner";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
-import { TipeLogo } from "@/components/tipe/Logo";
-import { EditorialPhoto } from "@/components/tipe/landing/EditorialPhoto";
-import { Toast } from "@/components/tipe/landing/Toast";
+import { CartaoConta, TituloCartao, type HumorLebre } from "@/components/tipe/conta/CartaoConta";
+import { PainelEsqueci } from "@/components/tipe/conta/PainelEsqueci";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MfaGate } from "@/components/tipe/FounderMfaGate";
 import { SenhaForteInput } from "@/components/tipe/SenhaForte";
+import { caminhoRetornoSeguro } from "@/lib/tipe/retorno";
 import { avaliarSenha, mensagemErroSenha } from "@/lib/tipe/senha";
-import { Check, HandCoins } from "lucide-react";
 
 export const Route = createFileRoute("/entrar")({
   validateSearch: z.object({
     r: z
       .string()
-      .regex(/^\/[a-z0-9-]+$/)
+      .transform((v) => caminhoRetornoSeguro(v))
       .optional()
       .catch(undefined),
   }),
@@ -49,10 +48,10 @@ function Entrar() {
       const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
       if (aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2") return setPrecisaMfa(true);
     }
-    if (r) return navigate({ to: "/$restaurante", params: { restaurante: r.slice(1) } });
+    if (r) return navigate({ to: r, replace: true } as never);
     try {
       const a = await fetchAccess();
-      if (a.isFounder) return navigate({ to: "/backoffice", replace: true });
+      if (a.isFounder) return navigate({ to: "/central", replace: true });
       if (a.roles.length > 0 && a.roles.every((x) => x.role === "waiter"))
         return navigate({ to: "/garcom", replace: true });
       if (a.restaurants.length === 1)
@@ -70,6 +69,11 @@ function Entrar() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [carregando, setCarregando] = useState(false);
+  const [virado, setVirado] = useState(false);
+  const [focoSenha, setFocoSenha] = useState(false);
+  const [entrando, setEntrando] = useState(false);
+  const [esqueciEnviado, setEsqueciEnviado] = useState(false);
+  const [errou, setErrou] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -87,7 +91,12 @@ function Entrar() {
     try {
       if (modo === "entrar") {
         const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
-        if (error) throw new Error("E-mail ou senha incorretos");
+        if (error) {
+          setErrou(true);
+          window.setTimeout(() => setErrou(false), 2500);
+          throw new Error("E-mail ou senha incorretos. Confira e tente de novo.");
+        }
+        setEntrando(true);
       } else {
         const forca = avaliarSenha(senha, { email });
         if (!forca.ok) throw new Error(`Senha fraca: ${forca.faltam.join(", ").toLowerCase()}.`);
@@ -125,150 +134,152 @@ function Entrar() {
       </MfaGate>
     );
 
-  const titulo = modo === "entrar" ? "Área do restaurante" : "Criar conta da equipe";
-  const subtitulo =
-    modo === "entrar"
-      ? "Entre com seu e-mail e senha para acessar o painel."
-      : "Crie sua conta para fazer parte da equipe.";
+  const humor: HumorLebre = virado
+    ? esqueciEnviado
+      ? "enviado"
+      : "pensando"
+    : entrando
+      ? "feliz"
+      : errou
+        ? "surpresa"
+        : focoSenha
+          ? "senha"
+          : "ola";
+
+  const frente = (
+    <div>
+      <TituloCartao titulo={modo === "entrar" ? "Que bom te ver de novo" : "Criar conta da equipe"}>
+        <p>
+          {modo === "entrar"
+            ? "Uma entrada só para toda a equipe. Pelo seu e-mail, levamos você direto para a sua área."
+            : "Crie sua conta para fazer parte da equipe do restaurante."}
+        </p>
+      </TituloCartao>
+      <form onSubmit={enviar} className="mt-7 space-y-5">
+        <div className="space-y-2">
+          <label htmlFor="email" className="block text-sm font-medium">
+            E-mail
+          </label>
+          <Input
+            id="email"
+            type="email"
+            required
+            placeholder="voce@restaurante.com.br"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            autoComplete="email"
+          />
+        </div>
+        <div
+          className="space-y-2"
+          onFocus={() => setFocoSenha(true)}
+          onBlur={() => setFocoSenha(false)}
+        >
+          <div className="flex items-center justify-between">
+            <label htmlFor="senha" className="text-sm font-medium">
+              Senha
+            </label>
+            {modo === "entrar" && (
+              <button
+                type="button"
+                onClick={() => setVirado(true)}
+                className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+              >
+                Esqueci a senha
+              </button>
+            )}
+          </div>
+          {modo === "criar" ? (
+            <SenhaForteInput
+              id="senha"
+              label=""
+              value={senha}
+              onChange={setSenha}
+              contexto={{ email }}
+            />
+          ) : (
+            <Input
+              id="senha"
+              type="password"
+              required
+              placeholder="••••••••••"
+              value={senha}
+              onChange={(e) => setSenha(e.target.value)}
+              autoComplete="current-password"
+            />
+          )}
+        </div>
+        <Button type="submit" size="lg" className="w-full" disabled={carregando || entrando}>
+          {entrando
+            ? "Entrando…"
+            : carregando
+              ? "Aguarde…"
+              : modo === "entrar"
+                ? "Entrar"
+                : "Criar conta"}
+        </Button>
+        <div className="flex items-center gap-3">
+          <span className="h-px flex-1 bg-border" />
+          <span className="text-xs text-muted-foreground">ou</span>
+          <span className="h-px flex-1 bg-border" />
+        </div>
+        <Button type="button" variant="outline" size="lg" className="w-full" onClick={google}>
+          Continuar com Google
+        </Button>
+      </form>
+      <p className="mt-6 text-[0.92rem] text-muted-foreground">
+        {modo === "entrar" ? (
+          <>
+            Faz parte da equipe e ainda não tem acesso?{" "}
+            <button
+              type="button"
+              className="font-medium text-foreground underline underline-offset-4"
+              onClick={() => setModo("criar")}
+            >
+              Crie sua conta
+            </button>
+            . Restaurante novo?{" "}
+            <Link
+              to="/solicitar-demonstracao"
+              className="font-medium text-foreground underline underline-offset-4"
+            >
+              Teste grátis
+            </Link>
+            .
+          </>
+        ) : (
+          <button
+            type="button"
+            className="font-medium text-foreground underline underline-offset-4"
+            onClick={() => setModo("entrar")}
+          >
+            Já tenho conta, quero entrar
+          </button>
+        )}
+      </p>
+    </div>
+  );
 
   return (
-    <main className="min-h-screen bg-background text-foreground">
-      <div className="mx-auto grid min-h-screen w-full max-w-[84rem] gap-10 px-4 py-4 sm:px-6 lg:grid-cols-[1.05fr_1fr] lg:gap-16 lg:py-6">
-        {/* Foto da operação, no formato das páginas de produto */}
-        <section className="relative hidden lg:block">
-          <EditorialPhoto
-            scene="gestor"
-            alt="Dona de restaurante conferindo as mesas no painel da Tipe pelo tablet, no balcão"
-            aspect="auto"
-            className="h-full"
-            sizes="50vw"
-            position="40% 45%"
-            radius="2rem"
-            priority
-          />
-          <div className="absolute left-6 top-6 w-[min(80%,21rem)] space-y-2.5">
-            <Toast
-              tone="dark"
-              icon={<Check className="h-4 w-4" strokeWidth={3} />}
-              title="Mesa 7 pagou R$ 186,40"
-              text="Pix aprovado, conta fechada no PDV"
-            />
-            <Toast
-              tone="dark"
-              icon={<HandCoins className="h-4 w-4" />}
-              title="Dinheiro na Mesa 3"
-              text="Confirme no painel quando receber"
-            />
-          </div>
-        </section>
-
-        {/* Formulário */}
-        <section className="flex flex-col">
-          <Link to="/" aria-label="TIPE, voltar ao site" className="w-fit pt-2">
-            <TipeLogo variant="dark" className="h-9" />
-          </Link>
-          <div className="mx-auto flex w-full max-w-[26rem] flex-1 flex-col justify-center py-12">
-            <h1 className="text-[clamp(2.2rem,1.6rem+2vw,3.2rem)] font-medium leading-[1.02] tracking-[-0.04em]">
-              {titulo}
-            </h1>
-            <p className="mt-3 text-[1.05rem] leading-relaxed text-muted-foreground">{subtitulo}</p>
-            <form onSubmit={enviar} className="mt-9 space-y-5">
-              <div className="space-y-2">
-                <label htmlFor="email" className="block text-sm font-medium">
-                  E-mail
-                </label>
-                <Input
-                  id="email"
-                  type="email"
-                  required
-                  placeholder="voce@email.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  autoComplete="email"
-                />
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <label htmlFor="senha" className="text-sm font-medium">
-                    Senha
-                  </label>
-                  {modo === "entrar" && (
-                    <Link
-                      to="/esqueci-a-senha"
-                      search={email.includes("@") ? { email } : {}}
-                      className="text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
-                    >
-                      Esqueci a senha
-                    </Link>
-                  )}
-                </div>
-                {modo === "criar" ? (
-                  <SenhaForteInput
-                    id="senha"
-                    label=""
-                    value={senha}
-                    onChange={setSenha}
-                    contexto={{ email }}
-                  />
-                ) : (
-                  <Input
-                    id="senha"
-                    type="password"
-                    required
-                    placeholder="••••••••"
-                    value={senha}
-                    onChange={(e) => setSenha(e.target.value)}
-                    autoComplete="current-password"
-                  />
-                )}
-              </div>
-
-              <Button type="submit" size="lg" className="w-full" disabled={carregando}>
-                {carregando ? "Aguarde..." : modo === "entrar" ? "Entrar" : "Criar conta"}
-              </Button>
-              <div className="flex items-center gap-3">
-                <span className="h-px flex-1 bg-border" />
-                <span className="text-xs text-muted-foreground">ou</span>
-                <span className="h-px flex-1 bg-border" />
-              </div>
-              <Button type="button" variant="outline" size="lg" className="w-full" onClick={google}>
-                Continuar com Google
-              </Button>
-            </form>
-            <p className="mt-8 text-[0.95rem] text-muted-foreground">
-              {modo === "entrar" ? (
-                <>
-                  Seu restaurante ainda não usa a Tipe?{" "}
-                  <Link
-                    to="/teste-gratis"
-                    className="font-medium text-foreground underline underline-offset-4"
-                  >
-                    Teste grátis
-                  </Link>
-                  . Faz parte da equipe?{" "}
-                  <button
-                    type="button"
-                    className="font-medium text-foreground underline underline-offset-4"
-                    onClick={() => setModo("criar")}
-                  >
-                    Crie sua conta
-                  </button>
-                  .
-                </>
-              ) : (
-                <button
-                  type="button"
-                  className="font-medium text-foreground underline underline-offset-4"
-                  onClick={() => setModo("entrar")}
-                >
-                  Voltar para entrar
-                </button>
-              )}
-            </p>
-          </div>
-        </section>
-      </div>
-    </main>
+    <CartaoConta
+      humor={humor}
+      virado={virado}
+      frente={frente}
+      verso={
+        <PainelEsqueci
+          emailInicial={email}
+          ativo={virado}
+          onEnviado={setEsqueciEnviado}
+          onVoltar={() => {
+            setVirado(false);
+            window.setTimeout(
+              () => document.getElementById("senha")?.focus({ preventScroll: true }),
+              500,
+            );
+          }}
+        />
+      }
+    />
   );
 }
 

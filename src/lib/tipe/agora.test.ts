@@ -67,6 +67,22 @@ describe("tarefasAgora", () => {
   });
 });
 
+describe("chamados das mesas", () => {
+  it("lista o chamado mais antigo primeiro, depois de dinheiro em risco", () => {
+    const t = tarefasAgora({
+      ...base,
+      incidentes: 1,
+      chamados: [
+        { id: "c2", table: "7", kind: "waiter", at: "2026-10-19T20:58:00Z" },
+        { id: "c1", table: "3", kind: "bill", at: "2026-10-19T20:55:00Z" },
+      ],
+    });
+    expect(t.map((x) => x.tipo)).toEqual(["pendencia", "chamado", "chamado"]);
+    expect(t[1]).toMatchObject({ tipo: "chamado", titulo: "Mesa 3 pediu a conta", chamadoId: "c1", destino: { mesa: "3" }, acao: "Marcar como atendido" });
+    expect(t[2]!.titulo).toBe("Mesa 7 chamou o garçom");
+  });
+});
+
 describe("haQuanto", () => {
   it("escreve minutos, horas e dias", () => {
     expect(haQuanto("2026-10-19T20:59:40Z", agora)).toBe("agora");

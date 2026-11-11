@@ -1692,7 +1692,7 @@
     animation: none;
   }
 }
-/* Avisos do Tipe Staff: o mais novo desce do topo, os outros abrem espaço. */
+/* Avisos do Tipe Equipe: o mais novo desce do topo, os outros abrem espaço. */
 @keyframes aviso-chega {
   from {
     opacity: 0;
@@ -2057,4 +2057,262 @@
 .tipe-lebre-flutua { animation: tipe-lebre-flutua 5.5s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
 @media (prefers-reduced-motion: reduce) {
   .tipe-lebre-flutua { animation: none; }
+}
+
+/* Troca de painel do seletor de atendimento (/produtos/order): sobe de leve, sem reflow. */
+@keyframes tipe-sobe-suave {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.sobe-suave {
+  animation: tipe-sobe-suave 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sobe-suave {
+    animation: none !important;
+  }
+}
+
+/* Lebre: o painel abre num salto curto, as mensagens entram rápido e o "pensando"
+   são três passos de lebre. Com movimento reduzido, tudo aparece parado. */
+@keyframes lebre-abre {
+  from { opacity: 0; transform: translateY(14px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes lebre-entra {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes lebre-passo {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.35; }
+  30% { transform: translateY(-5px); opacity: 1; }
+}
+.lebre-painel { animation: lebre-abre var(--dur-media) cubic-bezier(0.16, 1, 0.3, 1) both; transform-origin: bottom right; }
+.lebre-entra { animation: lebre-entra var(--dur-media) cubic-bezier(0.16, 1, 0.3, 1) both; }
+.lebre-passos > span { display: block; width: 7px; height: 7px; border-radius: 9999px; background: var(--brand-primary); animation: lebre-passo 0.9s ease-in-out infinite; }
+.lebre-passos > span:nth-child(2) { animation-delay: 0.12s; }
+.lebre-passos > span:nth-child(3) { animation-delay: 0.24s; }
+@media (prefers-reduced-motion: reduce) {
+  .lebre-painel, .lebre-entra { animation: none; }
+  .lebre-passos > span { animation: none; opacity: 0.7; }
+}
+
+/* Lebre cansada nas telas de conta: os "zzz" sobem devagar. */
+@keyframes tipe-zzz {
+  0% { opacity: 0; transform: translate(0, 6px); }
+  30%, 70% { opacity: 1; }
+  100% { opacity: 0; transform: translate(10px, -14px); }
+}
+.tipe-zzz { animation: tipe-zzz 2.8s ease-in-out infinite; font-size: clamp(1rem, 6%, 1.6rem); }
+@media (prefers-reduced-motion: reduce) { .tipe-zzz { animation: none; } }
+
+.focinho-cta {
+  --fz-nariz: var(--fio-nariz, #0fc9bd);
+  height: 0.85em;
+  width: 1.74em;
+  overflow: visible;
+  flex-shrink: 0;
+}
+.focinho-cta[data-v="1"] {
+  height: 1em;
+  width: 1.04em;
+}
+.focinho-cta[data-v="3"] {
+  height: 0.8em;
+  width: 1.88em;
+}
+.focinho-cta * {
+  transform-box: view-box;
+}
+.focinho-cta .fz-nariz {
+  fill: var(--fz-nariz);
+  transform-origin: 12px 9.3px;
+}
+.focinho-cta .fz-boca {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.focinho-cta .fz-fio {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 0.85;
+  stroke-linecap: round;
+  opacity: 0.6;
+}
+.focinho-cta .fz-esq {
+  transform-origin: 7.9px 10.5px;
+}
+.focinho-cta .fz-dir {
+  transform-origin: 16.1px 10.5px;
+}
+.focinho-cta-auto .fz-nariz {
+  animation: fz-fareja-auto 6.2s ease-in-out 1.8s infinite;
+}
+.focinho-cta-auto .fz-esq {
+  animation: fz-bigode-auto-e 6.2s ease-in-out 1.8s infinite;
+}
+.focinho-cta-auto .fz-dir {
+  animation: fz-bigode-auto-d 6.2s ease-in-out 1.8s infinite;
+}
+.com-fios:is(:hover, :focus-visible, :active) .focinho-cta .fz-nariz,
+.group:is(:hover, :focus-visible) .com-fios .focinho-cta .fz-nariz {
+  animation: fz-fareja 900ms ease-in-out both;
+}
+.com-fios:is(:hover, :focus-visible, :active) .focinho-cta .fz-esq,
+.group:is(:hover, :focus-visible) .com-fios .focinho-cta .fz-esq {
+  animation: fz-bigode-e 900ms ease-in-out both;
+}
+.com-fios:is(:hover, :focus-visible, :active) .focinho-cta .fz-dir,
+.group:is(:hover, :focus-visible) .com-fios .focinho-cta .fz-dir {
+  animation: fz-bigode-d 900ms ease-in-out both;
+}
+@keyframes fz-fareja {
+  0%,
+  44%,
+  100% {
+    transform: none;
+  }
+  12% {
+    transform: scale(1.1, 0.92);
+  }
+  22% {
+    transform: none;
+  }
+  32% {
+    transform: scale(1.07, 0.94);
+  }
+}
+@keyframes fz-bigode-e {
+  0%,
+  100% {
+    transform: none;
+  }
+  18% {
+    transform: rotate(5deg);
+  }
+  40% {
+    transform: rotate(-2deg);
+  }
+  60% {
+    transform: rotate(1deg);
+  }
+}
+@keyframes fz-bigode-d {
+  0%,
+  100% {
+    transform: none;
+  }
+  18% {
+    transform: rotate(-5deg);
+  }
+  40% {
+    transform: rotate(2deg);
+  }
+  60% {
+    transform: rotate(-1deg);
+  }
+}
+@keyframes fz-fareja-auto {
+  0%,
+  84%,
+  100% {
+    transform: none;
+  }
+  88% {
+    transform: scale(1.06, 0.95);
+  }
+  92% {
+    transform: none;
+  }
+  95% {
+    transform: scale(1.04, 0.97);
+  }
+}
+@keyframes fz-bigode-auto-e {
+  0%,
+  84%,
+  100% {
+    transform: none;
+  }
+  89% {
+    transform: rotate(2.5deg);
+  }
+  95% {
+    transform: rotate(-1deg);
+  }
+}
+@keyframes fz-bigode-auto-d {
+  0%,
+  84%,
+  100% {
+    transform: none;
+  }
+  89% {
+    transform: rotate(-2.5deg);
+  }
+  95% {
+    transform: rotate(1deg);
+  }
+}
+/* Sobre o turquesa, o nariz fica branco para não sumir no fundo. */
+.cta-turquesa .focinho-cta {
+  --fz-nariz: #ffffff;
+}
+.sem-movimento .focinho-cta * {
+  animation: none !important;
+  transform: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .focinho-cta * {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+/* Interno V62: barra de progresso das propostas de "Como funciona". */
+.fio-progresso {
+  animation: fio-progresso linear both;
+}
+@keyframes fio-progresso {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+/* Interno V62: propostas do ecossistema. */
+.eco-fluxo {
+  stroke-dasharray: 2 2.5;
+  animation: eco-fluxo 1.6s linear infinite;
+}
+@keyframes eco-fluxo {
+  to {
+    stroke-dashoffset: -9;
+  }
+}
+.eco-entra {
+  animation: eco-entra 600ms var(--ease-expo, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+@keyframes eco-entra {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .eco-fluxo,
+  .eco-entra,
+  .fio-progresso {
+    animation: none !important;
+  }
 }

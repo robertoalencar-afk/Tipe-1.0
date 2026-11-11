@@ -1,9 +1,10 @@
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import {
   AlertTriangle,
   ArrowRight,
+  BellRing,
   Check,
   CheckCircle2,
   HandCoins,
@@ -14,6 +15,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { useIncidents } from "@/components/tipe/PendenciasFinanceiras";
 import { getWaiterInsights } from "@/lib/tipe/waiter-insights.functions";
+import { getOpenCalls, resolveCall } from "@/lib/tipe/chamados.functions";
 import { tarefasAgora, type EntradaAgora, type TarefaAgora } from "@/lib/tipe/agora";
 import { cn } from "@/lib/utils";
 
@@ -22,6 +24,7 @@ const ICONE: Record<TarefaAgora["tipo"], React.ComponentType<{ className?: strin
   sincronizacao: PlugZap,
   cancelamento: AlertTriangle,
   confirmar: HandCoins,
+  chamado: BellRing,
   quitada: Utensils,
   nota: Star,
 };
@@ -52,6 +55,18 @@ export function PrecisaDeVoce({
     enabled: podeConfirmar,
     refetchInterval: 60000,
   });
+  const fetchChamados = useServerFn(getOpenCalls);
+  const chamados = useQuery({
+    queryKey: ["table-calls", slug],
+    queryFn: () => fetchChamados({ data: { slug } }),
+    refetchInterval: 15000,
+  });
+  const atender = useServerFn(resolveCall);
+  const qc = useQueryClient();
+  const atendido = useMutation({
+    mutationFn: (id: string) => atender({ data: { id } }),
+    onSettled: () => qc.invalidateQueries({ queryKey: ["table-calls", slug] }),
+  });
   const tarefas = useMemo(
     () =>
       tarefasAgora({
@@ -60,9 +75,10 @@ export function PrecisaDeVoce({
         notas: (insights.data ?? []).flatMap((w) =>
           w.comments.map((c) => ({ ...c, garcom: w.name.split(" ")[0] ?? w.name })),
         ),
+        chamados: chamados.data ?? [],
         agora: new Date(),
       }),
-    [entrada, incidentes.data, insights.data],
+    [entrada, incidentes.data, insights.data, chamados.data],
   );
 
   return (
@@ -109,7 +125,22 @@ export function PrecisaDeVoce({
                   <p className="text-xs text-muted-foreground sm:truncate">{t.detalhe}</p>
                 </div>
                 <div className="ml-auto flex shrink-0 gap-2 max-sm:w-full max-sm:pl-12">
-                  {t.pagamentoId && podeConfirmar ? (
+                  {t.chamadoId ? (
+                    <>
+                      <Button size="sm" variant="ghost" onClick={ir}>
+                        Ver mesa
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ink"
+                        disabled={atendido.isPending && atendido.variables === t.chamadoId}
+                        onClick={() => atendido.mutate(t.chamadoId!)}
+                      >
+                        <Check />
+                        {t.acao}
+                      </Button>
+                    </>
+                  ) : t.pagamentoId && podeConfirmar ? (
                     <>
                       <Button size="sm" variant="ghost" onClick={ir}>
                         Ver mesa

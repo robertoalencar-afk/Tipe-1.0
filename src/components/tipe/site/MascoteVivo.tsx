@@ -23,10 +23,13 @@ export function MascoteVivo({
   className,
   alt = "",
   olhaCursor = true,
+  fecharOlhos = false,
 }: {
   className?: string;
   alt?: string;
   olhaCursor?: boolean;
+  /** Mantém os olhos fechados (ex.: enquanto a senha é digitada no login). */
+  fecharOlhos?: boolean;
 }) {
   const raiz = useRef<HTMLDivElement>(null);
   const rosto = useRef<HTMLDivElement>(null);
@@ -173,7 +176,11 @@ export function MascoteVivo({
           ref={olhosFechados}
           src={piscando}
           alt=""
-          className={cn(CAMADA, "opacity-0")}
+          className={cn(
+            CAMADA,
+            "transition-opacity duration-200",
+            fecharOlhos ? "!opacity-100" : "opacity-0",
+          )}
           width={512}
           height={512}
         />
