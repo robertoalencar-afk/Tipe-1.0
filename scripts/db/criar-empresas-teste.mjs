@@ -119,6 +119,19 @@ for (const e of EMPRESAS) {
   console.log(`${e.nome}: criado em /${e.slug} (conta aberta na mesa 1)`);
 }
 
+// Logomarca de demonstração: sobe o PNG para o bucket público do restaurante e grava logo_url.
+async function logomarca(rid, e) {
+  const arquivo = new URL(`./assets/logo-${e.slug}.png`, import.meta.url);
+  const { readFile } = await import("node:fs/promises");
+  const bytes = await readFile(arquivo).catch(() => null);
+  if (!bytes) return;
+  const { error } = await admin.storage.from("restaurante-midia").upload(`${rid}/logo`, bytes, { contentType: "image/png", upsert: true, cacheControl: "300" });
+  if (error) { console.warn(`${e.nome}: logomarca: ${error.message}`); return; }
+  const { data } = admin.storage.from("restaurante-midia").getPublicUrl(`${rid}/logo`);
+  ok(await admin.from("restaurants").update({ logo_url: `${data.publicUrl}?v=${Date.now()}` }).eq("id", rid), "gravar logo_url");
+  console.log(`${e.nome}: logomarca de demonstração enviada`);
+}
+
 // Pratos com foto, foto 3D, modelo 3D, selo e alergênicos (arquivos em public/cardapio e public/modelos).
 // Upsert por código: pode rodar quantas vezes quiser e só mexe nestes itens do Bistrô Teste.
 async function cardapioComFotos(rid, nome) {
@@ -163,6 +176,7 @@ for (const e of EMPRESAS) {
   }
   ok(await admin.from("restaurants").update({ self_order_enabled: true, order_session_mode: "staff_opens", totem_enabled: true }).eq("id", r.id), "ligar order/totem");
   console.log(`${e.nome}: Tipe Order, Cozinha e totem ligados para simulação`);
+  await logomarca(r.id, e);
   if (e.slug === "bistro-teste") await cardapioComFotos(r.id, e.nome);
 }
 

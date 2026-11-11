@@ -10,6 +10,7 @@ const Slug = z.string().min(1).max(64).regex(/^[a-z0-9-]+$/);
 export type PublicMenu = {
   selfOrder: boolean;
   restaurantName: string;
+  logoUrl: string | null;
   categories: { id: string; name: string }[];
   items: {
     id: string; categoryId: string | null; code: string; name: string; price: number; description: string | null;
@@ -32,7 +33,9 @@ export const getPublicMenu = createServerFn({ method: "GET" })
       supabaseAdmin.from("pdv_menu_categories").select("id, name, position").eq("restaurant_id", r.id).order("position"),
       supabaseAdmin.from("pdv_menu_items").select("id, category_id, code, name, price, available, position, description, image_url, depth_url, model_url, badge, allergens").eq("restaurant_id", r.id).eq("available", true).order("position"),
     ]);
+    const { data: logoRow } = await supabaseAdmin.from("restaurants").select("logo_url").eq("id", r.id).maybeSingle();
     return {
+      logoUrl: ((logoRow as { logo_url?: string | null } | null)?.logo_url) ?? null,
       restaurantName: (r as { name?: string }).name ?? "",
       selfOrder: hasOrder === true && ((r as { self_order_enabled?: boolean }).self_order_enabled ?? false),
       categories: (cats.data ?? []).map((c) => ({ id: c.id, name: c.name })),

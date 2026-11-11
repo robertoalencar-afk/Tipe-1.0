@@ -55,7 +55,7 @@ export function Foto3D({
   foto,
   profundidade,
   alt,
-  intensidade = 0.045,
+  intensidade = 0.08,
   ativo = true,
   className,
 }: {
@@ -155,8 +155,8 @@ export function Foto3D({
           if (!ativoRef.current) return;
           const ocioso = t - alvo.current.tocado > 1800;
           const s = (t - t0) / 1000;
-          const ax = ocioso ? Math.sin(s * 0.9) * 0.7 : alvo.current.x;
-          const ay = ocioso ? Math.cos(s * 0.6) * 0.45 : alvo.current.y;
+          const ax = ocioso ? Math.sin(s * 1.1) * 1 : alvo.current.x;
+          const ay = ocioso ? Math.cos(s * 0.8) * 0.6 : alvo.current.y;
           atual.x += (ax - atual.x) * 0.08;
           atual.y += (ay - atual.y) * 0.08;
           gl.uniform2f(uDesloc, atual.x * intensidade, atual.y * intensidade);
