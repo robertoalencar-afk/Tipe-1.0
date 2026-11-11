@@ -2082,3 +2082,12 @@
   .lebre-painel, .lebre-entra { animation: none; }
   .lebre-passos > span { animation: none; opacity: 0.7; }
 }
+
+/* Lebre cansada nas telas de conta: os "zzz" sobem devagar. */
+@keyframes tipe-zzz {
+  0% { opacity: 0; transform: translate(0, 6px); }
+  30%, 70% { opacity: 1; }
+  100% { opacity: 0; transform: translate(10px, -14px); }
+}
+.tipe-zzz { animation: tipe-zzz 2.8s ease-in-out infinite; font-size: clamp(1rem, 6%, 1.6rem); }
+@media (prefers-reduced-motion: reduce) { .tipe-zzz { animation: none; } }
