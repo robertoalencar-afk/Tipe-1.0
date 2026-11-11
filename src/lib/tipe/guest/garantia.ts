@@ -71,3 +71,87 @@ export function guaranteePolicyLines(s: GuaranteeSettings, party: number) {
     `Se o restaurante cancelar, você recebe tudo de volta.`,
   ];
 }
+
+// ---------------------------------------------------------------- estado do pagamento e webhooks
+// Nada aqui cobra ou devolve dinheiro de verdade: é só a regra que o backend vai seguir quando o
+// gateway for escolhido. Regras de retenção ainda não são decisão jurídica final.
+
+export type GuaranteePaymentStatus =
+  "aguardando" | "paga" | "falhou" | "devolvida" | "retida" | "creditada";
+
+export type GuaranteeState = {
+  status: GuaranteePaymentStatus;
+  amountCents: number;
+  /** Ids de eventos do gateway já aplicados: o mesmo webhook duas vezes não muda nada. */
+  seenEventIds: readonly string[];
+};
+
+export type GuaranteeWebhook = {
+  id: string;
+  type: "pagamento_aprovado" | "pagamento_recusado" | "estorno_confirmado";
+  amountCents: number;
+};
+
+const NEXT: Record<
+  GuaranteeWebhook["type"],
+  Partial<Record<GuaranteePaymentStatus, GuaranteePaymentStatus>>
+> = {
+  pagamento_aprovado: { aguardando: "paga", falhou: "paga" },
+  pagamento_recusado: { aguardando: "falhou" },
+  estorno_confirmado: { paga: "devolvida" },
+};
+
+/**
+ * Aplica um webhook do gateway. Idempotente pelo id; ignora valor divergente e transições
+ * fora de ordem (ex.: recusa depois de aprovado). Devolve se mudou algo e por quê.
+ */
+export function applyGuaranteeWebhook(s: GuaranteeState, w: GuaranteeWebhook) {
+  if (s.seenEventIds.includes(w.id))
+    return { state: s, changed: false, reason: "duplicado" } as const;
+  const seen = [...s.seenEventIds, w.id];
+  if (w.amountCents !== s.amountCents)
+    return {
+      state: { ...s, seenEventIds: seen },
+      changed: false,
+      reason: "valor_divergente",
+    } as const;
+  const to = NEXT[w.type][s.status];
+  if (!to)
+    return {
+      state: { ...s, seenEventIds: seen },
+      changed: false,
+      reason: "fora_de_ordem",
+    } as const;
+  return { state: { ...s, status: to, seenEventIds: seen }, changed: true, reason: "ok" } as const;
+}
+
+/** Fecha a garantia paga conforme o desfecho da reserva. Só age em garantia "paga". */
+export function settleGuarantee(
+  s: GuaranteeState,
+  outcome: GuaranteeOutcome,
+  billCents = 0,
+): { state: GuaranteeState; refundCents: number; creditUsedCents: number; billToPayCents: number } {
+  if (s.status !== "paga")
+    return { state: s, refundCents: 0, creditUsedCents: 0, billToPayCents: Math.max(0, billCents) };
+  if (outcome === "devolvida")
+    return {
+      state: { ...s, status: "devolvida" },
+      refundCents: s.amountCents,
+      creditUsedCents: 0,
+      billToPayCents: Math.max(0, billCents),
+    };
+  if (outcome === "retida")
+    return {
+      state: { ...s, status: "retida" },
+      refundCents: 0,
+      creditUsedCents: 0,
+      billToPayCents: 0,
+    };
+  const c = applyGuaranteeCredit(billCents, s.amountCents);
+  return {
+    state: { ...s, status: "creditada" },
+    refundCents: c.refund,
+    creditUsedCents: c.used,
+    billToPayCents: c.toPay,
+  };
+}

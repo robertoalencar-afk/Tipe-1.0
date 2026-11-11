@@ -45,6 +45,11 @@ export function staffTransitionAllowed(from: ReservationStatus, to: ReservationS
 export type ReservationSettings = {
   /** Deslocamento do fuso do restaurante em minutos (America/Fortaleza = -180, sem horário de verão). */
   utcOffsetMin: number;
+  /**
+   * Fuso IANA do restaurante (ex.: "America/Fortaleza", "America/Sao_Paulo").
+   * Quando presente, vale sobre utcOffsetMin e respeita horário de verão.
+   */
+  timeZone?: string;
   slotIntervalMin: number;
   durationMin: number;
   bufferMin: number;
@@ -87,8 +92,44 @@ export type Occupation = { tableId: string; start: Date; end: Date };
 
 const MIN = 60_000;
 
+type TzSettings = Pick<ReservationSettings, "utcOffsetMin" | "timeZone">;
+
+const tzFormatters = new Map<string, Intl.DateTimeFormat>();
+
+/** Deslocamento (minutos) do fuso do restaurante naquele instante. IANA quando houver. */
+export function offsetAt(d: Date, s: TzSettings): number {
+  if (!s.timeZone) return s.utcOffsetMin;
+  let f = tzFormatters.get(s.timeZone);
+  if (!f) {
+    f = new Intl.DateTimeFormat("en-US", {
+      timeZone: s.timeZone,
+      hourCycle: "h23",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+    tzFormatters.set(s.timeZone, f);
+  }
+  const p: Record<string, number> = {};
+  for (const x of f.formatToParts(d)) p[x.type] = Number(x.value);
+  const n = (k: string) => p[k] ?? 0;
+  const asUtc = Date.UTC(n("year"), n("month") - 1, n("day"), n("hour"), n("minute"), n("second"));
+  return Math.round((asUtc - Math.floor(d.getTime() / 1000) * 1000) / MIN);
+}
+
+/** Instante UTC de um horário local (minutos desde a meia-noite) num dia local AAAA-MM-DD. */
+function localToUtc(day: string, minuteOfDay: number, s: TzSettings): Date {
+  const wall = Date.parse(`${day}T00:00:00Z`) + minuteOfDay * MIN;
+  let guess = wall - offsetAt(new Date(wall), s) * MIN;
+  guess = wall - offsetAt(new Date(guess), s) * MIN;
+  return new Date(guess);
+}
+
 function local(d: Date, s: ReservationSettings) {
-  const l = new Date(d.getTime() + s.utcOffsetMin * MIN);
+  const l = new Date(d.getTime() + offsetAt(d, s) * MIN);
   return {
     weekday: l.getUTCDay(),
     minuteOfDay: l.getUTCHours() * 60 + l.getUTCMinutes(),
@@ -196,14 +237,13 @@ export function availableSlots(args: {
   occupations: Occupation[];
 }): Date[] {
   const { day, settings: s } = args;
-  const midnightUtc = Date.parse(`${day}T00:00:00Z`) - s.utcOffsetMin * MIN;
   const weekday = new Date(Date.parse(`${day}T00:00:00Z`)).getUTCDay();
   const out: Date[] = [];
   for (const r of args.rules
     .filter((x) => x.weekday === weekday)
     .sort((a, b) => a.firstSeatingMin - b.firstSeatingMin)) {
     for (let m = r.firstSeatingMin; m <= r.lastSeatingMin; m += s.slotIntervalMin) {
-      const start = new Date(midnightUtc + m * MIN);
+      const start = localToUtc(day, m, s);
       if (slotClosedReason({ ...args, start }) !== null) continue;
       if (findTables({ ...args, range: occupiedRange(start, s) }) === null) continue;
       if (!out.some((d) => d.getTime() === start.getTime())) out.push(start);
@@ -237,28 +277,18 @@ export function waitlistPositionLabel(position: number) {
 // ---------------------------------------------------------------- painel do restaurante (Fase 5)
 
 /** Data local AAAA-MM-DD do instante, no fuso do restaurante. */
-export function localDay(
-  d: Date,
-  s: Pick<ReservationSettings, "utcOffsetMin"> = DEFAULT_RESERVATION_SETTINGS,
-) {
-  return new Date(d.getTime() + s.utcOffsetMin * MIN).toISOString().slice(0, 10);
+export function localDay(d: Date, s: TzSettings = DEFAULT_RESERVATION_SETTINGS) {
+  return new Date(d.getTime() + offsetAt(d, s) * MIN).toISOString().slice(0, 10);
 }
 
 /** Hora local HH:MM do instante, no fuso do restaurante. */
-export function localTime(
-  d: Date,
-  s: Pick<ReservationSettings, "utcOffsetMin"> = DEFAULT_RESERVATION_SETTINGS,
-) {
-  return new Date(d.getTime() + s.utcOffsetMin * MIN).toISOString().slice(11, 16);
+export function localTime(d: Date, s: TzSettings = DEFAULT_RESERVATION_SETTINGS) {
+  return new Date(d.getTime() + offsetAt(d, s) * MIN).toISOString().slice(11, 16);
 }
 
 /** Dia local como faixa UTC meio aberta [start, end). */
-export function dayRange(
-  day: string,
-  s: Pick<ReservationSettings, "utcOffsetMin"> = DEFAULT_RESERVATION_SETTINGS,
-) {
-  const start = new Date(Date.parse(`${day}T00:00:00Z`) - s.utcOffsetMin * MIN);
-  return { start, end: new Date(start.getTime() + 1440 * MIN) };
+export function dayRange(day: string, s: TzSettings = DEFAULT_RESERVATION_SETTINGS) {
+  return { start: localToUtc(day, 0, s), end: localToUtc(addDays(day, 1), 0, s) };
 }
 
 export function addDays(day: string, n: number) {
@@ -269,10 +299,10 @@ export function addDays(day: string, n: number) {
 export function localInstant(
   day: string,
   hhmm: string,
-  s: Pick<ReservationSettings, "utcOffsetMin"> = DEFAULT_RESERVATION_SETTINGS,
+  s: TzSettings = DEFAULT_RESERVATION_SETTINGS,
 ) {
   const [h, m] = hhmm.split(":").map(Number);
-  return new Date(dayRange(day, s).start.getTime() + ((h ?? 0) * 60 + (m ?? 0)) * MIN);
+  return localToUtc(day, (h ?? 0) * 60 + (m ?? 0), s);
 }
 
 /** Ações da equipe para cada estado, na ordem em que aparecem no painel. */

@@ -71,6 +71,9 @@ grep -qE "FALHOU|ERROR" /tmp/tipe-reservas.log && FAIL=1
 $P -v ON_ERROR_STOP=1 -f "$DIR/guest-fila.sql" >/tmp/tipe-fila.raw 2>&1 || FAIL=1
 grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-fila.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-fila.log
 grep -qE "FALHOU|ERROR" /tmp/tipe-fila.log && FAIL=1
+$P -v ON_ERROR_STOP=1 -f "$DIR/guest-permissoes.sql" >/tmp/tipe-perm.raw 2>&1 || FAIL=1
+grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-perm.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-perm.log
+grep -qE "FALHOU|ERROR" /tmp/tipe-perm.log && FAIL=1
 
 # Assinatura (0036): reaplica sem erro e roda os cenários.
 $P -v ON_ERROR_STOP=1 -f "$REPO/drizzle/migrations/0036_subscription_access.sql" >/dev/null 2>/tmp/tipe-0036.log || { echo "FALHOU: 0036 não reaplica"; cat /tmp/tipe-0036.log; FAIL=1; }

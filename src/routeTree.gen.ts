@@ -23,6 +23,7 @@ import { Route as EsqueciASenhaRouteImport } from './routes/esqueci-a-senha'
 import { Route as FundadorRouteImport } from './routes/fundador'
 import { Route as GestaoRouteImport } from './routes/gestao'
 import { Route as GuestRouteImport } from './routes/guest'
+import { Route as GuestDemoRouteImport } from './routes/guest-demo'
 import { Route as IntegracoesRouteImport } from './routes/integracoes'
 import { Route as LebreRouteImport } from './routes/lebre'
 import { Route as OrderRouteImport } from './routes/order'
@@ -168,6 +169,11 @@ const GestaoRoute = GestaoRouteImport.update({
 const GuestRoute = GuestRouteImport.update({
   id: '/guest',
   path: '/guest',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuestDemoRoute = GuestDemoRouteImport.update({
+  id: '/guest-demo',
+  path: '/guest-demo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IntegracoesRoute = IntegracoesRouteImport.update({
@@ -575,6 +581,7 @@ export interface FileRoutesByFullPath {
   '/fundador': typeof FundadorRoute
   '/gestao': typeof GestaoRoute
   '/guest': typeof GuestRoute
+  '/guest-demo': typeof GuestDemoRoute
   '/integracoes': typeof IntegracoesRoute
   '/lebre': typeof LebreRoute
   '/order': typeof OrderRoute
@@ -666,6 +673,7 @@ export interface FileRoutesByTo {
   '/fundador': typeof FundadorRoute
   '/gestao': typeof GestaoRoute
   '/guest': typeof GuestRoute
+  '/guest-demo': typeof GuestDemoRoute
   '/integracoes': typeof IntegracoesRoute
   '/lebre': typeof LebreRoute
   '/order': typeof OrderRoute
@@ -760,6 +768,7 @@ export interface FileRoutesById {
   '/fundador': typeof FundadorRoute
   '/gestao': typeof GestaoRoute
   '/guest': typeof GuestRoute
+  '/guest-demo': typeof GuestDemoRoute
   '/integracoes': typeof IntegracoesRoute
   '/lebre': typeof LebreRoute
   '/order': typeof OrderRoute
@@ -854,6 +863,7 @@ export interface FileRouteTypes {
     | '/fundador'
     | '/gestao'
     | '/guest'
+    | '/guest-demo'
     | '/integracoes'
     | '/lebre'
     | '/order'
@@ -945,6 +955,7 @@ export interface FileRouteTypes {
     | '/fundador'
     | '/gestao'
     | '/guest'
+    | '/guest-demo'
     | '/integracoes'
     | '/lebre'
     | '/order'
@@ -1038,6 +1049,7 @@ export interface FileRouteTypes {
     | '/fundador'
     | '/gestao'
     | '/guest'
+    | '/guest-demo'
     | '/integracoes'
     | '/lebre'
     | '/order'
@@ -1132,6 +1144,7 @@ export interface RootRouteChildren {
   FundadorRoute: typeof FundadorRoute
   GestaoRoute: typeof GestaoRoute
   GuestRoute: typeof GuestRoute
+  GuestDemoRoute: typeof GuestDemoRoute
   IntegracoesRoute: typeof IntegracoesRoute
   LebreRoute: typeof LebreRoute
   OrderRoute: typeof OrderRoute
@@ -1277,6 +1290,13 @@ declare module '@tanstack/react-router' {
       path: '/guest'
       fullPath: '/guest'
       preLoaderRoute: typeof GuestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guest-demo': {
+      id: '/guest-demo'
+      path: '/guest-demo'
+      fullPath: '/guest-demo'
+      preLoaderRoute: typeof GuestDemoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/integracoes': {
@@ -1917,6 +1937,7 @@ const rootRouteChildren: RootRouteChildren = {
   FundadorRoute: FundadorRoute,
   GestaoRoute: GestaoRoute,
   GuestRoute: GuestRoute,
+  GuestDemoRoute: GuestDemoRoute,
   IntegracoesRoute: IntegracoesRoute,
   LebreRoute: LebreRoute,
   OrderRoute: OrderRoute,
