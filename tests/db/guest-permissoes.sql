@@ -1,4 +1,4 @@
--- Tipe Guest · permissões da equipe (0044). Rode com tests/db/run.sh.
+-- Tipe Guest · permissões da equipe (0056). Rode com tests/db/run.sh.
 \set ON_ERROR_STOP 1
 SET client_min_messages = notice;
 SET search_path = public, extensions;
@@ -6,7 +6,7 @@ SET search_path = public, extensions;
 CREATE OR REPLACE FUNCTION pg_temp.ok(cond boolean, msg text) RETURNS void LANGUAGE plpgsql AS $$
 BEGIN IF cond IS NOT TRUE THEN RAISE EXCEPTION 'FALHOU: %', msg; END IF; RAISE NOTICE 'ok: %', msg; END $$;
 
--- O papel manager vem da 0050 (PR #106); aqui só garante que existe no banco de teste.
+-- O papel manager vem da 0050; garante que existe no banco de teste.
 ALTER TYPE app_role ADD VALUE IF NOT EXISTS 'manager';
 
 DO $$

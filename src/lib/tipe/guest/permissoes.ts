@@ -1,5 +1,5 @@
 // Tipe Guest Manager · matriz de permissões (Projeto 4). Regra pura, igual no app, no servidor e
-// no banco (ver drizzle/migrations/0044_guest_staff_permissions.sql, só para revisão).
+// no banco (ver drizzle/migrations/0056_guest_staff_permissions.sql, só para revisão).
 // "Conforme autorização" e "permissão explícita" = desligado até o administrador conceder.
 
 export const GUEST_ROLES = ["admin", "gerente", "caixa", "garcom"] as const;
@@ -18,6 +18,25 @@ export const GUEST_ACTIONS = [
   "ver_perfil_cliente",
 ] as const;
 export type GuestAction = (typeof GUEST_ACTIONS)[number];
+
+/** Nome da concessão na tabela da equipe (0051, formato modulo.acao). */
+export const GUEST_PERMISSION: Record<GuestAction, string> = {
+  ver_reservas: "reservas.ver",
+  criar_reserva: "reservas.criar",
+  confirmar_chegada: "reservas.chegada",
+  atribuir_mesa: "reservas.mesa",
+  gerenciar_espera: "reservas.espera",
+  alterar_disponibilidade: "reservas.disponibilidade",
+  configurar_politicas: "reservas.politicas",
+  ver_relatorios: "reservas.relatorios",
+  gerenciar_experiencias: "reservas.experiencias",
+  ver_perfil_cliente: "reservas.perfil",
+};
+
+/** Concessões da equipe (reservas.*) → ações do Guest. */
+export function guestGrantsFrom(permissions: readonly string[]): GuestAction[] {
+  return GUEST_ACTIONS.filter((a) => permissions.includes(GUEST_PERMISSION[a]));
+}
 
 /** sim = sempre; concedivel = só com concessão explícita; nao = nunca (nem concedendo). */
 type Rule = "sim" | "concedivel" | "nao";

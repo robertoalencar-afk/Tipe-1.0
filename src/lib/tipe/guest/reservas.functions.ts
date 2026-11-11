@@ -14,7 +14,7 @@ import {
   reservationMetrics,
   type ReservationStatus,
 } from "./reservas";
-import { guestCan, guestRoleFrom, type GuestAction } from "./permissoes";
+import { guestCan, guestGrantsFrom, guestRoleFrom, type GuestAction } from "./permissoes";
 
 // Linhas cruas do PostgREST (tabelas do Guest fora dos tipos gerados).
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -33,7 +33,7 @@ const daySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
 /**
  * Restaurante, papéis do usuário, flag e módulo contratado. Recusa quem não é da equipe e quem
- * não tem a permissão da matriz do Guest (permissoes.ts; no banco, 0044 quando aplicada).
+ * não tem a permissão da matriz do Guest (permissoes.ts; no banco, 0056 quando aplicada).
  */
 async function acesso(ctx: Ctx, slug: string, need: GuestAction = "ver_reservas") {
   const { data: r } = await ctx.supabase
@@ -53,13 +53,13 @@ async function acesso(ctx: Ctx, slug: string, need: GuestAction = "ver_reservas"
     .filter((x): x is Role => ["owner", "manager", "cashier", "waiter"].includes(x));
   const guestRole = guestRoleFrom(roles);
   if (!guestRole) throw new Error("Sem permissão");
-  // Concessões "conforme autorização". Sem a 0044 aplicada, a tabela não existe: nenhuma concessão.
+  // Concessões "conforme autorização" (0051). Sem a tabela aplicada: nenhuma concessão.
   const { data: gs } = await db
-    .from("guest_staff_grants")
-    .select("action")
+    .from("restaurant_permission_grants")
+    .select("permission")
     .eq("user_id", ctx.userId)
     .eq("restaurant_id", r.id);
-  const grants = (gs ?? []).map((x: { action: string }) => x.action);
+  const grants = guestGrantsFrom((gs ?? []).map((x: { permission: string }) => x.permission));
   if (!guestCan(guestRole, need, grants)) throw new Error("Sem permissão para esta ação");
   const [{ data: flag }, { data: modulo }] = await Promise.all([
     db.rpc("guest_flag_enabled", { p_restaurant_id: r.id, p_key: GUEST_RESERVATIONS_FLAG }),
