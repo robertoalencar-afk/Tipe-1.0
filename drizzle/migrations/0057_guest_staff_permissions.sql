@@ -29,6 +29,7 @@ $$;
 CREATE OR REPLACE FUNCTION public.guest_staff_role(p_restaurant_id uuid, p_user_id uuid)
 RETURNS text LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   SELECT CASE
+    WHEN NOT public.has_restaurant_role(p_user_id, p_restaurant_id, ARRAY['owner','cashier','waiter']::public.app_role[]) THEN NULL
     WHEN EXISTS (SELECT 1 FROM user_roles WHERE user_id = p_user_id AND restaurant_id = p_restaurant_id AND role = 'owner') THEN 'admin'
     WHEN EXISTS (SELECT 1 FROM user_roles WHERE user_id = p_user_id AND restaurant_id = p_restaurant_id AND role::text = 'manager') THEN 'gerente'
     WHEN EXISTS (SELECT 1 FROM user_roles WHERE user_id = p_user_id AND restaurant_id = p_restaurant_id AND role = 'cashier') THEN 'caixa'
