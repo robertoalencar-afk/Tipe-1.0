@@ -29,6 +29,7 @@ import { Route as OrderRouteImport } from './routes/order'
 import { Route as PayRouteImport } from './routes/pay'
 import { Route as PrecosRouteImport } from './routes/precos'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as RestauranteFundadorRouteImport } from './routes/restaurante-fundador'
 import { Route as SimuladorRouteImport } from './routes/simulador'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as SolicitarDemonstracaoRouteImport } from './routes/solicitar-demonstracao'
@@ -193,6 +194,11 @@ const PrecosRoute = PrecosRouteImport.update({
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RestauranteFundadorRoute = RestauranteFundadorRouteImport.update({
+  id: '/restaurante-fundador',
+  path: '/restaurante-fundador',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SimuladorRoute = SimuladorRouteImport.update({
@@ -550,6 +556,7 @@ export interface FileRoutesByFullPath {
   '/pay': typeof PayRoute
   '/precos': typeof PrecosRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/restaurante-fundador': typeof RestauranteFundadorRoute
   '/simulador': typeof SimuladorRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/solicitar-demonstracao': typeof SolicitarDemonstracaoRoute
@@ -636,6 +643,7 @@ export interface FileRoutesByTo {
   '/pay': typeof PayRoute
   '/precos': typeof PrecosRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/restaurante-fundador': typeof RestauranteFundadorRoute
   '/simulador': typeof SimuladorRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/solicitar-demonstracao': typeof SolicitarDemonstracaoRoute
@@ -725,6 +733,7 @@ export interface FileRoutesById {
   '/pay': typeof PayRoute
   '/precos': typeof PrecosRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/restaurante-fundador': typeof RestauranteFundadorRoute
   '/simulador': typeof SimuladorRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/solicitar-demonstracao': typeof SolicitarDemonstracaoRoute
@@ -814,6 +823,7 @@ export interface FileRouteTypes {
     | '/pay'
     | '/precos'
     | '/reset-password'
+    | '/restaurante-fundador'
     | '/simulador'
     | '/sitemap.xml'
     | '/solicitar-demonstracao'
@@ -900,6 +910,7 @@ export interface FileRouteTypes {
     | '/pay'
     | '/precos'
     | '/reset-password'
+    | '/restaurante-fundador'
     | '/simulador'
     | '/sitemap.xml'
     | '/solicitar-demonstracao'
@@ -988,6 +999,7 @@ export interface FileRouteTypes {
     | '/pay'
     | '/precos'
     | '/reset-password'
+    | '/restaurante-fundador'
     | '/simulador'
     | '/sitemap.xml'
     | '/solicitar-demonstracao'
@@ -1077,6 +1089,7 @@ export interface RootRouteChildren {
   PayRoute: typeof PayRoute
   PrecosRoute: typeof PrecosRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  RestauranteFundadorRoute: typeof RestauranteFundadorRoute
   SimuladorRoute: typeof SimuladorRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   SolicitarDemonstracaoRoute: typeof SolicitarDemonstracaoRoute
@@ -1253,6 +1266,13 @@ declare module '@tanstack/react-router' {
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/restaurante-fundador': {
+      id: '/restaurante-fundador'
+      path: '/restaurante-fundador'
+      fullPath: '/restaurante-fundador'
+      preLoaderRoute: typeof RestauranteFundadorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/simulador': {
@@ -1822,6 +1842,7 @@ const rootRouteChildren: RootRouteChildren = {
   PayRoute: PayRoute,
   PrecosRoute: PrecosRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  RestauranteFundadorRoute: RestauranteFundadorRoute,
   SimuladorRoute: SimuladorRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   SolicitarDemonstracaoRoute: SolicitarDemonstracaoRoute,
