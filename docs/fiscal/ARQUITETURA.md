@@ -1,6 +1,6 @@
-# Módulo fiscal Tipe — proposta de implementação
+# Módulo fiscal Tipe — implementação em andamento
 
-Data: 11/11/2026. Documento de arquitetura, não uma integração já implementada ou homologada.
+Data: 11/11/2026. A fundação e os fluxos abaixo estão implementados na branch fiscal. Não houve emissão real, homologação de CNPJ ou ativação em produção.
 
 ## Escopo confirmado pelo usuário
 
@@ -98,3 +98,32 @@ A norma disciplina vinculação entre pagamento e documento fiscal, informaçõe
 - Focus NFe, operações NF-e: https://doc.focusnfe.com.br/docs/operacoes-disponiveis-na-api
 - Focus NFe, campos IBS/CBS: https://doc.focusnfe.com.br/docs/ibs-e-cbs
 - PlugNotas, documentação: https://docs.plugnotas.com.br/
+
+
+## Estado da implementação em 11/11/2026
+
+O primeiro conector escolhido pelo usuário é **Focus NFe**. A escolha não contratou serviço nem forneceu credenciais reais.
+
+Implementado e coberto por testes locais:
+
+- Configuração por restaurante/ambiente, CNPJ, UF, regime e fuso brasileiro; credencial cifrada e projeções públicas sem segredo. Salvar configuração desabilita a emissão e revoga a validação anterior.
+- Perfis tributários versionados, isolados por ambiente, com NCM/CFOP/unidade, versões normativas, referência contábil e regras declarativas de cálculo. As regras não executam código e não escolhem alíquotas.
+- Aritmética em centavos e preparação de venda presencial interna, conferindo itens pagos, vigências e total dos pagamentos. Taxa de serviço exige tratamento contábil explícito; o rateio conserva centavos. Gorjetas extras Tipe ficam fora.
+- Carteiras digitais exigem comprovação real de transação, adquirente, autorização e bandeira. Tentativas falhas/canceladas não são somadas à nota; estornos e contestações exigem conciliação.
+- Captura imutável dos itens e pagamentos do restaurante ao arquivar a conta, preservando o fluxo financeiro e a rotação da sessão. Corridas que mudem os itens durante o encerramento fazem a transação voltar integralmente.
+- Outbox com lease, marca durável e payload efetivamente enviado. O horário de emissão é preenchido no envio; mudança de data fiscal bloqueia o envio. Interrupções após a marca levam à consulta da mesma referência, sem repetir emissão ou cancelamento.
+- Transporte Focus NF-e/NFC-e, tratamento separado de autorização, rejeição, denegação, cancelamento e contingência offline ainda não efetivada.
+- Operações privadas de consulta/cancelamento, idempotência e auditoria; cron autenticado processa a fila. Cancelar nota não estorna pagamento.
+- Download privado de XML/DANFE/evento em origem fixa, limitado a 10 MiB, com bloqueio de redirecionamentos e vínculo da chave ao CNPJ. XML não é reformatado. HTML do emissor é isolado por sandbox e CSP sem scripts/rede.
+- Preferências de impressão por dispositivo/restaurante: USB, rede, Bluetooth; Windows, macOS, Linux, Android, iOS; bobina 58/80 mm e A4. HTML autorizado abre uma prévia e usa o diálogo do sistema; PDF é baixado para impressão. O formato do documento e o driver precisam corresponder. As preferências não instalam drivers, selecionam uma impressora pelo nome nem habilitam impressão automática.
+- Testes SQL em PostgreSQL isolado adicionados ao workflow `Publicar`, como condição para publicação.
+
+Ainda pendente antes de considerar o emissor completo:
+
+1. Conectar preparação e enfileiramento da emissão à venda canônica, com conciliação atual do adquirente e das reversões posteriores ao snapshot; cobrir vendas de balcão, destinatário e os demais tipos de operação suportados.
+2. Ativação controlada por CNPJ/ambiente e matriz de homologação real, com certificado/CSC e configuração exigida pelo emissor/UF. A emissão permanece desabilitada por padrão.
+3. Exportação contábil por período, vínculo com comprovante/consulta do cliente e tratamento operacional de pendências/rejeições.
+4. Integração local para impressão automática e testes físicos por combinação de impressora/conexão/sistema. O navegador sozinho não garante impressão silenciosa nem acesso universal a hardware.
+5. Relatórios com downloads diagramados e revisão dos modelos de totem QR/NFC solicitados pelo usuário.
+
+A enumeração de UFs e os campos de IBS/CBS não constituem homologação nacional ou garantia de atualização normativa. A tributação e o momento fiscal de cada operação precisam corresponder à revisão contábil e aos testes aplicáveis.

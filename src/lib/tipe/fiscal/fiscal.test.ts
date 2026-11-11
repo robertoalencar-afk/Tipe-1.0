@@ -10,7 +10,7 @@ const config = {
 const autorizado = {
   ref: "conta-1",
   status: "autorizado",
-  chave_nfe: "1".repeat(44),
+  chave_nfe: `232611${config.cnpj}${"1".repeat(24)}`,
   status_sefaz: "100",
 };
 const resposta = (body: unknown, status = 200) =>
@@ -29,6 +29,67 @@ describe("conector fiscal Focus — sem chamadas externas", () => {
     );
     expect((await e.consultar("nfce", "conta-1")).chave).toBe(chave);
   });
+  it("normaliza o prefixo NFe da chave retornada pela API", async () => {
+    const e = criarEmissorFocus(
+      config,
+      transporte({ ...autorizado, chave_nfe: `NFe${autorizado.chave_nfe}` }),
+    );
+    expect((await e.consultar("nfce", "conta-1")).chave).toBe(autorizado.chave_nfe);
+  });
+  it("não confunde contingência offline pendente com autorização efetivada", async () => {
+    const e = criarEmissorFocus(
+      config,
+      transporte({
+        ...autorizado,
+        contingencia_offline: true,
+        contingencia_offline_efetivada: false,
+      }),
+    );
+    expect((await e.consultar("nfce", "conta-1")).estado).toBe("processando");
+    const efetivada = criarEmissorFocus(
+      config,
+      transporte({
+        ...autorizado,
+        contingencia_offline: true,
+        contingencia_offline_efetivada: true,
+      }),
+    );
+    expect((await efetivada.consultar("nfce", "conta-1")).estado).toBe("autorizado");
+  });
+  it("recusa chave de outra empresa mesmo sem cnpj_emitente no retorno", async () => {
+    const e = criarEmissorFocus(
+      config,
+      transporte({ ...autorizado, chave_nfe: `23261100000000000191${"1".repeat(24)}` }),
+    );
+    await expect(e.consultar("nfce", "conta-1")).rejects.toMatchObject({
+      motivo: "resultado_incerto",
+    });
+  });
+  it("preserva a distinção entre denegação e rejeição", async () => {
+    const e = criarEmissorFocus(config, transporte({ status: "denegado", status_sefaz: "110" }));
+    expect((await e.consultar("nfe", "conta-1")).estado).toBe("denegado");
+  });
+  it("só aceita caminhos de arquivos da mesma origem e chave", async () => {
+    const path = `/arquivos/${config.cnpj}/202611/${autorizado.chave_nfe}-nfe.xml`;
+    const e = criarEmissorFocus(
+      config,
+      transporte({
+        ...autorizado,
+        caminho_xml_nota_fiscal: path,
+        caminho_danfe: "//atacante.invalid/arquivo.pdf",
+        caminho_xml_cancelamento: "/arquivos/empresa-errada.xml",
+        protocolo_nota_fiscal: {
+          numero_protocolo: "123456789012345",
+          data_recebimento: "2026-11-11T15:00:00-03:00",
+        },
+      }),
+    );
+    const r = await e.consultar("nfce", "conta-1");
+    expect(r.arquivos).toEqual({ xml: path, danfe: null, cancelamento: null });
+    expect(r.protocolo).toBe("123456789012345");
+    expect(r.autorizadoEm).toBe("2026-11-11T15:00:00-03:00");
+  });
+
   it("separa homologação, insere o CNPJ e preserva campos novos da reforma sem inventar taxas", async () => {
     const fetcher = transporte();
     const e = criarEmissorFocus(config, fetcher);
@@ -58,7 +119,9 @@ describe("conector fiscal Focus — sem chamadas externas", () => {
       { ...config, ambiente: "producao", producaoHabilitada: true },
       fetcher,
     ).consultar("nfce", "conta-1");
-    expect(String(fetcher.mock.calls[0]![0])).toBe("https://api.focusnfe.com.br/v2/nfce/conta-1");
+    expect(String(fetcher.mock.calls[0]![0])).toBe(
+      "https://api.focusnfe.com.br/v2/nfce/conta-1?completa=1",
+    );
   });
 
   it("não permite trocar o emitente no payload", () => {

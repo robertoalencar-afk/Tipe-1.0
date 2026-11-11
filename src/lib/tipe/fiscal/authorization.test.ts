@@ -4,14 +4,12 @@ import { requireRestaurantRoles } from "../security.server";
 function client(allowed: boolean | null, found = true, queryError = false) {
   const restaurant = { id: "restaurant-a", slug: "empresa-a", cnpj: "11222333000181" };
   const rpc = vi.fn().mockResolvedValue({ data: allowed, error: null });
-  const eq = vi
-    .fn()
-    .mockReturnValue({
-      maybeSingle: async () => ({
-        data: found ? restaurant : null,
-        error: queryError ? new Error("erro") : null,
-      }),
-    });
+  const eq = vi.fn().mockReturnValue({
+    maybeSingle: async () => ({
+      data: found ? restaurant : null,
+      error: queryError ? new Error("erro") : null,
+    }),
+  });
   const from = vi.fn().mockReturnValue({ select: vi.fn().mockReturnValue({ eq }) });
   return { api: { from, rpc }, rpc, eq, restaurant };
 }

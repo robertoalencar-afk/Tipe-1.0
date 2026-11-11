@@ -1,3 +1,4 @@
+import { urlArquivoFiscalFocus } from "./artifacts.server";
 import {
   ErroEmissorFiscal,
   type AmbienteFiscal,
@@ -49,6 +50,7 @@ export function criarEmissorFocus(
       ORIGENS[ambiente],
     );
     if (method === "POST") url.searchParams.set("ref", referencia);
+    if (method === "GET") url.searchParams.set("completa", "1");
     const abort = new AbortController();
     const timer = setTimeout(() => abort.abort(), 15_000);
     try {
@@ -80,26 +82,55 @@ export function criarEmissorFocus(
       ) {
         throw new ErroEmissorFiscal("resultado_incerto");
       }
-      const chave =
-        typeof r["chave_nfe"] === "string" && /^[0-9]{6}[A-Z0-9]{12}[0-9]{26}$/.test(r["chave_nfe"])
-          ? r["chave_nfe"]
-          : null;
+      const rawKey =
+        typeof r["chave_nfe"] === "string" ? r["chave_nfe"].replace(/^NFe/i, "").toUpperCase() : "";
+      const chave = /^[0-9]{6}[A-Z0-9]{12}[0-9]{26}$/.test(rawKey) ? rawKey : null;
+      if (chave && chave.slice(6, 20) !== cnpj) throw new ErroEmissorFiscal("resultado_incerto");
+      const arquivo = (value: unknown) =>
+        chave ? (urlArquivoFiscalFocus(ambiente, chave, value)?.pathname ?? null) : null;
       const estados: Record<string, ResultadoFiscal["estado"]> = {
         autorizado: "autorizado",
         processando_autorizacao: "processando",
         erro_autorizacao: "rejeitado",
-        denegado: "rejeitado",
+        denegado: "denegado",
         cancelado: "cancelado",
       };
       let estado =
         typeof r["status"] === "string" ? (estados[r["status"]] ?? "desconhecido") : "desconhecido";
       if (estado === "autorizado" && !chave) estado = "desconhecido";
+      if (
+        estado === "autorizado" &&
+        r["contingencia_offline"] === true &&
+        r["contingencia_offline_efetivada"] !== true
+      )
+        estado = "processando";
+      const protocol = r["protocolo_nota_fiscal"] as Record<string, unknown> | undefined;
+      const protocolNumber =
+        protocol && typeof protocol === "object" ? protocol["numero_protocolo"] : null;
+      const protocolDate =
+        protocol && typeof protocol === "object" ? protocol["data_recebimento"] : null;
+      const authorizedDate =
+        typeof protocolDate === "string" &&
+        /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/.test(protocolDate) &&
+        Number.isFinite(Date.parse(protocolDate))
+          ? protocolDate
+          : null;
       return {
         referencia,
         ambiente,
         modelo,
         estado,
         chave,
+        arquivos: {
+          xml: arquivo(r["caminho_xml_nota_fiscal"]),
+          danfe: arquivo(r["caminho_danfe"]),
+          cancelamento: arquivo(r["caminho_xml_cancelamento"]),
+        },
+        protocolo:
+          typeof protocolNumber === "string" && /^\d{1,30}$/.test(protocolNumber)
+            ? protocolNumber
+            : null,
+        autorizadoEm: estado === "autorizado" ? authorizedDate : null,
         codigoSefaz:
           typeof r["status_sefaz"] === "string" && /^\d{3}$/.test(r["status_sefaz"])
             ? r["status_sefaz"]

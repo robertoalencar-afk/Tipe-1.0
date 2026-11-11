@@ -1,5 +1,6 @@
 import { z } from "zod";
-import { UFS_FISCAIS } from "./contract";
+import { RegrasCalculoFiscal } from "./calculation";
+import { FUSOS_FISCAIS_BR, UFS_FISCAIS } from "./contract";
 
 /** Receita Federal: ASCII - 48 e módulo 11; mantém CNPJs numéricos e alfanuméricos. */
 export function normalizarCnpjFiscal(value: string) {
@@ -50,6 +51,10 @@ export const ConfiguracaoFiscal = z
     legalName: texto(2, 160),
     stateRegistration: texto(1, 24),
     uf: z.enum(UFS_FISCAIS),
+    timeZone: z.enum(FUSOS_FISCAIS_BR),
+    acquirerCnpj: CnpjFiscal.nullable().default(null),
+    serviceFeePolicy: z.enum(["blocked", "allocate_expenses"]).default("blocked"),
+    serviceFeeReview: texto(3, 200).nullable().default(null),
     municipalityCode: z.string().regex(/^\d{7}$/),
     taxRegime: z.enum(["1", "2", "3", "4"]),
     address: z
@@ -70,12 +75,16 @@ export const ConfiguracaoFiscal = z
       .regex(/^[\x21-\x7E]+$/)
       .optional(),
   })
-  .strict();
+  .strict()
+  .refine(
+    (v) => v.serviceFeePolicy === "blocked" || Boolean(v.serviceFeeReview),
+    "Registre a revisão contábil da taxa de serviço",
+  );
 
 // Metadados fiscais permitem evoluir layout, mas não sobrescrever produto, quantidade ou preço.
 const CampoTributario = z
   .string()
-  .regex(/^(icms_|pis_|cofins_|ibs_|cbs_|is_|imposto_)[a-z0-9_]+$/)
+  .regex(/^(icms_|pis_|cofins_|ibs_|cbs_|fcp_|ipi_|is_|imposto_)[a-z0-9_]+$/)
   .max(100);
 const ValorTributario = z.union([
   z.string().max(200),
@@ -93,6 +102,7 @@ export const PerfilProdutoFiscal = z
     layoutVersion: texto(1, 40),
     tablesVersion: texto(1, 80),
     reviewReference: texto(3, 200),
+    calculationRules: RegrasCalculoFiscal.default([]),
     attributes: z
       .record(CampoTributario, ValorTributario)
       .refine(

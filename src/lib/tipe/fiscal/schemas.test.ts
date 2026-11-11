@@ -8,6 +8,7 @@ const config = {
   legalName: "Empresa de teste",
   stateRegistration: "12345",
   uf: "CE",
+  timeZone: "America/Fortaleza",
   municipalityCode: "2304400",
   taxRegime: "1",
   address: {

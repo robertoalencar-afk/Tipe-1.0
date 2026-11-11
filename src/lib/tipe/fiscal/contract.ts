@@ -28,6 +28,24 @@ export const UFS_FISCAIS = [
   "SE",
   "TO",
 ] as const;
+export const FUSOS_FISCAIS_BR = [
+  "America/Araguaina",
+  "America/Bahia",
+  "America/Belem",
+  "America/Boa_Vista",
+  "America/Campo_Grande",
+  "America/Cuiaba",
+  "America/Eirunepe",
+  "America/Fortaleza",
+  "America/Maceio",
+  "America/Manaus",
+  "America/Noronha",
+  "America/Porto_Velho",
+  "America/Recife",
+  "America/Rio_Branco",
+  "America/Santarem",
+  "America/Sao_Paulo",
+] as const;
 export type UfFiscal = (typeof UFS_FISCAIS)[number];
 export type AmbienteFiscal = "homologacao" | "producao";
 export type ModeloFiscal = "nfe" | "nfce" | "nfse";
@@ -50,9 +68,12 @@ export type ResultadoFiscal = {
   referencia: string;
   ambiente: AmbienteFiscal;
   modelo: ModeloFiscal;
-  estado: "autorizado" | "processando" | "rejeitado" | "cancelado" | "desconhecido";
+  estado: "autorizado" | "processando" | "rejeitado" | "denegado" | "cancelado" | "desconhecido";
   chave: string | null;
   codigoSefaz: string | null;
+  arquivos?: { xml: string | null; danfe: string | null; cancelamento: string | null };
+  protocolo?: string | null;
+  autorizadoEm?: string | null;
 };
 
 export interface EmissorFiscal {

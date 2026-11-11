@@ -10,6 +10,7 @@ import {
   BarChart3,
   ChefHat,
   Check,
+  FileText,
   History,
   Home,
   LayoutGrid,
@@ -73,6 +74,7 @@ import { PerfilConta, useMeuPerfil } from "@/components/tipe/PerfilConta";
 import { getMidia, saveFotoItem, saveLogo } from "@/lib/tipe/midia.functions";
 import { Image as ImagemIcon, Images, BookOpen } from "lucide-react";
 import { EquipePermissoes } from "@/components/tipe/EquipePermissoes";
+import { Fiscal } from "@/components/tipe/Fiscal";
 import { TotemStudio } from "@/components/tipe/TotemStudio";
 import { LiberarPedidosMesa } from "@/components/tipe/LiberarPedidosMesa";
 import { Assinatura, AvisoAssinatura, ContaBloqueada } from "@/components/tipe/Assinatura";
@@ -221,6 +223,14 @@ const secoes = [
     i: BarChart3,
     g: "Financeiro",
     d: "Vendas, pagamentos, gorjetas e estornos por período.",
+  },
+  {
+    k: "fiscal",
+    l: "Fiscal",
+    i: FileText,
+    g: "Financeiro",
+    dono: true,
+    d: "Emitente, conexão fiscal, perfis tributários e documentos do restaurante.",
   },
   {
     k: "recebimentos",
@@ -924,6 +934,7 @@ export function RestaurantPanel({
         {aba === "integracoes" && <Integracoes slug={slug} podeDono={podeDono} />}
         {aba === "config" && <Configuracoes slug={slug} podeDono={podeDono} />}
         {aba === "atendimento" && <Atendimento slug={slug} podeDono={podeDono} irParaConfig={() => ir("config")} />}
+        {aba === "fiscal" && podeDono && <Fiscal slug={slug} />}
         {aba === "recebimentos" && podeDono && <Recebimentos slug={slug} podeDono={podeDono} />}
         {aba === "assinatura" && podeDono && <Assinatura slug={slug} />}
         {aba === "seguranca" && <SegurancaConta />}

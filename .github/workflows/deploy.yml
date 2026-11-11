@@ -34,6 +34,27 @@ jobs:
           TIPE_SQL_TEST_URL: postgresql://postgres:teste-local-ci@localhost:5432/tipe_order_review_test
         run: bash scripts/db/tests/customer-order-review.sh
 
+  testar-fiscal-sql:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: teste-local-ci
+          POSTGRES_DB: tipe_fiscal_test
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Testar isolamento, fila fiscal e preservação da venda
+        env:
+          TIPE_SQL_TEST_URL: postgresql://postgres:teste-local-ci@localhost:5432/tipe_fiscal_test
+        run: bash scripts/db/tests/fiscal.sh
+
   testar:
     runs-on: ubuntu-latest
     steps:
@@ -55,7 +76,7 @@ jobs:
           VITE_SUPABASE_PROJECT_ID: ${{ vars.VITE_SUPABASE_PROJECT_ID || 'bnggnbwmihqexvihrqvy' }}
 
   publicar:
-    needs: [testar, testar-pedidos-sql]
+    needs: [testar, testar-pedidos-sql, testar-fiscal-sql]
     # Ativação explícita impede publicar em tipe.digital antes do Supabase e dos segredos estarem prontos.
     # Defina a repository variable TIPE_PRODUCTION_READY=true somente no momento do go-live.
     if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main' && vars.TIPE_PRODUCTION_READY == 'true'
