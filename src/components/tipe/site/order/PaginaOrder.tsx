@@ -41,9 +41,9 @@ import { duvidasDe, type Produto } from "../produtos";
 import { ListaDuvidas, Relacionados } from "../ProdutoPagina";
 import { FormularioOrder } from "./FormularioOrder";
 import { SimuladorMultiformato } from "./SimuladorMultiformato";
-import { EscolhaAtendimento, SeloDisponibilidade } from "./EscolhaAtendimento";
-import { MonteSuaOperacao } from "./MonteSuaOperacao";
-import { DEFINICOES, ORDEM_SELETOR, TEXTO_DISPONIBILIDADE, type Modalidade } from "@/lib/tipe/order/modalidades";
+import { EscolhaAtendimento } from "./EscolhaAtendimento";
+import { FuncionalidadesOrder } from "./FuncionalidadesOrder";
+import { type Modalidade } from "@/lib/tipe/order/modalidades";
 import { FAQ_ORDER } from "./faq";
 import { CriarPratoDemo } from "./CriarPratoDemo";
 
@@ -113,9 +113,9 @@ function Topo({ p, estado }: { p: Produto; estado: EstadoLancamento }) {
         <div className="relative order-2 lg:order-1">
           <div className="relative overflow-hidden rounded-[2rem]">
             <Foto
-              nome={p.topo.foto}
+              nome="cena-casal"
               prioridade
-              alt={p.topo.alt}
+              alt="Casal do casting oficial da Tipe à mesa, com o celular e o suporte de QR da marca"
               posicao={p.topo.posicao}
               sizes="(min-width: 1024px) 52vw, 100vw"
               className="aspect-[4/5] rounded-[2rem] sm:aspect-square lg:aspect-[4/5]"
@@ -168,9 +168,7 @@ function Topo({ p, estado }: { p: Produto; estado: EstadoLancamento }) {
             className="hero-in mt-5 max-w-xl text-[1.05rem] leading-relaxed text-muted-foreground text-pretty sm:text-xl"
             style={{ "--d": "450ms" } as CSSProperties}
           >
-            O mesmo QR Code da mesa que mostra a conta abre o cardápio. O cliente escolhe, pede pelo
-            celular e o pedido vai direto para a cozinha e para a conta da mesa. Sem baixar
-            aplicativo e sem esperar alguém passar.
+            Na mesa ou no balcão, no celular ou na tela de autoatendimento: o pedido encontra o caminho da sua operação. Conheça os formatos, veja as telas reais e experimente o fluxo até a cozinha.
           </p>
           <div
             className="hero-in mt-8 flex flex-wrap gap-3"
@@ -411,67 +409,6 @@ function Contato({ estado }: { estado: EstadoLancamento }) {
   );
 }
 
-/* ---------------------------------------------------------- Integrações e disponibilidade */
-
-const INTEGRACOES: { t: string; d: string; estado: "operacional" | "piloto" | "desenvolvimento" | "planejada" }[] = [
-  { t: "Tipe Pay", d: "Único caminho do dinheiro: dinheiro ou maquininha no local; Pix, Apple Pay e Google Pay em piloto.", estado: "piloto" },
-  { t: "Tipe Cozinha e Tipe Equipe", d: "Pedidos por mesa, senha ou comanda na mesma tela.", estado: "operacional" },
-  { t: "Painel de senhas na TV", d: "Balcão e retirada mostram a senha pronta em qualquer tela com navegador.", estado: "piloto" },
-  { t: "Terminal de pagamento no totem", d: "Pagamento na maquininha, sem passar pelo caixa, quando o terminal for homologado.", estado: "desenvolvimento" },
-  { t: "Canais de delivery", d: "Integração com marketplaces e WhatsApp. Hoje o canal entra só como origem do pedido.", estado: "planejada" },
-  { t: "PDV e emissão fiscal", d: "Sem integração com PDV ou nota fiscal. O Order não substitui o seu sistema fiscal.", estado: "planejada" },
-];
-
-function Disponibilidade() {
-  return (
-    <Secao tema="claro" id="disponibilidade">
-      <div className="container-page">
-        <Titulo
-          rotulo="Integrações e disponibilidade"
-          titulo="O que já funciona. E o que ainda não."
-          texto="Nada aqui é promessa. Cada linha reflete o que está no produto hoje. O simulador acima mostra o fluxo de todas as modalidades, inclusive as que ainda estão em desenvolvimento."
-        />
-        <div className="mt-10 grid gap-8 lg:mt-14 lg:grid-cols-2 lg:gap-12">
-          <div>
-            <h3 className="font-display text-[1.15rem] tracking-[-0.02em] text-brand-strong">Modalidades</h3>
-            <ul className="mt-3 divide-y divide-border border-y border-border">
-              {ORDEM_SELETOR.map((m: Modalidade) => {
-                const d = DEFINICOES[m];
-                return (
-                  <li key={m} className="flex items-start justify-between gap-4 py-3.5">
-                    <div className="min-w-0">
-                      <p className="font-medium">{d.nome}</p>
-                      <p className="mt-0.5 text-[0.85rem] leading-relaxed text-muted-foreground">{TEXTO_DISPONIBILIDADE[d.disponibilidade].curto}</p>
-                    </div>
-                    <SeloDisponibilidade d={d.disponibilidade} className="shrink-0" />
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-          <div>
-            <h3 className="font-display text-[1.15rem] tracking-[-0.02em] text-brand-strong">Integrações</h3>
-            <ul className="mt-3 divide-y divide-border border-y border-border">
-              {INTEGRACOES.map((i) => (
-                <li key={i.t} className="flex items-start justify-between gap-4 py-3.5">
-                  <div className="min-w-0">
-                    <p className="font-medium">{i.t}</p>
-                    <p className="mt-0.5 text-[0.85rem] leading-relaxed text-muted-foreground">{i.d}</p>
-                  </div>
-                  <SeloDisponibilidade d={i.estado} className="shrink-0" />
-                </li>
-              ))}
-            </ul>
-            <p className="mt-4 text-[0.8rem] text-muted-foreground">
-              Sem aplicativo para o cliente: tudo abre no navegador. O Tipe Reserva (reservas) é outro produto e está em breve.
-            </p>
-          </div>
-        </div>
-      </div>
-    </Secao>
-  );
-}
-
 export function PaginaOrder({ p, estado }: { p: Produto; estado: EstadoLancamento }) {
   const t = TEXTOS_LANCAMENTO[estado];
   const [modalidade, setModalidade] = useState<Modalidade>("mesas");
@@ -484,8 +421,7 @@ export function PaginaOrder({ p, estado }: { p: Produto; estado: EstadoLancament
       <CardapioStories />
       <CriarPratoDemo />
       <TudoConectado />
-      <MonteSuaOperacao estado={estado} />
-      <Disponibilidade />
+      <FuncionalidadesOrder />
       <ListaDuvidas faq={faq} />
       <Contato estado={estado} />
       <Relacionados p={p} />

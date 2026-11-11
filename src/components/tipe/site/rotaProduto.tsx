@@ -14,9 +14,9 @@ const SITE = "https://tipe.digital";
 /** Título e descrição próprios quando o texto do catálogo não basta para a busca. */
 const SEO: Record<string, { title: string; description: string }> = {
   order: {
-    title: "Tipe Order · Peça sem esperar. Cardápio e pedido pelo QR Code da mesa | Tipe",
+    title: "Tipe Order · Cardápio, pedidos e autoatendimento | Tipe",
     description:
-      "Tipe Order: o mesmo QR Code da conta abre o cardápio. O cliente pede pelo celular, o pedido vai para a cozinha e entra na conta da mesa. Módulo adicional do Tipe Pay, sem aplicativo.",
+      "Conheça os formatos do Tipe Order: mesas, balcão, retirada, delivery, pulseira NFC e totem. Veja telas reais, disponibilidade e experimente o simulador sem cadastro.",
   },
 };
 
