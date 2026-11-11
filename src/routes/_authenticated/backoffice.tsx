@@ -1,5 +1,5 @@
 import { FounderMfaGate } from "@/components/tipe/FounderMfaGate";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { LebreLimits } from "@/components/tipe/LebreLimits";
@@ -42,10 +42,12 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { SaquesGarcons } from "@/components/tipe/SaquesGarcons";
+import { ModuloOrder } from "@/components/tipe/ModulosFundador";
 import { getFounderOverview } from "@/lib/tipe/founder.functions";
 import { createRestaurant } from "@/lib/tipe/staff.functions";
 
 export const Route = createFileRoute("/_authenticated/backoffice")({
+  beforeLoad: () => { throw redirect({ to: "/central" }); },
   head: () => ({
     meta: [
       { title: "Backoffice administrativo e financeiro | TIPE" },
@@ -376,7 +378,7 @@ function Backoffice() {
                     ))}
                   </div>
                   <div className="hidden overflow-x-auto rounded-[1.25rem] border border-border bg-card md:block">
-                    <table className="w-full min-w-[900px] text-sm">
+                    <table className="w-full min-w-[1000px] text-sm">
                       <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
                         <tr>
                           {[
@@ -386,6 +388,7 @@ function Backoffice() {
                             "Estrutura",
                             "Volume 30d",
                             "Recebimentos",
+                            "Tipe Order",
                           ].map((heading) => (
                             <th key={heading} className="p-3 font-semibold">
                               {heading}
@@ -433,6 +436,9 @@ function Backoffice() {
                             </td>
                             <td className="p-3">
                               <ReceivingStatus status={r.payout} />
+                            </td>
+                            <td className="p-3">
+                              <ModuloOrder restaurantId={r.id} nome={r.name} />
                             </td>
                           </tr>
                         ))}
@@ -499,7 +505,7 @@ function Backoffice() {
                         className="mb-4 flex h-10 items-center justify-center rounded-full bg-foreground text-sm font-medium text-background"
                       >
                         Abrir lista de espera completa
-                      </Link>
+                      </Link>\n                      <Link to="/crm" className="mb-4 flex h-10 items-center justify-center rounded-full border border-border text-sm font-medium">Abrir CRM comercial</Link>
                       {overview.leads.length === 0 ? (
                         <Empty text="Nenhum contato recebido." />
                       ) : (
@@ -830,6 +836,12 @@ function RestaurantCard({ restaurant: r }: { restaurant: RestaurantSummary }) {
           <dt className="text-xs text-muted-foreground">Recebimentos</dt>
           <dd className="mt-1">
             <ReceivingStatus status={r.payout} />
+          </dd>
+        </div>
+        <div>
+          <dt className="text-xs text-muted-foreground">Tipe Order</dt>
+          <dd className="mt-1">
+            <ModuloOrder restaurantId={r.id} nome={r.name} />
           </dd>
         </div>
       </dl>

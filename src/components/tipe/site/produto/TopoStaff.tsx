@@ -1,5 +1,5 @@
 /**
- * Topo do Tipe Staff, na montagem do Staff app da sunday (referência só visual): a foto
+ * Topo do Tipe Equipe, na montagem do Staff app da sunday (referência só visual): a foto
  * vertical da garçonete com cantos arredondados e três avisos de vidro escuro translúcido
  * empilhados à direita, na altura do balcão, saindo pela borda direita. O rosto (no alto,
  * à esquerda) e o celular ficam sempre fora da pilha. Entram um a um; com movimento
@@ -7,7 +7,7 @@
  */
 import type { CSSProperties, ReactNode } from "react";
 import { Star } from "lucide-react";
-import { SimboloTipe } from "../marca/SimboloTipe";
+import { SimboloTipe } from "@/components/tipe/landing/Marcas";
 import { cn } from "@/lib/utils";
 import { fotoSrc } from "../Foto";
 import { useInView } from "@/components/tipe/landing/motion";
@@ -25,7 +25,7 @@ function Aviso({
   return (
     <li className="staff-aviso" style={{ "--d": `${atraso}ms` } as CSSProperties}>
       <span className="staff-aviso-icone" aria-hidden>
-        <SimboloTipe className="h-[56%] w-[56%]" />
+        <SimboloTipe className="h-[62%] w-[62%] object-contain" />
       </span>
       <span className="min-w-0 flex-1">
         <span className="staff-aviso-titulo">{titulo}</span>
@@ -64,9 +64,9 @@ export function MontagemStaff({
             decoding="async"
           />
         </div>
-        <ol aria-label="Exemplo de avisos do Tipe Staff" className="staff-avisos">
-          <Aviso titulo="Mesa 14 · Gorjeta extra recebida" atraso={350}>
-            Cliente deixou <span className="money">R$ 37,80</span> de gorjeta extra.
+        <ol aria-label="Exemplo de avisos do Tipe Equipe" className="staff-avisos">
+          <Aviso titulo="Mesa 14 · Conta paga" atraso={350}>
+            + <span className="money">R$ 37,80</span> de gorjeta extra para você
           </Aviso>
           <Aviso titulo="Mesa 12 · Avaliação" atraso={900}>
             <span className="inline-flex items-center gap-1.5">
@@ -89,8 +89,8 @@ export function MontagemStaff({
       </div>
       <figcaption className="mx-auto mt-4 flex max-w-[34rem] items-start gap-2 text-[0.8rem] leading-snug text-muted-foreground">
         <span aria-hidden className="mt-[0.4em] h-1.5 w-1.5 shrink-0 rounded-full bg-[#0FC9BD]" />
-        Valores demonstrativos. A gorjeta extra é opcional e cobrada à parte. Dos R$ 37,80 deixados
-        na Mesa 14, 70% (R$ 26,46) vão para quem atendeu e 30% (R$ 11,34) ficam com a Tipe.
+        Valores demonstrativos. A gorjeta extra é opcional: dos R$ 54,00 deixados na Mesa 14, 70%
+        vão para quem atendeu.
       </figcaption>
     </figure>
   );

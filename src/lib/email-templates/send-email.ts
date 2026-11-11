@@ -1,18 +1,12 @@
 import * as React from 'react'
 import { render } from '@react-email/render'
-import { EmailAPIError, sendLovableEmail } from '@lovable.dev/email-js'
 import { TEMPLATES } from './registry'
 
-// Server-only: reads LOVABLE_API_KEY. Never import from client components.
+// Server-only: reads RESEND_API_KEY. Never import from client components.
 
-// Configuration baked in at scaffold time
 const SITE_NAME = "TIPE"
-// SENDER_DOMAIN is the verified sender subdomain FQDN (e.g., "notify.example.com").
-// It MUST match the subdomain delegated to Lovable's nameservers. NEVER use the root domain.
-const SENDER_DOMAIN = "alerta.tipe.digital"
-// FROM_DOMAIN is the domain shown in the From: header (e.g., "example.com").
-// Can be the root domain when display_from_root is enabled — this is cosmetic only.
-const FROM_DOMAIN = "tipe.digital"
+// Endereço de envio; o domínio precisa estar verificado no Resend.
+const FROM_ADDRESS = process.env['EMAIL_FROM'] || 'noreply@tipe.digital'
 
 export type SendTemplateEmailResult =
   | { sent: true }
@@ -23,23 +17,37 @@ export interface SendTemplateEmailOptions {
   /** Dedupes retries of the same logical send; defaults to a random UUID (no dedupe). */
   idempotencyKey?: string
   replyTo?: string
+  /** Vínculos para o histórico de e-mails da Central Tipe (email_log). */
+  leadId?: string | null
+  restaurantId?: string | null
+}
+
+// Histórico na Central Tipe: grava o envio em email_log sem nunca bloquear o envio.
+async function registrarEnvio(r: { template: string; to: string; subject: string; resendId?: string | null; status: 'sent' | 'failed' | 'suppressed'; error?: string | null; leadId?: string | null | undefined; restaurantId?: string | null | undefined }) {
+  try {
+    const { supabaseAdmin } = await import('@/integrations/supabase/client.server')
+    await (supabaseAdmin as unknown as { from: (t: string) => any }).from('email_log').insert({
+      template: r.template, to_email: r.to.toLowerCase(), subject: r.subject, resend_id: r.resendId ?? null,
+      status: r.status, error: r.error ?? null, lead_id: r.leadId ?? null, restaurant_id: r.restaurantId ?? null,
+    })
+  } catch (e) {
+    console.warn('[email_log] não gravou histórico:', (e as Error).message)
+  }
 }
 
 /**
- * Renders a registered template and sends it through Lovable's managed email
- * API. Suppression, retries, and rate limits are enforced by Lovable
- * server-side. A suppressed recipient is an expected outcome
- * ({ sent: false }); any other failure throws — EmailAPIError exposes
- * .code and .status for branching.
+ * Renders a registered template and sends it through Resend
+ * (https://resend.com/docs/api-reference/emails/send-email). A suppressed
+ * recipient is an expected outcome ({ sent: false }); any other failure throws.
  */
 export async function sendTemplateEmail(
   templateName: string,
   to: string,
   options: SendTemplateEmailOptions = {}
 ): Promise<SendTemplateEmailResult> {
-  const apiKey = process.env['LOVABLE_API_KEY']
+  const apiKey = process.env['RESEND_API_KEY']
   if (!apiKey) {
-    throw new Error('LOVABLE_API_KEY is not configured')
+    throw new Error('RESEND_API_KEY is not configured')
   }
 
   const template = TEMPLATES[templateName]
@@ -65,28 +73,35 @@ export async function sendTemplateEmail(
       ? template.subject(templateData)
       : template.subject
 
-  try {
-    await sendLovableEmail(
-      {
-        to: recipient,
-        from: { name: SITE_NAME, address: `noreply@${FROM_DOMAIN}` },
-        sender_domain: SENDER_DOMAIN,
-        subject,
-        html,
-        text,
-        purpose: 'transactional',
-        label: templateName,
-        idempotency_key: options.idempotencyKey || crypto.randomUUID(),
-        ...(options.replyTo ? { reply_to: options.replyTo } : {}),
-      },
-      { apiKey, sendUrl: process.env['LOVABLE_SEND_URL'] }
-    )
-  } catch (error) {
-    if (error instanceof EmailAPIError && error.code === 'recipient_suppressed') {
+  const response = await fetch('https://api.resend.com/emails', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+      'Idempotency-Key': options.idempotencyKey || crypto.randomUUID(),
+    },
+    body: JSON.stringify({
+      from: `${SITE_NAME} <${FROM_ADDRESS}>`,
+      to: [recipient],
+      subject,
+      html,
+      text,
+      tags: [{ name: 'template', value: templateName.replace(/[^A-Za-z0-9_-]/g, '_') }],
+      ...(options.replyTo ? { reply_to: options.replyTo } : {}),
+    }),
+  })
+  const base = { template: templateName, to: recipient, subject, leadId: options.leadId, restaurantId: options.restaurantId }
+  if (!response.ok) {
+    const body = await response.text().catch(() => '')
+    if (/suppress/i.test(body)) {
+      await registrarEnvio({ ...base, status: 'suppressed', error: body.slice(0, 200) })
       return { sent: false, reason: 'recipient_suppressed' }
     }
-    throw error
+    await registrarEnvio({ ...base, status: 'failed', error: `${response.status}: ${body.slice(0, 200)}` })
+    throw new Error(`Falha ao enviar e-mail (${response.status}): ${body.slice(0, 200)}`)
   }
+  const resendId = await response.json().then((j: { id?: string }) => j?.id ?? null).catch(() => null)
+  await registrarEnvio({ ...base, status: 'sent', resendId })
 
   return { sent: true }
 }

@@ -3,6 +3,7 @@
  * produtos em carrossel no escuro, as três pessoas da mesa, abas com foto grande,
  * integrações no escuro e planos.
  */
+import { CAMINHO_PRODUTO } from "@/components/tipe/site/produtos";
 import { useRef, type CSSProperties, type ReactNode } from "react";
 import { seloDoProduto, useEstadosLancamento } from "./useLancamento";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
@@ -39,7 +40,7 @@ export function TopoHome() {
           imediato
           className="block font-display text-[clamp(1.1rem,0.95rem+0.6vw,1.45rem)] tracking-[-0.02em] text-brand-strong"
         >
-          Pagamento na mesa por QR Code
+          Tipe Pay · Pagamento na mesa para restaurantes
         </Palavras>
         <h1 className="mx-auto mt-4 font-display text-[clamp(2.75rem,1rem+7vw,8rem)] font-normal leading-[0.95] tracking-[-0.055em]">
           <Palavras imediato delay={250}>
@@ -56,21 +57,20 @@ export function TopoHome() {
           className="hero-in mx-auto mt-5 max-w-2xl text-[1.05rem] leading-relaxed text-muted-foreground text-pretty sm:mt-7 sm:text-xl"
           style={{ "--d": "500ms" } as CSSProperties}
         >
-          O cliente aponta a câmera, divide a conta e paga com Pix, Apple Pay ou Google Pay. O
-          garçom recebe a gorjeta e você acompanha cada mesa ao vivo.
+          Seu cliente confere a conta, divide e paga pelo celular. Sua equipe ganha tempo para atender, e você acompanha cada mesa em tempo real.
         </p>
         <div
           className="hero-in mt-9 flex flex-wrap justify-center gap-3"
           style={{ "--d": "650ms" } as CSSProperties}
         >
-          <BotaoPrincipal>Começar o teste grátis</BotaoPrincipal>
+          <BotaoPrincipal>Solicitar demonstração</BotaoPrincipal>
           <BotaoSecundario href="/simulador">Testar o simulador</BotaoSecundario>
         </div>
         <p
           className="hero-in mt-5 text-sm text-muted-foreground"
           style={{ "--d": "750ms" } as CSSProperties}
         >
-          {TRIAL_DAYS} dias grátis · Sem taxa para o cliente · Sem aplicativo
+          Pré-lançamento: {TRIAL_DAYS} dias grátis para restaurantes · Sem taxa para o cliente
         </p>
       </div>
       <div className="hero-in pb-14 sm:pb-24" style={{ "--d": "800ms" } as CSSProperties}>
@@ -148,7 +148,7 @@ const PESSOAS: {
     posicao: "50% 50%",
     v: "0",
     t: "aplicativos para baixar. A conta abre na câmera e cada um paga o seu.",
-    href: "/produtos/pay",
+    href: "/pay",
     aviso: (
       <>
         <p className="text-xs text-[oklch(0.45_0_0)]">Mesa 12 · sua parte</p>
@@ -164,7 +164,7 @@ const PESSOAS: {
     posicao: "50% 45%",
     v: "70%",
     t: "da gorjeta extra vai para o saldo de quem atendeu a mesa.",
-    href: "/produtos/staff",
+    href: "/equipe",
     aviso: (
       <>
         <p className="text-xs text-[oklch(0.45_0_0)]">Gorjeta extra · Mesa 12</p>
@@ -180,7 +180,7 @@ const PESSOAS: {
     posicao: "45% 45%",
     v: "R$ 0",
     t: "de tarifa da Tipe por transação. Você acompanha cada pagamento ao vivo.",
-    href: "/produtos/restaurant",
+    href: "/gestao",
     aviso: (
       <>
         <p className="text-xs text-[oklch(0.45_0_0)]">Hoje · demonstração</p>
@@ -257,7 +257,7 @@ export function AbasHome() {
       tela,
       altTela: tela ? `Tela real do ${p.nome}` : undefined,
       extra: tela ? undefined : <CartaoInterface cartao={p.cartao} />,
-      href: `/produtos/${p.slug}`,
+      href: CAMINHO_PRODUTO[p.slug],
       link: `Conhecer o ${p.nome}`,
     };
   });
@@ -284,8 +284,8 @@ export function IntegracoesHome() {
         <Titulo
           centro
           rotulo="Integrações"
-          titulo="Conversa com o que você já usa."
-          texto="Pagamentos e lançamento de pedidos funcionam hoje. O que está em desenvolvimento aparece separado, sem promessa de data."
+          titulo="Integrações, com status honesto."
+          texto="Hoje: Lançamento TIPE, API TIPE e pagamento no estabelecimento. Pix e carteiras em piloto. PDVs, delivery, ERP e nota fiscal estão em desenvolvimento ou planejados."
         />
       </div>
       <div className="container-page mt-12 sm:mt-16">
@@ -294,7 +294,7 @@ export function IntegracoesHome() {
       <div className="container-page mt-10 flex flex-col items-center gap-3 text-center">
         <BotaoSecundario href="/integracoes">Ver todas as integrações</BotaoSecundario>
         <p className="text-sm text-muted-foreground">
-          Usa outro sistema? Conte qual na conversa de implantação.
+          Usa outro sistema? Falamos com a sua equipe e ligamos de forma assistida pela API TIPE.
         </p>
       </div>
     </Secao>
@@ -311,8 +311,8 @@ export function PlanosHome() {
         <div className="flex flex-wrap items-end justify-between gap-6">
           <Titulo
             rotulo="Planos"
-            titulo="Preço simples. Sem surpresa."
-            texto={`Você paga pelo número de mesas, não por transação. ${TRIAL_DAYS} dias grátis, sem cartão de crédito.`}
+            titulo="Um plano para cada tamanho de restaurante."
+            texto={`A assinatura é pelo número de mesas, sem tarifa da Tipe por transação. Os valores são informados antes da contratação. ${TRIAL_DAYS} dias grátis no pré-lançamento.`}
           />
           <a
             href="/precos"

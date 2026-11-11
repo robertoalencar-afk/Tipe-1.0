@@ -40,7 +40,7 @@ export type NomeFoto =
   /* Aprovadas por Roberto em 22/10 (landing-v3/fotos-ia/real), no tamanho original. */
   | "tablet-maos"
   | "gorjetas-garcom"
-  /* Cenas do casting em src/assets/fotos (também usadas no /teste-gratis). */
+  /* Cenas do casting em src/assets/fotos (também usadas no /solicitar-demonstracao). */
   | "garcom"
   | "gestor"
   | "salao"
@@ -77,14 +77,7 @@ export type NomeFoto =
   | "cena-dono-vertical"
   | "cena-dono-larga"
   | "cena-mesa-liberada"
-  | "cena-mesa-liberada-vertical"
-  /* Ilustrações da lebre e da tartaruga (src/assets/cenas), usadas nos storyboards internos. */
-  | "lebre-tartaruga-amigos"
-  | "lebre-tartaruga-cliente"
-  | "lebre-tartaruga-dono"
-  | "lebre-tartaruga-familia"
-  | "lebre-tartaruga-garcom"
-  | "lebre-tartaruga-gorjeta";
+  | "cena-mesa-liberada-vertical";
 
 export function fotoSrc(nome: NomeFoto) {
   const tamanhos = Object.entries(ARQUIVOS)

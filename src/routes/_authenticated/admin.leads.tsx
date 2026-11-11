@@ -1,5 +1,5 @@
 import { FounderMfaGate } from "@/components/tipe/FounderMfaGate";
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
@@ -12,6 +12,7 @@ import { listLeads, updateLead, type Lead } from "@/lib/tipe/leads.functions";
 import { CLOSE_TIMES, LEAD_STATUS, LOST_REASONS, PAINS, PEAKS, QUEUES, ROLE_LABEL, SOURCES, TABLES, TICKETS, VENUE, WAITERS, PAGARME, leadScore } from "@/lib/tipe/leads-score";
 
 export const Route = createFileRoute("/_authenticated/admin/leads")({
+  beforeLoad: () => { throw redirect({ to: "/central", search: { s: "comercial", aba: "leads" } }); },
   head: () => ({ meta: [
     { title: "Leads da lista de espera | TIPE" },
     { name: "description", content: "Área interna da TIPE para acompanhar os restaurantes da lista de espera." },
@@ -84,7 +85,7 @@ function LeadsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="flex items-center justify-between border-b px-6 py-3"><TipeLogo variant="dark" className="h-9" /><Link to="/backoffice" className="text-sm text-muted-foreground hover:text-foreground">Backoffice</Link></header>
+      <header className="flex items-center justify-between border-b px-6 py-3"><TipeLogo variant="dark" className="h-9" /><nav className="flex items-center gap-4"><Link to="/crm" className="text-sm text-muted-foreground hover:text-foreground">CRM comercial</Link><Link to="/backoffice" className="text-sm text-muted-foreground hover:text-foreground">Backoffice</Link></nav></header>
       <main className="mx-auto max-w-7xl space-y-6 p-4 sm:p-6">
         <h1 className="font-display text-2xl font-extrabold">Leads da lista de espera</h1>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">

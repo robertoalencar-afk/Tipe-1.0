@@ -1,0 +1,47 @@
+name: Avaliar integracao da release
+on:
+  push:
+    branches:
+      - release/candidato-cloudflare-20261027
+    paths:
+      - .github/workflows/avaliar-integracao-release.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  conflitos:
+    name: Identificar conflitos sem alterar codigo
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Simular integracoes (somente leitura)
+        shell: bash
+        run: |
+          set -euo pipefail
+          git config user.email "ci@tipe.digital"
+          git config user.name "TIPE release checker"
+          BASE_SHA="$(git rev-parse HEAD)"
+          echo "## Candidato TIPE - simulacao de merge" >> "$GITHUB_STEP_SUMMARY"
+          echo "Nenhuma branch sera alterada, nenhum deploy sera executado." >> "$GITHUB_STEP_SUMMARY"
+          for branch in order/landing correcao-visual-v6 crm/backoffice-saas order/base infra/staging-seguro-supabase; do
+            git reset --hard "$BASE_SHA" >/dev/null
+            git clean -fd >/dev/null
+            git fetch --quiet origin "$branch"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "### $branch" >> "$GITHUB_STEP_SUMMARY"
+            if git merge --no-commit --no-ff "FETCH_HEAD" > /tmp/merge.log 2>&1; then
+              echo "Integracao automatica possivel (precisa testes)." >> "$GITHUB_STEP_SUMMARY"
+            else
+              echo "Conflitos:" >> "$GITHUB_STEP_SUMMARY"
+              echo '~~~' >> "$GITHUB_STEP_SUMMARY"
+              git diff --name-only --diff-filter=U | tee -a "$GITHUB_STEP_SUMMARY"
+              echo '~~~' >> "$GITHUB_STEP_SUMMARY"
+            fi
+            git merge --abort >/dev/null 2>&1 || true
+          done
+          git reset --hard "$BASE_SHA" >/dev/null
+          echo "Analise concluida sem publicar." >> "$GITHUB_STEP_SUMMARY"

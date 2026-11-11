@@ -1,10 +1,12 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { chaveLancamento, type ChaveLancamento } from "@/lib/tipe/pdv/comanda";
 import { toast } from "sonner";
 import { QRCodeSVG } from "qrcode.react";
 import {
   ArrowRightLeft,
+  CalendarDays,
   BarChart3,
   ChefHat,
   Check,
@@ -59,23 +61,28 @@ import {
   importMenuCsv,
 } from "@/lib/tipe/pdv-integrations.functions";
 import { PixGarcons } from "@/components/tipe/PixGarcons";
-import {
-  Caixa,
-  Configuracoes,
-  Cozinha,
-  Inicio,
-  Integracoes,
-  Relatorios,
-} from "@/components/tipe/AdminSections";
+import { SegurancaConta } from "@/components/tipe/SegurancaConta";
+import { Atendimento } from "@/components/tipe/Atendimento";
+import { Caixa, Configuracoes, Inicio, Integracoes, Relatorios } from "@/components/tipe/AdminSections";
+import { Cozinha } from "@/components/tipe/Kds";
+import { Shell, type GrupoNav } from "@/components/tipe/painel/Shell";
+import { EquipePermissoes } from "@/components/tipe/EquipePermissoes";
 import { TotemStudio } from "@/components/tipe/TotemStudio";
-import { Assinatura } from "@/components/tipe/Assinatura";
+import { LiberarPedidosMesa } from "@/components/tipe/LiberarPedidosMesa";
+import { Assinatura, AvisoAssinatura, ContaBloqueada } from "@/components/tipe/Assinatura";
+import { getAccountAccess } from "@/lib/tipe/subscription.functions";
+import { abaLiberada } from "@/lib/tipe/assinatura";
 import { Recebimentos } from "@/components/tipe/Recebimentos";
 import { AvisoPendencias, PendenciasFinanceiras } from "@/components/tipe/PendenciasFinanceiras";
 import { grantWaiterAccess } from "@/lib/tipe/waiter.functions";
-import { Landmark } from "lucide-react";
+import { Landmark, ShieldCheck } from "lucide-react";
 import { DesempenhoGarcons } from "@/components/tipe/DesempenhoGarcons";
+import { ReservasPainel } from "@/components/tipe/ReservasPainel";
+import { getReservasAcesso } from "@/lib/tipe/guest/reservas.functions";
 import { OnboardingPdv } from "@/components/tipe/OnboardingPdv";
-import { LebreAssistant } from "@/components/tipe/LebreAssistant";
+import { PrecisaDeVoce } from "@/components/tipe/PrecisaDeVoce";
+import { LazyLebreAssistant } from "@/components/tipe/LazyLebreAssistant";
+import { BalcaoCheckout, VendasBalcao } from "@/components/tipe/Balcao";
 import { EmptyState, PageHeader, StatusBadge, type Tone } from "@/components/tipe/ds";
 import { cn } from "@/lib/utils";
 
@@ -89,8 +96,9 @@ const hora = (s: string) =>
   });
 const cargoLabel: Record<StaffRole, string> = {
   founder: "Fundador",
-  owner: "Dono",
-  cashier: "Caixa / gerente",
+  owner: "Administrador",
+  manager: "Gerente",
+  cashier: "Caixa",
   waiter: "Garçom",
 };
 const metodoLabel: Record<string, string> = {
@@ -159,17 +167,26 @@ const secoes = [
   },
   {
     k: "pdv",
-    l: "Lançamento TIPE",
+    l: "Lançamento e balcão",
     i: ShoppingCart,
     g: "Operação",
-    d: "Lance pedidos nas mesas pelo próprio painel.",
+    d: "Lance pedidos nas mesas ou venda no balcão com senha.",
   },
   {
     k: "cozinha",
     l: "Cozinha e bar",
     i: ChefHat,
     g: "Operação",
-    d: "Pedidos por setor, do recebido ao entregue.",
+    d: "Pedidos por setor, do recebido ao entregue, e o painel de senhas.",
+  },
+  {
+    k: "reservas",
+    l: "Reservas",
+    i: CalendarDays,
+    g: "Operação",
+    // Só aparece com a flag guest.reservations ligada para o restaurante (Tipe Reserva).
+    flag: "reservas",
+    d: "Reservas do dia, chegadas, mesas, lista de espera e regras de horário.",
   },
   {
     k: "caixa",
@@ -247,6 +264,21 @@ const secoes = [
     d: "Dados do restaurante, taxa de serviço e formas de pagamento.",
   },
   {
+    k: "atendimento",
+    l: "Atendimento",
+    i: UtensilsCrossed,
+    g: "Configurações",
+    dono: true,
+    d: "Modalidades do Tipe Order, totens e pulseiras.",
+  },
+  {
+    k: "seguranca",
+    l: "Segurança da conta",
+    i: ShieldCheck,
+    g: "Configurações",
+    d: "Verificação em duas etapas e troca de senha.",
+  },
+  {
     k: "assinatura",
     l: "Assinatura",
     i: CreditCard,
@@ -287,10 +319,14 @@ export function RestaurantPanel({
   slug,
   myRoles,
   isFounder,
+  topoAcoes,
+  rodape,
 }: {
   slug: string;
   myRoles: StaffRole[];
   isFounder: boolean;
+  topoAcoes?: ReactNode;
+  rodape?: ReactNode;
 }) {
   const fetchPanel = useServerFn(getPanelData);
   const fetchPdv = useServerFn(getPdvData);
@@ -307,6 +343,21 @@ export function RestaurantPanel({
     queryKey: ["pdv-integ", slug],
     queryFn: () => fetchInteg({ data: { slug } }),
     refetchInterval: 30000,
+  });
+  const fetchReservas = useServerFn(getReservasAcesso);
+  const reservas = useQuery({
+    queryKey: ["reservas-acesso", slug],
+    queryFn: () => fetchReservas({ data: { slug } }),
+    staleTime: 5 * 60_000,
+  });
+  const reservasOn = reservas.data?.enabled === true;
+  // Conta vinculada à assinatura: o banco já trava mesas e pedidos novos; aqui só explicamos.
+  const fetchAcesso = useServerFn(getAccountAccess);
+  const acesso = useQuery({
+    queryKey: ["account-access", slug],
+    queryFn: () => fetchAcesso({ data: { slug } }),
+    staleTime: 60_000,
+    refetchInterval: 5 * 60_000,
   });
   const [mesaAberta, setMesaAberta] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState<string | null>(null);
@@ -344,7 +395,7 @@ export function RestaurantPanel({
     };
   }, [slug, qc]);
 
-  const podeConfirmar = isFounder || myRoles.includes("owner") || myRoles.includes("cashier");
+  const podeConfirmar = isFounder || myRoles.includes("owner") || myRoles.includes("manager") || myRoles.includes("cashier");
   const podeDono = isFounder || myRoles.includes("owner");
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ["panel", slug] });
@@ -420,7 +471,9 @@ export function RestaurantPanel({
   const mesaSel = mesas.find((m) => m.number === mesaAberta);
   const abertas = mesas.filter((m) => m.status === "ocupada" || m.status === "aguardando");
   // O Lançamento TIPE fica sempre disponível, inclusive como reserva de uma integração.
-  const visiveis = secoes.filter((x) => !("dono" in x) || podeDono);
+  const visiveis = secoes.filter(
+    (x) => (!("dono" in x) || podeDono) && (!("flag" in x) || reservasOn),
+  );
   const pdvLabel =
     !integ.data || integ.data.adapter === "lancamento_tipe"
       ? "Lançamento TIPE"
@@ -509,168 +562,40 @@ export function RestaurantPanel({
 
   const contagem = (s: Status) => mesas.filter((m) => m.status === s).length;
 
+  const grupos: GrupoNav[] = GRUPOS.map((g) => ({
+    l: g,
+    itens: visiveis
+      .filter((x) => x.g === g)
+      .map((x) => ({
+        k: x.k,
+        l: x.k === "pdv" ? "Lançar pedido" : x.l,
+        i: x.i,
+        busca: x.d,
+        ...(x.k === "caixa" && pendentes.length > 0 ? { badge: pendentes.length, badgeTone: "warning" as const } : {}),
+      })),
+  })).filter((g) => g.itens.length > 0);
+
   return (
-    <div className="lg:grid lg:grid-cols-[232px_minmax(0,1fr)] lg:gap-8">
-      <aside className="hidden print:hidden lg:block">
-        <nav aria-label="Seções do painel" className="sticky top-20 space-y-5">
-          <div className="px-3">
-            <p className="truncate text-base font-medium">{d.restaurant.name}</p>
-            <p className="truncate text-xs text-muted-foreground">tipe.digital/{slug}</p>
-          </div>
-          {GRUPOS.map((g) => {
-            const itens = visiveis.filter((x) => x.g === g);
-            if (!itens.length) return null;
-            return (
-              <div key={g}>
-                <p className="px-3 pb-1.5 text-xs font-medium text-muted-foreground">{g}</p>
-                <ul className="space-y-0.5">
-                  {itens.map(({ k, l, i: Icon }) => (
-                    <li key={k}>
-                      <button
-                        type="button"
-                        onClick={() => ir(k)}
-                        aria-current={aba === k ? "page" : undefined}
-                        className={cn(
-                          "flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-left text-sm transition-colors",
-                          aba === k
-                            ? "bg-foreground font-medium text-background"
-                            : "text-foreground/75 hover:bg-background-muted hover:text-foreground",
-                        )}
-                      >
-                        <Icon className="h-4 w-4 shrink-0" />
-                        {l}
-                        {k === "caixa" && pendentes.length > 0 && (
-                          <span
-                            className={cn(
-                              "ml-auto rounded-full px-1.5 text-[11px] font-semibold",
-                              aba === k ? "bg-white/15" : "bg-warning/25 text-foreground",
-                            )}
-                          >
-                            {pendentes.length}
-                          </span>
-                        )}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            );
-          })}
-        </nav>
-      </aside>
-
-      {/* Navegação móvel: quatro atalhos principais e o restante em "Mais". */}
-      <nav
-        aria-label="Seções do painel"
-        className="fixed inset-x-0 bottom-0 z-30 grid grid-cols-5 border-t border-border bg-surface/95 px-1 pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-1 backdrop-blur-xl print:hidden lg:hidden"
-      >
-        {PRINCIPAIS_MOBILE.map((k) => {
-          const sec = visiveis.find((x) => x.k === k);
-          if (!sec) return null;
-          const Icon = sec.i;
-          return (
-            <button
-              key={k}
-              type="button"
-              onClick={() => ir(k)}
-              aria-current={aba === k ? "page" : undefined}
-              className={cn(
-                "relative flex flex-col items-center gap-0.5 rounded-xl py-1.5 text-[10.5px] font-medium",
-                aba === k ? "text-foreground" : "text-muted-foreground",
-              )}
-            >
-              <span
-                className={cn(
-                  "grid h-7 w-12 place-items-center rounded-full transition-colors",
-                  aba === k && "bg-foreground text-background",
-                )}
-              >
-                <Icon className="h-[18px] w-[18px]" />
-              </span>
-              {k === "pdv" ? "Lançar" : sec.l}
-              {k === "caixa" && pendentes.length > 0 && (
-                <span
-                  className="absolute right-3 top-1 h-2 w-2 rounded-full bg-warning"
-                  aria-label={`${pendentes.length} pagamentos a confirmar`}
-                />
-              )}
-            </button>
-          );
-        })}
-        <button
-          type="button"
-          onClick={() => setMaisAberto(true)}
-          aria-haspopup="dialog"
-          className={cn(
-            "flex flex-col items-center gap-0.5 rounded-xl py-1.5 text-[10.5px] font-medium",
-            !(PRINCIPAIS_MOBILE as readonly string[]).includes(aba)
-              ? "text-foreground"
-              : "text-muted-foreground",
-          )}
-        >
-          <span
-            className={cn(
-              "grid h-7 w-12 place-items-center rounded-full",
-              !(PRINCIPAIS_MOBILE as readonly string[]).includes(aba) &&
-                "bg-foreground text-background",
-            )}
-          >
-            <MoreHorizontal className="h-[18px] w-[18px]" />
-          </span>
-          Mais
-        </button>
-      </nav>
-      <Dialog open={maisAberto} onOpenChange={setMaisAberto}>
-        <DialogContent className="top-auto bottom-3 max-h-[80svh] translate-y-0 overflow-y-auto p-4 lg:hidden">
-          <DialogHeader>
-            <DialogTitle>Todas as seções</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            {GRUPOS.map((g) => {
-              const itens = visiveis.filter((x) => x.g === g);
-              if (!itens.length) return null;
-              return (
-                <div key={g}>
-                  <p className="pb-1.5 text-xs font-medium text-muted-foreground">{g}</p>
-                  <div className="grid grid-cols-2 gap-1.5">
-                    {itens.map(({ k, l, i: Icon }) => (
-                      <button
-                        key={k}
-                        type="button"
-                        onClick={() => ir(k)}
-                        className={cn(
-                          "flex items-center gap-2 rounded-xl border px-3 py-2.5 text-left text-sm",
-                          aba === k
-                            ? "border-foreground bg-foreground font-medium text-background"
-                            : "border-border bg-background hover:border-foreground/25",
-                        )}
-                      >
-                        <Icon className="h-4 w-4 shrink-0" />
-                        <span className="truncate">{l}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </DialogContent>
-      </Dialog>
-
+    <Shell
+      ambiente="Tipe Gestão"
+      contexto={<span className="truncate">{d.restaurant.name} · tipe.digital/{slug}</span>}
+      grupos={grupos}
+      ativo={secaoAtual.k}
+      onNavegar={ir}
+      titulo={secaoAtual.l}
+      descricao={secaoAtual.d}
+      acoes={
+        <>
+          <StatusBadge tone={syncErro ? "error" : "neutral"} className="print:hidden">
+            {pdvLabel}
+          </StatusBadge>
+          {topoAcoes}
+        </>
+      }
+      rodape={rodape}
+    >
       <div className="min-w-0">
-        <PageHeader
-          eyebrow={<span className="lg:hidden">{d.restaurant.name}</span>}
-          title={secaoAtual.l}
-          description={secaoAtual.d}
-          actions={
-            <StatusBadge tone={syncErro ? "error" : "neutral"} className="print:hidden">
-              {pdvLabel}
-            </StatusBadge>
-          }
-          className="print:hidden"
-        />
-
-        {syncErro && (
+        {syncErro && aba !== "inicio" && (
           <div
             role="alert"
             className="mb-4 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-destructive/30 bg-destructive/[0.06] p-4 text-sm"
@@ -684,7 +609,7 @@ export function RestaurantPanel({
             </Button>
           </div>
         )}
-        {d.pdvAlerts[0] && (
+        {d.pdvAlerts[0] && aba !== "inicio" && (
           <div
             role="alert"
             className="mb-4 rounded-2xl border border-warning/50 bg-warning/10 p-4 text-sm"
@@ -692,9 +617,16 @@ export function RestaurantPanel({
             <strong>Atenção no cancelamento:</strong> {d.pdvAlerts[0].detail}
           </div>
         )}
-        {aba !== "caixa" && (
+        {acesso.data && (
+          <AvisoAssinatura access={acesso.data} podeDono={podeDono} onOpen={() => ir("assinatura")} />
+        )}
+        {aba !== "caixa" && aba !== "inicio" && (
           <AvisoPendencias slug={slug} enabled={podeConfirmar} onOpen={() => ir("caixa")} />
         )}
+        {acesso.data && !abaLiberada(aba, acesso.data) ? (
+          <ContaBloqueada podeDono={podeDono} onOpen={() => ir("assinatura")} />
+        ) : (
+        <>
         {aba === "inicio" && (
           <Inicio
             slug={slug}
@@ -702,6 +634,24 @@ export function RestaurantPanel({
             emAberto={abertas.reduce((s, m) => s + m.total - m.pago, 0)}
             pendentes={pendentes.length}
             onGo={ir}
+            agora={
+              <PrecisaDeVoce
+                slug={slug}
+                podeConfirmar={podeConfirmar}
+                entrada={{
+                  pendentes,
+                  syncErro: !!syncErro,
+                  alertasCancelamento: d.pdvAlerts,
+                  quitadas: mesas
+                    .filter((m) => m.status === "encerrada" && m.pago >= m.total - 0.005)
+                    .map((m) => ({ number: m.number, total: m.total })),
+                }}
+                ocupado={ocupado}
+                onConfirmar={(id) => agir(id, "confirm")}
+                onGo={ir}
+                onMesa={setMesaAberta}
+              />
+            }
           />
         )}
 
@@ -790,22 +740,10 @@ export function RestaurantPanel({
           </>
         )}
 
-        {aba === "pdv" && (
-          <LancarPedido
-            slug={slug}
-            pdv={pdv.data}
-            mesa={mesaPedido}
-            setMesa={setMesaPedido}
-            onDone={refresh}
-          />
-        )}
-        {aba === "cozinha" && <Cozinha slug={slug} />}
-        {aba === "caixa" && (
-          <>
-            <PendenciasFinanceiras slug={slug} enabled={podeConfirmar} />
-            <Caixa slug={slug} podeCaixa={podeConfirmar} confirmacoes={confirmacoes} />
-          </>
-        )}
+        {aba === "pdv" && <LancarPedido slug={slug} pdv={pdv.data} mesa={mesaPedido} setMesa={setMesaPedido} podeBalcao={podeConfirmar} onDone={refresh} />}
+        {aba === "cozinha" && <Cozinha slug={slug} podePainel={podeConfirmar} />}
+        {aba === "reservas" && reservasOn && <ReservasPainel slug={slug} podeDono={podeDono} />}
+        {aba === "caixa" && <><PendenciasFinanceiras slug={slug} enabled={podeConfirmar} /><Caixa slug={slug} podeCaixa={podeConfirmar} confirmacoes={confirmacoes} /></>}
 
         {aba === "historico" && (
           <div className="space-y-4">
@@ -879,14 +817,18 @@ export function RestaurantPanel({
           <div className="space-y-6">
             <Garcons slug={slug} pdv={pdv.data} onDone={refresh} />
             <PixGarcons slug={slug} />
-            <Equipe slug={slug} staff={d.staff} />
+            <EquipePermissoes slug={slug} />
           </div>
         )}
         {aba === "relatorios" && <Relatorios slug={slug} />}
         {aba === "integracoes" && <Integracoes slug={slug} podeDono={podeDono} />}
         {aba === "config" && <Configuracoes slug={slug} podeDono={podeDono} />}
+        {aba === "atendimento" && <Atendimento slug={slug} podeDono={podeDono} irParaConfig={() => ir("config")} />}
         {aba === "recebimentos" && podeDono && <Recebimentos slug={slug} podeDono={podeDono} />}
         {aba === "assinatura" && podeDono && <Assinatura slug={slug} />}
+        {aba === "seguranca" && <SegurancaConta />}
+        </>
+        )}
       </div>
 
       <Dialog open={!!mesaSel} onOpenChange={(o) => !o && setMesaAberta(null)}>
@@ -913,8 +855,8 @@ export function RestaurantPanel({
           )}
         </DialogContent>
       </Dialog>
-      <LebreAssistant slug={slug} />
-    </div>
+      <LazyLebreAssistant slug={slug} />
+    </Shell>
   );
 }
 
@@ -975,6 +917,7 @@ function MesaDetalhe({
         </DialogTitle>
         {mesa.garcom && <p className="text-sm text-muted-foreground">Garçom: {mesa.garcom}</p>}
       </DialogHeader>
+      <LiberarPedidosMesa slug={slug} table={mesa.number} />
       {mesa.itens.length === 0 ? (
         <p className="rounded-xl bg-background-muted px-4 py-6 text-center text-sm text-muted-foreground">
           Nenhum pedido nesta mesa.
@@ -1181,19 +1124,7 @@ function MesaDetalhe({
   );
 }
 
-function LancarPedido({
-  slug,
-  pdv,
-  mesa,
-  setMesa,
-  onDone,
-}: {
-  slug: string;
-  pdv: PdvData;
-  mesa: string;
-  setMesa: (m: string) => void;
-  onDone: () => void;
-}) {
+function LancarPedido({ slug, pdv, mesa, setMesa, podeBalcao, onDone }: { slug: string; pdv: PdvData; mesa: string; setMesa: (m: string) => void; podeBalcao: boolean; onDone: () => void }) {
   const launch = useServerFn(launchOrder);
   const fetchTop = useServerFn(getTopItems);
   const top = useQuery({
@@ -1207,6 +1138,10 @@ function LancarPedido({
   const [obs, setObs] = useState<Record<string, string>>({});
   const [cat, setCat] = useState<string>("");
   const [enviando, setEnviando] = useState(false);
+  const chave = useRef<ChaveLancamento | null>(null);
+  // Mesa: lança na conta da mesa. Balcão: cobra na hora e gera senha (fast-food, retirada).
+  const [modo, setModo] = useState<"mesa" | "balcao">("mesa");
+  const balcao = modo === "balcao" && podeBalcao;
   const ativos = pdv.waiters.filter((w) => w.active);
   const mesasAtivas = pdv.tables.filter((t) => t.active);
 
@@ -1234,19 +1169,16 @@ function LancarPedido({
   async function enviar() {
     if (!mesa || !garcom || linhas.length === 0) return;
     setEnviando(true);
+    const items = linhas.map(([code, qty]) => ({
+      code,
+      qty,
+      ...(obs[code]?.trim() ? { notes: obs[code]!.trim() } : {}),
+    }));
+    // Mesmo pedido reenviado (toque duplo, rede caiu) usa a mesma chave e não duplica.
+    chave.current = chaveLancamento(chave.current, { mesa, garcom, items });
     try {
-      await launch({
-        data: {
-          slug,
-          table: mesa,
-          waiterId: garcom,
-          items: linhas.map(([code, qty]) => ({
-            code,
-            qty,
-            ...(obs[code]?.trim() ? { notes: obs[code]!.trim() } : {}),
-          })),
-        },
-      });
+      await launch({ data: { slug, table: mesa, waiterId: garcom, items, requestId: chave.current.id } });
+      chave.current = null;
       toast.success(`Pedido lançado na mesa ${mesa}`);
       setCarrinho({});
       setObs({});
@@ -1335,28 +1267,26 @@ function LancarPedido({
         })}
       </div>
       <aside className="h-fit space-y-3 surface-card p-4 sm:p-5 lg:sticky lg:top-4">
-        <h3 className="font-display font-semibold">Comanda</h3>
-        <select className={selectCls} value={mesa} onChange={(e) => setMesa(e.target.value)}>
-          <option value="">Escolha a mesa</option>
-          {mesasAtivas.map((t) => (
-            <option key={t.id} value={t.number}>
-              Mesa {t.number}
-            </option>
-          ))}
-        </select>
-        <select className={selectCls} value={garcom} onChange={(e) => setGarcom(e.target.value)}>
-          <option value="">Escolha o garçom</option>
-          {ativos.map((w) => (
-            <option key={w.id} value={w.id}>
-              {w.code} · {w.name}
-            </option>
-          ))}
-        </select>
-        {linhas.length === 0 ? (
-          <p className="text-sm text-muted-foreground">
-            Toque nos itens do cardápio para adicionar.
-          </p>
-        ) : (
+        {podeBalcao ? (
+          <div className="grid grid-cols-2 gap-1 rounded-xl bg-muted p-1" role="tablist" aria-label="Tipo de venda">
+            {([["mesa", "Mesa"], ["balcao", "Balcão / senha"]] as const).map(([k, l]) => (
+              <button key={k} role="tab" aria-selected={modo === k} onClick={() => setModo(k)} className={cn("rounded-lg px-2 py-1.5 text-sm transition-colors", modo === k ? "bg-card font-semibold shadow-xs" : "text-muted-foreground hover:text-foreground")}>{l}</button>
+            ))}
+          </div>
+        ) : <h3 className="font-display font-semibold">Comanda</h3>}
+        {!balcao && (
+          <>
+            <select className={selectCls} value={mesa} onChange={(e) => setMesa(e.target.value)}>
+              <option value="">Escolha a mesa</option>
+              {mesasAtivas.map((t) => <option key={t.id} value={t.number}>Mesa {t.number}</option>)}
+            </select>
+            <select className={selectCls} value={garcom} onChange={(e) => setGarcom(e.target.value)}>
+              <option value="">Escolha o garçom</option>
+              {ativos.map((w) => <option key={w.id} value={w.id}>{w.code} · {w.name}</option>)}
+            </select>
+          </>
+        )}
+        {linhas.length === 0 ? <p className="text-sm text-muted-foreground">Toque nos itens do cardápio para adicionar.</p> : (
           <ul className="space-y-2 text-sm">
             {linhas.map(([code, n]) => {
               const it = pdv.items.find((i) => i.code === code);
@@ -1396,19 +1326,16 @@ function LancarPedido({
             })}
           </ul>
         )}
-        <div className="flex items-baseline justify-between border-t border-border pt-3">
-          <span className="font-semibold">Total</span>
-          <span className="money font-display text-lg font-semibold">{brl(total)}</span>
-        </div>
-        <Button
-          variant="ink"
-          className="h-11 w-full"
-          disabled={!mesa || !garcom || !linhas.length || enviando}
-          onClick={enviar}
-        >
-          {enviando ? "Enviando…" : "Enviar pedido"}
-        </Button>
+        <div className="flex items-baseline justify-between border-t border-border pt-3"><span className="font-semibold">Total</span><span className="money font-display text-lg font-semibold">{brl(total)}</span></div>
+        {balcao ? (
+          <BalcaoCheckout slug={slug} total={total}
+            linhas={linhas.map(([code, qty]) => ({ code, qty, ...(obs[code]?.trim() ? { notes: obs[code]!.trim() } : {}) }))}
+            onSold={() => { setCarrinho({}); setObs({}); onDone(); }} />
+        ) : (
+          <Button variant="ink" className="h-11 w-full" disabled={!mesa || !garcom || !linhas.length || enviando} onClick={enviar}>{enviando ? "Enviando…" : "Enviar pedido"}</Button>
+        )}
       </aside>
+      {balcao && <div className="lg:col-span-2"><VendasBalcao slug={slug} podeCancelar={podeBalcao} /></div>}
     </div>
   );
 }
@@ -1512,7 +1439,7 @@ function MesasQr({
   const noLimite = !!plano.data && plano.data.active >= plano.data.limit;
   const base =
     typeof window !== "undefined" &&
-    !window.location.hostname.includes("lovable") &&
+    !window.location.hostname.endsWith(".workers.dev") &&
     !window.location.hostname.includes("localhost")
       ? window.location.origin
       : "https://tipe.digital";

@@ -1,3 +1,4 @@
+import { SegurancaConta } from "@/components/tipe/SegurancaConta";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -18,6 +19,7 @@ import { EmptyState, StatCard, StatusBadge, type Tone } from "@/components/tipe/
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { AreaShell } from "@/components/tipe/AreaShell";
+import { AvisosCelular } from "@/components/tipe/AvisosCelular";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -26,6 +28,7 @@ import {
   requestWithdrawal,
   saveWaiterPix,
 } from "@/lib/tipe/waiter.functions";
+import { GarcomAtender } from "@/components/tipe/GarcomAtender";
 
 export const Route = createFileRoute("/_authenticated/garcom")({
   head: () => ({
@@ -80,7 +83,7 @@ function AreaGarcom() {
   const pedir = useServerFn(requestWithdrawal);
   const cancelar = useServerFn(cancelWithdrawal);
   const q = useQuery({ queryKey: ["waiter"], queryFn: () => fetchDash(), refetchInterval: 30000 });
-  const [aba, setAba] = useState<"inicio" | "saque">("inicio");
+  const [aba, setAba] = useState<"atender" | "inicio" | "saque">("atender");
   const [busy, setBusy] = useState(false);
 
   const serie = useMemo(() => {
@@ -113,10 +116,13 @@ function AreaGarcom() {
       title={d ? `Olá, ${d.waiter.name.split(" ")[0]}!` : "Área do garçom"}
       subtitle={d ? `${d.waiter.restaurant} · código ${d.waiter.code}` : undefined}
       actions={
-        <Button size="sm" variant="ghost" onClick={sair} className="text-muted-foreground">
-          <LogOut className="h-4 w-4" />
-          Sair
-        </Button>
+        <>
+          {d && <AvisosCelular />}
+          <Button size="sm" variant="ghost" onClick={sair} className="text-muted-foreground">
+            <LogOut className="h-4 w-4" />
+            Sair
+          </Button>
+        </>
       }
     >
       <div className="space-y-4">
@@ -142,43 +148,14 @@ function AreaGarcom() {
         )}
         {d && (
           <>
-            <section className="relative overflow-hidden rounded-[1.75rem] bg-foreground p-7 text-background">
-              <div
-                aria-hidden
-                className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-brand/25 blur-3xl"
-              />
-              <p className="relative text-sm text-white/65">Disponível para saque</p>
-              <p className="money relative mt-2 text-[3.2rem] font-medium leading-none tracking-[-0.045em]">
-                {brl(d.balance.available)}
-              </p>
-              <div className="relative mt-5 flex flex-wrap items-end justify-between gap-3">
-                <p className="text-xs leading-5 text-white/65">
-                  Nesta quinzena:{" "}
-                  <span className="money font-semibold text-white">
-                    {brl(d.balance.currentCycle)}
-                  </span>
-                  <br />
-                  Próximo repasse: {proximoPagamento().toLocaleDateString("pt-BR")}
-                </p>
-                {aba === "inicio" && (
-                  <Button
-                    size="sm"
-                    onClick={() => setAba("saque")}
-                    className="bg-brand text-ink hover:bg-brand/90"
-                  >
-                    Saques e Pix <ArrowRight />
-                  </Button>
-                )}
-              </div>
-            </section>
-
             <div
               role="tablist"
               aria-label="Área do garçom"
-              className="grid grid-cols-2 gap-1 rounded-full border border-border bg-surface p-1 shadow-xs"
+              className="grid grid-cols-3 gap-1 rounded-full border border-border bg-surface p-1 shadow-xs"
             >
               {(
                 [
+                  ["atender", "Atender"],
                   ["inicio", "Resumo"],
                   ["saque", "Saques e Pix"],
                 ] as const
@@ -200,6 +177,40 @@ function AreaGarcom() {
                 </button>
               ))}
             </div>
+
+            {aba === "atender" && <GarcomAtender />}
+
+            {aba !== "atender" && (
+              <section className="relative overflow-hidden rounded-[1.75rem] bg-foreground p-7 text-background">
+                <div
+                  aria-hidden
+                  className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-brand/25 blur-3xl"
+                />
+                <p className="relative text-sm text-white/65">Disponível para saque</p>
+                <p className="money relative mt-2 text-[3.2rem] font-medium leading-none tracking-[-0.045em]">
+                  {brl(d.balance.available)}
+                </p>
+                <div className="relative mt-5 flex flex-wrap items-end justify-between gap-3">
+                  <p className="text-xs leading-5 text-white/65">
+                    Nesta quinzena:{" "}
+                    <span className="money font-semibold text-white">
+                      {brl(d.balance.currentCycle)}
+                    </span>
+                    <br />
+                    Próximo repasse: {proximoPagamento().toLocaleDateString("pt-BR")}
+                  </p>
+                  {aba === "inicio" && (
+                    <Button
+                      size="sm"
+                      onClick={() => setAba("saque")}
+                      className="bg-brand text-ink hover:bg-brand/90"
+                    >
+                      Saques e Pix <ArrowRight />
+                    </Button>
+                  )}
+                </div>
+              </section>
+            )}
 
             {aba === "inicio" && (
               <>
@@ -427,6 +438,7 @@ function AreaGarcom() {
                     </ul>
                   )}
                 </section>
+                <SegurancaConta />
               </>
             )}
           </>

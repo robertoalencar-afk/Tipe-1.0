@@ -1,0 +1,21 @@
+# Aplica as migrações pendentes SÓ no Supabase de staging (nduqqnevstlidmxbghcj). Nunca toca produção.
+name: Aplicar migrações no staging
+on:
+  workflow_dispatch:
+jobs:
+  aplicar:
+    runs-on: ubuntu-latest
+    environment: staging
+    env:
+      DATABASE_URL: ${{ secrets.DATABASE_URL }}
+      VITE_SUPABASE_PROJECT_ID: ${{ vars.VITE_SUPABASE_PROJECT_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Garantir que o alvo é o staging
+        run: |
+          set -eu
+          [ -n "$DATABASE_URL" ] || { echo "::error::DATABASE_URL ausente em staging"; exit 1; }
+          [ "$VITE_SUPABASE_PROJECT_ID" = "nduqqnevstlidmxbghcj" ] || { echo "::error::Projeto não é o staging"; exit 1; }
+          case "$DATABASE_URL" in *bnggnbwmihqexvihrqvy*) echo "::error::DATABASE_URL aponta para produção"; exit 1;; esac
+      - name: Aplicar migrações pendentes
+        run: scripts/db/aplicar-migracoes.sh

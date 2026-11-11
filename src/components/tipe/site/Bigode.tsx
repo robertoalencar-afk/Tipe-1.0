@@ -142,17 +142,55 @@ export function Fios({
 }
 
 /**
- * Focinho dos CTAs (V62, 27/10): a direção entre as opções A (nariz e boca) e B (meio
- * focinho com bigodes). Nariz turquesa pequeno, arredondado e simétrico; boca mínima em
- * "Y" com curvas; bigodes curtos e finos. Três microvariações para comparar em
- * /interno/focinho: 1 só nariz e boca, 2 com dois bigodes curtos de cada lado (a usada
- * no site), 3 com um bigode longo de cada lado.
- *
- * Movimento: parado, o nariz fareja quase imperceptível a cada ~6 s e os bigodes
- * acompanham. No hover, no foco por teclado e no toque, uma farejada dupla e os bigodes
- * abrem de leve. Nada se desloca: a caixa é fixa e a largura do botão não muda.
- * Com movimento reduzido fica parado.
+ * O ícone dos CTAs. Fica dentro do botão (que precisa da classe "com-fios"). Desde 03/11
+ * são só três bigodinhos se mexendo no canto do texto, sem nada que lembre uma seta (pedido do
+ * Roberto). `seta` ficou só por compatibilidade: com ou sem ela o desenho é o mesmo.
  */
+export function SetaFios({
+  auto = false,
+  seta: _seta = true,
+  className,
+}: {
+  /** Mantido por compatibilidade: o focinho já fareja sozinho, de leve. */
+  auto?: boolean;
+  seta?: boolean;
+  className?: string;
+}) {
+  return (
+    <svg
+      viewBox="0 0 16 16"
+      aria-hidden
+      focusable="false"
+      className={cn("bigode-cta", auto && "bc-auto", className)}
+    >
+      {BC_FIOS.map(([lado, d], i) => (
+        <path
+          key={d}
+          className={`bc-fio bc-${lado}`}
+          d={d}
+          pathLength={1}
+          style={{ "--i": i } as CSSProperties}
+        />
+      ))}
+    </svg>
+  );
+}
+
+/**
+ * Bigodinhos dos CTAs (03/11, referência do Roberto): três tracinhos turquesa curtos que
+ * saem do canto de cima do texto, em leque (um quase vertical, um na diagonal, um quase
+ * deitado). Piscam para fora o tempo todo, um depois do outro; no hover, mais rápido.
+ */
+const BC_FIOS: ReadonlyArray<readonly ["e" | "d", string]> = [
+  ["e", "M4.6 9.4 L5.6 1.6"],
+  ["e", "M7.4 10.4 L12.6 4.8"],
+  ["e", "M8.6 13.6 L14.4 11.4"],
+];
+
+/** Alias antigo (o meio focinho virou a seta de bigodes em 27/10). */
+export const MeioFocinho = SetaFios;
+
+// Variações disponíveis apenas na página interna de comparação.
 export type VarianteFocinho = 1 | 2 | 3;
 
 const FZ_NARIZ =
@@ -211,46 +249,3 @@ export function FocinhoCta({
   );
 }
 
-/**
- * O ícone dos CTAs. Fica dentro do botão (que precisa da classe "com-fios"). Desde 03/11
- * são só três bigodinhos se mexendo no canto do texto, sem nada que lembre uma seta (pedido do
- * Roberto). `seta` ficou só por compatibilidade: com ou sem ela o desenho é o mesmo.
- */
-export function SetaFios({
-  auto: _auto = false,
-  seta: _seta = true,
-  className,
-}: {
-  /** Mantido por compatibilidade: o focinho já fareja sozinho, de leve. */
-  auto?: boolean;
-  seta?: boolean;
-  className?: string;
-}) {
-  return (
-    <svg viewBox="0 0 16 16" aria-hidden focusable="false" className={cn("bigode-cta", className)}>
-      {BC_FIOS.map(([lado, d], i) => (
-        <path
-          key={d}
-          className={`bc-fio bc-${lado}`}
-          d={d}
-          pathLength={1}
-          style={{ "--i": i } as CSSProperties}
-        />
-      ))}
-    </svg>
-  );
-}
-
-/**
- * Bigodinhos dos CTAs (03/11, referência do Roberto): três tracinhos turquesa curtos que
- * saem do canto de cima do texto, em leque (um quase vertical, um na diagonal, um quase
- * deitado). Piscam para fora o tempo todo, um depois do outro; no hover, mais rápido.
- */
-const BC_FIOS: ReadonlyArray<readonly ["e" | "d", string]> = [
-  ["e", "M4.6 9.4 L5.6 1.6"],
-  ["e", "M7.4 10.4 L12.6 4.8"],
-  ["e", "M8.6 13.6 L14.4 11.4"],
-];
-
-/** Alias antigo (o meio focinho virou a seta de bigodes em 27/10 e o focinho na V62). */
-export const MeioFocinho = SetaFios;

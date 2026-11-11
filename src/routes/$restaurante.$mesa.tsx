@@ -9,12 +9,15 @@ import {
   Copy,
   CreditCard,
   HandCoins,
+  ListChecks,
   QrCode,
   ReceiptText,
   RefreshCw,
   Smartphone,
   Star,
   Users,
+  UtensilsCrossed,
+  Wallet,
   WalletCards,
   WifiOff,
 } from "lucide-react";
@@ -25,6 +28,9 @@ import { SplitPicker } from "@/components/tipe/SplitPicker";
 import { DividirConta } from "@/components/tipe/DividirConta";
 import { remainingSubtotal, selectionSubtotal, type ShareItem } from "@/lib/tipe/bill-math";
 import { PAYMENT_STATUS_LABEL } from "@/lib/tipe/payment-state";
+import { MesaPedido } from "@/components/tipe/MesaPedido";
+import { MesaLiberacao, lerTokenPedido } from "@/components/tipe/MesaLiberacao";
+import { ChamarEquipe } from "@/components/tipe/ChamarEquipe";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -38,6 +44,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { getPublicTable } from "@/lib/tipe/pdv.functions";
+import type { GooglePayConfig } from "@/lib/tipe/carteiras";
+import { GooglePayCancelado, pedirTokenGooglePay } from "@/lib/tipe/google-pay";
 import {
   createPayment,
   getPaymentByKey,
@@ -49,7 +57,14 @@ import {
   type SharedPayment,
 } from "@/lib/tipe/payments.functions";
 import { CardFields } from "@/components/tipe/CardFields";
-import { resolveServiceFee, suggestedTips, TIP_SPLIT } from "@/lib/tipe/rules";
+import {
+  gorjetaMaxima,
+  lerValor,
+  resolveServiceFee,
+  suggestedTips,
+  TIP_SPLIT,
+  validarGorjeta,
+} from "@/lib/tipe/rules";
 import { cardValid, tokenizeCard, type CardInput } from "@/lib/tipe/pagarme-client";
 import mascotThanks from "@/assets/lebre/rosto-feliz.webp";
 import mascotRating from "@/assets/lebre/rosto-piscando.webp";
@@ -185,8 +200,14 @@ function MesaPage() {
   const [pagamentos, setPagamentos] = useState<SharedPayment[]>([]);
   const [mesaSincronizada, setMesaSincronizada] = useState(false);
   const [sessaoMesa, setSessaoMesa] = useState("");
+  const [selfOrder, setSelfOrder] = useState(false);
+  // Com o Tipe Order: a mesma tela ganha Pedir e Pagar, sem trocar de sessão.
+  const [ordering, setOrdering] = useState<"open" | "closed" | "code" | null>(null);
+  const [modo, setModo] = useState<"pedir" | "pagar" | null>(null);
+  const [tokenPedido, setTokenPedido] = useState<string | undefined>(undefined);
   const [cartao, setCartao] = useState<CardInput>({ number: "", holder: "", exp: "", cvv: "" });
   const [chavePublica, setChavePublica] = useState<string | null>(null);
+  const [googlePay, setGooglePay] = useState<GooglePayConfig | null>(null);
   const [pix, setPix] = useState<{
     id: string;
     code: string;
@@ -215,6 +236,9 @@ function MesaPage() {
   const [querRecibo, setQuerRecibo] = useState(false);
   const [linkAvaliacao, setLinkAvaliacao] = useState<string | null>(null);
   const [gorjetaOutro, setGorjetaOutro] = useState("");
+  // "Outro valor" é uma aba ao lado dos percentuais; o campo só aparece quando ela é escolhida.
+  const [gorjetaOutroAberto, setGorjetaOutroAberto] = useState(false);
+  const [gorjetaPaga, setGorjetaPaga] = useState(false);
 
   useEffect(() => {
     try {
@@ -233,8 +257,9 @@ function MesaPage() {
 
   const atualizarMesa = useCallback(async () => {
     try {
+      const device = lerTokenPedido(restaurante, codigoMesa);
       const estado = await getPublicTable({
-        data: { slug: restaurante, code: codigoMesa, token: tokenMesa },
+        data: { slug: restaurante, code: codigoMesa, token: tokenMesa, ...(device ? { device } : {}) },
       });
       if ("error" in estado) {
         setErroMesa(
@@ -258,6 +283,7 @@ function MesaPage() {
         };
       });
       setMetodosAceitos(estado.billMethods as Metodo[]);
+      setGooglePay(estado.googlePay ?? null);
       setTaxaSugerida(estado.serviceWaived ? 0 : estado.serviceRate);
       setTaxaRemovida(estado.serviceWaived);
       setLinkAvaliacao(estado.googleReviewUrl ?? null);
@@ -279,6 +305,11 @@ function MesaPage() {
       );
       setPagamentos(estado.payments);
       setSessaoMesa(estado.session);
+      setSelfOrder(estado.selfOrder);
+      setOrdering(estado.ordering);
+      setTokenPedido(lerTokenPedido(restaurante, codigoMesa, estado.session));
+      // Primeira leitura: mesa sem nada pedido abre em Pedir; com conta aberta, em Pagar.
+      setModo((atual) => atual ?? (estado.selfOrder && estado.items.length === 0 ? "pedir" : "pagar"));
       setQtds((atuais) =>
         Object.fromEntries(
           itensMesa.map((item) => {
@@ -425,6 +456,13 @@ function MesaPage() {
     setDividindo(null);
   }
 
+  // Fluxo: escolher o que pagar → pagar a conta → (opcional) gorjeta extra como segundo
+  // pagamento → avaliação. A gorjeta é cobrada à parte porque vai para a TIPE e não para o restaurante.
+  function irParaPagamento() {
+    setErroPagamento(null);
+    setEtapa("pagamento-conta");
+  }
+
   async function processarPagamento(tipo: "conta" | "gorjeta") {
     const metodo = tipo === "conta" ? metodoConta : metodoGorjeta;
     const valor = tipo === "conta" ? totalConta : gorjetaExtra;
@@ -437,11 +475,22 @@ function MesaPage() {
     try {
       const cardToken =
         metodo === "card" && chavePublica ? await tokenizeCard(chavePublica, cartao) : undefined;
+      // Google Pay ativo no restaurante: a folha da carteira devolve o token que o servidor cobra.
+      // Nas empresas virtuais não há token: o servidor aprova em simulação.
+      const walletToken =
+        tipo === "conta" && metodo === "google_pay" && googlePay
+          ? await pedirTokenGooglePay(googlePay, valor)
+          : undefined;
       const resultado = await createPayment({
         data: {
           cardToken,
+          walletToken,
           method: metodo,
           tip: tipo === "gorjeta" ? gorjetaExtra : 0,
+          billPaymentId:
+            tipo === "gorjeta" && ultimoPagamento && /^[0-9a-f-]{36}$/.test(ultimoPagamento)
+              ? ultimoPagamento
+              : undefined,
           tableId: String(dados.mesa),
           restaurantId: restaurante,
           idempotencyKey: chavePagamento.current,
@@ -465,7 +514,7 @@ function MesaPage() {
         setUltimoPagamento(resultado.id);
         setRecibo({ estado: "idle" });
         setQuerRecibo(false);
-      }
+      } else setGorjetaPaga(resultado.status === "approved");
       setQtds({});
       await atualizarMesa();
       if (resultado.provider === "pagarme" && resultado.status === "pending" && resultado.pixCode) {
@@ -478,9 +527,10 @@ function MesaPage() {
           ? resultado.status === "approved"
             ? "conta-confirmada"
             : "conta-pendente"
-          : "fim",
+          : "avaliacao",
       );
     } catch (error) {
+      if (error instanceof GooglePayCancelado) return;
       const msg = error instanceof Error ? error.message : "";
       if (!navigator.onLine || error instanceof TypeError || /fetch|network|rede/i.test(msg)) {
         // Queda de conexão: mantém a mesma chave e só libera nova tentativa após consultar o servidor.
@@ -537,14 +587,14 @@ function MesaPage() {
             setUltimoPagamento(r.id);
             setRecibo({ estado: "idle" });
             setQuerRecibo(false);
-          }
+          } else setGorjetaPaga(r.status === "approved");
           setQtds({});
           setEtapa(
             tipo === "conta"
               ? r.status === "approved"
                 ? "conta-confirmada"
                 : "conta-pendente"
-              : "fim",
+              : "avaliacao",
           );
           return;
         } catch {
@@ -576,7 +626,8 @@ function MesaPage() {
         });
         if (r.status === "approved") {
           await atualizarMesa();
-          setEtapa(pix.tipo === "conta" ? "conta-confirmada" : "fim");
+          if (pix.tipo === "gorjeta") setGorjetaPaga(true);
+          setEtapa(pix.tipo === "conta" ? "conta-confirmada" : "avaliacao");
         } else if (r.status !== "pending") {
           setErroPagamento("O Pix expirou ou não foi concluído. Tente novamente.");
           setEtapa(pix.tipo === "conta" ? "pagamento-conta" : "pagamento-gorjeta");
@@ -587,6 +638,12 @@ function MesaPage() {
     }, 4000);
     return () => window.clearInterval(t);
   }, [etapa, pix, restaurante, dados.mesa, sessaoMesa, atualizarMesa]);
+
+  // Pix vem pré-selecionado quando o restaurante aceita: um toque a menos para pagar.
+  useEffect(() => {
+    if (etapa === "pagamento-conta" && !metodoConta && metodosAceitos?.includes("pix"))
+      setMetodoConta("pix");
+  }, [etapa, metodoConta, metodosAceitos]);
 
   const primeiroNome = nome.trim().split(/\s+/)[0] ?? "";
   const temItensEmAberto = dados.itens.some((item) => (disponiveis[item.id] ?? item.qtd) > 0);
@@ -620,9 +677,7 @@ function MesaPage() {
             <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-muted">
               <WifiOff className="h-6 w-6 text-foreground" aria-hidden />
             </span>
-            <h2 className="mt-4 font-display text-xl font-semibold tracking-heading">
-              Sem conexão
-            </h2>
+            <h2 className="mt-4 font-display text-xl font-medium tracking-heading">Sem conexão</h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
               Seu pagamento não foi concluído ou está sendo confirmado.{" "}
               <strong className="text-foreground">Não pague de novo.</strong>
@@ -642,7 +697,7 @@ function MesaPage() {
           <span className="grid h-14 w-14 place-items-center rounded-full bg-muted">
             <QrCode className="h-6 w-6" aria-hidden />
           </span>
-          <h1 className="mt-5 font-display text-2xl font-semibold tracking-heading">
+          <h1 className="mt-5 font-display text-2xl font-medium tracking-heading">
             Não foi possível abrir a mesa
           </h1>
           <p className="mt-2 max-w-xs text-sm leading-6 text-muted-foreground">{erroMesa}</p>
@@ -661,7 +716,7 @@ function MesaPage() {
               {dados.restaurante ? `${dados.restaurante} · ` : ""}Mesa {dados.mesa}
             </p>
           )}
-          <h1 className="mt-3 font-display text-[2rem] font-semibold leading-[1.1] tracking-heading">
+          <h1 className="mt-3 text-[2rem] font-medium leading-[1.06] tracking-[-0.035em]">
             Olá! Qual é o seu nome?
           </h1>
           <p className="mt-3 text-[0.95rem] leading-6 text-muted-foreground">
@@ -709,17 +764,69 @@ function MesaPage() {
             )}
           </p>
 
-          <div
-            role="tablist"
-            aria-label="Conta da mesa"
-            className="mt-5 grid grid-cols-2 gap-1 rounded-full bg-muted p-1"
-          >
-            {(
-              [
-                ["conta", "Conta", ReceiptText],
-                ["atividade", "Atividade", ClipboardList],
-              ] as const
-            ).map(([id, rotulo, Icone]) => (
+          {sessaoMesa && (
+            <ChamarEquipe slug={restaurante} mesa={String(dados.mesa)} session={sessaoMesa} />
+          )}
+
+          {selfOrder && (
+            <div
+              role="tablist"
+              aria-label="Pedir ou pagar"
+              className="mt-5 grid grid-cols-2 gap-1 rounded-2xl border border-border bg-card p-1 shadow-xs"
+            >
+              {(
+                [
+                  ["pedir", "Pedir", UtensilsCrossed],
+                  ["pagar", "Pagar", Wallet],
+                ] as const
+              ).map(([id, rotulo, Icone]) => (
+                <button
+                  key={id}
+                  type="button"
+                  role="tab"
+                  aria-selected={modo === id}
+                  onClick={() => setModo(id)}
+                  className={`flex h-12 items-center justify-center gap-2 rounded-xl text-[0.95rem] font-semibold transition-colors ${modo === id ? "bg-foreground text-background" : "text-muted-foreground hover:text-foreground"}`}
+                >
+                  <Icone className="h-4 w-4" aria-hidden /> {rotulo}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {selfOrder && ordering && (
+            <div className={modo === "pedir" ? "mt-5 pb-8" : "hidden"}>
+              {ordering !== "open" && (
+                <MesaLiberacao
+                  estado={ordering}
+                  slug={restaurante}
+                  code={codigoMesa}
+                  session={sessaoMesa}
+                  garcom={dados.garcom}
+                  onLiberado={(token) => {
+                    setTokenPedido(token);
+                    void atualizarMesa();
+                  }}
+                  onAtualizar={atualizarMesa}
+                />
+              )}
+              <MesaPedido
+                slug={restaurante}
+                code={codigoMesa}
+                session={sessaoMesa}
+                nome={nome}
+                device={tokenPedido}
+                podeEnviar={ordering === "open"}
+                onPlaced={atualizarMesa}
+                onBlocked={(motivo) => setOrdering(motivo)}
+              />
+            </div>
+          )}
+
+          {(!selfOrder || modo !== "pedir") && (
+          <>
+          <div role="tablist" aria-label="Conta da mesa" className="mt-5 grid grid-cols-2 gap-1 rounded-full bg-muted p-1">
+            {([["conta", "Conta", ReceiptText], ["atividade", "Atividade", ClipboardList]] as const).map(([id, rotulo, Icone]) => (
               <button
                 key={id}
                 type="button"
@@ -737,50 +844,83 @@ function MesaPage() {
             <>
               {temItensEmAberto &&
                 (() => {
-                  const tudoSelecionado = dados.itens.every(
-                    (item) =>
-                      Math.abs((qtds[item.id] ?? 0) - (disponiveis[item.id] ?? item.qtd)) < EPSILON,
+                  // Atalho principal: o valor em aberto em destaque e "pagar tudo" em um toque.
+                  const emAberto = remainingSubtotal(itensDivisao);
+                  const emAbertoComTaxa = +(
+                    emAberto +
+                    resolveServiceFee(emAberto, taxaSugerida, { kind: "suggested" })!.amount
+                  ).toFixed(2);
+                  const tudo = Object.fromEntries(
+                    dados.itens.map((item) => [
+                      item.id,
+                      Math.max(0, disponiveis[item.id] ?? item.qtd),
+                    ]),
                   );
+                  const algumPago = pagamentos.some((pagamento) => pagamento.status !== "failed");
                   return (
-                    <div className="mt-5 space-y-2">
+                    <section
+                      aria-labelledby="em-aberto-title"
+                      className="mt-5 rounded-[1.75rem] bg-background-muted p-5"
+                    >
+                      <p id="em-aberto-title" className="text-sm text-muted-foreground">
+                        {algumPago ? "Ainda em aberto na mesa" : "Total da mesa"}
+                      </p>
+                      <p className="money mt-1 text-[2.75rem] font-medium leading-none tracking-[-0.045em]">
+                        {money(emAbertoComTaxa)}
+                      </p>
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        {taxaRemovida || taxaSugerida <= 0
+                          ? "Sem taxa de serviço nesta conta."
+                          : `Inclui a taxa de serviço de ${Math.round(taxaSugerida * 1000) / 10}%.`}
+                      </p>
                       <Button
-                        variant={tudoSelecionado ? "soft" : "outline"}
-                        onClick={() =>
-                          setQtds(
-                            Object.fromEntries(
-                              dados.itens.map((item) => [
-                                item.id,
-                                tudoSelecionado ? 0 : Math.max(0, disponiveis[item.id] ?? item.qtd),
-                              ]),
-                            ),
-                          )
-                        }
-                        className="h-12 w-full font-display text-[0.95rem]"
+                        onClick={() => {
+                          setQtds(tudo);
+                          irParaPagamento();
+                        }}
+                        className="mt-5 h-13 w-full justify-between px-6 font-display text-base"
                       >
-                        <ReceiptText />{" "}
-                        {tudoSelecionado ? "Limpar seleção" : "Pagar a conta inteira"}
+                        <span>Pagar tudo</span>
+                        <span className="money">{money(emAbertoComTaxa)}</span>
                       </Button>
-                      <DividirConta
-                        items={itensDivisao}
-                        serviceRate={taxaSugerida}
-                        onApply={(quantidades) =>
-                          setQtds(
-                            Object.fromEntries(
-                              dados.itens.map((item) => [item.id, quantidades[item.id] ?? 0]),
-                            ),
-                          )
-                        }
-                      />
-                    </div>
+                      <div className="mt-2 grid grid-cols-2 gap-2">
+                        <DividirConta
+                          items={itensDivisao}
+                          serviceRate={taxaSugerida}
+                          triggerClassName="h-12 w-full rounded-full bg-card font-display text-[0.95rem] font-medium"
+                          onApply={(quantidades) =>
+                            setQtds(
+                              Object.fromEntries(
+                                dados.itens.map((item) => [item.id, quantidades[item.id] ?? 0]),
+                              ),
+                            )
+                          }
+                          onPay={irParaPagamento}
+                        />
+                        <Button
+                          variant="outline"
+                          onClick={() =>
+                            document
+                              .getElementById("itens-da-conta")
+                              ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                          }
+                          className="h-12 w-full bg-card font-display text-[0.95rem] font-medium"
+                        >
+                          <ListChecks /> Escolher itens
+                        </Button>
+                      </div>
+                    </section>
                   );
                 })()}
 
               {temItensEmAberto && (
-                <div className="mt-7 flex items-baseline justify-between gap-3">
-                  <h2 className="font-display text-lg font-semibold tracking-heading">
-                    O que você vai pagar?
+                <div
+                  id="itens-da-conta"
+                  className="mt-8 flex scroll-mt-4 items-baseline justify-between gap-3"
+                >
+                  <h2 className="font-display text-lg font-medium tracking-heading">
+                    Ou escolha o que você vai pagar
                   </h2>
-                  <span className="text-xs text-muted-foreground">Toque para escolher</span>
                 </div>
               )}
               <ul className="mt-3 flex flex-col gap-2.5">
@@ -898,62 +1038,62 @@ function MesaPage() {
                 </div>
               )}
 
-              <div className="mt-6 rounded-2xl border border-border bg-card p-5 text-sm">
-                <ResumoLinha label="Subtotal selecionado" valor={subtotal} />
-                {taxaRemovida ? (
-                  <ResumoLinha
-                    label="Taxa de serviço removida pelo restaurante"
-                    valor={0}
-                    className="mt-2"
-                  />
-                ) : (
-                  <ResumoLinha
-                    label={`Taxa de serviço (${Math.round(taxaSugerida * 1000) / 10}%)`}
-                    valor={servico}
-                    className="mt-2"
-                  />
-                )}
-                <ResumoLinha
-                  label="Total da sua parte"
-                  valor={totalConta}
-                  destaque
-                  className="mt-3 border-t border-border pt-3"
-                />
-                {(() => {
-                  // Saldo da mesa sempre visível: ninguém sai achando que pagou tudo.
-                  const falta = remainingSubtotal(itensDivisao);
-                  const faltaDepois = Math.max(0, +(falta - subtotal).toFixed(2));
-                  return falta > 0 && subtotal > 0 ? (
-                    <p className="mt-3 rounded-xl bg-muted px-3 py-2.5 text-xs leading-5 text-muted-foreground">
-                      {faltaDepois <= 0 ? (
-                        "Com este pagamento, a conta da mesa fica quitada."
-                      ) : (
-                        <>
-                          Depois do seu pagamento, ainda faltarão{" "}
-                          <strong className="money text-foreground">{money(faltaDepois)}</strong>{" "}
-                          (sem taxa) para fechar a mesa.
-                        </>
-                      )}
-                    </p>
-                  ) : null;
-                })()}
-              </div>
-              <BarraAcao>
-                <Button
-                  disabled={subtotal <= 0}
-                  onClick={() => setEtapa("pagamento-conta")}
-                  className="h-13 w-full justify-between px-6 font-display text-base"
-                >
-                  {subtotal > 0 ? (
-                    <>
+              {subtotal > 0 && (
+                <>
+                  <div className="mt-6 rounded-2xl border border-border bg-card p-5 text-sm">
+                    <ResumoLinha label="Subtotal selecionado" valor={subtotal} />
+                    {taxaRemovida ? (
+                      <ResumoLinha
+                        label="Taxa de serviço removida pelo restaurante"
+                        valor={0}
+                        className="mt-2"
+                      />
+                    ) : (
+                      <ResumoLinha
+                        label={`Taxa de serviço (${Math.round(taxaSugerida * 1000) / 10}%)`}
+                        valor={servico}
+                        className="mt-2"
+                      />
+                    )}
+                    <ResumoLinha
+                      label="Total da sua parte"
+                      valor={totalConta}
+                      destaque
+                      className="mt-3 border-t border-border pt-3"
+                    />
+                    {(() => {
+                      // Saldo da mesa sempre visível: ninguém sai achando que pagou tudo.
+                      const falta = remainingSubtotal(itensDivisao);
+                      const faltaDepois = Math.max(0, +(falta - subtotal).toFixed(2));
+                      return falta > 0 && subtotal > 0 ? (
+                        <p className="mt-3 rounded-xl bg-muted px-3 py-2.5 text-xs leading-5 text-muted-foreground">
+                          {faltaDepois <= 0 ? (
+                            "Com este pagamento, a conta da mesa fica quitada."
+                          ) : (
+                            <>
+                              Depois do seu pagamento, ainda faltarão{" "}
+                              <strong className="money text-foreground">
+                                {money(faltaDepois)}
+                              </strong>{" "}
+                              (sem taxa) para fechar a mesa.
+                            </>
+                          )}
+                        </p>
+                      ) : null;
+                    })()}
+                  </div>
+                  <BarraAcao>
+                    <Button
+                      disabled={subtotal <= 0}
+                      onClick={irParaPagamento}
+                      className="h-13 w-full justify-between px-6 font-display text-base"
+                    >
                       <span>Continuar para pagamento</span>
                       <span className="money">{money(totalConta)}</span>
-                    </>
-                  ) : (
-                    <span className="mx-auto">Escolha o que você vai pagar</span>
-                  )}
-                </Button>
-              </BarraAcao>
+                    </Button>
+                  </BarraAcao>
+                </>
+              )}
             </>
           )}
 
@@ -1033,13 +1173,19 @@ function MesaPage() {
               )}
             </section>
           )}
+          </>
+          )}
         </main>
       )}
 
       {etapaVisivel === "pagamento-conta" && (
         <Pagamento
           titulo="Como você quer pagar?"
-          descricao="Este pagamento cobre só os itens que você escolheu. Depois da confirmação, a conta da mesa é atualizada sozinha."
+          descricao={
+            gorjetaExtra > 0 && !gorjetaPaga
+              ? `Primeiro a conta. Logo depois vem a gorjeta de ${money(gorjetaExtra)}, cobrada à parte.`
+              : "Este pagamento cobre só os itens que você escolheu. Depois da confirmação, a conta da mesa é atualizada sozinha."
+          }
           rotuloValor="Sua parte da conta"
           valor={totalConta}
           metodo={metodoConta}
@@ -1087,7 +1233,19 @@ function MesaPage() {
               : "O garçom irá em instantes até sua mesa com a maquininha."}
           </p>
           <div className="mt-8 w-full space-y-2">
+            {gorjetaDisponivel && !gorjetaPaga && (
+              <Button
+                onClick={() => {
+                  setErroPagamento(null);
+                  setEtapa("gorjeta");
+                }}
+                className="h-12 w-full font-display text-base"
+              >
+                {dados.garcom ? `Agradecer ${dados.garcom.split(" ")[0]} com gorjeta` : "Deixar uma gorjeta"} <ChevronRight />
+              </Button>
+            )}
             <Button
+              variant={gorjetaDisponivel && !gorjetaPaga ? "outline" : "default"}
               onClick={() => setEtapa("avaliacao")}
               className="h-12 w-full font-display text-base"
             >
@@ -1109,8 +1267,13 @@ function MesaPage() {
 
       {etapaVisivel === "conta-confirmada" && (
         <TelaCentral>
-          <MarcaSucesso />
-          <h1 className="mt-6 font-display text-[1.85rem] font-semibold leading-tight tracking-heading">
+          <img
+            src={mascotThanks}
+            alt="Lebre da TIPE sorrindo com o pagamento aprovado"
+            className="bob mx-auto mb-1 h-32 w-32 object-contain"
+          />
+          <p className="eyebrow text-brand-strong">Conta paga</p>
+          <h1 className="mt-2 text-[1.9rem] font-medium leading-[1.06] tracking-[-0.035em]">
             Pagamento realizado!
           </h1>
           <p className="mt-2 text-[0.95rem] text-muted-foreground">
@@ -1234,7 +1397,19 @@ function MesaPage() {
             </form>
           )}
           <div className="mt-7 w-full space-y-2">
+            {gorjetaDisponivel && !gorjetaPaga && (
+              <Button
+                onClick={() => {
+                  setErroPagamento(null);
+                  setEtapa("gorjeta");
+                }}
+                className="h-12 w-full font-display text-base"
+              >
+                {dados.garcom ? `Agradecer ${dados.garcom.split(" ")[0]} com gorjeta` : "Deixar uma gorjeta"} <ChevronRight />
+              </Button>
+            )}
             <Button
+              variant={gorjetaDisponivel && !gorjetaPaga ? "outline" : "default"}
               onClick={() => setEtapa("avaliacao")}
               className="h-12 w-full font-display text-base"
             >
@@ -1313,7 +1488,7 @@ function MesaPage() {
                       comment: comentario.trim() || undefined,
                     },
                   }).catch(() => undefined);
-                setEtapa(gorjetaDisponivel ? "gorjeta" : "fim");
+                setEtapa("fim");
               }}
               className="h-12 w-full font-display text-base"
             >
@@ -1323,102 +1498,166 @@ function MesaPage() {
         </main>
       )}
 
-      {etapaVisivel === "gorjeta" && (
-        <main className="flex flex-1 flex-col px-5 pb-8">
-          <h1 className="mt-4 text-center text-[2.1rem] font-medium leading-[1.04] tracking-[-0.04em]">
-            Quer agradecer com uma gorjeta?
-          </h1>
-          <p className="mt-3 text-center text-[0.95rem] leading-6 text-muted-foreground">
-            É opcional e separada da conta.
-          </p>
-          <div
-            className="mt-8 grid grid-cols-3 gap-2.5"
-            role="radiogroup"
-            aria-label="Valor da gorjeta"
-          >
-            {suggestedTips(valorPago).map((s, i) => {
-              const ativo = gorjetaExtra === s.amount && !gorjetaOutro;
-              return (
+      {etapaVisivel === "gorjeta" &&
+        (() => {
+          // Antes de pagar, a base é a parte da conta escolhida; depois, o que foi pago.
+          const contaPaga = ultimoPagamento !== null;
+          const base = contaPaga ? valorPago : totalConta;
+          const opcoes = suggestedTips(base);
+          const valorOutro = lerValor(gorjetaOutro);
+          const erroOutro =
+            gorjetaOutroAberto && gorjetaOutro ? validarGorjeta(valorOutro, base) : null;
+          const seguir = (valor: number) => {
+            setGorjetaExtra(valor);
+            setErroPagamento(null);
+            if (contaPaga) {
+              if (valor > 0) {
+                setMetodoGorjeta((m) => m ?? "pix");
+                setEtapa("pagamento-gorjeta");
+              } else setEtapa("avaliacao");
+            } else setEtapa("pagamento-conta");
+          };
+          const garcom = dados.garcom?.split(" ")[0];
+          return (
+            <main className="flex flex-1 flex-col px-5 pb-8">
+              <h1 className="mt-4 text-center text-[2.1rem] font-medium leading-[1.04] tracking-[-0.04em]">
+                {garcom
+                  ? `Agradeça ao ${garcom} com uma gorjeta`
+                  : "Quer deixar uma gorjeta extra?"}
+              </h1>
+              <p className="mt-3 text-center text-[0.95rem] leading-6 text-muted-foreground">
+                É opcional e vai além da taxa de serviço da conta.
+              </p>
+              <div
+                className="mt-8 grid grid-cols-2 gap-2.5"
+                role="radiogroup"
+                aria-label="Valor da gorjeta"
+              >
+                {opcoes.map((s) => {
+                  const ativo = gorjetaExtra === s.amount && !gorjetaOutroAberto;
+                  return (
+                    <button
+                      key={s.label}
+                      type="button"
+                      role="radio"
+                      aria-checked={ativo}
+                      onClick={() => {
+                        setGorjetaOutroAberto(false);
+                        setGorjetaOutro("");
+                        setGorjetaExtra(s.amount);
+                      }}
+                      className={`relative flex h-24 flex-col items-center justify-center gap-1 rounded-[1.25rem] border bg-card transition-[border-color,transform] active:scale-[0.98] ${ativo ? "border-foreground ring-1 ring-foreground" : "border-border hover:border-foreground/40"}`}
+                    >
+                      {s.sugerida && (
+                        <span className="absolute left-2 top-2 rounded-full bg-brand-soft px-2 py-0.5 text-[0.68rem] font-semibold text-brand-strong">
+                          Sugerida
+                        </span>
+                      )}
+                      {ativo && (
+                        <span className="absolute right-2 top-2 grid h-5 w-5 place-items-center rounded-full bg-foreground text-background">
+                          <Check className="h-3 w-3" strokeWidth={3} />
+                        </span>
+                      )}
+                      <span className="text-xl font-medium">{s.label}</span>
+                      {s.label.endsWith("%") && (
+                        <span className="money text-xs text-muted-foreground">
+                          {money(s.amount)}
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
                 <button
-                  key={s.label}
                   type="button"
                   role="radio"
-                  aria-checked={ativo}
+                  aria-checked={gorjetaOutroAberto}
                   onClick={() => {
-                    setGorjetaOutro("");
-                    setGorjetaExtra(s.amount);
+                    setGorjetaOutroAberto(true);
+                    const v = lerValor(gorjetaOutro);
+                    setGorjetaExtra(v !== null && !validarGorjeta(v, base) ? v : 0);
                   }}
-                  className={`relative flex h-28 flex-col items-center justify-center gap-1 rounded-[1.25rem] border bg-card transition-[border-color,transform] active:scale-[0.98] ${ativo ? "border-foreground ring-1 ring-foreground" : "border-border hover:border-foreground/40"}`}
+                  className={`relative flex h-24 flex-col items-center justify-center gap-1 rounded-[1.25rem] border bg-card transition-[border-color,transform] active:scale-[0.98] ${gorjetaOutroAberto ? "border-foreground ring-1 ring-foreground" : "border-border hover:border-foreground/40"}`}
                 >
-                  {ativo && (
-                    <span className="absolute right-2 top-2 grid h-5 w-5 place-items-center rounded-full bg-foreground text-background">
-                      <Check className="h-3 w-3" strokeWidth={3} />
-                    </span>
-                  )}
-                  <span className="text-xl font-medium">{s.label}</span>
-                  {s.label.endsWith("%") && (
-                    <span className="money text-xs text-muted-foreground">{money(s.amount)}</span>
-                  )}
-                  <span aria-hidden className="mt-0.5 text-2xl leading-none">
-                    {["🙂", "😊", "😍", "🤩"][i] ?? "🙂"}
-                  </span>
+                  <span className="text-xl font-medium">Outro valor</span>
+                  <span className="text-xs text-muted-foreground">você escolhe</span>
                 </button>
-              );
-            })}
-          </div>
-          <label htmlFor="gorjeta-outro" className="mt-4 text-sm font-semibold">
-            Outro valor
-          </label>
-          <Input
-            id="gorjeta-outro"
-            inputMode="decimal"
-            maxLength={8}
-            value={gorjetaOutro}
-            placeholder="R$ 0,00"
-            className="mt-1 h-11"
-            onChange={(e) => {
-              const t = e.target.value.replace(/[^\d,.]/g, "");
-              setGorjetaOutro(t);
-              const v = Number(t.includes(",") ? t.replace(/\./g, "").replace(",", ".") : t);
-              setGorjetaExtra(
-                Number.isFinite(v) && v > 0 && v <= 1000 ? Math.round(v * 100) / 100 : 0,
-              );
-            }}
-          />
-          {gorjetaExtra > 0 && (
-            <p className="mt-4 rounded-xl bg-muted px-3 py-2.5 text-xs leading-5 text-muted-foreground">
-              Dos <strong className="money text-foreground">{money(gorjetaExtra)}</strong>,{" "}
-              <strong className="money text-foreground">
-                {money(+(gorjetaExtra * TIP_SPLIT.waiter).toFixed(2))}
-              </strong>{" "}
-              vão para a equipe e{" "}
-              <span className="money">{money(+(gorjetaExtra * TIP_SPLIT.tipe).toFixed(2))}</span>{" "}
-              ficam com a TIPE.
-            </p>
-          )}
-          <div className="mt-6 grid gap-2">
-            <Button
-              disabled={gorjetaExtra <= 0}
-              onClick={() => setEtapa("pagamento-gorjeta")}
-              className="h-12 w-full font-display text-base"
-            >
-              {gorjetaExtra > 0 ? `Continuar com ${money(gorjetaExtra)}` : "Escolha um valor"}
-            </Button>
-            <Button variant="outline" onClick={() => setEtapa("fim")} className="h-12 w-full">
-              Agora não, obrigado
-            </Button>
-          </div>
-          <Link
-            to="/legal/$livro"
-            params={{ livro: "termos-de-uso" }}
-            hash="gorjeta-extra"
-            target="_blank"
-            className="mt-4 block text-center text-sm font-semibold text-brand-strong underline-offset-2 hover:underline"
-          >
-            Como funciona a gorjeta?
-          </Link>
-        </main>
-      )}
+              </div>
+              {gorjetaOutroAberto && (
+                <div className="mt-4">
+                  <label htmlFor="gorjeta-outro" className="text-sm font-semibold">
+                    Digite o valor
+                  </label>
+                  <Input
+                    id="gorjeta-outro"
+                    inputMode="decimal"
+                    maxLength={10}
+                    autoFocus
+                    value={gorjetaOutro}
+                    placeholder="R$ 0,00"
+                    aria-invalid={!!erroOutro}
+                    aria-describedby="gorjeta-outro-ajuda"
+                    className="mt-1 h-11"
+                    onChange={(e) => {
+                      const t = e.target.value.replace(/[^\d,.]/g, "");
+                      setGorjetaOutro(t);
+                      const v = lerValor(t);
+                      setGorjetaExtra(v !== null && !validarGorjeta(v, base) ? v : 0);
+                    }}
+                  />
+                  <p
+                    id="gorjeta-outro-ajuda"
+                    className={`mt-1.5 text-xs ${erroOutro ? "text-destructive" : "text-muted-foreground"}`}
+                  >
+                    {erroOutro ??
+                      `De ${money(2)} até ${money(gorjetaMaxima(base))}, o valor da sua conta.`}
+                  </p>
+                </div>
+              )}
+              {gorjetaExtra > 0 && (
+                <p className="mt-4 rounded-xl bg-muted px-3 py-2.5 text-xs leading-5 text-muted-foreground">
+                  Dos <strong className="money text-foreground">{money(gorjetaExtra)}</strong>,{" "}
+                  <strong className="money text-foreground">
+                    {money(+(gorjetaExtra * TIP_SPLIT.waiter).toFixed(2))}
+                  </strong>{" "}
+                  vão para {garcom ? `o ${garcom}` : "a equipe"} e{" "}
+                  <span className="money">
+                    {money(+(gorjetaExtra * TIP_SPLIT.tipe).toFixed(2))}
+                  </span>{" "}
+                  ficam com a TIPE. É cobrada à parte, logo depois da conta.
+                </p>
+              )}
+              <div className="mt-6 grid gap-2">
+                <Button
+                  disabled={gorjetaExtra <= 0}
+                  onClick={() => seguir(gorjetaExtra)}
+                  className="h-12 w-full font-display text-base"
+                >
+                  {gorjetaExtra > 0 ? `Continuar com ${money(gorjetaExtra)}` : "Escolha um valor"}
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setGorjetaOutroAberto(false);
+                    setGorjetaOutro("");
+                    seguir(0);
+                  }}
+                  className="h-12 w-full"
+                >
+                  Sem gorjeta
+                </Button>
+              </div>
+              <Link
+                to="/legal/$livro"
+                params={{ livro: "termos-de-uso" }}
+                hash="gorjeta-extra"
+                target="_blank"
+                className="mt-4 block text-center text-sm font-semibold text-brand-strong underline-offset-2 hover:underline"
+              >
+                Como funciona a gorjeta?
+              </Link>
+            </main>
+          );
+        })()}
 
       {etapaVisivel === "pagamento-gorjeta" && (
         <Pagamento
@@ -1490,7 +1729,7 @@ function MesaPage() {
           <p className="mt-3 max-w-xs text-center text-sm leading-6 text-muted-foreground">
             Sua conta foi paga e sua avaliação foi registrada.
           </p>
-          {gorjetaExtra > 0 && (
+          {gorjetaPaga && gorjetaExtra > 0 && (
             <p className="mt-4 rounded-xl bg-brand-soft px-4 py-2.5 text-center text-sm font-semibold text-brand-strong">
               Gorjeta de <span className="money">{money(gorjetaExtra)}</span> recebida. A equipe
               agradece!
@@ -1542,7 +1781,13 @@ function MesaPage() {
 const PASSOS = ["Conta", "Pagamento", "Pronto"] as const;
 function passoDaEtapa(etapa: Etapa) {
   if (etapa === "conta") return 0;
-  if (etapa === "pagamento-conta" || etapa === "pix" || etapa === "conta-pendente") return 1;
+  if (
+    etapa === "gorjeta" ||
+    etapa === "pagamento-conta" ||
+    etapa === "pix" ||
+    etapa === "conta-pendente"
+  )
+    return 1;
   return 2;
 }
 
@@ -1670,15 +1915,6 @@ function EstadoPagamento({ status }: { status: SharedPayment["status"] }) {
   );
 }
 
-function MarcaSucesso() {
-  return (
-    <span className="tipe-approved-mark relative grid h-20 w-20 place-items-center rounded-full bg-primary text-primary-foreground shadow-[0_18px_40px_-14px_var(--brand-primary)]">
-      <span aria-hidden className="absolute inset-0 rounded-full ring-8 ring-primary/15" />
-      <Check className="h-10 w-10" strokeWidth={3} />
-    </span>
-  );
-}
-
 function LinhaRecibo({ rotulo, children }: { rotulo: string; children: React.ReactNode }) {
   return (
     <div className="flex items-baseline justify-between gap-4 border-b border-border py-2.5 first:pt-0 last:border-0 last:pb-0">
@@ -1788,9 +2024,6 @@ function ResumoLinha({
   );
 }
 
-// Carteiras digitais ainda não estão ativas no provedor: aparecem, mas não podem ser escolhidas.
-const EM_BREVE = new Set<Metodo>(["apple_pay", "google_pay"]);
-
 function Pagamento({
   extra,
   titulo,
@@ -1841,12 +2074,14 @@ function Pagamento({
       metodos.filter(
         (opcao) => opcao.id !== "at_establishment" && (opcao.id !== "card" || !!cartao),
       );
-  const ativas = opcoes.filter((opcao) => !EM_BREVE.has(opcao.id));
-  const emBreve = opcoes.filter((opcao) => EM_BREVE.has(opcao.id));
+  // Decisão do Roberto (15/10): Apple Pay e Google Pay aparecem como meios disponíveis.
+  const ativas = opcoes;
+  // Se o servidor recusar a carteira, o Pix fica a um toque.
+  const carteiraRecusada =
+    !!erro && /Apple Pay|Google Pay/.test(erro) && opcoes.some((opcao) => opcao.id === "pix");
   const dinheiro = Number(valorDinheiro.replace(",", "."));
   const bloqueado =
     !metodo ||
-    EM_BREVE.has(metodo) ||
     pagando ||
     (permitirEstabelecimento && !aceitouTermos) ||
     (metodo === "at_establishment" &&
@@ -1912,23 +2147,6 @@ function Pagamento({
             </button>
           );
         })}
-        {emBreve.length > 0 && (
-          <div
-            className="flex items-center gap-3 rounded-2xl border border-dashed border-border px-4 py-3 text-left opacity-70"
-            aria-disabled="true"
-          >
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-muted">
-              <Smartphone className="h-4 w-4" />
-            </span>
-            <span className="min-w-0 flex-1">
-              <span className="block font-semibold">{emBreve.map((o) => o.label).join(" e ")}</span>
-              <span className="block text-xs text-muted-foreground">Ainda não disponível</span>
-            </span>
-            <span className="shrink-0 rounded-full bg-muted px-2.5 py-1 text-[11px] font-semibold text-muted-foreground">
-              Em breve
-            </span>
-          </div>
-        )}
       </div>
       {metodo === "at_establishment" && permitirEstabelecimento && setMetodoEstabelecimento && (
         <div className="mt-4 rounded-2xl border border-border bg-muted/50 p-4">
@@ -2000,62 +2218,76 @@ function Pagamento({
           <CardFields value={cartao} onChange={setCartao} />
         </div>
       )}
-      {permitirEstabelecimento && (
-        <div className="mt-5 flex items-start gap-3 rounded-2xl border border-border bg-card p-4">
-          <Checkbox
-            id="aceite-termos"
-            checked={aceitouTermos}
-            onCheckedChange={(checked) => setAceitouTermos(checked === true)}
-            className="mt-0.5 h-5 w-5"
-          />
-          <label htmlFor="aceite-termos" className="text-xs leading-5 text-muted-foreground">
-            Confirmo que revisei e me responsabilizo pelos itens selecionados. Aceito os{" "}
-            <Dialog>
-              <DialogTrigger asChild>
-                <button
-                  type="button"
-                  className="font-semibold text-brand-strong underline-offset-2 hover:underline"
-                >
-                  Termos de Uso
-                </button>
-              </DialogTrigger>
-              <DialogContent className="max-h-[85svh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Termos de Uso do pagamento</DialogTitle>
-                  <DialogDescription>Leia antes de confirmar sua parte da conta.</DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 text-sm leading-6 text-muted-foreground">
-                  <p>
-                    Ao continuar, você declara que conferiu os itens e as quantidades escolhidas e
-                    reconhece que este pagamento cobre somente essa seleção.
-                  </p>
-                  <p>
-                    Após a confirmação, os itens pagos serão retirados do saldo disponível da mesa.
-                    Valores ainda não pagos permanecerão na conta.
-                  </p>
-                  <p>
-                    Pagamentos digitais são confirmados automaticamente. Pagamentos em dinheiro ou
-                    maquininha permanecem pendentes até a confirmação manual do restaurante.
-                  </p>
-                  <p>
-                    Em caso de divergência, procure o restaurante antes de concluir o pagamento.
-                  </p>
-                </div>
-              </DialogContent>
-            </Dialog>
-            .
-          </label>
-        </div>
-      )}
       {erro && (
-        <p
+        <div
           role="alert"
           className="mt-4 rounded-xl bg-destructive/10 px-3 py-2.5 text-sm text-destructive"
         >
-          {erro}
-        </p>
+          {carteiraRecusada
+            ? "Este restaurante ainda não recebe Apple Pay e Google Pay pela TIPE. O Pix é instantâneo e já está disponível."
+            : erro}
+          {carteiraRecusada && metodo !== "pix" && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setMetodo("pix")}
+              className="mt-2 h-10 w-full bg-card text-foreground"
+            >
+              <QrCode /> Pagar com Pix
+            </Button>
+          )}
+        </div>
       )}
       <BarraAcao>
+        {permitirEstabelecimento && (
+          <div className="mb-3 flex items-start gap-3">
+            <Checkbox
+              id="aceite-termos"
+              checked={aceitouTermos}
+              onCheckedChange={(checked) => setAceitouTermos(checked === true)}
+              className="mt-0.5 h-5 w-5"
+            />
+            <label htmlFor="aceite-termos" className="text-xs leading-5 text-muted-foreground">
+              Confirmo que revisei e me responsabilizo pelos itens selecionados. Aceito os{" "}
+              <Dialog>
+                <DialogTrigger asChild>
+                  <button
+                    type="button"
+                    className="font-semibold text-brand-strong underline-offset-2 hover:underline"
+                  >
+                    Termos de Uso
+                  </button>
+                </DialogTrigger>
+                <DialogContent className="max-h-[85svh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Termos de Uso do pagamento</DialogTitle>
+                    <DialogDescription>
+                      Leia antes de confirmar sua parte da conta.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4 text-sm leading-6 text-muted-foreground">
+                    <p>
+                      Ao continuar, você declara que conferiu os itens e as quantidades escolhidas e
+                      reconhece que este pagamento cobre somente essa seleção.
+                    </p>
+                    <p>
+                      Após a confirmação, os itens pagos serão retirados do saldo disponível da
+                      mesa. Valores ainda não pagos permanecerão na conta.
+                    </p>
+                    <p>
+                      Pagamentos digitais são confirmados automaticamente. Pagamentos em dinheiro ou
+                      maquininha permanecem pendentes até a confirmação manual do restaurante.
+                    </p>
+                    <p>
+                      Em caso de divergência, procure o restaurante antes de concluir o pagamento.
+                    </p>
+                  </div>
+                </DialogContent>
+              </Dialog>
+              .
+            </label>
+          </div>
+        )}
         <Button disabled={bloqueado} onClick={pagar} className="h-13 w-full font-display text-base">
           {pagando ? (
             <>

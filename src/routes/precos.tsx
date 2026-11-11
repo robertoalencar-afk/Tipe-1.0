@@ -32,7 +32,7 @@ const SEMPRE = [
 ] as const;
 
 const PERGUNTAS: [string, string][] = [
-  ["A Tipe cobra por transação?", "Não. Você paga a assinatura pelo número de mesas. O restaurante paga apenas as tarifas do Pagar.me nos pagamentos digitais."],
+  ["A Tipe cobra por transação?", "Não. Você paga a assinatura pelo número de mesas. O restaurante paga apenas as tarifas do provedor de pagamento nos pagamentos digitais."],
   ["Tem fidelidade?", "Os planos mensais não têm fidelidade. No plano anual, os totens com QR Code estão incluídos."],
   ["Como funciona o teste grátis?", `Os primeiros restaurantes ganham ${TRIAL_DAYS} dias grátis, sem cartão de crédito. A gente cadastra as mesas e treina a equipe com você.`],
   ["E se eu passar do limite de mesas?", "As mesas acima do limite do plano não abrem novas contas. É só mudar de plano para liberar."],
@@ -47,8 +47,8 @@ function Precos() {
             as="h1"
             centro
             rotulo="Planos"
-            titulo="Preço simples. Sem surpresa."
-            texto={`Você paga pelo número de mesas, não por transação. ${TRIAL_DAYS} dias grátis para começar.`}
+            titulo="Um plano para cada tamanho de restaurante."
+            texto={`A assinatura é pelo número de mesas, sem tarifa da Tipe por transação. Os valores são informados antes da contratação; o processamento de pagamentos tem custos do provedor, combinados na contratação. ${TRIAL_DAYS} dias grátis no pré-lançamento.`}
           />
           <ul className="mx-auto mt-8 flex max-w-3xl flex-wrap justify-center gap-2 text-[0.95rem]">
             {[

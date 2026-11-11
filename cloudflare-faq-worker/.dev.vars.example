@@ -1,0 +1,6 @@
+# Copie para .dev.vars (ignorado pelo git) e preencha. Nunca versione valores reais.
+# Conta Cloudflare: `npx wrangler whoami` mostra o Account ID.
+CLOUDFLARE_ACCOUNT_ID=coloque-o-account-id-aqui
+# Token de conta com Workers AI: Read (obrigatório para /ai/*),
+# AI Gateway: Read e AI Gateway: Edit (criação automática do gateway "default").
+CLOUDFLARE_API_TOKEN=coloque-o-token-aqui
