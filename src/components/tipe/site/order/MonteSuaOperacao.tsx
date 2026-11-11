@@ -69,7 +69,7 @@ export function MonteSuaOperacao({ estado }: { estado: EstadoLancamento }) {
   const alternar = <T,>(lista: T[], v: T) => (lista.includes(v) ? lista.filter((x) => x !== v) : [...lista, v]);
   const mudar = (patch: Partial<RespostasConfigurador>) => {
     setR((a) => ({ ...a, ...patch }));
-    trackProduto("order", "configurador_resposta");
+    trackProduto("produto_cta", { produto: "order", local: "configurador_resposta" });
   };
 
   const msgZap = `Olá! Montei minha operação no site da Tipe: ${rec.frase} Quero conversar sobre a implantação.`;
@@ -158,7 +158,7 @@ export function MonteSuaOperacao({ estado }: { estado: EstadoLancamento }) {
               <div className="mt-6 grid gap-2">
                 <a
                   href="#simulador"
-                  onClick={() => trackProduto("order", "configurador_demo")}
+                  onClick={() => trackProduto("produto_cta", { produto: "order", local: "configurador_demo" })}
                   className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#021E34] px-5 text-[0.95rem] font-medium text-white hover:bg-[#03465a]"
                 >
                   Ver demonstração <ArrowRight className="h-4 w-4" aria-hidden />
@@ -167,7 +167,7 @@ export function MonteSuaOperacao({ estado }: { estado: EstadoLancamento }) {
                   href={whatsappLink(msgZap)}
                   target="_blank"
                   rel="noopener noreferrer"
-                  onClick={() => trackProduto("order", "configurador_whatsapp")}
+                  onClick={() => trackProduto("produto_cta", { produto: "order", local: "configurador_whatsapp" })}
                   className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-[#021E34]/30 px-5 text-[0.95rem] font-medium text-[#021E34] hover:border-[#021E34]"
                 >
                   <MessageCircle className="h-4 w-4" aria-hidden /> Falar no WhatsApp
@@ -175,7 +175,7 @@ export function MonteSuaOperacao({ estado }: { estado: EstadoLancamento }) {
                 <button
                   type="button"
                   aria-expanded={proposta}
-                  onClick={() => { setProposta((v) => !v); trackProduto("order", "configurador_proposta"); }}
+                  onClick={() => { setProposta((v) => !v); trackProduto("produto_cta", { produto: "order", local: "configurador_proposta" }); }}
                   className="inline-flex min-h-12 items-center justify-center rounded-full border border-[#021E34]/30 px-5 text-[0.95rem] font-medium text-[#021E34] hover:border-[#021E34]"
                 >
                   {proposta ? "Fechar formulário" : "Receber proposta"}

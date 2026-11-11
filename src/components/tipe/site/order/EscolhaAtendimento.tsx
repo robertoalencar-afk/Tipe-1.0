@@ -149,7 +149,7 @@ export function EscolhaAtendimento({
   const escolher = (m: Modalidade) => {
     if (m === modalidade) return;
     onModalidade(m);
-    trackProduto("order", `modalidade_${m}`);
+    trackProduto("produto_cta", { produto: "order", local: `modalidade_${m}` });
   };
   const teclas = (e: KeyboardEvent<HTMLDivElement>) => {
     const i = ORDEM_SELETOR.indexOf(modalidade);
@@ -161,7 +161,7 @@ export function EscolhaAtendimento({
     if (e.key === "End") alvo = n - 1;
     if (alvo < 0) return;
     e.preventDefault();
-    escolher(ORDEM_SELETOR[alvo]);
+    escolher(ORDEM_SELETOR[alvo]!);
     abas.current[alvo]?.focus();
   };
 
@@ -290,14 +290,14 @@ export function EscolhaAtendimento({
             <div className="mt-7 flex flex-wrap gap-3">
               <a
                 href="#simulador"
-                onClick={() => trackProduto("order", `ver_funcionando_${modalidade}`)}
+                onClick={() => trackProduto("produto_cta", { produto: "order", local: `ver_funcionando_${modalidade}` })}
                 className="inline-flex min-h-12 items-center gap-2 rounded-full bg-[#021E34] px-6 text-[0.95rem] font-medium text-white transition-colors hover:bg-[#03465a]"
               >
                 Ver funcionando <ArrowRight className="h-4 w-4" aria-hidden />
               </a>
               <a
                 href="#quero-o-order"
-                onClick={() => trackProduto("order", `cta_${modalidade}`)}
+                onClick={() => trackProduto("produto_cta", { produto: "order", local: `cta_${modalidade}` })}
                 className="inline-flex min-h-12 items-center rounded-full border border-[#021E34]/30 px-6 text-[0.95rem] font-medium text-[#021E34] transition-colors hover:border-[#021E34]"
               >
                 {contratavel ? `Quero ${def.nome.toLowerCase()} na minha casa` : "Avisar quando estiver pronta"}
