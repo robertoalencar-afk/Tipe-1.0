@@ -1,10 +1,12 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { Check, Minus, Plus, Search, UtensilsCrossed } from "lucide-react";
+import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
+import { Check, Minus, Play, Plus, Search, UtensilsCrossed } from "lucide-react";
 import { nanoid } from "nanoid";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getPublicMenu, placeCustomerOrder, type PublicMenu } from "@/lib/tipe/customer-order.functions";
 import { totalCarrinho, carrinhoParaPedido } from "@/lib/tipe/pdv/comanda";
+
+const StoryCardapio = lazy(() => import("@/components/tipe/site/order/StoryCardapio").then((m) => ({ default: m.StoryCardapio })));
 
 const money = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -26,6 +28,7 @@ export function MesaPedido({ slug, code, session, nome, device, onPlaced, onBloc
   const [carrinho, setCarrinho] = useState<Record<string, number>>({});
   const [obs, setObs] = useState<Record<string, string>>({});
   const [obsAberta, setObsAberta] = useState<string | null>(null);
+  const [story, setStory] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [enviado, setEnviado] = useState<{ itens: number } | null>(null);
   const requestId = useRef(nanoid(16));
@@ -68,6 +71,15 @@ export function MesaPedido({ slug, code, session, nome, device, onPlaced, onBloc
     (busca || !cat || i.categoryId === cat) &&
     (!busca || i.name.toLowerCase().includes(busca.toLowerCase())));
 
+  const temFotos = menu.items.some((i) => i.imageUrl);
+  const itensStory = menu.items.map((i) => ({
+    code: i.code, nome: i.name, preco: Math.round(i.price * 100),
+    cat: menu.categories.find((c) => c.id === i.categoryId)?.name ?? "Cardápio",
+    ...(i.description ? { desc: i.description } : {}), ...(i.imageUrl ? { foto: i.imageUrl } : {}),
+    ...(i.depthUrl ? { profundidade: i.depthUrl } : {}), ...(i.modelUrl ? { modelo: i.modelUrl } : {}),
+    ...(i.badge ? { selo: i.badge } : {}), ...(i.allergens.length ? { alergenicos: i.allergens } : {}),
+  }));
+
   async function enviar() {
     if (!linhas.length || !podeEnviar) return;
     setEnviando(true); setErro(null);
@@ -93,6 +105,11 @@ export function MesaPedido({ slug, code, session, nome, device, onPlaced, onBloc
         <span className="sr-only">Buscar no cardápio</span>
         <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar no cardápio" className="h-11 w-full bg-transparent text-sm outline-none" />
       </label>
+      {temFotos && (
+        <button type="button" onClick={() => setStory(menu.items.find((i) => i.imageUrl)?.code ?? null)} className="mt-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground">
+          <Play className="h-4 w-4" aria-hidden="true" /> Ver o cardápio em stories
+        </button>
+      )}
       <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
         <Chip on={!cat} onClick={() => setCat("")}>Tudo</Chip>
         {menu.categories.map((c) => <Chip key={c.id} on={cat === c.id} onClick={() => setCat(c.id)}>{c.name}</Chip>)}
@@ -111,8 +128,13 @@ export function MesaPedido({ slug, code, session, nome, device, onPlaced, onBloc
                   return (
                     <li key={i.id} className={`rounded-2xl border bg-card p-3 ${q > 0 ? "border-2 border-primary bg-primary/5" : "border-border"}`}>
                       <div className="flex items-start justify-between gap-3">
+                        {i.imageUrl && (
+                          <button type="button" onClick={() => setStory(i.code)} aria-label={`Ver ${i.name} em tela cheia`} className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-muted">
+                            <img src={i.imageUrl} alt="" loading="lazy" width={64} height={64} className="h-full w-full object-cover" />
+                          </button>
+                        )}
                         <div className="min-w-0 flex-1">
-                          <p className="font-semibold">{i.name}</p>
+                          <p className="font-semibold">{i.name}{i.badge && <span className="ml-2 rounded-full bg-primary/15 px-2 py-0.5 align-middle text-[10px] font-bold uppercase text-primary">{i.badge}</span>}</p>
                           {i.description && <p className="mt-0.5 text-xs text-muted-foreground">{i.description}</p>}
                           <p className="mt-1 text-sm font-bold">{money(i.price)}</p>
                         </div>
@@ -144,6 +166,20 @@ export function MesaPedido({ slug, code, session, nome, device, onPlaced, onBloc
       </div>
 
       {erro && <p className="mt-3 rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm">{erro}</p>}
+
+      {story && (
+        <Suspense fallback={null}>
+          <StoryCardapio
+            itens={itensStory}
+            categorias={menu.categories.map((c) => c.name)}
+            inicio={story}
+            restaurante={menu.restaurantName}
+            carrinho={carrinho}
+            mudar={add}
+            onFechar={() => setStory(null)}
+          />
+        </Suspense>
+      )}
 
       {linhas.length > 0 && (
         <div className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-md border-t border-border bg-card p-3">

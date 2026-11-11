@@ -569,6 +569,11 @@ export type Database = {
           code: string
           created_at: string
           description: string | null
+          image_url: string | null
+          depth_url: string | null
+          model_url: string | null
+          badge: string | null
+          allergens: string[]
           id: string
           name: string
           position: number
@@ -583,6 +588,11 @@ export type Database = {
           code: string
           created_at?: string
           description?: string | null
+          image_url?: string | null
+          depth_url?: string | null
+          model_url?: string | null
+          badge?: string | null
+          allergens?: string[]
           id?: string
           name: string
           position?: number
@@ -597,6 +607,11 @@ export type Database = {
           code?: string
           created_at?: string
           description?: string | null
+          image_url?: string | null
+          depth_url?: string | null
+          model_url?: string | null
+          badge?: string | null
+          allergens?: string[]
           id?: string
           name?: string
           position?: number
