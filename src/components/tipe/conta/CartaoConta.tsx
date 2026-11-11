@@ -2,9 +2,21 @@ import type { ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { TipeLogo } from "@/components/tipe/Logo";
 import { cn } from "@/lib/utils";
-import { MascoteVivo } from "@/components/tipe/site/MascoteVivo";
+import { useEffect, useState } from "react";
+import { LebreHumor, type Humor } from "@/components/tipe/conta/LebreHumor";
 
-export type HumorLebre = "ola" | "senha" | "pensando" | "enviado" | "feliz";
+export type HumorLebre = "ola" | "senha" | "pensando" | "enviado" | "feliz" | "surpresa";
+
+const PARA: Record<HumorLebre, Humor> = {
+  ola: "ola",
+  senha: "senha",
+  pensando: "pensando",
+  enviado: "piscando",
+  feliz: "feliz",
+  surpresa: "surpresa",
+};
+/** Sem mexer na tela por um tempo, a lebre cansa e cochila até alguém voltar. */
+const COCHILO_MS = 25_000;
 
 /**
  * Login "cartão que vira" (opção A escolhida pelo Roberto em 09/11): um cartão central que
@@ -22,6 +34,21 @@ export function CartaoConta({
   virado?: boolean;
   humor?: HumorLebre;
 }) {
+  const [cochilando, setCochilando] = useState(false);
+  useEffect(() => {
+    let t = window.setTimeout(() => setCochilando(true), COCHILO_MS);
+    const acordar = () => {
+      setCochilando(false);
+      window.clearTimeout(t);
+      t = window.setTimeout(() => setCochilando(true), COCHILO_MS);
+    };
+    const ev = ["pointermove", "pointerdown", "keydown", "scroll"] as const;
+    ev.forEach((e) => window.addEventListener(e, acordar, { passive: true }));
+    return () => {
+      window.clearTimeout(t);
+      ev.forEach((e) => window.removeEventListener(e, acordar));
+    };
+  }, []);
   return (
     <main className="relative min-h-screen overflow-hidden bg-background text-foreground">
       {/* Manchas de cor da marca (turquesa em cima, laranja embaixo) */}
@@ -42,7 +69,7 @@ export function CartaoConta({
                 humor === "senha" && "-translate-y-[66%]",
               )}
             >
-              <MascoteVivo fecharOlhos={humor === "senha"} className="w-full" />
+              <LebreHumor humor={cochilando ? "cansada" : PARA[humor]} className="w-full" />
             </div>
             <div
               className={cn(

@@ -118,7 +118,7 @@ export function RedefinirSenha({ destino }: { destino: "painel" | "garcom" }) {
 
   if (etapa === "carregando")
     return (
-      <TelaConta lebreAlt="Lebre da Tipe piscando" balao="Só um segundinho…">
+      <TelaConta humor="piscando" lebreAlt="Lebre da Tipe piscando" balao="Só um segundinho…">
         <CabecalhoConta titulo="Abrindo seu link…">
           <p>Estamos conferindo se ele ainda vale.</p>
         </CabecalhoConta>
@@ -127,7 +127,12 @@ export function RedefinirSenha({ destino }: { destino: "painel" | "garcom" }) {
 
   if (etapa === "expirado" || etapa === "invalido")
     return (
-      <TelaConta lebreAlt="Lebre da Tipe surpresa" balao="Opa! Esse link já era." fundo="laranja">
+      <TelaConta
+        humor="surpresa"
+        lebreAlt="Lebre da Tipe surpresa"
+        balao="Opa! Esse link já era."
+        fundo="laranja"
+      >
         <CabecalhoConta
           titulo={etapa === "expirado" ? "Esse link expirou" : "Esse link não vale mais"}
         >
@@ -161,6 +166,7 @@ export function RedefinirSenha({ destino }: { destino: "painel" | "garcom" }) {
   if (etapa === "pronto")
     return (
       <TelaConta
+        humor="obrigado"
         lebreAlt="Lebre da Tipe comemorando"
         balao="Senha nova, vida nova!"
         fundo="marinho"
@@ -185,6 +191,7 @@ export function RedefinirSenha({ destino }: { destino: "painel" | "garcom" }) {
 
   return (
     <TelaConta
+      humor="feliz"
       lebreAlt="Lebre da Tipe sorrindo"
       balao="Bora de senha nova? Escolha uma que só você saiba."
     >

@@ -73,6 +73,7 @@ function Entrar() {
   const [focoSenha, setFocoSenha] = useState(false);
   const [entrando, setEntrando] = useState(false);
   const [esqueciEnviado, setEsqueciEnviado] = useState(false);
+  const [errou, setErrou] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -90,7 +91,11 @@ function Entrar() {
     try {
       if (modo === "entrar") {
         const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
-        if (error) throw new Error("E-mail ou senha incorretos. Confira e tente de novo.");
+        if (error) {
+          setErrou(true);
+          window.setTimeout(() => setErrou(false), 2500);
+          throw new Error("E-mail ou senha incorretos. Confira e tente de novo.");
+        }
         setEntrando(true);
       } else {
         const forca = avaliarSenha(senha, { email });
@@ -135,9 +140,11 @@ function Entrar() {
       : "pensando"
     : entrando
       ? "feliz"
-      : focoSenha
-        ? "senha"
-        : "ola";
+      : errou
+        ? "surpresa"
+        : focoSenha
+          ? "senha"
+          : "ola";
 
   const frente = (
     <div>
