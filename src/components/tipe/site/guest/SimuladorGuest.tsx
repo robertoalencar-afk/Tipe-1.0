@@ -1,5 +1,5 @@
 /**
- * Simulador do Tipe Guest (/produtos/guest#simulador). O visitante faz o papel do cliente no
+ * Simulador do Tipe Reserva (/guest#simulador). O visitante faz o papel do cliente no
  * celular (descobrir, reservar, chegar, pagar, agradecer e avaliar) e vê ao lado o que o
  * restaurante vê no painel de reservas. Tudo roda só no navegador, com restaurantes fictícios
  * de Fortaleza; nada é enviado e nenhuma cobrança acontece.
@@ -441,7 +441,7 @@ export function SimuladorGuest() {
       <div className="container-page">
         <Titulo
           rotulo="Simulador"
-          titulo="Experimente o Tipe Guest."
+          titulo="Experimente o Tipe Reserva."
           texto="Faça o papel do cliente no celular e veja ao lado o painel do restaurante. Prévia de um produto em desenvolvimento, com restaurantes fictícios: nada é enviado e nenhuma cobrança acontece."
         />
         <div className="mt-8 flex flex-wrap items-center justify-between gap-3 lg:mt-12">
@@ -1020,7 +1020,7 @@ export function SimuladorGuest() {
                         {(
                           [
                             ["conta", "Conta da mesa"],
-                            ["guest", "Tipe Guest"],
+                            ["guest", "Tipe Reserva"],
                           ] as const
                         ).map(([k, l]) => (
                           <button
@@ -1102,7 +1102,7 @@ export function SimuladorGuest() {
                           </li>
                           {credito.used > 0 && (
                             <li className="flex justify-between gap-2 px-3 py-2 text-[#03665f]">
-                              <span>Desconto Tipe Guest</span>
+                              <span>Desconto Tipe Reserva</span>
                               <span className="tabular-nums">−{brl(credito.used)}</span>
                             </li>
                           )}
@@ -1360,7 +1360,7 @@ export function SimuladorGuest() {
                             "sentada",
                             `${reserva.nome} levado à mesa ${reserva.mesa}; a conta da mesa abriu no app` +
                               (reserva.garantia > 0
-                                ? ` e reconheceu a reserva: desconto Tipe Guest de ${brl(reserva.garantia)}`
+                                ? ` e reconheceu a reserva: desconto Tipe Reserva de ${brl(reserva.garantia)}`
                                 : ""),
                           );
                           setAbaMesa(reserva.garantia > 0 ? "guest" : "conta");

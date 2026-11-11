@@ -1,5 +1,5 @@
 import { FounderMfaGate } from "@/components/tipe/FounderMfaGate";
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { LebreLimits } from "@/components/tipe/LebreLimits";
@@ -47,6 +47,7 @@ import { getFounderOverview } from "@/lib/tipe/founder.functions";
 import { createRestaurant } from "@/lib/tipe/staff.functions";
 
 export const Route = createFileRoute("/_authenticated/backoffice")({
+  beforeLoad: () => { throw redirect({ to: "/central" }); },
   head: () => ({
     meta: [
       { title: "Backoffice administrativo e financeiro | TIPE" },

@@ -72,8 +72,9 @@ jobs:
             exit 1
           fi
           # A IA da Lebre é grátis (Cloudflare Workers AI, depois Groq); sem as duas, ela só responde o que não precisa de IA.
-          if [[ -z "${CLOUDFLARE_AI_TOKEN:-}" && -z "${GROQ_API_KEY:-}" ]]; then
-            echo "::warning title=Lebre sem IA::Cadastre CLOUDFLARE_AI_TOKEN e/ou GROQ_API_KEY para a Lebre responder com IA."
+          # O Workers AI vem pelo binding do Worker (sem token); o Groq é a reserva grátis.
+          if [[ -z "${GROQ_API_KEY:-}" ]]; then
+            echo "::warning title=Lebre sem reserva::Sem GROQ_API_KEY, a Lebre só usa a cota grátis diária do Workers AI."
           fi
           # Evita misturar a service key ou o banco de staging com o URL publico de production.
           expected_id="bnggnbwmihqexvihrqvy"
@@ -97,21 +98,10 @@ jobs:
       - name: Publicar o site
         shell: bash
         run: |
-          # O Actions roda bash com -e; desligado aqui para tratar o erro do domínio.
-          set +e -uo pipefail
-          # O domínio só pode ser ligado ao Worker depois que o DNS de tipe.digital
-          # estiver na Cloudflare. Até lá o código sobe mesmo assim (no endereço
-          # workers.dev) e os segredos e as rotinas continuam sendo publicados.
-          bunx wrangler deploy 2>&1 | tee /tmp/deploy.log
-          status=${PIPESTATUS[0]}
-          if [[ "$status" -ne 0 ]]; then
-            if grep -q "100117" /tmp/deploy.log; then
-              echo "DOMINIO_PENDENTE=1" >> "$GITHUB_ENV"
-            else
-              exit "$status"
-            fi
-          fi
-          set -e
+          # O domínio canônico é gerenciado pelo Worker; www redireciona no edge.
+          # Qualquer erro de publicação deve falhar o job, inclusive erro de domínio.
+          set -euo pipefail
+          bunx wrangler deploy
           node scripts/deploy/segredos.mjs app | bunx wrangler secret bulk
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -146,8 +136,3 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
-      - name: Avisar se o domínio ainda não foi ligado
-        if: env.DOMINIO_PENDENTE == '1'
-        run: |
-          echo "::warning title=Domínio pendente::O site foi publicado no endereço workers.dev, mas tipe.digital ainda tem registros DNS fora da Cloudflare (erro 100117). Veja docs/deploy/plano-cutover-dns-20261027.md."
-          echo "Site publicado no workers.dev; tipe.digital ainda aponta para o servidor antigo (DNS pendente)." >> "$GITHUB_STEP_SUMMARY"

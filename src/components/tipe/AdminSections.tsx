@@ -1,12 +1,12 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { ConectarSistemas } from "@/components/tipe/ConectarSistemas";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
-import { ArrowRight, BarChart3, ChefHat, Clock, Copy, Download, KeyRound, LayoutGrid, MessageCircle, PlugZap, QrCode, Receipt, ShoppingCart, TrendingUp, Wallet } from "lucide-react";
+import { ArrowRight, BarChart3, ChefHat, Clock, Copy, Download, KeyRound, LayoutGrid, PlugZap, QrCode, Receipt, ShoppingCart, TrendingUp, Wallet } from "lucide-react";
 import { EmptyState, StatCard } from "@/components/tipe/ds";
 import { cn } from "@/lib/utils";
 import { getPdvEvents, getPdvIntegration, setPdvAdapter, testPdvConnection } from "@/lib/tipe/pdv-integrations.functions";
-import { whatsappLink } from "@/lib/tipe/contact";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cashAction, getOpsData, getReports, saveSettings } from "@/lib/tipe/admin.functions";
@@ -21,7 +21,7 @@ const metodoLabel: Record<string, string> = { pix: "Pix", card: "Cartão", apple
 type CashInput =
   | { action: "open"; slug: string; amount: number }
   | { action: "move"; slug: string; kind: "withdrawal" | "deposit"; amount: number; reason: string }
-  | { action: "close"; slug: string; counted: number; expected: number; notes: string };
+  | { action: "close"; slug: string; countedCash: number; countedCard: number; notes: string };
 export type OpsData = Awaited<ReturnType<typeof getOpsData>>;
 
 export function useOps(slug: string) {
@@ -109,18 +109,24 @@ export function Caixa({ slug, podeCaixa, confirmacoes }: { slug: string; podeCai
   const qc = useQueryClient();
   const [abertura, setAbertura] = useState("");
   const [mv, setMv] = useState({ kind: "withdrawal" as "withdrawal" | "deposit", amount: "", reason: "" });
-  const [contado, setContado] = useState("");
+  const [contado, setContado] = useState({ cash: "", card: "" });
   const s = ops.data?.session;
   const mov = ops.data?.movements ?? [];
-  const reforco = mov.filter((m) => m.kind === "deposit").reduce((a, m) => a + m.amount, 0);
-  const sangria = mov.filter((m) => m.kind === "withdrawal").reduce((a, m) => a + m.amount, 0);
   const balcao = ops.data?.counter ?? { total: 0, cash: 0, card: 0, pix: 0, count: 0 };
-  // Dinheiro físico na gaveta: troco inicial, reforços, sangrias e vendas do balcão em dinheiro.
-  const esperado = (s?.opening_amount ?? 0) + reforco - sangria + balcao.cash;
-  // Cartão e Pix do balcão entram como comprovantes, junto com os pagamentos no estabelecimento.
-  const comprovantes = balcao.card + balcao.pix + (ops.data?.received ?? 0);
+  // Esperado calculado no banco (cash_expected): espécie e maquininha separadas.
+  const e = ops.data?.expected ?? null;
+  const num = (v: string) => Number(v.replace(",", ".") || 0);
   async function run(data: CashInput, ok: string) {
     try { await act({ data }); toast.success(ok); qc.invalidateQueries({ queryKey: ["ops", slug] }); return true; } catch (e) { toast.error((e as Error).message); return false; }
+  }
+  async function fechar() {
+    try {
+      const r = await act({ data: { action: "close", slug, countedCash: num(contado.cash), countedCard: num(contado.card), notes: "" } });
+      const dif = (r.differenceCash ?? 0) + (r.differenceCard ?? 0);
+      toast.success(Math.abs(dif) < 0.005 ? "Caixa fechado sem diferença" : `Caixa fechado com diferença de ${brl(dif)}`);
+      setContado({ cash: "", card: "" });
+      qc.invalidateQueries({ queryKey: ["ops", slug] });
+    } catch (err) { toast.error((err as Error).message); }
   }
   return (
     <div className="grid gap-4 lg:grid-cols-[360px_1fr]">
@@ -138,16 +144,21 @@ export function Caixa({ slug, podeCaixa, confirmacoes }: { slug: string; podeCai
           <>
             <Card>
               <div className="flex items-baseline justify-between"><h3 className="flex items-center gap-2 font-display font-semibold"><span className="h-2 w-2 rounded-full bg-success" aria-hidden />Caixa aberto</h3><span className="text-xs text-muted-foreground">desde {hora(s.opened_at)}</span></div>
-              <dl className="money mt-4 space-y-1.5 text-sm">
-                <div className="flex justify-between"><dt>Troco inicial</dt><dd>{brl(s.opening_amount)}</dd></div>
-                <div className="flex justify-between"><dt>Reforços</dt><dd>+ {brl(reforco)}</dd></div>
-                <div className="flex justify-between"><dt>Sangrias</dt><dd>− {brl(sangria)}</dd></div>
-                <div className="flex justify-between"><dt>Balcão em dinheiro</dt><dd>+ {brl(balcao.cash)}</dd></div>
-                <div className="flex justify-between border-t border-border pt-2 font-semibold"><dt>Esperado em espécie</dt><dd>{brl(esperado)}</dd></div>
-                <div className="flex justify-between text-muted-foreground"><dt>Balcão em cartão e Pix</dt><dd>{brl(balcao.card + balcao.pix)}</dd></div>
-                <div className="flex justify-between text-muted-foreground"><dt>Recebido nas mesas (no estabelecimento)</dt><dd>{brl(ops.data?.received ?? 0)}</dd></div>
-                <div className="flex justify-between text-muted-foreground"><dt>Vendas no balcão</dt><dd>{balcao.count} · {brl(balcao.total)}</dd></div>
-              </dl>
+              {e ? (
+                <dl className="money mt-4 space-y-1.5 text-sm">
+                  <div className="flex justify-between"><dt>Troco inicial</dt><dd>{brl(e.opening)}</dd></div>
+                  <div className="flex justify-between"><dt>Reforços</dt><dd>+ {brl(e.deposits)}</dd></div>
+                  <div className="flex justify-between"><dt>Sangrias</dt><dd>− {brl(e.withdrawals)}</dd></div>
+                  <div className="flex justify-between"><dt>Balcão em dinheiro</dt><dd>+ {brl(e.counterCash)}</dd></div>
+                  <div className="flex justify-between"><dt>Mesas em dinheiro</dt><dd>+ {brl(e.tableCash)}</dd></div>
+                  <div className="flex justify-between border-t border-border pt-2 font-semibold"><dt>Esperado em espécie</dt><dd>{brl(e.expectedCash)}</dd></div>
+                  <div className="flex justify-between font-semibold"><dt>Esperado na maquininha</dt><dd>{brl(e.expectedCard)}</dd></div>
+                  <div className="flex justify-between text-muted-foreground"><dt>Pix no balcão (fora da gaveta)</dt><dd>{brl(e.counterPix)}</dd></div>
+                  <div className="flex justify-between text-muted-foreground"><dt>Vendas no balcão</dt><dd>{balcao.count} · {brl(balcao.total)}</dd></div>
+                </dl>
+              ) : (
+                <p className="mt-4 text-sm text-muted-foreground">Não foi possível calcular o esperado agora. Atualize a página em instantes.</p>
+              )}
             </Card>
             {podeCaixa && (
               <Card>
@@ -160,17 +171,23 @@ export function Caixa({ slug, podeCaixa, confirmacoes }: { slug: string; podeCai
                 </form>
               </Card>
             )}
-            {podeCaixa && (
+            {podeCaixa && e && (
               <Card>
                 <h3 className="mb-3 font-display font-semibold">Fechar caixa</h3>
-                <form className="space-y-2" onSubmit={(e) => {
-                  e.preventDefault();
-                  const total = esperado + comprovantes;
-                  if (!window.confirm(`Fechar o caixa com ${brl(Number(contado || 0))} contados? Esperado: ${brl(total)}.`)) return;
-                  void run({ action: "close", slug, counted: Number(contado || 0), expected: total, notes: "" }, "Caixa fechado").then((ok) => ok && setContado(""));
+                <form className="space-y-2" onSubmit={(ev) => {
+                  ev.preventDefault();
+                  if (!window.confirm(`Fechar o caixa com ${brl(num(contado.cash))} em espécie e ${brl(num(contado.card))} na maquininha?`)) return;
+                  void fechar();
                 }}>
-                  <Input required type="number" step="0.01" min={0} placeholder="Valor contado (espécie + comprovantes)" value={contado} onChange={(e) => setContado(e.target.value)} />
-                  {contado && <p className="text-xs text-muted-foreground">Diferença: {brl(Number(contado) - esperado - comprovantes)}</p>}
+                  <label htmlFor="contado-especie" className="text-xs text-muted-foreground">Espécie contada na gaveta</label>
+                  <Input id="contado-especie" required type="number" step="0.01" min={0} placeholder="R$ 0,00" value={contado.cash} onChange={(ev) => setContado({ ...contado, cash: ev.target.value })} />
+                  <label htmlFor="contado-maquininha" className="text-xs text-muted-foreground">Total dos comprovantes da maquininha</label>
+                  <Input id="contado-maquininha" required type="number" step="0.01" min={0} placeholder="R$ 0,00" value={contado.card} onChange={(ev) => setContado({ ...contado, card: ev.target.value })} />
+                  {(contado.cash || contado.card) && (
+                    <p className="money text-xs text-muted-foreground">
+                      Diferença: espécie {brl(num(contado.cash) - e.expectedCash)} · maquininha {brl(num(contado.card) - e.expectedCard)}
+                    </p>
+                  )}
                   <Button type="submit" variant="ink" className="w-full">Fechar caixa</Button>
                 </form>
               </Card>
@@ -320,17 +337,7 @@ export function Integracoes({ slug, podeDono }: { slug: string; podeDono: boolea
         )}
       </Card>
       <Card>
-        <h3 className="font-display font-semibold">Integrações diretas disponíveis</h3>
-        {d.disponiveis.length === 0 ? (
-          <div className="mt-2 space-y-3">
-            <p className="text-sm text-muted-foreground">A integração direta com o seu sistema é feita pela equipe TIPE. Fale com a gente.</p>
-            <a href={whatsappLink("Olá! Quero integrar o sistema do meu restaurante com a TIPE.")} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground">
-              <MessageCircle className="h-4 w-4" />Falar no WhatsApp
-            </a>
-          </div>
-        ) : (
-          <ul className="mt-2 space-y-1 text-sm">{d.disponiveis.map((a) => <li key={a.id}>{a.nome}</li>)}</ul>
-        )}
+        <ConectarSistemas slug={slug} />
       </Card>
       {d.isFounder && (
         <Card className="space-y-3 border-dashed">

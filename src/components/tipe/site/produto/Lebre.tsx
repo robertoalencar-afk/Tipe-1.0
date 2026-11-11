@@ -1,5 +1,5 @@
 /**
- * Conversas da Lebre (Tipe AI) desenhadas em HTML, no lugar de fotos repetidas.
+ * Conversas da Lebre (IA da Tipe) desenhadas em HTML, no lugar de fotos repetidas.
  * Os textos seguem o que a Lebre faz de verdade no painel (src/lib/tipe/lebre.functions.ts):
  * resume o salão (mesas com conta aberta, pagamentos esperando o caixa, equipe),
  * propõe ações que só acontecem depois do "Confirmar" (mesas, equipe e cardápio),
@@ -10,7 +10,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Check, FileText, Mic, Sparkles } from "lucide-react";
 import { reduzMovimento } from "../movimento";
 import "./produto.css";
-import avatarLebre from "@/assets/lebre/avatar-ola.webp";
+import avatarLebre from "@/assets/lebre/avatar-feliz.webp";
 import { cn } from "@/lib/utils";
 
 export type ConversaId = "salao" | "acao" | "anexo";
@@ -47,25 +47,145 @@ function Lebre({ children, className }: { children: ReactNode; className?: strin
 }
 
 function Proposta() {
+  const [feito, setFeito] = useState<"ok" | "nao" | null>(null);
   return (
     <div className="ml-10 rounded-[1.1rem] bg-white p-3.5 text-[#021E34] shadow-[0_16px_32px_-18px_rgb(0_0_0/0.55)] sm:ml-11">
       <p className="text-[0.88rem] font-semibold">Pausar “Moqueca de peixe”</p>
-      <p className="mt-1 text-[0.82rem] leading-snug text-[#021E34]/70">
-        Vou marcar “Moqueca de peixe” como indisponível até você reativar.
-      </p>
-      <div aria-hidden className="mt-3 flex gap-2 text-[0.8rem] font-medium">
-        <span className="inline-flex items-center gap-1 rounded-full bg-[#021E34] px-3 py-1.5 text-white">
-          <Check className="h-3.5 w-3.5" strokeWidth={3} /> Confirmar
-        </span>
-        <span className="inline-flex items-center rounded-full border border-[#021E34]/20 px-3 py-1.5">
-          Cancelar
-        </span>
+      {feito ? (
+        <p className="mt-1.5 flex items-center gap-1.5 text-[0.82rem] text-[#03665f]">
+          <Check className="h-3.5 w-3.5" strokeWidth={3} aria-hidden />
+          {feito === "ok"
+            ? "Feito. A moqueca saiu do cardápio até você reativar."
+            : "Cancelado. Nada mudou no cardápio."}
+        </p>
+      ) : (
+        <>
+          <p className="mt-1 text-[0.82rem] leading-snug text-[#021E34]/70">
+            Vou marcar “Moqueca de peixe” como indisponível até você reativar.
+          </p>
+          <div className="mt-3 flex gap-2 text-[0.8rem] font-medium">
+            <button
+              type="button"
+              onClick={() => setFeito("ok")}
+              className="inline-flex items-center gap-1 rounded-full bg-[#021E34] px-3 py-1.5 text-white"
+            >
+              <Check className="h-3.5 w-3.5" strokeWidth={3} aria-hidden /> Confirmar
+            </button>
+            <button
+              type="button"
+              onClick={() => setFeito("nao")}
+              className="inline-flex items-center rounded-full border border-[#021E34]/20 px-3 py-1.5"
+            >
+              Cancelar
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
+type Fala = { quem: "voce" | "lebre" | "proposta"; conteudo: ReactNode; className?: string };
+
+const FALAS: Record<ConversaId, Fala[]> = {
+  salao: [
+    { quem: "voce", conteudo: "Resuma a situação do salão." },
+    {
+      quem: "lebre",
+      conteudo:
+        "Agora são 6 mesas com conta aberta. A mesa 9 tem um pagamento no caixa esperando a sua confirmação.",
+    },
+    { quem: "voce", conteudo: "E quem está atendendo hoje?" },
+    {
+      quem: "lebre",
+      conteudo: "Joyce, Caio e Rafael estão ativos. O Rafael ainda não tem acesso ao Tipe Equipe.",
+    },
+  ],
+  acao: [
+    {
+      quem: "voce",
+      className: "flex items-center gap-2",
+      conteudo: (
+        <>
+          <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#0FC9BD] text-[#021E34]">
+            <Mic className="h-3.5 w-3.5" aria-hidden />
+          </span>
+          Acabou o peixe. Pausa a moqueca, por favor.
+        </>
+      ),
+    },
+    { quem: "lebre", conteudo: "Posso pausar. Confere e confirma?" },
+    { quem: "proposta", conteudo: null },
+  ],
+  anexo: [
+    {
+      quem: "voce",
+      className: "flex items-center gap-2.5",
+      conteudo: (
+        <>
+          <span className="grid h-9 w-8 shrink-0 place-items-center rounded-md bg-[#021E34]/8 text-[#021E34]">
+            <FileText className="h-4 w-4" aria-hidden />
+          </span>
+          <span>
+            <span className="block text-[0.8rem] font-semibold">cardapio-novembro.pdf</span>
+            Quais pratos do PDF não estão no cardápio de hoje?
+          </span>
+        </>
+      ),
+    },
+    {
+      quem: "lebre",
+      conteudo:
+        "No PDF tem 3 pratos que não aparecem hoje: Baião de dois, Peixada e Cartola. Quer que eu reative algum?",
+    },
+  ],
+};
+
+/** Perguntas que a pessoa pode tocar depois que a conversa termina. */
+const SEGUINTES: Record<ConversaId, { q: string; r: string }[]> = {
+  salao: [
+    { q: "Quanto vendi hoje?", r: "R$ 3.184,60 em 41 pagamentos. Ticket médio de R$ 77,67." },
+    { q: "Qual mesa está há mais tempo?", r: "A mesa 3, aberta há 1h52. Falta R$ 58,40." },
+  ],
+  acao: [
+    { q: "Reativa a moqueca amanhã.", r: "Combinado. Amanhã às 11h ela volta. Confirma?" },
+    { q: "Abre a mesa 4 para a Joyce.", r: "Preparei: abrir a mesa 4 com a Joyce. Confirma?" },
+  ],
+  anexo: [
+    { q: "Reativa o baião de dois.", r: "Preparei: reativar “Baião de dois”. Confirma?" },
+    { q: "Lê o comprovante da mesa 7.", r: "Pix de R$ 64,00 às 21:14, de Ana Souza. Bate com a conta." },
+  ],
+};
+
+function Digitando() {
+  return (
+    <div className="flex items-end gap-2">
+      <img
+        src={avatarLebre}
+        alt=""
+        width={36}
+        height={36}
+        loading="lazy"
+        className="h-7 w-7 shrink-0 rounded-full bg-white"
+      />
+      <div className="flex gap-1 rounded-[1.1rem] rounded-bl-md bg-[#0b2f4c] px-3.5 py-3">
+        {[0, 1, 2].map((i) => (
+          <i
+            key={i}
+            className="lebre-digitando h-1.5 w-1.5 rounded-full bg-white/70"
+            style={{ animationDelay: `${i * 160}ms` }}
+          />
+        ))}
       </div>
     </div>
   );
 }
 
-/** Uma conversa curta. `compacta` mostra só a pergunta e a resposta. */
+/**
+ * Uma conversa curta que acontece quando entra na tela: a pergunta, a Lebre digitando e a
+ * resposta. No fim, a pessoa toca numa pergunta seguinte e a Lebre responde.
+ * `compacta` mostra só a pergunta e a resposta, sem as seguintes.
+ */
 export function ConversaLebre({
   id,
   compacta = false,
@@ -75,51 +195,97 @@ export function ConversaLebre({
   compacta?: boolean;
   className?: string;
 }) {
+  const roteiro = compacta ? FALAS[id].slice(0, 2) : FALAS[id];
+  const caixa = useRef<HTMLDivElement>(null);
+  const [n, setN] = useState(0);
+  const [digitando, setDigitando] = useState(false);
+  const [extras, setExtras] = useState<{ q: string; r: string | null }[]>([]);
+  const [visto, setVisto] = useState(false);
+
+  useEffect(() => {
+    if (reduzMovimento()) {
+      setN(roteiro.length);
+      return;
+    }
+    const el = caixa.current;
+    if (!el || typeof IntersectionObserver === "undefined") {
+      setVisto(true);
+      return;
+    }
+    const io = new IntersectionObserver(
+      ([e]) => {
+        if (e?.isIntersecting) {
+          setVisto(true);
+          io.disconnect();
+        }
+      },
+      { threshold: 0.35 },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [roteiro.length]);
+
+  useEffect(() => {
+    if (!visto || n >= roteiro.length) return;
+    const proxima = roteiro[n]!;
+    let t: ReturnType<typeof setTimeout>;
+    if (proxima.quem === "lebre" && !digitando) t = setTimeout(() => setDigitando(true), 350);
+    else if (digitando)
+      t = setTimeout(() => {
+        setDigitando(false);
+        setN((x) => x + 1);
+      }, 1100);
+    else t = setTimeout(() => setN((x) => x + 1), n === 0 ? 300 : 700);
+    return () => clearTimeout(t);
+  }, [visto, n, digitando, roteiro]);
+
+  const terminou = n >= roteiro.length && !digitando;
+  const pendente = extras.some((e) => e.r === null);
+  const feitas = new Set(extras.map((e) => e.q));
+  const opcoes = compacta ? [] : SEGUINTES[id].filter((x) => !feitas.has(x.q));
+
+  function perguntar(o: { q: string; r: string }) {
+    setExtras((e) => [...e, { q: o.q, r: null }]);
+    setTimeout(() => setExtras((e) => e.map((x) => (x.q === o.q ? { ...x, r: o.r } : x))), 1000);
+  }
+
   return (
-    <div className={cn("space-y-2.5", className)}>
-      {id === "salao" && (
-        <>
-          <Voce>Resuma a situação do salão.</Voce>
-          <Lebre>
-            Agora são 6 mesas com conta aberta. A mesa 9 tem um pagamento no caixa esperando a sua
-            confirmação.
-          </Lebre>
-          {!compacta && <Voce>E quem está atendendo hoje?</Voce>}
-          {!compacta && (
-            <Lebre>
-              Joyce, Caio e Rafael estão ativos. O Rafael ainda não tem acesso ao Tipe Staff.
-            </Lebre>
-          )}
-        </>
-      )}
-      {id === "acao" && (
-        <>
-          <Voce className="flex items-center gap-2">
-            <span className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-[#0FC9BD] text-[#021E34]">
-              <Mic className="h-3.5 w-3.5" aria-hidden />
-            </span>
-            Acabou o peixe. Pausa a moqueca, por favor.
+    <div ref={caixa} className={cn("space-y-2.5", className)} aria-live="polite">
+      {roteiro.slice(0, n).map((f, i) =>
+        f.quem === "voce" ? (
+          <Voce key={i} className={cn("lebre-entra", f.className)}>
+            {f.conteudo}
           </Voce>
-          <Lebre>Posso pausar. Confere e confirma?</Lebre>
-          <Proposta />
-        </>
-      )}
-      {id === "anexo" && (
-        <>
-          <Voce className="flex items-center gap-2.5">
-            <span className="grid h-9 w-8 shrink-0 place-items-center rounded-md bg-[#021E34]/8 text-[#021E34]">
-              <FileText className="h-4 w-4" aria-hidden />
-            </span>
-            <span>
-              <span className="block text-[0.8rem] font-semibold">cardapio-novembro.pdf</span>
-              Quais pratos do PDF não estão no cardápio de hoje?
-            </span>
-          </Voce>
-          <Lebre>
-            No PDF tem 3 pratos que não aparecem hoje: Baião de dois, Peixada e Cartola. Quer que eu
-            reative algum?
+        ) : f.quem === "lebre" ? (
+          <Lebre key={i} className="lebre-entra">
+            {f.conteudo}
           </Lebre>
-        </>
+        ) : (
+          <div key={i} className="lebre-entra">
+            <Proposta />
+          </div>
+        ),
+      )}
+      {extras.map((e) => (
+        <div key={e.q} className="space-y-2.5">
+          <Voce className="lebre-entra">{e.q}</Voce>
+          {e.r ? <Lebre className="lebre-entra">{e.r}</Lebre> : <Digitando />}
+        </div>
+      ))}
+      {digitando && <Digitando />}
+      {terminou && !pendente && opcoes.length > 0 && (
+        <div className="lebre-entra flex flex-wrap justify-end gap-1.5 pt-1">
+          {opcoes.map((o) => (
+            <button
+              key={o.q}
+              type="button"
+              onClick={() => perguntar(o)}
+              className="rounded-full bg-white/10 px-3 py-1.5 text-[0.78rem] font-medium text-white ring-1 ring-white/25 transition-colors hover:bg-white/20"
+            >
+              {o.q}
+            </button>
+          ))}
+        </div>
       )}
     </div>
   );
@@ -131,7 +297,7 @@ const LEGENDA: Record<ConversaId, string> = {
   anexo: "Lê foto e PDF",
 };
 
-/** Palco escuro com a conversa, para as abas e o mosaico da página Tipe AI. */
+/** Palco escuro com a conversa, para as abas e o mosaico da página da Lebre. */
 export function PainelLebre({ id, className }: { id: ConversaId; className?: string }) {
   return (
     <div
@@ -167,32 +333,8 @@ const ROTEIRO: { quem: "voce" | "lebre"; texto: string; voz?: boolean }[] = [
   { quem: "voce", texto: "Acabou o peixe. Pausa a moqueca.", voz: true },
   { quem: "lebre", texto: "Preparei: pausar “Moqueca de peixe”. Confere e toca em Confirmar?" },
   { quem: "voce", texto: "Quem está atendendo hoje?" },
-  { quem: "lebre", texto: "Joyce, Caio e Rafael. O Rafael ainda não entrou no Tipe Staff." },
+  { quem: "lebre", texto: "Joyce, Caio e Rafael. O Rafael ainda não entrou no Tipe Equipe." },
 ];
-
-function Digitando() {
-  return (
-    <div className="flex items-end gap-2">
-      <img
-        src={avatarLebre}
-        alt=""
-        width={36}
-        height={36}
-        loading="lazy"
-        className="h-7 w-7 shrink-0 rounded-full bg-white"
-      />
-      <div className="flex gap-1 rounded-[1.1rem] rounded-bl-md bg-[#0b2f4c] px-3.5 py-3">
-        {[0, 1, 2].map((i) => (
-          <i
-            key={i}
-            className="lebre-digitando h-1.5 w-1.5 rounded-full bg-white/70"
-            style={{ animationDelay: `${i * 160}ms` }}
-          />
-        ))}
-      </div>
-    </div>
-  );
-}
 
 /** Conversa que acontece sozinha, em loop, enquanto o celular está na tela. */
 function ConversaAoVivo() {

@@ -44,6 +44,12 @@ grep -qE "FALHOU|ERROR" /tmp/tipe-order-liberacao.log && FAIL=1
 $P -v ON_ERROR_STOP=1 -f "$DIR/lancamento.sql" >/tmp/tipe-lancamento.raw 2>&1 || FAIL=1
 grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-lancamento.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-lancamento.log
 grep -qE "FALHOU|ERROR" /tmp/tipe-lancamento.log && FAIL=1
+$P -v ON_ERROR_STOP=1 -f "$DIR/caixa.sql" >/tmp/tipe-caixa.raw 2>&1 || FAIL=1
+grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-caixa.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-caixa.log
+grep -qE "FALHOU|ERROR" /tmp/tipe-caixa.log && FAIL=1
+$P -v ON_ERROR_STOP=1 -f "$DIR/chamados.sql" >/tmp/tipe-chamados.raw 2>&1 || FAIL=1
+grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-chamados.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-chamados.log
+grep -qE "FALHOU|ERROR" /tmp/tipe-chamados.log && FAIL=1
 $P -v ON_ERROR_STOP=1 -f "$DIR/totem.sql" >/tmp/tipe-totem.raw 2>&1 || FAIL=1
 grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-totem.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-totem.log
 grep -qE "FALHOU|ERROR" /tmp/tipe-totem.log && FAIL=1
@@ -53,12 +59,24 @@ grep -qE "FALHOU|ERROR" /tmp/tipe-guest.log && FAIL=1
 $P -v ON_ERROR_STOP=1 -f "$DIR/founding_partner.sql" >/tmp/tipe-fundador.raw 2>&1 || FAIL=1
 grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-fundador.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-fundador.log
 grep -qE "FALHOU|ERROR" /tmp/tipe-fundador.log && FAIL=1
+$P -v ON_ERROR_STOP=1 -f "$DIR/permissoes.sql" >/tmp/tipe-permissoes.raw 2>&1 || FAIL=1
+grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-permissoes.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-permissoes.log
+grep -qE "FALHOU|ERROR" /tmp/tipe-permissoes.log && FAIL=1
+$P -v ON_ERROR_STOP=1 -f "$DIR/mfa.sql" >/tmp/tipe-mfa.raw 2>&1 || FAIL=1
+grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-mfa.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-mfa.log
+grep -qE "FALHOU|ERROR" /tmp/tipe-mfa.log && FAIL=1
 $P -v ON_ERROR_STOP=1 -f "$DIR/guest-reservas.sql" >/tmp/tipe-reservas.raw 2>&1 || FAIL=1
 grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-reservas.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-reservas.log
 grep -qE "FALHOU|ERROR" /tmp/tipe-reservas.log && FAIL=1
 $P -v ON_ERROR_STOP=1 -f "$DIR/guest-fila.sql" >/tmp/tipe-fila.raw 2>&1 || FAIL=1
 grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-fila.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-fila.log
 grep -qE "FALHOU|ERROR" /tmp/tipe-fila.log && FAIL=1
+
+# Assinatura (0036): reaplica sem erro e roda os cenários.
+$P -v ON_ERROR_STOP=1 -f "$REPO/drizzle/migrations/0036_subscription_access.sql" >/dev/null 2>/tmp/tipe-0036.log || { echo "FALHOU: 0036 não reaplica"; cat /tmp/tipe-0036.log; FAIL=1; }
+$P -v ON_ERROR_STOP=1 -f "$DIR/assinatura.sql" >/tmp/tipe-assinatura.raw 2>&1 || FAIL=1
+grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-assinatura.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-assinatura.log
+grep -qE "FALHOU|ERROR" /tmp/tipe-assinatura.log && FAIL=1
 
 # 1) Dois clientes pagando a conta inteira ao mesmo tempo, em conexões separadas.
 $P -c "SET search_path=public,extensions; DELETE FROM table_payment_requests WHERE restaurant_slug='mare-alta' AND table_number='8'; DELETE FROM table_bill_items WHERE restaurant_slug='mare-alta' AND table_number='8'; INSERT INTO table_bill_items (restaurant_slug, table_number, item_code, item_name, unit_price, ordered_quantity, ordered_by, ordered_at) VALUES ('mare-alta','8','pizza','Pizza',90,1,'Teste',now()),('mare-alta','8','suco','Suco',12,3,'Teste',now());" >/dev/null

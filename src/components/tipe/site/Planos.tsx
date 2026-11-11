@@ -49,11 +49,6 @@ export function CardsPlanos() {
         >
           <div className="flex items-center justify-between gap-3">
             <h3 className="font-display text-[1.6rem] font-normal tracking-[-0.03em]">{p.nome}</h3>
-            {p.popular && (
-              <span className="rounded-full bg-[#0FC9BD] px-3 py-1 text-xs font-medium text-[#021E34]">
-                Mais escolhido
-              </span>
-            )}
           </div>
           <p
             className={cn(
@@ -103,13 +98,13 @@ export function CardsPlanos() {
             )}
           </p>
           <a
-            href="/teste-gratis"
+            href={`/solicitar-demonstracao?plano=${p.id ?? "personalizado"}`}
             className={cn(
               "mt-5 flex min-h-12 items-center justify-center rounded-full font-medium",
               p.popular ? "bg-white text-[#021E34] hover:bg-white/90" : "btn-tema",
             )}
           >
-            {p.id ? `Começar com ${TRIAL_DAYS} dias grátis` : "Falar com a equipe"}
+            {p.id ? `Solicitar ${TRIAL_DAYS} dias grátis` : "Falar com a equipe"}
           </a>
           <p
             className={cn(
@@ -145,7 +140,7 @@ const COMPARACAO: { grupo: string; linhas: Linha[] }[] = [
     grupo: "Pagamento na mesa",
     linhas: [
       ["QR Code por mesa", true, true, true],
-      ["Pix, Apple Pay e Google Pay", true, true, true],
+      ["Pix, Apple Pay e Google Pay", "Em piloto", "Em piloto", "Em piloto"],
       ["Pagar no estabelecimento", true, true, true],
       ["Divisão da conta", true, true, true],
       ["Gorjeta extra para a equipe", true, true, true],
@@ -165,7 +160,7 @@ const COMPARACAO: { grupo: string; linhas: Linha[] }[] = [
   {
     grupo: "Operação e suporte",
     linhas: [
-      ["Integração assistida com o seu PDV", false, true, true],
+      ["Integração via API TIPE", false, "Sob análise", "Sob análise"],
       ["Cozinha e bar (KDS)", false, false, true],
       ["Suporte prioritário", false, false, true],
     ],
