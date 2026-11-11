@@ -98,7 +98,7 @@ const PASSOS: Passo[] = [
     id: "dividir",
     quem: "Cliente",
     titulo: "Divide do jeito da mesa",
-    texto: "Pagar tudo, partes iguais, por valor, por porcentagem ou só os próprios itens.",
+    texto: "Pagar tudo ou escolher só os próprios itens.",
     cena: "cena-familia",
     foco: "40% 45%",
     quadro: {

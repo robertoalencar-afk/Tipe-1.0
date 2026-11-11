@@ -1,13 +1,21 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { BellRing, ReceiptText } from "lucide-react";
+import { BellRing } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { callStaff, type TipoChamado } from "@/lib/tipe/chamados.functions";
 
 const ESPERA_MS = 120_000;
 
-/** "Chamar garçom" e "Pedir a conta" na conta do QR: avisa a equipe sem ninguém levantar a mão. */
-export function ChamarEquipe({ slug, mesa, session }: { slug: string; mesa: string; session: string }) {
+/** "Chamar garçom" na conta do QR: avisa a equipe sem ninguém levantar a mão. */
+export function ChamarEquipe({
+  slug,
+  mesa,
+  session,
+}: {
+  slug: string;
+  mesa: string;
+  session: string;
+}) {
   const chamar = useServerFn(callStaff);
   const [enviando, setEnviando] = useState<TipoChamado | null>(null);
   const [avisado, setAvisado] = useState<Partial<Record<TipoChamado, number>>>({});
@@ -58,10 +66,7 @@ export function ChamarEquipe({ slug, mesa, session }: { slug: string; mesa: stri
 
   return (
     <div className="mt-4">
-      <div className="flex gap-2">
-        {botao("waiter", "Chamar garçom", BellRing)}
-        {botao("bill", "Pedir a conta", ReceiptText)}
-      </div>
+      <div className="flex gap-2">{botao("waiter", "Chamar garçom", BellRing)}</div>
       <p role="status" aria-live="polite" className="mt-2 min-h-4 text-xs text-muted-foreground">
         {erro ?? (algumEsperando ? "Avisamos a equipe. Alguém já vem até a sua mesa." : "")}
       </p>
