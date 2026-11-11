@@ -53,7 +53,11 @@ export function guestRoleFrom(roles: readonly string[]): GuestRole | null {
   return null;
 }
 
-export function guestCan(role: GuestRole | null, action: GuestAction, grants: readonly string[] = []) {
+export function guestCan(
+  role: GuestRole | null,
+  action: GuestAction,
+  grants: readonly string[] = [],
+) {
   if (!role) return false;
   const r = GUEST_MATRIX[action][role];
   return r === "sim" || (r === "concedivel" && grants.includes(action));
@@ -61,13 +65,13 @@ export function guestCan(role: GuestRole | null, action: GuestAction, grants: re
 
 export type GuestProfile = {
   name: string;
-  phone?: string | null;
-  email?: string | null;
-  visits?: number;
-  notes?: string | null;
-  allergies?: string | null;
-  occasions?: string | null;
-  spendCents?: number | null;
+  phone?: string | null | undefined;
+  email?: string | null | undefined;
+  visits?: number | undefined;
+  notes?: string | null | undefined;
+  allergies?: string | null | undefined;
+  occasions?: string | null | undefined;
+  spendCents?: number | null | undefined;
 };
 
 /**

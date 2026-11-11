@@ -92,7 +92,10 @@ export type GuaranteeWebhook = {
   amountCents: number;
 };
 
-const NEXT: Record<GuaranteeWebhook["type"], Partial<Record<GuaranteePaymentStatus, GuaranteePaymentStatus>>> = {
+const NEXT: Record<
+  GuaranteeWebhook["type"],
+  Partial<Record<GuaranteePaymentStatus, GuaranteePaymentStatus>>
+> = {
   pagamento_aprovado: { aguardando: "paga", falhou: "paga" },
   pagamento_recusado: { aguardando: "falhou" },
   estorno_confirmado: { paga: "devolvida" },
@@ -103,13 +106,22 @@ const NEXT: Record<GuaranteeWebhook["type"], Partial<Record<GuaranteePaymentStat
  * fora de ordem (ex.: recusa depois de aprovado). Devolve se mudou algo e por quê.
  */
 export function applyGuaranteeWebhook(s: GuaranteeState, w: GuaranteeWebhook) {
-  if (s.seenEventIds.includes(w.id)) return { state: s, changed: false, reason: "duplicado" } as const;
+  if (s.seenEventIds.includes(w.id))
+    return { state: s, changed: false, reason: "duplicado" } as const;
   const seen = [...s.seenEventIds, w.id];
   if (w.amountCents !== s.amountCents)
-    return { state: { ...s, seenEventIds: seen }, changed: false, reason: "valor_divergente" } as const;
+    return {
+      state: { ...s, seenEventIds: seen },
+      changed: false,
+      reason: "valor_divergente",
+    } as const;
   const to = NEXT[w.type][s.status];
   if (!to)
-    return { state: { ...s, seenEventIds: seen }, changed: false, reason: "fora_de_ordem" } as const;
+    return {
+      state: { ...s, seenEventIds: seen },
+      changed: false,
+      reason: "fora_de_ordem",
+    } as const;
   return { state: { ...s, status: to, seenEventIds: seen }, changed: true, reason: "ok" } as const;
 }
 
@@ -129,7 +141,12 @@ export function settleGuarantee(
       billToPayCents: Math.max(0, billCents),
     };
   if (outcome === "retida")
-    return { state: { ...s, status: "retida" }, refundCents: 0, creditUsedCents: 0, billToPayCents: 0 };
+    return {
+      state: { ...s, status: "retida" },
+      refundCents: 0,
+      creditUsedCents: 0,
+      billToPayCents: 0,
+    };
   const c = applyGuaranteeCredit(billCents, s.amountCents);
   return {
     state: { ...s, status: "creditada" },

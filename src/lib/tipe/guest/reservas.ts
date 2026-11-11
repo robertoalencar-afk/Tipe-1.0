@@ -113,8 +113,10 @@ export function offsetAt(d: Date, s: TzSettings): number {
     });
     tzFormatters.set(s.timeZone, f);
   }
-  const p = Object.fromEntries(f.formatToParts(d).map((x) => [x.type, x.value]));
-  const asUtc = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour, +p.minute, +p.second);
+  const p: Record<string, number> = {};
+  for (const x of f.formatToParts(d)) p[x.type] = Number(x.value);
+  const n = (k: string) => p[k] ?? 0;
+  const asUtc = Date.UTC(n("year"), n("month") - 1, n("day"), n("hour"), n("minute"), n("second"));
   return Math.round((asUtc - Math.floor(d.getTime() / 1000) * 1000) / MIN);
 }
 
@@ -275,26 +277,17 @@ export function waitlistPositionLabel(position: number) {
 // ---------------------------------------------------------------- painel do restaurante (Fase 5)
 
 /** Data local AAAA-MM-DD do instante, no fuso do restaurante. */
-export function localDay(
-  d: Date,
-  s: TzSettings = DEFAULT_RESERVATION_SETTINGS,
-) {
+export function localDay(d: Date, s: TzSettings = DEFAULT_RESERVATION_SETTINGS) {
   return new Date(d.getTime() + offsetAt(d, s) * MIN).toISOString().slice(0, 10);
 }
 
 /** Hora local HH:MM do instante, no fuso do restaurante. */
-export function localTime(
-  d: Date,
-  s: TzSettings = DEFAULT_RESERVATION_SETTINGS,
-) {
+export function localTime(d: Date, s: TzSettings = DEFAULT_RESERVATION_SETTINGS) {
   return new Date(d.getTime() + offsetAt(d, s) * MIN).toISOString().slice(11, 16);
 }
 
 /** Dia local como faixa UTC meio aberta [start, end). */
-export function dayRange(
-  day: string,
-  s: TzSettings = DEFAULT_RESERVATION_SETTINGS,
-) {
+export function dayRange(day: string, s: TzSettings = DEFAULT_RESERVATION_SETTINGS) {
   return { start: localToUtc(day, 0, s), end: localToUtc(addDays(day, 1), 0, s) };
 }
 

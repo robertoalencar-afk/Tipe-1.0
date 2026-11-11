@@ -68,37 +68,69 @@ describe("garantia: webhooks do gateway", () => {
   const nova: GuaranteeState = { status: "aguardando", amountCents: 4000, seenEventIds: [] };
 
   it("aprovado marca como paga", () => {
-    const r = applyGuaranteeWebhook(nova, { id: "e1", type: "pagamento_aprovado", amountCents: 4000 });
+    const r = applyGuaranteeWebhook(nova, {
+      id: "e1",
+      type: "pagamento_aprovado",
+      amountCents: 4000,
+    });
     expect(r.state.status).toBe("paga");
   });
 
   it("mesmo webhook duas vezes não muda nada", () => {
-    const a = applyGuaranteeWebhook(nova, { id: "e1", type: "pagamento_aprovado", amountCents: 4000 });
-    const b = applyGuaranteeWebhook(a.state, { id: "e1", type: "pagamento_aprovado", amountCents: 4000 });
+    const a = applyGuaranteeWebhook(nova, {
+      id: "e1",
+      type: "pagamento_aprovado",
+      amountCents: 4000,
+    });
+    const b = applyGuaranteeWebhook(a.state, {
+      id: "e1",
+      type: "pagamento_aprovado",
+      amountCents: 4000,
+    });
     expect(b).toMatchObject({ changed: false, reason: "duplicado" });
     expect(b.state).toBe(a.state);
   });
 
   it("falha e depois nova tentativa aprovada", () => {
-    const a = applyGuaranteeWebhook(nova, { id: "e1", type: "pagamento_recusado", amountCents: 4000 });
+    const a = applyGuaranteeWebhook(nova, {
+      id: "e1",
+      type: "pagamento_recusado",
+      amountCents: 4000,
+    });
     expect(a.state.status).toBe("falhou");
-    const b = applyGuaranteeWebhook(a.state, { id: "e2", type: "pagamento_aprovado", amountCents: 4000 });
+    const b = applyGuaranteeWebhook(a.state, {
+      id: "e2",
+      type: "pagamento_aprovado",
+      amountCents: 4000,
+    });
     expect(b.state.status).toBe("paga");
   });
 
   it("recusa atrasada depois de aprovado é ignorada", () => {
-    const r = applyGuaranteeWebhook(paga, { id: "e9", type: "pagamento_recusado", amountCents: 4000 });
+    const r = applyGuaranteeWebhook(paga, {
+      id: "e9",
+      type: "pagamento_recusado",
+      amountCents: 4000,
+    });
     expect(r).toMatchObject({ changed: false, reason: "fora_de_ordem" });
     expect(r.state.status).toBe("paga");
   });
 
   it("valor diferente do esperado não confirma", () => {
-    const r = applyGuaranteeWebhook(nova, { id: "e1", type: "pagamento_aprovado", amountCents: 400 });
+    const r = applyGuaranteeWebhook(nova, {
+      id: "e1",
+      type: "pagamento_aprovado",
+      amountCents: 400,
+    });
     expect(r).toMatchObject({ changed: false, reason: "valor_divergente" });
   });
 
   it("estorno confirmado fecha como devolvida", () => {
-    const r = applyGuaranteeWebhook(paga, { id: "r1", type: "estorno_confirmado", amountCents: 4000 });
+    const r = applyGuaranteeWebhook(paga, {
+      id: "r1",
+      type: "estorno_confirmado",
+      amountCents: 4000,
+    });
     expect(r.state.status).toBe("devolvida");
   });
 });

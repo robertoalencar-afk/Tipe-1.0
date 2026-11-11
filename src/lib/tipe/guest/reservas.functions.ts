@@ -14,12 +14,13 @@ import {
   reservationMetrics,
   type ReservationStatus,
 } from "./reservas";
+import { guestCan, guestRoleFrom, type GuestAction } from "./permissoes";
 
 // Linhas cruas do PostgREST (tabelas do Guest fora dos tipos gerados).
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Row = any;
 type Ctx = { supabase: SupabaseClient; userId: string };
-type Role = "owner" | "cashier" | "waiter";
+type Role = "owner" | "manager" | "cashier" | "waiter";
 
 async function admin(): Promise<SupabaseClient> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -30,8 +31,11 @@ async function admin(): Promise<SupabaseClient> {
 const slugSchema = z.string().min(1).max(64);
 const daySchema = z.string().regex(/^\d{4}-\d{2}-\d{2}$/);
 
-/** Restaurante, papéis do usuário e flag. Recusa quem não é da equipe. */
-async function acesso(ctx: Ctx, slug: string, need: "equipe" | "dono" = "equipe") {
+/**
+ * Restaurante, papéis do usuário, flag e módulo contratado. Recusa quem não é da equipe e quem
+ * não tem a permissão da matriz do Guest (permissoes.ts; no banco, 0044 quando aplicada).
+ */
+async function acesso(ctx: Ctx, slug: string, need: GuestAction = "ver_reservas") {
   const { data: r } = await ctx.supabase
     .from("restaurants")
     .select("id, name")
@@ -46,18 +50,33 @@ async function acesso(ctx: Ctx, slug: string, need: "equipe" | "dono" = "equipe"
     .eq("restaurant_id", r.id);
   const roles = (rs ?? [])
     .map((x: { role: string }) => x.role)
-    .filter((x): x is Role => ["owner", "cashier", "waiter"].includes(x));
-  if (!roles.length) throw new Error("Sem permissão");
-  if (need === "dono" && !roles.includes("owner"))
-    throw new Error("Só o dono altera a configuração de reservas");
-  const { data: enabled } = await db.rpc("guest_flag_enabled", {
-    p_restaurant_id: r.id,
-    p_key: GUEST_RESERVATIONS_FLAG,
-  });
-  return { id: r.id as string, name: r.name as string, roles, enabled: enabled === true, db };
+    .filter((x): x is Role => ["owner", "manager", "cashier", "waiter"].includes(x));
+  const guestRole = guestRoleFrom(roles);
+  if (!guestRole) throw new Error("Sem permissão");
+  // Concessões "conforme autorização". Sem a 0044 aplicada, a tabela não existe: nenhuma concessão.
+  const { data: gs } = await db
+    .from("guest_staff_grants")
+    .select("action")
+    .eq("user_id", ctx.userId)
+    .eq("restaurant_id", r.id);
+  const grants = (gs ?? []).map((x: { action: string }) => x.action);
+  if (!guestCan(guestRole, need, grants)) throw new Error("Sem permissão para esta ação");
+  const [{ data: flag }, { data: modulo }] = await Promise.all([
+    db.rpc("guest_flag_enabled", { p_restaurant_id: r.id, p_key: GUEST_RESERVATIONS_FLAG }),
+    db.rpc("restaurant_has_module", { p_rid: r.id, p_module: "guest" }),
+  ]);
+  return {
+    id: r.id as string,
+    name: r.name as string,
+    roles,
+    guestRole,
+    grants,
+    enabled: flag === true && modulo === true,
+    db,
+  };
 }
 
-async function ligado(ctx: Ctx, slug: string, need: "equipe" | "dono" = "equipe") {
+async function ligado(ctx: Ctx, slug: string, need: GuestAction = "ver_reservas") {
   const a = await acesso(ctx, slug, need);
   if (!a.enabled) throw new Error("Reservas não estão disponíveis para este restaurante");
   return a;
@@ -218,7 +237,13 @@ export const getReservasPainel = createServerFn({ method: "GET" })
     const reservas = (dayRes.data ?? [])
       .map(mapReserva)
       .filter((x): x is PainelReserva => x !== null && x.start >= dia.start.toISOString())
-      .sort((x, y) => x.start.localeCompare(y.start) || x.name.localeCompare(y.name));
+      .sort((x, y) => x.start.localeCompare(y.start) || x.name.localeCompare(y.name))
+      // Garçom vê só o necessário para servir: primeiro nome, sem telefone (matriz do Guest).
+      .map((x) =>
+        a.guestRole === "garcom"
+          ? { ...x, name: x.name.trim().split(/\s+/)[0] ?? "", phone: null }
+          : x,
+      );
 
     // Contagem por dia local da semana (só reservas ativas ou atendidas).
     const ativas = new Set(["pendente", "confirmada", "chegou", "sentada", "concluida"]);
@@ -239,6 +264,8 @@ export const getReservasPainel = createServerFn({ method: "GET" })
       enabled: true as const,
       restaurant: a.name,
       roles: a.roles,
+      guestRole: a.guestRole,
+      grants: a.grants,
       settings: {
         accepting: s.accepting === true,
         slotIntervalMin: Number(s.slot_interval_min),
@@ -321,13 +348,15 @@ export const getReservasPainel = createServerFn({ method: "GET" })
         priceCents: (x.price_cents as number | null) ?? null,
         active: x.active === true,
       })),
-      metricas30: reservationMetrics(
-        (monthRes.data ?? []).map((x: Row) => ({
-          status: x.status as ReservationStatus,
-          partySize: Number(x.party_size),
-          channel: String(x.channel),
-        })),
-      ),
+      metricas30: !guestCan(a.guestRole, "ver_relatorios", a.grants)
+        ? null
+        : reservationMetrics(
+            (monthRes.data ?? []).map((x: Row) => ({
+              status: x.status as ReservationStatus,
+              partySize: Number(x.party_size),
+              channel: String(x.channel),
+            })),
+          ),
     };
   });
 
@@ -368,7 +397,7 @@ export const agirReserva = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const ctx = context as Ctx;
-    await ligado(ctx, data.slug);
+    await ligado(ctx, data.slug, "confirmar_chegada");
     const srv = await import("./reservas.server");
     if (data.to === "cancelar")
       return srv.cancelReservation({
@@ -388,7 +417,7 @@ export const sentarReserva = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const ctx = context as Ctx;
-    await ligado(ctx, data.slug);
+    await ligado(ctx, data.slug, "atribuir_mesa");
     const { seatReservation } = await import("./reservas.server");
     return seatReservation({ reservationId: data.id, actorId: ctx.userId, tableId: data.tableId });
   });
@@ -417,7 +446,7 @@ export const novaReservaEquipe = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const ctx = context as Ctx;
-    const a = await ligado(ctx, data.slug);
+    const a = await ligado(ctx, data.slug, "criar_reserva");
     const srv = await import("./reservas.server");
     const sessionKey = `painel:${ctx.userId}:${data.requestId}`;
     const hold = await srv.createHold({
@@ -453,7 +482,7 @@ export const chamarEspera = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const ctx = context as Ctx;
-    await ligado(ctx, data.slug);
+    await ligado(ctx, data.slug, "gerenciar_espera");
     const { callWaitlist } = await import("./reservas.server");
     return callWaitlist({ entryId: data.id, actorId: ctx.userId, minutes: data.minutes });
   });
@@ -489,7 +518,7 @@ export const salvarConfigReservas = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
-    const a = await ligado(context as Ctx, data.slug, "dono");
+    const a = await ligado(context as Ctx, data.slug, "configurar_politicas");
     const { error } = await a.db.from("guest_reservation_settings").upsert({
       restaurant_id: a.id,
       accepting: data.accepting,
@@ -525,7 +554,7 @@ export const salvarTurnos = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
-    const a = await ligado(context as Ctx, data.slug, "dono");
+    const a = await ligado(context as Ctx, data.slug, "alterar_disponibilidade");
     const del = await a.db.from("guest_availability_rules").delete().eq("restaurant_id", a.id);
     if (del.error) throw new Error("Não foi possível salvar os turnos");
     if (data.rules.length) {
@@ -559,7 +588,7 @@ export const salvarExcecao = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const ctx = context as Ctx;
-    const a = await ligado(ctx, data.slug, "dono");
+    const a = await ligado(ctx, data.slug, "alterar_disponibilidade");
     if (data.tableId) {
       const { data: t } = await a.db
         .from("restaurant_tables")
@@ -585,7 +614,7 @@ export const removerExcecao = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ slug: slugSchema, id: z.string().uuid() }).parse(d))
   .handler(async ({ data, context }) => {
-    const a = await ligado(context as Ctx, data.slug, "dono");
+    const a = await ligado(context as Ctx, data.slug, "alterar_disponibilidade");
     const { error } = await a.db
       .from("guest_availability_exceptions")
       .delete()
@@ -616,7 +645,7 @@ export const salvarMesaReserva = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
-    const a = await ligado(context as Ctx, data.slug, "dono");
+    const a = await ligado(context as Ctx, data.slug, "alterar_disponibilidade");
     if (data.areaId) {
       const { data: ar } = await a.db
         .from("guest_areas")
@@ -647,7 +676,7 @@ export const salvarArea = createServerFn({ method: "POST" })
     z.object({ slug: slugSchema, name: z.string().trim().min(1).max(60) }).parse(d),
   )
   .handler(async ({ data, context }) => {
-    const a = await ligado(context as Ctx, data.slug, "dono");
+    const a = await ligado(context as Ctx, data.slug, "alterar_disponibilidade");
     const { error } = await a.db
       .from("guest_areas")
       .insert({ restaurant_id: a.id, name: data.name });
@@ -680,7 +709,7 @@ export const salvarExperiencia = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
-    const a = await ligado(context as Ctx, data.slug, "dono");
+    const a = await ligado(context as Ctx, data.slug, "gerenciar_experiencias");
     const row = {
       restaurant_id: a.id,
       kind: data.kind,

@@ -777,28 +777,34 @@ function VistaSemana({ data, onPick }: { data: Dados; onPick: (day: string) => v
           ))}
         </div>
       </Panel>
-      <div>
-        <p className="mb-2 text-sm font-medium">Últimos 30 dias</p>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-          <StatCard label="Reservas" value={m.total || undefined} empty="Nenhuma ainda" />
-          <StatCard label="Pessoas atendidas" value={m.covers || undefined} empty="Nenhuma ainda" />
-          <StatCard
-            label="Não vieram"
-            value={pct(m.noShowRate)}
-            empty="Sem base ainda"
-            hint="Entre quem veio e quem não veio"
-          />
-          <StatCard label="Canceladas" value={pct(m.cancelRate)} empty="Sem base ainda" />
+      {m && (
+        <div>
+          <p className="mb-2 text-sm font-medium">Últimos 30 dias</p>
+          <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+            <StatCard label="Reservas" value={m.total || undefined} empty="Nenhuma ainda" />
+            <StatCard
+              label="Pessoas atendidas"
+              value={m.covers || undefined}
+              empty="Nenhuma ainda"
+            />
+            <StatCard
+              label="Não vieram"
+              value={pct(m.noShowRate)}
+              empty="Sem base ainda"
+              hint="Entre quem veio e quem não veio"
+            />
+            <StatCard label="Canceladas" value={pct(m.cancelRate)} empty="Sem base ainda" />
+          </div>
+          {m.total > 0 && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Por canal:{" "}
+              {Object.entries(m.byChannel)
+                .map(([k, v]) => `${CANAL[k] ?? k} ${v}`)
+                .join(" · ")}
+            </p>
+          )}
         </div>
-        {m.total > 0 && (
-          <p className="mt-2 text-xs text-muted-foreground">
-            Por canal:{" "}
-            {Object.entries(m.byChannel)
-              .map(([k, v]) => `${CANAL[k] ?? k} ${v}`)
-              .join(" · ")}
-          </p>
-        )}
-      </div>
+      )}
     </div>
   );
 }

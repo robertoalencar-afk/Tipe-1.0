@@ -2,15 +2,8 @@
 -- produção sem ok do Roberto. Não mexe no enum app_role nem nas regras de gorjeta.
 -- Espelha src/lib/tipe/guest/permissoes.ts. Idempotente.
 
--- Gerente do Guest enquanto o app_role não tem "gerente". Só o dono nomeia.
-CREATE TABLE IF NOT EXISTS public.guest_staff_roles (
-  restaurant_id uuid NOT NULL REFERENCES public.restaurants(id) ON DELETE CASCADE,
-  user_id uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-  role text NOT NULL CHECK (role IN ('gerente')),
-  granted_by uuid REFERENCES auth.users(id) ON DELETE SET NULL,
-  created_at timestamptz NOT NULL DEFAULT now(),
-  PRIMARY KEY (restaurant_id, user_id)
-);
+-- Gerente = papel 'manager' do app_role (criado na 0050, PR #106). Comparado como texto para
+-- esta migração aplicar mesmo antes da 0050.
 
 -- "Conforme autorização" / "permissão explícita": concessão por pessoa e ação.
 CREATE TABLE IF NOT EXISTS public.guest_staff_grants (
@@ -25,17 +18,15 @@ CREATE TABLE IF NOT EXISTS public.guest_staff_grants (
   PRIMARY KEY (restaurant_id, user_id, action)
 );
 
-ALTER TABLE public.guest_staff_roles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.guest_staff_grants ENABLE ROW LEVEL SECURITY;
-REVOKE ALL ON public.guest_staff_roles, public.guest_staff_grants FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON public.guest_staff_grants FROM PUBLIC, anon, authenticated;
 
 -- Papel no Guest: dono > gerente > caixa > garçom. Nulo = sem acesso.
 CREATE OR REPLACE FUNCTION public.guest_staff_role(p_restaurant_id uuid, p_user_id uuid)
 RETURNS text LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public AS $$
   SELECT CASE
     WHEN EXISTS (SELECT 1 FROM user_roles WHERE user_id = p_user_id AND restaurant_id = p_restaurant_id AND role = 'owner') THEN 'admin'
-    WHEN EXISTS (SELECT 1 FROM guest_staff_roles WHERE user_id = p_user_id AND restaurant_id = p_restaurant_id AND role = 'gerente')
-      AND EXISTS (SELECT 1 FROM user_roles WHERE user_id = p_user_id AND restaurant_id = p_restaurant_id) THEN 'gerente'
+    WHEN EXISTS (SELECT 1 FROM user_roles WHERE user_id = p_user_id AND restaurant_id = p_restaurant_id AND role::text = 'manager') THEN 'gerente'
     WHEN EXISTS (SELECT 1 FROM user_roles WHERE user_id = p_user_id AND restaurant_id = p_restaurant_id AND role = 'cashier') THEN 'caixa'
     WHEN EXISTS (SELECT 1 FROM user_roles WHERE user_id = p_user_id AND restaurant_id = p_restaurant_id AND role = 'waiter') THEN 'garcom'
   END
@@ -46,7 +37,7 @@ RETURNS boolean LANGUAGE plpgsql STABLE SECURITY DEFINER SET search_path = publi
 DECLARE r text := guest_staff_role(p_restaurant_id, p_user_id); rule text;
 BEGIN
   IF r IS NULL THEN RETURN false; END IF;
-  rule := CASE p_action
+  rule := (CASE p_action
     WHEN 'ver_reservas'           THEN (ARRAY['sim','sim','concedivel','sim'])
     WHEN 'criar_reserva'          THEN (ARRAY['sim','sim','concedivel','concedivel'])
     WHEN 'confirmar_chegada'      THEN (ARRAY['sim','sim','concedivel','concedivel'])
@@ -57,7 +48,7 @@ BEGIN
     WHEN 'ver_relatorios'         THEN (ARRAY['sim','sim','sim','nao'])
     WHEN 'gerenciar_experiencias' THEN (ARRAY['sim','concedivel','nao','nao'])
     WHEN 'ver_perfil_cliente'     THEN (ARRAY['sim','sim','sim','sim'])
-  END[array_position(ARRAY['admin','gerente','caixa','garcom'], r)];
+  END)[array_position(ARRAY['admin','gerente','caixa','garcom'], r)];
   IF rule = 'sim' THEN RETURN true; END IF;
   RETURN rule = 'concedivel' AND EXISTS (
     SELECT 1 FROM guest_staff_grants WHERE restaurant_id = p_restaurant_id AND user_id = p_user_id AND action = p_action);

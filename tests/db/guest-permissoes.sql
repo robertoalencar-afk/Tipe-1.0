@@ -6,6 +6,9 @@ SET search_path = public, extensions;
 CREATE OR REPLACE FUNCTION pg_temp.ok(cond boolean, msg text) RETURNS void LANGUAGE plpgsql AS $$
 BEGIN IF cond IS NOT TRUE THEN RAISE EXCEPTION 'FALHOU: %', msg; END IF; RAISE NOTICE 'ok: %', msg; END $$;
 
+-- O papel manager vem da 0050 (PR #106); aqui só garante que existe no banco de teste.
+ALTER TYPE app_role ADD VALUE IF NOT EXISTS 'manager';
+
 DO $$
 DECLARE
   v_rid uuid; v_outro uuid;
@@ -16,9 +19,8 @@ BEGIN
   SELECT id INTO v_outro FROM restaurants WHERE slug = 'marealta';
   INSERT INTO auth.users (id, email) VALUES (u_dono,'p-dono@teste.local'),(u_ger,'p-ger@teste.local'),
     (u_cx,'p-cx@teste.local'),(u_gar,'p-gar@teste.local'),(u_fora,'p-fora@teste.local');
-  INSERT INTO user_roles (user_id, role, restaurant_id) VALUES (u_dono,'owner',v_rid),(u_ger,'cashier',v_rid),
+  INSERT INTO user_roles (user_id, role, restaurant_id) VALUES (u_dono,'owner',v_rid),(u_ger,'manager',v_rid),
     (u_cx,'cashier',v_rid),(u_gar,'waiter',v_rid),(u_fora,'owner',v_outro);
-  INSERT INTO guest_staff_roles (restaurant_id, user_id, role, granted_by) VALUES (v_rid, u_ger, 'gerente', u_dono);
 
   PERFORM pg_temp.ok(guest_staff_role(v_rid,u_dono)='admin' AND guest_staff_role(v_rid,u_ger)='gerente'
     AND guest_staff_role(v_rid,u_cx)='caixa' AND guest_staff_role(v_rid,u_gar)='garcom', 'papéis do Guest');
