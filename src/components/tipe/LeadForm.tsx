@@ -6,6 +6,7 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from "react";
 import { CheckCircle2, MessageCircle, TriangleAlert } from "lucide-react";
 import { submitLead } from "@/lib/tipe/leads.functions";
+import type { RespostasConfigurador } from "@/lib/tipe/order/modalidades";
 import { getAttribution, trackLead, trackProduto } from "@/lib/tipe/tracking";
 import { whatsappLink } from "@/lib/tipe/contact";
 import { TABLES } from "@/lib/tipe/leads-score";
@@ -122,11 +123,14 @@ export function LeadForm({
   produto = "pay",
   origin = "home",
   embedded = false,
+  operacao,
 }: {
   estado?: EstadoLancamento;
   produto?: "pay" | "order";
   origin?: "home" | "simulador" | "calculadora";
   embedded?: boolean;
+  /** Respostas do configurador "Monte sua operação" (só no Order): vão para as notas do CRM. */
+  operacao?: RespostasConfigurador | undefined;
 }) {
   const t = TEXTOS_LANCAMENTO[estado];
   const order = produto === "order";
@@ -222,8 +226,11 @@ export function LeadForm({
           utm_content: a.utm_content,
           utm_term: a.utm_term,
           ...(a.ref ? { ref: a.ref } : {}),
+          ...(operacao ? { operacao } : {}),
           originPage: order
-            ? "tipe-order"
+            ? operacao
+              ? "configurador-order"
+              : "tipe-order"
             : a.calculator && origin === "home"
               ? "calculadora"
               : origin,

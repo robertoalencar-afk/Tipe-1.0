@@ -62,6 +62,7 @@ import {
 } from "@/lib/tipe/pdv-integrations.functions";
 import { PixGarcons } from "@/components/tipe/PixGarcons";
 import { SegurancaConta } from "@/components/tipe/SegurancaConta";
+import { Atendimento } from "@/components/tipe/Atendimento";
 import { Caixa, Configuracoes, Inicio, Integracoes, Relatorios } from "@/components/tipe/AdminSections";
 import { Cozinha } from "@/components/tipe/Kds";
 import { TotemStudio } from "@/components/tipe/TotemStudio";
@@ -258,6 +259,14 @@ const secoes = [
     i: Settings,
     g: "Configurações",
     d: "Dados do restaurante, taxa de serviço e formas de pagamento.",
+  },
+  {
+    k: "atendimento",
+    l: "Atendimento",
+    i: UtensilsCrossed,
+    g: "Configurações",
+    dono: true,
+    d: "Modalidades do Tipe Order, totens e pulseiras.",
   },
   {
     k: "seguranca",
@@ -935,6 +944,7 @@ export function RestaurantPanel({
         {aba === "relatorios" && <Relatorios slug={slug} />}
         {aba === "integracoes" && <Integracoes slug={slug} podeDono={podeDono} />}
         {aba === "config" && <Configuracoes slug={slug} podeDono={podeDono} />}
+        {aba === "atendimento" && <Atendimento slug={slug} podeDono={podeDono} irParaConfig={() => ir("config")} />}
         {aba === "recebimentos" && podeDono && <Recebimentos slug={slug} podeDono={podeDono} />}
         {aba === "assinatura" && podeDono && <Assinatura slug={slug} />}
         {aba === "seguranca" && <SegurancaConta />}
