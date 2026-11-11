@@ -5,6 +5,7 @@ import {
   AlertTriangle,
   ArrowRight,
   BellRing,
+  Bell,
   Check,
   CheckCircle2,
   HandCoins,
@@ -12,6 +13,9 @@ import {
   Star,
   Utensils,
 } from "lucide-react";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
+import { usePedidosConferencia } from "@/hooks/use-pedidos-conferencia";
+import { PedidosConferencia } from "@/components/tipe/PedidosConferencia";
 import { Button } from "@/components/ui/button";
 import { useIncidents } from "@/components/tipe/PendenciasFinanceiras";
 import { getWaiterInsights } from "@/lib/tipe/waiter-insights.functions";
@@ -32,6 +36,7 @@ const ICONE: Record<TarefaAgora["tipo"], React.ComponentType<{ className?: strin
 /** Fila única do que o restaurante precisa resolver agora, no topo do Início. */
 export function PrecisaDeVoce({
   slug,
+  modo = "inicio",
   podeConfirmar,
   entrada,
   ocupado,
@@ -40,6 +45,7 @@ export function PrecisaDeVoce({
   onMesa,
 }: {
   slug: string;
+  modo?: "inicio" | "sininho";
   podeConfirmar: boolean;
   entrada: Omit<EntradaAgora, "incidentes" | "notas" | "agora">;
   ocupado: string | null;
@@ -47,6 +53,7 @@ export function PrecisaDeVoce({
   onGo: (aba: string) => void;
   onMesa: (mesa: string) => void;
 }) {
+  const pedidos = usePedidosConferencia(slug);
   const incidentes = useIncidents(slug, podeConfirmar);
   const fetchInsights = useServerFn(getWaiterInsights);
   const insights = useQuery({
@@ -81,22 +88,24 @@ export function PrecisaDeVoce({
     [entrada, incidentes.data, insights.data, chamados.data],
   );
 
-  return (
-    <section aria-labelledby="agora-title" className="surface-card p-4 sm:p-5">
+  const quantidade = tarefas.length + (pedidos.data?.length ?? 0);
+  const conteudo = (
+    <section aria-label="Avisos e pendências" className={modo === "inicio" ? "surface-card p-4 sm:p-5" : "p-1"}>
       <div className="flex items-baseline justify-between gap-2">
-        <h2 id="agora-title" className="font-display text-base font-semibold">
-          O que precisa de você agora
+        <h2 className="font-display text-base font-semibold">
+          {modo === "inicio" ? "O que precisa de você agora" : "Avisos"}
         </h2>
-        {tarefas.length > 0 && (
+        {quantidade > 0 && (
           <span className="text-xs text-muted-foreground">
-            {tarefas.length === 1 ? "1 item" : `${tarefas.length} itens`}
+            {quantidade === 1 ? "1 item" : `${quantidade} itens`}
           </span>
         )}
       </div>
-      {tarefas.length === 0 ? (
+      <PedidosConferencia slug={slug} />
+      {quantidade === 0 ? (
         <p className="mt-3 flex items-center gap-2 text-sm text-muted-foreground">
           <CheckCircle2 className="h-4 w-4 text-success" aria-hidden />
-          Tudo em dia. Pagamentos no local, mesas quitadas e alertas aparecem aqui.
+          {chamados.isPending || pedidos.isPending ? "Atualizando avisos…" : chamados.isError || incidentes.isError || pedidos.isError ? "Alguns avisos não puderam ser atualizados. Tente novamente em instantes." : "Tudo em dia. Pagamentos no local, mesas quitadas e alertas aparecem aqui."}
         </p>
       ) : (
         <ul className="mt-3 divide-y divide-border">
@@ -169,4 +178,6 @@ export function PrecisaDeVoce({
       )}
     </section>
   );
+  if (modo === "inicio") return conteudo;
+  return <Popover><PopoverTrigger asChild><Button variant="ghost" size="icon" className="relative" aria-label={`Avisos: ${quantidade} ${quantidade === 1 ? "pendência" : "pendências"}`}><Bell className="size-5" aria-hidden />{quantidade > 0 && <span className="absolute -right-1 -top-1 min-w-5 rounded-full bg-destructive px-1 text-[10px] font-semibold leading-5 text-destructive-foreground">{quantidade > 99 ? "99+" : quantidade}</span>}</Button></PopoverTrigger><PopoverContent align="end" className="max-h-[75dvh] w-[min(32rem,calc(100vw-2rem))] overflow-y-auto p-3">{conteudo}</PopoverContent></Popover>;
 }

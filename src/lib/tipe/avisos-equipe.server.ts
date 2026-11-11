@@ -205,3 +205,9 @@ export function avisarChamado(
     await entregar(admin, await destinatarios(admin, restaurantId, waiterId, aviso), aviso);
   });
 }
+
+/** Pedido fica retido no banco; o push só convida a conferir na mesa. */
+export async function avisarConferenciaPedido(admin: Admin, restaurantId: string, waiterId: string | null, slug: string, table: string, id: string, quantity: number) {
+  const aviso: Aviso = { tipo: "chamado", titulo: `Mesa ${table}: conferir pedido`, corpo: `${quantity} itens aguardam sua confirmação na mesa antes de ir à cozinha.`, url: `/${slug}`, tag: `pedido-conferencia-${id}`, para: ["garcom", "gestao"] };
+  await comLimite(async () => entregar(admin, await destinatarios(admin, restaurantId, waiterId, aviso), aviso));
+}

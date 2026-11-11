@@ -789,7 +789,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
             }}
             className="mt-8 h-12 w-full font-display text-base"
           >
-            Ver minha conta <ChevronRight />
+            Ver minha mesa <ChevronRight />
           </Button>
           <div className="mt-8 rounded-lg border border-dashed border-border p-4 text-left">
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">

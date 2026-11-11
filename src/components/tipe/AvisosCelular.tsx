@@ -177,7 +177,7 @@ export function AvisosCelular({ papel = "garcom" }: { papel?: "garcom" | "gestao
             className="text-foreground"
           >
             <Icone className="h-4 w-4" />
-            Avisos ligados
+            Avisos no celular ligados
           </Button>
         </PopoverTrigger>
         <PopoverContent align="end" className="w-72">
@@ -222,7 +222,7 @@ export function AvisosCelular({ papel = "garcom" }: { papel?: "garcom" | "gestao
       className="text-muted-foreground"
     >
       <Icone className="h-4 w-4" />
-      Avisos
+      Avisos no celular
     </Button>
   );
 }

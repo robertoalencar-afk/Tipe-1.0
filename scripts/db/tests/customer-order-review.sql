@@ -1,0 +1,48 @@
+-- Executar em banco de teste isolado com as tabelas do PDV e a migração 0059.
+BEGIN;
+INSERT INTO auth.users(id) VALUES ('10000000-0000-0000-0000-000000000001'),('10000000-0000-0000-0000-000000000002'),('10000000-0000-0000-0000-000000000003');
+INSERT INTO restaurants(id,slug) VALUES('20000000-0000-0000-0000-000000000001','review-test'),('20000000-0000-0000-0000-000000000002','other-test');
+INSERT INTO user_roles(user_id,restaurant_id,role) VALUES('10000000-0000-0000-0000-000000000001','20000000-0000-0000-0000-000000000001','waiter'),('10000000-0000-0000-0000-000000000002',NULL,'founder'),('10000000-0000-0000-0000-000000000003','20000000-0000-0000-0000-000000000002','owner');
+INSERT INTO restaurant_tables(restaurant_id,number,active,session_token) VALUES('20000000-0000-0000-0000-000000000001','1',true,'session-one');
+INSERT INTO pdv_menu_items(restaurant_id,code,name,price,sector,available) VALUES('20000000-0000-0000-0000-000000000001','X','Produto teste',10,'cozinha',true);
+DO $$
+DECLARE r jsonb; id uuid; before_qty integer;
+BEGIN
+ IF has_function_privilege('service_role','pdv_customer_order_dispatch(text,text,jsonb,text,text,text)','EXECUTE') OR has_function_privilege('anon','resolve_customer_order_review(uuid,boolean)','EXECUTE') OR has_table_privilege('authenticated','customer_order_reviews','SELECT') THEN RAISE EXCEPTION 'ACL insegura'; END IF;
+ BEGIN
+  PERFORM pdv_customer_order('review-test','1','[{"code":"X","qty":6}]','Cliente','wrong-session',NULL,'old-session');
+  RAISE EXCEPTION 'Aceitou sessão inválida';
+ EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'Sessão da mesa inválida' THEN RAISE; END IF; END;
+ r:=pdv_customer_order('review-test','1','[{"code":"X","qty":5}]','Cliente','five-items',NULL,'session-one');
+ IF r ? 'review_id' OR (SELECT count(*) FROM pdv_orders)<>1 OR (SELECT sum(ordered_quantity) FROM table_bill_items)<>5 THEN RAISE EXCEPTION 'Cinco itens não seguiram normalmente'; END IF;
+ r:=pdv_customer_order('review-test','1','[{"code":"X","qty":3},{"code":"X","qty":3}]','Cliente','six-items',NULL,'session-one');
+ id:=(r->>'review_id')::uuid;
+ IF id IS NULL OR r->>'review_state'<>'pending' OR (r->>'items')::int<>6 OR (SELECT count(*) FROM pdv_orders)<>1 OR (SELECT sum(ordered_quantity) FROM table_bill_items)<>5 THEN RAISE EXCEPTION 'Seis itens chegaram à cozinha/conta'; END IF;
+ r:=pdv_customer_order('review-test','1','[{"code":"X","qty":6}]','Cliente','six-items',NULL,'session-one');
+ IF NOT (r->>'duplicate')::boolean OR (SELECT count(*) FROM customer_order_reviews)<>1 THEN RAISE EXCEPTION 'Duplicou revisão'; END IF;
+ PERFORM set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000002',true);
+ BEGIN PERFORM resolve_customer_order_review(id,true); RAISE EXCEPTION 'Founder aprovou'; EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'Sem permissão' THEN RAISE; END IF; END;
+ PERFORM set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000003',true);
+ BEGIN PERFORM resolve_customer_order_review(id,true); RAISE EXCEPTION 'Outro restaurante aprovou'; EXCEPTION WHEN raise_exception THEN IF SQLERRM<>'Sem permissão' THEN RAISE; END IF; END;
+ PERFORM set_config('request.jwt.claim.sub','10000000-0000-0000-0000-000000000001',true);
+ IF jsonb_array_length(pending_customer_order_reviews('review-test'))<>1 THEN RAISE EXCEPTION 'Fila sem pedido'; END IF;
+ r:=resolve_customer_order_review(id,true);
+ PERFORM resolve_customer_order_review(id,true);
+ IF r->>'state'<>'approved' OR (SELECT count(*) FROM pdv_orders)<>2 OR (SELECT sum(ordered_quantity) FROM table_bill_items)<>11 THEN RAISE EXCEPTION 'Aprovação incorreta ou duplicada'; END IF;
+ r:=pdv_customer_order('review-test','1','[{"code":"X","qty":6}]','Cliente','reject-items',NULL,'session-one');
+ PERFORM resolve_customer_order_review((r->>'review_id')::uuid,false);
+ IF (SELECT count(*) FROM pdv_orders)<>2 THEN RAISE EXCEPTION 'Recusa lançou itens'; END IF;
+ r:=pdv_customer_order('review-test','1','[{"code":"X","qty":6}]','Cliente','new-session',NULL,'session-one');
+ UPDATE restaurant_tables SET session_token='session-two';
+ IF resolve_customer_order_review((r->>'review_id')::uuid,true)->>'state'<>'expired' OR (SELECT count(*) FROM pdv_orders)<>2 THEN RAISE EXCEPTION 'Pedido de conta antiga foi lançado'; END IF;
+ r:=pdv_customer_order('review-test','1','[{"code":"X","qty":6}]','Cliente','old-review',NULL,'session-two');
+ UPDATE customer_order_reviews SET created_at=now()-interval '31 minutes' WHERE customer_order_reviews.id=(r->>'review_id')::uuid;
+ IF resolve_customer_order_review((r->>'review_id')::uuid,true)->>'state'<>'expired' THEN RAISE EXCEPTION 'Não expirou'; END IF;
+ r:=pdv_customer_order('review-test','1','[{"code":"X","qty":6}]','Cliente','price-change',NULL,'session-two');
+ UPDATE pdv_menu_items SET price=12;
+ BEGIN PERFORM resolve_customer_order_review((r->>'review_id')::uuid,true); RAISE EXCEPTION 'Aceitou preço diferente'; EXCEPTION WHEN raise_exception THEN IF SQLERRM NOT LIKE 'Cardápio alterado.%' THEN RAISE; END IF; END;
+ IF (SELECT count(*) FROM pdv_orders)<>2 THEN RAISE EXCEPTION 'Falha de confirmação lançou pedido'; END IF;
+ r:=pdv_customer_order('review-test','1','[{"code":"X","qty":6}]','Cliente','legacy-items',NULL);
+ IF r->>'review_state'<>'pending' OR (SELECT count(*) FROM pdv_orders)<>2 THEN RAISE EXCEPTION 'Compatibilidade contornou conferência'; END IF;
+END $$;
+ROLLBACK;

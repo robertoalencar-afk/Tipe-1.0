@@ -648,6 +648,22 @@ export function RestaurantPanel({
           <StatusBadge tone={syncErro ? "error" : "neutral"} className="print:hidden">
             {pdvLabel}
           </StatusBadge>
+              <PrecisaDeVoce modo="sininho"
+                slug={slug}
+                podeConfirmar={podeConfirmar}
+                entrada={{
+                  pendentes,
+                  syncErro: !!syncErro,
+                  alertasCancelamento: d.pdvAlerts,
+                  quitadas: mesas
+                    .filter((m) => m.status === "encerrada" && m.pago >= m.total - 0.005)
+                    .map((m) => ({ number: m.number, total: m.total })),
+                }}
+                ocupado={ocupado}
+                onConfirmar={(id) => agir(id, "confirm")}
+                onGo={ir}
+                onMesa={setMesaAberta}
+              />
           {topoAcoes}
         </>
       }

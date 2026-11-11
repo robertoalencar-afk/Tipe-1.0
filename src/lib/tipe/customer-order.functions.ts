@@ -60,7 +60,7 @@ export const placeCustomerOrder = createServerFn({ method: "POST" })
     device: z.string().regex(/^[0-9a-f]{48}$/).optional(),
     items: z.array(z.object({ code: z.string().min(1).max(16), qty: z.number().int().min(1).max(99), notes: z.string().max(140).optional() })).min(1).max(60),
   }).parse(d))
-  .handler(async ({ data }): Promise<{ items: number; total: number } | { error: "invalid" | "disabled" | "closed" | "code" | "unavailable" | "failed" }> => {
+  .handler(async ({ data }): Promise<{ items: number; total: number; reviewId?: string; reviewState?: string } | { error: "invalid" | "disabled" | "closed" | "code" | "unavailable" | "failed" }> => {
     const { enforceRate, clientIp, safeEqual, logSecurityEvent } = await import("./security.server");
     // Por IP (vários celulares na mesma rede) e por conta da mesa (vários IPs na mesma conta).
     await enforceRate(`order:${data.slug}:${data.code}:${clientIp()}`, 20, 60, data.slug);
@@ -75,9 +75,9 @@ export const placeCustomerOrder = createServerFn({ method: "POST" })
       await logSecurityEvent({ action: "customer_order_denied", resource: `mesa:${data.code}`, result: "denied", restaurantSlug: data.slug, restaurantId: r.id, detail: `ip=${clientIp()}` });
       return { error: "invalid" };
     }
-    const { data: res, error } = await supabaseAdmin.rpc("pdv_customer_order", {
-      p_slug: data.slug, p_table: t.number, p_items: data.items, p_customer: data.customer ?? "", p_request_id: data.requestId, ...(data.device ? { p_device: data.device } : {}),
-    });
+    const { data: res, error } = await supabaseAdmin.rpc("pdv_customer_order" as never, {
+      p_bill_session: data.session, p_slug: data.slug, p_table: t.number, p_items: data.items, p_customer: data.customer ?? "", p_request_id: data.requestId, p_device: data.device ?? null,
+    } as never);
     if (error) {
       if (error.message.includes("desativado")) return { error: "disabled" };
       if (error.message.includes("não estão liberados")) return { error: "closed" };
@@ -85,6 +85,27 @@ export const placeCustomerOrder = createServerFn({ method: "POST" })
       if (error.message.includes("indisponível") || error.message.includes("Mesa inativa")) return { error: "unavailable" };
       return { error: "failed" };
     }
-    const out = res as { items: number; total: number };
-    return { items: Number(out.items), total: Number(out.total) };
+    const out = res as { items: number; total: number; review_id?: string; review_state?: string; duplicate?: boolean };
+    if (out.review_id && out.review_state === "pending" && !out.duplicate) {
+      const { avisarConferenciaPedido } = await import("./avisos-equipe.server");
+      const { data: mesa } = await supabaseAdmin.from("restaurant_tables").select("waiter_id").eq("restaurant_id", r.id).eq("number", t.number).maybeSingle();
+      await avisarConferenciaPedido(supabaseAdmin, r.id, mesa?.waiter_id ?? null, data.slug, t.number, out.review_id, out.items);
+    }
+    return { items: Number(out.items), total: Number(out.total), ...(out.review_id ? { reviewId: out.review_id, reviewState: out.review_state } : {}) };
   });
+
+/** Consulta só o resultado do próprio envio; não expõe pedidos de outros clientes. */
+export const getCustomerOrderReview = createServerFn({ method: "GET" })
+ .inputValidator((d) => z.object({ slug: Slug, code: z.string().min(1).max(32), session: z.string().min(1).max(96), id: z.string().uuid() }).parse(d))
+ .handler(async ({ data }): Promise<{ state: string }> => {
+  const { enforceRate, clientIp, safeEqual } = await import("./security.server");
+  await enforceRate(`order-review:${data.slug}:${clientIp()}`,120,60,data.slug);
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: r } = await supabaseAdmin.from("restaurants").select("id").eq("slug",data.slug).maybeSingle();
+  if (!r) return { state: "expired" };
+  const { data: t } = await supabaseAdmin.from("restaurant_tables").select("number,active,session_token" as never).eq("restaurant_id",r.id).eq("code",data.code.toLowerCase()).maybeSingle() as unknown as { data: { number: string; active: boolean; session_token: string } | null };
+  if (!t?.active || !safeEqual(t.session_token,data.session)) return { state: "expired" };
+  const { data: review, error } = await supabaseAdmin.from("customer_order_reviews" as never).select("state,created_at").eq("id",data.id).eq("restaurant_id",r.id).eq("table_number",t.number).eq("bill_session",data.session).maybeSingle() as unknown as { data: { state: string; created_at: string } | null; error: unknown };
+  if (error) throw new Error("Não foi possível consultar o pedido");
+  return { state: !review || (review.state === "pending" && Date.now()-new Date(review.created_at).getTime()>30*60*1000) ? "expired" : review.state };
+ });
