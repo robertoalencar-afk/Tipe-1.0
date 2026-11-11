@@ -36,6 +36,7 @@ import { Route as AuthenticatedBackofficeRouteImport } from './routes/_authentic
 import { Route as AuthenticatedCentralRouteImport } from './routes/_authenticated/central'
 import { Route as AuthenticatedGarcomRouteImport } from './routes/_authenticated/garcom'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
+import { Route as ConviteTokenRouteImport } from './routes/convite.$token'
 import { Route as CrmIndexRouteImport } from './routes/crm.index'
 import { Route as CrmAdminRouteImport } from './routes/crm.admin'
 import { Route as CrmAtendimentoRouteImport } from './routes/crm.atendimento'
@@ -219,6 +220,11 @@ const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
   id: '/painel',
   path: '/painel',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const ConviteTokenRoute = ConviteTokenRouteImport.update({
+  id: '/convite/$token',
+  path: '/convite/$token',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const CrmIndexRoute = CrmIndexRouteImport.update({
   id: '/',
@@ -496,6 +502,7 @@ export interface FileRoutesByFullPath {
   '/central': typeof AuthenticatedCentralRoute
   '/garcom': typeof AuthenticatedGarcomRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/convite/$token': typeof ConviteTokenRoute
   '/crm/admin': typeof CrmAdminRoute
   '/crm/atendimento': typeof CrmAtendimentoRoute
   '/crm/calendario': typeof CrmCalendarioRoute
@@ -572,6 +579,7 @@ export interface FileRoutesByTo {
   '/central': typeof AuthenticatedCentralRoute
   '/garcom': typeof AuthenticatedGarcomRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/convite/$token': typeof ConviteTokenRoute
   '/crm/admin': typeof CrmAdminRoute
   '/crm/atendimento': typeof CrmAtendimentoRoute
   '/crm/calendario': typeof CrmCalendarioRoute
@@ -651,6 +659,7 @@ export interface FileRoutesById {
   '/_authenticated/central': typeof AuthenticatedCentralRoute
   '/_authenticated/garcom': typeof AuthenticatedGarcomRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
+  '/convite/$token': typeof ConviteTokenRoute
   '/crm/admin': typeof CrmAdminRoute
   '/crm/atendimento': typeof CrmAtendimentoRoute
   '/crm/calendario': typeof CrmCalendarioRoute
@@ -730,6 +739,7 @@ export interface FileRouteTypes {
     | '/central'
     | '/garcom'
     | '/painel'
+    | '/convite/$token'
     | '/crm/admin'
     | '/crm/atendimento'
     | '/crm/calendario'
@@ -806,6 +816,7 @@ export interface FileRouteTypes {
     | '/central'
     | '/garcom'
     | '/painel'
+    | '/convite/$token'
     | '/crm/admin'
     | '/crm/atendimento'
     | '/crm/calendario'
@@ -884,6 +895,7 @@ export interface FileRouteTypes {
     | '/_authenticated/central'
     | '/_authenticated/garcom'
     | '/_authenticated/painel'
+    | '/convite/$token'
     | '/crm/admin'
     | '/crm/atendimento'
     | '/crm/calendario'
@@ -959,6 +971,7 @@ export interface RootRouteChildren {
   RestauranteCozinhaRoute: typeof RestauranteCozinhaRoute
   RestauranteSenhasRoute: typeof RestauranteSenhasRoute
   RestauranteTotemRoute: typeof RestauranteTotemRoute
+  ConviteTokenRoute: typeof ConviteTokenRoute
   LegalLivroRoute: typeof LegalLivroRoute
   LegalCompletaRoute: typeof LegalCompletaRoute
   LegalGlossarioRoute: typeof LegalGlossarioRoute
@@ -1173,6 +1186,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/painel'
       preLoaderRoute: typeof AuthenticatedPainelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/convite/$token': {
+      id: '/convite/$token'
+      path: '/convite/$token'
+      fullPath: '/convite/$token'
+      preLoaderRoute: typeof ConviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/crm/': {
       id: '/crm/'
@@ -1624,6 +1644,7 @@ const rootRouteChildren: RootRouteChildren = {
   RestauranteCozinhaRoute: RestauranteCozinhaRoute,
   RestauranteSenhasRoute: RestauranteSenhasRoute,
   RestauranteTotemRoute: RestauranteTotemRoute,
+  ConviteTokenRoute: ConviteTokenRoute,
   LegalLivroRoute: LegalLivroRoute,
   LegalCompletaRoute: LegalCompletaRoute,
   LegalGlossarioRoute: LegalGlossarioRoute,
