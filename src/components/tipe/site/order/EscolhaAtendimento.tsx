@@ -9,6 +9,8 @@
 import { useId, useRef, type KeyboardEvent } from "react";
 import {
   ArrowRight,
+  Check,
+  ChevronDown,
   Bike,
   ClipboardList,
   Nfc,
@@ -251,41 +253,37 @@ export function EscolhaAtendimento({
               <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#e6faf8] text-[#03665f]">
                 <Icone className="h-5 w-5" aria-hidden />
               </span>
-              <h3 className="font-display text-[1.9rem] leading-none tracking-[-0.035em] sm:text-[2.3rem]">{def.nome}</h3>
+              <h3 className="font-display text-[1.7rem] leading-none tracking-[-0.035em] sm:text-[2rem]">{def.nome}</h3>
               <SeloDisponibilidade d={def.disponibilidade} className="text-[#021E34]" />
             </div>
             <p className="mt-4 text-[1.1rem] leading-relaxed text-muted-foreground sm:text-xl">{def.promessa}</p>
             <p className="mt-2 text-[0.9rem] leading-relaxed text-muted-foreground/90">{TEXTO_DISPONIBILIDADE[def.disponibilidade].longo}</p>
 
-            <h4 className="mt-7 font-display text-[1.05rem] tracking-[-0.02em] text-brand-strong">Como funciona</h4>
-            <ol className="mt-3 space-y-2">
-              {def.fluxo.map((p, i) => (
-                <li key={i} className="flex gap-3 text-[0.95rem] leading-snug">
-                  <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#021E34] text-[0.65rem] font-semibold text-white tabular-nums">
-                    {i + 1}
-                  </span>
+            <ul className="mt-6 space-y-2.5">
+              {def.beneficios.slice(0, 3).map((b) => (
+                <li key={b.t} className="flex gap-3 text-[0.98rem] leading-snug">
+                  <Check className="mt-0.5 h-5 w-5 shrink-0 text-[#0FC9BD]" strokeWidth={2.5} aria-hidden />
                   <span>
-                    <span className="mr-1.5 rounded-md bg-[#e6faf8] px-1.5 py-0.5 text-[0.7rem] font-medium uppercase tracking-wide text-[#03665f]">
-                      {QUEM[p.quem]}
-                    </span>
-                    {p.o_que}
+                    <span className="font-medium">{b.t}.</span> <span className="text-muted-foreground">{b.d}</span>
                   </span>
-                </li>
-              ))}
-            </ol>
-
-            <ul className="mt-7 grid gap-3 sm:grid-cols-2">
-              {def.beneficios.map((b) => (
-                <li key={b.t} className="rounded-2xl bg-background-muted p-4 ring-1 ring-border">
-                  <p className="font-medium leading-snug">{b.t}</p>
-                  <p className="mt-1 text-[0.88rem] leading-relaxed text-muted-foreground">{b.d}</p>
                 </li>
               ))}
             </ul>
 
-            <p className="mt-6 text-[0.88rem] text-muted-foreground">
-              <span className="font-medium text-foreground">Indicada para:</span> {def.indicada.join(" · ")}
-            </p>
+            <details className="group mt-5 rounded-2xl border border-border px-4">
+              <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between text-[0.95rem] font-medium [&::-webkit-details-marker]:hidden">
+                Ver o passo a passo
+                <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" aria-hidden />
+              </summary>
+              <ol className="space-y-2 pb-4">
+                {def.fluxo.map((p, i) => (
+                  <li key={i} className="flex gap-3 text-[0.92rem] leading-snug">
+                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#021E34] text-[0.65rem] font-semibold text-white tabular-nums">{i + 1}</span>
+                    <span><span className="text-muted-foreground">{QUEM[p.quem]}:</span> {p.o_que}</span>
+                  </li>
+                ))}
+              </ol>
+            </details>
 
             <div className="mt-7 flex flex-wrap gap-3">
               <a

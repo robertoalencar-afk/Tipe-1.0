@@ -200,24 +200,10 @@ export function SimuladorMultiformato({
           texto="Faça o papel do cliente e do restaurante ao lado. É uma simulação com dados de exemplo: nada é enviado e nenhum pagamento é real."
         />
 
-        {/* Seletor da modalidade dentro do simulador: mesmo estado do seletor da página. */}
-        <div role="tablist" aria-label="Modalidade do simulador" className="-mx-4 mt-8 flex gap-2 overflow-x-auto px-4 pb-1 lg:mt-12">
-          {ORDEM_SELETOR.map((m) => (
-            <button
-              key={m}
-              type="button"
-              role="tab"
-              aria-selected={estado.modalidade === m}
-              onClick={() => onModalidade(m)}
-              className={cn(
-                "shrink-0 rounded-full border px-4 py-2 text-sm font-medium transition-colors",
-                estado.modalidade === m ? "border-[#021E34] bg-[#021E34] text-white" : "border-foreground/20 hover:bg-background-muted",
-              )}
-            >
-              {DEFINICOES[m].nome}
-            </button>
-          ))}
-        </div>
+        <p className="mt-6 text-[0.95rem] text-muted-foreground">
+          Modalidade: <span className="font-medium text-foreground">{DEFINICOES[estado.modalidade].nome}</span>.{" "}
+          <a href="#atendimento" className="underline underline-offset-4 hover:text-foreground">Trocar de modalidade</a>
+        </p>
 
         <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
           <p aria-live="polite" className="max-w-2xl rounded-2xl bg-[#e6faf8] px-4 py-3 text-[0.95rem] text-[#021E34]">
