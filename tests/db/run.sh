@@ -44,6 +44,9 @@ grep -qE "FALHOU|ERROR" /tmp/tipe-order-liberacao.log && FAIL=1
 $P -v ON_ERROR_STOP=1 -f "$DIR/lancamento.sql" >/tmp/tipe-lancamento.raw 2>&1 || FAIL=1
 grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-lancamento.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-lancamento.log
 grep -qE "FALHOU|ERROR" /tmp/tipe-lancamento.log && FAIL=1
+$P -v ON_ERROR_STOP=1 -f "$DIR/caixa.sql" >/tmp/tipe-caixa.raw 2>&1 || FAIL=1
+grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-caixa.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-caixa.log
+grep -qE "FALHOU|ERROR" /tmp/tipe-caixa.log && FAIL=1
 $P -v ON_ERROR_STOP=1 -f "$DIR/totem.sql" >/tmp/tipe-totem.raw 2>&1 || FAIL=1
 grep -E "NOTICE:  ok:|FALHOU|ERROR" /tmp/tipe-totem.raw | sed 's/.*NOTICE:  //; s/^psql:[^ ]* //' | tee /tmp/tipe-totem.log
 grep -qE "FALHOU|ERROR" /tmp/tipe-totem.log && FAIL=1
