@@ -30,6 +30,7 @@ import { remainingSubtotal, selectionSubtotal, type ShareItem } from "@/lib/tipe
 import { PAYMENT_STATUS_LABEL } from "@/lib/tipe/payment-state";
 import { MesaPedido } from "@/components/tipe/MesaPedido";
 import { MesaLiberacao, lerTokenPedido } from "@/components/tipe/MesaLiberacao";
+import { ChamarEquipe } from "@/components/tipe/ChamarEquipe";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -762,6 +763,10 @@ function MesaPage() {
               "Seus pedidos aparecem aqui assim que forem lançados."
             )}
           </p>
+
+          {sessaoMesa && (
+            <ChamarEquipe slug={restaurante} mesa={String(dados.mesa)} session={sessaoMesa} />
+          )}
 
           {selfOrder && (
             <div
