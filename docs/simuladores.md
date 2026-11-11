@@ -10,3 +10,8 @@ Checklist ao mudar o fluxo de conta, pagamento, gorjeta, taxa de serviço, nomes
 3. Gorjeta 70% garçom / 30% Tipe (`src/lib/tipe/rules.ts`).
 4. Nomes oficiais: Tipe Pay, Order, Cozinha, Equipe, Gestão, Reserva (em breve), Lebre.
 5. Dados do simulador são fictícios e isolados; nunca tocam dados reais.
+
+## Gorjeta e fim do fluxo (11/11)
+- Gorjeta extra: sempre 3%, 5% e 8% do valor pago (5% "Sugerida"). Percentual abaixo de R$ 2,00 não é oferecido; sobra "Outro valor".
+- Depois de pagar a gorjeta vem a tela "Gorjeta recebida / a equipe agradece" e só então a avaliação.
+- Ao fim (mesa encerrada / voltar à mesa) aparece "Avaliar no Google" quando o restaurante cadastrou o link em Gestão.

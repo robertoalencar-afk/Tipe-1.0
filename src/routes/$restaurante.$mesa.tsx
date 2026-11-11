@@ -98,6 +98,7 @@ type Etapa =
   | "avaliacao"
   | "gorjeta"
   | "pagamento-gorjeta"
+  | "gorjeta-confirmada"
   | "mesa-encerrada"
   | "fim";
 type Aba = "conta" | "atividade";
@@ -525,7 +526,9 @@ function MesaPage() {
           ? resultado.status === "approved"
             ? "conta-confirmada"
             : "conta-pendente"
-          : "avaliacao",
+          : resultado.status === "approved"
+            ? "gorjeta-confirmada"
+            : "avaliacao",
       );
     } catch (error) {
       if (error instanceof GooglePayCancelado) return;
@@ -592,7 +595,9 @@ function MesaPage() {
               ? r.status === "approved"
                 ? "conta-confirmada"
                 : "conta-pendente"
-              : "avaliacao",
+              : r.status === "approved"
+                ? "gorjeta-confirmada"
+                : "avaliacao",
           );
           return;
         } catch {
@@ -625,7 +630,7 @@ function MesaPage() {
         if (r.status === "approved") {
           await atualizarMesa();
           if (pix.tipo === "gorjeta") setGorjetaPaga(true);
-          setEtapa(pix.tipo === "conta" ? "conta-confirmada" : "avaliacao");
+          setEtapa(pix.tipo === "conta" ? "conta-confirmada" : "gorjeta-confirmada");
         } else if (r.status !== "pending") {
           setErroPagamento("O Pix expirou ou não foi concluído. Tente novamente.");
           setEtapa(pix.tipo === "conta" ? "pagamento-conta" : "pagamento-gorjeta");
@@ -1648,6 +1653,32 @@ function MesaPage() {
         />
       )}
 
+      {etapaVisivel === "gorjeta-confirmada" && (
+        <TelaCentral>
+          <img
+            src={mascotThanks}
+            alt="Lebre da TIPE sorrindo agradecendo a gorjeta"
+            className="bob mx-auto mb-1 h-32 w-32 object-contain"
+          />
+          <p className="eyebrow text-brand-strong">Gorjeta recebida</p>
+          <h1 className="mt-2 text-[1.9rem] font-medium leading-[1.06] tracking-[-0.035em]">
+            {dados.garcom ? `${dados.garcom.split(" ")[0]} e a equipe agradecem!` : "A equipe agradece!"}
+          </h1>
+          <p className="mt-2 text-[0.95rem] text-muted-foreground">
+            Sua gorjeta de <span className="money font-semibold">{money(gorjetaExtra)}</span> foi
+            confirmada. Obrigado, {primeiroNome}.
+          </p>
+          <div className="mt-8 w-full">
+            <Button
+              onClick={() => setEtapa("avaliacao")}
+              className="h-12 w-full font-display text-base"
+            >
+              Avaliar o atendimento <ChevronRight />
+            </Button>
+          </div>
+        </TelaCentral>
+      )}
+
       {etapaVisivel === "mesa-encerrada" && (
         <TelaCentral>
           <img
@@ -1671,6 +1702,17 @@ function MesaPage() {
           <p className="mt-2 max-w-xs text-center text-xs text-muted-foreground">
             Uma nova conta será aberta nesta mesa automaticamente em até 2 minutos.
           </p>
+          {linkAvaliacao && (
+            <a
+              href={linkAvaliacao}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-6 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-5 text-sm font-semibold hover:border-primary"
+            >
+              <Star className="h-4 w-4 text-highlight" aria-hidden /> Avaliar {dados.restaurante} no
+              Google
+            </a>
+          )}
           <Button
             variant="outline"
             onClick={() => {
@@ -1678,7 +1720,7 @@ function MesaPage() {
               setEtapa("conta");
               setAba("atividade");
             }}
-            className="mt-7 h-12 w-full"
+            className="mt-3 h-12 w-full"
           >
             Voltar à mesa
           </Button>
