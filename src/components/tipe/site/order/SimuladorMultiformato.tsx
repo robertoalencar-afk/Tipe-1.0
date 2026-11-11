@@ -49,7 +49,7 @@ import {
   type MetodoPay,
   type PedidoSim,
 } from "@/lib/tipe/order/simulacao";
-import { DEFINICOES, ORDEM_SELETOR, TEXTO_DISPONIBILIDADE, type Modalidade } from "@/lib/tipe/order/modalidades";
+import { DEFINICOES, ORDEM_SELETOR, type Modalidade } from "@/lib/tipe/order/modalidades";
 import { markSimulatorUsed } from "@/lib/tipe/tracking";
 import { Secao, Titulo } from "../Site";
 import { useMovimentoReduzido } from "../produto/useVisivel";
@@ -187,7 +187,6 @@ export function SimuladorMultiformato({
   const def = DEFINICOES[estado.modalidade];
   const passo = passoAtual(estado, ctx.current);
   const dica = DICAS[estado.modalidade][passo] || DICAS[estado.modalidade].find((d, i) => i >= passo && d) || "";
-  const disp = TEXTO_DISPONIBILIDADE[def.disponibilidade];
   const comSenha = pagaAntes(estado.modalidade);
   const comPay = pagaPeloPay(estado.modalidade);
 
@@ -211,15 +210,7 @@ export function SimuladorMultiformato({
             {dica}
           </p>
           <div className="flex items-center gap-2">
-            <span
-              className={cn(
-                "rounded-full px-3 py-1.5 text-xs font-medium",
-                def.disponibilidade === "operacional" ? "bg-[#0FC9BD] text-[#021E34]" : "border border-foreground/25",
-              )}
-              title={disp.curto}
-            >
-              {def.disponibilidade === "operacional" ? "Fluxo real · demonstração" : `${disp.selo} · demonstração`}
-            </span>
+            <span className="rounded-full bg-[#0FC9BD] px-3 py-1.5 text-xs font-medium text-[#021E34]">Demonstração interativa</span>
             <button
               type="button"
               onClick={() => despachar({ tipo: "reiniciar" })}
@@ -1041,16 +1032,9 @@ function Recebimento({ estado, agir, novaChave }: { estado: EstadoSim; agir: (a:
     <div className="rounded-[1.6rem] border border-border bg-card p-5">
       <p className="font-display text-xl tracking-[-0.02em]">Canais de entrada</p>
       <p className="mt-1 text-sm text-muted-foreground">
-        Hoje nenhum canal externo está integrado: esta é uma demonstração de como um pedido de fora entraria na mesma cozinha, com origem identificada. Sem iFood, Rappi ou logística própria.
+        Simule um pedido para entrega: confira a origem, acompanhe o preparo na cozinha e veja a passagem para a expedição.
       </p>
-      <ul className="mt-4 grid gap-2 text-sm">
-        {["Lançado pela equipe", "Recebido por API (planejado)", "Integração homologada (nenhuma ainda)"].map((t, i) => (
-          <li key={t} className={cn("flex items-center justify-between rounded-xl border px-3 py-2", i === 0 ? "border-[#0FC9BD] bg-[#f2fcfb]" : "border-dashed border-border text-muted-foreground")}>
-            <span>{t}</span>
-            <span className="text-xs">{i === 0 ? "Disponível" : "Planejado"}</span>
-          </li>
-        ))}
-      </ul>
+
       <button
         type="button"
         onClick={() => agir({ tipo: "receber_externo", chave: novaChave(), origem: prox.origem, cliente: prox.cliente, itens: prox.itens })}
