@@ -1262,8 +1262,13 @@ function MesaPage() {
 
       {etapaVisivel === "conta-confirmada" && (
         <TelaCentral>
-          <MarcaSucesso />
-          <h1 className="mt-6 text-[1.9rem] font-medium leading-[1.06] tracking-[-0.035em]">
+          <img
+            src={mascotThanks}
+            alt="Lebre da TIPE sorrindo com o pagamento aprovado"
+            className="bob mx-auto mb-1 h-32 w-32 object-contain"
+          />
+          <p className="eyebrow text-brand-strong">Conta paga</p>
+          <h1 className="mt-2 text-[1.9rem] font-medium leading-[1.06] tracking-[-0.035em]">
             Pagamento realizado!
           </h1>
           <p className="mt-2 text-[0.95rem] text-muted-foreground">
@@ -1901,15 +1906,6 @@ function EstadoPagamento({ status }: { status: SharedPayment["status"] }) {
   return (
     <span className={`mt-1 inline-block rounded-full px-2 py-0.5 text-[11px] font-semibold ${cls}`}>
       {PAYMENT_STATUS_LABEL[status] ?? "Pendente"}
-    </span>
-  );
-}
-
-function MarcaSucesso() {
-  return (
-    <span className="tipe-approved-mark relative grid h-20 w-20 place-items-center rounded-full bg-primary text-primary-foreground shadow-[0_18px_40px_-14px_var(--brand-primary)]">
-      <span aria-hidden className="absolute inset-0 rounded-full ring-8 ring-primary/15" />
-      <Check className="h-10 w-10" strokeWidth={3} />
     </span>
   );
 }
