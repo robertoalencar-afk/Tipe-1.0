@@ -61,6 +61,9 @@ import {
   accountVisits,
   consumerProfiles,
   dailySeries,
+  ENTITLED_MODULES,
+  ENTITLEMENT_STATE,
+  entitlementOf,
   lastDays,
   maskPhone,
   METHOD_LABEL,
@@ -76,7 +79,13 @@ import {
   usageSummary,
   visitsByHour,
 } from "@/lib/tipe/crm/ecosystem";
-import type { PagarmeStatus, PdvStatus, RestaurantPlan } from "@/lib/tipe/crm/types";
+import type {
+  EntitlementState,
+  PagarmeStatus,
+  PdvStatus,
+  RestaurantAccount,
+  RestaurantPlan,
+} from "@/lib/tipe/crm/types";
 
 export const Route = createFileRoute("/crm/contas/$id")({ component: Conta });
 
@@ -504,7 +513,9 @@ function Conta() {
                   {g}
                 </p>
                 <div className="grid gap-2 sm:grid-cols-2">
-                  {MODULES.filter((m) => m.group === g).map((m) => {
+                  {MODULES.filter(
+                    (m) => m.group === g && !(ENTITLED_MODULES as string[]).includes(m.key),
+                  ).map((m) => {
                     const on = a.modules.includes(m.key);
                     const blocked =
                       !!m.minPlan &&
@@ -546,6 +557,7 @@ function Conta() {
             ))}
           </Panel>
           <div className="space-y-4">
+            <OrderEntitlementCard account={a} manage={manage} />
             <Panel title="Integrações" description="PDV e conta de recebimento">
               <div className="space-y-3">
                 <Field label={`PDV (${a.pdv.provider})`}>
@@ -922,6 +934,106 @@ function NewTicket({ accountId }: { accountId: string }) {
           Abrir chamado
         </Btn>
       </form>
+    </Panel>
+  );
+}
+
+/**
+ * Contrato do Tipe Order na conta: ativo, suspenso ou cancelado, com motivo. Suspender ou
+ * cancelar só bloqueia pedidos novos pela mesa; a conta e os pagamentos seguem. Na
+ * plataforma o mesmo estado vive em restaurant_modules (adapters.ts: entitlementToPlatform).
+ */
+function OrderEntitlementCard({
+  account: a,
+  manage,
+}: {
+  account: RestaurantAccount;
+  manage: boolean;
+}) {
+  const { run } = useCrm();
+  const atual = entitlementOf(a, "pedido_na_mesa");
+  const registro = a.entitlements?.pedido_na_mesa;
+  const [destino, setDestino] = useState<EntitlementState>(
+    atual === "ativo" ? "suspenso" : "ativo",
+  );
+  const [motivo, setMotivo] = useState("");
+  const opcoes: EntitlementState[] =
+    atual === "ativo"
+      ? ["suspenso", "cancelado"]
+      : atual === "suspenso"
+        ? ["ativo", "cancelado"]
+        : ["ativo"];
+  const escolha = opcoes.includes(destino) ? destino : opcoes[0]!;
+  const acao = {
+    ativo: "Ativar o Tipe Order",
+    suspenso: "Suspender",
+    cancelado: "Cancelar o Tipe Order",
+  }[escolha];
+
+  return (
+    <Panel
+      title="Tipe Order"
+      description="Pedido pela mesa, vendido à parte do Tipe Pay."
+      actions={<Pill tone={ENTITLEMENT_STATE[atual].tone}>{ENTITLEMENT_STATE[atual].label}</Pill>}
+    >
+      {registro && (
+        <p className="mb-3 text-xs text-muted-foreground">
+          Desde {dateBR(registro.changedAt)}
+          {registro.reason ? ` · ${registro.reason}` : ""}
+        </p>
+      )}
+      <p className="mb-3 text-xs text-muted-foreground">
+        Suspender ou cancelar bloqueia só pedidos novos pela mesa. A conta, os pagamentos e os
+        pedidos já feitos continuam.
+      </p>
+      {manage && (
+        <form
+          className="space-y-3"
+          onSubmit={(e) => {
+            e.preventDefault();
+            const r = run(
+              {
+                type: "setAccountEntitlement",
+                accountId: a.id,
+                module: "pedido_na_mesa",
+                state: escolha,
+                reason: motivo,
+              },
+              `Tipe Order: ${ENTITLEMENT_STATE[escolha].label.toLowerCase()}`,
+            );
+            if (r.ok) setMotivo("");
+          }}
+        >
+          {opcoes.length > 1 && (
+            <Segmented
+              value={escolha}
+              onChange={setDestino}
+              label="Novo estado do Tipe Order"
+              options={opcoes.map((o) => ({ value: o, label: ENTITLEMENT_STATE[o].label }))}
+            />
+          )}
+          {escolha !== "ativo" && (
+            <Field label="Motivo" hint="Fica no histórico da conta.">
+              {(fid, desc) => (
+                <TextInput
+                  id={fid}
+                  aria-describedby={desc}
+                  value={motivo}
+                  maxLength={300}
+                  onChange={(e) => setMotivo(e.target.value)}
+                />
+              )}
+            </Field>
+          )}
+          <Btn
+            type="submit"
+            variant={escolha === "ativo" ? "default" : "outline"}
+            className="w-full"
+          >
+            {acao}
+          </Btn>
+        </form>
+      )}
     </Panel>
   );
 }

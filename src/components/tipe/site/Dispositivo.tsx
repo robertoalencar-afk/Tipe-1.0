@@ -46,7 +46,10 @@ export type TelaCelular = keyof typeof TELAS_CELULAR;
 const TELAS_TABLET = { kds: [kds560, kds1000], salao: [salao560, salao1000] } as const;
 export type TelaTablet = keyof typeof TELAS_TABLET;
 
-const TELAS_JANELA = { caixa: [caixa900, caixa1600], relatorios: [relatorios900, relatorios1600] } as const;
+const TELAS_JANELA = {
+  caixa: [caixa900, caixa1600],
+  relatorios: [relatorios900, relatorios1600],
+} as const;
 export type TelaJanela = keyof typeof TELAS_JANELA;
 
 function BarraStatus({ escura = false }: { escura?: boolean }) {
@@ -95,7 +98,10 @@ export function Celular({
     >
       <div className="relative overflow-hidden rounded-[11%/5%] bg-white">
         <BarraStatus />
-        <span aria-hidden className="absolute left-1/2 top-[1.6%] h-[2.4%] w-[30%] -translate-x-1/2 rounded-full bg-black" />
+        <span
+          aria-hidden
+          className="absolute left-1/2 top-[1.6%] h-[2.4%] w-[30%] -translate-x-1/2 rounded-full bg-black"
+        />
         <img
           src={p}
           srcSet={`${p} 390w, ${g} 780w`}
@@ -112,7 +118,17 @@ export function Celular({
   );
 }
 
-export function Tablet({ tela, alt, className, sizes = "480px" }: { tela: TelaTablet; alt: string; className?: string; sizes?: string }) {
+export function Tablet({
+  tela,
+  alt,
+  className,
+  sizes = "480px",
+}: {
+  tela: TelaTablet;
+  alt: string;
+  className?: string;
+  sizes?: string;
+}) {
   const [p, g] = TELAS_TABLET[tela];
   return (
     <figure
@@ -136,7 +152,17 @@ export function Tablet({ tela, alt, className, sizes = "480px" }: { tela: TelaTa
   );
 }
 
-export function Janela({ tela, alt, className, sizes = "720px" }: { tela: TelaJanela; alt: string; className?: string; sizes?: string }) {
+export function Janela({
+  tela,
+  alt,
+  className,
+  sizes = "720px",
+}: {
+  tela: TelaJanela;
+  alt: string;
+  className?: string;
+  sizes?: string;
+}) {
   const [p, g] = TELAS_JANELA[tela];
   return (
     <figure
@@ -145,7 +171,10 @@ export function Janela({ tela, alt, className, sizes = "720px" }: { tela: TelaJa
         className,
       )}
     >
-      <div aria-hidden className="flex h-7 items-center gap-1.5 border-b border-[oklch(0.92_0_0)] bg-[oklch(0.975_0_0)] px-3">
+      <div
+        aria-hidden
+        className="flex h-7 items-center gap-1.5 border-b border-[oklch(0.92_0_0)] bg-[oklch(0.975_0_0)] px-3"
+      >
         <span className="h-2.5 w-2.5 rounded-full bg-[#ff5f57]" />
         <span className="h-2.5 w-2.5 rounded-full bg-[#febc2e]" />
         <span className="h-2.5 w-2.5 rounded-full bg-[#28c840]" />

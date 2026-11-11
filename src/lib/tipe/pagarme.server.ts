@@ -11,11 +11,16 @@ export function pagarmeEnabled() {
  * propósito, em ambientes de teste ou demonstração: TIPE_ALLOW_SIMULATED_PAYMENTS=true.
  * Em produção fica desligada: sem conta Pagar.me, nenhum pagamento digital é aceito.
  */
-/** Restaurante de teste: sempre simula, nunca cobra de verdade (revisão visual sem afetar clientes reais). */
-export const SIMULATION_RESTAURANT_SLUG = "teste-tipe";
+/**
+ * Empresas virtuais: sempre simulam e nunca cobram de verdade. Servem para a
+ * revisão visual e para a demonstração a clientes (pitch), com todos os meios
+ * aprovados, inclusive Apple Pay e Google Pay. As duas últimas são criadas por
+ * scripts/db/criar-empresas-teste.mjs.
+ */
+export const SIMULATION_RESTAURANT_SLUGS = ["teste-tipe", "bistro-teste", "bar-teste"] as const;
 
 export function isSimulationRestaurant(slug?: string | null) {
-  return slug === SIMULATION_RESTAURANT_SLUG;
+  return !!slug && (SIMULATION_RESTAURANT_SLUGS as readonly string[]).includes(slug);
 }
 
 export function simulatedPaymentsAllowed(slug?: string | null) {

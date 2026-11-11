@@ -1,0 +1,23 @@
+{
+  "name": "faq-ai-cache-worker",
+  "description": "Cloudflare Worker: FAQ de reembolso via AI Gateway REST com cache nativo",
+  "scripts": {
+    "cf-typegen": "wrangler types",
+    "typecheck": "wrangler types && tsc --noEmit",
+    "test": "vitest run",
+    "build": "wrangler deploy --dry-run --outdir dist --env=\"\"",
+    "check": "npm run typecheck && npm test && npm run build && npm run build:production",
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy --env=\"\"",
+    "deploy:production": "wrangler deploy --env production",
+    "verify": "node scripts/verify-cache.mjs",
+    "build:production": "wrangler deploy --dry-run --outdir dist --env production"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5",
+    "wrangler": "^4.152.0"
+  },
+  "private": true,
+  "type": "module"
+}

@@ -9,6 +9,9 @@ import {
   DEMO_WAITERS,
   menuFor,
   METHOD_LABEL,
+  ENTITLED_MODULES,
+  ENTITLEMENT_STATE,
+  entitlementOf,
   MODULES,
   ONBOARDING,
   planForTables,
@@ -30,6 +33,8 @@ import type {
   Contact,
   CrmState,
   Deal,
+  EntitledModule,
+  EntitlementState,
   EntityRef,
   Goal,
   GoalMetric,
@@ -184,6 +189,13 @@ export type Command =
   | { type: "completeOnboardingStep"; accountId: ID; key: OnboardingKey }
   | { type: "reopenOnboardingStep"; accountId: ID; key: OnboardingKey }
   | { type: "setAccountModule"; accountId: ID; module: ModuleKey; enabled: boolean }
+  | {
+      type: "setAccountEntitlement";
+      accountId: ID;
+      module: EntitledModule;
+      state: EntitlementState;
+      reason?: string | undefined;
+    }
   | { type: "changeAccountPlan"; accountId: ID; plan: RestaurantPlan; tables: number }
   | {
       type: "setAccountIntegration";
@@ -2493,6 +2505,10 @@ function run(
       const a = own(c, s.accounts, cmd.accountId, "Conta");
       const def = MODULES.find((m) => m.key === cmd.module);
       if (!def) throw new Invalid("Módulo desconhecido.");
+      if ((ENTITLED_MODULES as ModuleKey[]).includes(cmd.module))
+        throw new Invalid(
+          `${def.label} tem contrato próprio: ative, suspenda ou cancele no card do módulo.`,
+        );
       const has = a.modules.includes(cmd.module);
       if (has === cmd.enabled) return;
       if (
@@ -2514,6 +2530,51 @@ function run(
         "account.module",
         `${a.name}: ${def.label} ${cmd.enabled ? "ligado" : "desligado"}`,
         { type: "account", id: a.id },
+      );
+      return;
+    }
+    case "setAccountEntitlement": {
+      need(c, "accounts.manage");
+      const a = own(c, s.accounts, cmd.accountId, "Conta");
+      const def = MODULES.find((m) => m.key === cmd.module);
+      if (!def || !ENTITLED_MODULES.includes(cmd.module)) throw new Invalid("Módulo desconhecido.");
+      const before = entitlementOf(a, cmd.module);
+      if (before === cmd.state) return;
+      const reason = clean(cmd.reason);
+      if (cmd.state !== "ativo" && reason.length < 3) throw new Invalid("Informe o motivo.");
+      if (cmd.state === "suspenso" && before !== "ativo")
+        throw new Invalid("Só um módulo ativo pode ser suspenso.");
+      if (cmd.state === "ativo" && a.status === "cancelada")
+        throw new Invalid("A conta está cancelada. Reative a conta antes do módulo.");
+      a.entitlements = {
+        ...a.entitlements,
+        [cmd.module]: {
+          state: cmd.state,
+          reason: cmd.state === "ativo" ? undefined : reason,
+          changedAt: now,
+        },
+      };
+      // A lista de módulos ligados segue o contrato: só ativo conta como ligado.
+      a.modules =
+        cmd.state === "ativo"
+          ? [...a.modules.filter((m) => m !== cmd.module), cmd.module]
+          : a.modules.filter((m) => m !== cmd.module);
+      const rotulo = ENTITLEMENT_STATE[cmd.state].label.toLowerCase();
+      audit(
+        s,
+        now,
+        c.orgId,
+        c.userId,
+        "account.entitlement",
+        `${a.name}: ${def.label} ${before} → ${cmd.state}`,
+        "ok",
+      );
+      activity(
+        c,
+        "account.entitlement",
+        `${a.name}: ${def.label} ${rotulo}${cmd.state === "ativo" ? "" : ` (${reason})`}`,
+        { type: "account", id: a.id },
+        { changes: { [cmd.module]: [before, cmd.state] } },
       );
       return;
     }

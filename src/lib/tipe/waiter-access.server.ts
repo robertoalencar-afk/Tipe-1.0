@@ -8,11 +8,12 @@ export async function grantWaiterAccessCore(input: { restaurantId: string; slug:
   if (!w || !w.active) throw new Error("Garçom não encontrado ou inativo");
 
   const { getRequestHeader } = await import("@tanstack/react-start/server");
-  const origin = /^https:\/\/([a-z0-9-]+\.)*tipe\.digital$/.test(getRequestHeader("origin") ?? "") ? getRequestHeader("origin")! : "https://tipe.digital";
+  const { origemConfiavel } = await import("./recuperar-senha");
+  const origin = origemConfiavel(getRequestHeader("origin"));
 
   let userId: string | undefined;
   let invited = false;
-  const inv = await supabaseAdmin.auth.admin.inviteUserByEmail(email, { redirectTo: `${origin}/reset-password?garcom=1`, data: { name: w.name } });
+  const inv = await supabaseAdmin.auth.admin.inviteUserByEmail(email, { redirectTo: `${origin}/redefinir-senha/garcom`, data: { name: w.name } });
   if (inv.data?.user) { userId = inv.data.user.id; invited = true; }
   else {
     for (let page = 1; page <= 10 && !userId; page++) {
@@ -23,7 +24,7 @@ export async function grantWaiterAccessCore(input: { restaurantId: string; slug:
   }
   if (!userId) throw new Error("Não foi possível enviar o convite para esse e-mail");
   if (!invited) {
-    const { error: rErr } = await supabaseAdmin.auth.resetPasswordForEmail(email, { redirectTo: `${origin}/reset-password?garcom=1` });
+    const { error: rErr } = await supabaseAdmin.auth.resetPasswordForEmail(email, { redirectTo: `${origin}/redefinir-senha/garcom` });
     if (rErr) console.error("waiter reset email", rErr.message);
   }
   const { data: other } = await supabaseAdmin.from("pdv_waiters").select("id").eq("user_id", userId).neq("id", w.id).maybeSingle();

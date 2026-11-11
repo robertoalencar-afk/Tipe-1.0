@@ -1,10 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { FaixaDuplaIntegracoes, HubIntegracoes, ListaIntegracoes } from "@/components/tipe/site/GradeIntegracoes";
+import { CatalogoIntegracoes } from "@/components/tipe/site/integracoes/CatalogoIntegracoes";
 import { BotaoPrincipal, BotaoSecundario, FaixaCta, Secao, SitePage, Titulo } from "@/components/tipe/site/Site";
 
-const TITLE = "Integrações · Pix, Apple Pay, Google Pay e o seu PDV | Tipe";
+const TITLE = "Integrações da Tipe · Pagamentos, PDV e o que vem a seguir";
 const DESC =
-  "O que a Tipe já conecta hoje (Pix, Apple Pay, Google Pay, Pagar.me, Lançamento TIPE e API TIPE), o que está em desenvolvimento e o que está planejado.";
+  "Veja o que a Tipe integra hoje (Lançamento TIPE, API TIPE, pagamentos digitais em piloto) e o que está em desenvolvimento ou planejado para PDVs, delivery, ERP e nota fiscal.";
 
 export const Route = createFileRoute("/integracoes")({
   head: () => ({
@@ -28,12 +29,12 @@ function Integracoes() {
           <Titulo
             as="h1"
             rotulo="Integrações"
-            titulo="A Tipe entra no jeito que você já trabalha."
-            texto="Pix, Apple Pay e Google Pay pelo Pagar.me. Pedidos pelo Lançamento TIPE ou pela API TIPE. O que ainda está a caminho aparece separado."
+            titulo="Integrações com status claro."
+            texto="Hoje você opera pelo Lançamento TIPE ou envia mesas e itens pela API TIPE. Pagamentos digitais estão em piloto e outros sistemas entram por integração assistida. Mostramos o que está pronto e o que ainda não."
           />
           <div className="flex flex-wrap gap-3 lg:justify-end">
-            <BotaoPrincipal>Teste grátis</BotaoPrincipal>
-            <BotaoSecundario href="#status">Ver o status de cada uma</BotaoSecundario>
+            <BotaoPrincipal>Falar com a equipe</BotaoPrincipal>
+            <BotaoSecundario href="#conectar">Escolher o meu sistema</BotaoSecundario>
           </div>
         </div>
         <div className="container-page mt-12 sm:mt-14">
@@ -43,13 +44,24 @@ function Integracoes() {
       <Secao tema="escuro">
         <div className="container-page">
           <Titulo
-            rotulo="Hoje e a caminho"
-            titulo="O que já conecta, e o que vem aí."
-            texto="Em cima, o que funciona hoje. Embaixo, o que está em desenvolvimento ou planejado, sem promessa de data."
+            rotulo="Conecta com"
+            titulo="O que existe hoje e o que está a caminho."
+            texto="Em cima, o que a Tipe faz. Embaixo, os sistemas que queremos conectar. Nenhum deles está homologado ainda."
           />
         </div>
         <div className="mt-12 sm:mt-16">
           <FaixaDuplaIntegracoes />
+        </div>
+      </Secao>
+      <Secao tema="claro" id="conectar">
+        <div className="container-page">
+          <Titulo
+            rotulo="Passo a passo"
+            titulo="Escolha o seu sistema."
+            texto="Cada sistema tem o seu caminho previsto: chave de API, autorização da conta, arquivo ou certificado. A ativação é assistida pela nossa equipe e combinada caso a caso."
+            className="mb-10"
+          />
+          <CatalogoIntegracoes />
         </div>
       </Secao>
       <Secao tema="claro" id="status">

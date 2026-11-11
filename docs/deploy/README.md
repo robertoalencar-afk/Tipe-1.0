@@ -1,3 +1,9 @@
+> **Estado validado em 10/11/2026:** o Worker gerencia apenas o Custom Domain
+> `tipe.digital`. `www.tipe.digital` já redireciona no edge para o domínio canônico,
+> preservando caminho e query/UTMs. Não adicionar `www` aos Custom Domains sem antes
+> planejar a substituição desse redirecionamento. O workflow agora falha em qualquer
+> erro do Wrangler; não tolera mais publicação parcial por erro 100117.
+
 # Publicação da TIPE sem a Lovable
 
 > **Proteção de produção:** o pipeline de deploy foi colocado atrás da variável de repositório
@@ -21,8 +27,8 @@ Como o sistema roda depois da saída da Lovable e o passo a passo para colocar n
 | Banco e login | Lovable Cloud (Supabase gerenciado) | **Supabase** próprio, região São Paulo, banco novo zerado |
 | Rotinas agendadas | Agendador da Lovable | Worker `tipe-cron` (pasta `cron-worker/`): PDV a cada minuto, reconciliação de pagamentos a cada 5 minutos |
 | E-mails do sistema | Lovable Email | **Resend** |
-| Lebre e sugestão de divisão | Lovable AI (Gemini/OpenAI) | **Claude** (Anthropic), modelo `claude-opus-5-5` |
-| Áudio da Lebre | Lovable AI | **Workers AI** da Cloudflare (Whisper), porque o Claude não transcreve áudio |
+| Lebre e sugestão de divisão | Lovable AI (Gemini/OpenAI) | **Grátis**: respostas prontas sem IA, depois **Workers AI** da Cloudflare (cota grátis diária), depois **Groq** (cota grátis). Claude (Anthropic) só como reserva opcional |
+| Áudio da Lebre | Lovable AI | **Workers AI** da Cloudflare (Whisper), dentro do mesmo teto diário grátis |
 | Login com Google | OAuth da Lovable | OAuth do próprio Supabase |
 | Imagens do logo | CDN da Lovable (`/__l5e/...`) | Arquivos no próprio repositório (`public/marca/`) |
 | Servidor MCP `/mcp` | Lovable | Removido (dependia do OAuth da Lovable) |
@@ -34,7 +40,8 @@ Fluxo de trabalho: a alteração é feita aqui (Claude), vira um PR; quando o PR
 - Cloudflare **Workers Paid**: US$ 5/mês. Necessário: o servidor comprimido tem cerca de 3,4 MB e o plano grátis aceita até 3 MB.
 - Supabase: grátis no começo (o plano grátis pausa o projeto depois de 7 dias sem uso; o Pro custa US$ 25/mês).
 - Resend: grátis até 3.000 e-mails/mês.
-- Anthropic: por uso; defina um limite de gasto no Console.
+- IA da Lebre: grátis. O Workers AI tem 10 mil "neurons" grátis por dia; no Workers Paid o que passa disso é cobrado, por isso o site para de usar a Cloudflare ao chegar em `CLOUDFLARE_AI_DAILY_LIMIT` chamadas no dia (padrão 150, cerca de 50 neurons cada) e passa para o Groq. O Groq grátis não cobra: quando a cota dele acaba, a Lebre avisa que volta amanhã.
+- Anthropic: só se você ligar a reserva paga (`LEBRE_CLAUDE_FALLBACK=true`); defina um limite de gasto no Console.
 
 ## Configuração simplificada — token Workers já existente
 
@@ -93,11 +100,12 @@ Faça na ordem. Onde houver "Segredo do GitHub", o lugar é: repositório no Git
 
 As tabelas não precisam ser criadas à mão: o primeiro deploy aplica todas as migrações (`scripts/db/aplicar-migracoes.sh`).
 
-### 3. Anthropic (Claude, para a Lebre)
+### 3. IA da Lebre (grátis)
 
-1. Em console.anthropic.com crie uma API key → Segredo do GitHub `ANTHROPIC_API_KEY`.
-2. Em **Billing → Limits** defina um limite mensal de gasto.
-3. Opcional: Variável do GitHub `ANTHROPIC_MODEL` para trocar o modelo (padrão `claude-opus-5-5`).
+1. Cloudflare Workers AI: já vem ligado no próprio Worker (binding `AI` no `wrangler.jsonc`), sem token. Ele serve para texto, leitura de fotos e PDFs e áudio. O token `CLOUDFLARE_AI_TOKEN` do passo 5 (item 7) virou opcional.
+2. Groq (reserva grátis): em console.groq.com → **API Keys → Create API Key** → Segredo do GitHub `GROQ_API_KEY`. Não cadastre cartão: sem cartão, o Groq nunca cobra.
+3. Opcional, Variáveis do GitHub: `CLOUDFLARE_AI_DAILY_LIMIT` (padrão 150), `CLOUDFLARE_AI_MODEL` (padrão `@cf/meta/llama-4-scout-17b-16e-instruct`), `GROQ_MODEL` e `GROQ_VISION_MODEL` (padrão `meta-llama/llama-4-scout-17b-16e-instruct`).
+4. Opcional e pago: para usar o Claude quando as cotas grátis acabarem, cadastre `ANTHROPIC_API_KEY`, defina um limite de gasto em console.anthropic.com e crie a Variável `LEBRE_CLAUDE_FALLBACK` = `true`. Sem isso, a Anthropic nunca é chamada.
 
 ### 4. Resend (e-mails)
 
@@ -113,7 +121,7 @@ As tabelas não precisam ser criadas à mão: o primeiro deploy aplica todas as 
 4. Ainda no DNS da Cloudflare, **apague** os registros `A`/`CNAME` de `tipe.digital` e `www` que apontam para a Lovable. O deploy cria os novos sozinho (domínio personalizado do Worker).
 5. Copie o **Account ID** (barra lateral de Workers) → Segredo do GitHub `CLOUDFLARE_ACCOUNT_ID`.
 6. **My Profile → API Tokens → Create Token → modelo "Edit Cloudflare Workers"** → em Zone Resources escolha `tipe.digital` → Segredo do GitHub `CLOUDFLARE_API_TOKEN`.
-7. Para o áudio da Lebre, crie outro token com **Workers AI: Read** e **Workers AI: Edit** → Segredo do GitHub `CLOUDFLARE_AI_TOKEN`. Sem ele a Lebre funciona só por texto.
+7. Opcional: a IA grátis da Lebre usa o binding `AI` do Worker e não precisa de token. Um token com **Workers AI: Read** e **Workers AI: Edit** em `CLOUDFLARE_AI_TOKEN` só é usado se o binding faltar.
 
 ### 6. Demais segredos do GitHub
 

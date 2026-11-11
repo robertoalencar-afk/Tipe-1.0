@@ -40,7 +40,7 @@ function Painel() {
 
   const slug = r ?? access.data?.restaurants[0]?.slug;
   useEffect(() => {
-    if (access.data?.isFounder) { navigate({ to: "/backoffice", replace: true }); return; }
+    if (access.data?.isFounder) { navigate({ to: "/central", replace: true }); return; }
     if (access.data && !access.data.isFounder && access.data.roles.length > 0 && access.data.roles.every((x) => x.role === "waiter")) { navigate({ to: "/garcom", replace: true }); return; }
     if (access.data && !access.data.isFounder && access.data.restaurants.length === 1) navigate({ to: "/$restaurante", params: { restaurante: access.data.restaurants[0]!.slug }, replace: true });
   }, [access.data, navigate]);

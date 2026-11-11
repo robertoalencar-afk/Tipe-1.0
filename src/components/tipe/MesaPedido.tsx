@@ -9,8 +9,15 @@ import { totalCarrinho, carrinhoParaPedido } from "@/lib/tipe/pdv/comanda";
 const money = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 /** Cardápio digital do cliente: pede pela própria mesa, cai no KDS e na conta. */
-export function MesaPedido({ slug, code, session, nome, onPlaced }: {
-  slug: string; code: string; session: string; nome: string; onPlaced: () => void | Promise<void>;
+export function MesaPedido({ slug, code, session, nome, device, onPlaced, onBlocked, podeEnviar = true }: {
+  slug: string; code: string; session: string; nome: string;
+  /** Token deste celular quando a mesa pede código curto. */
+  device?: string | undefined;
+  onPlaced: () => void | Promise<void>;
+  /** A mesa deixou de estar liberada (ou falta o código): a tela volta para a liberação. */
+  onBlocked?: ((motivo: "closed" | "code") => void) | undefined;
+  /** Falso enquanto a mesa não foi liberada: dá para montar o pedido, mas não enviar. */
+  podeEnviar?: boolean | undefined;
 }) {
   const [menu, setMenu] = useState<PublicMenu | null>(null);
   const [erro, setErro] = useState<string | null>(null);
@@ -62,12 +69,13 @@ export function MesaPedido({ slug, code, session, nome, onPlaced }: {
     (!busca || i.name.toLowerCase().includes(busca.toLowerCase())));
 
   async function enviar() {
-    if (!linhas.length) return;
+    if (!linhas.length || !podeEnviar) return;
     setEnviando(true); setErro(null);
     try {
-      const r = await placeCustomerOrder({ data: { slug, code, session, requestId: requestId.current, ...(nome.trim() ? { customer: nome.trim() } : {}), items: linhas } });
+      const r = await placeCustomerOrder({ data: { slug, code, session, requestId: requestId.current, ...(nome.trim() ? { customer: nome.trim() } : {}), ...(device ? { device } : {}), items: linhas } });
       if ("error" in r) {
-        setErro(r.error === "disabled" ? "O pedido pela mesa foi desativado pelo restaurante." : r.error === "unavailable" ? "Esta mesa está indisponível. Chame o garçom." : "Não foi possível enviar o pedido. Tente de novo.");
+        if ((r.error === "closed" || r.error === "code") && onBlocked) { onBlocked(r.error); return; }
+        setErro(r.error === "disabled" ? "O pedido pela mesa foi desativado pelo restaurante. A sua conta continua em Pagar." : r.error === "unavailable" ? "Esta mesa está indisponível. Chame o garçom." : "Não foi possível enviar o pedido. Tente de novo.");
         return;
       }
       setCarrinho({}); setObs({});
@@ -139,10 +147,12 @@ export function MesaPedido({ slug, code, session, nome, onPlaced }: {
 
       {linhas.length > 0 && (
         <div className="fixed inset-x-0 bottom-0 z-40 mx-auto max-w-md border-t border-border bg-card p-3">
-          <Button className="h-14 w-full text-base font-bold" disabled={enviando} onClick={enviar}>
+          <Button className="h-14 w-full text-base font-bold" disabled={enviando || !podeEnviar} onClick={enviar}>
             {enviando ? "Enviando…" : <><UtensilsCrossed className="mr-2 h-5 w-5" />Enviar {qtdTotal} {qtdTotal === 1 ? "item" : "itens"} · {money(total)}</>}
           </Button>
-          <p className="mt-1 text-center text-[11px] text-muted-foreground">O pedido vai direto para a cozinha e entra na sua conta.</p>
+          <p className="mt-1 text-center text-[11px] text-muted-foreground">
+            {podeEnviar ? "O pedido vai direto para a cozinha e entra na sua conta." : "Seu pedido fica guardado aqui. Envie assim que a mesa for liberada."}
+          </p>
         </div>
       )}
     </div>

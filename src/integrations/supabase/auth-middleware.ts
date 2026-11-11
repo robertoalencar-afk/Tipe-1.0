@@ -30,8 +30,30 @@ function createSupabaseFetch(supabaseKey: string): typeof fetch {
   };
 }
 
-export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server(
-  async ({ next }) => {
+// Contas com verificação em duas etapas: sessão só com senha (aal1) não chama o servidor.
+// Guarda por 60 s, neste isolate, só a resposta "não tem 2FA" (quem ativa já sobe para aal2).
+const SEM_2FA_TTL_MS = 60_000;
+const sem2fa = new Map<string, number>();
+
+async function temSegundoFator(supabase: ReturnType<typeof createClient<Database>>, token: string, userId: string) {
+  const ate = sem2fa.get(userId);
+  if (ate && ate > Date.now()) return false;
+  const { data, error } = await supabase.auth.getUser(token);
+  if (error || !data.user) throw new Error('Unauthorized: Invalid token');
+  const tem = (data.user.factors ?? []).some((f) => f.status === 'verified');
+  if (!tem) {
+    if (sem2fa.size > 5000) sem2fa.clear();
+    sem2fa.set(userId, Date.now() + SEM_2FA_TTL_MS);
+  }
+  return tem;
+}
+
+export class MfaRequiredError extends Error {
+  status = 401;
+  constructor() { super('Confirme o código do aplicativo autenticador para continuar.'); }
+}
+
+async function autenticar(permitirAal1: boolean) {
     
     const SUPABASE_URL = process.env['SUPABASE_URL'];
     const SUPABASE_PUBLISHABLE_KEY = process.env['SUPABASE_PUBLISHABLE_KEY'];
@@ -99,12 +121,18 @@ export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server
       throw new Error('Unauthorized: No user ID found in token');
     }
 
-    return next({
-      context: {
-        supabase,
-        userId: data.claims.sub,
-        claims: data.claims,
-      },
-    });
-  },
+    if (!permitirAal1 && (data.claims as { aal?: string }).aal !== 'aal2' && (await temSegundoFator(supabase, token, data.claims.sub))) {
+      throw new MfaRequiredError();
+    }
+
+    return { supabase, userId: data.claims.sub, claims: data.claims };
+}
+
+export const requireSupabaseAuth = createMiddleware({ type: 'function' }).server(
+  async ({ next }) => next({ context: await autenticar(false) }),
+);
+
+/** Só para o resgate de código de recuperação do 2FA, que acontece antes do aal2. */
+export const requireSupabaseAuthAal1 = createMiddleware({ type: 'function' }).server(
+  async ({ next }) => next({ context: await autenticar(true) }),
 );

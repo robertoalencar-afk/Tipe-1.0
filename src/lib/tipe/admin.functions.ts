@@ -13,16 +13,25 @@ async function rest(supabase: any, slug: string) {
   data.google_review_url = rvErr ? null : (rv?.google_review_url ?? null);
   const { data: so, error: soErr } = await supabase.from("restaurants").select("self_order_enabled").eq("id", data.id).maybeSingle();
   data.self_order_enabled = soErr ? false : (so?.self_order_enabled ?? false);
+  const { data: om, error: omErr } = await supabase.from("restaurants").select("order_session_mode").eq("id", data.id).maybeSingle();
+  data.order_session_mode = omErr ? "staff_opens" : (om?.order_session_mode ?? "staff_opens");
   const { data: tt, error: ttErr } = await supabase.from("restaurants").select("totem_enabled").eq("id", data.id).maybeSingle();
   data.totem_enabled = ttErr ? false : (tt?.totem_enabled ?? false);
-  return data as { id: string; slug: string; name: string; pos_provider: string; pos_mode: string; service_rate: number; phone: string | null; address: string | null; opening_hours: string | null; bill_payment_methods: string[]; google_review_url: string | null; self_order_enabled: boolean; totem_enabled: boolean };
+  return data as { id: string; slug: string; name: string; pos_provider: string; pos_mode: string; service_rate: number; phone: string | null; address: string | null; opening_hours: string | null; bill_payment_methods: string[]; google_review_url: string | null; self_order_enabled: boolean; order_session_mode: "staff_opens" | "table_code"; totem_enabled: boolean };
 }
 const err = (m: string, fb: string) => {
-  for (const k of ["Sem permissão", "Já existe", "Abra o caixa", "Nenhum caixa", "Valor inválido", "Escolha outra", "Há pagamentos", "Mesa inativa", "Informe o motivo", "Quantidade"]) if (m.includes(k)) return m;
+  for (const k of ["Sem permissão", "Já existe", "Abra o caixa", "Nenhum caixa", "Valor inválido", "Valor contado inválido", "Escolha outra", "Há pagamentos", "Mesa inativa", "Informe o motivo", "Quantidade"]) if (m.includes(k)) return m;
   return fb;
 };
 
 // Dados operacionais: caixa, cozinha/bar (hoje), estornos, integração
+export type CashExpected = { opening: number; deposits: number; withdrawals: number; counterCash: number; counterCard: number; counterPix: number; tableCash: number; tableCard: number; expectedCash: number; expectedCard: number };
+
+function toCashExpected(j: Record<string, unknown>): CashExpected {
+  const n = (k: string) => Number(j[k] ?? 0);
+  return { opening: n("opening"), deposits: n("deposits"), withdrawals: n("withdrawals"), counterCash: n("counter_cash"), counterCard: n("counter_card"), counterPix: n("counter_pix"), tableCash: n("table_cash"), tableCard: n("table_card"), expectedCash: n("expected_cash"), expectedCard: n("expected_card") };
+}
+
 export const getOpsData = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ slug: Slug }).parse(d))
@@ -38,15 +47,20 @@ export const getOpsData = createServerFn({ method: "GET" })
     ]);
     let movements: any[] = [];
     let received = 0;
+    // Esperado do caixa calculado no banco (cash_expected). Só dono e caixa leem; sem
+    // permissão ou antes da migração 0033 fica null e a tela não mostra o fechamento.
+    let expected: CashExpected | null = null;
     // Vendas no balcão deste caixa (canceladas ficam de fora dos totais, mas aparecem na lista).
     let counterOrders: { id: string; ticket: number; customer: string | null; method: string; total: number; change: number | null; at: string; cancelled: boolean; ready: boolean; pickedUp: boolean }[] = [];
     const counter = { total: 0, cash: 0, card: 0, pix: 0, count: 0 };
     if (session.data) {
-      const [mv, pays, orders] = await Promise.all([
+      const [mv, pays, orders, exp] = await Promise.all([
         sb.from("cash_movements").select("id, kind, amount, reason, created_at").eq("session_id", session.data.id).order("created_at"),
         sb.from("payment_audit_log").select("amount").eq("restaurant_slug", data.slug).eq("action", "confirm").gte("created_at", session.data.opened_at),
         sb.from("pdv_orders").select("id, ticket_number, customer_name, payment_method, total, change_due, created_at, cancelled_at, called_at, picked_up_at").eq("cash_session_id", session.data.id).order("created_at", { ascending: false }).limit(200),
+        sb.rpc("cash_expected" as never, { p_slug: data.slug } as never) as unknown as Promise<{ data: Record<string, unknown> | null; error: unknown }>,
       ]);
+      expected = exp.error || !exp.data ? null : toCashExpected(exp.data);
       movements = (mv.data ?? []).map((m) => ({ ...m, amount: Number(m.amount) }));
       received = (pays.data ?? []).reduce((s, p) => s + Number(p.amount), 0);
       counterOrders = (orders.data ?? []).map((o) => ({
@@ -73,7 +87,7 @@ export const getOpsData = createServerFn({ method: "GET" })
       totemPending,
       restaurant: { ...r, service_rate: Number(r.service_rate) },
       session: session.data ? { ...session.data, opening_amount: Number(session.data.opening_amount) } : null,
-      movements, received, counter, counterOrders,
+      movements, received, counter, counterOrders, expected,
       kds: (kds.data ?? []).map((k: any) => ({
         id: k.id, item_name: k.item_name, quantity: k.quantity, notes: k.notes, sector: k.sector as "kitchen" | "bar", status: k.status as "received" | "preparing" | "ready", created_at: k.created_at,
         order_id: k.order_id as string, table: (k.pdv_orders?.table_number as string | null) ?? null, channel: (k.pdv_orders?.channel as string | undefined) ?? "mesa",
@@ -118,13 +132,14 @@ export const saveSettings = createServerFn({ method: "POST" })
     billMethods: z.array(z.enum(["pix", "apple_pay", "google_pay", "at_establishment"])).min(1, "Escolha ao menos um meio de pagamento").max(4),
     googleReviewUrl: z.string().trim().max(300).optional(),
     selfOrder: z.boolean().optional(),
+    orderSessionMode: z.enum(["staff_opens", "table_code"]).optional(),
     totem: z.boolean().optional(),
   }).parse(d))
   .handler(async ({ data, context }) => {
     const { isGoogleReviewUrl } = await import("./rules");
     const review = data.googleReviewUrl ? data.googleReviewUrl : null;
     if (review && !isGoogleReviewUrl(review)) throw new Error("Valor inválido: use o link de avaliação do Google (começa com https://g.page/ ou https://maps.app.goo.gl/, por exemplo)");
-    const { data: rows, error } = await context.supabase.from("restaurants").update({ name: data.name, service_rate: data.serviceRate, phone: data.phone || null, address: data.address || null, opening_hours: data.openingHours || null, bill_payment_methods: Array.from(new Set(data.billMethods)), ...(data.googleReviewUrl !== undefined ? { google_review_url: review } : {}), ...(data.selfOrder !== undefined ? { self_order_enabled: data.selfOrder } : {}), ...(data.totem !== undefined ? { totem_enabled: data.totem } : {}) }).eq("slug", data.slug).select("id");
+    const { data: rows, error } = await context.supabase.from("restaurants").update({ name: data.name, service_rate: data.serviceRate, phone: data.phone || null, address: data.address || null, opening_hours: data.openingHours || null, bill_payment_methods: Array.from(new Set(data.billMethods)), ...(data.googleReviewUrl !== undefined ? { google_review_url: review } : {}), ...(data.orderSessionMode !== undefined ? { order_session_mode: data.orderSessionMode } : {}), ...(data.selfOrder !== undefined ? { self_order_enabled: data.selfOrder } : {}), ...(data.totem !== undefined ? { totem_enabled: data.totem } : {}) }).eq("slug", data.slug).select("id");
     if (error || !rows?.length) throw new Error("Somente o dono pode alterar as configurações");
     return { ok: true };
   });
@@ -152,13 +167,19 @@ export const cashAction = createServerFn({ method: "POST" })
   .inputValidator((d) => z.discriminatedUnion("action", [
     z.object({ action: z.literal("open"), slug: Slug, amount: z.number().min(0).max(100000) }),
     z.object({ action: z.literal("move"), slug: Slug, kind: z.enum(["withdrawal", "deposit"]), amount: z.number().positive().max(100000), reason: z.string().trim().max(140) }),
-    z.object({ action: z.literal("close"), slug: Slug, counted: z.number().min(0).max(1000000), expected: z.number().min(-1000000).max(1000000), notes: z.string().max(300) }),
+    // Fechamento: só a contagem vem do navegador; esperado e diferença são do servidor.
+    z.object({ action: z.literal("close"), slug: Slug, countedCash: z.number().min(0).max(1000000), countedCard: z.number().min(0).max(1000000), notes: z.string().max(300) }),
   ]).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase;
+    if (data.action === "close") {
+      const res = await (sb.rpc("cash_close_counted" as never, { p_slug: data.slug, p_counted_cash: data.countedCash, p_counted_card: data.countedCard, p_notes: data.notes } as never) as unknown as Promise<{ data: Record<string, unknown> | null; error: { message: string } | null }>);
+      if (res.error) throw new Error(err(res.error.message, "Não foi possível fechar o caixa"));
+      const fechamento = res.data ? toCashExpected(res.data) : null;
+      return { ok: true, differenceCash: Number(res.data?.["difference_cash"] ?? 0), differenceCard: Number(res.data?.["difference_card"] ?? 0), expected: fechamento };
+    }
     const res = data.action === "open" ? await sb.rpc("cash_open", { p_slug: data.slug, p_amount: data.amount })
-      : data.action === "move" ? await sb.rpc("cash_move", { p_slug: data.slug, p_kind: data.kind, p_amount: data.amount, p_reason: data.reason })
-      : await sb.rpc("cash_close", { p_slug: data.slug, p_counted: data.counted, p_expected: data.expected, p_notes: data.notes });
+      : await sb.rpc("cash_move", { p_slug: data.slug, p_kind: data.kind, p_amount: data.amount, p_reason: data.reason });
     if (res.error) throw new Error(err(res.error.message, "Não foi possível concluir"));
     return { ok: true };
   });

@@ -27,11 +27,12 @@ const securityHeadersMiddleware = createMiddleware().server(async ({ next, reque
     h.set("X-Content-Type-Options", "nosniff");
     h.set("Referrer-Policy", "strict-origin-when-cross-origin");
     h.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
-    h.set("Permissions-Policy", "camera=(self), microphone=(self), geolocation=(), payment=(self)");
+    // geolocation=(self): a fila presencial (/:slug/fila) e o painel pedem a localização uma vez.
+    h.set("Permissions-Policy", "camera=(self), microphone=(self), geolocation=(self), payment=(self)");
     h.set("Content-Security-Policy", `frame-ancestors ${FRAME_ANCESTORS}; object-src 'none'; base-uri 'self'; form-action 'self'`);
     h.set(
       "Content-Security-Policy-Report-Only",
-      "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://connect.facebook.net https://pay.google.com https://applepay.cdn-apple.com https://assets.pagar.me; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.pagar.me https://*.google-analytics.com https://www.googletagmanager.com https://www.facebook.com; frame-src 'self' https://pay.google.com https://*.pagar.me; object-src 'none'; base-uri 'self'; report-uri /api/public/csp-report",
+      "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://connect.facebook.net https://pay.google.com https://applepay.cdn-apple.com https://assets.pagar.me; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src 'self' blob: https://*.supabase.co wss://*.supabase.co https://api.pagar.me https://*.google-analytics.com https://www.googletagmanager.com https://www.facebook.com; frame-src 'self' https://pay.google.com https://*.pagar.me; object-src 'none'; base-uri 'self'; report-uri /api/public/csp-report",
     );
   }
   return result;

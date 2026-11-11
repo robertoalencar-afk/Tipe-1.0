@@ -23,10 +23,13 @@ export function MascoteVivo({
   className,
   alt = "",
   olhaCursor = true,
+  fecharOlhos = false,
 }: {
   className?: string;
   alt?: string;
   olhaCursor?: boolean;
+  /** Mantém os olhos fechados (ex.: enquanto a senha é digitada no login). */
+  fecharOlhos?: boolean;
 }) {
   const raiz = useRef<HTMLDivElement>(null);
   const rosto = useRef<HTMLDivElement>(null);
@@ -53,11 +56,21 @@ export function MascoteVivo({
     const orelhas = (forte = false) => {
       const a = forte ? 9 : 5;
       esq.current?.animate(
-        [{ rotate: "0deg" }, { rotate: `${-a}deg` }, { rotate: `${a * 0.4}deg` }, { rotate: "0deg" }],
+        [
+          { rotate: "0deg" },
+          { rotate: `${-a}deg` },
+          { rotate: `${a * 0.4}deg` },
+          { rotate: "0deg" },
+        ],
         { duration: 900, easing: EASE },
       );
       dir.current?.animate(
-        [{ rotate: "0deg" }, { rotate: `${a * 0.7}deg` }, { rotate: `${-a * 0.3}deg` }, { rotate: "0deg" }],
+        [
+          { rotate: "0deg" },
+          { rotate: `${a * 0.7}deg` },
+          { rotate: `${-a * 0.3}deg` },
+          { rotate: "0deg" },
+        ],
         { duration: 1000, delay: 70, easing: EASE },
       );
     };
@@ -136,12 +149,50 @@ export function MascoteVivo({
       aria-hidden={alt ? undefined : true}
       className={cn("relative aspect-square", className)}
     >
-      <div ref={rosto} className="absolute inset-0 transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)]">
-        <img ref={esq} src={orelhaEsq} alt="" className={CAMADA} style={{ transformOrigin: "42% 64%" }} width={512} height={512} />
-        <img ref={dir} src={orelhaDir} alt="" className={CAMADA} style={{ transformOrigin: "58.5% 64%" }} width={512} height={512} />
+      <div
+        ref={rosto}
+        className="absolute inset-0 transition-transform duration-[900ms] ease-[cubic-bezier(0.16,1,0.3,1)]"
+      >
+        <img
+          ref={esq}
+          src={orelhaEsq}
+          alt=""
+          className={CAMADA}
+          style={{ transformOrigin: "42% 64%" }}
+          width={512}
+          height={512}
+        />
+        <img
+          ref={dir}
+          src={orelhaDir}
+          alt=""
+          className={CAMADA}
+          style={{ transformOrigin: "58.5% 64%" }}
+          width={512}
+          height={512}
+        />
         <img src={cabeca} alt="" className={CAMADA} width={512} height={512} />
-        <img ref={olhosFechados} src={piscando} alt="" className={cn(CAMADA, "opacity-0")} width={512} height={512} />
-        <img ref={focinho} src={nariz} alt="" className={CAMADA} style={{ transformOrigin: "49.5% 78.5%" }} width={512} height={512} />
+        <img
+          ref={olhosFechados}
+          src={piscando}
+          alt=""
+          className={cn(
+            CAMADA,
+            "transition-opacity duration-200",
+            fecharOlhos ? "!opacity-100" : "opacity-0",
+          )}
+          width={512}
+          height={512}
+        />
+        <img
+          ref={focinho}
+          src={nariz}
+          alt=""
+          className={CAMADA}
+          style={{ transformOrigin: "49.5% 78.5%" }}
+          width={512}
+          height={512}
+        />
       </div>
     </div>
   );

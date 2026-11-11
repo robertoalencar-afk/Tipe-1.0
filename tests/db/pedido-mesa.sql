@@ -19,9 +19,16 @@ BEGIN
 END $$;
 
 DO $$
-DECLARE v_rid uuid; r1 jsonb; r2 jsonb; n numeric;
+DECLARE v_rid uuid; r1 jsonb; r2 jsonb; n numeric; u_caixa uuid := gen_random_uuid();
 BEGIN
   SELECT id INTO v_rid FROM restaurants WHERE slug = 'mare-alta';
+  -- Desde o 0027 o pedido exige o módulo Order ativo e a mesa liberada pela equipe.
+  PERFORM set_restaurant_module(v_rid, 'order', 'active', NULL, NULL, 'system');
+  INSERT INTO auth.users (id, email) VALUES (u_caixa, 'caixa-pedido-mesa@teste.local');
+  INSERT INTO user_roles (user_id, role, restaurant_id) VALUES (u_caixa, 'cashier', v_rid);
+  PERFORM set_config('request.jwt.claim.sub', u_caixa::text, true);
+  PERFORM open_table_ordering('mare-alta', '4');
+  PERFORM set_config('request.jwt.claim.sub', '', true);
   DELETE FROM pdv_menu_items WHERE restaurant_id = v_rid AND code = 'cli-pastel';
   INSERT INTO pdv_menu_items (restaurant_id, code, name, price, sector) VALUES (v_rid, 'cli-pastel', 'Pastel', 14.00, 'kitchen');
   DELETE FROM table_payment_requests WHERE restaurant_slug = 'mare-alta' AND table_number = '4';
@@ -49,7 +56,10 @@ BEGIN
   PERFORM pg_temp.falha($q$SELECT pdv_customer_order('mare-alta', '4', '[{"code":"cli-pastel","qty":0}]', NULL, 'cli-req-0004')$q$,
     'Quantidade', 'quantidade inválida é recusada');
 
-  PERFORM pg_temp.ok(NOT has_function_privilege('anon', 'public.pdv_customer_order(text,text,jsonb,text,text)', 'EXECUTE'), 'visitante anônimo não chama a função direto');
-  PERFORM pg_temp.ok(NOT has_function_privilege('authenticated', 'public.pdv_customer_order(text,text,jsonb,text,text)', 'EXECUTE'), 'usuário logado não chama a função direto');
+  PERFORM pg_temp.ok(NOT has_function_privilege('anon', 'public.pdv_customer_order(text,text,jsonb,text,text,text)', 'EXECUTE'), 'visitante anônimo não chama a função direto');
+  PERFORM pg_temp.ok(NOT has_function_privilege('authenticated', 'public.pdv_customer_order(text,text,jsonb,text,text,text)', 'EXECUTE'), 'usuário logado não chama a função direto');
   UPDATE restaurants SET self_order_enabled = false WHERE id = v_rid;
+  PERFORM set_config('request.jwt.claim.sub', u_caixa::text, true);
+  PERFORM close_table_ordering('mare-alta', '4');
+  PERFORM set_config('request.jwt.claim.sub', '', true);
 END $$;

@@ -13,7 +13,17 @@ import { useContagem } from "./calculadora/animacao";
 const NOTA =
   "Indicadores de referência divulgados pela Sunday, plataforma internacional de pagamentos para restaurantes. Os resultados podem variar e não representam desempenho comprovado do Tipe.";
 
-function Contador({ alvo, antes = "", depois, className }: { alvo: number; antes?: string | undefined; depois: ReactNode; className?: string }) {
+function Contador({
+  alvo,
+  antes = "",
+  depois,
+  className,
+}: {
+  alvo: number;
+  antes?: string | undefined;
+  depois: ReactNode;
+  className?: string;
+}) {
   const [ref, valor] = useContagem(alvo);
   return (
     <span ref={ref as React.RefObject<HTMLSpanElement>} className={className}>
@@ -40,9 +50,19 @@ function Relogio() {
   const C = 2 * Math.PI * R;
   const fracao = valor / 60;
   return (
-    <div ref={ref as React.RefObject<HTMLDivElement>} className="relative aspect-square w-[min(15rem,62vw)] shrink-0 sm:w-[16rem] lg:w-[18rem]">
+    <div
+      ref={ref as React.RefObject<HTMLDivElement>}
+      className="relative aspect-square w-[min(15rem,62vw)] shrink-0 sm:w-[16rem] lg:w-[18rem]"
+    >
       <svg viewBox="0 0 100 100" aria-hidden className="absolute inset-0 h-full w-full -rotate-90">
-        <circle cx="50" cy="50" r={R} fill="none" stroke="rgb(255 255 255 / 0.1)" strokeWidth="1.2" />
+        <circle
+          cx="50"
+          cy="50"
+          r={R}
+          fill="none"
+          stroke="rgb(255 255 255 / 0.1)"
+          strokeWidth="1.2"
+        />
         {Array.from({ length: 60 }, (_, i) => {
           const a = (i / 60) * 2 * Math.PI;
           const forte = i % 5 === 0;
@@ -75,10 +95,14 @@ function Relogio() {
         <div>
           <p className="font-display text-[clamp(4.2rem,3rem+5vw,6.6rem)] font-normal leading-[0.85] tracking-[-0.06em] text-white">
             <span className="sr-only">{S.minutosPorMesa}</span>
-            <span aria-hidden className="tabular-nums">{Math.round(valor)}</span>
+            <span aria-hidden className="tabular-nums">
+              {Math.round(valor)}
+            </span>
             <span className="ml-1 text-[0.32em] tracking-[-0.02em] text-[#0FC9BD]">min</span>
           </p>
-          <p className="mx-auto mt-2 max-w-[11ch] text-[0.85rem] leading-snug text-white/70">economizados por mesa</p>
+          <p className="mx-auto mt-2 max-w-[11ch] text-[0.85rem] leading-snug text-white/70">
+            economizados por mesa
+          </p>
         </div>
       </div>
     </div>
@@ -86,23 +110,45 @@ function Relogio() {
 }
 
 const SECUNDARIOS = [
-  { alvo: S.minutosPorGarcomTurno, depois: <span className="ml-1 text-[0.4em] tracking-[-0.02em] text-[#0FC9BD]">min</span>, texto: "de salão recuperados por garçom a cada turno" },
-  { alvo: S.avaliacoesMultiplo, depois: <span className="text-[0.55em] text-[#0FC9BD]">×</span>, texto: "mais avaliações 5 estrelas no Google" },
-  { alvo: S.gorjetasPct, antes: "+", depois: <span className="text-[0.55em] text-[#0FC9BD]">%</span>, texto: "em gorjetas para a equipe" },
+  {
+    alvo: S.minutosPorGarcomTurno,
+    depois: <span className="ml-1 text-[0.4em] tracking-[-0.02em] text-[#0FC9BD]">min</span>,
+    texto: "de salão recuperados por garçom a cada turno",
+  },
+  {
+    alvo: S.avaliacoesMultiplo,
+    depois: <span className="text-[0.55em] text-[#0FC9BD]">×</span>,
+    texto: "mais avaliações 5 estrelas no Google",
+  },
+  {
+    alvo: S.gorjetasPct,
+    antes: "+",
+    depois: <span className="text-[0.55em] text-[#0FC9BD]">%</span>,
+    texto: "em gorjetas para a equipe",
+  },
 ];
 
 export function ImpactoMinuto() {
   return (
-    <section data-tema="claro" aria-label="O impacto de cada minuto" className="px-4 pb-4 pt-14 sm:px-6 sm:pt-20 lg:pt-24">
+    <section
+      data-tema="claro"
+      aria-label="O impacto de cada minuto"
+      className="px-4 py-14 sm:px-6 sm:py-20 lg:py-28"
+    >
       <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] bg-[#021E34] text-white lg:rounded-[2.75rem]">
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(55%_50%_at_18%_35%,rgb(15_201_189/0.20),transparent_70%),radial-gradient(45%_60%_at_100%_100%,rgb(15_201_189/0.12),transparent_70%)]"
         />
-        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgb(255_255_255/0.25),transparent)]" />
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,rgb(255_255_255/0.25),transparent)]"
+        />
 
         <div className="relative px-6 pb-8 pt-12 sm:px-12 sm:pt-16 lg:px-16 lg:pt-20">
-          <p className="font-display text-[1.05rem] tracking-[-0.02em] text-[#0FC9BD] sm:text-[1.2rem]">Referências de mercado</p>
+          <p className="font-display text-[1.05rem] tracking-[-0.02em] text-[#0FC9BD] sm:text-[1.2rem]">
+            Referências de mercado
+          </p>
           <Palavras
             as="h2"
             passo={110}
@@ -111,8 +157,8 @@ export function ImpactoMinuto() {
             O impacto de cada minuto.
           </Palavras>
           <p className="mt-5 max-w-xl text-[1.02rem] leading-relaxed text-white/70 sm:text-[1.1rem]">
-            Quando a conta chega pelo celular, a mesa não fica parada esperando a maquininha. Veja o que a Sunday divulga sobre
-            restaurantes que pagam pelo QR Code.
+            Quando a conta chega pelo celular, a mesa não fica parada esperando a maquininha. Veja o
+            que a Sunday divulga sobre restaurantes que pagam pelo QR Code.
           </p>
 
           <div className="mt-10 grid items-center gap-10 sm:mt-14 lg:grid-cols-[auto_minmax(0,1fr)] lg:gap-16">
@@ -121,14 +167,19 @@ export function ImpactoMinuto() {
             </div>
             <ul className="grid border-y border-white/10 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
               {SECUNDARIOS.map((s) => (
-                <li key={s.texto} className="flex items-end gap-4 border-white/10 py-5 [&:not(:last-child)]:border-b sm:flex-col sm:items-start sm:gap-2 sm:px-5 sm:py-7 sm:first:pl-0 sm:[&:not(:first-child)]:border-l sm:[&:not(:last-child)]:border-b-0 lg:flex-row lg:items-end lg:gap-5 lg:px-0 lg:[&:not(:first-child)]:border-l-0 lg:[&:not(:last-child)]:border-b xl:flex-col xl:items-start xl:gap-2 xl:px-6 xl:first:pl-0 xl:[&:not(:first-child)]:border-l xl:[&:not(:last-child)]:border-b-0">
+                <li
+                  key={s.texto}
+                  className="flex items-end gap-4 border-white/10 py-5 [&:not(:last-child)]:border-b sm:flex-col sm:items-start sm:gap-2 sm:px-5 sm:py-7 sm:first:pl-0 sm:[&:not(:first-child)]:border-l sm:[&:not(:last-child)]:border-b-0 lg:flex-row lg:items-end lg:gap-5 lg:px-0 lg:[&:not(:first-child)]:border-l-0 lg:[&:not(:last-child)]:border-b xl:flex-col xl:items-start xl:gap-2 xl:px-6 xl:first:pl-0 xl:[&:not(:first-child)]:border-l xl:[&:not(:last-child)]:border-b-0"
+                >
                   <Contador
                     alvo={s.alvo}
                     antes={s.antes}
                     depois={s.depois}
                     className="min-w-[3.6ch] font-display text-[clamp(2.8rem,2rem+2.6vw,4.2rem)] font-normal leading-[0.9] tracking-[-0.055em]"
                   />
-                  <p className="pb-1 text-[0.9rem] leading-snug text-white/70 sm:max-w-[16ch]">{s.texto}</p>
+                  <p className="pb-1 text-[0.9rem] leading-snug text-white/70 sm:max-w-[16ch]">
+                    {s.texto}
+                  </p>
                 </li>
               ))}
             </ul>
@@ -138,11 +189,22 @@ export function ImpactoMinuto() {
             <div className="max-w-2xl">
               <p className="text-[0.8rem] leading-relaxed text-white/55">{NOTA}</p>
               <p className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-[0.8rem]">
-                <a href={FONTES.home.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-white/75 underline-offset-4 hover:text-white hover:underline">
+                <a
+                  href={FONTES.home.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-white/75 underline-offset-4 hover:text-white hover:underline"
+                >
                   Fonte: sundayapp.com (EUA) <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
                 </a>
-                <a href={FONTES.roi.url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-white/75 underline-offset-4 hover:text-white hover:underline">
-                  Estudo de ROI da Sunday (maio de 2026) <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
+                <a
+                  href={FONTES.roi.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-1 text-white/75 underline-offset-4 hover:text-white hover:underline"
+                >
+                  Estudo de ROI da Sunday (maio de 2026){" "}
+                  <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
                 </a>
               </p>
             </div>

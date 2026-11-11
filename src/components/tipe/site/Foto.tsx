@@ -8,11 +8,14 @@ import type { CSSProperties } from "react";
 import { useInView } from "@/components/tipe/landing/motion";
 import { cn } from "@/lib/utils";
 
-const ARQUIVOS = import.meta.glob(["/src/assets/produtos/*.webp", "/src/assets/fotos/*.webp", "/src/assets/cenas/*.webp"], {
-  eager: true,
-  query: "?url",
-  import: "default",
-}) as Record<string, string>;
+const ARQUIVOS = import.meta.glob(
+  ["/src/assets/produtos/*.webp", "/src/assets/fotos/*.webp", "/src/assets/cenas/*.webp"],
+  {
+    eager: true,
+    query: "?url",
+    import: "default",
+  },
+) as Record<string, string>;
 
 export type NomeFoto =
   | "pay"
@@ -37,7 +40,7 @@ export type NomeFoto =
   /* Aprovadas por Roberto em 22/10 (landing-v3/fotos-ia/real), no tamanho original. */
   | "tablet-maos"
   | "gorjetas-garcom"
-  /* Cenas do casting em src/assets/fotos (também usadas no /teste-gratis). */
+  /* Cenas do casting em src/assets/fotos (também usadas no /solicitar-demonstracao). */
   | "garcom"
   | "gestor"
   | "salao"

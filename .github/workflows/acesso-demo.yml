@@ -1,0 +1,26 @@
+# Acesso único de demonstração: um usuário (padrão roberto@tipe.digital) entra como dono,
+# caixa e garçom das empresas virtuais e no backoffice, com a senha do segredo SENHA_TESTE.
+name: Acesso de demonstração
+
+on:
+  workflow_dispatch:
+    inputs:
+      email:
+        description: E-mail que entra em todas as áreas de simulação
+        required: false
+        default: roberto@tipe.digital
+
+jobs:
+  liberar:
+    runs-on: ubuntu-latest
+    environment: producao
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: node scripts/db/acesso-demo.mjs
+        env:
+          SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          SENHA_TESTE: ${{ secrets.SENHA_TESTE }}
+          DEMO_EMAIL: ${{ inputs.email }}

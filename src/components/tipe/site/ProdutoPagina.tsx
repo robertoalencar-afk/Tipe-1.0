@@ -9,20 +9,21 @@ import { Check, ChevronDown, Clock } from "lucide-react";
 import { TrilhoProdutos } from "./TrilhoProdutos";
 import { MesaViva } from "./produto/MesaViva";
 import { Palavras, Reveal } from "@/components/tipe/landing/motion";
-import totemMesa from "@/assets/marca/totem-mesa.webp";
 import { cn } from "@/lib/utils";
-import { Experimente } from "./Experimente";
+import { LiveSimulator } from "@/components/tipe/landing/LiveSimulator";
+import { DICAS_SIMULADOR, SimuladorDoProduto } from "./produto/Simuladores";
 import { Foto, type NomeFoto } from "./Foto";
 import { CardProduto } from "./CardProduto";
 import { duvidasDe, PRODUTOS, type Painel, type Produto } from "./produtos";
 import { BotaoPrincipal, BotaoSecundario, Secao, Titulo } from "./Site";
 import { SequenciaCelular } from "./produto/SequenciaCelular";
 import { AbasProduto, type AbaProduto } from "./produto/AbasProduto";
-import { CelularLebre, ConversaLebre, PainelLebre, type ConversaId } from "./produto/Lebre";
+import { ConversaLebre, PainelLebre, type ConversaId } from "./produto/Lebre";
 import { CelularReal, TabletSalao } from "./produto/TelaReal";
 import { TopoStaff } from "./produto/TopoStaff";
 import { Tablet } from "./Dispositivo";
 import { BaixaAutomatica } from "./produto/BaixaAutomatica";
+import { SimuladorGuest } from "./guest/SimuladorGuest";
 import { PaginaOrder } from "./order/PaginaOrder";
 import { LANCAMENTO_PADRAO, type EstadoLancamento } from "@/lib/tipe/launch-state";
 
@@ -127,9 +128,11 @@ function TextoTopo({ p }: { p: Produto }) {
         style={{ "--d": "600ms" } as CSSProperties}
       >
         <BotaoPrincipal>
-          {p.status === "disponivel" ? "Começar o teste grátis" : "Quero saber primeiro"}
+          {p.status === "disponivel" ? "Solicitar demonstração" : "Quero saber primeiro"}
         </BotaoPrincipal>
-        <BotaoSecundario href="/simulador">Testar o simulador</BotaoSecundario>
+        <BotaoSecundario href="#simulador">
+          Testar o simulador
+        </BotaoSecundario>
       </div>
     </>
   );
@@ -216,7 +219,7 @@ function Topo({ p }: { p: Produto }) {
 const CONVERSA: Record<Painel, ConversaId> = {
   "lebre-salao": "salao",
   "lebre-acao": "acao",
-  "lebre-limite": "limite",
+  "lebre-anexo": "anexo",
 };
 
 function Abas({ p }: { p: Produto }) {
@@ -263,60 +266,56 @@ function Abas({ p }: { p: Produto }) {
   );
 }
 
+/**
+ * Simulador do produto (04/11): no lugar da faixa verde com o celular saindo da borda,
+ * o aparelho inteiro para tocar. Pay usa o simulador real da conta; Staff, Kitchen,
+ * Restaurant e a Lebre têm simuladores próprios (produto/Simuladores.tsx).
+ */
 function Banda({ p }: { p: Produto }) {
+  const dicas = DICAS_SIMULADOR[p.slug] ?? [];
+  const tablet = p.slug === "kitchen" || p.slug === "restaurant";
   return (
-    <section data-tema="claro" className="px-4 sm:px-6">
-      <div className="relative mx-auto grid max-w-7xl items-center gap-10 overflow-hidden rounded-[2.25rem] bg-[#0FC9BD] px-7 pt-12 text-[#021E34] sm:px-12 lg:grid-cols-[1fr_1fr] lg:gap-6 lg:px-16 lg:pt-0">
-        <div className="lg:py-20">
+    <section id="simulador" data-tema="claro" className="scroll-mt-16 px-4 sm:px-6">
+      <div
+        className={cn(
+          "mx-auto grid max-w-7xl items-center gap-10 rounded-[2.25rem] bg-[#EEF4F3] px-6 py-12 text-[#021E34] sm:px-12 sm:py-16 lg:gap-12 lg:px-16",
+          tablet ? "lg:grid-cols-[0.85fr_1.15fr]" : "lg:grid-cols-[1fr_auto]",
+        )}
+      >
+        <div>
+          <p className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1 text-[0.8rem] font-medium text-[#03665f] ring-1 ring-[#021E34]/10">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#0FC9BD]" /> Simulador · toque para testar
+          </p>
           <Palavras
             as="h2"
-            className="block max-w-[16ch] font-display text-[clamp(2.2rem,1.3rem+3.2vw,4rem)] font-normal leading-[0.98] tracking-[-0.045em]"
+            className="mt-5 block max-w-[16ch] font-display text-[clamp(2.2rem,1.3rem+3.2vw,4rem)] font-normal leading-[0.98] tracking-[-0.045em]"
           >
             {p.banda.titulo}
           </Palavras>
-          <p className="mt-5 max-w-md text-lg leading-relaxed text-[#021E34]/80">{p.banda.texto}</p>
+          <p className="mt-5 max-w-md text-lg leading-relaxed text-[#021E34]/75">{p.banda.texto}</p>
+          {dicas.length > 0 && (
+            <ol className="mt-8 grid max-w-md gap-2.5">
+              {dicas.map((d, i) => (
+                <li key={d} className="flex items-center gap-3 text-[0.98rem]">
+                  <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#021E34] text-xs font-medium text-[#0FC9BD]">
+                    {i + 1}
+                  </span>
+                  {d}
+                </li>
+              ))}
+            </ol>
+          )}
+          <p className="mt-6 max-w-md text-sm text-[#021E34]/55">
+            Restaurante fictício, só no seu navegador. Nada é enviado.
+          </p>
         </div>
-        <div className="relative mx-auto flex h-full w-full max-w-md items-end justify-center gap-4 self-end lg:pt-14">
-          <Reveal
-            className={cn(
-              "relative z-10 translate-y-6",
-              p.banda.tablet ? "w-full" : p.banda.lebre ? "w-[62%]" : "w-[55%]",
-            )}
-            delay={100}
-          >
-            {p.banda.lebre ? (
-              <CelularLebre />
-            ) : p.banda.tablet ? (
-              <Tablet tela={p.banda.tablet} alt={p.banda.altTela} sizes="28rem" />
-            ) : (
-              <CelularReal tela={p.banda.telaReal ?? "conta"} alt={p.banda.altTela} sizes="240px" />
-            )}
-          </Reveal>
-          {/* O suporte de mesa só faz sentido ao lado da conta do cliente, não da Lebre */}
-          <Reveal
-            className={cn(
-              "mb-10 w-[46%] shrink-0",
-              (p.banda.lebre || p.banda.tablet || (p.banda.telaReal ?? "conta") !== "conta") &&
-                "hidden",
-            )}
-            delay={300}
-          >
-            <div className="rotate-[-4deg]">
-              <img
-                src={totemMesa}
-                alt="Suporte de mesa da Tipe com QR Code da Mesa 12"
-                width={700}
-                height={409}
-                loading="lazy"
-                className="block w-full rounded-xl shadow-[0_20px_40px_-15px_rgb(0_0_0/0.4)]"
-              />
-              <div
-                aria-hidden
-                className="mx-auto h-5 w-[86%] rounded-b-md bg-[linear-gradient(180deg,#d9b88f,#b48b5e)]"
-              />
-            </div>
-          </Reveal>
-        </div>
+        <Reveal delay={100} className={cn("w-full", !tablet && "lg:w-[19rem]")}>
+          {p.slug === "pay" ? (
+            <LiveSimulator className="max-w-[19rem]" />
+          ) : (
+            <SimuladorDoProduto slug={p.slug} />
+          )}
+        </Reveal>
       </div>
     </section>
   );
@@ -372,15 +371,15 @@ function Cenario({ p }: { p: Produto }) {
   );
 }
 
-/** Só no Tipe Guest: as telas reais do app do cliente, em sequência. */
+/** Só no Tipe Reserva: as telas reais do app do cliente, em sequência. */
 function FluxoReal({ p }: { p: Produto }) {
   if (!p.fluxoReal) return null;
   const f = p.fluxoReal;
   return (
     <Secao tema="claro">
       <div className="container-page">
-        <Titulo rotulo="Telas reais" titulo={f.titulo} texto={f.texto} />
-        <ol className="sem-barra -mx-4 mt-10 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-px-4 px-4 pb-4 sm:mx-0 sm:mt-12 sm:grid sm:grid-cols-2 sm:gap-8 sm:overflow-visible sm:px-0 lg:grid-cols-4">
+        <Titulo rotulo="Passo a passo" titulo={f.titulo} texto={f.texto} />
+        <ol className="sem-barra -mx-4 mt-10 flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-px-4 px-4 pb-4 sm:mx-0 sm:mt-12 sm:grid sm:grid-cols-2 sm:gap-8 sm:overflow-visible sm:px-0 lg:grid-cols-5 lg:gap-6">
           {f.telas.map((t, i) => (
             <Reveal
               as="li"
@@ -391,7 +390,7 @@ function FluxoReal({ p }: { p: Produto }) {
               <CelularReal
                 tela={t.tela}
                 alt={t.alt}
-                sizes="(min-width: 1024px) 18vw, (min-width: 640px) 40vw, 62vw"
+                sizes="(min-width: 1024px) 16vw, (min-width: 640px) 40vw, 62vw"
                 className="mx-auto max-w-[15rem]"
               />
               <p className="mt-5 flex items-baseline gap-2 font-display text-[1.2rem] tracking-[-0.02em]">
@@ -419,7 +418,6 @@ function DemonstracaoPay({ p }: { p: Produto }) {
     <>
       <MesaViva />
       <BaixaAutomatica p={p} />
-      <Experimente />
     </>
   );
 }
@@ -508,12 +506,15 @@ export function Relacionados({ p }: { p: Produto }) {
 }
 
 export function ProdutoPagina({ p, estado }: { p: Produto; estado?: EstadoLancamento | null }) {
-  if (p.slug === "order") return <PaginaOrder p={p} estado={estado ?? LANCAMENTO_PADRAO["order"] ?? "em-desenvolvimento"} />;
+  if (p.slug === "order")
+    return (
+      <PaginaOrder p={p} estado={estado ?? LANCAMENTO_PADRAO["order"] ?? "em-desenvolvimento"} />
+    );
   return (
     <>
       <Topo p={p} />
       <Abas p={p} />
-      <Banda p={p} />
+      {p.slug === "guest" ? <SimuladorGuest /> : <Banda p={p} />}
       {p.slug === "pay" ? (
         <DemonstracaoPay p={p} />
       ) : (

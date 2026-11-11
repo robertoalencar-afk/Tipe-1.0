@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-export type StaffRole = "founder" | "owner" | "cashier" | "waiter";
+export type StaffRole = "founder" | "owner" | "manager" | "cashier" | "waiter";
 
 export const getMyAccess = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -86,7 +86,7 @@ export const inviteStaff = createServerFn({ method: "POST" })
     slug: z.string().min(1).max(64),
     email: z.string().trim().email().max(255),
     name: z.string().trim().min(2).max(80),
-    role: z.enum(["owner", "cashier", "waiter"]),
+    role: z.enum(["owner", "manager", "cashier", "waiter"]),
   }).parse(d))
   .handler(async ({ data, context }) => {
     const { data: restaurant } = await context.supabase.from("restaurants").select("id").eq("slug", data.slug).maybeSingle();

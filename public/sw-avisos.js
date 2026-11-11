@@ -23,3 +23,24 @@ self.addEventListener("notificationclick", (event) => {
     return self.clients.openWindow(url);
   })());
 });
+
+// Sem internet: navegações caem numa página da marca guardada na instalação.
+// Só navegações (HTML); APIs, pagamentos e arquivos seguem direto para a rede, sem cache.
+const OFFLINE = "tipe-offline-v1";
+const OFFLINE_ARQUIVOS = ["/offline.html", "/marca/tipe-logo.svg", "/marca/lebre-esperando.webp"];
+self.addEventListener("install", (event) => {
+  event.waitUntil(caches.open(OFFLINE).then((c) => c.addAll(OFFLINE_ARQUIVOS)).catch(() => undefined));
+});
+self.addEventListener("activate", (event) => {
+  event.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k.startsWith("tipe-offline-") && k !== OFFLINE).map((k) => caches.delete(k)))));
+});
+self.addEventListener("fetch", (event) => {
+  const req = event.request;
+  const url = new URL(req.url);
+  if (url.origin === self.location.origin && OFFLINE_ARQUIVOS.slice(1).includes(url.pathname)) {
+    event.respondWith(fetch(req).catch(() => caches.match(req)));
+    return;
+  }
+  if (req.mode !== "navigate") return;
+  event.respondWith(fetch(req).catch(async () => (await caches.match("/offline.html")) || Response.error()));
+});

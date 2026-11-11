@@ -112,7 +112,7 @@ export function LandingCalculator() {
             no horário de pico.
           </p>
           <a
-            href="/teste-gratis"
+            href="/solicitar-demonstracao"
             onClick={() =>
               saveCalculator({
                 ...v,

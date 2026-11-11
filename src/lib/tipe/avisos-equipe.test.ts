@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { avisoDeNota, avisoDePagamento, avisoDeSaque, querReceber } from "./avisos-equipe";
+import { avisoDeChamado, avisoDeNota, avisoDePagamento, avisoDeSaque, querReceber } from "./avisos-equipe";
 
 const base = {
   id: "p1",
@@ -63,6 +63,16 @@ describe("avisos por tipo", () => {
     expect(avisoDeSaque("s1", "rejected", 10, "chave inválida").corpo).toContain(
       "Motivo: chave inválida",
     );
+  });
+  it("chamado da mesa vai para o garçom da mesa e para a gestão", () => {
+    expect(avisoDeChamado("bistro-teste", "5", "bill")).toMatchObject({
+      tipo: "chamado",
+      titulo: "Mesa 5 pediu a conta",
+      url: "/bistro-teste",
+      tag: "chamado-5-bill",
+      para: ["garcom", "gestao"],
+    });
+    expect(querReceber(["chamado"], "chamado")).toBe(false);
   });
   it("celular que silenciou um tipo não recebe esse tipo", () => {
     expect(querReceber(["gorjeta"], "gorjeta")).toBe(false);
