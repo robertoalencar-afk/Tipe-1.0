@@ -48,6 +48,7 @@ type Stage =
   | "rating"
   | "tip"
   | "tip-payment"
+  | "tip-done"
   | "closed"
   | "done";
 type Tab = "bill" | "activity";
@@ -1068,9 +1069,32 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
           back={() => setStage("tip")}
           pay={() => {
             setTipPaid(true);
-            setStage("rating");
+            setStage("tip-done");
           }}
         />
+      )}
+      {stage === "tip-done" && (
+        <Centered>
+          <img
+            src={mascotThanks}
+            alt="Lebre da TIPE sorrindo agradecendo a gorjeta"
+            className="bob mx-auto mb-1 h-32 w-32 object-contain"
+          />
+          <p className="eyebrow text-brand-strong">Gorjeta recebida</p>
+          <h1 className="mt-2 text-[1.9rem] font-medium leading-[1.06] tracking-[-0.035em]">
+            Carlos e a equipe agradecem!
+          </h1>
+          <p className="mt-2 text-[0.95rem] text-muted-foreground">
+            Sua gorjeta de <span className="money font-semibold">{money(tip)}</span> foi confirmada.
+            Obrigado, {name.trim()}.
+          </p>
+          <Button
+            onClick={() => setStage("rating")}
+            className="mt-8 h-12 w-full font-display text-base"
+          >
+            Avaliar o atendimento <ChevronRight />
+          </Button>
+        </Centered>
       )}
       {stage === "pitch" && (
         <Centered>
@@ -1138,6 +1162,12 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
               <p className="font-semibold">Gorjeta extra de {money(tip)} simulada.</p>
             </div>
           )}
+          <button
+            type="button"
+            className="mt-5 inline-flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-border bg-card px-5 text-sm font-semibold hover:border-primary"
+          >
+            <Star className="h-4 w-4 text-highlight" aria-hidden /> Avaliar o restaurante no Google
+          </button>
           {demo.closedAt ? (
             <Button
               onClick={() => setStage("closed")}

@@ -4,7 +4,8 @@ export const SERVICE_FEE_MAX = 0.2; // teto: 20% da parte paga
 export const SERVICE_FEE_QUICK = [0, 5, 10, 12, 15];
 
 /** Escolha do cliente sobre a taxa da própria parte. */
-export type ServiceFeeChoice = { kind: "suggested" } | { kind: "percent"; value: number } | { kind: "amount"; value: number };
+export type ServiceFeeChoice =
+  { kind: "suggested" } | { kind: "percent"; value: number } | { kind: "amount"; value: number };
 
 const r2 = (n: number) => Math.round(n * 100) / 100;
 
@@ -12,20 +13,39 @@ const r2 = (n: number) => Math.round(n * 100) / 100;
  * Calcula a taxa de serviço sobre a parte paga. Retorna null se a escolha for
  * inválida (negativa, não numérica ou acima de 20% da parte).
  */
-export function resolveServiceFee(subtotal: number, suggestedRate: number, choice: ServiceFeeChoice): { amount: number; changed: boolean } | null {
-  const rate = Math.min(Math.max(Number.isFinite(suggestedRate) ? suggestedRate : SERVICE_FEE, 0), SERVICE_FEE_MAX);
+export function resolveServiceFee(
+  subtotal: number,
+  suggestedRate: number,
+  choice: ServiceFeeChoice,
+): { amount: number; changed: boolean } | null {
+  const rate = Math.min(
+    Math.max(Number.isFinite(suggestedRate) ? suggestedRate : SERVICE_FEE, 0),
+    SERVICE_FEE_MAX,
+  );
   const suggested = r2(subtotal * rate);
   const max = r2(subtotal * SERVICE_FEE_MAX);
   if (choice.kind === "suggested") return { amount: suggested, changed: false };
   const v = Number(choice.value);
   if (!Number.isFinite(v) || v < 0) return null;
-  const amount = choice.kind === "percent" ? (v > SERVICE_FEE_MAX * 100 ? NaN : r2(subtotal * v / 100)) : r2(v);
+  const amount =
+    choice.kind === "percent"
+      ? v > SERVICE_FEE_MAX * 100
+        ? NaN
+        : r2((subtotal * v) / 100)
+      : r2(v);
   if (!Number.isFinite(amount) || amount > max) return null;
   return { amount, changed: amount !== suggested };
 }
 export const TIP_SPLIT = { tipe: 0.3, waiter: 0.7 }; // gorjeta extra recebida pela TIPE: 70% equipe / 30% plataforma
 
-export type BillItem = { id: string; name: string; qty: number; unitPrice: number; orderedBy: string; orderedAt: string };
+export type BillItem = {
+  id: string;
+  name: string;
+  qty: number;
+  unitPrice: number;
+  orderedBy: string;
+  orderedAt: string;
+};
 export type TableBill = {
   restaurant: { id: string; name: string };
   table: { id: string; number: string };
@@ -35,8 +55,7 @@ export type TableBill = {
   source: "saipos" | "simulado";
 };
 
-export const brl = (v: number) =>
-  v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+export const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 export function totals(items: BillItem[], qtys?: Record<string, number>) {
   const subtotal = items.reduce((s, i) => s + (qtys ? (qtys[i.id] ?? 0) : i.qty) * i.unitPrice, 0);
@@ -95,19 +114,11 @@ export function suggestedTips(conta: number): OpcaoGorjeta[] {
   const cents = Math.round((Number.isFinite(conta) ? conta : 0) * 100);
   const teto = gorjetaMaxima(conta);
   if (teto < GORJETA_MINIMA) return [];
-  // Conta pequena: o menor percentual daria menos que o mínimo; usa valores fixos.
-  if ((cents * GORJETA_PERCENTUAIS[0]) / 100 < GORJETA_MINIMA * 100) {
-    return [2, 3, 5]
-      .filter((v) => v <= teto)
-      .map((v) => ({ label: brl(v), amount: v, sugerida: v === 3 }));
-  }
-  const vistos = new Set<number>();
+  // Sempre percentuais do valor pago (3%, 5%, 8%), em centavos exatos. Percentual que
+  // daria menos que o mínimo de R$ 2,00 não é oferecido: nesse caso o cliente usa "Outro valor".
   return GORJETA_PERCENTUAIS.flatMap((pct) => {
-    // arredonda para o múltiplo de R$ 0,50 mais próximo, dentro do mínimo e do teto
-    const raw = Math.round((cents * pct) / 100 / 50) * 50;
-    const amount = Math.min(teto, Math.max(GORJETA_MINIMA, raw / 100));
-    if (vistos.has(amount)) return [];
-    vistos.add(amount);
+    const amount = Math.round((cents * pct) / 100) / 100;
+    if (amount < GORJETA_MINIMA || amount > teto) return [];
     return [{ label: `${pct}%`, amount, sugerida: pct === GORJETA_SUGERIDA }];
   });
 }
@@ -130,8 +141,8 @@ export function validarGorjeta(valor: number | null, conta: number): string | nu
 }
 
 /** Link de avaliação aceito: só endereços do Google, sempre https. */
-export const GOOGLE_REVIEW_URL = /^https:\/\/(g\.page|www\.google\.com|google\.com|maps\.google\.com|maps\.app\.goo\.gl|search\.google\.com|g\.co)\//;
+export const GOOGLE_REVIEW_URL =
+  /^https:\/\/(g\.page|www\.google\.com|google\.com|maps\.google\.com|maps\.app\.goo\.gl|search\.google\.com|g\.co)\//;
 export function isGoogleReviewUrl(url: string) {
   return url.length <= 300 && GOOGLE_REVIEW_URL.test(url);
 }
-
