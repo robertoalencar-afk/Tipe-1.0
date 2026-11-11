@@ -187,7 +187,9 @@ export const getReservasPainel = createServerFn({ method: "GET" })
         .overlaps("slot", range(trinta.start, trinta.end)),
       db
         .from("guest_waitlist_entries")
-        .select("id, guest_name, party_size, wanted, status, respond_by, created_at")
+        .select(
+          "id, guest_name, guest_phone, party_size, wanted, status, respond_by, created_at, kind, verified_by",
+        )
         .eq("restaurant_id", a.id)
         .overlaps("wanted", range(dia.start, dia.end))
         .order("created_at"),
@@ -300,6 +302,11 @@ export const getReservasPainel = createServerFn({ method: "GET" })
                 to: p.end.toISOString(),
                 status: w.status as string,
                 respondBy: (w.respond_by as string | null) ?? null,
+                kind: (w.kind === "presencial" ? "presencial" : "reserva") as
+                  "presencial" | "reserva",
+                phone: (w.guest_phone as string | null) ?? null,
+                viaQr: w.verified_by === "qr_local",
+                createdAt: w.created_at as string,
               },
             ]
           : [];

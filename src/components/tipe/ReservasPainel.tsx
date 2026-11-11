@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
+import { QRCodeSVG } from "qrcode.react";
 import {
   CalendarDays,
   ChevronLeft,
@@ -13,8 +14,10 @@ import {
   History,
   LayoutGrid,
   ListOrdered,
+  MapPin,
   Phone,
   Plus,
+  Printer,
   RefreshCw,
   Settings,
   Users,
@@ -52,6 +55,15 @@ import {
   type PainelMesa,
   type PainelReserva,
 } from "@/lib/tipe/guest/reservas.functions";
+import {
+  adicionarNaFila,
+  avisarFila,
+  encerrarFila,
+  getFilaConfig,
+  salvarFilaConfig,
+  trocarQrPorta,
+} from "@/lib/tipe/guest/fila.functions";
+import { doorUrl } from "@/lib/tipe/guest/fila";
 
 const TONE: Record<ReservationStatus, Tone> = {
   pendente: "warning",
@@ -89,6 +101,11 @@ const ESPERA: Record<string, { l: string; t: Tone }> = {
 };
 const selectCls = "h-10 w-full min-w-0 rounded-[0.9rem] border border-input bg-card px-3 text-sm";
 const hoje = () => localDay(new Date());
+/** +5585999990001 → (85) 99999-0001; outros formatos ficam como vieram. */
+const telefoneBr = (t: string) => {
+  const m = /^(?:\+?55)?(\d{2})(\d{4,5})(\d{4})$/.exec(t);
+  return m ? `(${m[1]}) ${m[2]}-${m[3]}` : t;
+};
 const diaLongo = (day: string) =>
   new Date(`${day}T12:00:00Z`).toLocaleDateString("pt-BR", {
     weekday: "long",
@@ -801,66 +818,319 @@ function VistaEspera({
 }) {
   const chamar = useServerFn(chamarEspera);
   const [busy, setBusy] = useState<string | null>(null);
-  if (!data.waitlist.length)
-    return (
-      <EmptyState
-        icon={ListOrdered}
-        title="Ninguém na lista de espera"
-        text={`Quem pedir um horário lotado em ${diaCurto(day)} pelo app entra aqui, por ordem de chegada.`}
-      />
-    );
+  const reservas = data.waitlist.filter((w) => w.kind === "reserva");
+  const presencial = data.waitlist.filter((w) => w.kind === "presencial");
+  return (
+    <div className="space-y-5">
+      <FilaPresencial slug={slug} day={day} lista={presencial} onDone={onDone} />
+      {!reservas.length ? (
+        <EmptyState
+          icon={ListOrdered}
+          title="Ninguém na lista de espera de reservas"
+          text={`Quem pedir um horário lotado em ${diaCurto(day)} pelo app entra aqui, por ordem de chegada.`}
+        />
+      ) : (
+        <Panel
+          title="Lista de espera de reservas"
+          description="Pedidos de horário lotado pelo app, por ordem de entrada. Ao avisar, a pessoa tem 15 minutos para confirmar."
+          bodyClassName="p-0"
+        >
+          <ol className="divide-y divide-border">
+            {reservas.map((w, i) => (
+              <li
+                key={w.id}
+                className="flex flex-wrap items-center justify-between gap-3 px-5 py-3"
+              >
+                <div className="min-w-0">
+                  <p className="font-medium">
+                    <span className="mr-2 text-muted-foreground tabular-nums">{i + 1}.</span>
+                    {w.name} · {w.party} {w.party === 1 ? "pessoa" : "pessoas"}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Quer entre {localTime(new Date(w.from))} e {localTime(new Date(w.to))}
+                    {w.respondBy && w.status === "convocado"
+                      ? ` · responde até ${localTime(new Date(w.respondBy))}`
+                      : ""}
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <StatusBadge tone={ESPERA[w.status]?.t ?? "neutral"}>
+                    {ESPERA[w.status]?.l ?? w.status}
+                  </StatusBadge>
+                  {w.status === "aguardando" && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-8"
+                      disabled={busy === w.id}
+                      onClick={async () => {
+                        setBusy(w.id);
+                        try {
+                          await chamar({ data: { slug, id: w.id, minutes: 15 } });
+                          toast.success(`${w.name} foi avisado`);
+                          onDone();
+                        } catch (e) {
+                          toast.error((e as Error).message);
+                        } finally {
+                          setBusy(null);
+                        }
+                      }}
+                    >
+                      Avisar
+                    </Button>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ol>
+        </Panel>
+      )}
+    </div>
+  );
+}
+
+type Espera = Dados["waitlist"][number];
+
+const ESPERA_PRESENCIAL: Record<string, { l: string; t: Tone }> = {
+  ...ESPERA,
+  convocado: { l: "Mesa pronta", t: "info" },
+  confirmado: { l: "Sentou", t: "success" },
+  cancelado: { l: "Saiu", t: "neutral" },
+};
+
+/** Fila de quem já está no restaurante: entrou pelo QR da porta ou foi incluído pela recepção. */
+function FilaPresencial({
+  slug,
+  day,
+  lista,
+  onDone,
+}: {
+  slug: string;
+  day: string;
+  lista: Espera[];
+  onDone: () => void;
+}) {
+  const avisar = useServerFn(avisarFila);
+  const encerrar = useServerFn(encerrarFila);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [incluir, setIncluir] = useState(false);
+  const [verEncerradas, setVerEncerradas] = useState(false);
+  const ativos = lista.filter((w) => w.status === "aguardando" || w.status === "convocado");
+  const encerradas = lista.filter((w) => !(w.status === "aguardando" || w.status === "convocado"));
+  const ehHoje = day === hoje();
+
+  const agir = async (w: Espera, fn: () => Promise<unknown>, ok: string) => {
+    setBusy(w.id);
+    try {
+      await fn();
+      toast.success(ok);
+      onDone();
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setBusy(null);
+    }
+  };
+
   return (
     <Panel
-      title="Lista de espera"
-      description="Por ordem de entrada. Ao avisar, a pessoa tem 15 minutos para confirmar pelo app."
+      title="Fila presencial"
+      description="Quem já está no restaurante. Entra pelo QR da porta (o celular confirma que está no local) ou pela recepção."
+      actions={
+        ehHoje ? (
+          <Button size="sm" variant="outline" className="h-8" onClick={() => setIncluir(true)}>
+            <Plus className="size-4" /> Incluir na fila
+          </Button>
+        ) : undefined
+      }
       bodyClassName="p-0"
     >
-      <ol className="divide-y divide-border">
-        {data.waitlist.map((w, i) => (
-          <li key={w.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3">
-            <div className="min-w-0">
-              <p className="font-medium">
-                <span className="mr-2 text-muted-foreground tabular-nums">{i + 1}.</span>
-                {w.name} · {w.party} {w.party === 1 ? "pessoa" : "pessoas"}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Quer entre {localTime(new Date(w.from))} e {localTime(new Date(w.to))}
-                {w.respondBy && w.status === "convocado"
-                  ? ` · responde até ${localTime(new Date(w.respondBy))}`
-                  : ""}
-              </p>
-            </div>
-            <div className="flex items-center gap-2">
-              <StatusBadge tone={ESPERA[w.status]?.t ?? "neutral"}>
-                {ESPERA[w.status]?.l ?? w.status}
-              </StatusBadge>
-              {w.status === "aguardando" && (
+      {!ehHoje ? (
+        <p className="px-5 py-4 text-sm text-muted-foreground">
+          A fila presencial é só do dia de hoje. Volte para hoje para ver quem está aguardando.
+        </p>
+      ) : !ativos.length ? (
+        <p className="px-5 py-4 text-sm text-muted-foreground">
+          Ninguém aguardando agora. Quem ler o QR da porta aparece aqui na hora.
+        </p>
+      ) : (
+        <ol className="divide-y divide-border">
+          {ativos.map((w, i) => (
+            <li key={w.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3">
+              <div className="min-w-0">
+                <p className="font-medium">
+                  <span className="mr-2 text-muted-foreground tabular-nums">{i + 1}.</span>
+                  {w.name} · {w.party} {w.party === 1 ? "pessoa" : "pessoas"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  Entrou às {localTime(new Date(w.createdAt))} ·{" "}
+                  {w.viaQr ? "QR da porta, no local" : "pela recepção"}
+                  {w.phone ? ` · ${telefoneBr(w.phone)}` : ""}
+                  {w.respondBy && w.status === "convocado"
+                    ? ` · apresentar até ${localTime(new Date(w.respondBy))}`
+                    : ""}
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <StatusBadge tone={ESPERA_PRESENCIAL[w.status]?.t ?? "neutral"}>
+                  {ESPERA_PRESENCIAL[w.status]?.l ?? w.status}
+                </StatusBadge>
+                {w.status === "aguardando" && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="h-8"
+                    disabled={busy === w.id}
+                    onClick={() =>
+                      agir(w, () => avisar({ data: { slug, id: w.id } }), `${w.name} foi avisado`)
+                    }
+                  >
+                    Avisar mesa pronta
+                  </Button>
+                )}
                 <Button
                   size="sm"
-                  variant="outline"
                   className="h-8"
                   disabled={busy === w.id}
-                  onClick={async () => {
-                    setBusy(w.id);
-                    try {
-                      await chamar({ data: { slug, id: w.id, minutes: 15 } });
-                      toast.success(`${w.name} foi avisado`);
-                      onDone();
-                    } catch (e) {
-                      toast.error((e as Error).message);
-                    } finally {
-                      setBusy(null);
-                    }
-                  }}
+                  onClick={() =>
+                    agir(
+                      w,
+                      () => encerrar({ data: { slug, id: w.id, seated: true } }),
+                      `${w.name} sentou`,
+                    )
+                  }
                 >
-                  Avisar
+                  Sentou
                 </Button>
-              )}
-            </div>
-          </li>
-        ))}
-      </ol>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-8"
+                  disabled={busy === w.id}
+                  onClick={() =>
+                    agir(
+                      w,
+                      () => encerrar({ data: { slug, id: w.id, seated: false } }),
+                      `${w.name} saiu da fila`,
+                    )
+                  }
+                >
+                  Desistiu
+                </Button>
+              </div>
+            </li>
+          ))}
+        </ol>
+      )}
+      {ehHoje && encerradas.length > 0 && (
+        <div className="border-t border-border px-5 py-3">
+          <button
+            type="button"
+            className="text-xs font-medium text-muted-foreground underline-offset-4 hover:underline"
+            onClick={() => setVerEncerradas((v) => !v)}
+          >
+            {verEncerradas ? "Esconder" : "Ver"} encerradas hoje ({encerradas.length})
+          </button>
+          {verEncerradas && (
+            <ul className="mt-2 space-y-1 text-sm">
+              {encerradas.map((w) => (
+                <li key={w.id} className="flex items-center justify-between gap-3">
+                  <span className="min-w-0 truncate">
+                    {w.name} · {w.party}
+                  </span>
+                  <StatusBadge tone={ESPERA_PRESENCIAL[w.status]?.t ?? "neutral"}>
+                    {ESPERA_PRESENCIAL[w.status]?.l ?? w.status}
+                  </StatusBadge>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+      <IncluirNaFila open={incluir} onOpenChange={setIncluir} slug={slug} onDone={onDone} />
     </Panel>
+  );
+}
+
+function IncluirNaFila({
+  open,
+  onOpenChange,
+  slug,
+  onDone,
+}: {
+  open: boolean;
+  onOpenChange: (v: boolean) => void;
+  slug: string;
+  onDone: () => void;
+}) {
+  const adicionar = useServerFn(adicionarNaFila);
+  const [nome, setNome] = useState("");
+  const [grupo, setGrupo] = useState(2);
+  const [tel, setTel] = useState("");
+  const { busy, run } = useSalvar(onDone);
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-sm">
+        <DialogHeader>
+          <DialogTitle>Incluir na fila</DialogTitle>
+        </DialogHeader>
+        <form
+          className="space-y-3"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            const ok = await run(
+              () =>
+                adicionar({
+                  data: { slug, name: nome.trim(), party: grupo, phone: tel.trim() || undefined },
+                }),
+              `${nome.trim()} entrou na fila`,
+            );
+            if (ok) {
+              setNome("");
+              setGrupo(2);
+              setTel("");
+              onOpenChange(false);
+            }
+          }}
+        >
+          <Campo label="Nome para chamar" id="if-nome">
+            <Input
+              id="if-nome"
+              required
+              minLength={2}
+              maxLength={60}
+              value={nome}
+              onChange={(e) => setNome(e.target.value)}
+            />
+          </Campo>
+          <div className="grid grid-cols-2 gap-3">
+            <Campo label="Pessoas" id="if-grupo">
+              <Input
+                id="if-grupo"
+                type="number"
+                min={1}
+                max={30}
+                value={grupo}
+                onChange={(e) => setGrupo(Number(e.target.value))}
+              />
+            </Campo>
+            <Campo label="Celular (opcional)" id="if-tel">
+              <Input
+                id="if-tel"
+                type="tel"
+                inputMode="tel"
+                maxLength={20}
+                value={tel}
+                onChange={(e) => setTel(e.target.value)}
+              />
+            </Campo>
+          </div>
+          <Button type="submit" className="w-full" disabled={busy || nome.trim().length < 2}>
+            Incluir na fila
+          </Button>
+        </form>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -1035,11 +1305,301 @@ function VistaConfig({ slug, data, onDone }: { slug: string; data: Dados; onDone
   return (
     <div className="space-y-5">
       <ConfigGeral slug={slug} data={data} onDone={onDone} />
+      <ConfigFila slug={slug} />
       <ConfigTurnos slug={slug} data={data} onDone={onDone} />
       <ConfigMesas slug={slug} data={data} onDone={onDone} />
       <ConfigBloqueios slug={slug} data={data} onDone={onDone} />
       <ConfigExperiencias slug={slug} data={data} onDone={onDone} />
     </div>
+  );
+}
+
+/** Fila presencial: onde fica o restaurante, raio aceito, prazo depois do aviso e o QR da porta. */
+function ConfigFila({ slug }: { slug: string }) {
+  const qc = useQueryClient();
+  const getCfg = useServerFn(getFilaConfig);
+  const salvar = useServerFn(salvarFilaConfig);
+  const trocar = useServerFn(trocarQrPorta);
+  const q = useQuery({
+    queryKey: ["guest-fila-config", slug],
+    queryFn: () => getCfg({ data: { slug } }),
+  });
+  const refresh = () => void qc.invalidateQueries({ queryKey: ["guest-fila-config", slug] });
+  if (q.isLoading) return <Panel title="Fila presencial">Carregando…</Panel>;
+  if (q.error || !q.data)
+    return (
+      <Panel title="Fila presencial">
+        <p className="text-sm text-muted-foreground">
+          Não foi possível carregar a fila presencial.
+        </p>
+      </Panel>
+    );
+  return (
+    <ConfigFilaForm
+      key={`${q.data.token ?? ""}-${q.data.enabled}`}
+      slug={slug}
+      cfg={q.data}
+      onDone={refresh}
+      salvar={salvar}
+      trocar={trocar}
+    />
+  );
+}
+
+type FilaCfg = Awaited<ReturnType<typeof getFilaConfig>>;
+
+function ConfigFilaForm({
+  slug,
+  cfg,
+  onDone,
+  salvar,
+  trocar,
+}: {
+  slug: string;
+  cfg: FilaCfg;
+  onDone: () => void;
+  salvar: ReturnType<typeof useServerFn<typeof salvarFilaConfig>>;
+  trocar: ReturnType<typeof useServerFn<typeof trocarQrPorta>>;
+}) {
+  const [f, setF] = useState({
+    enabled: cfg.enabled,
+    lat: cfg.lat === null ? "" : String(cfg.lat),
+    lng: cfg.lng === null ? "" : String(cfg.lng),
+    radiusM: cfg.radiusM,
+    callMinutes: cfg.callMinutes,
+  });
+  const [localizando, setLocalizando] = useState(false);
+  const [confirmarTroca, setConfirmarTroca] = useState(false);
+  const { busy, run } = useSalvar(onDone);
+  const lat = f.lat.trim() === "" ? null : Number(f.lat.replace(",", "."));
+  const lng = f.lng.trim() === "" ? null : Number(f.lng.replace(",", "."));
+  const coordOk = lat !== null && lng !== null && Number.isFinite(lat) && Number.isFinite(lng);
+  const origin = typeof window === "undefined" ? "https://tipe.digital" : window.location.origin;
+  const url = cfg.token ? doorUrl(origin, slug, cfg.token) : null;
+
+  const save = (enabled: boolean) =>
+    run(
+      () =>
+        salvar({
+          data: {
+            slug,
+            enabled,
+            lat: coordOk ? lat : null,
+            lng: coordOk ? lng : null,
+            radiusM: f.radiusM,
+            callMinutes: f.callMinutes,
+          },
+        }),
+      enabled ? "Fila presencial salva" : "Fila presencial fechada",
+    );
+
+  const usarLocal = () => {
+    if (!("geolocation" in navigator)) {
+      toast.error("Este aparelho não informa a localização");
+      return;
+    }
+    setLocalizando(true);
+    navigator.geolocation.getCurrentPosition(
+      (p) => {
+        setLocalizando(false);
+        setF((x) => ({
+          ...x,
+          lat: p.coords.latitude.toFixed(6),
+          lng: p.coords.longitude.toFixed(6),
+        }));
+        toast.success(
+          `Localização marcada (precisão de ${Math.round(p.coords.accuracy)} m). Confira e salve.`,
+        );
+      },
+      () => {
+        setLocalizando(false);
+        toast.error("Não conseguimos a localização. Libere a localização ou digite as coordenadas");
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 },
+    );
+  };
+
+  const imprimir = () => {
+    const svg = document.getElementById("qr-porta")?.outerHTML;
+    if (!svg) return;
+    const w = window.open("", "_blank", "width=480,height=640");
+    if (!w) {
+      toast.error("Libere as janelas deste site para imprimir");
+      return;
+    }
+    w.document.write(
+      `<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>QR da fila</title>` +
+        `<style>body{font-family:system-ui,sans-serif;text-align:center;padding:32px;color:#111}` +
+        `h1{font-size:28px;margin:0 0 6px}p{margin:4px 0;font-size:16px}svg{width:280px;height:280px;margin:20px auto}</style>` +
+        `</head><body><h1>Fila de espera</h1><p>Leia o QR para entrar na fila.</p>${svg}` +
+        `<p>Funciona só aqui no restaurante.</p></body></html>`,
+    );
+    w.document.close();
+    w.focus();
+    w.print();
+  };
+
+  return (
+    <Panel
+      title="Fila presencial"
+      description="Quem está no restaurante entra na fila pelo QR da porta. O celular confirma uma vez que a pessoa está dentro do raio; a localização não fica guardada."
+      actions={
+        <label className="flex items-center gap-2 text-sm font-medium">
+          <Switch
+            checked={f.enabled}
+            disabled={busy || (!f.enabled && !coordOk)}
+            onCheckedChange={async (v) => {
+              if (await save(v)) setF((x) => ({ ...x, enabled: v }));
+            }}
+          />
+          {f.enabled ? "Aberta" : "Fechada"}
+        </label>
+      }
+    >
+      <div className="grid gap-5 md:grid-cols-[1fr_auto]">
+        <form
+          className="grid grid-cols-2 content-start gap-3 md:grid-cols-4"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void save(f.enabled);
+          }}
+        >
+          <Campo label="Latitude" id="cf-lat">
+            <Input
+              id="cf-lat"
+              inputMode="decimal"
+              placeholder="-3.7319"
+              value={f.lat}
+              onChange={(e) => setF((x) => ({ ...x, lat: e.target.value }))}
+            />
+          </Campo>
+          <Campo label="Longitude" id="cf-lng">
+            <Input
+              id="cf-lng"
+              inputMode="decimal"
+              placeholder="-38.5267"
+              value={f.lng}
+              onChange={(e) => setF((x) => ({ ...x, lng: e.target.value }))}
+            />
+          </Campo>
+          <Campo label="Raio aceito" id="cf-raio">
+            <select
+              id="cf-raio"
+              className={selectCls}
+              value={f.radiusM}
+              onChange={(e) => setF((x) => ({ ...x, radiusM: Number(e.target.value) }))}
+            >
+              {[50, 100, 150, 200, 300, 500].map((v) => (
+                <option key={v} value={v}>
+                  {v} m
+                </option>
+              ))}
+            </select>
+          </Campo>
+          <Campo label="Prazo após o aviso" id="cf-prazo">
+            <select
+              id="cf-prazo"
+              className={selectCls}
+              value={f.callMinutes}
+              onChange={(e) => setF((x) => ({ ...x, callMinutes: Number(e.target.value) }))}
+            >
+              {[5, 10, 15, 20, 30].map((v) => (
+                <option key={v} value={v}>
+                  {v} min
+                </option>
+              ))}
+            </select>
+          </Campo>
+          <div className="col-span-2 flex flex-wrap items-center gap-2 md:col-span-4">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={usarLocal}
+              disabled={localizando}
+            >
+              <MapPin className="size-4" />
+              {localizando ? "Localizando…" : "Usar minha localização atual"}
+            </Button>
+            {coordOk && (
+              <a
+                className="text-xs font-medium text-primary underline-offset-4 hover:underline"
+                href={`https://www.openstreetmap.org/?mlat=${lat}&mlon=${lng}#map=19/${lat}/${lng}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                Conferir no mapa
+              </a>
+            )}
+            <Button type="submit" size="sm" className="ml-auto" disabled={busy}>
+              Salvar fila
+            </Button>
+          </div>
+          {!coordOk && (
+            <p className="col-span-2 text-xs text-muted-foreground md:col-span-4">
+              Marque a localização na entrada do restaurante para poder abrir a fila.
+            </p>
+          )}
+        </form>
+
+        {cfg.isOwner && url && (
+          <div className="flex flex-col items-center gap-2 md:w-52">
+            <div className="rounded-xl border border-border bg-white p-2.5">
+              <QRCodeSVG id="qr-porta" value={url} size={148} />
+            </div>
+            <div className="flex flex-wrap justify-center gap-1">
+              <Button size="sm" variant="ghost" onClick={imprimir}>
+                <Printer className="size-4" /> Imprimir
+              </Button>
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => {
+                  void navigator.clipboard.writeText(url);
+                  toast.success("Link copiado");
+                }}
+              >
+                Copiar link
+              </Button>
+            </div>
+            {confirmarTroca ? (
+              <div className="space-y-1.5 text-center">
+                <p className="text-xs text-muted-foreground">
+                  O QR impresso para de funcionar. Trocar?
+                </p>
+                <div className="flex justify-center gap-1">
+                  <Button size="sm" variant="ghost" onClick={() => setConfirmarTroca(false)}>
+                    Manter QR
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    disabled={busy}
+                    onClick={async () => {
+                      setConfirmarTroca(false);
+                      await run(
+                        () => trocar({ data: { slug } }),
+                        "QR da porta trocado. Imprima o novo",
+                      );
+                    }}
+                  >
+                    Trocar QR
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                className="text-xs text-muted-foreground underline-offset-4 hover:underline"
+                onClick={() => setConfirmarTroca(true)}
+              >
+                Trocar QR da porta
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+    </Panel>
   );
 }
 
