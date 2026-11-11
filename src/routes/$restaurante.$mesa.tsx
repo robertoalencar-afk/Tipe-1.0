@@ -749,7 +749,7 @@ function MesaPage() {
               disabled={!hasFirstAndLastName(nome)}
               className="mt-4 h-13 w-full font-display text-base"
             >
-              Ver minha conta <ChevronRight />
+              Ver minha mesa <ChevronRight />
             </Button>
           </form>
         </main>
