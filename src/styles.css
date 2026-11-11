@@ -1931,7 +1931,7 @@
 /* Cardápio em stories (StoryCardapio.tsx) */
 @keyframes story-zoom {
   from { transform: scale(1); }
-  to { transform: scale(1.09); }
+  to { transform: scale(1.16); }
 }
 .story-zoom { animation: story-zoom linear forwards; transform-origin: 50% 60%; }
 @keyframes story-entra-esq {

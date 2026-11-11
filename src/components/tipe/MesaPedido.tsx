@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
-import { Check, Minus, Play, Plus, Search, UtensilsCrossed } from "lucide-react";
+import { Check, Minus, Plus, Search, UtensilsCrossed } from "lucide-react";
 import { nanoid } from "nanoid";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,7 @@ import { getPublicMenu, placeCustomerOrder, type PublicMenu } from "@/lib/tipe/c
 import { totalCarrinho, carrinhoParaPedido } from "@/lib/tipe/pdv/comanda";
 
 const StoryCardapio = lazy(() => import("@/components/tipe/site/order/StoryCardapio").then((m) => ({ default: m.StoryCardapio })));
+const AneisCategorias = lazy(() => import("@/components/tipe/site/order/StoryCardapio").then((m) => ({ default: m.AneisCategorias })));
 
 const money = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
@@ -106,9 +107,15 @@ export function MesaPedido({ slug, code, session, nome, device, onPlaced, onBloc
         <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar no cardápio" className="h-11 w-full bg-transparent text-sm outline-none" />
       </label>
       {temFotos && (
-        <button type="button" onClick={() => setStory(menu.items.find((i) => i.imageUrl)?.code ?? null)} className="mt-2 flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 text-sm font-bold text-primary-foreground">
-          <Play className="h-4 w-4" aria-hidden="true" /> Ver o cardápio em stories
-        </button>
+        <Suspense fallback={<div className="mt-3 h-[5.5rem]" />}>
+          <div className="mt-3">
+            <AneisCategorias
+              itens={itensStory}
+              categorias={menu.categories.filter((c) => itensStory.some((i) => i.cat === c.name && i.foto)).map((c) => c.name)}
+              abrir={(c) => setStory(itensStory.find((i) => i.cat === c && i.foto)?.code ?? null)}
+            />
+          </div>
+        </Suspense>
       )}
       <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
         <Chip on={!cat} onClick={() => setCat("")}>Tudo</Chip>

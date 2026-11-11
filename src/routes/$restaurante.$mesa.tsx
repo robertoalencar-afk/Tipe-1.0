@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { MarcaRestaurante } from "@/components/tipe/MarcaRestaurante";
 import { z } from "zod";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import {
@@ -168,6 +169,7 @@ function MesaPage() {
     hora: string;
   };
   const [metodosAceitos, setMetodosAceitos] = useState<Metodo[] | null>(null);
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [dados, setDados] = useState<{
     restaurante: string;
     mesa: string;
@@ -286,6 +288,7 @@ function MesaPage() {
       setTaxaSugerida(estado.serviceWaived ? 0 : estado.serviceRate);
       setTaxaRemovida(estado.serviceWaived);
       setLinkAvaliacao(estado.googleReviewUrl ?? null);
+      setLogoUrl(estado.logoUrl ?? null);
       setDados({
         restaurante: estado.restaurantName,
         mesa: estado.tableNumber,
@@ -708,6 +711,12 @@ function MesaPage() {
             <RefreshCw /> Tentar de novo
           </Button>
         </main>
+      )}
+
+      {!erroMesa && etapaVisivel !== "carregando" && dados.restaurante && (
+        <header className="px-6 pt-5">
+          <MarcaRestaurante nome={dados.restaurante} logoUrl={logoUrl} {...(dados.mesa ? { detalhe: `Mesa ${dados.mesa}` } : {})} />
+        </header>
       )}
 
       {!erroMesa && etapaVisivel === "carregando" && <ContaCarregando />}

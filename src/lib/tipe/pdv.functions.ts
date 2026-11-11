@@ -9,6 +9,7 @@ const Slug = z.string().min(1).max(64).regex(/^[a-z0-9-]+$/);
 
 export type PublicTable = {
   restaurantName: string;
+  logoUrl: string | null;
   tableNumber: string;
   waiterName: string;
   session: string;
@@ -74,8 +75,11 @@ export const getPublicTable = createServerFn({ method: "GET" })
       const { data: over } = await supabaseAdmin.rpc("table_is_over_limit", { p_rid: r.id, p_number: t.number });
       if (over) return { error: "inactive" };
     }
+    // Consulta separada: sem a migração 0056 a coluna não existe e a mesa abre sem logomarca.
+    const { data: logoRow } = await supabaseAdmin.from("restaurants").select("logo_url").eq("id", r.id).maybeSingle();
     return {
       restaurantName: r.name,
+      logoUrl: ((logoRow as { logo_url?: string | null } | null)?.logo_url) ?? null,
       tableNumber: t.number,
       session: t.session_token,
       // Sem conta Pagar.me ativa (e fora de simulação), só o pagamento no estabelecimento aparece.

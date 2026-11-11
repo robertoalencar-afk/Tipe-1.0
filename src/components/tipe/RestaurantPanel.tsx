@@ -1788,7 +1788,13 @@ function Cardapio({ slug, pdv, onDone, midia }: { slug: string; pdv: PdvData; on
                     </button>
                     <span className="font-semibold">{brl(i.price)}</span>
                     <details className="relative">
-                      <summary className="cursor-pointer list-none rounded-lg border border-border px-2 py-1 text-xs hover:bg-muted">{midia[i.id]?.foto ? "Foto ✓" : "Foto"}{midia[i.id]?.profundidade ? " 3D" : ""}</summary>
+                      <summary className="flex cursor-pointer list-none items-center gap-2 rounded-xl border border-border p-1 pr-2 text-xs hover:bg-muted" aria-label={`Foto de ${i.name}`}>
+                        <span className="relative grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-lg bg-muted text-[10px] text-muted-foreground">
+                          {midia[i.id]?.foto ? <img src={midia[i.id]!.foto!} alt="" loading="lazy" className="h-full w-full object-cover" /> : "Sem foto"}
+                          {midia[i.id]?.profundidade && <span className="absolute bottom-0 right-0 rounded-tl bg-[#021E34] px-1 text-[9px] font-bold text-white">3D</span>}
+                        </span>
+                        <span className="font-semibold">{midia[i.id]?.foto ? "Trocar" : "Adicionar foto"}</span>
+                      </summary>
                       <div className="absolute right-0 z-20 mt-1 w-72 space-y-3 rounded-xl border border-border bg-card p-3 shadow-lg">
                         <UploadImagem url={midia[i.id]?.foto} rotulo="Foto do prato" quadrado maxLado={1200} onSalvar={async (imagem) => { await salvarFoto({ data: { slug, itemId: i.id, tipo: "foto", imagem } }); await qcM.invalidateQueries({ queryKey: ["midia", slug] }); }} />
                         {midia[i.id]?.foto && <UploadImagem url={midia[i.id]?.profundidade} rotulo="Mapa 3D (opcional)" quadrado maxLado={1200} onSalvar={async (imagem) => { await salvarFoto({ data: { slug, itemId: i.id, tipo: "profundidade", imagem } }); await qcM.invalidateQueries({ queryKey: ["midia", slug] }); }} />}
