@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { ShieldCheck } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +14,12 @@ function deviceId() {
   let v = window.localStorage.getItem(k);
   if (!v) { v = crypto.randomUUID(); window.localStorage.setItem(k, v); }
   return v;
+}
+
+function msgMfa(e: { message?: string | undefined; status?: number | undefined; code?: string | undefined } | null, padrao: string) {
+  const t = `${e?.code ?? ""} ${e?.message ?? ""}`.toLowerCase();
+  if (e?.status === 429 || t.includes("rate") || t.includes("too many")) return "Muitas tentativas seguidas. Aguarde cerca de 1 hora sem tentar de novo e depois use o código mais recente do aplicativo.";
+  return padrao;
 }
 
 /** Áreas de founder só abrem com verificação em duas etapas (aplicativo autenticador). */
@@ -45,11 +51,18 @@ export function MfaGate({
   const [codes, setCodes] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const iniciando = useRef(false);
   const genCodes = useServerFn(generateRecoveryCodes);
   const redeem = useServerFn(redeemRecoveryCode);
   const record = useServerFn(recordFounderDevice);
 
   async function refresh() {
+    if (iniciando.current) return;
+    iniciando.current = true;
+    try { await iniciar(); } finally { iniciando.current = false; }
+  }
+
+  async function iniciar() {
     const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
     if (aal?.currentLevel === "aal2") { setState("ok"); return; }
     const { data: f } = await supabase.auth.mfa.listFactors();
@@ -57,8 +70,8 @@ export function MfaGate({
     if (verified) { setFactorId(verified.id); setState("verify"); return; }
     if (!obrigatorio) { setState("ok"); return; }
     for (const u of f?.all?.filter((x) => x.status !== "verified") ?? []) await supabase.auth.mfa.unenroll({ factorId: u.id });
-    const { data, error: e } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: `TIPE ${new Date().toISOString().slice(0, 10)}` });
-    if (e || !data) { setError("Não foi possível iniciar a verificação em duas etapas."); setState("enroll"); return; }
+    const { data, error: e } = await supabase.auth.mfa.enroll({ factorType: "totp", friendlyName: `TIPE ${Date.now().toString(36)}` });
+    if (e || !data) { setError(msgMfa(e, "Não foi possível iniciar a verificação em duas etapas.")); setState("enroll"); return; }
     setFactorId(data.id); setQr(data.totp.qr_code); setSecret(data.totp.secret); setState("enroll");
   }
 
@@ -71,7 +84,7 @@ export function MfaGate({
     if (!factorId) return;
     setBusy(true); setError(null);
     const { error: e } = await supabase.auth.mfa.challengeAndVerify({ factorId, code: code.trim() });
-    if (e) { setBusy(false); setError("Código incorreto. Confira o aplicativo e tente de novo."); return; }
+    if (e) { setBusy(false); setError(msgMfa(e, "Código incorreto. Confira o aplicativo e tente de novo.")); return; }
     await supabase.auth.refreshSession();
     if (enrolling) {
       try { const r = await genCodes(); setCodes(r.codes); setState("codes"); } catch { setState("ok"); }
