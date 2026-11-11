@@ -7,39 +7,35 @@
 <title>Sua nova senha da Tipe</title>
 </head>
 <body style="margin:0;padding:0;background:#ffffff;-webkit-text-size-adjust:100%;">
-<!-- Texto de pré-visualização (aparece ao lado do assunto na caixa de entrada) -->
 <div style="display:none;max-height:0;overflow:hidden;opacity:0;">Toque no botão para criar uma senha nova. O link vale por 1 hora e funciona uma vez só.&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;">
 <tr><td align="center" style="padding:32px 16px;">
   <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;">
     <tr><td align="center" style="padding:0 0 20px;">
-      <img src="https://tipe.robertoalencar.workers.dev/email/tipe-logo-email.png" width="108" alt="Tipe" style="display:block;width:108px;height:auto;border:0;">
+      <img src="https://tipe.digital/email/tipe-logo-email.png" width="108" alt="Tipe" style="display:block;width:108px;height:auto;border:0;">
     </td></tr>
     <tr><td style="background:#ffffff;border:1px solid #e5e7eb;border-radius:24px;overflow:hidden;">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
         <tr><td align="center" style="background:#d3f8ee;padding:28px 24px 0;border-radius:24px 24px 0 0;">
-          <img src="https://tipe.robertoalencar.workers.dev/email/lebre-pensando.png" width="150" alt="A lebre da Tipe, pensativa" style="display:block;width:150px;height:auto;border:0;">
+          <img src="https://tipe.digital/email/lebre-pensando.png" width="150" alt="A lebre da Tipe, pensativa" style="display:block;width:150px;height:auto;border:0;">
         </td></tr>
         <tr><td style="padding:32px 36px 8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#071727;">
           <h1 style="margin:0 0 12px;font-size:26px;line-height:1.2;font-weight:600;letter-spacing:-0.5px;">Esqueceu a senha? Acontece!</h1>
-          <p style="margin:0 0 24px;font-size:16px;line-height:1.6;color:#575b5f;">Recebemos um pedido para criar uma senha nova para a conta <strong style="color:#071727;">{{ .Email }}</strong> na Tipe. É só tocar no botão:</p>
-          <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td align="center" style="border-radius:999px;background:#10d1b4;">
+          <p style="margin:0 0 24px;font-size:16px;line-height:1.6;color:#575b5f;">Até a lebre mais rápida esquece as coisas. Recebemos um pedido de senha nova para <strong style="color:#071727;">{{ .Email }}</strong>. É só tocar no botão:</p><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td align="center" style="border-radius:999px;background:#10d1b4;">
             <a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=recovery" target="_blank" style="display:block;padding:16px 24px;font-size:16px;font-weight:600;color:#071727;text-decoration:none;border-radius:999px;">Criar nova senha</a>
-          </td></tr></table>
-          <p style="margin:20px 0 0;font-size:14px;line-height:1.6;color:#575b5f;">&#9201;&#65039; O link vale por <strong style="color:#071727;">1 hora</strong> e funciona <strong style="color:#071727;">uma vez só</strong>. Se pedir outro, use sempre o e-mail mais recente.</p>
+          </td></tr></table><p style="margin:20px 0 0;font-size:14px;line-height:1.6;color:#575b5f;">&#9201;&#65039; O link vale por <strong style="color:#071727;">1 hora</strong> e funciona <strong style="color:#071727;">uma vez só</strong>. Se pedir outro, use sempre o e-mail mais recente.</p>
         </td></tr>
         <tr><td style="padding:24px 36px 32px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
           <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f3f4f6;border-radius:16px;">
-            <tr><td style="padding:16px 18px;font-size:14px;line-height:1.55;color:#575b5f;">
-              <strong style="color:#071727;">Não foi você?</strong> Pode ignorar este e-mail: sua senha continua a mesma e ninguém entra na sua conta sem este link. A Tipe nunca pede sua senha por e-mail, WhatsApp ou telefone.
-            </td></tr>
+            <tr><td style="padding:16px 18px;font-size:14px;line-height:1.55;color:#575b5f;"><strong style="color:#071727;">Não foi você?</strong> Pode ignorar este e-mail: sua senha continua a mesma e ninguém entra na sua conta sem este link. A Tipe nunca pede sua senha por e-mail, WhatsApp ou telefone.</td></tr>
           </table>
         </td></tr>
       </table>
     </td></tr>
     <tr><td align="center" style="padding:24px 16px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:1.6;color:#8a8f96;">
       Tipe · pagamentos e atendimento para restaurantes<br>
-      Você recebeu este e-mail porque alguém pediu para redefinir a senha deste endereço na Tipe.
+      Você recebeu este e-mail porque alguém pediu para redefinir a senha deste endereço na Tipe.<br>
+      Dúvidas? <a href="mailto:contato@tipe.digital" style="color:#8a8f96;">contato@tipe.digital</a>
     </td></tr>
   </table>
 </td></tr>

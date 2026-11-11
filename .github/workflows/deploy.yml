@@ -128,6 +128,13 @@ jobs:
           GROQ_MODEL: ${{ vars.GROQ_MODEL }}
           GROQ_VISION_MODEL: ${{ vars.GROQ_VISION_MODEL }}
           LEBRE_CLAUDE_FALLBACK: ${{ vars.LEBRE_CLAUDE_FALLBACK }}
+      - name: E-mails do Supabase (cadastro, convite, senha, avisos)
+        # Precisa do segredo SUPABASE_ACCESS_TOKEN; sem ele só avisa. Ver docs/deploy/emails-supabase.md.
+        run: node scripts/emails/aplicar-emails-auth.mjs
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ vars.VITE_SUPABASE_PROJECT_ID || 'bnggnbwmihqexvihrqvy' }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
       - name: Publicar as rotinas agendadas
         run: |
           bunx wrangler deploy --config cron-worker/wrangler.jsonc
