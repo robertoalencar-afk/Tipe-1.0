@@ -1,0 +1,50 @@
+@font-face{font-family:'Inter Tight';src:url(assets/fonts/inter-tight.woff2) format('woff2');font-weight:100 900}
+:root{--creme:#F5F0E8;--navy:#021E34;--tq:#0FC9BD;--tqe:#0A9E95;--cinza:#8A8F88;--linha:#DDD5C7}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:__W__px;height:__H__px;overflow:hidden;background:var(--creme)}
+#root,#stage{position:absolute;inset:0;width:__W__px;height:__H__px;overflow:hidden;background:var(--creme);font-family:'Inter Tight',sans-serif;color:var(--navy)}
+#stage::before{content:"";position:absolute;inset:0;background:radial-gradient(70% 60% at 30% 20%,#FBF8F2,transparent 70%),radial-gradient(60% 60% at 90% 100%,#EFE6D6,transparent 70%)}
+.cena{position:absolute;inset:0;opacity:0;visibility:hidden}
+.spr{position:absolute;display:block;transform-origin:50% 100%;filter:drop-shadow(0 18px 18px rgba(60,40,10,.14))}
+.eyebrow{position:absolute;display:flex;align-items:center;gap:12px;font-size:26px;font-weight:500;color:#4A5560;letter-spacing:-.2px}
+.eyebrow i{width:10px;height:10px;border-radius:50%;background:var(--cinza)}
+.eyebrow i.tq{background:var(--tq)}
+.titulo{position:absolute;font-weight:500;letter-spacing:-.045em;line-height:1.02;white-space:nowrap}
+.titulo .w{display:inline-block}
+.hl{position:relative}
+.ul{position:absolute;left:0;right:0;bottom:-.08em;height:.075em;background:var(--tq);border-radius:9px;transform-origin:0 50%;transform:scaleX(0)}
+.legenda{position:absolute;font-size:28px;font-weight:400;color:#56606A;letter-spacing:-.2px}
+.legenda em{font-style:normal;color:var(--navy);font-weight:600}
+.relogio{position:absolute;font-weight:300;letter-spacing:-.06em;font-variant-numeric:tabular-nums;line-height:1;color:var(--navy)}
+.relogio b{font-weight:300;opacity:.35;margin:0 .02em}
+.pista{position:absolute;height:150px}
+.pista .rot{position:absolute;left:0;top:-42px;font-size:26px;font-weight:600;color:#5A6168}
+.pista .rot.tq,.pista .tempo.tq{color:var(--tqe)}
+.pista .faixa{position:absolute;left:0;right:0;bottom:0;height:3px;background:repeating-linear-gradient(90deg,var(--linha) 0 22px,transparent 22px 36px)}
+.pista .chegada{position:absolute;right:0;bottom:0;width:18px;height:150px;background:conic-gradient(var(--navy) 25%,#fff 0 50%,var(--navy) 0 75%,#fff 0) 0 0/18px 18px;opacity:.85;border-radius:2px}
+.pista .tempo{position:absolute;left:100%;margin-left:28px;bottom:58px;white-space:nowrap;font-size:30px;font-weight:600;font-variant-numeric:tabular-nums;color:#5A6168}
+#vel{position:absolute;width:220px;height:80px}
+#vel i{position:absolute;left:0;height:4px;border-radius:4px;background:var(--tq);opacity:.6}
+#vel i:nth-child(1){top:10px;width:180px}#vel i:nth-child(2){top:38px;width:220px}#vel i:nth-child(3){top:66px;width:140px}
+#estouro,#confete{position:absolute;inset:0;pointer-events:none}
+.pt{position:absolute;width:12px;height:12px;border-radius:3px}
+.passos{position:absolute;font-weight:500;letter-spacing:-.045em;line-height:1.04}
+.passos .p{color:#C9C2B6;transition:none}
+#fone{position:absolute;border-radius:58px;background:#0B0F14;padding:13px;box-shadow:0 40px 80px -30px rgba(2,30,52,.45),0 0 0 2px #2B3138 inset}
+#fone .tela{position:relative;width:100%;height:100%;border-radius:46px;overflow:hidden;background:#fff}
+#fone img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:top}
+#toque{position:absolute;width:64px;height:64px;margin:-32px 0 0 -32px;border-radius:50%;border:3px solid var(--tq);opacity:0}
+.fatias{position:absolute;display:flex;gap:22px}
+.fatia{background:#fff;border-radius:26px;padding:22px 26px;box-shadow:0 18px 40px -22px rgba(2,30,52,.35);display:flex;flex-direction:column;gap:8px;min-width:230px}
+.fatia b{font-size:38px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.fatia span{font-size:26px;font-weight:600;color:var(--tqe)}
+.centro{text-align:center}
+#fim{position:absolute;inset:0;visibility:hidden}
+#iris{position:absolute;border-radius:50%;background:var(--navy);width:10px;height:10px}
+#fimLogo{position:absolute;left:50%}
+#fimTag{position:absolute;left:0;right:0;text-align:center;color:#fff;font-weight:500;letter-spacing:-.04em}
+#fimTag .w{display:inline-block}
+.tq{color:var(--tq)}
+#logoTop{position:absolute;height:30px;top:44px;right:56px}
+#barra{position:absolute;left:0;right:0;bottom:0;height:4px;background:rgba(2,30,52,.06)}
+#barraF{height:100%;width:0;background:var(--tq)}

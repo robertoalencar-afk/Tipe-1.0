@@ -70,6 +70,10 @@ import { Route as CrmRelatoriosRouteImport } from './routes/crm.relatorios'
 import { Route as CrmSuporteRouteImport } from './routes/crm.suporte'
 import { Route as CrmTarefasRouteImport } from './routes/crm.tarefas'
 import { Route as CrmWhatsappRouteImport } from './routes/crm.whatsapp'
+import { Route as InternoComoFuncionaRouteImport } from './routes/interno.como-funciona'
+import { Route as InternoFocinhoRouteImport } from './routes/interno.focinho'
+import { Route as InternoPropostasEcossistemaRouteImport } from './routes/interno.propostas-ecossistema'
+import { Route as InternoVideosRouteImport } from './routes/interno.videos'
 import { Route as LegalIndexRouteImport } from './routes/legal.index'
 import { Route as LegalLivroRouteImport } from './routes/legal.$livro'
 import { Route as LegalCompletaRouteImport } from './routes/legal.completa'
@@ -401,6 +405,27 @@ const CrmWhatsappRoute = CrmWhatsappRouteImport.update({
   path: '/whatsapp',
   getParentRoute: () => CrmRoute,
 } as any)
+const InternoComoFuncionaRoute = InternoComoFuncionaRouteImport.update({
+  id: '/interno/como-funciona',
+  path: '/interno/como-funciona',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InternoFocinhoRoute = InternoFocinhoRouteImport.update({
+  id: '/interno/focinho',
+  path: '/interno/focinho',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InternoPropostasEcossistemaRoute =
+  InternoPropostasEcossistemaRouteImport.update({
+    id: '/interno/propostas-ecossistema',
+    path: '/interno/propostas-ecossistema',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const InternoVideosRoute = InternoVideosRouteImport.update({
+  id: '/interno/videos',
+  path: '/interno/videos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LegalIndexRoute = LegalIndexRouteImport.update({
   id: '/legal/',
   path: '/legal/',
@@ -595,6 +620,10 @@ export interface FileRoutesByFullPath {
   '/crm/suporte': typeof CrmSuporteRoute
   '/crm/tarefas': typeof CrmTarefasRoute
   '/crm/whatsapp': typeof CrmWhatsappRoute
+  '/interno/como-funciona': typeof InternoComoFuncionaRoute
+  '/interno/focinho': typeof InternoFocinhoRoute
+  '/interno/propostas-ecossistema': typeof InternoPropostasEcossistemaRoute
+  '/interno/videos': typeof InternoVideosRoute
   '/legal/$livro': typeof LegalLivroRoute
   '/legal/completa': typeof LegalCompletaRoute
   '/legal/glossario': typeof LegalGlossarioRoute
@@ -682,6 +711,10 @@ export interface FileRoutesByTo {
   '/crm/suporte': typeof CrmSuporteRoute
   '/crm/tarefas': typeof CrmTarefasRoute
   '/crm/whatsapp': typeof CrmWhatsappRoute
+  '/interno/como-funciona': typeof InternoComoFuncionaRoute
+  '/interno/focinho': typeof InternoFocinhoRoute
+  '/interno/propostas-ecossistema': typeof InternoPropostasEcossistemaRoute
+  '/interno/videos': typeof InternoVideosRoute
   '/legal/$livro': typeof LegalLivroRoute
   '/legal/completa': typeof LegalCompletaRoute
   '/legal/glossario': typeof LegalGlossarioRoute
@@ -772,6 +805,10 @@ export interface FileRoutesById {
   '/crm/suporte': typeof CrmSuporteRoute
   '/crm/tarefas': typeof CrmTarefasRoute
   '/crm/whatsapp': typeof CrmWhatsappRoute
+  '/interno/como-funciona': typeof InternoComoFuncionaRoute
+  '/interno/focinho': typeof InternoFocinhoRoute
+  '/interno/propostas-ecossistema': typeof InternoPropostasEcossistemaRoute
+  '/interno/videos': typeof InternoVideosRoute
   '/legal/$livro': typeof LegalLivroRoute
   '/legal/completa': typeof LegalCompletaRoute
   '/legal/glossario': typeof LegalGlossarioRoute
@@ -862,6 +899,10 @@ export interface FileRouteTypes {
     | '/crm/suporte'
     | '/crm/tarefas'
     | '/crm/whatsapp'
+    | '/interno/como-funciona'
+    | '/interno/focinho'
+    | '/interno/propostas-ecossistema'
+    | '/interno/videos'
     | '/legal/$livro'
     | '/legal/completa'
     | '/legal/glossario'
@@ -949,6 +990,10 @@ export interface FileRouteTypes {
     | '/crm/suporte'
     | '/crm/tarefas'
     | '/crm/whatsapp'
+    | '/interno/como-funciona'
+    | '/interno/focinho'
+    | '/interno/propostas-ecossistema'
+    | '/interno/videos'
     | '/legal/$livro'
     | '/legal/completa'
     | '/legal/glossario'
@@ -1038,6 +1083,10 @@ export interface FileRouteTypes {
     | '/crm/suporte'
     | '/crm/tarefas'
     | '/crm/whatsapp'
+    | '/interno/como-funciona'
+    | '/interno/focinho'
+    | '/interno/propostas-ecossistema'
+    | '/interno/videos'
     | '/legal/$livro'
     | '/legal/completa'
     | '/legal/glossario'
@@ -1102,6 +1151,10 @@ export interface RootRouteChildren {
   RestauranteSenhasRoute: typeof RestauranteSenhasRoute
   RestauranteTotemRoute: typeof RestauranteTotemRoute
   ConviteTokenRoute: typeof ConviteTokenRoute
+  InternoComoFuncionaRoute: typeof InternoComoFuncionaRoute
+  InternoFocinhoRoute: typeof InternoFocinhoRoute
+  InternoPropostasEcossistemaRoute: typeof InternoPropostasEcossistemaRoute
+  InternoVideosRoute: typeof InternoVideosRoute
   LegalLivroRoute: typeof LegalLivroRoute
   LegalCompletaRoute: typeof LegalCompletaRoute
   LegalGlossarioRoute: typeof LegalGlossarioRoute
@@ -1555,6 +1608,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CrmWhatsappRouteImport
       parentRoute: typeof CrmRoute
     }
+    '/interno/como-funciona': {
+      id: '/interno/como-funciona'
+      path: '/interno/como-funciona'
+      fullPath: '/interno/como-funciona'
+      preLoaderRoute: typeof InternoComoFuncionaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/interno/focinho': {
+      id: '/interno/focinho'
+      path: '/interno/focinho'
+      fullPath: '/interno/focinho'
+      preLoaderRoute: typeof InternoFocinhoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/interno/propostas-ecossistema': {
+      id: '/interno/propostas-ecossistema'
+      path: '/interno/propostas-ecossistema'
+      fullPath: '/interno/propostas-ecossistema'
+      preLoaderRoute: typeof InternoPropostasEcossistemaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/interno/videos': {
+      id: '/interno/videos'
+      path: '/interno/videos'
+      fullPath: '/interno/videos'
+      preLoaderRoute: typeof InternoVideosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/legal/': {
       id: '/legal/'
       path: '/legal'
@@ -1855,6 +1936,10 @@ const rootRouteChildren: RootRouteChildren = {
   RestauranteSenhasRoute: RestauranteSenhasRoute,
   RestauranteTotemRoute: RestauranteTotemRoute,
   ConviteTokenRoute: ConviteTokenRoute,
+  InternoComoFuncionaRoute: InternoComoFuncionaRoute,
+  InternoFocinhoRoute: InternoFocinhoRoute,
+  InternoPropostasEcossistemaRoute: InternoPropostasEcossistemaRoute,
+  InternoVideosRoute: InternoVideosRoute,
   LegalLivroRoute: LegalLivroRoute,
   LegalCompletaRoute: LegalCompletaRoute,
   LegalGlossarioRoute: LegalGlossarioRoute,
@@ -1882,12 +1967,3 @@ export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
 
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

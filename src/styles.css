@@ -2111,3 +2111,208 @@
 }
 .tipe-zzz { animation: tipe-zzz 2.8s ease-in-out infinite; font-size: clamp(1rem, 6%, 1.6rem); }
 @media (prefers-reduced-motion: reduce) { .tipe-zzz { animation: none; } }
+
+.focinho-cta {
+  --fz-nariz: var(--fio-nariz, #0fc9bd);
+  height: 0.85em;
+  width: 1.74em;
+  overflow: visible;
+  flex-shrink: 0;
+}
+.focinho-cta[data-v="1"] {
+  height: 1em;
+  width: 1.04em;
+}
+.focinho-cta[data-v="3"] {
+  height: 0.8em;
+  width: 1.88em;
+}
+.focinho-cta * {
+  transform-box: view-box;
+}
+.focinho-cta .fz-nariz {
+  fill: var(--fz-nariz);
+  transform-origin: 12px 9.3px;
+}
+.focinho-cta .fz-boca {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.25;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.focinho-cta .fz-fio {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 0.85;
+  stroke-linecap: round;
+  opacity: 0.6;
+}
+.focinho-cta .fz-esq {
+  transform-origin: 7.9px 10.5px;
+}
+.focinho-cta .fz-dir {
+  transform-origin: 16.1px 10.5px;
+}
+.focinho-cta-auto .fz-nariz {
+  animation: fz-fareja-auto 6.2s ease-in-out 1.8s infinite;
+}
+.focinho-cta-auto .fz-esq {
+  animation: fz-bigode-auto-e 6.2s ease-in-out 1.8s infinite;
+}
+.focinho-cta-auto .fz-dir {
+  animation: fz-bigode-auto-d 6.2s ease-in-out 1.8s infinite;
+}
+.com-fios:is(:hover, :focus-visible, :active) .focinho-cta .fz-nariz,
+.group:is(:hover, :focus-visible) .com-fios .focinho-cta .fz-nariz {
+  animation: fz-fareja 900ms ease-in-out both;
+}
+.com-fios:is(:hover, :focus-visible, :active) .focinho-cta .fz-esq,
+.group:is(:hover, :focus-visible) .com-fios .focinho-cta .fz-esq {
+  animation: fz-bigode-e 900ms ease-in-out both;
+}
+.com-fios:is(:hover, :focus-visible, :active) .focinho-cta .fz-dir,
+.group:is(:hover, :focus-visible) .com-fios .focinho-cta .fz-dir {
+  animation: fz-bigode-d 900ms ease-in-out both;
+}
+@keyframes fz-fareja {
+  0%,
+  44%,
+  100% {
+    transform: none;
+  }
+  12% {
+    transform: scale(1.1, 0.92);
+  }
+  22% {
+    transform: none;
+  }
+  32% {
+    transform: scale(1.07, 0.94);
+  }
+}
+@keyframes fz-bigode-e {
+  0%,
+  100% {
+    transform: none;
+  }
+  18% {
+    transform: rotate(5deg);
+  }
+  40% {
+    transform: rotate(-2deg);
+  }
+  60% {
+    transform: rotate(1deg);
+  }
+}
+@keyframes fz-bigode-d {
+  0%,
+  100% {
+    transform: none;
+  }
+  18% {
+    transform: rotate(-5deg);
+  }
+  40% {
+    transform: rotate(2deg);
+  }
+  60% {
+    transform: rotate(-1deg);
+  }
+}
+@keyframes fz-fareja-auto {
+  0%,
+  84%,
+  100% {
+    transform: none;
+  }
+  88% {
+    transform: scale(1.06, 0.95);
+  }
+  92% {
+    transform: none;
+  }
+  95% {
+    transform: scale(1.04, 0.97);
+  }
+}
+@keyframes fz-bigode-auto-e {
+  0%,
+  84%,
+  100% {
+    transform: none;
+  }
+  89% {
+    transform: rotate(2.5deg);
+  }
+  95% {
+    transform: rotate(-1deg);
+  }
+}
+@keyframes fz-bigode-auto-d {
+  0%,
+  84%,
+  100% {
+    transform: none;
+  }
+  89% {
+    transform: rotate(-2.5deg);
+  }
+  95% {
+    transform: rotate(1deg);
+  }
+}
+/* Sobre o turquesa, o nariz fica branco para não sumir no fundo. */
+.cta-turquesa .focinho-cta {
+  --fz-nariz: #ffffff;
+}
+.sem-movimento .focinho-cta * {
+  animation: none !important;
+  transform: none !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  .focinho-cta * {
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+/* Interno V62: barra de progresso das propostas de "Como funciona". */
+.fio-progresso {
+  animation: fio-progresso linear both;
+}
+@keyframes fio-progresso {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+/* Interno V62: propostas do ecossistema. */
+.eco-fluxo {
+  stroke-dasharray: 2 2.5;
+  animation: eco-fluxo 1.6s linear infinite;
+}
+@keyframes eco-fluxo {
+  to {
+    stroke-dashoffset: -9;
+  }
+}
+.eco-entra {
+  animation: eco-entra 600ms var(--ease-expo, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+@keyframes eco-entra {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .eco-fluxo,
+  .eco-entra,
+  .fio-progresso {
+    animation: none !important;
+  }
+}
