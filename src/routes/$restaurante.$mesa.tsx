@@ -666,6 +666,7 @@ function MesaPage() {
     <div className="customer-theme mx-auto flex min-h-svh max-w-md flex-col bg-background text-foreground">
       <MesaTopo
         restaurante={dados.restaurante}
+        logoUrl={logoUrl}
         mesa={dados.mesa}
         etapa={etapaVisivel}
         mostrarMesa={mostrarTopo}
@@ -711,12 +712,6 @@ function MesaPage() {
             <RefreshCw /> Tentar de novo
           </Button>
         </main>
-      )}
-
-      {!erroMesa && etapaVisivel !== "carregando" && dados.restaurante && (
-        <header className="px-6 pt-5">
-          <MarcaRestaurante nome={dados.restaurante} logoUrl={logoUrl} {...(dados.mesa ? { detalhe: `Mesa ${dados.mesa}` } : {})} />
-        </header>
       )}
 
       {!erroMesa && etapaVisivel === "carregando" && <ContaCarregando />}
@@ -1817,12 +1812,14 @@ function passoDaEtapa(etapa: Etapa) {
 /** Topo leve: logo, restaurante, mesa e progresso em três passos. */
 function MesaTopo({
   restaurante,
+  logoUrl,
   mesa,
   etapa,
   mostrarMesa,
   aoVivo,
 }: {
   restaurante: string;
+  logoUrl: string | null;
   mesa: string;
   etapa: Etapa;
   mostrarMesa: boolean;
@@ -1861,9 +1858,11 @@ function MesaTopo({
       {mostrarMesa && (
         <>
           {restaurante && (
-            <p className="mt-4 truncate text-sm text-muted-foreground">{restaurante}</p>
+            <div className="mt-5 rounded-2xl border border-border bg-card p-3">
+              <MarcaRestaurante nome={restaurante} logoUrl={logoUrl} detalhe={`Mesa ${mesa}`} tamanho={52} />
+            </div>
           )}
-          <ol className="mt-3 grid grid-cols-3 gap-2" aria-label="Etapas do pagamento">
+          <ol className="mt-4 grid grid-cols-3 gap-2" aria-label="Etapas do pagamento">
             {PASSOS.map((rotulo, indice) => (
               <li key={rotulo} aria-current={indice === passo ? "step" : undefined}>
                 <span

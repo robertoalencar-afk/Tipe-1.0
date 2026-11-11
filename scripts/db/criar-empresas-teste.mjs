@@ -162,6 +162,8 @@ async function cardapioComFotos(rid, nome) {
       ok(await admin.from("pdv_menu_items").upsert({ restaurant_id: rid, category_id: cat.id, code, name, price, sector, description, allergens, available: true, position: ordem++, ...midia }, { onConflict: "restaurant_id,code" }), "item com foto");
     }
   }
+  // Itens antigos do seed não têm foto: saem do cardápio do cliente para ele ficar todo ilustrado.
+  ok(await admin.from("pdv_menu_items").update({ available: false }).eq("restaurant_id", rid).in("code", ["PIC", "RIS", "SAL", "CHP", "SUC", "AGU"]), "ocultar itens sem foto");
   console.log(`${nome}: cardápio com fotos e stories (8 pratos)`);
 }
 

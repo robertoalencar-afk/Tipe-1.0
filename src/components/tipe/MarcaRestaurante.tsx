@@ -8,17 +8,17 @@ export function MarcaRestaurante({ nome, logoUrl, detalhe, tamanho = 40 }: { nom
   return (
     <div className="flex items-center gap-3">
       <span
-        className="grid shrink-0 place-items-center overflow-hidden rounded-full border border-border bg-[#e6faf8] font-display text-[0.95rem] font-semibold text-[#03665f]"
+        className="grid shrink-0 place-items-center overflow-hidden rounded-2xl bg-white p-[3px] font-display text-[1.1rem] font-semibold text-[#03665f] shadow-sm ring-1 ring-black/10"
         style={{ width: tamanho, height: tamanho }}
       >
         {logoUrl ? (
-          <img src={logoUrl} alt={`Logomarca ${nome}`} width={tamanho} height={tamanho} className="h-full w-full object-cover" decoding="async" />
+          <img src={logoUrl} alt={`Logomarca ${nome}`} width={tamanho} height={tamanho} className="h-full w-full rounded-[0.85rem] object-cover" decoding="async" />
         ) : (
           nome.trim().charAt(0).toUpperCase()
         )}
       </span>
       <span className="min-w-0 leading-tight">
-        <span className="block truncate font-display text-[1.05rem] font-medium tracking-[-0.02em]">{nome}</span>
+        <span className="block truncate font-display text-[1.2rem] font-medium leading-tight tracking-[-0.025em]">{nome}</span>
         {detalhe && <span className="block truncate text-xs text-muted-foreground">{detalhe}</span>}
       </span>
     </div>
