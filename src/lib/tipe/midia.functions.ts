@@ -144,7 +144,7 @@ export const usarImagemDoBanco = createServerFn({ method: "POST" })
     const { data: lista } = await db.storage.from("restaurante-midia").list(`${rid}/banco`, { search: data.nome, limit: 5 });
     if (!(lista ?? []).some((f: { name: string }) => f.name === data.nome)) throw new Error("Imagem não encontrada no banco");
     const url = db.storage.from("restaurante-midia").getPublicUrl(`${rid}/banco/${data.nome}`).data.publicUrl as string;
-    const { error } = await db.from("pdv_menu_items").update({ image_url: url }).eq("id", data.itemId);
+    const { error } = await db.from("pdv_menu_items").update({ image_url: url, depth_url: null }).eq("id", data.itemId);
     if (error) throw new Error("Não foi possível aplicar a imagem");
     return { url };
   });
