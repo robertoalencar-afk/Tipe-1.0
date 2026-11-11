@@ -13,7 +13,7 @@ export const AJUDA: Assunto[] = [
     perguntas: [
       { p: "Preciso baixar algum aplicativo?", r: "Não. Você lê o QR Code da mesa com a câmera do celular e a conta abre no navegador. Na primeira vez você informa nome e sobrenome; o celular guarda isso para as próximas visitas à mesma mesa." },
       { p: "O QR Code não abre a conta. O que faço?", r: "Confira se a câmera leu o código inteiro e se a internet está funcionando. Se aparecer que a mesa está fechada, o garçom ainda não abriu a conta ou ela já foi paga. Peça ao garçom para abrir a mesa ou trocar o código." },
-      { p: "Dá para pagar só a minha parte?", r: "Sim. Escolha os itens que você consumiu ou divida em partes iguais, por valor ou por porcentagem. Os itens pagos saem da conta na hora e a tela mostra quanto falta para fechar a mesa." },
+      { p: "Dá para pagar só a minha parte?", r: "Sim. Escolha os itens que você consumiu. Os itens pagos saem da conta na hora e a tela mostra quanto falta para fechar a mesa." },
       { p: "A conta mostra um item que eu não pedi.", r: "Não pague esse item e chame o garçom. Só a equipe do restaurante corrige ou cancela itens lançados." },
     ],
   },
