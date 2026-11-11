@@ -7,11 +7,25 @@ import type { SecaoCentral } from "@/routes/_authenticated/central";
 type Dash = Awaited<ReturnType<typeof getCentralDashboard>>;
 type Ir = (s: SecaoCentral, aba?: string, id?: string) => void;
 
-export function VisaoGeral({ dash, carregando, ir }: { dash: Dash | undefined; carregando: boolean; ir: Ir }) {
+export function VisaoGeral({ dash, carregando, ir, nome }: { dash: Dash | undefined; carregando: boolean; ir: Ir; nome: string }) {
   if (carregando || !dash) return <Esqueleto linhas={6} />;
   const k = dash.kpis;
   return (
     <div className="space-y-6">
+      <section className="relative overflow-hidden rounded-2xl bg-ink p-5 text-white sm:p-6" aria-label="Boas-vindas">
+        <div className="pointer-events-none absolute -right-10 -top-16 size-56 rounded-full bg-brand/25 blur-3xl" aria-hidden />
+        <div className="relative flex flex-wrap items-center justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-sm text-white/65">{new Date().getHours() < 12 ? "Bom dia" : new Date().getHours() < 18 ? "Boa tarde" : "Boa noite"},</p>
+            <h2 className="truncate font-display text-2xl font-medium tracking-heading">{nome.split(" ")[0]}</h2>
+            <p className="mt-0.5 text-sm text-white/65">Fundador · Central Tipe</p>
+          </div>
+          <div className="flex gap-6 text-right">
+            <div><p className="font-display text-3xl font-medium leading-none">{k.pendencias}</p><p className="mt-1 text-xs text-white/60">pendências</p></div>
+            <div><p className="font-display text-3xl font-medium leading-none">{k.oportunidadesAbertas}</p><p className="mt-1 text-xs text-white/60">oportunidades</p></div>
+          </div>
+        </div>
+      </section>
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-6">
         <Kpi label="Restaurantes ativos" value={k.restaurantesAtivos} hint={`${k.restaurantes} cadastrados`} icon={Building2} onClick={() => ir("restaurantes")} />
         <Kpi label={`Novos leads (${dash.periodo} d)`} value={k.novosLeads} delta={k.novosLeadsDelta} icon={Target} onClick={() => ir("comercial", "funil")} />

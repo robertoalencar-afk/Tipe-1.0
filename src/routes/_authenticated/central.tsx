@@ -2,6 +2,8 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { useState } from "react";
+import { Segmentado } from "@/components/tipe/painel/ui";
 import {
   Banknote,
   Bot,
@@ -73,7 +75,8 @@ function Central() {
   const navigate = useNavigate();
   const qc = useQueryClient();
   const fetchDash = useServerFn(getCentralDashboard);
-  const dash = useQuery({ queryKey: ["central-dash", 30], queryFn: () => fetchDash({ data: { dias: 30 } }), refetchInterval: 60_000 });
+  const [dias, setDias] = useState<7 | 30 | 90>(30);
+  const dash = useQuery({ queryKey: ["central-dash", dias], queryFn: () => fetchDash({ data: { dias } }), refetchInterval: 60_000 });
   const k = dash.data?.kpis;
   const meu = useMeuPerfil();
 
@@ -104,6 +107,7 @@ function Central() {
       ambiente="Central Tipe"
       usuario={{ nome: meu.data?.nome || meu.data?.email.split("@")[0] || "Fundador", funcao: "Fundador", detalhe: "Tipe" }}
       onSair={sair}
+      acoes={secao === "inicio" ? <Segmentado label="Período" value={dias} onChange={setDias} options={[[7, "7 d"], [30, "30 d"], [90, "90 d"]] as const} /> : undefined}
       contexto="Área do fundador"
       grupos={grupos}
       ativo={secao}
@@ -117,7 +121,7 @@ function Central() {
         </button>
       }
     >
-      {secao === "inicio" && <VisaoGeral dash={dash.data} carregando={dash.isPending} ir={ir} />}
+      {secao === "inicio" && <VisaoGeral dash={dash.data} carregando={dash.isPending} ir={ir} nome={meu.data?.nome || meu.data?.email.split("@")[0] || "Fundador"} />}
       {secao === "comercial" && <Comercial {...comum} />}
       {secao === "comunicacao" && <Comunicacao {...comum} />}
       {secao === "restaurantes" && <Restaurantes {...comum} />}
