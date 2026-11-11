@@ -46,11 +46,11 @@ export const getMidia = createServerFn({ method: "GET" })
     const sb = context.supabase as unknown as Db;
     const [rest, itens] = await Promise.all([
       sb.from("restaurants").select("logo_url").eq("id", r.id).maybeSingle(),
-      sb.from("pdv_menu_items").select("id, photo_url, photo_depth_url").eq("restaurant_id", r.id),
+      sb.from("pdv_menu_items").select("id, image_url, depth_url").eq("restaurant_id", r.id),
     ]);
     return {
       logoUrl: (rest.data?.logo_url as string | null) ?? null,
-      itens: Object.fromEntries(((itens.data ?? []) as any[]).map((i) => [i.id, { foto: i.photo_url as string | null, profundidade: i.photo_depth_url as string | null }])) as Record<string, { foto: string | null; profundidade: string | null }>,
+      itens: Object.fromEntries(((itens.data ?? []) as any[]).map((i) => [i.id, { foto: i.image_url as string | null, profundidade: i.depth_url as string | null }])) as Record<string, { foto: string | null; profundidade: string | null }>,
     };
   });
 
@@ -74,10 +74,10 @@ export const saveFotoItem = createServerFn({ method: "POST" })
     const { rid, db } = await comoAdmin(context, data.slug);
     const { data: item } = await db.from("pdv_menu_items").select("id").eq("id", data.itemId).eq("restaurant_id", rid).maybeSingle();
     if (!item) throw new Error("Item não encontrado neste restaurante");
-    const coluna = data.tipo === "foto" ? "photo_url" : "photo_depth_url";
+    const coluna = data.tipo === "foto" ? "image_url" : "depth_url";
     const url = data.imagem ? await enviar(db, `${rid}/itens/${data.itemId}-${data.tipo}`, data.imagem) : null;
     const patch: Record<string, unknown> = { [coluna]: url };
-    if (data.tipo === "foto" && !url) patch["photo_depth_url"] = null;
+    if (data.tipo === "foto" && !url) patch["depth_url"] = null;
     const { error } = await db.from("pdv_menu_items").update(patch).eq("id", data.itemId);
     if (error) throw new Error("Não foi possível salvar a imagem");
     return { url };
