@@ -1587,14 +1587,14 @@ function MesasQr({
           Imprimir QR Codes
         </Button>
       </div>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 print:grid-cols-2 print:gap-6">
         {tables.map((t) => (
           <div
             key={t.id}
-            className={`surface-card p-4 sm:p-5 text-center ${t.active ? "" : "opacity-50 print:hidden"}`}
+            className={`surface-card p-4 sm:p-5 text-center print:break-inside-avoid print:rounded-2xl print:border print:border-neutral-300 print:p-6 print:shadow-none ${t.active ? "" : "opacity-50 print:hidden"}`}
           >
             <div className="flex items-center justify-center gap-2">
-              <span className="font-display text-lg font-semibold">Mesa {t.number}</span>
+              <span className="font-display text-lg font-semibold print:text-2xl">Mesa {t.number}</span>
               {!t.active && (
                 <StatusBadge tone="neutral" className="print:hidden">
                   Desativada
@@ -1602,7 +1602,7 @@ function MesasQr({
               )}
             </div>
             <div className="mx-auto my-3 w-fit rounded-xl border border-border bg-white p-2.5">
-              <QRCodeSVG value={link(t)} size={132} />
+              <QRCodeSVG value={link(t)} size={132} className="print:size-48!" />
             </div>
             <div className="break-all text-xs text-muted-foreground">
               {base.replace(/^https?:\/\//, "")}/{slug}/{t.code}
