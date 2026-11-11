@@ -7,10 +7,6 @@ import { SenhaForteInput } from "@/components/tipe/SenhaForte";
 import { CabecalhoConta, TelaConta } from "@/components/tipe/conta/TelaConta";
 import { avaliarSenha, mensagemErroSenha } from "@/lib/tipe/senha";
 import { problemaNoLink, type ProblemaLink } from "@/lib/tipe/recuperar-senha";
-import lebreFeliz from "@/assets/lebre/rosto-feliz.webp";
-import lebreSurpresa from "@/assets/lebre/rosto-surpresa.webp";
-import lebreObrigado from "@/assets/mascot-thanks-hd.webp";
-import lebreEsperando from "@/assets/lebre/rosto-piscando.webp";
 
 type Etapa = "carregando" | "form" | "mfa" | "pronto" | ProblemaLink;
 
@@ -122,7 +118,7 @@ export function RedefinirSenha({ destino }: { destino: "painel" | "garcom" }) {
 
   if (etapa === "carregando")
     return (
-      <TelaConta lebre={lebreEsperando} lebreAlt="Lebre da Tipe piscando" balao="Só um segundinho…">
+      <TelaConta humor="piscando" lebreAlt="Lebre da Tipe piscando" balao="Só um segundinho…">
         <CabecalhoConta titulo="Abrindo seu link…">
           <p>Estamos conferindo se ele ainda vale.</p>
         </CabecalhoConta>
@@ -132,7 +128,7 @@ export function RedefinirSenha({ destino }: { destino: "painel" | "garcom" }) {
   if (etapa === "expirado" || etapa === "invalido")
     return (
       <TelaConta
-        lebre={lebreSurpresa}
+        humor="surpresa"
         lebreAlt="Lebre da Tipe surpresa"
         balao="Opa! Esse link já era."
         fundo="laranja"
@@ -170,7 +166,7 @@ export function RedefinirSenha({ destino }: { destino: "painel" | "garcom" }) {
   if (etapa === "pronto")
     return (
       <TelaConta
-        lebre={lebreObrigado}
+        humor="obrigado"
         lebreAlt="Lebre da Tipe comemorando"
         balao="Senha nova, vida nova!"
         fundo="marinho"
@@ -195,7 +191,7 @@ export function RedefinirSenha({ destino }: { destino: "painel" | "garcom" }) {
 
   return (
     <TelaConta
-      lebre={lebreFeliz}
+      humor="feliz"
       lebreAlt="Lebre da Tipe sorrindo"
       balao="Bora de senha nova? Escolha uma que só você saiba."
     >

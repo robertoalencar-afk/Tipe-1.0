@@ -1,3 +1,4 @@
+import { trackCta } from "@/lib/tipe/tracking";
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
 import { ArrowRight, ChevronDown, Instagram, Menu, MessageCircle, X } from "lucide-react";
@@ -17,9 +18,9 @@ import { cn } from "@/lib/utils";
 import { useHeaderEscondido } from "./motion";
 
 const NAV = [
-  { href: "/produtos/ai", label: "Tipe AI" },
+  { href: "/produtos/ai", label: "Lebre" },
   { href: "/integracoes", label: "Integrações" },
-  { href: "/precos", label: "Preços" },
+  { href: "/precos", label: "Planos" },
 ] as const;
 
 /** Logo oficial; troca para a versão branca quando o fundo da página fica escuro. */
@@ -239,9 +240,10 @@ export function LandingHeader() {
             </Link>
             <a
               href="/teste-gratis"
+              onClick={() => trackCta("demonstracao_header")}
               className="btn-tema com-fios hidden h-11 items-center gap-2 rounded-full pl-6 pr-5 text-[0.95rem] font-medium sm:inline-flex"
             >
-              Teste grátis
+              Demonstração
               <SetaFios auto />
             </a>
             <button
@@ -345,10 +347,13 @@ export function LandingHeader() {
               </Link>
               <a
                 href="/teste-gratis"
-                onClick={() => setMenu(false)}
+                onClick={() => {
+                  trackCta("demonstracao_menu_mobile");
+                  setMenu(false);
+                }}
                 className="btn-tema com-fios flex h-12 items-center justify-center gap-2 rounded-full font-medium"
               >
-                Teste grátis
+                Demonstração
                 <SetaFios auto />
               </a>
             </div>
@@ -363,7 +368,7 @@ export function LandingHeader() {
         tabIndex={escondido ? undefined : -1}
         className="cta-fixo btn-tema com-fios fixed right-4 top-3 z-40 inline-flex h-11 items-center gap-2 rounded-full pl-6 pr-5 text-[0.95rem] font-medium shadow-lift sm:right-6"
       >
-        Teste grátis
+        Demonstração
         <SetaFios auto />
       </a>
     </>
@@ -418,9 +423,10 @@ export function LandingFooter() {
           {!noTeste && (
             <a
               href="/teste-gratis"
+              onClick={() => trackCta("demonstracao_final")}
               className="com-fios inline-flex min-h-14 items-center justify-center gap-2.5 rounded-full bg-[#021E34] pl-8 pr-7 text-lg font-medium text-white transition-colors hover:bg-[#06304f]"
             >
-              Começar o teste grátis
+              Solicitar demonstração
               <SetaFios />
             </a>
           )}
@@ -473,12 +479,12 @@ export function LandingFooter() {
               </li>
               <li>
                 <a href="/precos" className={a}>
-                  Preços
+                  Planos
                 </a>
               </li>
               <li>
                 <a href="/teste-gratis" className={a}>
-                  Teste grátis
+                  Demonstração
                 </a>
               </li>
               <li>

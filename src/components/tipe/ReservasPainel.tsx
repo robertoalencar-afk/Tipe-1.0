@@ -1,4 +1,4 @@
-// Tipe Guest · Fase 5: seção "Reservas" do painel do restaurante.
+// Tipe Reserva · Fase 5: seção "Reservas" do painel do restaurante.
 // Só é montada quando a flag guest.reservations está ligada (ver RestaurantPanel). Equipe opera o dia;
 // o dono configura. O check-in registra a mesa; a conta e o pagamento da mesa seguem iguais.
 import { useQuery, useQueryClient } from "@tanstack/react-query";

@@ -18,7 +18,7 @@ import { ErroPagina, botaoPrimario, botaoSecundario } from "@/components/tipe/Er
 import { AvisoSemInternet } from "@/components/tipe/AvisoSemInternet";
 import { WhatsAppFloat } from "@/components/tipe/WhatsAppFloat";
 import { BarraNavegacao } from "@/components/tipe/BarraNavegacao";
-import { captureAttribution, loadMeasurement } from "@/lib/tipe/tracking";
+import { captureAttribution, loadMeasurement, trackPagina } from "@/lib/tipe/tracking";
 import {
   carregarSupabase,
   EVENTO_SUPABASE_PRONTO,
@@ -179,10 +179,20 @@ function RootComponent() {
     )
       return;
     loadMeasurement();
+    // Troca de rota na SPA: nova visualização de página (só com consentimento).
+    let ultimo = window.location.pathname;
+    const sair = router.subscribe("onResolved", () => {
+      if (window.location.pathname === ultimo) return;
+      ultimo = window.location.pathname;
+      trackPagina();
+    });
     const on = () => loadMeasurement();
     window.addEventListener("tipe:consent", on);
-    return () => window.removeEventListener("tipe:consent", on);
-  }, []);
+    return () => {
+      sair();
+      window.removeEventListener("tipe:consent", on);
+    };
+  }, [router]);
 
   // Dentro de um iframe (simulador embutido na landing) o aviso de cookies e o
   // botão do WhatsApp já aparecem na página que contém o iframe.

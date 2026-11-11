@@ -99,9 +99,9 @@ export const CARDAPIO: ItemSim[] = [
 export const POR_CODE = Object.fromEntries(CARDAPIO.map((i) => [i.code, i])) as Record<string, ItemSim>;
 
 export const METODOS_PAY: { id: MetodoPay; nome: string; desc: string }[] = [
-  { id: "pix", nome: "Pix", desc: "Copia e cola ou QR Code" },
-  { id: "apple_pay", nome: "Apple Pay", desc: "Com Face ID ou Touch ID" },
-  { id: "google_pay", nome: "Google Pay", desc: "Com a carteira do Google" },
+  { id: "pix", nome: "Pix (piloto)", desc: "Copia e cola ou QR Code" },
+  { id: "apple_pay", nome: "Apple Pay (piloto)", desc: "Com Face ID ou Touch ID" },
+  { id: "google_pay", nome: "Google Pay (piloto)", desc: "Com a carteira do Google" },
   { id: "estabelecimento", nome: "Pagar no estabelecimento", desc: "A equipe confirma no caixa" },
 ];
 

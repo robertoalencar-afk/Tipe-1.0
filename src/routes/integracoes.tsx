@@ -3,9 +3,9 @@ import { FaixaDuplaIntegracoes, HubIntegracoes, ListaIntegracoes } from "@/compo
 import { CatalogoIntegracoes } from "@/components/tipe/site/integracoes/CatalogoIntegracoes";
 import { BotaoPrincipal, BotaoSecundario, FaixaCta, Secao, SitePage, Titulo } from "@/components/tipe/site/Site";
 
-const TITLE = "Integrações · Pix, Apple Pay, Google Pay e o seu PDV | Tipe";
+const TITLE = "Integrações da Tipe · Pagamentos, PDV e o que vem a seguir";
 const DESC =
-  "Conecte a Tipe ao seu PDV, delivery, ERP, emissor de nota e maquininhas: Saipos, iFood, Omie, Bling, TOTVS e mais, com passo a passo para cada sistema.";
+  "Veja o que a Tipe integra hoje (Lançamento TIPE, API TIPE, pagamentos digitais em piloto) e o que está em desenvolvimento ou planejado para PDVs, delivery, ERP e nota fiscal.";
 
 export const Route = createFileRoute("/integracoes")({
   head: () => ({
@@ -29,11 +29,11 @@ function Integracoes() {
           <Titulo
             as="h1"
             rotulo="Integrações"
-            titulo="A Tipe entra no jeito que você já trabalha."
-            texto="PDV, delivery, ERP, nota fiscal e maquininhas. Escolha o seu sistema, envie a chave ou o arquivo, e a Tipe liga."
+            titulo="Integrações com status claro."
+            texto="Hoje você opera pelo Lançamento TIPE ou envia mesas e itens pela API TIPE. Pagamentos digitais estão em piloto e outros sistemas entram por integração assistida. Mostramos o que está pronto e o que ainda não."
           />
           <div className="flex flex-wrap gap-3 lg:justify-end">
-            <BotaoPrincipal>Teste grátis</BotaoPrincipal>
+            <BotaoPrincipal>Falar com a equipe</BotaoPrincipal>
             <BotaoSecundario href="#conectar">Escolher o meu sistema</BotaoSecundario>
           </div>
         </div>
@@ -45,8 +45,8 @@ function Integracoes() {
         <div className="container-page">
           <Titulo
             rotulo="Conecta com"
-            titulo="O que você já usa, ligado à Tipe."
-            texto="Em cima, o que a Tipe faz. Embaixo, os sistemas que ela conecta."
+            titulo="O que existe hoje e o que está a caminho."
+            texto="Em cima, o que a Tipe faz. Embaixo, os sistemas que queremos conectar. Nenhum deles está homologado ainda."
           />
         </div>
         <div className="mt-12 sm:mt-16">
@@ -58,7 +58,7 @@ function Integracoes() {
           <Titulo
             rotulo="Passo a passo"
             titulo="Escolha o seu sistema."
-            texto="Cada sistema tem o seu caminho: chave de API, autorização da conta, arquivo ou certificado. Toque e veja o passo a passo."
+            texto="Cada sistema tem o seu caminho previsto: chave de API, autorização da conta, arquivo ou certificado. A ativação é assistida pela nossa equipe e combinada caso a caso."
             className="mb-10"
           />
           <CatalogoIntegracoes />

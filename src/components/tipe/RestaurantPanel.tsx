@@ -181,7 +181,7 @@ const secoes = [
     l: "Reservas",
     i: CalendarDays,
     g: "Operação",
-    // Só aparece com a flag guest.reservations ligada para o restaurante (Tipe Guest).
+    // Só aparece com a flag guest.reservations ligada para o restaurante (Tipe Reserva).
     flag: "reservas",
     d: "Reservas do dia, chegadas, mesas, lista de espera e regras de horário.",
   },

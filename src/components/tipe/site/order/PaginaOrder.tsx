@@ -236,7 +236,7 @@ const PASSOS: {
   {
     n: "04",
     t: "Pague",
-    d: "Na aba Pagar está a conta com tudo o que foi pedido. Apple Pay, Google Pay, Pix ou no estabelecimento.",
+    d: "Na aba Pagar está a conta com tudo o que foi pedido. Dinheiro ou maquininha no local; Pix, Apple Pay e Google Pay em piloto.",
     icone: Wallet,
     tela: "order-conta",
     alt: "Conta da Mesa 12 com o pastel de camarão, o serviço e o botão Pagar R$ 74,80 (dados de exemplo)",
@@ -414,7 +414,7 @@ function Contato({ estado }: { estado: EstadoLancamento }) {
 /* ---------------------------------------------------------- Integrações e disponibilidade */
 
 const INTEGRACOES: { t: string; d: string; estado: "operacional" | "piloto" | "desenvolvimento" | "planejada" }[] = [
-  { t: "Tipe Pay", d: "Único caminho do dinheiro: Apple Pay, Google Pay, Pix ou no estabelecimento.", estado: "operacional" },
+  { t: "Tipe Pay", d: "Único caminho do dinheiro: dinheiro ou maquininha no local; Pix, Apple Pay e Google Pay em piloto.", estado: "piloto" },
   { t: "Tipe Cozinha e Tipe Equipe", d: "Pedidos por mesa, senha ou comanda na mesma tela.", estado: "operacional" },
   { t: "Painel de senhas na TV", d: "Balcão e retirada mostram a senha pronta em qualquer tela com navegador.", estado: "piloto" },
   { t: "Terminal de pagamento no totem", d: "Pagamento na maquininha, sem passar pelo caixa, quando o terminal for homologado.", estado: "desenvolvimento" },

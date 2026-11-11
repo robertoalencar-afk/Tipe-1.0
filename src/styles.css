@@ -1692,7 +1692,7 @@
     animation: none;
   }
 }
-/* Avisos do Tipe Staff: o mais novo desce do topo, os outros abrem espaço. */
+/* Avisos do Tipe Equipe: o mais novo desce do topo, os outros abrem espaço. */
 @keyframes aviso-chega {
   from {
     opacity: 0;
@@ -2078,3 +2078,36 @@
     animation: none !important;
   }
 }
+
+/* Lebre: o painel abre num salto curto, as mensagens entram rápido e o "pensando"
+   são três passos de lebre. Com movimento reduzido, tudo aparece parado. */
+@keyframes lebre-abre {
+  from { opacity: 0; transform: translateY(14px) scale(0.98); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes lebre-entra {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes lebre-passo {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.35; }
+  30% { transform: translateY(-5px); opacity: 1; }
+}
+.lebre-painel { animation: lebre-abre var(--dur-media) cubic-bezier(0.16, 1, 0.3, 1) both; transform-origin: bottom right; }
+.lebre-entra { animation: lebre-entra var(--dur-media) cubic-bezier(0.16, 1, 0.3, 1) both; }
+.lebre-passos > span { display: block; width: 7px; height: 7px; border-radius: 9999px; background: var(--brand-primary); animation: lebre-passo 0.9s ease-in-out infinite; }
+.lebre-passos > span:nth-child(2) { animation-delay: 0.12s; }
+.lebre-passos > span:nth-child(3) { animation-delay: 0.24s; }
+@media (prefers-reduced-motion: reduce) {
+  .lebre-painel, .lebre-entra { animation: none; }
+  .lebre-passos > span { animation: none; opacity: 0.7; }
+}
+
+/* Lebre cansada nas telas de conta: os "zzz" sobem devagar. */
+@keyframes tipe-zzz {
+  0% { opacity: 0; transform: translate(0, 6px); }
+  30%, 70% { opacity: 1; }
+  100% { opacity: 0; transform: translate(10px, -14px); }
+}
+.tipe-zzz { animation: tipe-zzz 2.8s ease-in-out infinite; font-size: clamp(1rem, 6%, 1.6rem); }
+@media (prefers-reduced-motion: reduce) { .tipe-zzz { animation: none; } }

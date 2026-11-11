@@ -4,7 +4,7 @@ export const FAQ_ORDER: [string, string][] = [
   ["Preciso de aplicativo?", "Não. Nem o cliente nem a equipe instalam nada: tudo roda no navegador do celular, do tablet ou do totem."],
   ["Como a equipe libera a mesa?", "No Tipe Equipe, o garçom ou o caixa abre a mesa, com ou sem código de 4 dígitos, conforme a configuração do restaurante. Sem a liberação, o QR só mostra o cardápio."],
   ["O pedido vai direto para a cozinha?", "Nas mesas, comanda e pulseira, sim: ao enviar. No balcão, na retirada e no totem, só depois de o caixa confirmar o pagamento."],
-  ["Como o cliente paga?", "Pelo Tipe Pay, com Apple Pay, Google Pay, Pix ou no estabelecimento. Não há cartão digitado. O Tipe Pay é o único gateway do pedido, inclusive no totem."],
+  ["Como o cliente paga?", "Pelo Tipe Pay: dinheiro ou maquininha no estabelecimento; Pix, Apple Pay e Google Pay estão em piloto. Não há cartão digitado. O Tipe Pay é o único gateway do pedido, inclusive no totem."],
   ["Posso ter mais de uma modalidade ao mesmo tempo?", "Sim. O cadastro de cardápio é um só; o restaurante escolhe em Tipe Gestão → Configurações → Atendimento quais formatos ficam ligados. Só modalidades prontas podem ser ligadas."],
   ["Quanto tempo leva para implantar?", "Mesas: o cardápio, as mesas e o QR Code são configurados no Tipe Gestão e a equipe treina em uma tarde. As outras modalidades entram conforme a disponibilidade de cada uma."],
   ["O que é a Tipe Pulseira?", "Uma pulseira NFC, gravada pela Tipe e numerada, ligada a uma comanda individual. O cliente aproxima o celular (ou lê o QR da pulseira) para pedir e pagar. Está em planejamento."],

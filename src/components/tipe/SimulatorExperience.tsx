@@ -7,6 +7,7 @@ import {
   ChevronRight,
   ClipboardList,
   HandCoins,
+  ListChecks,
   QrCode,
   ReceiptText,
   Smartphone,
@@ -18,6 +19,8 @@ import { QRCodeSVG } from "qrcode.react";
 import { TipeLogo } from "@/components/tipe/Logo";
 import { markSimulatorUsed } from "@/lib/tipe/tracking";
 import { SplitPicker } from "@/components/tipe/SplitPicker";
+import { DividirConta } from "@/components/tipe/DividirConta";
+import { remainingSubtotal, type ShareItem } from "@/lib/tipe/bill-math";
 import {
   TIP_SPLIT,
   gorjetaMaxima,
@@ -110,20 +113,20 @@ const formatPortion = (value: number) => {
 
 const METHOD_DETAILS: Record<Method, { label: string; description: string; Icon: typeof QrCode }> =
   {
-    pix: { label: "Pix", description: "Confirmação simulada na hora", Icon: QrCode },
+    pix: { label: "Pix", description: "Em piloto · aprovado na hora na simulação", Icon: QrCode },
     apple_pay: {
       label: "Apple Pay",
-      description: "Um toque no iPhone, aprovado na simulação",
+      description: "Em piloto · um toque no iPhone, aprovado na simulação",
       Icon: Smartphone,
     },
     google_pay: {
       label: "Google Pay",
-      description: "Um toque no Android, aprovado na simulação",
+      description: "Em piloto · um toque no Android, aprovado na simulação",
       Icon: WalletCards,
     },
     at_establishment: {
       label: "Pagar no estabelecimento",
-      description: "Dinheiro ou maquininha",
+      description: "Dinheiro ou maquininha, confirmado pelo caixa",
       Icon: HandCoins,
     },
   };
@@ -208,12 +211,10 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
     () => ITEMS.reduce((sum, item) => sum + item.price * (quantities[item.id] ?? 0), 0),
     [quantities],
   );
+  const tableTotal = useMemo(() => ITEMS.reduce((sum, item) => sum + item.price * item.qty, 0), []);
   const [feeWaived, setFeeWaived] = useState(false);
   const service = resolveServiceFee(subtotal, feeWaived ? 0 : 0.1, { kind: "suggested" })!.amount;
   const total = +(subtotal + service).toFixed(2);
-  const allSelected = ITEMS.every(
-    (item) => Math.abs((quantities[item.id] ?? 0) - available(item.id, item.qty)) < EPSILON,
-  );
   const pendingEstablishmentPayment = demo.payments.find(
     (payment) => payment.status === "pending" && payment.establishmentMethod,
   );
@@ -433,10 +434,11 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
       {stage === "bill" && (
         <main className="flex flex-1 flex-col px-5 pb-8">
           <h1 className="mt-1 text-[1.9rem] font-medium leading-[1.06] tracking-[-0.035em]">
-            Olá, {name.trim()}.
+            Olá, {name.trim().split(" ")[0]}.
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Atendimento de <strong className="text-foreground">Carlos</strong>
+            Você está sendo atendido por{" "}
+            <strong className="font-semibold text-foreground">Carlos</strong>.
           </p>
           <ChamarEquipeSimulado />
           <div className="mb-6 mt-5 grid grid-cols-2 gap-1 rounded-full bg-muted p-1">
@@ -473,30 +475,83 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
               </div>
             ) : (
               <>
-                {ITEMS.some((item) => available(item.id, item.qty) > 0) && (
-                  <Button
-                    variant={allSelected ? "default" : "outline"}
-                    onClick={() =>
-                      setQuantities(
-                        Object.fromEntries(
-                          ITEMS.map((item) => [
-                            item.id,
-                            allSelected ? 0 : available(item.id, item.qty),
-                          ]),
-                        ),
-                      )
-                    }
-                    className="mb-3 h-12 w-full font-display text-base"
-                  >
-                    <ReceiptText /> {allSelected ? "Limpar seleção" : "Pagar a conta inteira"}
-                  </Button>
-                )}
-                <h2 className="font-display text-lg font-semibold tracking-heading">
-                  O que você vai pagar?
+                {ITEMS.some((item) => available(item.id, item.qty) > 0) &&
+                  (() => {
+                    const itensDivisao: ShareItem[] = ITEMS.map((item) => ({
+                      code: item.id,
+                      unitPrice: item.price,
+                      ordered: item.qty,
+                      available: available(item.id, item.qty),
+                    }));
+                    const fee = feeWaived ? 0 : 0.1;
+                    const emAberto = remainingSubtotal(itensDivisao);
+                    const emAbertoComTaxa = +(
+                      emAberto + resolveServiceFee(emAberto, fee, { kind: "suggested" })!.amount
+                    ).toFixed(2);
+                    const algumPago = demo.payments.length > 0;
+                    const tudo = Object.fromEntries(
+                      ITEMS.map((item) => [item.id, available(item.id, item.qty)]),
+                    );
+                    return (
+                      <section
+                        aria-labelledby="em-aberto-title"
+                        className="rounded-[1.75rem] bg-background-muted p-5"
+                      >
+                        <p id="em-aberto-title" className="text-sm text-muted-foreground">
+                          {algumPago ? "Ainda em aberto na mesa" : "Total da mesa"}
+                        </p>
+                        <p className="money mt-1 text-[2.75rem] font-medium leading-none tracking-[-0.045em]">
+                          {money(emAbertoComTaxa)}
+                        </p>
+                        <p className="mt-2 text-xs text-muted-foreground">
+                          {fee <= 0
+                            ? "Sem taxa de serviço nesta conta."
+                            : "Inclui a taxa de serviço de 10%."}
+                        </p>
+                        <Button
+                          onClick={() => {
+                            setQuantities(tudo);
+                            setStage("payment");
+                          }}
+                          className="mt-5 h-13 w-full justify-between px-6 font-display text-base"
+                        >
+                          <span>Pagar tudo</span>
+                          <span className="money">{money(emAbertoComTaxa)}</span>
+                        </Button>
+                        <div className="mt-2 grid grid-cols-2 gap-2">
+                          <DividirConta
+                            items={itensDivisao}
+                            serviceRate={fee}
+                            triggerClassName="h-12 w-full rounded-full bg-card font-display text-[0.95rem] font-medium"
+                            onApply={(q) =>
+                              setQuantities(
+                                Object.fromEntries(ITEMS.map((item) => [item.id, q[item.id] ?? 0])),
+                              )
+                            }
+                            onPay={() => setStage("payment")}
+                          />
+                          <Button
+                            variant="outline"
+                            onClick={() =>
+                              document
+                                .getElementById("itens-da-conta")
+                                ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                            }
+                            className="h-12 w-full bg-card font-display text-[0.95rem] font-medium"
+                          >
+                            <ListChecks /> Escolher itens
+                          </Button>
+                        </div>
+                      </section>
+                    );
+                  })()}
+                <h2
+                  id="itens-da-conta"
+                  className="mt-8 scroll-mt-4 font-display text-lg font-medium tracking-heading"
+                >
+                  Ou escolha o que você vai pagar
                 </h2>
-                <p className="mb-4 mt-1 text-sm text-muted-foreground">
-                  Escolha quanto de cada item ficará com você.
-                </p>
+                <div className="mb-3" />
                 <ul className="flex flex-col gap-3">
                   {ITEMS.filter((item) => available(item.id, item.qty) > 0).map((item) => {
                     const qty = quantities[item.id] ?? 0;
@@ -599,7 +654,8 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
                   })}
                 </ul>
                 <div className="mt-6 rounded-2xl border border-border bg-card p-5 text-sm shadow-sm">
-                  <Summary label="Subtotal selecionado" value={subtotal} />
+                  <Summary label="Total da mesa" value={tableTotal} />
+                  <Summary label="Subtotal selecionado" value={subtotal} className="mt-2" />
                   <Summary
                     label={
                       feeWaived
@@ -610,7 +666,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
                     className="mt-2"
                   />
                   <Summary
-                    label="Total da conta"
+                    label="Total a pagar"
                     value={total}
                     className="mt-3 border-t border-border pt-3 font-display text-base font-extrabold"
                   />
@@ -713,8 +769,9 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
 
       {stage === "payment" && (
         <PaymentScreen
-          title="Pagamento da conta"
-          description="Este pagamento corresponde apenas aos itens escolhidos. Após a confirmação, a conta da mesa será atualizada automaticamente."
+          title="Como você quer pagar?"
+          valueLabel="Sua parte da conta"
+          description="Este pagamento cobre só os itens que você escolheu. Depois da confirmação, a conta da mesa é atualizada sozinha."
           value={total}
           method={method}
           setMethod={setMethod}
@@ -786,11 +843,28 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
           />
           <p className="eyebrow text-brand-strong">Conta paga</p>
           <h1 className="mt-2 text-[1.9rem] font-medium leading-[1.06] tracking-[-0.035em]">
-            Pagamento confirmado!
+            Pagamento realizado!
           </h1>
-          <p className="mt-3 text-sm leading-6 text-muted-foreground">
-            {money(paidAmount)} enviados ao Maré Alta.
+          <p className="mt-2 text-[0.95rem] text-muted-foreground">
+            Obrigado, {name.trim().split(" ")[0]}, por pagar com o TIPE.
           </p>
+          <dl className="mt-7 w-full rounded-2xl border border-border bg-card p-4 text-left text-sm">
+            {[
+              ["Valor pago", money(paidAmount)],
+              ["Forma de pagamento", method ? METHOD_DETAILS[method].label : "—"],
+              ["Restaurante", "Maré Alta"],
+              ["Mesa", "12"],
+              [
+                "Data e hora",
+                new Date().toLocaleString("pt-BR", { dateStyle: "short", timeStyle: "short" }),
+              ],
+            ].map(([k, v]) => (
+              <div key={k} className="flex items-center justify-between gap-3 py-1.5">
+                <dt className="text-muted-foreground">{k}</dt>
+                <dd className="money font-semibold">{v}</dd>
+              </div>
+            ))}
+          </dl>
           <div className="mt-8 w-full space-y-2">
             {!tipPaid && (
               <Button onClick={startTip} className="h-12 w-full font-display text-base">
@@ -1132,6 +1206,7 @@ function PaymentScreen<M extends Method | Exclude<Method, "at_establishment">>({
   extra,
   title,
   description,
+  valueLabel = "Total",
   value,
   method,
   setMethod,
@@ -1148,6 +1223,7 @@ function PaymentScreen<M extends Method | Exclude<Method, "at_establishment">>({
   extra?: React.ReactNode;
   title: string;
   description: string;
+  valueLabel?: string;
   value: number;
   method: M | null;
   setMethod: (method: M) => void;
@@ -1161,7 +1237,8 @@ function PaymentScreen<M extends Method | Exclude<Method, "at_establishment">>({
   cashReceived?: string;
   setCashReceived?: (value: string) => void;
 }) {
-  // Restaurante fictício: Pix, Apple Pay e Google Pay são aprovados na hora, sem cobrança real.
+  // Restaurante fictício: Pix, Apple Pay e Google Pay (em piloto no produto) são aprovados na hora, sem cobrança real.
+  // REGRA: quando o fluxo real da plataforma mudar, este simulador deve mudar junto (ver docs/simuladores.md).
   const methods = (Object.keys(METHOD_DETAILS) as Method[]).filter(
     (item) => allowEstablishment || item !== "at_establishment",
   ) as M[];
@@ -1177,7 +1254,7 @@ function PaymentScreen<M extends Method | Exclude<Method, "at_establishment">>({
       <h1 className="text-[1.9rem] font-medium leading-[1.06] tracking-[-0.035em]">{title}</h1>
       <p className="mt-2 text-sm leading-6 text-muted-foreground">{description}</p>
       <div className="my-6 rounded-[1.5rem] bg-background-muted px-5 py-7 text-center">
-        <p className="text-sm text-muted-foreground">Total</p>
+        <p className="text-sm text-muted-foreground">{valueLabel}</p>
         <p className="money mt-1.5 text-[2.9rem] font-medium leading-none tracking-[-0.04em]">
           {money(value)}
         </p>

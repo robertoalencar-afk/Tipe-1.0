@@ -12,7 +12,7 @@ describe("respostaFaq", () => {
 
   it("apresenta o Tipe Pay como carro chefe e os outros produtos", () => {
     expect(respostaFaq("como funciona a TIPE?")).toContain("carro chefe da TIPE é o Tipe Pay");
-    expect(respostaFaq("quais produtos vocês têm?")).toContain("Tipe Kitchen");
+    expect(respostaFaq("quais produtos vocês têm?")).toContain("Tipe Cozinha");
     expect(respostaFaq("dá para pedir pelo celular?")).toContain("Tipe Order");
   });
 

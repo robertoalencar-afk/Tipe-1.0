@@ -356,7 +356,7 @@ export const NOME_MODULO: Record<ModuloTipe, string> = {
 };
 
 export const PAPEL_MODULO: Record<ModuloTipe, string> = {
-  pay: "A conta da mesa no celular: dividir, pagar com Apple Pay, Google Pay, Pix ou no estabelecimento.",
+  pay: "A conta da mesa no celular: dividir, pagar no estabelecimento; Pix, Apple Pay e Google Pay em piloto.",
   order: "O cardápio e o pedido pelo celular do cliente, no mesmo QR Code da conta.",
   kitchen: "A tela da cozinha e do bar: cada pedido com tempo, setor e status.",
   staff: "O app do garçom: mesas, liberação de pedidos, avisos de prato pronto e gorjetas.",

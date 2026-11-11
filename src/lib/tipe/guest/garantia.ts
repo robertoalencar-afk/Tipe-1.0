@@ -1,4 +1,4 @@
-// Tipe Guest · taxa de garantia da reserva (modelo OpenTable). Regras puras, em centavos.
+// Tipe Reserva · taxa de garantia da reserva (modelo OpenTable). Regras puras, em centavos.
 // O cliente paga um valor simbólico para confirmar; no dia ele vira crédito na conta da mesa.
 // Cancelou no prazo ou o restaurante cancelou: devolução integral. Cancelou fora do prazo ou não
 // apareceu: o valor fica com o Tipe (decisão do Roberto, 03/11). Estornos: a tarifa é do Tipe.
