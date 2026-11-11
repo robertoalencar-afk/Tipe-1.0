@@ -88,7 +88,7 @@ const FAQ: { label: string; faqs: [string, string][] }[] = [
       ],
       [
         "Dá para pagar só a minha parte?",
-        "Sim. Cada pessoa escolhe o que vai pagar, item por item, ou divide a conta em partes iguais, por valor ou por porcentagem. Os itens pagos saem da conta na hora e a tela mostra quanto ainda falta para fechar a mesa.",
+        "Sim. Cada pessoa escolhe o que vai pagar, item por item. Os itens pagos saem da conta na hora e a tela mostra quanto ainda falta para fechar a mesa.",
       ],
       [
         "Como funciona a gorjeta extra?",
