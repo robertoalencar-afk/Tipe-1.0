@@ -19,7 +19,7 @@ const FAQ: Array<{ chave: RegExp; resposta: string }> = [
   {
     chave: /\b(quanto custa|preco|precos|valor|valores|plano|planos|mensalidade|cobra)\b/,
     resposta:
-      "Os valores dos planos serão divulgados no lançamento. Enquanto isso, você pode testar a TIPE por 30 dias grátis, sem cartão, em /cadastro.",
+      "A assinatura é mensal, pelo número de mesas, sem tarifa da TIPE por transação: o restaurante paga só as tarifas do Pagar.me. Os valores serão divulgados no lançamento, e os planos estão em /precos. Dá para testar 30 dias grátis, sem cartão, em /cadastro.",
   },
   {
     chave: /\b(gratis|teste|testar|trial|experimentar)\b/,
@@ -29,17 +29,27 @@ const FAQ: Array<{ chave: RegExp; resposta: string }> = [
   {
     chave: /\b(pdv|integra|integracao|integracoes|sistema que (eu )?uso|homologad)/,
     resposta:
-      "O restaurante conecta o PDV que já usa, e qualquer PDV do mercado é aceito. A equipe da TIPE confirma a compatibilidade com o seu sistema antes de ativar.",
+      "A TIPE tem PDV próprio, o Lançamento TIPE, para lançar os pedidos no próprio painel sem outro sistema. Se você já usa um PDV, dá para conectar pela API TIPE ou pelos conectores (Saipos, Consumer, Linx, TOTVS Chef e outros), com integração assistida pela equipe. Veja em /integracoes.",
   },
   {
-    chave: /\b(apple pay|google pay|carteira digital)\b/,
+    chave: /\b(apple pay|google pay|carteira digital|formas? de pagamento|pix)\b/,
     resposta:
-      "Apple Pay e Google Pay dependem da habilitação comercial do provedor de pagamento. A equipe da TIPE confirma a disponibilidade para o seu restaurante.",
+      "Na conta da mesa, o cliente paga com Pix, Apple Pay ou Google Pay, ou escolhe pagar no estabelecimento. O dinheiro cai direto na conta do restaurante, pelo Pagar.me.",
   },
   {
-    chave: /\b(como funciona|o que e a tipe|o que a tipe faz|qr ?code)\b/,
+    chave: /\b(como funciona|o que e a tipe|o que a tipe faz|qr ?code|tipe pay)\b/,
     resposta:
-      "A TIPE leva a conta para o celular pelo QR Code da mesa, sem baixar nada. O cliente vê os itens, escolhe o que vai pagar e pode dividir um item por duas, três ou quatro pessoas.",
+      "O carro chefe da TIPE é o Tipe Pay: a conta abre no celular pelo QR Code da mesa, sem baixar nada. O cliente vê os itens, escolhe o que vai pagar, pode dividir um item e paga com Pix, Apple Pay ou Google Pay. Além dele, há o Tipe Order (pedido pelo celular), o Tipe Cozinha (tela da cozinha), o Tipe Equipe (área do garçom), o Tipe Gestão (painel) e eu, a Lebre.",
+  },
+  {
+    chave: /\b(produtos|modulos|funcionalidades|recursos)\b/,
+    resposta:
+      "Os produtos da TIPE são o Tipe Pay (conta e pagamento pelo QR Code da mesa, o carro chefe), o Tipe Order (cardápio e pedido pelo celular), o Tipe Cozinha (tela da cozinha e do bar), o Tipe Equipe (gorjetas e área do garçom), o Tipe Gestão (painel, caixa e relatórios) e a Lebre, a inteligência artificial da Tipe, que sou eu. O Tipe Reserva, de reservas e lista de espera, vem em breve.",
+  },
+  {
+    chave: /\b(cardapio|pedir pelo celular|fazer pedido|tipe order)\b/,
+    resposta:
+      "Com o Tipe Order, o mesmo QR Code da conta abre o cardápio: o cliente pede pelo celular, o pedido vai para a cozinha e entra na conta da mesa. É um módulo adicional do Tipe Pay.",
   },
   {
     chave: /\b(baixar|aplicativo|app)\b/,
@@ -50,6 +60,11 @@ const FAQ: Array<{ chave: RegExp; resposta: string }> = [
     chave: /\b(dinheiro|maquininha|pagar no (caixa|estabelecimento))\b/,
     resposta:
       "Dá para pagar no estabelecimento, em dinheiro ou na maquininha. Esse pagamento aparece para o restaurante confirmar.",
+  },
+  {
+    chave: /\b(gorjeta|gorjetas)\b/,
+    resposta:
+      "Depois que a conta está paga, o cliente pode dar uma gorjeta extra, como um segundo pagamento separado e opcional. 70% vão para quem atendeu e 30% são a taxa da plataforma.",
   },
   {
     chave: /\b(cadastrar|cadastro|criar (a |minha )?conta|comecar)\b/,

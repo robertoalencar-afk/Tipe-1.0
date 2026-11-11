@@ -4,10 +4,11 @@ import { TIP_SPLIT } from "./rules";
 
 export type Destino = "garcom" | "gestao";
 /** Tipos que cada pessoa pode silenciar em cada celular. */
-export const TIPOS_AVISO = ["pagamento", "gorjeta", "nota", "saque"] as const;
+export const TIPOS_AVISO = ["pagamento", "chamado", "gorjeta", "nota", "saque"] as const;
 export type TipoAviso = (typeof TIPOS_AVISO)[number];
 export const NOME_TIPO_AVISO: Record<TipoAviso, string> = {
   pagamento: "Pagamentos das mesas",
+  chamado: "Chamados das mesas",
   gorjeta: "Gorjetas",
   nota: "Notas baixas",
   saque: "Saques via Pix",
@@ -96,6 +97,18 @@ export function avisoDeNota(
     corpo: texto,
     url: "/garcom",
     tag: `nota-${mesa}`,
+    para: ["garcom", "gestao"],
+  };
+}
+
+/** Cliente tocou "Chamar garçom" ou "Pedir a conta": avisa o garçom da mesa e a gestão. */
+export function avisoDeChamado(slug: string, mesa: string, tipo: "waiter" | "bill"): Aviso {
+  return {
+    tipo: "chamado",
+    titulo: tipo === "bill" ? `Mesa ${mesa} pediu a conta` : `Mesa ${mesa} chamou o garçom`,
+    corpo: tipo === "bill" ? "Leve a maquininha ou ajude com o pagamento." : "Passe na mesa.",
+    url: `/${slug}`,
+    tag: `chamado-${mesa}-${tipo}`,
     para: ["garcom", "gestao"],
   };
 }

@@ -1,6 +1,7 @@
 // Envia os avisos da equipe por web push. Nunca derruba o fluxo que chamou:
 // sem chaves VAPID não faz nada, e qualquer erro ou demora é engolido.
 import {
+  avisoDeChamado,
   avisoDeNota,
   avisoDePagamento,
   avisoDeSaque,
@@ -187,5 +188,20 @@ export function avisarSaque(
       await destinatarios(admin, saque.restaurantId, saque.waiterId, aviso),
       aviso,
     );
+  });
+}
+
+/** Avisa o garçom da mesa e a gestão quando o cliente chama pela conta do QR. */
+export function avisarChamado(
+  admin: Admin,
+  restaurantId: string,
+  waiterId: string | null,
+  slug: string,
+  mesa: string,
+  tipo: "waiter" | "bill",
+) {
+  return comLimite(async () => {
+    const aviso = avisoDeChamado(slug, mesa, tipo);
+    await entregar(admin, await destinatarios(admin, restaurantId, waiterId, aviso), aviso);
   });
 }

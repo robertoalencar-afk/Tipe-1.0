@@ -40,7 +40,9 @@ const ORDEM: CenarioId[] = ["conservador", "referencia", "otimista"];
 function Grupo({ titulo, children }: { titulo: string; children: ReactNode }) {
   return (
     <fieldset className="space-y-4">
-      <legend className="mb-3 text-[0.72rem] font-medium uppercase tracking-[0.08em] text-[#021E34]/45">{titulo}</legend>
+      <legend className="mb-3 text-[0.72rem] font-medium uppercase tracking-[0.08em] text-[#021E34]/45">
+        {titulo}
+      </legend>
       {children}
     </fieldset>
   );
@@ -56,7 +58,11 @@ function SeletorCenario({
   onChange: (c: CenarioId) => void;
 }) {
   return (
-    <div role="radiogroup" aria-label="Cenário" className="grid grid-cols-3 gap-1 rounded-full bg-white/[0.07] p-1">
+    <div
+      role="radiogroup"
+      aria-label="Cenário"
+      className="grid grid-cols-3 gap-1 rounded-full bg-white/[0.07] p-1"
+    >
       {ORDEM.map((id) => {
         const ativo = valor === id;
         return (
@@ -105,15 +111,33 @@ function Destaque({
     <div
       className={cn(
         "flex min-w-0 flex-col rounded-[1.1rem] border p-3.5 transition-colors duration-500 sm:p-4",
-        principal ? "border-transparent bg-[#0FC9BD] text-[#021E34]" : "border-white/10 bg-white/[0.05] text-white",
+        principal
+          ? "border-transparent bg-[#0FC9BD] text-[#021E34]"
+          : "border-white/10 bg-white/[0.05] text-white",
       )}
     >
       <div className="flex items-start justify-between gap-2">
-        <p className={cn("text-[0.75rem] leading-snug sm:text-[0.8rem]", principal ? "text-[#021E34]/75" : "text-white/65")}>{rotulo}</p>
-        <BotaoAjuda aberto={ativo} onClick={onAjuda} controla="giro-explicacao" rotulo={rotulo} tom={principal ? "claro" : "escuro"} />
+        <p
+          className={cn(
+            "text-[0.75rem] leading-snug sm:text-[0.8rem]",
+            principal ? "text-[#021E34]/75" : "text-white/65",
+          )}
+        >
+          {rotulo}
+        </p>
+        <BotaoAjuda
+          aberto={ativo}
+          onClick={onAjuda}
+          controla="giro-explicacao"
+          rotulo={rotulo}
+          tom={principal ? "claro" : "escuro"}
+        />
       </div>
       {vazio ? (
-        <p className="mt-2 text-[0.85rem] leading-snug text-white/85 sm:text-[0.9rem]" data-card={id}>
+        <p
+          className="mt-2 text-[0.85rem] leading-snug text-white/85 sm:text-[0.9rem]"
+          data-card={id}
+        >
           {vazio}
         </p>
       ) : (
@@ -124,7 +148,14 @@ function Destaque({
           <NumeroAnimado valor={valor} formatar={formatar} />
         </p>
       )}
-      <p className={cn("mt-2 text-[0.72rem] leading-snug sm:text-[0.75rem]", principal ? "text-[#021E34]/70" : "text-white/55")}>{sub}</p>
+      <p
+        className={cn(
+          "mt-2 text-[0.72rem] leading-snug sm:text-[0.75rem]",
+          principal ? "text-[#021E34]/70" : "text-white/55",
+        )}
+      >
+        {sub}
+      </p>
     </div>
   );
 }
@@ -136,12 +167,16 @@ export function CalculadoraGiro() {
   const [custoEditado, setCustoEditado] = useState(false);
   const [card, setCard] = useState<IdCard | null>(null);
   const premissas = useRef<HTMLDetailsElement>(null);
+  const personalizar = useRef<HTMLDetailsElement>(null);
   const abrirPremissas = () => {
     const d = premissas.current;
     if (!d) return;
+    if (personalizar.current) personalizar.current.open = true;
     d.open = true;
     d.scrollIntoView({ behavior: "smooth", block: "start" });
-    d.querySelector<HTMLInputElement>("[data-campo-retorno] input[type=text]")?.focus({ preventScroll: true });
+    d.querySelector<HTMLInputElement>("[data-campo-retorno] input[type=text]")?.focus({
+      preventScroll: true,
+    });
   };
 
   const r = useMemo(() => calcular({ ...base, ...params }), [base, params]);
@@ -157,10 +192,12 @@ export function CalculadoraGiro() {
     (v: number | null) =>
       setBase((b) => {
         const novo = { ...b, [k]: v } as Base;
-        if (k === "mesas" && !custoEditado && SHOW_PLAN_PRICES) novo.custoTipeMensal = custoInicial(Number(v) || 0);
+        if (k === "mesas" && !custoEditado && SHOW_PLAN_PRICES)
+          novo.custoTipeMensal = custoInicial(Number(v) || 0);
         return novo;
       });
-  const setP = (k: keyof ParametrosCenario) => (v: number | null) => setParams((p) => ({ ...p, [k]: v ?? 0 }));
+  const setP = (k: keyof ParametrosCenario) => (v: number | null) =>
+    setParams((p) => ({ ...p, [k]: v ?? 0 }));
   const trocarCenario = (c: CenarioId) => {
     setCenario(c);
     setParams(CENARIOS[c].parametros);
@@ -169,7 +206,11 @@ export function CalculadoraGiro() {
     setBase((b) => {
       if (b.unidadeContas === u) return b;
       const s = Math.max(1, b.servicosPorDia);
-      return { ...b, unidadeContas: u, contas: Math.round(u === "dia" ? b.contas * s : b.contas / s) };
+      return {
+        ...b,
+        unidadeContas: u,
+        contas: Math.round(u === "dia" ? b.contas * s : b.contas / s),
+      };
     });
 
   const restricaoTexto = {
@@ -193,10 +234,11 @@ export function CalculadoraGiro() {
       titulo: "Tempo potencialmente recuperado",
       texto: (
         <>
-          {numero(r.contasAdotantesServico, 1)} contas pagas pelo QR por serviço × {numero(r.economiaEfetivaMin, 1)} min economizados
-          em cada uma × {numero(e.servicosPorDia * e.diasPorMes)} serviços no mês. É o tempo que a equipe deixa de gastar levando
-          conta e maquininha. Não vira economia de folha. Para comparar, a Sunday divulga {INDICADORES_SUNDAY.minutosPorGarcomTurno}{" "}
-          min por garçom por turno na rede dele.
+          {numero(r.contasAdotantesServico, 1)} contas pagas pelo QR por serviço ×{" "}
+          {numero(r.economiaEfetivaMin, 1)} min economizados em cada uma ×{" "}
+          {numero(e.servicosPorDia * e.diasPorMes)} serviços no mês. É o tempo que a equipe deixa de
+          gastar levando conta e maquininha. Não vira economia de folha. Para comparar, a Sunday
+          divulga {INDICADORES_SUNDAY.minutosPorGarcomTurno} min por garçom por turno na rede dele.
         </>
       ),
     },
@@ -204,9 +246,10 @@ export function CalculadoraGiro() {
       titulo: "Capacidade adicional estimada",
       texto: (
         <>
-          {numero(e.mesas)} mesas × {numero(e.duracaoServicoMin)} min de serviço ÷ ciclo da mesa. O ciclo cai de{" "}
-          {numero(r.cicloAtualMin, 1)} para {numero(r.cicloProjetadoMin, 1)} min porque {pct(e.adocaoPct)} das contas economizam{" "}
-          {numero(r.economiaEfetivaMin, 1)} min no pagamento. É capacidade, não venda: só conta se houver cliente esperando mesa.
+          {numero(e.mesas)} mesas × {numero(e.duracaoServicoMin)} min de serviço ÷ ciclo da mesa. O
+          ciclo cai de {numero(r.cicloAtualMin, 1)} para {numero(r.cicloProjetadoMin, 1)} min porque{" "}
+          {pct(e.adocaoPct)} das contas economizam {numero(r.economiaEfetivaMin, 1)} min no
+          pagamento. É capacidade, não venda: só conta se houver cliente esperando mesa.
         </>
       ),
     },
@@ -214,11 +257,19 @@ export function CalculadoraGiro() {
       titulo: "Receita incremental condicionada à demanda",
       texto: (
         <>
-          Contas extras por serviço = menor valor entre capacidade adicional ({numero(r.capacidadeAdicional, 1)}), procura não
-          atendida menos a folga que já existe ({numero(r.demandaAtribuivel, 1)}) e limite da operação (
-          {e.limiteOperacional === null ? "não informado" : numero(e.limiteOperacional)}). Resultado:{" "}
-          {numero(r.contasExtrasServico, 1)} por serviço, {numero(r.contasExtrasMes)} no mês, × {brl(e.ticketMedio)} de tíquete.
-          {r.receitaTicketMes > 0 && <> Inclui {brl(r.receitaTicketMes)} do aumento de tíquete que você informou, em linha separada.</>}
+          Contas extras por serviço = menor valor entre capacidade adicional (
+          {numero(r.capacidadeAdicional, 1)}), procura não atendida menos a folga que já existe (
+          {numero(r.demandaAtribuivel, 1)}) e limite da operação (
+          {e.limiteOperacional === null ? "não informado" : numero(e.limiteOperacional)}).
+          Resultado: {numero(r.contasExtrasServico, 1)} por serviço, {numero(r.contasExtrasMes)} no
+          mês, × {brl(e.ticketMedio)} de tíquete.
+          {r.receitaTicketMes > 0 && (
+            <>
+              {" "}
+              Inclui {brl(r.receitaTicketMes)} do aumento de tíquete que você informou, em linha
+              separada.
+            </>
+          )}
         </>
       ),
     },
@@ -227,15 +278,19 @@ export function CalculadoraGiro() {
       texto:
         r.resultadoLiquidoMes === null ? (
           <>
-            {mensagemVazia} em “Mais premissas”. Sem esses dados, não estimamos resultado: faturamento não é lucro. A receita e o
-            tempo continuam calculados.
+            {mensagemVazia} em “Mais premissas”. Sem esses dados, não estimamos resultado:
+            faturamento não é lucro. A receita e o tempo continuam calculados.
           </>
         ) : (
           <>
-            Margem de {pct(e.margemPct ?? 0)} sobre {brl(r.receitaIncrementalMes)} = {brl(r.margemIncrementalMes ?? 0)}, menos{" "}
-            {brl(e.custoTipeMensal ?? 0)} da assinatura da Tipe
-            {e.custosVariaveisMensais > 0 && <> e {brl(e.custosVariaveisMensais)} de custos extras</>}.
-            {r.roiPct !== null && <> Retorno sobre o custo: {pct(r.roiPct)}.</>} Gorjetas não entram.
+            Margem de {pct(e.margemPct ?? 0)} sobre {brl(r.receitaIncrementalMes)} ={" "}
+            {brl(r.margemIncrementalMes ?? 0)}, menos {brl(e.custoTipeMensal ?? 0)} da assinatura da
+            Tipe
+            {e.custosVariaveisMensais > 0 && (
+              <> e {brl(e.custosVariaveisMensais)} de custos extras</>
+            )}
+            .{r.roiPct !== null && <> Retorno sobre o custo: {pct(r.roiPct)}.</>} Gorjetas não
+            entram.
           </>
         ),
     },
@@ -259,34 +314,51 @@ export function CalculadoraGiro() {
   const contasMes = r.contasPorServico * e.servicosPorDia * e.diasPorMes;
 
   return (
-    <section id="calculadora" data-tema="claro" aria-label="Calculadora de giro de mesas" className="scroll-mt-16 py-14 sm:py-20 lg:py-24">
+    <section
+      id="calculadora"
+      data-tema="claro"
+      aria-label="Calculadora de giro de mesas"
+      className="scroll-mt-16 py-14 sm:py-20 lg:py-28"
+    >
       <style>{ESTILO_SLIDER}</style>
       <div className="container-page">
         <Titulo
           rotulo="Calculadora de giro"
           titulo="Quanto vale cada minuto no seu salão?"
-          texto="Uma estimativa transparente com os seus números. Ajuste as hipóteses e veja de onde vem cada resultado."
+          texto="Veja quanto tempo seu restaurante poderia recuperar com pagamentos mais rápidos. É uma estimativa com os seus números, não uma garantia."
         />
 
         <div className="mt-10 grid items-start gap-4 sm:mt-12 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)] lg:gap-5">
           {/* ------------------------------------------------ Dados do restaurante */}
           <div className="rounded-[1.6rem] border border-[#021E34]/10 bg-white p-5 sm:p-7">
             <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-              <h3 className="text-[1.15rem] font-medium tracking-[-0.02em] text-[#021E34]">Seu restaurante</h3>
-              <p className="text-[0.75rem] text-[#021E34]/50">Valores iniciais são hipóteses demonstrativas</p>
+              <h3 className="text-[1.15rem] font-medium tracking-[-0.02em] text-[#021E34]">
+                Seu restaurante
+              </h3>
+              <p className="text-[0.75rem] text-[#021E34]/50">
+                Comece com três números. Os valores iniciais são exemplos
+              </p>
             </div>
             <div className="mt-6 space-y-7">
-              <Grupo titulo="Salão e serviço">
+              <Grupo titulo="Para começar">
                 <Campo rotulo="Mesas" valor={e.mesas} onChange={setB("mesas")} min={1} max={80} />
                 <Campo
-                  rotulo={e.unidadeContas === "dia" ? "Contas fechadas por dia" : "Contas fechadas por serviço"}
+                  rotulo={
+                    e.unidadeContas === "dia"
+                      ? "Contas fechadas por dia"
+                      : "Contas fechadas por serviço"
+                  }
                   valor={base.contas}
                   onChange={setB("contas")}
                   min={0}
                   max={e.unidadeContas === "dia" ? 800 : 400}
                   ajuda="Uma conta é uma mesa atendida, do sentar ao pagamento. Use a média de um serviço normal."
                   extra={
-                    <div role="radiogroup" aria-label="Unidade das contas" className="mt-1 inline-flex rounded-full bg-[#021E34]/[0.05] p-0.5 text-[0.72rem]">
+                    <div
+                      role="radiogroup"
+                      aria-label="Unidade das contas"
+                      className="mt-1 inline-flex rounded-full bg-[#021E34]/[0.05] p-0.5 text-[0.72rem]"
+                    >
                       {(["servico", "dia"] as const).map((u) => (
                         <button
                           key={u}
@@ -296,7 +368,9 @@ export function CalculadoraGiro() {
                           onClick={() => trocarUnidade(u)}
                           className={cn(
                             "h-7 rounded-full px-3 transition-colors focus-visible:outline-2 focus-visible:outline-[#0FC9BD]",
-                            base.unidadeContas === u ? "bg-white text-[#021E34] shadow-[0_1px_2px_rgb(2_30_52/0.12)]" : "text-[#021E34]/55",
+                            base.unidadeContas === u
+                              ? "bg-white text-[#021E34] shadow-[0_1px_2px_rgb(2_30_52/0.12)]"
+                              : "text-[#021E34]/55",
                           )}
                         >
                           por {u === "dia" ? "dia" : "serviço"}
@@ -305,7 +379,36 @@ export function CalculadoraGiro() {
                     </div>
                   }
                 />
-                <Campo rotulo="Tíquete médio por conta" prefixo="R$" valor={e.ticketMedio} onChange={setB("ticketMedio")} min={10} max={600} passo={5} />
+                <Campo
+                  rotulo="Tempo para fechar uma conta"
+                  sufixo="min"
+                  valor={e.esperaPagamentoMin}
+                  onChange={setB("esperaPagamentoMin")}
+                  min={0}
+                  max={40}
+                  ajuda="Do pedido da conta ao pagamento: chamar o garçom, esperar a conta, dividir, esperar a maquininha e pagar. Se não souber, deixe o valor de exemplo."
+                />
+              </Grupo>
+
+              <details
+                ref={personalizar}
+                className="group scroll-mt-24 rounded-2xl border border-[#021E34]/10 px-4 py-3"
+              >
+                <summary className="flex min-h-11 cursor-pointer list-none items-center justify-between gap-3 rounded-md text-[0.95rem] font-medium text-[#021E34] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#0FC9BD] [&::-webkit-details-marker]:hidden">
+                  Personalizar os cálculos
+                  <ChevronDown className="h-4 w-4 transition-transform duration-300 group-open:rotate-180" aria-hidden />
+                </summary>
+                <div className="mt-5 space-y-7">
+              <Grupo titulo="Salão e serviço">
+                <Campo
+                  rotulo="Tíquete médio por conta"
+                  prefixo="R$"
+                  valor={e.ticketMedio}
+                  onChange={setB("ticketMedio")}
+                  min={10}
+                  max={600}
+                  passo={5}
+                />
                 <Campo
                   rotulo="Horário efetivo do serviço"
                   sufixo="min"
@@ -317,23 +420,40 @@ export function CalculadoraGiro() {
                   ajuda="O tempo em que o salão realmente recebe clientes num serviço (almoço ou jantar), sem contar preparo e fechamento."
                 />
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <Campo rotulo="Serviços por dia" valor={e.servicosPorDia} onChange={setB("servicosPorDia")} min={1} max={4} />
-                  <Campo rotulo="Dias abertos por mês" valor={e.diasPorMes} onChange={setB("diasPorMes")} min={1} max={31} />
+                  <Campo
+                    rotulo="Serviços por dia"
+                    valor={e.servicosPorDia}
+                    onChange={setB("servicosPorDia")}
+                    min={1}
+                    max={4}
+                  />
+                  <Campo
+                    rotulo="Dias abertos por mês"
+                    valor={e.diasPorMes}
+                    onChange={setB("diasPorMes")}
+                    min={1}
+                    max={31}
+                  />
                 </div>
               </Grupo>
 
               <Grupo titulo="Tempos da mesa">
-                <Campo rotulo="Tempo na mesa até pedir a conta" sufixo="min" valor={e.permanenciaMin} onChange={setB("permanenciaMin")} min={10} max={240} />
                 <Campo
-                  rotulo="Do pedido da conta ao pagamento"
+                  rotulo="Tempo na mesa até pedir a conta"
                   sufixo="min"
-                  valor={e.esperaPagamentoMin}
-                  onChange={setB("esperaPagamentoMin")}
-                  min={0}
-                  max={40}
-                  ajuda="Chamar o garçom, esperar a conta, dividir, esperar a maquininha e pagar. A economia do cenário nunca passa deste tempo."
+                  valor={e.permanenciaMin}
+                  onChange={setB("permanenciaMin")}
+                  min={10}
+                  max={240}
                 />
-                <Campo rotulo="Liberar e preparar a mesa" sufixo="min" valor={e.liberacaoMin} onChange={setB("liberacaoMin")} min={0} max={30} />
+                <Campo
+                  rotulo="Liberar e preparar a mesa"
+                  sufixo="min"
+                  valor={e.liberacaoMin}
+                  onChange={setB("liberacaoMin")}
+                  min={0}
+                  max={30}
+                />
               </Grupo>
 
               <Grupo titulo="Movimento">
@@ -348,10 +468,16 @@ export function CalculadoraGiro() {
                 />
               </Grupo>
 
-              <details ref={premissas} className="group scroll-mt-24 border-t border-[#021E34]/8 pt-5">
+              <details
+                ref={premissas}
+                className="group scroll-mt-24 border-t border-[#021E34]/8 pt-5"
+              >
                 <summary className="flex cursor-pointer list-none items-center justify-between gap-3 rounded-md text-[0.9rem] font-medium text-[#021E34] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#0FC9BD] [&::-webkit-details-marker]:hidden">
                   Mais premissas (opcional)
-                  <ChevronDown className="h-4 w-4 transition-transform duration-300 group-open:rotate-180" aria-hidden />
+                  <ChevronDown
+                    className="h-4 w-4 transition-transform duration-300 group-open:rotate-180"
+                    aria-hidden
+                  />
                 </summary>
                 <div className="mt-5 space-y-7">
                   <Grupo titulo="Operação">
@@ -365,10 +491,26 @@ export function CalculadoraGiro() {
                       max={40}
                       ajuda="Quantas mesas a mais por serviço cozinha e equipe conseguem atender bem. Vazio: sem limite informado."
                     />
-                    <Campo rotulo="Garçons por serviço" opcional valor={e.garcons} onChange={setB("garcons")} min={0} max={40} />
+                    <Campo
+                      rotulo="Garçons por serviço"
+                      opcional
+                      valor={e.garcons}
+                      onChange={setB("garcons")}
+                      min={0}
+                      max={40}
+                    />
                   </Grupo>
                   <Grupo titulo="Gorjetas (fora do faturamento)">
-                    <Campo rotulo="Gorjeta média atual" sufixo="% da conta" opcional valor={e.gorjetaAtualPct} onChange={setB("gorjetaAtualPct")} min={0} max={25} casas={0} />
+                    <Campo
+                      rotulo="Gorjeta média atual"
+                      sufixo="% da conta"
+                      opcional
+                      valor={e.gorjetaAtualPct}
+                      onChange={setB("gorjetaAtualPct")}
+                      min={0}
+                      max={25}
+                      casas={0}
+                    />
                     <Campo
                       rotulo="Aumento relativo da gorjeta no QR"
                       sufixo="%"
@@ -411,7 +553,15 @@ export function CalculadoraGiro() {
                         }
                       />
                     </div>
-                    <Campo rotulo="Outros custos extras por mês" prefixo="R$" valor={e.custosVariaveisMensais} onChange={setB("custosVariaveisMensais")} min={0} max={5000} passo={10} />
+                    <Campo
+                      rotulo="Outros custos extras por mês"
+                      prefixo="R$"
+                      valor={e.custosVariaveisMensais}
+                      onChange={setB("custosVariaveisMensais")}
+                      min={0}
+                      max={5000}
+                      passo={10}
+                    />
                     <Campo
                       rotulo="Aumento de tíquete nas contas do QR"
                       sufixo="%"
@@ -422,6 +572,8 @@ export function CalculadoraGiro() {
                       ajuda="Começa em 0%. Fica numa linha separada da receita por giro e só vale para as contas que já existem, para não contar duas vezes."
                     />
                   </Grupo>
+                </div>
+              </details>
                 </div>
               </details>
             </div>
@@ -436,11 +588,15 @@ export function CalculadoraGiro() {
             <div className="relative">
               <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
                 <h3 className="text-[1.15rem] font-medium tracking-[-0.02em]">Com a Tipe</h3>
-                <p className="text-[0.75rem] text-white/50">Cenários são hipóteses{ajustado ? " · ajustado por você" : ""}</p>
+                <p className="text-[0.75rem] text-white/50">
+                  Cenários são hipóteses{ajustado ? " · ajustado por você" : ""}
+                </p>
               </div>
               <div className="mt-4">
                 <SeletorCenario valor={cenario} ajustado={ajustado} onChange={trocarCenario} />
-                <p className="mt-2.5 text-[0.75rem] leading-relaxed text-white/55">{CENARIOS[cenario].origem}</p>
+                <p className="mt-2.5 text-[0.75rem] leading-relaxed text-white/55">
+                  {CENARIOS[cenario].origem}
+                </p>
               </div>
 
               <div className="mt-5 grid gap-4 sm:grid-cols-2">
@@ -485,7 +641,9 @@ export function CalculadoraGiro() {
                   sub={
                     <>
                       {duracao(r.tempoRecuperadoServicoMin)} por serviço
-                      {r.tempoPorGarcomServicoMin !== null && <> · {numero(r.tempoPorGarcomServicoMin)} min por garçom</>}
+                      {r.tempoPorGarcomServicoMin !== null && (
+                        <> · {numero(r.tempoPorGarcomServicoMin)} min por garçom</>
+                      )}
                     </>
                   }
                   ativo={card === "tempo"}
@@ -498,7 +656,8 @@ export function CalculadoraGiro() {
                   formatar={(n) => `+${numero(n, 1)}`}
                   sub={
                     <>
-                      contas · de {numero(r.capacidadeAtual, 1)} para {numero(r.capacidadeProjetada, 1)}
+                      contas · de {numero(r.capacidadeAtual, 1)} para{" "}
+                      {numero(r.capacidadeProjetada, 1)}
                     </>
                   }
                   ativo={card === "capacidade"}
@@ -554,11 +713,13 @@ export function CalculadoraGiro() {
                 )}
               </div>
 
-              {r.avisos.filter((a) => !a.includes("limitada")).map((a) => (
-                <p key={a} className="mt-3 text-[0.75rem] text-[#F5B841]">
-                  {a}
-                </p>
-              ))}
+              {r.avisos
+                .filter((a) => !a.includes("limitada"))
+                .map((a) => (
+                  <p key={a} className="mt-3 text-[0.75rem] text-[#F5B841]">
+                    {a}
+                  </p>
+                ))}
 
               <table className="mt-6 w-full text-left text-[0.8rem] tabular-nums">
                 <caption className="sr-only">Comparação sem Tipe e com Tipe</caption>
@@ -577,8 +738,16 @@ export function CalculadoraGiro() {
                 </thead>
                 <tbody className="[&_td]:border-t [&_td]:border-white/10 [&_td]:py-2 [&_th]:border-t [&_th]:border-white/10 [&_th]:py-2">
                   {[
-                    ["Espera pelo pagamento", `${numero(e.esperaPagamentoMin, 1)} min`, `${numero(Math.max(0, e.esperaPagamentoMin - r.reducaoCicloMin), 1)} min`],
-                    ["Ciclo da mesa", `${numero(r.cicloAtualMin, 1)} min`, `${numero(r.cicloProjetadoMin, 1)} min`],
+                    [
+                      "Espera pelo pagamento",
+                      `${numero(e.esperaPagamentoMin, 1)} min`,
+                      `${numero(Math.max(0, e.esperaPagamentoMin - r.reducaoCicloMin), 1)} min`,
+                    ],
+                    [
+                      "Ciclo da mesa",
+                      `${numero(r.cicloAtualMin, 1)} min`,
+                      `${numero(r.cicloProjetadoMin, 1)} min`,
+                    ],
                     ["Contas atendidas", numero(contasMes), numero(contasMes + r.contasExtrasMes)],
                     ["Faturamento", brl(r.faturamentoAtualMes), brl(fatMesCom)],
                   ].map(([n, a, b]) => (
@@ -610,9 +779,13 @@ export function CalculadoraGiro() {
           <div className="grid gap-4 lg:gap-5">
             <div className="rounded-[1.4rem] border border-[#021E34]/10 bg-white p-5 sm:p-6">
               <p className="text-[0.95rem] font-medium text-[#021E34]">Gorjetas da equipe</p>
-              <p className="mt-0.5 text-[0.8rem] text-[#021E34]/55">Fora do faturamento do restaurante</p>
+              <p className="mt-0.5 text-[0.8rem] text-[#021E34]/55">
+                Fora do faturamento do restaurante
+              </p>
               {r.gorjeta === null ? (
-                <p className="mt-4 text-[0.85rem] text-[#021E34]/70">Informe a gorjeta média atual em “Mais premissas” para estimar.</p>
+                <p className="mt-4 text-[0.85rem] text-[#021E34]/70">
+                  Informe a gorjeta média atual em “Mais premissas” para estimar.
+                </p>
               ) : (
                 <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-[0.82rem]">
                   <div>
@@ -623,11 +796,15 @@ export function CalculadoraGiro() {
                   </div>
                   <div>
                     <dt className="text-[#021E34]/55">Gorjeta atual por conta</dt>
-                    <dd className="mt-0.5 text-[1.25rem] font-medium tracking-[-0.03em] text-[#021E34] tabular-nums">{brl(r.gorjeta.atualPorConta, true)}</dd>
+                    <dd className="mt-0.5 text-[1.25rem] font-medium tracking-[-0.03em] text-[#021E34] tabular-nums">
+                      {brl(r.gorjeta.atualPorConta, true)}
+                    </dd>
                   </div>
                   <div>
                     <dt className="text-[#021E34]/55">Garçom da mesa (70%)</dt>
-                    <dd className="mt-0.5 tabular-nums text-[#021E34]">{brl(r.gorjeta.garcomMes)}</dd>
+                    <dd className="mt-0.5 tabular-nums text-[#021E34]">
+                      {brl(r.gorjeta.garcomMes)}
+                    </dd>
                   </div>
                   <div>
                     <dt className="text-[#021E34]/55">Tipe (30%)</dt>
@@ -638,20 +815,33 @@ export function CalculadoraGiro() {
             </div>
             <div className="rounded-[1.4rem] border border-[#021E34]/10 bg-white p-5 sm:p-6">
               <p className="text-[0.95rem] font-medium text-[#021E34]">Para comparar, sem somar</p>
-              <p className="mt-0.5 text-[0.8rem] text-[#021E34]/55">Sua projeção ao lado dos indicadores da Sunday</p>
+              <p className="mt-0.5 text-[0.8rem] text-[#021E34]/55">
+                Sua projeção ao lado dos indicadores da Sunday
+              </p>
               <ul className="mt-4 space-y-2.5 text-[0.82rem] leading-snug text-[#021E34]/75">
                 <li className="flex justify-between gap-3">
                   <span>Receita nova sobre o faturamento atual</span>
                   <span className="shrink-0 tabular-nums text-[#021E34]">
-                    {pct(r.faturamentoAtualMes > 0 ? (r.receitaIncrementalMes / r.faturamentoAtualMes) * 100 : 0, 1)}{" "}
-                    <span className="text-[#021E34]/45">· Sunday: até {INDICADORES_SUNDAY.faturamentoPct}%</span>
+                    {pct(
+                      r.faturamentoAtualMes > 0
+                        ? (r.receitaIncrementalMes / r.faturamentoAtualMes) * 100
+                        : 0,
+                      1,
+                    )}{" "}
+                    <span className="text-[#021E34]/45">
+                      · Sunday: até {INDICADORES_SUNDAY.faturamentoPct}%
+                    </span>
                   </span>
                 </li>
                 <li className="flex justify-between gap-3">
                   <span>Tempo por garçom</span>
                   <span className="shrink-0 tabular-nums text-[#021E34]">
-                    {r.tempoPorGarcomServicoMin === null ? "—" : `${numero(r.tempoPorGarcomServicoMin)} min/serviço`}{" "}
-                    <span className="text-[#021E34]/45">· Sunday: {INDICADORES_SUNDAY.minutosPorGarcomTurno} min/turno</span>
+                    {r.tempoPorGarcomServicoMin === null
+                      ? "—"
+                      : `${numero(r.tempoPorGarcomServicoMin)} min/serviço`}{" "}
+                    <span className="text-[#021E34]/45">
+                      · Sunday: {INDICADORES_SUNDAY.minutosPorGarcomTurno} min/turno
+                    </span>
                   </span>
                 </li>
                 <li className="flex justify-between gap-3">
@@ -678,8 +868,8 @@ export function CalculadoraGiro() {
             <Fios />
           </a>
           <p className="max-w-xl text-[0.75rem] leading-relaxed text-[#021E34]/55">
-            Os números desta página ficam no seu navegador. Eles só seguem para a Tipe se você enviar o cadastro, junto com os seus
-            dados de contato.
+            Os números desta página ficam no seu navegador. Eles só seguem para a Tipe se você
+            enviar o cadastro, junto com os seus dados de contato.
           </p>
         </div>
       </div>

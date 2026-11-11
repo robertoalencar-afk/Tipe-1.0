@@ -227,7 +227,7 @@
       "breakpoints": true
     },
     {
-      "idx": 31,
+      "idx": 32,
       "version": "7",
       "when": 1792414200000,
       "tag": "0033_ai_provider_quota",
@@ -236,26 +236,54 @@
     {
       "idx": 33,
       "version": "7",
+      "when": 1792700000000,
+      "tag": "0037_integration_requests",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1792700600000,
+      "tag": "0038_order_disponivel",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
       "when": 1792500000000,
       "tag": "0040_guest_reviews_consent",
       "breakpoints": true
     },
     {
-      "idx": 34,
+      "idx": 36,
       "version": "7",
       "when": 1792500600000,
       "tag": "0041_founding_partner_program",
       "breakpoints": true
     },
     {
-      "idx": 35,
+      "idx": 37,
       "version": "7",
       "when": 1792600000000,
       "tag": "0042_guest_reservations",
       "breakpoints": true
     },
     {
-      "idx": 36,
+      "idx": 38,
+      "version": "7",
+      "when": 1793000000000,
+      "tag": "0053_cash_expected_server",
+      "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1793100000000,
+      "tag": "0054_table_calls",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
       "version": "7",
       "when": 1792700000000,
       "tag": "0043_guest_walkin_queue",

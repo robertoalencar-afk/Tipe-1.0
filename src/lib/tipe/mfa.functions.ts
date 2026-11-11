@@ -1,6 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireSupabaseAuth, requireSupabaseAuthAal1 } from "@/integrations/supabase/auth-middleware";
 
 async function sha256(s: string) {
   const h = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(s));
@@ -28,7 +28,7 @@ export const generateRecoveryCodes = createServerFn({ method: "POST" })
 
 /** Usa um código de recuperação: remove o autenticador perdido para cadastrar um novo. */
 export const redeemRecoveryCode = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireSupabaseAuthAal1])
   .inputValidator((d) => z.object({ code: z.string().min(6).max(20) }).parse(d))
   .handler(async ({ data, context }) => {
     const { enforceRate, logSecurityEvent } = await import("./security.server");

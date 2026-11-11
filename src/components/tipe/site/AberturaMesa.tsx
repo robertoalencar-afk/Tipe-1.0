@@ -9,7 +9,6 @@ import { Check, Heart, Star, Divide } from "lucide-react";
 import { Palavras } from "@/components/tipe/landing/motion";
 import { TRIAL_DAYS } from "@/lib/tipe/plans";
 import { cn } from "@/lib/utils";
-import { Focinho } from "./Bigode";
 import { CelularReal, useSequencia, type EtapaCelular } from "./CelularReal";
 import { Foto } from "./Foto";
 import { BotaoPrincipal, BotaoSecundario } from "./Site";
@@ -121,7 +120,7 @@ function Aviso({ etapa, className }: { etapa: Etapa; className?: string }) {
   );
 }
 
-export function AberturaMesa() {
+export function AberturaMesa({ secao = false }: { secao?: boolean } = {}) {
   const [palco, ativo] = useAtivo<HTMLDivElement>();
   const [indice] = useSequencia(ETAPAS.length, MS, ativo);
   const etapa = ETAPAS[indice]!;
@@ -145,49 +144,85 @@ export function AberturaMesa() {
     e.currentTarget.style.setProperty("--py", "0");
   };
 
-  return (
-    <section data-tema="claro" className="relative -mt-16 overflow-hidden pt-16">
-      <div className="container-page grid items-center gap-10 pb-14 pt-8 sm:pt-14 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)] lg:gap-8 lg:pb-12 lg:pt-16">
-        <div className="text-center lg:text-left">
-          <Palavras
-            as="p"
-            imediato
-            className="block font-display text-[clamp(1.05rem,0.95rem+0.45vw,1.35rem)] tracking-[-0.02em] text-brand-strong"
-          >
-            Pagamento na mesa por QR Code
+  const textoTopo = (
+    <>
+      <Palavras
+        as="p"
+        imediato
+        className="block font-display text-[clamp(1.05rem,0.95rem+0.45vw,1.35rem)] tracking-[-0.02em] text-brand-strong"
+      >
+        Tipe Pay · Pagamento na mesa para restaurantes
+      </Palavras>
+      <h1 className="mt-4 font-display text-[clamp(3rem,1.2rem+5vw,5.25rem)] font-normal leading-[0.94] tracking-[-0.055em]">
+        <Palavras imediato delay={200}>
+          Pague.
+        </Palavras>{" "}
+        <span className="whitespace-nowrap">
+          <Palavras imediato delay={340}>
+            Sem esperar.
           </Palavras>
-          <h1 className="mt-4 font-display text-[clamp(3rem,1.2rem+5vw,5.25rem)] font-normal leading-[0.94] tracking-[-0.055em]">
-            <Palavras imediato delay={200}>
-              Pague.
-            </Palavras>{" "}
-            <span className="whitespace-nowrap">
-              <Palavras imediato delay={340}>
-                Sem esperar.
-              </Palavras>
-              <Focinho className="ml-[0.1em] inline-block h-[0.52em] w-[0.98em] align-[0.04em]" />
-            </span>
-          </h1>
-          <p
-            className="hero-in mx-auto mt-5 max-w-xl text-[1.05rem] leading-relaxed text-muted-foreground text-pretty sm:mt-6 sm:text-lg lg:mx-0"
-            style={{ "--d": "480ms" } as CSSProperties}
-          >
-            O cliente aponta a câmera, divide a conta e paga com Pix, Apple Pay ou Google Pay.
-            Depois, se quiser, deixa uma gorjeta extra para quem atendeu.
-          </p>
-          <div
-            className="hero-in mt-8 flex flex-wrap justify-center gap-3 lg:justify-start"
-            style={{ "--d": "620ms" } as CSSProperties}
-          >
-            <BotaoPrincipal vivo>Começar o teste grátis</BotaoPrincipal>
-            <BotaoSecundario href="/simulador">Testar o simulador</BotaoSecundario>
-          </div>
-          <p
-            className="hero-in mt-5 text-sm text-muted-foreground"
-            style={{ "--d": "720ms" } as CSSProperties}
-          >
-            {TRIAL_DAYS} dias grátis · Sem taxa para o cliente · Sem aplicativo
-          </p>
-        </div>
+        </span>
+      </h1>
+      <p
+        className="hero-in mx-auto mt-5 max-w-xl text-[1.05rem] leading-relaxed text-muted-foreground text-pretty sm:mt-6 sm:text-lg lg:mx-0"
+        style={{ "--d": "480ms" } as CSSProperties}
+      >
+        Seu cliente confere a conta, divide e paga pelo celular. Sua equipe ganha tempo para atender, e você acompanha cada mesa em tempo real.
+      </p>
+      <div
+        className="hero-in mt-8 flex flex-wrap justify-center gap-3 lg:justify-start"
+        style={{ "--d": "620ms" } as CSSProperties}
+      >
+        <BotaoPrincipal vivo>Solicitar demonstração</BotaoPrincipal>
+        <BotaoSecundario href="/simulador">Testar o simulador</BotaoSecundario>
+      </div>
+      <p
+        className="hero-in mt-5 text-sm text-muted-foreground"
+        style={{ "--d": "720ms" } as CSSProperties}
+      >
+        Pré-lançamento: {TRIAL_DAYS} dias grátis para restaurantes · Sem taxa para o cliente
+      </p>
+    </>
+  );
+  // Logo abaixo do vídeo do topo (03/11): a mesma mesa, agora como seção "ao vivo".
+  const textoSecao = (
+    <>
+      <p className="font-display text-[clamp(1.05rem,0.95rem+0.45vw,1.35rem)] tracking-[-0.02em] text-brand-strong">
+        Ao vivo
+      </p>
+      <Palavras
+        as="h2"
+        className="mt-4 block font-display text-[clamp(2.4rem,1.3rem+3.6vw,4.25rem)] font-normal leading-[0.96] tracking-[-0.05em]"
+      >
+        A mesa pagando, em tempo real.
+      </Palavras>
+      <p className="mx-auto mt-5 max-w-xl text-[1.05rem] leading-relaxed text-muted-foreground text-pretty sm:mt-6 sm:text-lg lg:mx-0">
+        A conta abre no celular do cliente e o salão fica sabendo na mesma hora. Cada passo que ele
+        dá aparece aqui do jeito que aparece no restaurante.
+      </p>
+      <div className="mt-8 flex flex-wrap justify-center gap-3 lg:justify-start">
+        <BotaoSecundario href="/simulador">Testar o simulador</BotaoSecundario>
+      </div>
+    </>
+  );
+
+  return (
+    <section
+      data-tema="claro"
+      id={secao ? "ao-vivo" : undefined}
+      className={
+        secao
+          ? "relative overflow-hidden py-14 sm:py-20 lg:py-28"
+          : "relative -mt-16 overflow-hidden pt-16"
+      }
+    >
+      <div
+        className={cn(
+          "container-page grid items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.08fr)] lg:gap-8",
+          !secao && "pb-14 pt-8 sm:pt-14 lg:pb-12 lg:pt-16",
+        )}
+      >
+        <div className="text-center lg:text-left">{secao ? textoSecao : textoTopo}</div>
 
         <div>
           <div
@@ -199,7 +234,7 @@ export function AberturaMesa() {
             <div className="ab-camada ab-foto-c absolute inset-y-0 left-[12%] right-0 sm:left-[16%] lg:left-[18%] lg:bottom-[4%]">
               <Foto
                 nome="cena-amigos"
-                prioridade
+                prioridade={!secao}
                 alt="Quatro amigos numa mesa de bar na calçada, cada um com a conta da Tipe aberta no celular"
                 sizes="(min-width: 1024px) 46vw, 92vw"
                 posicao="64% 46%"
@@ -214,7 +249,7 @@ export function AberturaMesa() {
                     indice={indice}
                     ms={MS}
                     animando={ativo}
-                    prioridade
+                    prioridade={!secao}
                     sizes="(min-width: 1024px) 15rem, 40vw"
                   />
                 </div>

@@ -1,3 +1,4 @@
+import { MfaGate } from "@/components/tipe/FounderMfaGate";
 import { AreaShell } from "@/components/tipe/AreaShell";
 import { AvisosCelular } from "@/components/tipe/AvisosCelular";
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
@@ -5,6 +6,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { exigirSessao } from "@/integrations/supabase/lazy";
 import { Button } from "@/components/ui/button";
 import { RestaurantPanel } from "@/components/tipe/RestaurantPanel";
 import { PartnerTermsNotice } from "@/components/tipe/legal/PartnerTermsNotice";
@@ -14,8 +16,7 @@ import { PainelCarregando } from "@/components/tipe/RestaurantPanel";
 export const Route = createFileRoute("/$restaurante/")({
   ssr: false,
   beforeLoad: async ({ params }) => {
-    const { data } = await supabase.auth.getUser();
-    if (!data.user) throw redirect({ to: "/entrar", search: { r: `/${params.restaurante}` } });
+    if (!(await exigirSessao())) throw redirect({ to: "/entrar", search: { r: `/${params.restaurante}` } });
   },
   head: () => ({
     meta: [
@@ -27,7 +28,11 @@ export const Route = createFileRoute("/$restaurante/")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
-  component: AreaRestaurante,
+  component: () => (
+    <MfaGate>
+      <AreaRestaurante />
+    </MfaGate>
+  ),
 });
 
 function AreaRestaurante() {
@@ -48,11 +53,30 @@ function AreaRestaurante() {
   const myRoles = access.data?.roles.filter((x) => x.restaurantId === visibleRestaurant?.id && x.role !== "founder").map((x) => x.role) ?? [];
   const r = myRoles.length > 0 ? visibleRestaurant : undefined;
 
+  const acoesTopo = (
+    <>
+      {access.data?.isFounder && <Button asChild size="sm" variant="ghost"><Link to="/central">Voltar à Central</Link></Button>}
+      {(myRoles.includes("owner") || myRoles.includes("manager") || myRoles.includes("cashier")) && <AvisosCelular papel="gestao" />}
+    </>
+  );
+  const rodape = (
+    <button type="button" onClick={sair} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-white/70 hover:bg-white/10 hover:text-white">
+      <LogOut className="h-4 w-4" /> Sair
+    </button>
+  );
+  // Com acesso: o painel usa a casca própria do Tipe Gestão (menu lateral, busca, mobile).
+  if (r && access.data)
+    return (
+      <>
+        <PartnerTermsNotice />
+        <RestaurantPanel key={restaurante} slug={restaurante} myRoles={myRoles} isFounder={false} topoAcoes={acoesTopo} rodape={rodape} />
+      </>
+    );
+
   return (
     <AreaShell eyebrow="Área do restaurante"
       actions={<>
-        {access.data?.isFounder && <Button asChild size="sm" variant="ghost"><Link to="/backoffice">Voltar ao Backoffice</Link></Button>}
-        {(myRoles.includes("owner") || myRoles.includes("cashier")) && <AvisosCelular papel="gestao" />}
+        {access.data?.isFounder && <Button asChild size="sm" variant="ghost"><Link to="/central">Voltar à Central</Link></Button>}
         <Button size="sm" variant="ghost" onClick={sair} className="text-muted-foreground"><LogOut className="h-4 w-4" />Sair</Button>
       </>}>
       <div>

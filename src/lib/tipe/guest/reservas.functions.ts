@@ -1,4 +1,4 @@
-// Tipe Guest · Fase 5: reservas dentro do painel do restaurante.
+// Tipe Reserva · Fase 5: reservas dentro do painel do restaurante.
 // O módulo só aparece quando a flag "guest.reservations" está ligada para o restaurante (equipe Tipe).
 // Dentro dele, o dono decide quando abrir para o público (accepting). Toda mudança de reserva passa
 // pelas funções do banco (0042), que revalidam papel, estado, política e capacidade.

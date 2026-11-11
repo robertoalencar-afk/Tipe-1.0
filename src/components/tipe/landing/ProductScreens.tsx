@@ -6,6 +6,7 @@
 import { Check, ChevronRight, HandCoins, Heart, QrCode, Smartphone } from "lucide-react";
 import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { suggestedTips } from "@/lib/tipe/rules";
 
 export const DEMO = {
   restaurante: "Maré Alta",
@@ -265,31 +266,47 @@ export function ScreenTip({ className }: { className?: string }) {
           Quer deixar uma gorjeta extra?
         </p>
         <p className="mt-1 text-[10.5px] text-muted-foreground">
-          É opcional. Uma forma de agradecer pelo atendimento.
+          É opcional e vai além da taxa de serviço da conta.
         </p>
         <div className="mt-5 grid grid-cols-2 gap-1.5">
-          {[5, 10, 15, 20].map((v) => (
+          {TIP_EXEMPLO.map((o) => (
             <span
-              key={v}
+              key={o.label}
               className={cn(
-                "money rounded-xl border py-2.5 text-[12px] font-medium",
-                v === 10 ? "border-brand bg-brand-soft/60" : "border-border bg-surface",
+                "relative rounded-xl border py-2 text-[12px] font-medium",
+                o.sugerida ? "border-foreground bg-surface" : "border-border bg-surface",
               )}
             >
-              {money(v)}
+              {o.sugerida && (
+                <span className="absolute left-1 top-1 rounded-full bg-brand-soft px-1 text-[7px] font-semibold text-brand-strong">
+                  Sugerida
+                </span>
+              )}
+              <span className="block">{o.label}</span>
+              <span className="money block text-[9px] text-muted-foreground">
+                {money(o.amount)}
+              </span>
             </span>
           ))}
+          <span className="rounded-xl border border-border bg-surface py-2 text-[12px] font-medium">
+            <span className="block">Outro valor</span>
+            <span className="block text-[9px] text-muted-foreground">você escolhe</span>
+          </span>
         </div>
       </div>
       <div className="space-y-1.5 px-3 pb-5">
-        <Cta>Continuar com {money(10)}</Cta>
+        <Cta>Continuar com {money(TIP_ESCOLHIDA)}</Cta>
         <span className="block py-1 text-center text-[11px] font-medium text-muted-foreground">
-          Agora não, obrigado
+          Sem gorjeta
         </span>
       </div>
     </div>
   );
 }
+
+// Mesmas opções da conta real (3%, 5% sugerida, 8% e outro valor) sobre uma conta de exemplo.
+const TIP_EXEMPLO = suggestedTips(120);
+const TIP_ESCOLHIDA = TIP_EXEMPLO.find((o) => o.sugerida)?.amount ?? 0;
 
 /** Totem de mesa com QR Code (ilustração geométrica, não é um QR funcional). */
 export function TableTotem({ className }: { className?: string }) {

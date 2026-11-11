@@ -11,11 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AjudaRouteImport } from './routes/ajuda'
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as CrmRouteImport } from './routes/crm'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as EntrarRouteImport } from './routes/entrar'
+import { Route as EsqueciASenhaRouteImport } from './routes/esqueci-a-senha'
 import { Route as FundadorRouteImport } from './routes/fundador'
 import { Route as IntegracoesRouteImport } from './routes/integracoes'
 import { Route as PrecosRouteImport } from './routes/precos'
@@ -32,8 +34,10 @@ import { Route as RestauranteFilaRouteImport } from './routes/$restaurante.fila'
 import { Route as RestauranteSenhasRouteImport } from './routes/$restaurante.senhas'
 import { Route as RestauranteTotemRouteImport } from './routes/$restaurante.totem'
 import { Route as AuthenticatedBackofficeRouteImport } from './routes/_authenticated/backoffice'
+import { Route as AuthenticatedCentralRouteImport } from './routes/_authenticated/central'
 import { Route as AuthenticatedGarcomRouteImport } from './routes/_authenticated/garcom'
 import { Route as AuthenticatedPainelRouteImport } from './routes/_authenticated/painel'
+import { Route as ConviteTokenRouteImport } from './routes/convite.$token'
 import { Route as CrmIndexRouteImport } from './routes/crm.index'
 import { Route as CrmAdminRouteImport } from './routes/crm.admin'
 import { Route as CrmAtendimentoRouteImport } from './routes/crm.atendimento'
@@ -65,6 +69,8 @@ import { Route as LegalVersoesRouteImport } from './routes/legal.versoes'
 import { Route as PrivacidadeIndexRouteImport } from './routes/privacidade.index'
 import { Route as PrivacidadeSolicitacaoRouteImport } from './routes/privacidade.solicitacao'
 import { Route as ProdutosProdutoRouteImport } from './routes/produtos.$produto'
+import { Route as RedefinirSenhaIndexRouteImport } from './routes/redefinir-senha.index'
+import { Route as RedefinirSenhaGarcomRouteImport } from './routes/redefinir-senha.garcom'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin.leads'
 import { Route as ApiPublicCspReportRouteImport } from './routes/api/public/csp-report'
 import { Route as CrmContasIndexRouteImport } from './routes/crm.contas.index'
@@ -77,6 +83,7 @@ import { Route as ApiPublicPagarmeWebhookRouteImport } from './routes/api/public
 import { Route as ApiPublicPaymentsReconcileRouteImport } from './routes/api/public/payments.reconcile'
 import { Route as ApiPublicPdvSyncRouteImport } from './routes/api/public/pdv.sync'
 import { Route as ApiPublicPosSlugRouteImport } from './routes/api/public/pos.$slug'
+import { Route as ApiPublicResendWebhookRouteImport } from './routes/api/public/resend.webhook'
 import { Route as ApiPublicWhatsappWebhookRouteImport } from './routes/api/public/whatsapp.webhook'
 import { Route as ApiPublicPagarmeRestauranteSlugRouteImport } from './routes/api/public/pagarme/restaurante.$slug'
 import { Route as ApiPublicPdvAdapterWebhookRouteImport } from './routes/api/public/pdv.$adapter.webhook'
@@ -88,6 +95,11 @@ const IndexRoute = IndexRouteImport.update({
 } as any)
 const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AjudaRoute = AjudaRouteImport.update({
+  id: '/ajuda',
+  path: '/ajuda',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CadastroRoute = CadastroRouteImport.update({
@@ -113,6 +125,11 @@ const DemoRoute = DemoRouteImport.update({
 const EntrarRoute = EntrarRouteImport.update({
   id: '/entrar',
   path: '/entrar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EsqueciASenhaRoute = EsqueciASenhaRouteImport.update({
+  id: '/esqueci-a-senha',
+  path: '/esqueci-a-senha',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FundadorRoute = FundadorRouteImport.update({
@@ -195,6 +212,11 @@ const AuthenticatedBackofficeRoute = AuthenticatedBackofficeRouteImport.update({
   path: '/backoffice',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedCentralRoute = AuthenticatedCentralRouteImport.update({
+  id: '/central',
+  path: '/central',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedGarcomRoute = AuthenticatedGarcomRouteImport.update({
   id: '/garcom',
   path: '/garcom',
@@ -204,6 +226,11 @@ const AuthenticatedPainelRoute = AuthenticatedPainelRouteImport.update({
   id: '/painel',
   path: '/painel',
   getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const ConviteTokenRoute = ConviteTokenRouteImport.update({
+  id: '/convite/$token',
+  path: '/convite/$token',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const CrmIndexRoute = CrmIndexRouteImport.update({
   id: '/',
@@ -360,6 +387,16 @@ const ProdutosProdutoRoute = ProdutosProdutoRouteImport.update({
   path: '/produtos/$produto',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RedefinirSenhaIndexRoute = RedefinirSenhaIndexRouteImport.update({
+  id: '/redefinir-senha/',
+  path: '/redefinir-senha/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RedefinirSenhaGarcomRoute = RedefinirSenhaGarcomRouteImport.update({
+  id: '/redefinir-senha/garcom',
+  path: '/redefinir-senha/garcom',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAdminLeadsRoute = AuthenticatedAdminLeadsRouteImport.update({
   id: '/admin/leads',
   path: '/admin/leads',
@@ -421,6 +458,11 @@ const ApiPublicPosSlugRoute = ApiPublicPosSlugRouteImport.update({
   path: '/api/public/pos/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicResendWebhookRoute = ApiPublicResendWebhookRouteImport.update({
+  id: '/api/public/resend/webhook',
+  path: '/api/public/resend/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicWhatsappWebhookRoute =
   ApiPublicWhatsappWebhookRouteImport.update({
     id: '/api/public/whatsapp/webhook',
@@ -442,11 +484,13 @@ const ApiPublicPdvAdapterWebhookRoute =
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/ajuda': typeof AjudaRoute
   '/cadastro': typeof CadastroRoute
   '/cookies': typeof CookiesRoute
   '/crm': typeof CrmRouteWithChildren
   '/demo': typeof DemoRoute
   '/entrar': typeof EntrarRoute
+  '/esqueci-a-senha': typeof EsqueciASenhaRoute
   '/fundador': typeof FundadorRoute
   '/integracoes': typeof IntegracoesRoute
   '/precos': typeof PrecosRoute
@@ -462,8 +506,10 @@ export interface FileRoutesByFullPath {
   '/$restaurante/senhas': typeof RestauranteSenhasRoute
   '/$restaurante/totem': typeof RestauranteTotemRoute
   '/backoffice': typeof AuthenticatedBackofficeRoute
+  '/central': typeof AuthenticatedCentralRoute
   '/garcom': typeof AuthenticatedGarcomRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/convite/$token': typeof ConviteTokenRoute
   '/crm/admin': typeof CrmAdminRoute
   '/crm/atendimento': typeof CrmAtendimentoRoute
   '/crm/calendario': typeof CrmCalendarioRoute
@@ -492,10 +538,12 @@ export interface FileRoutesByFullPath {
   '/legal/versoes': typeof LegalVersoesRoute
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
   '/produtos/$produto': typeof ProdutosProdutoRoute
+  '/redefinir-senha/garcom': typeof RedefinirSenhaGarcomRoute
   '/$restaurante/': typeof RestauranteIndexRoute
   '/crm/': typeof CrmIndexRoute
   '/legal/': typeof LegalIndexRoute
   '/privacidade/': typeof PrivacidadeIndexRoute
+  '/redefinir-senha/': typeof RedefinirSenhaIndexRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
   '/crm/contas/$id': typeof CrmContasIdRoute
@@ -508,16 +556,19 @@ export interface FileRoutesByFullPath {
   '/api/public/payments/reconcile': typeof ApiPublicPaymentsReconcileRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
+  '/api/public/resend/webhook': typeof ApiPublicResendWebhookRoute
   '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
   '/api/public/pagarme/restaurante/$slug': typeof ApiPublicPagarmeRestauranteSlugRoute
   '/api/public/pdv/$adapter/webhook': typeof ApiPublicPdvAdapterWebhookRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/ajuda': typeof AjudaRoute
   '/cadastro': typeof CadastroRoute
   '/cookies': typeof CookiesRoute
   '/demo': typeof DemoRoute
   '/entrar': typeof EntrarRoute
+  '/esqueci-a-senha': typeof EsqueciASenhaRoute
   '/fundador': typeof FundadorRoute
   '/integracoes': typeof IntegracoesRoute
   '/precos': typeof PrecosRoute
@@ -533,8 +584,10 @@ export interface FileRoutesByTo {
   '/$restaurante/senhas': typeof RestauranteSenhasRoute
   '/$restaurante/totem': typeof RestauranteTotemRoute
   '/backoffice': typeof AuthenticatedBackofficeRoute
+  '/central': typeof AuthenticatedCentralRoute
   '/garcom': typeof AuthenticatedGarcomRoute
   '/painel': typeof AuthenticatedPainelRoute
+  '/convite/$token': typeof ConviteTokenRoute
   '/crm/admin': typeof CrmAdminRoute
   '/crm/atendimento': typeof CrmAtendimentoRoute
   '/crm/calendario': typeof CrmCalendarioRoute
@@ -563,10 +616,12 @@ export interface FileRoutesByTo {
   '/legal/versoes': typeof LegalVersoesRoute
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
   '/produtos/$produto': typeof ProdutosProdutoRoute
+  '/redefinir-senha/garcom': typeof RedefinirSenhaGarcomRoute
   '/$restaurante': typeof RestauranteIndexRoute
   '/crm': typeof CrmIndexRoute
   '/legal': typeof LegalIndexRoute
   '/privacidade': typeof PrivacidadeIndexRoute
+  '/redefinir-senha': typeof RedefinirSenhaIndexRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
   '/crm/contas/$id': typeof CrmContasIdRoute
@@ -579,6 +634,7 @@ export interface FileRoutesByTo {
   '/api/public/payments/reconcile': typeof ApiPublicPaymentsReconcileRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
+  '/api/public/resend/webhook': typeof ApiPublicResendWebhookRoute
   '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
   '/api/public/pagarme/restaurante/$slug': typeof ApiPublicPagarmeRestauranteSlugRoute
   '/api/public/pdv/$adapter/webhook': typeof ApiPublicPdvAdapterWebhookRoute
@@ -587,11 +643,13 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/ajuda': typeof AjudaRoute
   '/cadastro': typeof CadastroRoute
   '/cookies': typeof CookiesRoute
   '/crm': typeof CrmRouteWithChildren
   '/demo': typeof DemoRoute
   '/entrar': typeof EntrarRoute
+  '/esqueci-a-senha': typeof EsqueciASenhaRoute
   '/fundador': typeof FundadorRoute
   '/integracoes': typeof IntegracoesRoute
   '/precos': typeof PrecosRoute
@@ -607,8 +665,10 @@ export interface FileRoutesById {
   '/$restaurante/senhas': typeof RestauranteSenhasRoute
   '/$restaurante/totem': typeof RestauranteTotemRoute
   '/_authenticated/backoffice': typeof AuthenticatedBackofficeRoute
+  '/_authenticated/central': typeof AuthenticatedCentralRoute
   '/_authenticated/garcom': typeof AuthenticatedGarcomRoute
   '/_authenticated/painel': typeof AuthenticatedPainelRoute
+  '/convite/$token': typeof ConviteTokenRoute
   '/crm/admin': typeof CrmAdminRoute
   '/crm/atendimento': typeof CrmAtendimentoRoute
   '/crm/calendario': typeof CrmCalendarioRoute
@@ -637,10 +697,12 @@ export interface FileRoutesById {
   '/legal/versoes': typeof LegalVersoesRoute
   '/privacidade/solicitacao': typeof PrivacidadeSolicitacaoRoute
   '/produtos/$produto': typeof ProdutosProdutoRoute
+  '/redefinir-senha/garcom': typeof RedefinirSenhaGarcomRoute
   '/$restaurante/': typeof RestauranteIndexRoute
   '/crm/': typeof CrmIndexRoute
   '/legal/': typeof LegalIndexRoute
   '/privacidade/': typeof PrivacidadeIndexRoute
+  '/redefinir-senha/': typeof RedefinirSenhaIndexRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
   '/crm/contas/$id': typeof CrmContasIdRoute
@@ -653,6 +715,7 @@ export interface FileRoutesById {
   '/api/public/payments/reconcile': typeof ApiPublicPaymentsReconcileRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
+  '/api/public/resend/webhook': typeof ApiPublicResendWebhookRoute
   '/api/public/whatsapp/webhook': typeof ApiPublicWhatsappWebhookRoute
   '/api/public/pagarme/restaurante/$slug': typeof ApiPublicPagarmeRestauranteSlugRoute
   '/api/public/pdv/$adapter/webhook': typeof ApiPublicPdvAdapterWebhookRoute
@@ -661,11 +724,13 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/ajuda'
     | '/cadastro'
     | '/cookies'
     | '/crm'
     | '/demo'
     | '/entrar'
+    | '/esqueci-a-senha'
     | '/fundador'
     | '/integracoes'
     | '/precos'
@@ -681,8 +746,10 @@ export interface FileRouteTypes {
     | '/$restaurante/senhas'
     | '/$restaurante/totem'
     | '/backoffice'
+    | '/central'
     | '/garcom'
     | '/painel'
+    | '/convite/$token'
     | '/crm/admin'
     | '/crm/atendimento'
     | '/crm/calendario'
@@ -711,10 +778,12 @@ export interface FileRouteTypes {
     | '/legal/versoes'
     | '/privacidade/solicitacao'
     | '/produtos/$produto'
+    | '/redefinir-senha/garcom'
     | '/$restaurante/'
     | '/crm/'
     | '/legal/'
     | '/privacidade/'
+    | '/redefinir-senha/'
     | '/admin/leads'
     | '/api/public/csp-report'
     | '/crm/contas/$id'
@@ -727,16 +796,19 @@ export interface FileRouteTypes {
     | '/api/public/payments/reconcile'
     | '/api/public/pdv/sync'
     | '/api/public/pos/$slug'
+    | '/api/public/resend/webhook'
     | '/api/public/whatsapp/webhook'
     | '/api/public/pagarme/restaurante/$slug'
     | '/api/public/pdv/$adapter/webhook'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/ajuda'
     | '/cadastro'
     | '/cookies'
     | '/demo'
     | '/entrar'
+    | '/esqueci-a-senha'
     | '/fundador'
     | '/integracoes'
     | '/precos'
@@ -752,8 +824,10 @@ export interface FileRouteTypes {
     | '/$restaurante/senhas'
     | '/$restaurante/totem'
     | '/backoffice'
+    | '/central'
     | '/garcom'
     | '/painel'
+    | '/convite/$token'
     | '/crm/admin'
     | '/crm/atendimento'
     | '/crm/calendario'
@@ -782,10 +856,12 @@ export interface FileRouteTypes {
     | '/legal/versoes'
     | '/privacidade/solicitacao'
     | '/produtos/$produto'
+    | '/redefinir-senha/garcom'
     | '/$restaurante'
     | '/crm'
     | '/legal'
     | '/privacidade'
+    | '/redefinir-senha'
     | '/admin/leads'
     | '/api/public/csp-report'
     | '/crm/contas/$id'
@@ -798,6 +874,7 @@ export interface FileRouteTypes {
     | '/api/public/payments/reconcile'
     | '/api/public/pdv/sync'
     | '/api/public/pos/$slug'
+    | '/api/public/resend/webhook'
     | '/api/public/whatsapp/webhook'
     | '/api/public/pagarme/restaurante/$slug'
     | '/api/public/pdv/$adapter/webhook'
@@ -805,11 +882,13 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/ajuda'
     | '/cadastro'
     | '/cookies'
     | '/crm'
     | '/demo'
     | '/entrar'
+    | '/esqueci-a-senha'
     | '/fundador'
     | '/integracoes'
     | '/precos'
@@ -825,8 +904,10 @@ export interface FileRouteTypes {
     | '/$restaurante/senhas'
     | '/$restaurante/totem'
     | '/_authenticated/backoffice'
+    | '/_authenticated/central'
     | '/_authenticated/garcom'
     | '/_authenticated/painel'
+    | '/convite/$token'
     | '/crm/admin'
     | '/crm/atendimento'
     | '/crm/calendario'
@@ -855,10 +936,12 @@ export interface FileRouteTypes {
     | '/legal/versoes'
     | '/privacidade/solicitacao'
     | '/produtos/$produto'
+    | '/redefinir-senha/garcom'
     | '/$restaurante/'
     | '/crm/'
     | '/legal/'
     | '/privacidade/'
+    | '/redefinir-senha/'
     | '/_authenticated/admin/leads'
     | '/api/public/csp-report'
     | '/crm/contas/$id'
@@ -871,6 +954,7 @@ export interface FileRouteTypes {
     | '/api/public/payments/reconcile'
     | '/api/public/pdv/sync'
     | '/api/public/pos/$slug'
+    | '/api/public/resend/webhook'
     | '/api/public/whatsapp/webhook'
     | '/api/public/pagarme/restaurante/$slug'
     | '/api/public/pdv/$adapter/webhook'
@@ -879,11 +963,13 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AjudaRoute: typeof AjudaRoute
   CadastroRoute: typeof CadastroRoute
   CookiesRoute: typeof CookiesRoute
   CrmRoute: typeof CrmRouteWithChildren
   DemoRoute: typeof DemoRoute
   EntrarRoute: typeof EntrarRoute
+  EsqueciASenhaRoute: typeof EsqueciASenhaRoute
   FundadorRoute: typeof FundadorRoute
   IntegracoesRoute: typeof IntegracoesRoute
   PrecosRoute: typeof PrecosRoute
@@ -898,15 +984,18 @@ export interface RootRouteChildren {
   RestauranteFilaRoute: typeof RestauranteFilaRoute
   RestauranteSenhasRoute: typeof RestauranteSenhasRoute
   RestauranteTotemRoute: typeof RestauranteTotemRoute
+  ConviteTokenRoute: typeof ConviteTokenRoute
   LegalLivroRoute: typeof LegalLivroRoute
   LegalCompletaRoute: typeof LegalCompletaRoute
   LegalGlossarioRoute: typeof LegalGlossarioRoute
   LegalVersoesRoute: typeof LegalVersoesRoute
   PrivacidadeSolicitacaoRoute: typeof PrivacidadeSolicitacaoRoute
   ProdutosProdutoRoute: typeof ProdutosProdutoRoute
+  RedefinirSenhaGarcomRoute: typeof RedefinirSenhaGarcomRoute
   RestauranteIndexRoute: typeof RestauranteIndexRoute
   LegalIndexRoute: typeof LegalIndexRoute
   PrivacidadeIndexRoute: typeof PrivacidadeIndexRoute
+  RedefinirSenhaIndexRoute: typeof RedefinirSenhaIndexRoute
   ApiPublicCspReportRoute: typeof ApiPublicCspReportRoute
   LegalVersoesArquivoRoute: typeof LegalVersoesArquivoRoute
   MesaRestauranteMesaRoute: typeof MesaRestauranteMesaRoute
@@ -914,6 +1003,7 @@ export interface RootRouteChildren {
   ApiPublicPaymentsReconcileRoute: typeof ApiPublicPaymentsReconcileRoute
   ApiPublicPdvSyncRoute: typeof ApiPublicPdvSyncRoute
   ApiPublicPosSlugRoute: typeof ApiPublicPosSlugRoute
+  ApiPublicResendWebhookRoute: typeof ApiPublicResendWebhookRoute
   ApiPublicWhatsappWebhookRoute: typeof ApiPublicWhatsappWebhookRoute
   ApiPublicPagarmeRestauranteSlugRoute: typeof ApiPublicPagarmeRestauranteSlugRoute
   ApiPublicPdvAdapterWebhookRoute: typeof ApiPublicPdvAdapterWebhookRoute
@@ -933,6 +1023,13 @@ declare module '@tanstack/react-router' {
       path: ''
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/ajuda': {
+      id: '/ajuda'
+      path: '/ajuda'
+      fullPath: '/ajuda'
+      preLoaderRoute: typeof AjudaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cadastro': {
@@ -968,6 +1065,13 @@ declare module '@tanstack/react-router' {
       path: '/entrar'
       fullPath: '/entrar'
       preLoaderRoute: typeof EntrarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/esqueci-a-senha': {
+      id: '/esqueci-a-senha'
+      path: '/esqueci-a-senha'
+      fullPath: '/esqueci-a-senha'
+      preLoaderRoute: typeof EsqueciASenhaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/fundador': {
@@ -1082,6 +1186,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBackofficeRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/central': {
+      id: '/_authenticated/central'
+      path: '/central'
+      fullPath: '/central'
+      preLoaderRoute: typeof AuthenticatedCentralRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/garcom': {
       id: '/_authenticated/garcom'
       path: '/garcom'
@@ -1095,6 +1206,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/painel'
       preLoaderRoute: typeof AuthenticatedPainelRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/convite/$token': {
+      id: '/convite/$token'
+      path: '/convite/$token'
+      fullPath: '/convite/$token'
+      preLoaderRoute: typeof ConviteTokenRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/crm/': {
       id: '/crm/'
@@ -1313,6 +1431,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProdutosProdutoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/redefinir-senha/': {
+      id: '/redefinir-senha/'
+      path: '/redefinir-senha'
+      fullPath: '/redefinir-senha/'
+      preLoaderRoute: typeof RedefinirSenhaIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/redefinir-senha/garcom': {
+      id: '/redefinir-senha/garcom'
+      path: '/redefinir-senha/garcom'
+      fullPath: '/redefinir-senha/garcom'
+      preLoaderRoute: typeof RedefinirSenhaGarcomRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/admin/leads': {
       id: '/_authenticated/admin/leads'
       path: '/admin/leads'
@@ -1397,6 +1529,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPosSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/resend/webhook': {
+      id: '/api/public/resend/webhook'
+      path: '/api/public/resend/webhook'
+      fullPath: '/api/public/resend/webhook'
+      preLoaderRoute: typeof ApiPublicResendWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/whatsapp/webhook': {
       id: '/api/public/whatsapp/webhook'
       path: '/api/public/whatsapp/webhook'
@@ -1423,6 +1562,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedBackofficeRoute: typeof AuthenticatedBackofficeRoute
+  AuthenticatedCentralRoute: typeof AuthenticatedCentralRoute
   AuthenticatedGarcomRoute: typeof AuthenticatedGarcomRoute
   AuthenticatedPainelRoute: typeof AuthenticatedPainelRoute
   AuthenticatedAdminLeadsRoute: typeof AuthenticatedAdminLeadsRoute
@@ -1430,6 +1570,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedBackofficeRoute: AuthenticatedBackofficeRoute,
+  AuthenticatedCentralRoute: AuthenticatedCentralRoute,
   AuthenticatedGarcomRoute: AuthenticatedGarcomRoute,
   AuthenticatedPainelRoute: AuthenticatedPainelRoute,
   AuthenticatedAdminLeadsRoute: AuthenticatedAdminLeadsRoute,
@@ -1503,11 +1644,13 @@ const CrmRouteWithChildren = CrmRoute._addFileChildren(CrmRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AjudaRoute: AjudaRoute,
   CadastroRoute: CadastroRoute,
   CookiesRoute: CookiesRoute,
   CrmRoute: CrmRouteWithChildren,
   DemoRoute: DemoRoute,
   EntrarRoute: EntrarRoute,
+  EsqueciASenhaRoute: EsqueciASenhaRoute,
   FundadorRoute: FundadorRoute,
   IntegracoesRoute: IntegracoesRoute,
   PrecosRoute: PrecosRoute,
@@ -1522,15 +1665,18 @@ const rootRouteChildren: RootRouteChildren = {
   RestauranteFilaRoute: RestauranteFilaRoute,
   RestauranteSenhasRoute: RestauranteSenhasRoute,
   RestauranteTotemRoute: RestauranteTotemRoute,
+  ConviteTokenRoute: ConviteTokenRoute,
   LegalLivroRoute: LegalLivroRoute,
   LegalCompletaRoute: LegalCompletaRoute,
   LegalGlossarioRoute: LegalGlossarioRoute,
   LegalVersoesRoute: LegalVersoesRoute,
   PrivacidadeSolicitacaoRoute: PrivacidadeSolicitacaoRoute,
   ProdutosProdutoRoute: ProdutosProdutoRoute,
+  RedefinirSenhaGarcomRoute: RedefinirSenhaGarcomRoute,
   RestauranteIndexRoute: RestauranteIndexRoute,
   LegalIndexRoute: LegalIndexRoute,
   PrivacidadeIndexRoute: PrivacidadeIndexRoute,
+  RedefinirSenhaIndexRoute: RedefinirSenhaIndexRoute,
   ApiPublicCspReportRoute: ApiPublicCspReportRoute,
   LegalVersoesArquivoRoute: LegalVersoesArquivoRoute,
   MesaRestauranteMesaRoute: MesaRestauranteMesaRoute,
@@ -1538,6 +1684,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicPaymentsReconcileRoute: ApiPublicPaymentsReconcileRoute,
   ApiPublicPdvSyncRoute: ApiPublicPdvSyncRoute,
   ApiPublicPosSlugRoute: ApiPublicPosSlugRoute,
+  ApiPublicResendWebhookRoute: ApiPublicResendWebhookRoute,
   ApiPublicWhatsappWebhookRoute: ApiPublicWhatsappWebhookRoute,
   ApiPublicPagarmeRestauranteSlugRoute: ApiPublicPagarmeRestauranteSlugRoute,
   ApiPublicPdvAdapterWebhookRoute: ApiPublicPdvAdapterWebhookRoute,

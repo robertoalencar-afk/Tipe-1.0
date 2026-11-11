@@ -49,20 +49,25 @@ export function CardsPlanos() {
         >
           <div className="flex items-center justify-between gap-3">
             <h3 className="font-display text-[1.6rem] font-normal tracking-[-0.03em]">{p.nome}</h3>
-            {p.popular && (
-              <span className="rounded-full bg-[#0FC9BD] px-3 py-1 text-xs font-medium text-[#021E34]">
-                Mais escolhido
-              </span>
-            )}
           </div>
-          <p className={cn("mt-1 text-[0.95rem]", p.popular ? "text-white/70" : "text-muted-foreground")}>
+          <p
+            className={cn(
+              "mt-1 text-[0.95rem]",
+              p.popular ? "text-white/70" : "text-muted-foreground",
+            )}
+          >
             {p.para}
           </p>
           <div className="mt-8 flex items-end gap-2">
             <p className="font-display text-[4.6rem] font-normal leading-[0.8] tracking-[-0.06em]">
               {p.mesas}
             </p>
-            <p className={cn("pb-1 text-sm leading-tight", p.popular ? "text-white/70" : "text-muted-foreground")}>
+            <p
+              className={cn(
+                "pb-1 text-sm leading-tight",
+                p.popular ? "text-white/70" : "text-muted-foreground",
+              )}
+            >
               {p.id ? (
                 <>
                   mesas
@@ -78,7 +83,12 @@ export function CardsPlanos() {
               )}
             </p>
           </div>
-          <p className={cn("mt-6 text-[0.95rem] font-medium", p.popular ? "text-[#0FC9BD]" : "text-brand-strong")}>
+          <p
+            className={cn(
+              "mt-6 text-[0.95rem] font-medium",
+              p.popular ? "text-[#0FC9BD]" : "text-brand-strong",
+            )}
+          >
             {p.preco ? (
               <span className="money">R$ {p.preco}/mês</span>
             ) : p.id ? (
@@ -88,22 +98,30 @@ export function CardsPlanos() {
             )}
           </p>
           <a
-            href="/teste-gratis"
+            href={`/teste-gratis?plano=${p.id ?? "personalizado"}`}
             className={cn(
               "mt-5 flex min-h-12 items-center justify-center rounded-full font-medium",
               p.popular ? "bg-white text-[#021E34] hover:bg-white/90" : "btn-tema",
             )}
           >
-            {p.id ? `Começar com ${TRIAL_DAYS} dias grátis` : "Falar com a equipe"}
+            {p.id ? `Solicitar ${TRIAL_DAYS} dias grátis` : "Falar com a equipe"}
           </a>
-          <p className={cn("mt-7 text-xs font-medium uppercase tracking-[0.08em]", p.popular ? "text-white/60" : "text-muted-foreground")}>
+          <p
+            className={cn(
+              "mt-7 text-xs font-medium uppercase tracking-[0.08em]",
+              p.popular ? "text-white/60" : "text-muted-foreground",
+            )}
+          >
             O que inclui
           </p>
           <ul className="mt-3 flex-1 space-y-2.5 text-[0.95rem]">
             {p.itens.map((f) => (
               <li key={f} className="flex gap-2.5">
                 <Check
-                  className={cn("mt-0.5 h-4 w-4 shrink-0", p.popular ? "text-[#0FC9BD]" : "text-brand-strong")}
+                  className={cn(
+                    "mt-0.5 h-4 w-4 shrink-0",
+                    p.popular ? "text-[#0FC9BD]" : "text-brand-strong",
+                  )}
                   strokeWidth={2.5}
                 />
                 {f}
@@ -122,7 +140,7 @@ const COMPARACAO: { grupo: string; linhas: Linha[] }[] = [
     grupo: "Pagamento na mesa",
     linhas: [
       ["QR Code por mesa", true, true, true],
-      ["Pix, Apple Pay e Google Pay", true, true, true],
+      ["Pix, Apple Pay e Google Pay", "Em piloto", "Em piloto", "Em piloto"],
       ["Pagar no estabelecimento", true, true, true],
       ["Divisão da conta", true, true, true],
       ["Gorjeta extra para a equipe", true, true, true],
@@ -142,7 +160,7 @@ const COMPARACAO: { grupo: string; linhas: Linha[] }[] = [
   {
     grupo: "Operação e suporte",
     linhas: [
-      ["Integração assistida com o seu PDV", false, true, true],
+      ["Integração via API TIPE", false, "Sob análise", "Sob análise"],
       ["Cozinha e bar (KDS)", false, false, true],
       ["Suporte prioritário", false, false, true],
     ],
@@ -175,7 +193,10 @@ export function ComparacaoPlanos() {
                   {PLANS.map((p) => (
                     <th
                       key={p.id}
-                      className={cn("w-28 py-2 text-center font-normal", "popular" in p && "font-medium text-foreground")}
+                      className={cn(
+                        "w-28 py-2 text-center font-normal",
+                        "popular" in p && "font-medium text-foreground",
+                      )}
                     >
                       {p.name}
                     </th>
@@ -187,7 +208,10 @@ export function ComparacaoPlanos() {
                   <tr key={nome} className="border-t border-border/70">
                     <td className="py-3.5 pr-4">{nome}</td>
                     {v.map((c, i) => (
-                      <td key={i} className={cn("py-3.5 text-center", i === 1 && "bg-brand/[0.07]")}>
+                      <td
+                        key={i}
+                        className={cn("py-3.5 text-center", i === 1 && "bg-brand/[0.07]")}
+                      >
                         <Celula v={c} />
                       </td>
                     ))}
