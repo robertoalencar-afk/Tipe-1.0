@@ -645,7 +645,7 @@ export function RestaurantPanel({
       descricao={secaoAtual.d}
       acoes={
         <>
-          <StatusBadge tone={syncErro ? "error" : "neutral"} className="print:hidden">
+          <StatusBadge tone={syncErro ? "error" : "neutral"} className="hidden md:inline-flex print:hidden">
             {pdvLabel}
           </StatusBadge>
               <PrecisaDeVoce modo="sininho"

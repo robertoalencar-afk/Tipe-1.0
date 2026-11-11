@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Bell, BellOff, BellRing } from "lucide-react";
+import { Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -164,7 +164,7 @@ export function AvisosCelular({ papel = "garcom" }: { papel?: "garcom" | "gestao
     return ligar();
   };
 
-  const Icone = estado === "ligado" ? BellRing : estado === "bloqueado" ? BellOff : Bell;
+  const Icone = Smartphone;
   if (estado === "ligado")
     return (
       <Popover onOpenChange={(aberto) => void abrirPreferencias(aberto)}>
@@ -173,11 +173,12 @@ export function AvisosCelular({ papel = "garcom" }: { papel?: "garcom" | "gestao
             size="sm"
             variant="ghost"
             disabled={ocupado}
-            title="Escolher quais avisos receber"
+            title="Escolher quais avisos receber no celular"
+            aria-label="Avisos no celular ligados: escolher preferências"
             className="text-foreground"
           >
             <Icone className="h-4 w-4" />
-            Avisos no celular ligados
+            <span className="hidden sm:inline">Avisos no celular ligados</span>
           </Button>
         </PopoverTrigger>
         <PopoverContent align="end" className="w-72">
@@ -219,10 +220,11 @@ export function AvisosCelular({ papel = "garcom" }: { papel?: "garcom" | "gestao
       disabled={ocupado}
       aria-pressed={false}
       title="Receber avisos no celular com o app fechado"
+      aria-label="Receber avisos no celular com o app fechado"
       className="text-muted-foreground"
     >
       <Icone className="h-4 w-4" />
-      Avisos no celular
+      <span className="hidden sm:inline">Avisos no celular</span>
     </Button>
   );
 }
