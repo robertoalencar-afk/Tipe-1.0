@@ -53,11 +53,30 @@ function AreaRestaurante() {
   const myRoles = access.data?.roles.filter((x) => x.restaurantId === visibleRestaurant?.id && x.role !== "founder").map((x) => x.role) ?? [];
   const r = myRoles.length > 0 ? visibleRestaurant : undefined;
 
+  const acoesTopo = (
+    <>
+      {access.data?.isFounder && <Button asChild size="sm" variant="ghost"><Link to="/central">Voltar à Central</Link></Button>}
+      {(myRoles.includes("owner") || myRoles.includes("manager") || myRoles.includes("cashier")) && <AvisosCelular papel="gestao" />}
+    </>
+  );
+  const rodape = (
+    <button type="button" onClick={sair} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-white/70 hover:bg-white/10 hover:text-white">
+      <LogOut className="h-4 w-4" /> Sair
+    </button>
+  );
+  // Com acesso: o painel usa a casca própria do Tipe Gestão (menu lateral, busca, mobile).
+  if (r && access.data)
+    return (
+      <>
+        <PartnerTermsNotice />
+        <RestaurantPanel key={restaurante} slug={restaurante} myRoles={myRoles} isFounder={false} topoAcoes={acoesTopo} rodape={rodape} />
+      </>
+    );
+
   return (
     <AreaShell eyebrow="Área do restaurante"
       actions={<>
         {access.data?.isFounder && <Button asChild size="sm" variant="ghost"><Link to="/central">Voltar à Central</Link></Button>}
-        {(myRoles.includes("owner") || myRoles.includes("cashier")) && <AvisosCelular papel="gestao" />}
         <Button size="sm" variant="ghost" onClick={sair} className="text-muted-foreground"><LogOut className="h-4 w-4" />Sair</Button>
       </>}>
       <div>
