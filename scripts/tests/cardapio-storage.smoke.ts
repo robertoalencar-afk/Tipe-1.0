@@ -51,7 +51,38 @@ async function context(email: string) {
     auth: { persistSession: false, autoRefreshToken: false },
   });
   clients.push(client);
-  const login = await client.auth.signInWithPassword({ email, password: process.env.SENHA_TESTE! });
+  // Apenas usuários já existentes com papel na empresa virtual: não cria contas nem redefine senha.
+  const role =
+    email === "dono.bistro@exemplo.tipe.digital"
+      ? "owner"
+      : email === "garcom.bistro@exemplo.tipe.digital"
+        ? "waiter"
+        : null;
+  if (!role) throw new Error("Conta fora do escopo do smoke");
+  const candidates = await admin
+    .from("user_roles")
+    .select("user_id")
+    .eq("restaurant_id", rid)
+    .eq("role", role);
+  if (candidates.error) throw new Error("Não foi possível verificar os papéis virtuais");
+  let found = false;
+  for (const row of candidates.data ?? []) {
+    const result = await admin.auth.admin.getUserById(row.user_id);
+    if (result.data.user?.email === email) {
+      if (result.data.user.factors?.some((factor) => factor.status === "verified"))
+        throw new Error("Smoke não pode contornar MFA");
+      found = true;
+      break;
+    }
+  }
+  if (!found) throw new Error("Conta virtual existente não encontrada");
+  const link = await admin.auth.admin.generateLink({ type: "magiclink", email });
+  if (link.error || !link.data.properties?.hashed_token)
+    throw new Error("Não foi possível gerar a sessão virtual de uso único");
+  const login = await client.auth.verifyOtp({
+    token_hash: link.data.properties.hashed_token,
+    type: "email",
+  });
   if (login.error) throw new Error("Não foi possível autenticar a conta virtual de teste");
   const verified = await client.auth.getUser();
   if (verified.error || !verified.data.user)
@@ -62,19 +93,14 @@ const call = (fn: unknown, data: unknown, ctx = owner) =>
   (fn as (args: unknown) => Promise<unknown>)({ data, context: ctx });
 
 beforeAll(async () => {
-  if (
-    url !== "https://bnggnbwmihqexvihrqvy.supabase.co" ||
-    !secret ||
-    !publicKey ||
-    !process.env.SENHA_TESTE
-  )
+  if (url !== "https://bnggnbwmihqexvihrqvy.supabase.co" || !secret || !publicKey)
     throw new Error("Ambiente de smoke não configurado; nenhuma alteração realizada");
   admin = supabaseAdmin as unknown as SupabaseClient;
-  owner = await context("dono.bistro@exemplo.tipe.digital");
-  waiter = await context("garcom.bistro@exemplo.tipe.digital");
   const restaurant = await admin.from("restaurants").select("id").eq("slug", slug).single();
   if (restaurant.error) throw new Error("Empresa virtual ausente");
   rid = restaurant.data.id;
+  owner = await context("dono.bistro@exemplo.tipe.digital");
+  waiter = await context("garcom.bistro@exemplo.tipe.digital");
   const role = await owner.supabase.rpc("has_restaurant_role", {
     _user_id: owner.userId,
     _restaurant_id: rid,
@@ -123,7 +149,7 @@ afterAll(async () => {
     const check = await admin.from("pdv_menu_items").select("id").eq("id", itemId);
     expect(check.data).toEqual([]);
   }
-  await Promise.all(clients.map((client) => client.auth.signOut()));
+  await Promise.all(clients.map((client) => client.auth.signOut({ scope: "local" })));
 });
 
 it("autentica, envia/substitui, aplica, bloqueia indevidos e limpa imagens reais", async () => {

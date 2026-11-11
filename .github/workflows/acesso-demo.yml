@@ -47,4 +47,3 @@ jobs:
           SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || 'https://bnggnbwmihqexvihrqvy.supabase.co' }}
           SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_VBd0grDcguwpR_gyqa2nEw_kW40dW4s' }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
-          SENHA_TESTE: ${{ secrets.SENHA_TESTE }}
