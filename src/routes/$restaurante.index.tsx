@@ -69,7 +69,7 @@ function AreaRestaurante() {
     return (
       <>
         <PartnerTermsNotice />
-        <RestaurantPanel key={restaurante} slug={restaurante} myRoles={myRoles} isFounder={false} topoAcoes={acoesTopo} rodape={rodape} />
+        <RestaurantPanel key={restaurante} slug={restaurante} myRoles={myRoles} isFounder={false} topoAcoes={acoesTopo} rodape={rodape} email={access.data.email} onSair={sair} />
       </>
     );
 

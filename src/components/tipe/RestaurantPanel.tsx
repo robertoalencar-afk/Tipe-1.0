@@ -66,6 +66,9 @@ import { Atendimento } from "@/components/tipe/Atendimento";
 import { Caixa, Configuracoes, Inicio, Integracoes, Relatorios } from "@/components/tipe/AdminSections";
 import { Cozinha } from "@/components/tipe/Kds";
 import { Shell, type GrupoNav } from "@/components/tipe/painel/Shell";
+import { UploadImagem } from "@/components/tipe/UploadImagem";
+import { getMidia, saveFotoItem, saveLogo } from "@/lib/tipe/midia.functions";
+import { Image as ImagemIcon } from "lucide-react";
 import { EquipePermissoes } from "@/components/tipe/EquipePermissoes";
 import { TotemStudio } from "@/components/tipe/TotemStudio";
 import { LiberarPedidosMesa } from "@/components/tipe/LiberarPedidosMesa";
@@ -249,6 +252,14 @@ const secoes = [
     d: "Mesas, códigos de cada mesa e material para impressão.",
   },
   {
+    k: "identidade",
+    l: "Identidade visual",
+    i: ImagemIcon,
+    g: "Configurações",
+    dono: true,
+    d: "Logomarca do restaurante e fotos do cardápio.",
+  },
+  {
     k: "integracoes",
     l: "Integrações",
     i: Plug,
@@ -321,12 +332,16 @@ export function RestaurantPanel({
   isFounder,
   topoAcoes,
   rodape,
+  email,
+  onSair,
 }: {
   slug: string;
   myRoles: StaffRole[];
   isFounder: boolean;
   topoAcoes?: ReactNode;
   rodape?: ReactNode;
+  email?: string | undefined;
+  onSair?: (() => void) | undefined;
 }) {
   const fetchPanel = useServerFn(getPanelData);
   const fetchPdv = useServerFn(getPdvData);
@@ -338,6 +353,8 @@ export function RestaurantPanel({
     refetchInterval: 15000,
   });
   const pdv = useQuery({ queryKey: ["pdv", slug], queryFn: () => fetchPdv({ data: { slug } }) });
+  const fetchMidia = useServerFn(getMidia);
+  const midia = useQuery({ queryKey: ["midia", slug], queryFn: () => fetchMidia({ data: { slug } }), staleTime: 60_000 });
   const fetchInteg = useServerFn(getPdvIntegration);
   const integ = useQuery({
     queryKey: ["pdv-integ", slug],
@@ -575,10 +592,33 @@ export function RestaurantPanel({
       })),
   })).filter((g) => g.itens.length > 0);
 
+  const eu = d.staff.find((x) => x.email.toLowerCase() === (email ?? "").toLowerCase());
+  const papel = myRoles.includes("owner") ? "owner" : myRoles.includes("manager") ? "manager" : myRoles.includes("cashier") ? "cashier" : "waiter";
+  const usuario = {
+    nome: eu?.display_name || (email ? email.split("@")[0]! : "Você"),
+    funcao: cargoLabel[papel],
+    detalhe: d.restaurant.name,
+  };
+  const logoUrl = midia.data?.logoUrl ?? null;
+
   return (
     <Shell
       ambiente="Tipe Gestão"
-      contexto={<span className="truncate">{d.restaurant.name} · tipe.digital/{slug}</span>}
+      usuario={usuario}
+      onSair={onSair}
+      contexto={
+        <span className="flex items-center gap-2.5">
+          {logoUrl ? (
+            <img src={logoUrl} alt={`Logomarca de ${d.restaurant.name}`} className="size-9 shrink-0 rounded-lg bg-white object-contain p-0.5" />
+          ) : (
+            <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-white/10 text-sm font-semibold text-white">{d.restaurant.name.slice(0, 1).toUpperCase()}</span>
+          )}
+          <span className="min-w-0 leading-tight">
+            <span className="block truncate text-sm font-semibold text-white">{d.restaurant.name}</span>
+            <span className="block truncate text-[11px] text-white/55">tipe.digital/{slug}</span>
+          </span>
+        </span>
+      }
       grupos={grupos}
       ativo={secaoAtual.k}
       onNavegar={ir}
@@ -627,6 +667,27 @@ export function RestaurantPanel({
           <ContaBloqueada podeDono={podeDono} onOpen={() => ir("assinatura")} />
         ) : (
         <>
+        {aba === "inicio" && (
+          <section className="relative mb-5 overflow-hidden rounded-2xl bg-ink p-5 text-white sm:p-6" aria-label="Boas-vindas">
+            <div className="pointer-events-none absolute -right-10 -top-16 size-56 rounded-full bg-brand/25 blur-3xl" aria-hidden />
+            <div className="relative flex flex-wrap items-center gap-4">
+              {logoUrl ? (
+                <img src={logoUrl} alt="" className="size-14 rounded-xl bg-white object-contain p-1" />
+              ) : (
+                <span className="grid size-14 place-items-center rounded-xl bg-white/10 font-display text-2xl font-semibold">{d.restaurant.name.slice(0, 1).toUpperCase()}</span>
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="text-sm text-white/65">{new Date().getHours() < 12 ? "Bom dia" : new Date().getHours() < 18 ? "Boa tarde" : "Boa noite"},</p>
+                <h2 className="truncate font-display text-2xl font-medium tracking-heading">{usuario.nome.split(" ")[0]}</h2>
+                <p className="mt-0.5 text-sm text-white/65">{usuario.funcao} · {d.restaurant.name}</p>
+              </div>
+              <div className="flex gap-6 text-right">
+                <div><p className="font-display text-3xl font-medium leading-none">{abertas.length}</p><p className="mt-1 text-xs text-white/60">mesas abertas</p></div>
+                <div><p className="font-display text-3xl font-medium leading-none">{pendentes.length}</p><p className="mt-1 text-xs text-white/60">a confirmar</p></div>
+              </div>
+            </div>
+          </section>
+        )}
         {aba === "inicio" && (
           <Inicio
             slug={slug}
@@ -812,7 +873,7 @@ export function RestaurantPanel({
             onDone={refresh}
           />
         )}
-        {aba === "cardapio" && podeDono && <Cardapio slug={slug} pdv={pdv.data} onDone={refresh} />}
+        {aba === "cardapio" && podeDono && <Cardapio slug={slug} pdv={pdv.data} onDone={refresh} midia={midia.data?.itens ?? {}} />}
         {aba === "equipe" && podeDono && (
           <div className="space-y-6">
             <Garcons slug={slug} pdv={pdv.data} onDone={refresh} />
@@ -821,6 +882,7 @@ export function RestaurantPanel({
           </div>
         )}
         {aba === "relatorios" && <Relatorios slug={slug} />}
+        {aba === "identidade" && podeDono && <Identidade slug={slug} />}
         {aba === "integracoes" && <Integracoes slug={slug} podeDono={podeDono} />}
         {aba === "config" && <Configuracoes slug={slug} podeDono={podeDono} />}
         {aba === "atendimento" && <Atendimento slug={slug} podeDono={podeDono} irParaConfig={() => ir("config")} />}
@@ -1597,7 +1659,37 @@ function MesasQr({
   );
 }
 
-function Cardapio({ slug, pdv, onDone }: { slug: string; pdv: PdvData; onDone: () => void }) {
+function Identidade({ slug }: { slug: string }) {
+  const qc = useQueryClient();
+  const fetchMidia = useServerFn(getMidia);
+  const salvar = useServerFn(saveLogo);
+  const q = useQuery({ queryKey: ["midia", slug], queryFn: () => fetchMidia({ data: { slug } }) });
+  return (
+    <div className="grid gap-4 lg:grid-cols-2">
+      <section className="surface-card space-y-3 p-4 sm:p-5">
+        <h2 className="font-display font-semibold">Logomarca</h2>
+        <p className="text-xs text-muted-foreground">Aparece no menu do painel e, depois, nas telas do cliente. PNG, JPG ou WebP, fundo transparente fica melhor.</p>
+        <UploadImagem
+          url={q.data?.logoUrl}
+          rotulo="Logomarca"
+          maxLado={800}
+          onSalvar={async (imagem) => {
+            await salvar({ data: { slug, imagem } });
+            await qc.invalidateQueries({ queryKey: ["midia", slug] });
+          }}
+        />
+      </section>
+      <section className="surface-card space-y-2 p-4 sm:p-5">
+        <h2 className="font-display font-semibold">Fotos do cardápio</h2>
+        <p className="text-sm text-muted-foreground">Envie a foto de cada prato em <strong>Cardápio</strong>, ao lado do produto. Com um mapa de profundidade opcional, o prato ganha o efeito 3D no cardápio do cliente.</p>
+      </section>
+    </div>
+  );
+}
+
+function Cardapio({ slug, pdv, onDone, midia }: { slug: string; pdv: PdvData; onDone: () => void; midia: Record<string, { foto: string | null; profundidade: string | null }> }) {
+  const qcM = useQueryClient();
+  const salvarFoto = useServerFn(saveFotoItem);
   const saveItem = useServerFn(saveMenuItem);
   const saveCat = useServerFn(saveCategory);
   const importCsv = useServerFn(importMenuCsv);
@@ -1695,6 +1787,13 @@ function Cardapio({ slug, pdv, onDone }: { slug: string; pdv: PdvData; onDone: (
                       )}
                     </button>
                     <span className="font-semibold">{brl(i.price)}</span>
+                    <details className="relative">
+                      <summary className="cursor-pointer list-none rounded-lg border border-border px-2 py-1 text-xs hover:bg-muted">{midia[i.id]?.foto ? "Foto ✓" : "Foto"}{midia[i.id]?.profundidade ? " 3D" : ""}</summary>
+                      <div className="absolute right-0 z-20 mt-1 w-72 space-y-3 rounded-xl border border-border bg-card p-3 shadow-lg">
+                        <UploadImagem url={midia[i.id]?.foto} rotulo="Foto do prato" quadrado maxLado={1200} onSalvar={async (imagem) => { await salvarFoto({ data: { slug, itemId: i.id, tipo: "foto", imagem } }); await qcM.invalidateQueries({ queryKey: ["midia", slug] }); }} />
+                        {midia[i.id]?.foto && <UploadImagem url={midia[i.id]?.profundidade} rotulo="Mapa 3D (opcional)" quadrado maxLado={1200} onSalvar={async (imagem) => { await salvarFoto({ data: { slug, itemId: i.id, tipo: "profundidade", imagem } }); await qcM.invalidateQueries({ queryKey: ["midia", slug] }); }} />}
+                      </div>
+                    </details>
                     <Button
                       size="sm"
                       variant="ghost"
