@@ -67,6 +67,7 @@ import { Caixa, Configuracoes, Inicio, Integracoes, Relatorios } from "@/compone
 import { Cozinha } from "@/components/tipe/Kds";
 import { Shell, type GrupoNav } from "@/components/tipe/painel/Shell";
 import { UploadImagem } from "@/components/tipe/UploadImagem";
+import { PerfilConta, useMeuPerfil } from "@/components/tipe/PerfilConta";
 import { getMidia, saveFotoItem, saveLogo } from "@/lib/tipe/midia.functions";
 import { Image as ImagemIcon } from "lucide-react";
 import { EquipePermissoes } from "@/components/tipe/EquipePermissoes";
@@ -253,11 +254,10 @@ const secoes = [
   },
   {
     k: "identidade",
-    l: "Identidade visual",
+    l: "Perfil",
     i: ImagemIcon,
     g: "Configurações",
-    dono: true,
-    d: "Logomarca do restaurante e fotos do cardápio.",
+    d: "Seu nome e conta, logomarca do restaurante e fotos do cardápio.",
   },
   {
     k: "integracoes",
@@ -592,10 +592,11 @@ export function RestaurantPanel({
       })),
   })).filter((g) => g.itens.length > 0);
 
+  const meuPerfil = useMeuPerfil();
   const eu = d.staff.find((x) => x.email.toLowerCase() === (email ?? "").toLowerCase());
   const papel = myRoles.includes("owner") ? "owner" : myRoles.includes("manager") ? "manager" : myRoles.includes("cashier") ? "cashier" : "waiter";
   const usuario = {
-    nome: eu?.display_name || (email ? email.split("@")[0]! : "Você"),
+    nome: meuPerfil.data?.nome || eu?.display_name || (email ? email.split("@")[0]! : "Você"),
     funcao: cargoLabel[papel],
     detalhe: d.restaurant.name,
   };
@@ -882,7 +883,7 @@ export function RestaurantPanel({
           </div>
         )}
         {aba === "relatorios" && <Relatorios slug={slug} />}
-        {aba === "identidade" && podeDono && <Identidade slug={slug} />}
+        {aba === "identidade" && <Identidade slug={slug} podeDono={podeDono} funcao={usuario.funcao} onSair={onSair} />}
         {aba === "integracoes" && <Integracoes slug={slug} podeDono={podeDono} />}
         {aba === "config" && <Configuracoes slug={slug} podeDono={podeDono} />}
         {aba === "atendimento" && <Atendimento slug={slug} podeDono={podeDono} irParaConfig={() => ir("config")} />}
@@ -1659,14 +1660,15 @@ function MesasQr({
   );
 }
 
-function Identidade({ slug }: { slug: string }) {
+function Identidade({ slug, podeDono, funcao, onSair }: { slug: string; podeDono: boolean; funcao: string; onSair?: (() => void) | undefined }) {
   const qc = useQueryClient();
   const fetchMidia = useServerFn(getMidia);
   const salvar = useServerFn(saveLogo);
   const q = useQuery({ queryKey: ["midia", slug], queryFn: () => fetchMidia({ data: { slug } }) });
   return (
     <div className="grid gap-4 lg:grid-cols-2">
-      <section className="surface-card space-y-3 p-4 sm:p-5">
+      <PerfilConta funcao={funcao} onSair={onSair} />
+      {podeDono && <section className="surface-card space-y-3 p-4 sm:p-5">
         <h2 className="font-display font-semibold">Logomarca</h2>
         <p className="text-xs text-muted-foreground">Aparece no menu do painel e, depois, nas telas do cliente. PNG, JPG ou WebP, fundo transparente fica melhor.</p>
         <UploadImagem
@@ -1678,11 +1680,11 @@ function Identidade({ slug }: { slug: string }) {
             await qc.invalidateQueries({ queryKey: ["midia", slug] });
           }}
         />
-      </section>
-      <section className="surface-card space-y-2 p-4 sm:p-5">
+      </section>}
+      {podeDono && <section className="surface-card space-y-2 p-4 sm:p-5">
         <h2 className="font-display font-semibold">Fotos do cardápio</h2>
         <p className="text-sm text-muted-foreground">Envie a foto de cada prato em <strong>Cardápio</strong>, ao lado do produto. Com um mapa de profundidade opcional, o prato ganha o efeito 3D no cardápio do cliente.</p>
-      </section>
+      </section>}
     </div>
   );
 }
@@ -1761,9 +1763,9 @@ function Cardapio({ slug, pdv, onDone, midia }: { slug: string; pdv: PdvData; on
               {pdv.items
                 .filter((i) => i.category_id === cat.id)
                 .map((i) => (
-                  <li key={i.id} className="flex items-center justify-between gap-2 p-3 text-sm">
+                  <li key={i.id} className="flex flex-wrap items-center justify-between gap-x-2 gap-y-2 p-3 text-sm">
                     <button
-                      className="flex-1 text-left"
+                      className="min-w-0 flex-1 basis-40 text-left"
                       onClick={() =>
                         setF({
                           id: i.id,
@@ -1786,7 +1788,7 @@ function Cardapio({ slug, pdv, onDone, midia }: { slug: string; pdv: PdvData; on
                         <span className="ml-2 text-[10px] text-destructive">Esgotado</span>
                       )}
                     </button>
-                    <span className="font-semibold">{brl(i.price)}</span>
+                    <span className="shrink-0 font-semibold">{brl(i.price)}</span>
                     <details className="relative">
                       <summary className="flex cursor-pointer list-none items-center gap-2 rounded-xl border border-border p-1 pr-2 text-xs hover:bg-muted" aria-label={`Foto de ${i.name}`}>
                         <span className="relative grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-lg bg-muted text-[10px] text-muted-foreground">
@@ -1795,7 +1797,7 @@ function Cardapio({ slug, pdv, onDone, midia }: { slug: string; pdv: PdvData; on
                         </span>
                         <span className="font-semibold">{midia[i.id]?.foto ? "Trocar" : "Adicionar foto"}</span>
                       </summary>
-                      <div className="absolute right-0 z-20 mt-1 w-72 space-y-3 rounded-xl border border-border bg-card p-3 shadow-lg">
+                      <div className="absolute right-0 z-20 mt-1 w-72 max-w-[calc(100vw-2rem)] space-y-3 rounded-xl border border-border bg-card p-3 shadow-lg">
                         <UploadImagem url={midia[i.id]?.foto} rotulo="Foto do prato" quadrado maxLado={1200} onSalvar={async (imagem) => { await salvarFoto({ data: { slug, itemId: i.id, tipo: "foto", imagem } }); await qcM.invalidateQueries({ queryKey: ["midia", slug] }); }} />
                         {midia[i.id]?.foto && <UploadImagem url={midia[i.id]?.profundidade} rotulo="Mapa 3D (opcional)" quadrado maxLado={1200} onSalvar={async (imagem) => { await salvarFoto({ data: { slug, itemId: i.id, tipo: "profundidade", imagem } }); await qcM.invalidateQueries({ queryKey: ["midia", slug] }); }} />}
                       </div>

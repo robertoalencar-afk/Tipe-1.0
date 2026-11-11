@@ -257,7 +257,7 @@ export function Shell({
   );
 
   return (
-    <div className="min-h-dvh bg-background-muted text-foreground">
+    <div className="min-h-dvh overflow-x-clip bg-background-muted text-foreground">
       <div
         className={cn(
           "lg:grid lg:min-h-dvh lg:transition-[grid-template-columns] lg:duration-200",
@@ -352,7 +352,7 @@ export function Shell({
             </div>
           </header>
 
-          <main className="mx-auto w-full max-w-[1440px] px-3 pb-24 pt-5 sm:px-6 lg:px-8 lg:pb-16 lg:pt-7">
+          <main className="mx-auto w-full min-w-0 max-w-[1440px] px-3 pb-24 pt-5 sm:px-6 lg:px-8 lg:pb-16 lg:pt-7">
             {(titulo || descricao) && (
               <div className="mb-5 flex flex-wrap items-end justify-between gap-3 lg:mb-7">
                 <div className="min-w-0">

@@ -11,6 +11,7 @@ import {
   MessageSquare,
   ShieldCheck,
   Target,
+  UserRound,
 } from "lucide-react";
 import { FounderMfaGate } from "@/components/tipe/FounderMfaGate";
 import { Shell, type GrupoNav, type AcaoBusca } from "@/components/tipe/painel/Shell";
@@ -22,9 +23,10 @@ import { Comunicacao } from "@/components/tipe/central/Comunicacao";
 import { Restaurantes } from "@/components/tipe/central/Restaurantes";
 import { Financeiro } from "@/components/tipe/central/Financeiro";
 import { Inteligencia } from "@/components/tipe/central/Inteligencia";
+import { PerfilConta, useMeuPerfil } from "@/components/tipe/PerfilConta";
 import { Administracao } from "@/components/tipe/central/Administracao";
 
-const SECOES = ["inicio", "comercial", "comunicacao", "restaurantes", "financeiro", "inteligencia", "administracao"] as const;
+const SECOES = ["inicio", "comercial", "comunicacao", "restaurantes", "financeiro", "inteligencia", "administracao", "perfil"] as const;
 export type SecaoCentral = (typeof SECOES)[number];
 
 export const Route = createFileRoute("/_authenticated/central")({
@@ -55,6 +57,7 @@ const TITULOS: Record<SecaoCentral, { t: string; d: string }> = {
   financeiro: { t: "Financeiro", d: "Volume processado não é receita. Receita da Tipe: 30% das gorjetas e assinaturas." },
   inteligencia: { t: "Inteligência", d: "Lebre do fundador, automações e limites. Só rascunhos: nenhuma ação sem aprovação." },
   administracao: { t: "Administração", d: "Segurança, auditoria, privacidade, dispositivos e lançamentos." },
+  perfil: { t: "Perfil", d: "Seu nome, e-mail de acesso e senha." },
 };
 
 export function useSecao() {
@@ -72,6 +75,7 @@ function Central() {
   const fetchDash = useServerFn(getCentralDashboard);
   const dash = useQuery({ queryKey: ["central-dash", 30], queryFn: () => fetchDash({ data: { dias: 30 } }), refetchInterval: 60_000 });
   const k = dash.data?.kpis;
+  const meu = useMeuPerfil();
 
   const grupos: GrupoNav[] = [
     { l: "Visão geral", itens: [{ k: "inicio", l: "Início", i: LayoutDashboard, badge: k?.pendencias, badgeTone: "warning", busca: "atenção pendências dashboard" }] },
@@ -80,7 +84,7 @@ function Central() {
     { l: "Restaurantes", itens: [{ k: "restaurantes", l: "Clientes", i: Building2, badge: k?.emImplantacao, badgeTone: "neutral", busca: "assinaturas implantação integrações pdv" }] },
     { l: "Financeiro", itens: [{ k: "financeiro", l: "Financeiro", i: Banknote, badge: k?.saquesPendentes, badgeTone: "warning", busca: "receita gmv gorjetas saques planos" }] },
     { l: "Inteligência", itens: [{ k: "inteligencia", l: "Lebre e automações", i: Bot, badge: k?.automacoesFalhas, badgeTone: "warning", busca: "ia assistente regras limites" }] },
-    { l: "Administração", itens: [{ k: "administracao", l: "Segurança", i: ShieldCheck, busca: "auditoria privacidade dispositivos lançamentos" }] },
+    { l: "Administração", itens: [{ k: "administracao", l: "Segurança", i: ShieldCheck, busca: "auditoria privacidade dispositivos lançamentos" }, { k: "perfil", l: "Perfil", i: UserRound, busca: "nome conta senha sair" }] },
   ];
 
   const busca: AcaoBusca[] = (dash.data?.atencao ?? []).slice(0, 30).map((a) => ({
@@ -98,6 +102,8 @@ function Central() {
   return (
     <Shell
       ambiente="Central Tipe"
+      usuario={{ nome: meu.data?.nome || meu.data?.email.split("@")[0] || "Fundador", funcao: "Fundador", detalhe: "Tipe" }}
+      onSair={sair}
       contexto="Área do fundador"
       grupos={grupos}
       ativo={secao}
@@ -118,6 +124,7 @@ function Central() {
       {secao === "financeiro" && <Financeiro {...comum} />}
       {secao === "inteligencia" && <Inteligencia {...comum} />}
       {secao === "administracao" && <Administracao {...comum} />}
+      {secao === "perfil" && <div className="max-w-xl"><PerfilConta funcao="Fundador" onSair={sair} /></div>}
     </Shell>
   );
 }
