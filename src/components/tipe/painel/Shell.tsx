@@ -7,9 +7,10 @@
  * Tokens: docs/design-system.md. Nada de cor nova aqui.
  */
 import { useCallback, useEffect, useMemo, useState, type ComponentType, type ReactNode } from "react";
-import { ChevronsLeft, ChevronsRight, Menu, Search, X } from "lucide-react";
+import { ChevronDown, ChevronsLeft, ChevronsRight, LogOut, Menu, Search, X } from "lucide-react";
 import { TipeLogo } from "@/components/tipe/Logo";
 import { Button } from "@/components/ui/button";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import {
   CommandDialog,
@@ -35,6 +36,59 @@ export type ItemNav = {
   /** Palavras extras para a busca global encontrar este item. */
   busca?: string | undefined;
 };
+/** Quem está logado: nome em destaque, função e (opcional) logomarca do restaurante. */
+export type Usuario = { nome: string; funcao: string; detalhe?: string | undefined; logoUrl?: string | null | undefined };
+
+function iniciaisDe(nome: string) {
+  return nome.split(/\s+/).filter(Boolean).slice(0, 2).map((p) => p[0]!.toUpperCase()).join("") || "?";
+}
+
+function Avatar({ u, className }: { u: Usuario; className?: string }) {
+  return (
+    <span className={cn("grid size-9 shrink-0 place-items-center overflow-hidden rounded-full bg-brand text-xs font-semibold text-ink", className)} aria-hidden>
+      {iniciaisDe(u.nome)}
+    </span>
+  );
+}
+
+function MenuUsuario({ u, onSair, claro = false }: { u: Usuario; onSair?: (() => void) | undefined; claro?: boolean }) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <button
+          type="button"
+          className={cn(
+            "flex w-full items-center gap-2.5 rounded-xl p-1.5 text-left transition-colors",
+            claro ? "hover:bg-muted" : "hover:bg-white/[0.07]",
+          )}
+          aria-label={`Conta de ${u.nome}`}
+        >
+          <Avatar u={u} />
+          <span className="min-w-0 flex-1 leading-tight">
+            <span className={cn("block truncate text-sm font-semibold", claro ? "text-foreground" : "text-white")}>{u.nome}</span>
+            <span className={cn("block truncate text-[11px] font-medium uppercase tracking-wide", claro ? "text-brand-strong" : "text-brand")}>{u.funcao}</span>
+          </span>
+          <ChevronDown className={cn("size-4 shrink-0", claro ? "text-muted-foreground" : "text-white/50")} />
+        </button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-60">
+        <DropdownMenuLabel className="font-normal">
+          <span className="block text-sm font-semibold">{u.nome}</span>
+          <span className="block text-xs text-muted-foreground">{u.funcao}{u.detalhe ? ` · ${u.detalhe}` : ""}</span>
+        </DropdownMenuLabel>
+        {onSair && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem onSelect={onSair} className="text-destructive focus:text-destructive">
+              <LogOut className="mr-2 size-4" /> Sair
+            </DropdownMenuItem>
+          </>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 export type GrupoNav = { l: string; itens: ItemNav[] };
 
 export type AcaoBusca = {
@@ -67,6 +121,8 @@ export function Shell({
   descricao,
   acoes,
   rodape,
+  usuario,
+  onSair,
   busca,
   children,
 }: {
@@ -82,6 +138,9 @@ export function Shell({
   acoes?: ReactNode;
   /** Área fixa no fim da barra lateral (sair, perfil). */
   rodape?: ReactNode;
+  /** Pessoa logada: aparece no cabeçalho, na barra lateral e na gaveta, com botão Sair. */
+  usuario?: Usuario | undefined;
+  onSair?: (() => void) | undefined;
   /** Itens extras da busca global além da navegação (registros, atalhos). */
   busca?: AcaoBusca[] | undefined;
   children: ReactNode;
@@ -227,6 +286,12 @@ export function Shell({
           )}
           {nav(recolhida)}
           <div className="border-t border-white/10 p-2">
+            {usuario && !recolhida && <MenuUsuario u={usuario} onSair={onSair} />}
+            {usuario && recolhida && onSair && (
+              <button type="button" onClick={onSair} className="mb-1 flex w-full items-center justify-center rounded-xl p-2 text-white/70 hover:bg-white/[0.07] hover:text-white" aria-label="Sair" title="Sair">
+                <LogOut className="h-4 w-4" />
+              </button>
+            )}
             {!recolhida && rodape}
             <button
               type="button"
@@ -274,6 +339,16 @@ export function Shell({
                 <Search className="h-5 w-5" />
               </Button>
               {acoes && <div className="flex items-center gap-1.5">{acoes}</div>}
+              {usuario && (
+                <div className="ml-1 hidden w-56 border-l border-border pl-3 sm:block">
+                  <MenuUsuario u={usuario} onSair={onSair} claro />
+                </div>
+              )}
+              {usuario && (
+                <div className="sm:hidden">
+                  <MenuUsuario u={{ ...usuario, nome: usuario.nome }} onSair={onSair} claro />
+                </div>
+              )}
             </div>
           </header>
 
@@ -316,7 +391,12 @@ export function Shell({
           {contexto && <div className="border-b border-white/10 px-4 py-3 text-xs text-white/70">{contexto}</div>}
           <div className="flex h-[calc(100%-4rem)] flex-col">
             {nav(false)}
-            {rodape && <div className="border-t border-white/10 p-2">{rodape}</div>}
+            {(rodape || usuario) && (
+              <div className="border-t border-white/10 p-2">
+                {usuario && <MenuUsuario u={usuario} onSair={onSair} />}
+                {rodape}
+              </div>
+            )}
           </div>
         </SheetContent>
       </Sheet>
