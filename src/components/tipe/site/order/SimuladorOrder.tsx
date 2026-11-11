@@ -1,5 +1,5 @@
 /**
- * Simulador do Tipe Order (/produtos/order#simulador). O visitante faz os dois papéis:
+ * Simulador do Tipe Order (/order#simulador). O visitante faz os dois papéis:
  * o cliente no celular (cardápio, pedido, conta) e o restaurante ao lado (garçom que libera
  * a mesa, cozinha que prepara, caixa que vê o pagamento). Tudo roda só no navegador, com
  * dados de exemplo do restaurante fictício "Maré Alta"; nada é enviado.

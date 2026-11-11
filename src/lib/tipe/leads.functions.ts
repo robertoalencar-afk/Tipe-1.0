@@ -49,7 +49,7 @@ const step1Schema = z.object({
     .string()
     .regex(/^[a-z0-9]{4,16}$/i)
     .optional(),
-  // "tipe-order": formulário da página /produtos/order (origin_page é text, sem migração).
+  // "tipe-order": formulário da página /order (origin_page é text, sem migração).
   originPage: z.enum(["home", "simulador", "calculadora", "tipe-order"]).default("home"),
   /** Estado de lançamento do produto quando a pessoa se cadastrou (só para originPage "tipe-order"). */
   launchState: z

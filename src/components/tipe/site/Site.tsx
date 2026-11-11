@@ -151,7 +151,7 @@ export function Titulo({
  * cada 4,5 s, de leve; use só no CTA principal da página (o do topo).
  */
 export function BotaoPrincipal({
-  href = "/teste-gratis",
+  href = "/solicitar-demonstracao",
   children = "Solicitar demonstração",
   className,
   vivo = false,
@@ -225,7 +225,7 @@ export function FaixaCta({
           </div>
           <div className="flex flex-wrap gap-3">
             <a
-              href="/teste-gratis"
+              href="/solicitar-demonstracao"
               className="com-fios inline-flex min-h-14 items-center gap-2.5 rounded-full bg-white pl-8 pr-7 text-lg font-medium text-[#021E34] hover:bg-white/90"
             >
               Solicitar demonstração <SetaFios />

@@ -38,7 +38,7 @@ Nomes antigos: Tipe Kitchen hoje é Tipe Cozinha, Tipe Staff é Tipe Equipe, Tip
 PDV: a TIPE tem PDV próprio, o Lançamento TIPE, para lançar os pedidos no próprio painel sem outro sistema. Quem já usa um PDV pode enviar mesas e itens pela API TIPE ou usar os conectores (Saipos, Consumer, Linx, TOTVS Chef e outros), com integração assistida e baixa automática do item pago. A equipe confirma os detalhes do sistema de cada restaurante.
 Planos: assinatura mensal pelo número de mesas, sem tarifa da TIPE por transação; o restaurante paga só as tarifas do Pagar.me. Essencial até 10 mesas, Profissional até 20, Premium até 40 (inclui cozinha e bar e controle de caixa) e Personalizado acima de 40. Mensal sem fidelidade; no anual, os totens com QR Code estão incluídos. Os valores serão divulgados no lançamento: não informe preços.
 Teste grátis: 30 dias, sem cartão de crédito. A implantação é acompanhada: a equipe cadastra as mesas, gera os QR Codes e treina a equipe.
-Para ver como funciona, indique /simulador. Para criar a conta, /cadastro. Preços em /precos, integrações em /integracoes, produtos em /produtos/pay (e order, kitchen, staff, restaurant, ai). Para falar com a equipe, o WhatsApp oficial no site.
+Para ver como funciona, indique /simulador. Para criar a conta, /cadastro. Preços em /precos, integrações em /integracoes, produtos em /pay (e /order, /cozinha, /equipe, /gestao, /lebre). Para falar com a equipe, o WhatsApp oficial no site.
 `;
 
 export type LebreFile = { name: string; mediaType: string; dataUrl: string };

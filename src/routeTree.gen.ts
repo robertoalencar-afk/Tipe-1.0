@@ -14,16 +14,24 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as AjudaRouteImport } from './routes/ajuda'
 import { Route as CadastroRouteImport } from './routes/cadastro'
 import { Route as CookiesRouteImport } from './routes/cookies'
+import { Route as CozinhaRouteImport } from './routes/cozinha'
 import { Route as CrmRouteImport } from './routes/crm'
 import { Route as DemoRouteImport } from './routes/demo'
 import { Route as EntrarRouteImport } from './routes/entrar'
+import { Route as EquipeRouteImport } from './routes/equipe'
 import { Route as EsqueciASenhaRouteImport } from './routes/esqueci-a-senha'
 import { Route as FundadorRouteImport } from './routes/fundador'
+import { Route as GestaoRouteImport } from './routes/gestao'
+import { Route as GuestRouteImport } from './routes/guest'
 import { Route as IntegracoesRouteImport } from './routes/integracoes'
+import { Route as LebreRouteImport } from './routes/lebre'
+import { Route as OrderRouteImport } from './routes/order'
+import { Route as PayRouteImport } from './routes/pay'
 import { Route as PrecosRouteImport } from './routes/precos'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as SimuladorRouteImport } from './routes/simulador'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
+import { Route as SolicitarDemonstracaoRouteImport } from './routes/solicitar-demonstracao'
 import { Route as TermosRouteImport } from './routes/termos'
 import { Route as TermosParceirosRouteImport } from './routes/termos-parceiros'
 import { Route as TesteGratisRouteImport } from './routes/teste-gratis'
@@ -108,6 +116,11 @@ const CookiesRoute = CookiesRouteImport.update({
   path: '/cookies',
   getParentRoute: () => rootRouteImport,
 } as any)
+const CozinhaRoute = CozinhaRouteImport.update({
+  id: '/cozinha',
+  path: '/cozinha',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CrmRoute = CrmRouteImport.update({
   id: '/crm',
   path: '/crm',
@@ -123,6 +136,11 @@ const EntrarRoute = EntrarRouteImport.update({
   path: '/entrar',
   getParentRoute: () => rootRouteImport,
 } as any)
+const EquipeRoute = EquipeRouteImport.update({
+  id: '/equipe',
+  path: '/equipe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const EsqueciASenhaRoute = EsqueciASenhaRouteImport.update({
   id: '/esqueci-a-senha',
   path: '/esqueci-a-senha',
@@ -133,9 +151,34 @@ const FundadorRoute = FundadorRouteImport.update({
   path: '/fundador',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GestaoRoute = GestaoRouteImport.update({
+  id: '/gestao',
+  path: '/gestao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuestRoute = GuestRouteImport.update({
+  id: '/guest',
+  path: '/guest',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IntegracoesRoute = IntegracoesRouteImport.update({
   id: '/integracoes',
   path: '/integracoes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LebreRoute = LebreRouteImport.update({
+  id: '/lebre',
+  path: '/lebre',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const OrderRoute = OrderRouteImport.update({
+  id: '/order',
+  path: '/order',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PayRoute = PayRouteImport.update({
+  id: '/pay',
+  path: '/pay',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PrecosRoute = PrecosRouteImport.update({
@@ -156,6 +199,11 @@ const SimuladorRoute = SimuladorRouteImport.update({
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SolicitarDemonstracaoRoute = SolicitarDemonstracaoRouteImport.update({
+  id: '/solicitar-demonstracao',
+  path: '/solicitar-demonstracao',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TermosRoute = TermosRouteImport.update({
@@ -463,16 +511,24 @@ export interface FileRoutesByFullPath {
   '/ajuda': typeof AjudaRoute
   '/cadastro': typeof CadastroRoute
   '/cookies': typeof CookiesRoute
+  '/cozinha': typeof CozinhaRoute
   '/crm': typeof CrmRouteWithChildren
   '/demo': typeof DemoRoute
   '/entrar': typeof EntrarRoute
+  '/equipe': typeof EquipeRoute
   '/esqueci-a-senha': typeof EsqueciASenhaRoute
   '/fundador': typeof FundadorRoute
+  '/gestao': typeof GestaoRoute
+  '/guest': typeof GuestRoute
   '/integracoes': typeof IntegracoesRoute
+  '/lebre': typeof LebreRoute
+  '/order': typeof OrderRoute
+  '/pay': typeof PayRoute
   '/precos': typeof PrecosRoute
   '/reset-password': typeof ResetPasswordRoute
   '/simulador': typeof SimuladorRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/solicitar-demonstracao': typeof SolicitarDemonstracaoRoute
   '/termos': typeof TermosRoute
   '/termos-parceiros': typeof TermosParceirosRoute
   '/teste-gratis': typeof TesteGratisRoute
@@ -538,15 +594,23 @@ export interface FileRoutesByTo {
   '/ajuda': typeof AjudaRoute
   '/cadastro': typeof CadastroRoute
   '/cookies': typeof CookiesRoute
+  '/cozinha': typeof CozinhaRoute
   '/demo': typeof DemoRoute
   '/entrar': typeof EntrarRoute
+  '/equipe': typeof EquipeRoute
   '/esqueci-a-senha': typeof EsqueciASenhaRoute
   '/fundador': typeof FundadorRoute
+  '/gestao': typeof GestaoRoute
+  '/guest': typeof GuestRoute
   '/integracoes': typeof IntegracoesRoute
+  '/lebre': typeof LebreRoute
+  '/order': typeof OrderRoute
+  '/pay': typeof PayRoute
   '/precos': typeof PrecosRoute
   '/reset-password': typeof ResetPasswordRoute
   '/simulador': typeof SimuladorRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/solicitar-demonstracao': typeof SolicitarDemonstracaoRoute
   '/termos': typeof TermosRoute
   '/termos-parceiros': typeof TermosParceirosRoute
   '/teste-gratis': typeof TesteGratisRoute
@@ -614,16 +678,24 @@ export interface FileRoutesById {
   '/ajuda': typeof AjudaRoute
   '/cadastro': typeof CadastroRoute
   '/cookies': typeof CookiesRoute
+  '/cozinha': typeof CozinhaRoute
   '/crm': typeof CrmRouteWithChildren
   '/demo': typeof DemoRoute
   '/entrar': typeof EntrarRoute
+  '/equipe': typeof EquipeRoute
   '/esqueci-a-senha': typeof EsqueciASenhaRoute
   '/fundador': typeof FundadorRoute
+  '/gestao': typeof GestaoRoute
+  '/guest': typeof GuestRoute
   '/integracoes': typeof IntegracoesRoute
+  '/lebre': typeof LebreRoute
+  '/order': typeof OrderRoute
+  '/pay': typeof PayRoute
   '/precos': typeof PrecosRoute
   '/reset-password': typeof ResetPasswordRoute
   '/simulador': typeof SimuladorRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
+  '/solicitar-demonstracao': typeof SolicitarDemonstracaoRoute
   '/termos': typeof TermosRoute
   '/termos-parceiros': typeof TermosParceirosRoute
   '/teste-gratis': typeof TesteGratisRoute
@@ -691,16 +763,24 @@ export interface FileRouteTypes {
     | '/ajuda'
     | '/cadastro'
     | '/cookies'
+    | '/cozinha'
     | '/crm'
     | '/demo'
     | '/entrar'
+    | '/equipe'
     | '/esqueci-a-senha'
     | '/fundador'
+    | '/gestao'
+    | '/guest'
     | '/integracoes'
+    | '/lebre'
+    | '/order'
+    | '/pay'
     | '/precos'
     | '/reset-password'
     | '/simulador'
     | '/sitemap.xml'
+    | '/solicitar-demonstracao'
     | '/termos'
     | '/termos-parceiros'
     | '/teste-gratis'
@@ -766,15 +846,23 @@ export interface FileRouteTypes {
     | '/ajuda'
     | '/cadastro'
     | '/cookies'
+    | '/cozinha'
     | '/demo'
     | '/entrar'
+    | '/equipe'
     | '/esqueci-a-senha'
     | '/fundador'
+    | '/gestao'
+    | '/guest'
     | '/integracoes'
+    | '/lebre'
+    | '/order'
+    | '/pay'
     | '/precos'
     | '/reset-password'
     | '/simulador'
     | '/sitemap.xml'
+    | '/solicitar-demonstracao'
     | '/termos'
     | '/termos-parceiros'
     | '/teste-gratis'
@@ -841,16 +929,24 @@ export interface FileRouteTypes {
     | '/ajuda'
     | '/cadastro'
     | '/cookies'
+    | '/cozinha'
     | '/crm'
     | '/demo'
     | '/entrar'
+    | '/equipe'
     | '/esqueci-a-senha'
     | '/fundador'
+    | '/gestao'
+    | '/guest'
     | '/integracoes'
+    | '/lebre'
+    | '/order'
+    | '/pay'
     | '/precos'
     | '/reset-password'
     | '/simulador'
     | '/sitemap.xml'
+    | '/solicitar-demonstracao'
     | '/termos'
     | '/termos-parceiros'
     | '/teste-gratis'
@@ -918,16 +1014,24 @@ export interface RootRouteChildren {
   AjudaRoute: typeof AjudaRoute
   CadastroRoute: typeof CadastroRoute
   CookiesRoute: typeof CookiesRoute
+  CozinhaRoute: typeof CozinhaRoute
   CrmRoute: typeof CrmRouteWithChildren
   DemoRoute: typeof DemoRoute
   EntrarRoute: typeof EntrarRoute
+  EquipeRoute: typeof EquipeRoute
   EsqueciASenhaRoute: typeof EsqueciASenhaRoute
   FundadorRoute: typeof FundadorRoute
+  GestaoRoute: typeof GestaoRoute
+  GuestRoute: typeof GuestRoute
   IntegracoesRoute: typeof IntegracoesRoute
+  LebreRoute: typeof LebreRoute
+  OrderRoute: typeof OrderRoute
+  PayRoute: typeof PayRoute
   PrecosRoute: typeof PrecosRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   SimuladorRoute: typeof SimuladorRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
+  SolicitarDemonstracaoRoute: typeof SolicitarDemonstracaoRoute
   TermosRoute: typeof TermosRoute
   TermosParceirosRoute: typeof TermosParceirosRoute
   TesteGratisRoute: typeof TesteGratisRoute
@@ -995,6 +1099,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CookiesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/cozinha': {
+      id: '/cozinha'
+      path: '/cozinha'
+      fullPath: '/cozinha'
+      preLoaderRoute: typeof CozinhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/crm': {
       id: '/crm'
       path: '/crm'
@@ -1016,6 +1127,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof EntrarRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/equipe': {
+      id: '/equipe'
+      path: '/equipe'
+      fullPath: '/equipe'
+      preLoaderRoute: typeof EquipeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/esqueci-a-senha': {
       id: '/esqueci-a-senha'
       path: '/esqueci-a-senha'
@@ -1030,11 +1148,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FundadorRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/gestao': {
+      id: '/gestao'
+      path: '/gestao'
+      fullPath: '/gestao'
+      preLoaderRoute: typeof GestaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guest': {
+      id: '/guest'
+      path: '/guest'
+      fullPath: '/guest'
+      preLoaderRoute: typeof GuestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/integracoes': {
       id: '/integracoes'
       path: '/integracoes'
       fullPath: '/integracoes'
       preLoaderRoute: typeof IntegracoesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/lebre': {
+      id: '/lebre'
+      path: '/lebre'
+      fullPath: '/lebre'
+      preLoaderRoute: typeof LebreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/order': {
+      id: '/order'
+      path: '/order'
+      fullPath: '/order'
+      preLoaderRoute: typeof OrderRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/pay': {
+      id: '/pay'
+      path: '/pay'
+      fullPath: '/pay'
+      preLoaderRoute: typeof PayRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/precos': {
@@ -1063,6 +1216,13 @@ declare module '@tanstack/react-router' {
       path: '/sitemap.xml'
       fullPath: '/sitemap.xml'
       preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/solicitar-demonstracao': {
+      id: '/solicitar-demonstracao'
+      path: '/solicitar-demonstracao'
+      fullPath: '/solicitar-demonstracao'
+      preLoaderRoute: typeof SolicitarDemonstracaoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/termos': {
@@ -1566,16 +1726,24 @@ const rootRouteChildren: RootRouteChildren = {
   AjudaRoute: AjudaRoute,
   CadastroRoute: CadastroRoute,
   CookiesRoute: CookiesRoute,
+  CozinhaRoute: CozinhaRoute,
   CrmRoute: CrmRouteWithChildren,
   DemoRoute: DemoRoute,
   EntrarRoute: EntrarRoute,
+  EquipeRoute: EquipeRoute,
   EsqueciASenhaRoute: EsqueciASenhaRoute,
   FundadorRoute: FundadorRoute,
+  GestaoRoute: GestaoRoute,
+  GuestRoute: GuestRoute,
   IntegracoesRoute: IntegracoesRoute,
+  LebreRoute: LebreRoute,
+  OrderRoute: OrderRoute,
+  PayRoute: PayRoute,
   PrecosRoute: PrecosRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   SimuladorRoute: SimuladorRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
+  SolicitarDemonstracaoRoute: SolicitarDemonstracaoRoute,
   TermosRoute: TermosRoute,
   TermosParceirosRoute: TermosParceirosRoute,
   TesteGratisRoute: TesteGratisRoute,

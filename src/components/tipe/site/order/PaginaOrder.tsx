@@ -1,5 +1,5 @@
 /**
- * Página comercial do Tipe Order (/produtos/order), dentro da mesma moldura das outras
+ * Página comercial do Tipe Order (/order), dentro da mesma moldura das outras
  * páginas de produto. O que muda com o estado de lançamento (CTA, selo, resposta de
  * "Quando estará disponível?", título do formulário) vem de TEXTOS_LANCAMENTO.
  *
@@ -378,7 +378,7 @@ function PayEOrder({ estado }: { estado: EstadoLancamento }) {
         "Dinheiro ou maquininha no local; Pix, Apple Pay e Google Pay em piloto",
         "Gorjeta extra opcional depois, como um segundo pagamento",
       ],
-      href: "/produtos/pay",
+      href: "/pay",
       escuro: true,
     },
     {
@@ -470,19 +470,19 @@ const ETAPAS: { nome: string; href: string; icone: typeof ChefHat; d: string }[]
   },
   {
     nome: "Cozinha",
-    href: "/produtos/kitchen",
+    href: "/cozinha",
     icone: ChefHat,
     d: "O pedido aparece na tela da cozinha e do bar.",
   },
   {
     nome: "Equipe",
-    href: "/produtos/staff",
+    href: "/equipe",
     icone: Users,
     d: "A equipe acompanha a mesa e leva o pedido.",
   },
   {
     nome: "Pay",
-    href: "/produtos/pay",
+    href: "/pay",
     icone: ReceiptText,
     d: "Tudo o que foi pedido já está na conta para pagar.",
   },

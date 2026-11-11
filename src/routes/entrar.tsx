@@ -240,7 +240,7 @@ function Entrar() {
             </button>
             . Restaurante novo?{" "}
             <Link
-              to="/teste-gratis"
+              to="/solicitar-demonstracao"
               className="font-medium text-foreground underline underline-offset-4"
             >
               Teste grátis

@@ -1,5 +1,5 @@
 /**
- * Simulador do Tipe Reserva (/produtos/guest#simulador). O visitante faz o papel do cliente no
+ * Simulador do Tipe Reserva (/guest#simulador). O visitante faz o papel do cliente no
  * celular (descobrir, reservar, chegar, pagar, agradecer e avaliar) e vê ao lado o que o
  * restaurante vê no painel de reservas. Tudo roda só no navegador, com restaurantes fictícios
  * de Fortaleza; nada é enviado e nenhuma cobrança acontece.
