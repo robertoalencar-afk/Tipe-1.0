@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light only">
+<title>Você entrou para a equipe! Seu acesso à Tipe chegou</title>
+</head>
+<body style="margin:0;padding:0;background:#ffffff;-webkit-text-size-adjust:100%;">
+<div style="display:none;max-height:0;overflow:hidden;opacity:0;">Crie sua senha e comece a atender, receber gorjetas e acompanhar suas mesas pela Tipe.&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;">
+<tr><td align="center" style="padding:32px 16px;">
+  <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;">
+    <tr><td align="center" style="padding:0 0 20px;">
+      <img src="https://tipe.digital/email/tipe-logo-email.png" width="108" alt="Tipe" style="display:block;width:108px;height:auto;border:0;">
+    </td></tr>
+    <tr><td style="background:#ffffff;border:1px solid #e5e7eb;border-radius:24px;overflow:hidden;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+        <tr><td align="center" style="background:#071727;padding:28px 24px 0;border-radius:24px 24px 0 0;">
+          <img src="https://tipe.digital/email/lebre-feliz.png" width="150" alt="A lebre da Tipe, dando boas-vindas" style="display:block;width:150px;height:auto;border:0;">
+        </td></tr>
+        <tr><td style="padding:32px 36px 8px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#071727;">
+          <h1 style="margin:0 0 12px;font-size:26px;line-height:1.2;font-weight:600;letter-spacing:-0.5px;">{{ if .Data.name }}{{ .Data.name }}, bem-vindo{{ else }}Bem-vindo{{ end }} à equipe!</h1>
+          <p style="margin:0 0 24px;font-size:16px;line-height:1.6;color:#575b5f;">O restaurante liberou seu acesso à Tipe com o e-mail <strong style="color:#071727;">{{ .Email }}</strong>. Por lá você acompanha suas mesas, recebe chamados dos clientes e vê suas gorjetas caindo. Bora?</p><table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%"><tr><td align="center" style="border-radius:999px;background:#10d1b4;">
+            <a href="{{ .ConfirmationURL }}" target="_blank" style="display:block;padding:16px 24px;font-size:16px;font-weight:600;color:#071727;text-decoration:none;border-radius:999px;">Criar minha senha</a>
+          </td></tr></table><p style="margin:20px 0 0;font-size:14px;line-height:1.6;color:#575b5f;">&#9201;&#65039; O convite funciona <strong style="color:#071727;">uma vez só</strong>. Venceu? Peça um novo ao gerente.</p>
+        </td></tr>
+        <tr><td style="padding:24px 36px 32px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#fff4e8;border-radius:16px;">
+            <tr><td style="padding:16px 18px;font-size:14px;line-height:1.55;color:#575b5f;"><strong style="color:#071727;">Não conhece esse restaurante?</strong> Ignore este e-mail: sem criar a senha, o acesso não é ativado. A Tipe nunca pede sua senha.</td></tr>
+          </table>
+        </td></tr>
+      </table>
+    </td></tr>
+    <tr><td align="center" style="padding:24px 16px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:1.6;color:#8a8f96;">
+      Tipe · pagamentos e atendimento para restaurantes<br>
+      Você recebeu este e-mail porque um restaurante cadastrou você na equipe da Tipe.<br>
+      Dúvidas? <a href="mailto:contato@tipe.digital" style="color:#8a8f96;">contato@tipe.digital</a>
+    </td></tr>
+  </table>
+</td></tr>
+</table>
+</body>
+</html>

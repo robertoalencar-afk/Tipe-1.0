@@ -1,0 +1,72 @@
+[
+  {
+    "chave": "confirmation",
+    "arquivo": "confirmar-cadastro.html",
+    "assunto": "Falta um toque para abrir a casa na Tipe",
+    "painel": "Confirm signup",
+    "notificacao": false
+  },
+  {
+    "chave": "invite",
+    "arquivo": "convite.html",
+    "assunto": "Você entrou para a equipe! Seu acesso à Tipe chegou",
+    "painel": "Invite user",
+    "notificacao": false
+  },
+  {
+    "chave": "magic_link",
+    "arquivo": "link-magico.html",
+    "assunto": "Seu atalho para entrar na Tipe",
+    "painel": "Magic link",
+    "notificacao": false
+  },
+  {
+    "chave": "email_change",
+    "arquivo": "trocar-email.html",
+    "assunto": "Confirme seu e-mail novo na Tipe",
+    "painel": "Change email address",
+    "notificacao": false
+  },
+  {
+    "chave": "reauthentication",
+    "arquivo": "reautenticacao.html",
+    "assunto": "Seu código de segurança da Tipe: {{ .Token }}",
+    "painel": "Reauthentication",
+    "notificacao": false
+  },
+  {
+    "chave": "recovery",
+    "arquivo": "recuperar-senha.html",
+    "assunto": "Sua nova senha da Tipe",
+    "painel": "Reset password",
+    "notificacao": false
+  },
+  {
+    "chave": "password_changed_notification",
+    "arquivo": "senha-alterada.html",
+    "assunto": "Sua senha da Tipe foi alterada",
+    "painel": "Password changed",
+    "notificacao": true
+  },
+  {
+    "chave": "email_changed_notification",
+    "arquivo": "email-alterado.html",
+    "assunto": "O e-mail da sua conta Tipe mudou",
+    "painel": "Email address changed",
+    "notificacao": true
+  },
+  {
+    "chave": "mfa_factor_enrolled_notification",
+    "arquivo": "2fa-ativado.html",
+    "assunto": "Verificação em duas etapas ativada na Tipe",
+    "painel": "MFA method added",
+    "notificacao": true
+  },
+  {
+    "chave": "mfa_factor_unenrolled_notification",
+    "arquivo": "2fa-removido.html",
+    "assunto": "Verificação em duas etapas removida na Tipe",
+    "painel": "MFA method removed",
+    "notificacao": true
+  }
+]

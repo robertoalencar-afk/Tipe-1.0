@@ -1,5 +1,7 @@
 # E-mails de senha da Tipe no Supabase (passo a passo)
 
+> Atualizado: agora há todos os e-mails de conta e aplicação automática. Veja `emails-supabase.md`.
+
 O fluxo de "esqueci a senha" do site já está em português (`/esqueci-a-senha` e `/redefinir-senha`).
 Os e-mails, porém, saem do Supabase Auth e só mudam quando os modelos são colados no painel.
 Faça isto uma vez, no projeto de **produção** do Supabase (e, se quiser, repita no de testes).

@@ -4,7 +4,7 @@ import { TEMPLATES } from './registry'
 
 // Server-only: reads RESEND_API_KEY. Never import from client components.
 
-const SITE_NAME = "TIPE"
+const SITE_NAME = "Tipe"
 // Endereço de envio; o domínio precisa estar verificado no Resend.
 const FROM_ADDRESS = process.env['EMAIL_FROM'] || 'noreply@tipe.digital'
 
