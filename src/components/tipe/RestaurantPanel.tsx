@@ -67,9 +67,11 @@ import { Caixa, Configuracoes, Inicio, Integracoes, Relatorios } from "@/compone
 import { Cozinha } from "@/components/tipe/Kds";
 import { Shell, type GrupoNav } from "@/components/tipe/painel/Shell";
 import { UploadImagem } from "@/components/tipe/UploadImagem";
+import { BancoImagens } from "@/components/tipe/BancoImagens";
+import { ComoFuncionaGestao } from "@/components/tipe/ComoFuncionaGestao";
 import { PerfilConta, useMeuPerfil } from "@/components/tipe/PerfilConta";
 import { getMidia, saveFotoItem, saveLogo } from "@/lib/tipe/midia.functions";
-import { Image as ImagemIcon } from "lucide-react";
+import { Image as ImagemIcon, Images, BookOpen } from "lucide-react";
 import { EquipePermissoes } from "@/components/tipe/EquipePermissoes";
 import { TotemStudio } from "@/components/tipe/TotemStudio";
 import { LiberarPedidosMesa } from "@/components/tipe/LiberarPedidosMesa";
@@ -163,6 +165,13 @@ const secoes = [
     d: "O resumo do dia e os atalhos mais usados.",
   },
   {
+    k: "comofunciona",
+    l: "Como funciona",
+    i: BookOpen,
+    g: "Operação",
+    d: "Passo a passo do Tipe Gestão, do cardápio ao fechamento do caixa.",
+  },
+  {
     k: "salao",
     l: "Salão",
     i: LayoutGrid,
@@ -244,6 +253,14 @@ const secoes = [
     g: "Configurações",
     dono: true,
     d: "Produtos, categorias e disponibilidade.",
+  },
+  {
+    k: "banco",
+    l: "Banco de imagens",
+    i: Images,
+    g: "Configurações",
+    dono: true,
+    d: "Fotos do restaurante para usar no cardápio e em outras telas.",
   },
   {
     k: "qr",
@@ -883,6 +900,8 @@ export function RestaurantPanel({
             <EquipePermissoes slug={slug} />
           </div>
         )}
+        {aba === "comofunciona" && <ComoFuncionaGestao ir={ir} />}
+        {aba === "banco" && podeDono && <BancoImagens slug={slug} podeDono={podeDono} itens={(pdv.data?.items ?? []).map((i) => ({ id: i.id, name: i.name }))} onAplicada={() => void qc.invalidateQueries({ queryKey: ["midia", slug] })} />}
         {aba === "relatorios" && <Relatorios slug={slug} papel={papel} />}
         {aba === "identidade" && <Identidade slug={slug} podeDono={podeDono} funcao={usuario.funcao} onSair={onSair} />}
         {aba === "integracoes" && <Integracoes slug={slug} podeDono={podeDono} />}
