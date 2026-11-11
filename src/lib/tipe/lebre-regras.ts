@@ -8,7 +8,46 @@ export type RegraAcao =
   | { action: "close_table"; number: string }
   | { action: "add_waiter"; name: string; email?: string }
   | { action: "invite_waiter"; name: string; email: string }
-  | { action: "set_item_available"; name: string; available: boolean };
+  | { action: "set_item_available"; name: string; available: boolean }
+  | { action: "open_table"; number: string }
+  | { action: "launch_order"; number: string; items: Array<{ name: string; qty: number }> };
+
+const NUMEROS: Record<string, number> = {
+  um: 1,
+  uma: 1,
+  dois: 2,
+  duas: 2,
+  tres: 3,
+  quatro: 4,
+  cinco: 5,
+  seis: 6,
+  sete: 7,
+  oito: 8,
+  nove: 9,
+  dez: 10,
+};
+
+/** "2 chopp, 1 picanha e uma coca" vira [{chopp,2},{picanha,1},{coca,1}]. */
+export function lerItens(texto: string): Array<{ name: string; qty: number }> | null {
+  const partes = texto
+    .split(
+      /\s*,\s*|\s+e\s+(?=\d|um\b|uma\b|dois\b|duas\b|tres\b|quatro\b|cinco\b|seis\b|sete\b|oito\b|nove\b|dez\b)/,
+    )
+    .map((t) => t.trim())
+    .filter(Boolean);
+  const itens = partes.map((p) => {
+    const m =
+      /^(?:(\d{1,2}|uma|um|duas|dois|tres|quatro|cinco|seis|sete|oito|nove|dez)\b)?\s*x?\s*(?:(?:de|do|da)\s+)?(.{2,60})$/.exec(
+        p,
+      );
+    if (!m) return null;
+    const qty = m[1] ? (NUMEROS[m[1]] ?? Number(m[1])) : 1;
+    return qty >= 1 && qty <= 99 ? { name: m[2]!.trim(), qty } : null;
+  });
+  return itens.length && itens.every(Boolean)
+    ? (itens as Array<{ name: string; qty: number }>)
+    : null;
+}
 
 /** Minúsculas, sem acentos e sem espaços repetidos. */
 export function normalizar(texto: string): string {
@@ -96,6 +135,15 @@ export function lerComando(pergunta: string, mesasExistentes: string[]): RegraAc
   if (q.length > 160 || /\?$/.test(q)) return null;
   const existe = (n: string) => mesasExistentes.some((m) => m.toLowerCase() === n.toLowerCase());
 
+  const lancar =
+    /^(?:pode\s+)?(?:lanc\w*|adicion\w*|poe|por|bota|botar|manda|mandar)\s+(.+?)\s+(?:na|pra|para a|para)\s+mesa\s*([0-9a-z]{1,8})$/.exec(
+      q,
+    );
+  if (lancar) {
+    const itens = lerItens(lancar[1]!);
+    if (itens) return { action: "launch_order", number: lancar[2]!.toUpperCase(), items: itens };
+  }
+
   const mesa = new RegExp(MESA).exec(q)?.[1];
   if (mesa) {
     if (/\b(cadastr|cri|adicion|nova)\w*\b/.test(q))
@@ -105,9 +153,10 @@ export function lerComando(pergunta: string, mesasExistentes: string[]): RegraAc
     if (/\b(desativ|deslig|bloque|inativ)\w*\b/.test(q))
       return { action: "set_table_active", number: mesa.toUpperCase(), active: false };
     if (/\b(abr|ativ|lig|reativ)\w*\b/.test(q)) {
-      return existe(mesa)
+      if (!existe(mesa)) return { action: "add_table", number: mesa.toUpperCase() };
+      return /\b(ativ|reativ|lig)\w*\b/.test(q)
         ? { action: "set_table_active", number: mesa.toUpperCase(), active: true }
-        : { action: "add_table", number: mesa.toUpperCase() };
+        : { action: "open_table", number: mesa.toUpperCase() };
     }
     return null;
   }

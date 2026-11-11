@@ -72,8 +72,8 @@ const panelSuggestions = [
   { icone: Table2, titulo: "Mesas", pergunta: "Abrir a mesa 5" },
   {
     icone: Users,
-    titulo: "Equipe",
-    pergunta: "Cadastrar o garçom João Mendes, e-mail joao@email.com",
+    titulo: "Lançar pedido",
+    pergunta: "Lança 2 chopp e 1 picanha na mesa 5",
   },
   { icone: UtensilsCrossed, titulo: "Cardápio", pergunta: "Pausar o item Suco de laranja" },
 ];

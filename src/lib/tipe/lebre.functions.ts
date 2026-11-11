@@ -11,7 +11,13 @@ export type LebreAction =
   | { action: "close_table"; number: string }
   | { action: "add_waiter"; name: string; email?: string }
   | { action: "invite_waiter"; name: string; email: string }
-  | { action: "set_item_available"; name: string; available: boolean };
+  | { action: "set_item_available"; name: string; available: boolean }
+  | { action: "open_table"; number: string }
+  | { action: "launch_order"; number: string; items: Array<{ name: string; qty: number; notes?: string | undefined }> };
+
+/** Ações do dia a dia do salão: dono, caixa e garçom podem pedir. As outras mexem em cadastro e são só do dono. */
+const OPERACIONAIS = new Set<LebreAction["action"]>(["open_table", "launch_order", "close_table"]);
+const PAPEIS_SALAO: Array<"owner" | "founder" | "manager" | "cashier" | "waiter"> = ["owner", "founder", "manager", "cashier", "waiter"];
 
 export type LebreProposal = {
   id: string;
@@ -103,7 +109,30 @@ const ActionSchema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("add_waiter"), name: z.string().trim().min(2).max(80), email: z.string().trim().toLowerCase().email().max(200).optional() }),
   z.object({ action: z.literal("invite_waiter"), name: z.string().trim().min(2).max(80), email: z.string().trim().toLowerCase().email().max(200) }),
   z.object({ action: z.literal("set_item_available"), name: z.string().trim().min(2).max(120), available: z.boolean() }),
+  z.object({ action: z.literal("open_table"), number: z.string().trim().min(1).max(8).regex(/^[0-9A-Za-z]+$/) }),
+  z.object({
+    action: z.literal("launch_order"),
+    number: z.string().trim().min(1).max(8).regex(/^[0-9A-Za-z]+$/),
+    items: z.array(z.object({ name: z.string().trim().min(2).max(120), qty: z.coerce.number().int().min(1).max(99), notes: z.string().trim().max(140).optional() })).min(1).max(30),
+  }),
 ]);
+
+type ItemCardapio = { code: string; name: string; price: number; available: boolean };
+
+const semAcento = (t: string) => t.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+
+/** Acha o item do cardápio pelo nome falado: igual, começa com, ou contém. Ambíguo vira erro claro. */
+export function acharItem(nome: string, cardapio: ItemCardapio[]): ItemCardapio | string {
+  const n = semAcento(nome).replace(/s$/, "");
+  const por = (f: (x: string) => boolean) => cardapio.filter((i) => f(semAcento(i.name)));
+  for (const lista of [por((x) => x === n || x === `${n}s`), por((x) => x.startsWith(n)), por((x) => x.includes(n))]) {
+    if (lista.length === 1) return lista[0]!;
+    if (lista.length > 1) return `Tem mais de um "${nome}" no cardápio (${lista.slice(0, 3).map((i) => i.name).join(", ")}). Qual deles?`;
+  }
+  return `Não achei "${nome}" no cardápio.`;
+}
+
+const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
 const History = z.array(z.object({ role: z.enum(["user", "assistant"]), text: z.string().max(2000) })).max(12).optional();
 
@@ -119,6 +148,8 @@ function describe(a: LebreAction, restaurant: string): { title: string; summary:
     case "set_item_available": return a.available
       ? { title: `Voltar "${a.name}" ao cardápio`, summary: `Vou marcar "${a.name}" como disponível.` }
       : { title: `Pausar "${a.name}"`, summary: `Vou marcar "${a.name}" como indisponível até você reativar.` };
+    case "open_table": return { title: `Abrir mesa ${a.number}`, summary: `Vou deixar a mesa ${a.number} pronta para receber clientes e liberar os pedidos pelo celular, se o Tipe Order estiver contratado.` };
+    case "launch_order": return { title: `Lançar pedido na mesa ${a.number}`, summary: a.items.map((i) => `${i.qty}x ${i.name}${i.notes ? ` (${i.notes})` : ""}`).join(", ") };
   }
 }
 
@@ -140,12 +171,16 @@ export const askRestaurantLebre = createServerFn({ method: "POST" })
     if (!roles?.length) throw new Error("Você não tem acesso a este restaurante.");
     const roleNames = roles.map((row) => row.role);
     const canManage = roleNames.includes("owner") || roleNames.includes("founder");
+    const canOperate = roleNames.some((r) => (PAPEIS_SALAO as string[]).includes(r));
     const [tables, payments, items, waiters] = await Promise.all([
       context.supabase.from("restaurant_tables").select("number, active").eq("restaurant_id", restaurant.id),
       context.supabase.from("table_payment_requests").select("status, amount, table_number").eq("restaurant_slug", data.slug).eq("payment_target", "restaurant"),
       context.supabase.from("table_bill_items").select("table_number, ordered_quantity, paid_portion, unit_price").eq("restaurant_slug", data.slug),
       context.supabase.from("pdv_waiters").select("name, active, email").eq("restaurant_id", restaurant.id),
     ]);
+    const { data: menuRows } = await context.supabase.from("pdv_menu_items").select("code, name, price, available").eq("restaurant_id", restaurant.id).order("position").limit(150);
+    const cardapio: ItemCardapio[] = (menuRows ?? []).map((i) => ({ code: String(i.code), name: String(i.name), price: Number(i.price), available: !!i.available }));
+    const menuText = cardapio.length ? cardapio.slice(0, 80).map((i) => `${i.name} ${brl(i.price)}${i.available ? "" : " (pausado)"}`).join("; ") : "nenhum item cadastrado";
     const openValue = (items.data ?? []).reduce((sum, item) => sum + Math.max(0, Number(item.ordered_quantity) - Number(item.paid_portion)) * Number(item.unit_price), 0);
     const pending = (payments.data ?? []).filter((payment) => payment.status === "pending");
     const pendingTables = [...new Set(pending.map((p) => p.table_number))].join(", ") || "nenhuma";
@@ -168,7 +203,8 @@ export const askRestaurantLebre = createServerFn({ method: "POST" })
       if (salao) return { answer: salao };
       const comando = lerComando(data.question, (tables.data ?? []).map((t) => String(t.number)));
       if (comando) {
-        if (!canManage) return { answer: "Só o dono do restaurante pode alterar cadastros. Peça a ele para fazer essa mudança." };
+        const permitido = OPERACIONAIS.has(comando.action) ? canOperate : canManage;
+        if (!permitido) return { answer: "Só o dono do restaurante pode alterar cadastros. Peça a ele para fazer essa mudança." };
         raw = JSON.stringify({ reply: "Posso fazer isso. Confira e confirme abaixo.", action: comando });
       }
     }
@@ -187,10 +223,13 @@ Você pode PROPOR estas ações (o sistema mostra um botão para o usuário conf
 - add_waiter {name, email?}: cadastrar garçom novo, com e-mail opcional para convite
 - invite_waiter {name, email}: enviar convite de acesso a garçom já cadastrado
 - set_item_available {name, available}: pausar ou reativar item do cardápio
-${canManage ? "" : "Este usuário NÃO pode alterar cadastros. Nunca proponha ações; explique que só o dono pode."}
+- open_table {number}: abrir uma mesa existente para atender ("abrir a mesa 5", "abre a 5"). Se a mesa não existir, proponha add_table
+- launch_order {number, items: [{name, qty, notes?}]}: lançar itens do cardápio na conta de uma mesa ("lança 2 chopp e 1 picanha na mesa 4"). Use os nomes do cardápio abaixo; qty é inteiro; notes é observação curta (ex.: "sem cebola")
+${canManage ? "" : canOperate ? "Este usuário só pode propor open_table, launch_order e close_table. Para cadastros, explique que só o dono pode." : "Este usuário NÃO pode alterar nada. Nunca proponha ações."}
 Se faltar dado obrigatório (ex.: número da mesa ou e-mail incompleto), pergunte em vez de propor.
 Responda SEMPRE apenas com JSON: {"reply": "texto curto", "action": null ou {"action": "...", ...campos}}.
 Contexto: ${contextText}
+Cardápio: ${menuText}.
 ${history ? `Conversa recente:\n${history}` : ""}
 Se houver anexos (foto, comprovante, cardápio ou PDF), leia com atenção, descreva só o que realmente aparece e use isso para responder ou propor ações.`,
       data.question,
@@ -198,7 +237,7 @@ Se houver anexos (foto, comprovante, cardápio ou PDF), leia com atenção, desc
     );
     const parsed = parseIntent(raw);
     const answer = parsed && typeof parsed.reply === "string" && parsed.reply.trim() ? parsed.reply.trim() : parsed ? "Certo." : raw;
-    if (!canManage) return { answer };
+    if (!canOperate) return { answer };
     const normalize = (value: unknown) => {
       if (!value || typeof value !== "object") return value;
       const obj = { ...(value as Record<string, unknown>) };
@@ -221,6 +260,27 @@ Se houver anexos (foto, comprovante, cardápio ou PDF), leia com atenção, desc
     }
     if (!action.success) return { answer };
     const ad = action.data;
+    if (!(OPERACIONAIS.has(ad.action) ? canOperate : canManage)) return { answer: `${answer} Essa mudança só o dono do restaurante pode fazer.`.trim() };
+    if (ad.action === "open_table" && !(tables.data ?? []).some((t) => String(t.number).toLowerCase() === ad.number.toLowerCase())) {
+      action = ActionSchema.safeParse({ action: "add_table", number: ad.number.toUpperCase() });
+      if (!canManage || !action.success) return { answer: `Não achei a mesa ${ad.number}. Só o dono pode cadastrar mesa nova.` };
+    }
+    if (ad.action === "launch_order") {
+      if (!(tables.data ?? []).some((t) => String(t.number).toLowerCase() === ad.number.toLowerCase())) return { answer: `Não achei a mesa ${ad.number}. Confere o número?` };
+      const linhas: string[] = [];
+      let total = 0;
+      for (const it of ad.items) {
+        const achado = acharItem(it.name, cardapio);
+        if (typeof achado === "string") return { answer: achado };
+        if (!achado.available) return { answer: `"${achado.name}" está pausado no cardápio. Quer que eu reative antes?` };
+        it.name = achado.name;
+        total += achado.price * it.qty;
+        linhas.push(`${it.qty}x ${achado.name}${it.notes ? ` (${it.notes})` : ""}`);
+      }
+      const proposal: LebreProposal = { id: crypto.randomUUID(), action: "launch_order", payload: ad, title: `Lançar na mesa ${ad.number}`, summary: `${linhas.join(", ")}. Total ${brl(total)}.` };
+      await logSecurityEvent({ action: "lebre_proposal", resource: ad.action, restaurantSlug: data.slug, restaurantId: restaurant.id, actorId: context.userId, detail: proposal.summary });
+      return { answer: answer === "Certo." || answer.length < 3 ? "Pedido pronto. Confere e confirma:" : answer, proposal };
+    }
     if (ad.action === "add_table" || (ad.action === "set_table_active" && ad.active)) {
       const { tableLimitInfo, LIMIT_MESSAGE } = await import("./table-limit.server");
       const info = await tableLimitInfo(restaurant.id);
@@ -242,11 +302,11 @@ export const executeLebreProposal = createServerFn({ method: "POST" })
     const { logSecurityEvent } = await import("./security.server");
     const { data: restaurant } = await context.supabase.from("restaurants").select("id, name").eq("slug", data.slug).maybeSingle();
     if (!restaurant) throw new Error("Restaurante não encontrado.");
-    const { data: allowed } = await context.supabase.rpc("has_restaurant_role", { _user_id: context.userId, _restaurant_id: restaurant.id, _roles: ["owner"] });
     const a = data.payload;
+    const { data: allowed } = await context.supabase.rpc("has_restaurant_role", { _user_id: context.userId, _restaurant_id: restaurant.id, _roles: OPERACIONAIS.has(a.action) ? PAPEIS_SALAO : ["owner"] });
     if (!allowed) {
       await logSecurityEvent({ action: "lebre_execute_denied", resource: a.action, result: "denied", restaurantSlug: data.slug, restaurantId: restaurant.id, actorId: context.userId, detail: `proposal=${data.proposalId}` });
-      throw new Error("Somente o dono do restaurante pode confirmar essa ação.");
+      throw new Error(OPERACIONAIS.has(a.action) ? "Você não tem acesso ao salão deste restaurante." : "Somente o dono do restaurante pode confirmar essa ação.");
     }
     const sb = context.supabase;
     const rid = restaurant.id;
@@ -269,6 +329,38 @@ export const executeLebreProposal = createServerFn({ method: "POST" })
         throw new Error(`Não encontrei a mesa ${a.number}. Quer que eu cadastre?`);
       }
       message = a.active ? `Mesa ${a.number} aberta.` : `Mesa ${a.number} desativada.`;
+    } else if (a.action === "open_table") {
+      const { data: mesa } = await sb.from("restaurant_tables").select("id, active").eq("restaurant_id", rid).eq("number", a.number).maybeSingle();
+      if (!mesa) throw new Error(`Não encontrei a mesa ${a.number}. Quer que eu cadastre?`);
+      if (!mesa.active) {
+        const { data: rows } = await sb.from("restaurant_tables").update({ active: true }).eq("id", mesa.id).select("id");
+        if (!rows?.length) { const { LIMIT_MESSAGE } = await import("./table-limit.server"); throw new Error(LIMIT_MESSAGE); }
+      }
+      const { data: sessao, error } = await sb.rpc("open_table_ordering", { p_slug: data.slug, p_table: a.number });
+      const s = sessao as { code: string | null; requires_code: boolean } | null;
+      message = !error && s
+        ? `Mesa ${a.number} aberta e com pedidos pelo celular liberados.${s.requires_code && s.code ? ` Código para o cliente: ${s.code}.` : ""}`
+        : `Mesa ${a.number} aberta e pronta. O primeiro pedido lançado abre a conta.`;
+    } else if (a.action === "launch_order") {
+      const { data: menu } = await sb.from("pdv_menu_items").select("code, name, price, available").eq("restaurant_id", rid).limit(300);
+      const cardapio: ItemCardapio[] = (menu ?? []).map((i) => ({ code: String(i.code), name: String(i.name), price: Number(i.price), available: !!i.available }));
+      const itens = a.items.map((it) => {
+        const achado = acharItem(it.name, cardapio);
+        if (typeof achado === "string") throw new Error(achado);
+        return { code: achado.code, qty: it.qty, ...(it.notes ? { notes: it.notes } : {}) };
+      });
+      const { data: mesa } = await sb.from("restaurant_tables").select("waiter_id").eq("restaurant_id", rid).eq("number", a.number).maybeSingle();
+      if (!mesa) throw new Error(`Não encontrei a mesa ${a.number}.`);
+      const { data: equipe } = await sb.from("pdv_waiters").select("id, user_id, active").eq("restaurant_id", rid).eq("active", true);
+      // Quem lança: o próprio garçom logado, senão o garçom da mesa, senão o primeiro garçom ativo.
+      const garcom = (equipe ?? []).find((w) => w.user_id === context.userId)?.id ?? (equipe ?? []).find((w) => w.id === mesa.waiter_id)?.id ?? equipe?.[0]?.id;
+      if (!garcom) throw new Error("Cadastre ao menos um garçom para lançar pedidos. É só me pedir: \"cadastrar garçom\" e o nome.");
+      const { error } = await sb.rpc("pdv_launch_order" as never, { p_slug: data.slug, p_table: a.number, p_waiter: garcom, p_items: itens, p_request_id: data.proposalId.replace(/-/g, "") } as never);
+      if (error) {
+        const m = error.message;
+        throw new Error(["Mesa inativa", "Item indisponível", "Quantidade", "Sem permissão", "acima do limite"].some((k) => m.includes(k)) ? m : "Não consegui lançar o pedido. Tente pelo Lançamento TIPE.");
+      }
+      message = `Lançado na mesa ${a.number}: ${a.items.map((i) => `${i.qty}x ${i.name}`).join(", ")}. Já está na conta da mesa.`;
     } else if (a.action === "add_waiter") {
       const { data: existing } = await sb.from("pdv_waiters").select("code").eq("restaurant_id", rid);
       const used = new Set((existing ?? []).map((w) => w.code));
