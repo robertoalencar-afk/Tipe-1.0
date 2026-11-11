@@ -24,6 +24,8 @@ const securityHeadersMiddleware = createMiddleware().server(async ({ next, reque
   const result = await next();
   const h = result.response?.headers;
   if (h) {
+    // Respostas de funções do servidor são por usuário: nunca podem ficar em cache do navegador ou da borda.
+    if (request.url.includes("/_serverFn") && !h.has("Cache-Control")) h.set("Cache-Control", "private, no-store");
     h.set("X-Content-Type-Options", "nosniff");
     h.set("Referrer-Policy", "strict-origin-when-cross-origin");
     h.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
