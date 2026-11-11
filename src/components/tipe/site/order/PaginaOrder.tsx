@@ -1,5 +1,5 @@
 /**
- * Página comercial do Tipe Order (/produtos/order), dentro da mesma moldura das outras
+ * Página comercial do Tipe Order (/order), dentro da mesma moldura das outras
  * páginas de produto. O que muda com o estado de lançamento (CTA, selo, resposta de
  * "Quando estará disponível?", título do formulário) vem de TEXTOS_LANCAMENTO.
  *
@@ -323,19 +323,19 @@ const ETAPAS: { nome: string; href: string; icone: typeof ChefHat; d: string }[]
   },
   {
     nome: "Tipe Cozinha",
-    href: "/produtos/kitchen",
+    href: "/cozinha",
     icone: ChefHat,
     d: "O pedido aparece na tela da cozinha e do bar.",
   },
   {
     nome: "Tipe Equipe",
-    href: "/produtos/staff",
+    href: "/equipe",
     icone: Users,
     d: "A equipe libera, acompanha e localiza o cliente no evento.",
   },
   {
     nome: "Tipe Pay",
-    href: "/produtos/pay",
+    href: "/pay",
     icone: ReceiptText,
     d: "Tudo o que foi pedido já está na conta para pagar.",
   },

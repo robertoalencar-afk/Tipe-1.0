@@ -15,7 +15,7 @@ export function StaffHome() {
             titulo="A equipe sabe de tudo, na hora."
             texto="O garçom vê no celular qual mesa já pagou, recebe a gorjeta extra com o nome dele e saca o saldo por Pix a cada quinzena."
           />
-          <BotaoSecundario href="/produtos/staff" className="mt-8">
+          <BotaoSecundario href="/equipe" className="mt-8">
             Conhecer o Tipe Equipe
           </BotaoSecundario>
         </div>

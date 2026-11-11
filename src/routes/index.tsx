@@ -142,7 +142,7 @@ function Duvidas() {
             lines={["Perguntou,", "respondemos."]}
           />
           <a
-            href="/teste-gratis"
+            href="/solicitar-demonstracao"
             className="com-fios mt-8 inline-flex items-center gap-2 font-medium text-brand-strong"
           >
             Ainda com dúvida? Fale com a equipe <ArrowRight className="seta h-4 w-4" />

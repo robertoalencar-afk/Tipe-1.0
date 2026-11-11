@@ -58,8 +58,8 @@ const step1Schema = z.object({
     .string()
     .regex(/^[a-z0-9]{4,16}$/i)
     .optional(),
-  // "tipe-order": formulário da página /produtos/order (origin_page é text, sem migração).
-  // "configurador-order": "Monte sua operação" em /produtos/order; as respostas vão em `operacao`.
+  // "tipe-order": formulário da página /order (origin_page é text, sem migração).
+  // "configurador-order": "Monte sua operação" em /order; as respostas vão em `operacao`.
   originPage: z.enum(["home", "simulador", "calculadora", "tipe-order", "configurador-order"]).default("home"),
   /** Respostas do configurador (só para originPage "configurador-order"); viram resumo nas notas do CRM. */
   operacao: z

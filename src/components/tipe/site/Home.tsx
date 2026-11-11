@@ -3,6 +3,7 @@
  * produtos em carrossel no escuro, as três pessoas da mesa, abas com foto grande,
  * integrações no escuro e planos.
  */
+import { CAMINHO_PRODUTO } from "@/components/tipe/site/produtos";
 import { useRef, type CSSProperties, type ReactNode } from "react";
 import { seloDoProduto, useEstadosLancamento } from "./useLancamento";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
@@ -147,7 +148,7 @@ const PESSOAS: {
     posicao: "50% 50%",
     v: "0",
     t: "aplicativos para baixar. A conta abre na câmera e cada um paga o seu.",
-    href: "/produtos/pay",
+    href: "/pay",
     aviso: (
       <>
         <p className="text-xs text-[oklch(0.45_0_0)]">Mesa 12 · sua parte</p>
@@ -163,7 +164,7 @@ const PESSOAS: {
     posicao: "50% 45%",
     v: "70%",
     t: "da gorjeta extra vai para o saldo de quem atendeu a mesa.",
-    href: "/produtos/staff",
+    href: "/equipe",
     aviso: (
       <>
         <p className="text-xs text-[oklch(0.45_0_0)]">Gorjeta extra · Mesa 12</p>
@@ -179,7 +180,7 @@ const PESSOAS: {
     posicao: "45% 45%",
     v: "R$ 0",
     t: "de tarifa da Tipe por transação. Você acompanha cada pagamento ao vivo.",
-    href: "/produtos/restaurant",
+    href: "/gestao",
     aviso: (
       <>
         <p className="text-xs text-[oklch(0.45_0_0)]">Hoje · demonstração</p>
@@ -256,7 +257,7 @@ export function AbasHome() {
       tela,
       altTela: tela ? `Tela real do ${p.nome}` : undefined,
       extra: tela ? undefined : <CartaoInterface cartao={p.cartao} />,
-      href: `/produtos/${p.slug}`,
+      href: CAMINHO_PRODUTO[p.slug],
       link: `Conhecer o ${p.nome}`,
     };
   });

@@ -98,7 +98,7 @@ export function CardsPlanos() {
             )}
           </p>
           <a
-            href={`/teste-gratis?plano=${p.id ?? "personalizado"}`}
+            href={`/solicitar-demonstracao?plano=${p.id ?? "personalizado"}`}
             className={cn(
               "mt-5 flex min-h-12 items-center justify-center rounded-full font-medium",
               p.popular ? "bg-white text-[#021E34] hover:bg-white/90" : "btn-tema",

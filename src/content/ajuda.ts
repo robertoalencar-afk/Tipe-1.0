@@ -32,7 +32,7 @@ export const AJUDA: Assunto[] = [
     id: "restaurante",
     titulo: "Para restaurantes",
     perguntas: [
-      { p: "Como começo a usar a Tipe?", r: "Crie a conta do restaurante em Teste grátis, com CNPJ e endereço, e conecte o PDV no primeiro acesso. A implantação é acompanhada: cadastramos as mesas, geramos os QR Codes e treinamos a equipe.", link: { href: "/teste-gratis", texto: "Começar o teste grátis" } },
+      { p: "Como começo a usar a Tipe?", r: "Crie a conta do restaurante em Teste grátis, com CNPJ e endereço, e conecte o PDV no primeiro acesso. A implantação é acompanhada: cadastramos as mesas, geramos os QR Codes e treinamos a equipe.", link: { href: "/solicitar-demonstracao", texto: "Começar o teste grátis" } },
       { p: "Funciona com o meu PDV?", r: "Você pode lançar os pedidos pelo Lançamento TIPE, no próprio painel, ou enviar mesas e itens pela API TIPE. Conectores para outros PDVs estão em desenvolvimento, com integração assistida pela nossa equipe.", link: { href: "/integracoes", texto: "Ver integrações" } },
       { p: "Quando o dinheiro cai na minha conta?", r: "Os pagamentos digitais vão para a conta de recebimento do restaurante no Pagar.me, nos prazos do Pagar.me. A Tipe não retém o valor das contas. Pagamentos no estabelecimento ficam com o restaurante e só entram no relatório depois que o caixa confirma." },
       { p: "Como convido garçons e a equipe do caixa?", r: "No painel, em Equipe e garçons, o dono convida cada pessoa pelo e-mail e escolhe o papel. Cada um entra com a própria senha; garçons veem só a área deles, com gorjetas e saques." },

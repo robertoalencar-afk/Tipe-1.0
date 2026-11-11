@@ -859,7 +859,7 @@ export function CalculadoraGiro() {
 
         <div className="mt-8 flex flex-col items-start gap-3 sm:mt-10 sm:items-center sm:text-center">
           <a
-            href="/teste-gratis"
+            href="/solicitar-demonstracao"
             onClick={salvarECta}
             className="com-fios inline-flex min-h-12 max-w-full items-center gap-2 rounded-full bg-[#021E34] px-6 py-3 text-left text-[1rem] font-medium leading-snug text-white transition-colors hover:bg-[#062b47] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#0FC9BD] sm:px-8 sm:text-[1.05rem]"
           >

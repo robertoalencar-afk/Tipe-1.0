@@ -234,7 +234,7 @@ export function CatalogoIntegracoes({
                 ) : (
                   <div className="flex flex-col gap-2 sm:flex-row">
                     <a
-                      href={`/teste-gratis?integracao=${aberto.id}`}
+                      href={`/solicitar-demonstracao?integracao=${aberto.id}`}
                       className="btn-tema inline-flex h-12 flex-1 items-center justify-center gap-2 rounded-full px-6 font-medium"
                     >
                       Começar e conectar

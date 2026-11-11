@@ -399,7 +399,7 @@ export const PRODUTOS: Produto[] = [
       {
         t: "Gorjeta extra no saldo",
         d: "70% do valor vai para o garçom da mesa.",
-        foto: "gorjetas-garcom",
+        foto: "garcom",
         posicao: "50% 40%",
       },
       {
@@ -612,7 +612,7 @@ export const PRODUTOS: Produto[] = [
       {
         t: "Tudo registrado",
         d: "Cada ação com data e responsável.",
-        foto: "tablet-maos",
+        foto: "cena-caixa",
         posicao: "50% 55%",
       },
     ],
@@ -976,3 +976,14 @@ export function duvidasDe(p: Produto): [string, string][] {
   }
   return lista;
 }
+
+/** Caminho público de cada produto (slug interno -> URL). */
+export const CAMINHO_PRODUTO: Record<string, string> = {
+  pay: "/pay",
+  order: "/order",
+  staff: "/equipe",
+  kitchen: "/cozinha",
+  restaurant: "/gestao",
+  ai: "/lebre",
+  guest: "/guest",
+};
