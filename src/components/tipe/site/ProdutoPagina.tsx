@@ -23,7 +23,7 @@ import { CelularReal, TabletSalao } from "./produto/TelaReal";
 import { TopoStaff } from "./produto/TopoStaff";
 import { Tablet } from "./Dispositivo";
 import { BaixaAutomatica } from "./produto/BaixaAutomatica";
-import { SimuladorGuest } from "./guest/SimuladorGuest";
+import { SimuladorReserva } from "./guest/SimuladorReserva";
 import {
   GuestAvaliacoesSecao,
   GuestComoReservar,
@@ -522,7 +522,7 @@ export function ProdutoPagina({ p, estado }: { p: Produto; estado?: EstadoLancam
         <Topo p={p} />
         <Abas p={p} />
         <GuestVitrine />
-        <SimuladorGuest />
+        <SimuladorReserva />
         <GuestComoReservar />
         <GuestManagerSecao />
         <GuestPaySecao />
