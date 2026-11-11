@@ -51,7 +51,7 @@ function Avatar({ u, className }: { u: Usuario; className?: string }) {
   );
 }
 
-function MenuUsuario({ u, onSair, claro = false }: { u: Usuario; onSair?: (() => void) | undefined; claro?: boolean }) {
+function MenuUsuario({ u, onSair, claro = false, compacto = false }: { u: Usuario; onSair?: (() => void) | undefined; claro?: boolean; compacto?: boolean }) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -64,11 +64,11 @@ function MenuUsuario({ u, onSair, claro = false }: { u: Usuario; onSair?: (() =>
           aria-label={`Conta de ${u.nome}`}
         >
           <Avatar u={u} />
-          <span className="min-w-0 flex-1 leading-tight">
+          <span className={cn("min-w-0 flex-1 leading-tight", compacto && "hidden")}>
             <span className={cn("block truncate text-sm font-semibold", claro ? "text-foreground" : "text-white")}>{u.nome}</span>
             <span className={cn("block truncate text-[11px] font-medium uppercase tracking-wide", claro ? "text-brand-strong" : "text-brand")}>{u.funcao}</span>
           </span>
-          <ChevronDown className={cn("size-4 shrink-0", claro ? "text-muted-foreground" : "text-white/50")} />
+          <ChevronDown className={cn("size-4 shrink-0", compacto && "hidden", claro ? "text-muted-foreground" : "text-white/50")} />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-60">
@@ -346,7 +346,7 @@ export function Shell({
               )}
               {usuario && (
                 <div className="sm:hidden">
-                  <MenuUsuario u={{ ...usuario, nome: usuario.nome }} onSair={onSair} claro />
+                  <MenuUsuario u={{ ...usuario, nome: usuario.nome }} onSair={onSair} claro compacto />
                 </div>
               )}
             </div>

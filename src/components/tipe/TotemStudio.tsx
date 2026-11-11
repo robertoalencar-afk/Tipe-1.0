@@ -1,5 +1,6 @@
 import { useMemo, useRef, useState } from "react";
 import { QRCodeSVG } from "qrcode.react";
+import { GravarEtiquetaNfc } from "@/components/tipe/GravarEtiquetaNfc";
 import { Printer } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -171,6 +172,7 @@ export function TotemStudio({ tables, link, restaurante }: { tables: Table[]; li
           </div>
         </div>
       </div>
+      <GravarEtiquetaNfc restaurante={restaurante} mesas={ativas.map((t) => ({ id: t.id, number: t.number, url: link(t) }))} />
       <div ref={printRef} className="hidden">
         {escolhidas.map((t) => <Totem key={t.id} modelo={modelo} tamanho={tamanho} mesa={t.number} link={link(t)} restaurante={restaurante} />)}
       </div>
