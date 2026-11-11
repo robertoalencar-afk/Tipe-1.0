@@ -129,19 +129,23 @@ export function MesaPedido({ slug, code, session, nome, device, onPlaced, onBloc
           return (
             <section key={c.id}>
               <h3 className="mb-2 font-display text-sm font-bold text-muted-foreground">{c.name}</h3>
-              <ul className="flex flex-col gap-2">
+              <ul className="flex flex-col gap-3">
                 {lista.map((i) => {
                   const q = carrinho[i.code] ?? 0;
                   return (
-                    <li key={i.id} className={`rounded-2xl border bg-card p-3 ${q > 0 ? "border-2 border-primary bg-primary/5" : "border-border"}`}>
-                      <div className="flex items-start justify-between gap-3">
-                        {i.imageUrl && (
-                          <button type="button" onClick={() => setStory(i.code)} aria-label={`Ver ${i.name} em tela cheia`} className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl bg-muted">
-                            <img src={i.imageUrl} alt="" loading="lazy" width={64} height={64} className="h-full w-full object-cover" />
-                          </button>
-                        )}
+                    <li key={i.id} className={`overflow-hidden rounded-2xl border bg-card ${i.imageUrl ? "p-0" : "p-3"} ${q > 0 ? "border-2 border-primary" : "border-border"}`}>
+                      {i.imageUrl && (
+                        <button type="button" onClick={() => setStory(i.code)} aria-label={`Ver ${i.name} em tela cheia`} className="group relative block aspect-[16/10] w-full overflow-hidden bg-muted">
+                          <img src={i.imageUrl} alt="" loading="lazy" className="h-full w-full object-cover transition-transform duration-500 group-active:scale-105" />
+                          <span className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/55 to-transparent" aria-hidden="true" />
+                          {i.badge && <span className="absolute left-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[#021E34]">{i.badge}</span>}
+                          {(i.depthUrl || i.modelUrl) && <span className="absolute right-3 top-3 rounded-full bg-[#021E34]/85 px-2 py-1 text-[10px] font-bold text-[#0FC9BD]">{i.modelUrl ? "3D" : "Foto 3D"}</span>}
+                          <span className="absolute bottom-2.5 left-3 text-[11px] font-medium text-white/90">Toque para ver em tela cheia</span>
+                        </button>
+                      )}
+                      <div className={`flex items-start justify-between gap-3 ${i.imageUrl ? "p-3.5" : ""}`}>
                         <div className="min-w-0 flex-1">
-                          <p className="font-semibold">{i.name}{i.badge && <span className="ml-2 rounded-full bg-primary/15 px-2 py-0.5 align-middle text-[10px] font-bold uppercase text-primary">{i.badge}</span>}</p>
+                          <p className="font-semibold">{i.name}{!i.imageUrl && i.badge && <span className="ml-2 rounded-full bg-primary/15 px-2 py-0.5 align-middle text-[10px] font-bold uppercase text-primary">{i.badge}</span>}</p>
                           {i.description && <p className="mt-0.5 text-xs text-muted-foreground">{i.description}</p>}
                           <p className="mt-1 text-sm font-bold">{money(i.price)}</p>
                         </div>
@@ -155,6 +159,7 @@ export function MesaPedido({ slug, code, session, nome, device, onPlaced, onBloc
                           <Button size="icon" className="h-10 w-10 shrink-0" aria-label={`Adicionar ${i.name}`} onClick={() => add(i.code, 1)}><Plus className="h-5 w-5" /></Button>
                         )}
                       </div>
+                      <div className={i.imageUrl && q > 0 ? "px-3.5 pb-3.5" : ""}>
                       {q > 0 && (
                         obsAberta === i.code ? (
                           <Input autoFocus className="mt-2 h-10 text-sm" maxLength={140} placeholder="Observação (ex.: sem cebola)" value={obs[i.code] ?? ""} onChange={(e) => setObs({ ...obs, [i.code]: e.target.value })} onBlur={() => setObsAberta(null)} />
@@ -162,6 +167,7 @@ export function MesaPedido({ slug, code, session, nome, device, onPlaced, onBloc
                           <button type="button" onClick={() => setObsAberta(i.code)} className="mt-2 text-xs font-semibold text-primary">{obs[i.code]?.trim() ? `Obs.: ${obs[i.code]}` : "+ Adicionar observação"}</button>
                         )
                       )}
+                      </div>
                     </li>
                   );
                 })}
