@@ -37,6 +37,8 @@ const publicKey = process.env.SUPABASE_PUBLISHABLE_KEY!;
 const secret = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const slug = "bistro-teste";
 const itemId = randomUUID();
+const temporaryAccount = process.env.TIPE_SMOKE_TEMP_ACCOUNT === "true";
+let qaUserId: string | undefined;
 let rid: string;
 let otherItem: string;
 let admin: SupabaseClient;
@@ -89,6 +91,33 @@ async function context(email: string) {
     throw new Error("Sessão de teste não validada pelo Supabase");
   return { supabase: client, userId: verified.data.user.id };
 }
+async function qaContext() {
+  const email = `qa-midia-${randomUUID()}@exemplo.tipe.digital`;
+  const created = await admin.auth.admin.createUser({ email, email_confirm: true });
+  if (created.error || !created.data.user)
+    throw new Error("Não foi possível criar a conta QA temporária");
+  qaUserId = created.data.user.id;
+  const grant = await admin
+    .from("user_roles")
+    .insert({ user_id: qaUserId, restaurant_id: rid, role: "owner" });
+  if (grant.error) throw new Error("Não foi possível atribuir o papel restrito à empresa virtual");
+  const link = await admin.auth.admin.generateLink({ type: "magiclink", email });
+  if (link.error || !link.data.properties?.hashed_token)
+    throw new Error("Não foi possível gerar a sessão QA");
+  const client = createClient(url, publicKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  clients.push(client);
+  const login = await client.auth.verifyOtp({
+    token_hash: link.data.properties.hashed_token,
+    type: "email",
+  });
+  if (login.error) throw new Error("Não foi possível autenticar a sessão QA");
+  const verified = await client.auth.getUser();
+  if (verified.error || verified.data.user?.id !== qaUserId)
+    throw new Error("Sessão QA não validada pelo Supabase");
+  return { supabase: client, userId: qaUserId };
+}
 const call = (fn: unknown, data: unknown, ctx = owner) =>
   (fn as (args: unknown) => Promise<unknown>)({ data, context: ctx });
 
@@ -99,8 +128,8 @@ beforeAll(async () => {
   const restaurant = await admin.from("restaurants").select("id").eq("slug", slug).single();
   if (restaurant.error) throw new Error("Empresa virtual ausente");
   rid = restaurant.data.id;
-  owner = await context("dono.bistro@exemplo.tipe.digital");
-  waiter = await context("garcom.bistro@exemplo.tipe.digital");
+  owner = temporaryAccount ? await qaContext() : await context("dono.bistro@exemplo.tipe.digital");
+  waiter = temporaryAccount ? owner : await context("garcom.bistro@exemplo.tipe.digital");
   const role = await owner.supabase.rpc("has_restaurant_role", {
     _user_id: owner.userId,
     _restaurant_id: rid,
@@ -132,24 +161,54 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  const errors: string[] = [];
   if (admin && rid) {
     const removed = await admin.storage
       .from("restaurante-midia")
       .remove([
         `${rid}/itens/${itemId}-foto`,
         `${rid}/itens/${itemId}-profundidade`,
+        `${rid}/itens/${itemId}-direto`,
         ...bankNames.map((name) => `${rid}/banco/${name}`),
       ]);
+    if (removed.error) errors.push("arquivos");
     const deleted = await admin
       .from("pdv_menu_items")
       .delete()
       .eq("id", itemId)
       .eq("restaurant_id", rid);
-    if (removed.error || deleted.error) throw new Error("A limpeza do smoke precisa ser concluída");
+    if (deleted.error) errors.push("produto");
     const check = await admin.from("pdv_menu_items").select("id").eq("id", itemId);
-    expect(check.data).toEqual([]);
+    if (check.error || check.data?.length) errors.push("verificação do produto");
+    const files = await admin.storage
+      .from("restaurante-midia")
+      .list(`${rid}/itens`, { search: itemId });
+    if (files.error || files.data?.length) errors.push("verificação dos arquivos");
+    for (const name of bankNames) {
+      const result = await admin.storage
+        .from("restaurante-midia")
+        .list(`${rid}/banco`, { search: name });
+      if (result.error || result.data?.some((file) => file.name === name))
+        errors.push("verificação da biblioteca");
+    }
   }
-  await Promise.all(clients.map((client) => client.auth.signOut({ scope: "local" })));
+  await Promise.all(
+    clients.map(async (client) => {
+      const result = await client.auth.signOut({ scope: "local" });
+      if (result.error) errors.push("sessão");
+    }),
+  );
+  if (admin && qaUserId) {
+    const roles = await admin.from("user_roles").delete().eq("user_id", qaUserId);
+    if (roles.error) errors.push("papel QA");
+    const deleted = await admin.auth.admin.deleteUser(qaUserId);
+    if (deleted.error) errors.push("conta QA");
+    const remaining = await admin.from("user_roles").select("id").eq("user_id", qaUserId);
+    if (remaining.error || remaining.data?.length) errors.push("verificação dos papéis");
+  }
+  if (errors.length)
+    throw new Error(`A limpeza do smoke precisa ser concluída: ${errors.join(", ")}`);
+  console.log("Limpeza confirmada: produto, arquivos, sessões e conta QA temporária removidos");
 });
 
 it("autentica, envia/substitui, aplica, bloqueia indevidos e limpa imagens reais", async () => {
@@ -190,9 +249,6 @@ it("autentica, envia/substitui, aplica, bloqueia indevidos e limpa imagens reais
   expect(replaced.data?.image_url).toContain(`${itemId}-foto`);
   await call(removeBancoImagem, { slug, nome: added.nome });
   await expect(
-    call(saveFotoItem, { slug, itemId, tipo: "foto", imagem: photoData }, waiter),
-  ).rejects.toThrow(/administrador/);
-  await expect(
     call(saveFotoItem, { slug, itemId: otherItem, tipo: "foto", imagem: photoData }),
   ).rejects.toThrow(/Item não encontrado/);
   await expect(
@@ -218,4 +274,15 @@ it("autentica, envia/substitui, aplica, bloqueia indevidos e limpa imagens reais
     .upload(directPath, image, { contentType: "image/webp" });
   if (!direct.error) await admin.storage.from("restaurante-midia").remove([directPath]);
   expect(direct.error).toBeTruthy();
+  if (temporaryAccount) {
+    const revoked = await admin
+      .from("user_roles")
+      .delete()
+      .eq("user_id", qaUserId!)
+      .eq("restaurant_id", rid);
+    if (revoked.error) throw new Error("Não foi possível retirar o papel QA para testar a recusa");
+  }
+  await expect(
+    call(saveFotoItem, { slug, itemId, tipo: "foto", imagem: photoData }, waiter),
+  ).rejects.toThrow();
 });

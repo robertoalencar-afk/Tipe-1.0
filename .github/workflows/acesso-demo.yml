@@ -9,6 +9,10 @@ on:
         description: Testar mídia com login real nas empresas virtuais (sem alterar permissões)
         type: boolean
         default: false
+      conta_qa_temporaria:
+        description: Criar conta QA restrita à bistro-teste e excluir ao final (exige autorização)
+        type: boolean
+        default: false
       email:
         description: E-mail que entra em todas as áreas de simulação
         required: false
@@ -46,4 +50,5 @@ jobs:
         env:
           SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || 'https://bnggnbwmihqexvihrqvy.supabase.co' }}
           SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY || 'sb_publishable_VBd0grDcguwpR_gyqa2nEw_kW40dW4s' }}
+          TIPE_SMOKE_TEMP_ACCOUNT: ${{ inputs.conta_qa_temporaria && 'true' || 'false' }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
