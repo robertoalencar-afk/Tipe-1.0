@@ -107,7 +107,7 @@ const DICAS: Record<Modalidade, string[]> = {
   pulseira: [
     `Comece pelo restaurante: ${GARCOM} ativa a pulseira 0421 e vincula à comanda de ${CLIENTE}.`,
     "Pulseira ativa. Aproxime o celular (aqui, só toque em Pedir) e envie o pedido.",
-    "O pedido chegou na cozinha. Compartilhe a localização para a equipe entregar.",
+    "O pedido chegou na cozinha. Informe seu setor ou, se quiser, compartilhe a localização para a equipe entregar.",
     "Em Pagar, a comanda da pulseira já tem tudo. Pague pelo Tipe Pay.",
     "Comanda paga. A equipe encerra a pulseira, que volta ao estoque para o próximo cliente.",
   ],
@@ -128,7 +128,7 @@ const DICAS: Record<Modalidade, string[]> = {
   totem: [
     "",
     "Você é o cliente no totem: toque em Começar pedido, escolha comer aqui ou levar e monte o pedido.",
-    "Pedido com senha, aguardando pagamento. O caixa cobra (o terminal no totem entra quando homologado).",
+    "Pedido com senha, aguardando pagamento. O caixa confirma o pagamento feito no estabelecimento.",
     "Pago: a cozinha recebeu. A senha aparece no painel quando ficar pronta.",
     "Senha retirada. O totem limpa a sessão e volta ao início.",
   ],
@@ -912,7 +912,7 @@ export function Totem({ estado, agir, novaChave, compacto = false }: { estado: E
             <div className="flex flex-1 flex-col items-center justify-center px-6 text-center">
               <span className="grid h-16 w-16 place-items-center rounded-full bg-[#0FC9BD] text-[#021E34]"><UtensilsCrossed className="h-8 w-8" aria-hidden /></span>
               <p className="mt-6 font-display text-3xl leading-tight tracking-[-0.03em]">Bem-vindo ao {RESTAURANTE}</p>
-              <p className="mt-2 text-sm text-white/70">Toque para montar o seu pedido. Pagamento no caixa ou no terminal, quando disponível.</p>
+              <p className="mt-2 text-sm text-white/70">Toque para montar o seu pedido. Pagamento no caixa, em dinheiro ou na maquininha do estabelecimento.</p>
               <B onClick={() => setTela("consumo")} className="mt-8 w-full">Começar pedido</B>
               <p className="mt-6 text-[0.65rem] text-white/40">Tipe Order · Autoatendimento</p>
             </div>
@@ -998,10 +998,7 @@ export function Totem({ estado, agir, novaChave, compacto = false }: { estado: E
               <p className="text-sm text-white/70">Total <span className="font-semibold tabular-nums">{brl(total)}</span></p>
               <div className="mt-4 grid gap-2">
                 <B onClick={() => { agir({ tipo: "enviar", chave: novaChave() }); setTela("senha"); }}>Pagar no caixa com a senha</B>
-                <button type="button" disabled className="min-h-14 rounded-2xl border border-dashed border-white/30 px-5 text-left text-sm text-white/60">
-                  <span className="block font-semibold">Pagar aqui no terminal</span>
-                  <span className="block text-xs">Disponível quando o leitor homologado estiver integrado. Sem dado de cartão na tela.</span>
-                </button>
+
               </div>
               <p className="mt-3 text-xs text-white/50">O pedido fica registrado e aguardando pagamento. Só vai para a cozinha depois de pago.</p>
               <button type="button" onClick={() => setTela("revisao")} className="mt-auto mb-4 text-sm text-white/60">Voltar</button>
