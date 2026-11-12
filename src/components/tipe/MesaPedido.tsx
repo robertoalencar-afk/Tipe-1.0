@@ -6,6 +6,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getPublicMenu, placeCustomerOrder, getCustomerOrderReview, type PublicMenu } from "@/lib/tipe/customer-order.functions";
 import { totalCarrinho, carrinhoParaPedido } from "@/lib/tipe/pdv/comanda";
+import { dietLabels, filterMenu, relatedItems, translatedItem, type MenuLanguage } from "@/lib/tipe/menu-intelligence";
+import { recordMenuInteraction } from "@/lib/tipe/menu-intelligence.functions";
+import { hasConsent } from "@/lib/tipe/consent";
+
+const copy = {
+  pt: { search: "Buscar pratos, ingredientes ou categorias", all: "Tudo", featured: "Destaques da casa", other: "Outros produtos", diet: "Todas as opções", dietary: "Informações alimentares declaradas pelo restaurante. Em caso de alergia, confirme com a equipe.", none: "Nenhum item encontrado.", pair: "Combina bem com", extras: "Adicionais", versions: "Outras versões", add: "Adicionar", allergies: "Alergênicos informados", instagram: "Nosso Instagram", reviews: "Avalie sua experiência", enlarge: "Aumentar letras" },
+  en: { search: "Search dishes, ingredients or categories", all: "All", featured: "House highlights", other: "Other items", diet: "All options", dietary: "Dietary information provided by the restaurant. If you have an allergy, check with the staff.", none: "No items found.", pair: "Pairs well with", extras: "Extras", versions: "Other versions", add: "Add", allergies: "Declared allergens", instagram: "Our Instagram", reviews: "Review your experience", enlarge: "Larger text" },
+  es: { search: "Buscar platos, ingredientes o categorías", all: "Todo", featured: "Destacados de la casa", other: "Otros productos", diet: "Todas las opciones", dietary: "Información alimentaria proporcionada por el restaurante. En caso de alergia, consulte al personal.", none: "No se encontraron productos.", pair: "Combina bien con", extras: "Adicionales", versions: "Otras versiones", add: "Añadir", allergies: "Alérgenos declarados", instagram: "Nuestro Instagram", reviews: "Evalúa tu experiencia", enlarge: "Letras más grandes" },
+};
+const dietsByLanguage = { pt: dietLabels, en: { vegetarian: "Vegetarian", vegan: "Vegan", gluten_free: "Gluten-free", lactose_free: "Lactose-free" }, es: { vegetarian: "Vegetariano", vegan: "Vegano", gluten_free: "Sin gluten", lactose_free: "Sin lactosa" } };
 
 const StoryCardapio = lazy(() => import("@/components/tipe/site/order/StoryCardapio").then((m) => ({ default: m.StoryCardapio })));
 const AneisCategorias = lazy(() => import("@/components/tipe/site/order/StoryCardapio").then((m) => ({ default: m.AneisCategorias })));
@@ -27,6 +37,9 @@ export function MesaPedido({ slug, code, session, nome, device, onPlaced, onBloc
   const [erro, setErro] = useState<string | null>(null);
   const [cat, setCat] = useState<string>("");
   const [busca, setBusca] = useState("");
+  const [language, setLanguage] = useState<MenuLanguage>("pt");
+  const [diet, setDiet] = useState("");
+  const [largeText, setLargeText] = useState(false);
   const [carrinho, setCarrinho] = useState<Record<string, number>>({});
   const [obs, setObs] = useState<Record<string, string>>({});
   const [obsAberta, setObsAberta] = useState<string | null>(null);
@@ -34,6 +47,18 @@ export function MesaPedido({ slug, code, session, nome, device, onPlaced, onBloc
   const [enviando, setEnviando] = useState(false);
   const [enviado, setEnviado] = useState<{ itens: number; reviewId?: string; reviewState?: string } | null>(null);
   const requestId = useRef(nanoid(16));
+  const labels = copy[language];
+
+  function track(itemCode: string, event: "photo_open" | "add") {
+    if (!hasConsent("analytics")) return;
+    const item = menu?.items.find((i) => i.code === itemCode);
+    if (item) void recordMenuInteraction({ data: { slug, itemId: item.id, event, consent: true } }).catch(() => {});
+  }
+  useEffect(() => {
+    if (story) track(story, "photo_open");
+    // Only the opening is counted, never scrolling or each animation frame.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [story]);
 
   useEffect(() => {
     let vivo = true;
@@ -66,7 +91,7 @@ export function MesaPedido({ slug, code, session, nome, device, onPlaced, onBloc
     return (c: string) => m.get(c) ?? 0;
   }, [menu]);
 
-  if (erro) return <p className="rounded-2xl border border-border bg-card p-4 text-sm">{erro}</p>;
+  if (erro && !menu) return <p className="rounded-2xl border border-border bg-card p-4 text-sm">{erro}</p>;
   if (!menu) return <p className="py-10 text-center text-sm text-muted-foreground">Carregando o cardápio…</p>;
   if (!menu.selfOrder) return <p className="rounded-2xl border border-border bg-card p-4 text-sm">O pedido pela mesa não está disponível. Chame o garçom.</p>;
 
@@ -86,13 +111,21 @@ export function MesaPedido({ slug, code, session, nome, device, onPlaced, onBloc
   const linhas = carrinhoParaPedido(carrinho, obs);
   const total = totalCarrinho(linhas, precoDe);
   const qtdTotal = linhas.reduce((s, l) => s + l.qty, 0);
-  const add = (c: string, d: number) => setCarrinho((x) => ({ ...x, [c]: Math.max(0, Math.min(99, (x[c] ?? 0) + d)) }));
-  const itens = menu.items.filter((i) =>
-    (busca || !cat || i.categoryId === cat) &&
-    (!busca || i.name.toLowerCase().includes(busca.toLowerCase())));
+  const add = (c: string, d: number) => {
+    if (d > 0 && (carrinho[c] ?? 0) < 99) track(c, "add");
+    setCarrinho((x) => ({ ...x, [c]: Math.max(0, Math.min(99, (x[c] ?? 0) + d)) }));
+  };
+  const displayItems = menu.items.map((i) => translatedItem(i, language));
+  const itens = filterMenu(displayItems, busca, cat, diet, (id) => menu.categories.find((c) => c.id === id)?.name ?? "");
+  const hasHighlights = !cat && !busca && itens.some((i) => i.config?.featured);
+  const groups = [
+    ...(hasHighlights ? [{ id: "__featured", name: labels.featured }] : []),
+    ...menu.categories,
+    { id: "__other", name: labels.other },
+  ];
 
   const temFotos = menu.items.some((i) => i.imageUrl);
-  const itensStory = menu.items.map((i) => ({
+  const itensStory = displayItems.filter((i) => !diet || i.config?.diets.includes(diet as keyof typeof dietLabels)).map((i) => ({
     code: i.code, nome: i.name, preco: Math.round(i.price * 100),
     cat: menu.categories.find((c) => c.id === i.categoryId)?.name ?? "Cardápio",
     ...(i.description ? { desc: i.description } : {}), ...(i.imageUrl ? { foto: i.imageUrl } : {}),
@@ -119,12 +152,18 @@ export function MesaPedido({ slug, code, session, nome, device, onPlaced, onBloc
   }
 
   return (
-    <div className="pb-28">
+    <div lang={language} className={`pb-28 ${largeText ? "[&_p]:!text-base [&_button]:!text-base [&_input]:!text-base" : ""}`}>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <label className="text-sm"><span className="sr-only">Idioma / Language</span><select value={language} onChange={(e) => setLanguage(e.target.value as MenuLanguage)} className="h-10 rounded-xl border border-input bg-card px-2"><option value="pt">Português</option><option value="en">English</option><option value="es">Español</option></select></label>
+        <button type="button" aria-pressed={largeText} onClick={() => setLargeText(!largeText)} className="min-h-10 rounded-xl border border-border px-3 text-sm font-semibold">A+ · {labels.enlarge}</button>
+      </div>
       <label className="flex items-center gap-2 rounded-xl border border-input bg-card px-3">
         <Search className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
-        <span className="sr-only">Buscar no cardápio</span>
-        <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder="Buscar no cardápio" className="h-11 w-full bg-transparent text-sm outline-none" />
+        <span className="sr-only">{labels.search}</span>
+        <input value={busca} onChange={(e) => setBusca(e.target.value)} placeholder={labels.search} className="h-11 w-full bg-transparent text-sm outline-none" />
       </label>
+      <label className="mt-3 block"><span className="sr-only">{labels.diet}</span><select value={diet} onChange={(e) => { setDiet(e.target.value); setStory(null); }} className="h-11 w-full rounded-xl border border-input bg-card px-3 text-sm"><option value="">{labels.diet}</option>{Object.entries(dietsByLanguage[language]).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label>
+      <p className="mt-2 text-xs text-muted-foreground">{labels.dietary}</p>
       {temFotos && (
         <Suspense fallback={<div className="mt-3 h-[5.5rem]" />}>
           <div className="mt-3">
@@ -137,13 +176,13 @@ export function MesaPedido({ slug, code, session, nome, device, onPlaced, onBloc
         </Suspense>
       )}
       <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
-        <Chip on={!cat} onClick={() => setCat("")}>Tudo</Chip>
+        <Chip on={!cat} onClick={() => setCat("")}>{labels.all}</Chip>
         {menu.categories.map((c) => <Chip key={c.id} on={cat === c.id} onClick={() => setCat(c.id)}>{c.name}</Chip>)}
       </div>
 
       <div className="mt-3 space-y-5">
-        {menu.categories.map((c) => {
-          const lista = itens.filter((i) => i.categoryId === c.id);
+        {groups.map((c) => {
+          const lista = itens.filter((i) => c.id === "__featured" ? i.config?.featured : (c.id === "__other" ? !menu.categories.some((cat) => cat.id === i.categoryId) : i.categoryId === c.id) && !(hasHighlights && i.config?.featured));
           if (!lista.length) return null;
           return (
             <section key={c.id}>
@@ -166,6 +205,8 @@ export function MesaPedido({ slug, code, session, nome, device, onPlaced, onBloc
                         <div className="min-w-0 flex-1">
                           <p className="font-semibold">{i.name}{!i.imageUrl && i.badge && <span className="ml-2 rounded-full bg-primary/15 px-2 py-0.5 align-middle text-[10px] font-bold uppercase text-primary">{i.badge}</span>}</p>
                           {i.description && <p className="mt-0.5 text-xs text-muted-foreground">{i.description}</p>}
+                          {!!i.config?.diets.length && <p className="mt-1 text-xs text-primary">{i.config.diets.map((d) => dietsByLanguage[language][d]).join(" · ")}</p>}
+                          {i.allergens.length > 0 && <p className="mt-1 text-xs text-muted-foreground">{labels.allergies}: {i.allergens.join(", ")}</p>}
                           <p className="mt-1 text-sm font-bold">{money(i.price)}</p>
                         </div>
                         {q > 0 ? (
@@ -178,6 +219,12 @@ export function MesaPedido({ slug, code, session, nome, device, onPlaced, onBloc
                           <Button size="icon" className="h-10 w-10 shrink-0" aria-label={`Adicionar ${i.name}`} onClick={() => add(i.code, 1)}><Plus className="h-5 w-5" /></Button>
                         )}
                       </div>
+                      {q > 0 && i.config && <div className="space-y-3 px-3.5 pb-3.5">
+                        {([["recommendations", labels.pair], ["addons", labels.extras], ["variants", labels.versions]] as const).map(([key, title]) => {
+                          const related = relatedItems(i.config![key], displayItems.filter((j) => !diet || j.config?.diets.includes(diet as keyof typeof dietLabels)), i.code);
+                          return related.length ? <div key={key}><h4 className="mb-1 text-xs font-bold">{title}</h4><div className="flex flex-col gap-2">{related.map((j) => <button key={j.code} type="button" disabled={(carrinho[j.code] ?? 0) >= 99} onClick={() => add(j.code, 1)} className="flex min-h-11 items-center justify-between gap-2 rounded-xl border border-border bg-muted/40 px-3 py-2 text-left text-sm"><span>{j.name}<span className="ml-1 text-xs text-muted-foreground">{(carrinho[j.code] ?? 0) > 0 ? `(${carrinho[j.code]})` : ""}</span></span><span className="shrink-0 font-semibold">{labels.add} · {money(j.price)}</span></button>)}</div></div> : null;
+                        })}
+                      </div>}
                       <div className={i.imageUrl && q > 0 ? "px-3.5 pb-3.5" : ""}>
                       {q > 0 && (
                         obsAberta === i.code ? (
@@ -194,8 +241,9 @@ export function MesaPedido({ slug, code, session, nome, device, onPlaced, onBloc
             </section>
           );
         })}
-        {itens.length === 0 && <p className="py-10 text-center text-sm text-muted-foreground">Nenhum item encontrado.</p>}
+        {itens.length === 0 && <p className="py-10 text-center text-sm text-muted-foreground">{labels.none}</p>}
       </div>
+      {(menu.links?.instagram || menu.links?.reviews) && <nav aria-label="Links do restaurante" className="mt-6 flex flex-wrap gap-3 border-t border-border pt-4 text-sm font-semibold">{menu.links.instagram && <a href={menu.links.instagram} target="_blank" rel="noopener noreferrer" className="rounded-xl border border-border px-3 py-2">{labels.instagram} ↗</a>}{menu.links.reviews && <a href={menu.links.reviews} target="_blank" rel="noopener noreferrer" className="rounded-xl border border-border px-3 py-2">{labels.reviews} ↗</a>}</nav>}
 
       {erro && <p className="mt-3 rounded-xl border border-destructive/40 bg-destructive/10 p-3 text-sm">{erro}</p>}
 
@@ -230,5 +278,5 @@ export function MesaPedido({ slug, code, session, nome, device, onPlaced, onBloc
 }
 
 function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
-  return <button type="button" onClick={onClick} className={`shrink-0 rounded-full border px-3 py-1.5 text-sm font-semibold ${on ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground"}`}>{children}</button>;
+  return <button type="button" aria-pressed={on} onClick={onClick} className={`shrink-0 rounded-full border px-3 py-1.5 text-sm font-semibold ${on ? "border-primary bg-primary text-primary-foreground" : "border-border bg-card text-foreground"}`}>{children}</button>;
 }

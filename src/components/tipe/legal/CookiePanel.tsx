@@ -14,7 +14,7 @@ export function CookiePanel() {
   }, []);
   const rows = [
     { id: "necessary", name: "Necessários", desc: "Mesa, login, segurança e registro das suas escolhas.", locked: true },
-    { id: "analytics", name: "Medição", desc: "Entender quantas pessoas visitam o site e quais páginas usam.", locked: false },
+    { id: "analytics", name: "Medição", desc: "Medir o uso do site e contar aberturas de fotos e toques em adicionar no cardápio, sem identificar o cliente nos contadores.", locked: false },
     { id: "marketing", name: "Marketing", desc: "Medir e melhorar anúncios nas redes sociais.", locked: false },
   ] as const;
   return (

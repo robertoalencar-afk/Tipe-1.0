@@ -1,5 +1,6 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { MenuLinksSchema, readMenuConfig, type MenuConfig } from "./menu-intelligence";
 
 // Cardápio digital: o cliente vê o cardápio e pede pela própria mesa. O pedido
 // cai no mesmo table_bill_items / KDS / conta do QR. Público (sem login): o
@@ -11,10 +12,12 @@ export type PublicMenu = {
   selfOrder: boolean;
   restaurantName: string;
   logoUrl: string | null;
+  links?: { instagram: string; reviews: string };
   categories: { id: string; name: string }[];
   items: {
     id: string; categoryId: string | null; code: string; name: string; price: number; description: string | null;
     imageUrl: string | null; depthUrl: string | null; modelUrl: string | null; badge: string | null; allergens: string[];
+    config?: MenuConfig;
   }[];
 };
 
@@ -34,13 +37,24 @@ export const getPublicMenu = createServerFn({ method: "GET" })
       supabaseAdmin.from("pdv_menu_items").select("id, category_id, code, name, price, available, position, description, image_url, depth_url, model_url, badge, allergens").eq("restaurant_id", r.id).eq("available", true).order("position"),
     ]);
     const { data: logoRow } = await supabaseAdmin.from("restaurants").select("logo_url").eq("id", r.id).maybeSingle();
+    if (cats.error || items.error) throw new Error("Não foi possível carregar o cardápio");
+    // Separate reads preserve the menu while migration 0061 is rolling out.
+    const db = supabaseAdmin as any;
+    const [editorial, social] = await Promise.all([
+      db.from("pdv_menu_items").select("id,menu_config").eq("restaurant_id", r.id).eq("available", true),
+      db.from("restaurants").select("menu_links").eq("id", r.id).maybeSingle(),
+    ]);
+    const configs = new Map<string, unknown>((editorial.data ?? []).map((i: any) => [i.id, i.menu_config]));
+    const links = MenuLinksSchema.safeParse(social.data?.menu_links ?? {});
     return {
+      links: links.success ? links.data : { instagram: "", reviews: "" },
       logoUrl: ((logoRow as { logo_url?: string | null } | null)?.logo_url) ?? null,
       restaurantName: (r as { name?: string }).name ?? "",
       selfOrder: hasOrder === true && ((r as { self_order_enabled?: boolean }).self_order_enabled ?? false),
       categories: (cats.data ?? []).map((c) => ({ id: c.id, name: c.name })),
       items: (items.data ?? []).map((i) => ({ id: i.id, categoryId: i.category_id, code: i.code, name: i.name, price: Number(i.price), description: i.description,
         imageUrl: i.image_url ?? null, depthUrl: i.depth_url ?? null, modelUrl: i.model_url ?? null, badge: i.badge ?? null, allergens: i.allergens ?? [],
+        config: readMenuConfig(configs.get(i.id)),
       })),
     };
   });
