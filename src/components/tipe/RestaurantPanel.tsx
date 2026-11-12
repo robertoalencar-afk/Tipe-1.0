@@ -1,4 +1,5 @@
 import { ImportarCardapio } from "./ImportarCardapio";
+import { MenuInteligente } from "./MenuInteligente";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -1777,6 +1778,7 @@ function Cardapio({ slug, pdv, onDone, midia }: { slug: string; pdv: PdvData; on
         <a href="/produtos/order" target="_blank" rel="noreferrer" className="mt-3 inline-block text-sm underline underline-offset-4">Abrir demonstrador do Tipe Order</a>
       </details>
       <div className="space-y-6">
+        <MenuInteligente slug={slug} />
         <BancoImagens slug={slug} podeDono itens={pdv.items.map((i) => ({ id: i.id, name: i.name }))} onAplicada={() => { void qcM.invalidateQueries({ queryKey: ["midia", slug] }); onDone(); }} />
         {pdv.categories.map((cat) => (
           <section key={cat.id} className="mb-4">
