@@ -49,8 +49,9 @@ export function CardapioGestao({
   const saveItem = useServerFn(saveMenuItem);
   const savePhoto = useServerFn(saveFotoItem);
   const saveCat = useServerFn(saveCategory);
+  const savedCodes = useRef(new Set<string>());
   const nextCode = () => {
-    const used = new Set(pdv.items.map((i) => i.code.toUpperCase()));
+    const used = new Set([...pdv.items.map((i) => i.code.toUpperCase()), ...savedCodes.current]);
     let n = 1;
     while (used.has(`P${String(n).padStart(3, "0")}`)) n++;
     return `P${String(n).padStart(3, "0")}`;
@@ -94,6 +95,7 @@ export function CardapioGestao({
           ...{ name: value.name, price: value.price, categoryId: value.categoryId || null },
         },
       });
+      savedCodes.current.add(code.toUpperCase());
       // Um erro de envio de mídia não pode duplicar o produto quando o dono tenta de novo.
       setDraft((d) => ({ ...d, id: result.itemId }));
       if (value.photoChanged) {
