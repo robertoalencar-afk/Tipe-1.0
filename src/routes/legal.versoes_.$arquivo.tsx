@@ -9,7 +9,7 @@ import parceiros20 from "@/content/legal/archive/parceiros-2-0.md?raw";
 import { parseBook, ARCHIVED } from "@/lib/tipe/legal-content";
 
 function Parceiros20() {
-  return <BookReader book={parseBook(parceiros20)} />;
+  return <BookReader book={parseBook(parceiros20)} archived />;
 }
 
 const PAGES = {

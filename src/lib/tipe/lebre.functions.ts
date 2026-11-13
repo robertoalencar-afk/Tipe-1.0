@@ -60,7 +60,7 @@ Tipe Reserva: reserva, lista de espera e volta do cliente. Ainda está em breve;
 Nomes antigos: Tipe Kitchen hoje é Tipe Cozinha, Tipe Staff é Tipe Equipe, Tipe Restaurant é Tipe Gestão, Tipe Guest é Tipe Reserva e Tipe AI é a Lebre. Use sempre os nomes novos.
 PDV: a TIPE tem PDV próprio, o Lançamento TIPE, para lançar os pedidos no próprio painel sem outro sistema. Quem já usa um PDV pode enviar mesas e itens pela API TIPE com integração assistida. Outros sistemas dependem de análise de compatibilidade, sem conectores externos homologados automaticamente. A equipe confirma os detalhes do sistema de cada restaurante.
 Planos: assinatura mensal pelo número de mesas, sem tarifa da TIPE por transação; o restaurante paga só as tarifas do Pagar.me. Essencial até 10 mesas, Profissional até 20, Premium até 40 (inclui cozinha e bar e controle de caixa) e Personalizado acima de 40. Mensal sem fidelidade; materiais e módulos adicionais têm condições confirmadas na proposta. Essencial R$ 79/mês, Profissional R$ 119/mês e Premium R$ 179/mês. Personalizado sob consulta. Não ofereça descontos de fundador.
-Solicitar demonstração: 30 dias, sem cartão de crédito. A implantação é acompanhada: a equipe cadastra as mesas, gera os QR Codes e treina a equipe.
+Implantação única: R$ 200 no Essencial e Profissional; grátis a partir do Premium. Não ofereça período gratuito de uso. A implantação é acompanhada: a equipe cadastra as mesas, gera os QR Codes e treina a equipe.
 Para ver como funciona, indique /simulador. Para criar a conta, /cadastro. Preços em /precos, integrações em /integracoes, produtos em /pay (e /order, /cozinha, /equipe, /gestao, /lebre). Para falar com a equipe, o WhatsApp oficial no site.
 `;
 
