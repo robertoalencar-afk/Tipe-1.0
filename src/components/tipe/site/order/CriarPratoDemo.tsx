@@ -12,6 +12,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Camera, Check, ChevronDown, ImagePlus, Lightbulb, Loader2, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { menuPriceCents } from "@/lib/tipe/menu-price";
 import { gerarProfundidade } from "@/lib/tipe/order/profundidade";
 import { Secao, Titulo } from "../Site";
 import { Foto3D } from "./Foto3D";
@@ -118,7 +119,8 @@ export function CriarPratoEditor({
     [],
   );
 
-  const precoCentavos = Math.round(Number(preco.replace(/\./g, "").replace(",", ".")) * 100) || 0;
+  const parsedPrice = menuPriceCents(preco);
+  const precoCentavos = parsedPrice ?? 0;
 
   async function escolher(arquivo: File | undefined) {
     if (!arquivo || !arquivo.type.startsWith("image/")) return;
@@ -307,7 +309,7 @@ export function CriarPratoEditor({
           <button
             type="button"
             disabled={
-              busy || etapa === "processando" || nome.trim().length < 2 || precoCentavos < 0 || !cat
+              busy || etapa === "processando" || nome.trim().length < 2 || parsedPrice === null || !cat
             }
             className="mt-6 flex min-h-12 w-full items-center justify-center rounded-full bg-[#021E34] px-6 font-semibold text-white disabled:opacity-50"
             onClick={() =>
