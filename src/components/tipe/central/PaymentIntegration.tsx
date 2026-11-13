@@ -17,7 +17,7 @@ export function PaymentIntegration() {
   if (q.isPending) return <p role="status">Consultando integração de pagamentos…</p>;
   if (q.isError)
     return (
-      <Aviso tone="error">
+      <Aviso tone="warning">
         Não foi possível consultar a integração.{" "}
         <button className="underline" onClick={() => q.refetch()}>
           Tentar novamente
@@ -87,7 +87,7 @@ export function PaymentIntegration() {
         </Button>
         {result && (
           <div className="mt-3" role="status">
-            <Aviso tone={result.ok ? "success" : "error"}>{result.message}</Aviso>
+            <Aviso tone={result.ok ? "neutral" : "warning"}>{result.message}</Aviso>
           </div>
         )}
       </Painel>

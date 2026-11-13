@@ -21,7 +21,7 @@ vi.mock("@/integrations/supabase/client.server", () => ({
 }));
 vi.mock("./pagarme.server", () => ({
   SIMULATION_RESTAURANT_SLUGS: ["bistro-teste"],
-  pagarmeEnabled: () => !!process.env.PAGARME_SECRET_KEY,
+  pagarmeEnabled: () => !!process.env["PAGARME_SECRET_KEY"],
   pagarme: m.api,
 }));
 import {
