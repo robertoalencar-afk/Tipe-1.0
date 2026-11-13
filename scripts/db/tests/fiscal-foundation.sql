@@ -79,8 +79,8 @@ BEGIN
   IF (SELECT state FROM fiscal_documents WHERE id='40000000-0000-0000-0000-000000000001')<>'cancelled' THEN RAISE EXCEPTION 'Consulta antiga reabriu nota cancelada'; END IF;
   IF public.fiscal_outbox_finish(v_id,v_second,'{"state":"uncertain"}'::jsonb) THEN RAISE EXCEPTION 'Conclusão repetida foi aceita'; END IF;
 END $$;
-INSERT INTO public.fiscal_documents(id,restaurant_id,environment,provider,model,source_kind,source_reference,provider_reference,issuer_cnpj,amount_cents,payload_snapshot,payments_snapshot)
-VALUES('40000000-0000-0000-0000-000000000002','20000000-0000-0000-0000-000000000001','homologacao','focus','nfce','table_bill','sessao-2','fixture-2','12345678000195',1000,'{"cnpj_emitente":"12345678000195"}','[]');
+INSERT INTO public.fiscal_documents(id,restaurant_id,environment,provider,model,source_kind,source_reference,provider_reference,issuer_cnpj,amount_cents,payload_snapshot,payments_snapshot,tax_date)
+VALUES('40000000-0000-0000-0000-000000000002','20000000-0000-0000-0000-000000000001','homologacao','focus','nfce','table_bill','sessao-2','fixture-2','12345678000195',1000,'{"cnpj_emitente":"12345678000195"}','[]',(now() AT TIME ZONE 'America/Sao_Paulo')::date);
 INSERT INTO public.fiscal_outbox(restaurant_id,document_id,operation,request_id) VALUES('20000000-0000-0000-0000-000000000001','40000000-0000-0000-0000-000000000002','issue',gen_random_uuid());
 UPDATE restaurant_fiscal_settings SET enabled=true,verified_at=now() WHERE restaurant_id='20000000-0000-0000-0000-000000000001' AND environment='homologacao';
 DO $$

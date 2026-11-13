@@ -37,6 +37,10 @@ export type PerfilFiscalPublico = {
   calculation_rules: DadosPerfilProdutoFiscal["calculationRules"];
 };
 export type DocumentoFiscalPublico = {
+  send_started: boolean;
+  dispatch_error: string | null;
+  provider_reference: string;
+  time_zone: string;
   id: string;
   model: string;
   state: string;

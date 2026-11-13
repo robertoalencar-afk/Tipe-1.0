@@ -9,7 +9,7 @@ CREATE SCHEMA auth;
 CREATE TABLE auth.users(id uuid PRIMARY KEY);
 CREATE TYPE public.app_role AS ENUM('founder','owner','manager','cashier','waiter');
 CREATE TABLE public.restaurants(id uuid PRIMARY KEY,slug text,cnpj text);
-CREATE TABLE public.pdv_menu_items(id uuid PRIMARY KEY,restaurant_id uuid REFERENCES public.restaurants(id));
+CREATE TABLE public.pdv_menu_items(id uuid PRIMARY KEY,restaurant_id uuid REFERENCES public.restaurants(id),code text);
 CREATE TABLE public.user_roles(user_id uuid,restaurant_id uuid,role public.app_role);
 CREATE FUNCTION public.has_restaurant_role(_user_id uuid,_restaurant_id uuid,_roles public.app_role[])
 RETURNS boolean LANGUAGE sql STABLE AS $$ SELECT EXISTS(SELECT 1 FROM public.user_roles WHERE user_id=_user_id AND restaurant_id=_restaurant_id AND role=ANY(_roles)) $$;

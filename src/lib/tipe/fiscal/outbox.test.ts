@@ -2,11 +2,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
 const mocks = vi.hoisted(() => ({
+  prepare: vi.fn(),
   decrypt: vi.fn(),
   issue: vi.fn(),
   consult: vi.fn(),
   cancel: vi.fn(),
 }));
+vi.mock("./source.server", () => ({ prepararVendaFiscalServidor: mocks.prepare }));
 vi.mock("../pagarme.server", () => ({ decryptSecret: mocks.decrypt }));
 vi.mock("./focus.server", () => ({
   criarEmissorFocus: () => ({
@@ -40,6 +42,9 @@ function fixture() {
     issuer_cnpj: "12345678000195",
     time_zone: "America/Fortaleza",
     tax_date: "2026-11-11",
+    source_sale_id: "60000000-0000-0000-0000-000000000001",
+    preparation_fingerprint: "a".repeat(64),
+    payments_snapshot: [],
     payload_snapshot: { cnpj_emitente: "12345678000195", items: [] },
   };
   const cfg = {
@@ -62,7 +67,10 @@ function fixture() {
         scopes.push([table, key, value]);
         return query;
       }),
-      single: async () => ({ data: doc, error: null }),
+      single: async () => ({
+        data: table === "restaurants" ? { slug: "fixture", cnpj: "12345678000195" } : doc,
+        error: null,
+      }),
       maybeSingle: async () => ({ data: cfg, error: null }),
     };
     return query;
@@ -73,6 +81,7 @@ beforeEach(() => {
   vi.clearAllMocks();
   vi.useFakeTimers();
   vi.setSystemTime(new Date("2026-11-11T15:40:21Z"));
+  mocks.prepare.mockResolvedValue({ fingerprint: "a".repeat(64) });
   mocks.decrypt.mockResolvedValue("token-ficticio");
   const result = {
     referencia: "doc-fixture",
@@ -110,12 +119,25 @@ describe("adaptador persistente da fila fiscal", () => {
       expect.objectContaining({ p_result: expect.objectContaining({ state: "authorized" }) }),
     );
   });
+  it("não usa a credencial fiscal se a conciliação final mudou", async () => {
+    const f = fixture();
+    mocks.prepare.mockResolvedValue({ fingerprint: "b".repeat(64) });
+    await processarFilaFiscal(f.db);
+    expect(mocks.issue).not.toHaveBeenCalled();
+    expect(mocks.decrypt).not.toHaveBeenCalled();
+    expect(f.rpc).toHaveBeenCalledWith(
+      "fiscal_outbox_finish",
+      expect.objectContaining({ p_error: "sale_preflight_changed", p_fatal: true }),
+    );
+    expect(f.rpc.mock.calls.some((args) => args[0] === "fiscal_outbox_begin_send")).toBe(false);
+  });
   it("consulta o envio anterior sem criar outra nota", async () => {
     const f = fixture();
     f.job.send_started_at = "2026-11-11T15:39:00Z";
     await processarFilaFiscal(f.db);
     expect(mocks.issue).not.toHaveBeenCalled();
     expect(mocks.consult).toHaveBeenCalledWith("nfce", "doc-fixture");
+    expect(mocks.prepare).not.toHaveBeenCalled();
   });
   it("configuração desabilitada não decripta nem usa a credencial para emitir", async () => {
     const f = fixture();

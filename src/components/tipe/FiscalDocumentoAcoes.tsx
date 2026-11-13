@@ -10,7 +10,11 @@ import {
   DialogTitle,
   DialogDescription,
 } from "@/components/ui/dialog";
-import { downloadFiscalArtifact, requestFiscalDocumentAction } from "@/lib/tipe/fiscal.functions";
+import {
+  discardFiscalPreparation,
+  downloadFiscalArtifact,
+  requestFiscalDocumentAction,
+} from "@/lib/tipe/fiscal.functions";
 import { isolarHtmlFiscal } from "@/lib/tipe/fiscal/print-document";
 import type { DocumentoFiscalPublico } from "@/lib/tipe/fiscal/public-types";
 
@@ -22,14 +26,17 @@ export function FiscalDocumentoAcoes({
   document,
   onQueued,
   environment,
+  canCancel = true,
 }: {
   slug: string;
   environment: "homologacao" | "producao";
+  canCancel?: boolean;
   document: DocumentoFiscalPublico;
   onQueued: () => void;
 }) {
   const action = useServerFn(requestFiscalDocumentAction);
   const download = useServerFn(downloadFiscalArtifact);
+  const discard = useServerFn(discardFiscalPreparation);
   const [busy, setBusy] = useState(false);
   const [reason, setReason] = useState("");
   const [cancelling, setCancelling] = useState(false);
@@ -90,12 +97,41 @@ export function FiscalDocumentoAcoes({
       setBusy(false);
     }
   }
+  async function discardPreparation() {
+    setBusy(true);
+    try {
+      await discard({ data: { slug, documentId: document.id } });
+      toast.success("Preparo descartado antes do envio");
+      onQueued();
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Não foi possível descartar o preparo");
+    } finally {
+      setBusy(false);
+    }
+  }
   return (
     <>
       <div className="flex flex-wrap gap-2">
-        <Button size="sm" variant="outline" disabled={busy} onClick={() => void request("consult")}>
-          Consultar
-        </Button>
+        {document.state !== "voided" && document.send_started !== false && (
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={busy}
+            onClick={() => void request("consult")}
+          >
+            Consultar
+          </Button>
+        )}
+        {["draft", "queued", "uncertain"].includes(document.state) && !document.send_started && (
+          <Button
+            size="sm"
+            variant="ghost"
+            disabled={busy}
+            onClick={() => void discardPreparation()}
+          >
+            Descartar preparo sem envio
+          </Button>
+        )}
         {document.state === "authorized" && (
           <Button size="sm" variant="outline" disabled={busy} onClick={() => void getFile("danfe")}>
             Cupom fiscal
@@ -116,7 +152,7 @@ export function FiscalDocumentoAcoes({
             Evento de cancelamento
           </Button>
         )}
-        {document.state === "authorized" && (
+        {document.state === "authorized" && canCancel && (
           <Button size="sm" variant="ghost" disabled={busy} onClick={() => setCancelling(true)}>
             Cancelar nota
           </Button>

@@ -15,7 +15,7 @@ NFC-e (venda ao consumidor) e NF-e são os primeiros documentos de produto. NFS-
 - `src/lib/tipe/fiscal/contract.ts`: contrato de emissores, estados fiscais independentes do pagamento e seleção de perfis por UF, regime e vigência. Falta de revisão ou sobreposição bloqueia a seleção.
 - `src/lib/tipe/fiscal/focus.server.ts`: transporte server-side inicial da API Focus NFe para emitir, consultar e cancelar NF-e/NFC-e. Origens fixas, ambiente separado, validação do emitente e nenhuma repetição automática após resultado incerto. Não suporta NFS-e e não emite pela aplicação neste estágio.
 - `src/lib/tipe/fiscal/fiscal.test.ts`: testes locais com respostas simuladas. Não são comprovação de homologação na SEFAZ ou no serviço emissor.
-- `drizzle/migrations/0061_fiscal_foundation.sql`: configuração por restaurante/ambiente, perfis versionados, documentos com snapshots imutáveis, auditoria e fila com leases. Migração testada somente em PostgreSQL local isolado; ainda não aplicada em produção.
+- `drizzle/migrations/0062_fiscal_foundation.sql`: configuração por restaurante/ambiente, perfis versionados, documentos com snapshots imutáveis, auditoria e fila com leases. Migração testada somente em PostgreSQL local isolado; ainda não aplicada em produção.
 - `src/lib/tipe/fiscal.functions.ts`: configuração com credenciais cifradas, perfis e consultas autorizadas por papel explícito do restaurante. As respostas nunca incluem o token ou seu ciphertext.
 - `schemas.test.ts` e `authorization.test.ts`: CNPJ numérico/alfanumérico, validação de vigência e escopo. O script `scripts/db/tests/fiscal-foundation.sql` cobre RLS/ACL, isolamento, trilha, sobreposição e imutabilidade em banco de teste.
 - Ainda não há interface fiscal, vínculo com vendas nem processamento da fila na aplicação. Esta etapa não habilita emissão em produção nem comprova homologação.
@@ -127,3 +127,20 @@ Ainda pendente antes de considerar o emissor completo:
 5. Relatórios com downloads diagramados e revisão dos modelos de totem QR/NFC solicitados pelo usuário.
 
 A enumeração de UFs e os campos de IBS/CBS não constituem homologação nacional ou garantia de atualização normativa. A tributação e o momento fiscal de cada operação precisam corresponder à revisão contábil e aos testes aplicáveis.
+
+
+## Atualização da emissão por venda — 13/11/2026
+
+A migração `0064_fiscal_sale_issuance.sql` liga a venda preservada ao enfileiramento explícito de NFC-e. O primeiro fluxo da Gestão é **venda presencial de consumo final na mesa, interna e sem frete**. Não anunciar esse fluxo como cobertura de NF-e, entrega, serviços ou de toda operação fiscal possível.
+
+A preparação lê a venda do restaurante, verifica o estado atual dos pagamentos arquivados e consulta a transação do adquirente para pagamentos digitais. A resposta pública é uma prévia com produtos, valores, NCM/CFOP e uma impressão digital dos dados. O navegador não envia preços, itens ou tributos para a emissão: o servidor prepara novamente, compara a conferência e só então chama a RPC de enfileiramento. O trabalhador faz outra conciliação antes do primeiro envio, e a RPC confere pagamentos e vigências imediatamente antes da marca durável.
+
+Maquininha externa exige classificação explícita conforme o comprovante: crédito/débito, bandeira e identificadores disponíveis. Essa informação é guardada com a operação fiscal, como pagamento não integrado (`tipo_integracao=2`); não altera o pagamento já confirmado e não cria uma cobrança. Carteiras integradas usam os identificadores reais do adquirente, sem substituir autorização por ID interno.
+
+Habilitar emissão é uma ação do responsável. Homologação e produção são independentes. A produção requer uma NFC-e autorizada em homologação para a revisão do cadastro fiscal, mais a referência da revisão. A revisão muda quando mudam dados ou credenciais, e permanece quando o usuário apenas desliga o ambiente. Isso não substitui a matriz de homologação da operação/UF/regime nem a revisão tributária dos produtos.
+
+Descartar um preparo é permitido apenas se nenhum envio começou. A fila e o documento permanecem no histórico, em estado `voided`, e uma nova conferência gera outra referência. Depois da marca durável, resultado incerto exige consulta da mesma referência: não há reenvio cego nem descarte local. Cancelamento fiscal continua separado de estorno financeiro.
+
+Acesso operacional: dono, gerente e caixa podem conferir vendas, enfileirar e consultar documentos. Apenas o dono configura tributos/credenciais, habilita ambientes e solicita cancelamento de nota autorizada. Não há exceção operacional para founder sem papel explícito no restaurante.
+
+Testes locais e de navegador usam dados fictícios e não chamam Focus/SEFAZ de verdade. Ainda faltam homologação real do primeiro CNPJ, destinatário/CPF, NF-e e demais operações, vendas de balcão, exportação contábil por período e impressão automática com integração local/hardware. Relatórios diagramados e modelos de totem seguem na fila autorizada.

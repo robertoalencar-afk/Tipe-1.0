@@ -196,9 +196,52 @@ describe("pagamento por carteira digital", () => {
       "difere",
     );
   });
+  it("registra os dados do comprovante de POS como não integrados", () => {
+    const s = sale();
+    s.payments[0]!.establishment_method = "card_terminal";
+    const payment = prepararPagamentosFiscais(
+      s,
+      [],
+      [
+        {
+          paymentId,
+          cardType: "debit",
+          brand: "02",
+          authorization: "AUTH-POS-fixture",
+          acquirerCnpj: "12345678000195",
+        },
+      ],
+    )[0]!;
+    expect(payment.fields).toEqual({
+      forma_pagamento: "04",
+      tipo_integracao: "2",
+      bandeira_operadora: "02",
+      numero_autorizacao: "AUTH-POS-fixture",
+      cnpj_credenciadora: "12345678000195",
+    });
+    expect(payment.amountCents).toBe(2000);
+  });
+  it("não inventa autorização opcional do POS nem aceita classificação de outro pagamento", () => {
+    const s = sale();
+    s.payments[0]!.establishment_method = "card_terminal";
+    expect(
+      prepararPagamentosFiscais(s, [], [{ paymentId, cardType: "credit", brand: "01" }])[0]!.fields,
+    ).toEqual({ forma_pagamento: "03", tipo_integracao: "2", bandeira_operadora: "01" });
+    expect(() =>
+      prepararPagamentosFiscais(
+        s,
+        [],
+        [{ paymentId: "10000000-0000-0000-0000-000000000099", cardType: "credit", brand: "01" }],
+      ),
+    ).toThrow("não correspondem");
+    s.payments[0]!.establishment_method = "cash";
+    expect(() =>
+      prepararPagamentosFiscais(s, [], [{ paymentId, cardType: "credit", brand: "01" }]),
+    ).toThrow("não correspondem");
+  });
   it("não presume crédito ou débito para a maquininha externa", () => {
     const s = sale();
     s.payments[0]!.establishment_method = "card_terminal";
-    expect(() => prepararPagamentosFiscais(s, [])).toThrow("conciliação");
+    expect(() => prepararPagamentosFiscais(s, [])).toThrow("comprovante");
   });
 });

@@ -229,7 +229,7 @@ const secoes = [
     l: "Fiscal",
     i: FileText,
     g: "Financeiro",
-    dono: true,
+    fiscal: true,
     d: "Emitente, conexão fiscal, perfis tributários e documentos do restaurante.",
   },
   {
@@ -443,6 +443,7 @@ export function RestaurantPanel({
 
   const podeConfirmar = isFounder || myRoles.includes("owner") || myRoles.includes("manager") || myRoles.includes("cashier");
   const podeDono = isFounder || myRoles.includes("owner");
+  const podeFiscal = myRoles.some((role) => ["owner", "manager", "cashier"].includes(role));
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ["panel", slug] });
     qc.invalidateQueries({ queryKey: ["pdv", slug] });
@@ -518,7 +519,7 @@ export function RestaurantPanel({
   const abertas = mesas.filter((m) => m.status === "ocupada" || m.status === "aguardando");
   // O Lançamento TIPE fica sempre disponível, inclusive como reserva de uma integração.
   const visiveis = secoes.filter(
-    (x) => (!("dono" in x) || podeDono) && (!("flag" in x) || reservasOn),
+    (x) => (!("dono" in x) || podeDono) && (!("flag" in x) || reservasOn) && (!("fiscal" in x) || podeFiscal),
   );
   const pdvLabel =
     !integ.data || integ.data.adapter === "lancamento_tipe"
@@ -934,7 +935,7 @@ export function RestaurantPanel({
         {aba === "integracoes" && <Integracoes slug={slug} podeDono={podeDono} />}
         {aba === "config" && <Configuracoes slug={slug} podeDono={podeDono} />}
         {aba === "atendimento" && <Atendimento slug={slug} podeDono={podeDono} irParaConfig={() => ir("config")} />}
-        {aba === "fiscal" && podeDono && <Fiscal slug={slug} />}
+        {aba === "fiscal" && podeFiscal && <Fiscal slug={slug} canConfigure={myRoles.includes("owner")} />}
         {aba === "recebimentos" && podeDono && <Recebimentos slug={slug} podeDono={podeDono} />}
         {aba === "assinatura" && podeDono && <Assinatura slug={slug} />}
         {aba === "seguranca" && <SegurancaConta />}

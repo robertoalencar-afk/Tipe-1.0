@@ -1,3 +1,4 @@
+import { ManualPagamentoFiscal } from "./fiscal/payments";
 import type {
   ConfiguracaoFiscalPublica,
   PerfilFiscalPublico,
@@ -149,7 +150,12 @@ export const saveFiscalProductProfile = createServerFn({ method: "POST" })
 export const getFiscalDocuments = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input) =>
-    Escopo.extend({ before: z.string().datetime().optional() }).strict().parse(input),
+    Escopo.extend({
+      before: z.string().datetime().optional(),
+      documentId: z.string().uuid().optional(),
+    })
+      .strict()
+      .parse(input),
   )
   .handler(async ({ data, context }) => {
     const { restaurant } = await autorizar(context, data.slug);
@@ -157,16 +163,51 @@ export const getFiscalDocuments = createServerFn({ method: "GET" })
     let query = supabaseAdmin
       .from("fiscal_documents" as never)
       .select(
-        "id, model, state, source_kind, source_reference, amount_cents, access_key, sefaz_code, authorized_at, cancelled_at, created_at",
+        "id, provider_reference, time_zone, model, state, source_kind, source_reference, amount_cents, access_key, sefaz_code, authorized_at, cancelled_at, created_at",
       )
       .eq("restaurant_id", restaurant.id)
       .eq("environment", data.environment)
       .order("created_at", { ascending: false })
       .limit(50);
     if (data.before) query = query.lt("created_at", data.before);
+    if (data.documentId) query = query.eq("id", data.documentId);
     const { data: documents, error } = await query;
     if (error) throw new Error("Não foi possível ler os documentos fiscais");
-    return { documents: documents as unknown as DocumentoFiscalPublico[] };
+    const docs = documents as unknown as Omit<
+      DocumentoFiscalPublico,
+      "send_started" | "dispatch_error"
+    >[];
+    const { data: jobs, error: jobsError } = docs.length
+      ? await supabaseAdmin
+          .from("fiscal_outbox" as never)
+          .select("document_id, send_started_at, last_error_code")
+          .eq("restaurant_id", restaurant.id)
+          .eq("operation", "issue")
+          .in(
+            "document_id",
+            docs.map((doc) => doc.id),
+          )
+      : { data: [], error: null };
+    if (jobsError) throw new Error("Não foi possível conferir o estado do envio fiscal");
+    const issueJobs = z
+      .array(
+        z.object({
+          document_id: z.string().uuid(),
+          send_started_at: z.string().nullable(),
+          last_error_code: z.string().nullable(),
+        }),
+      )
+      .parse(jobs);
+    return {
+      documents: docs.map((doc) => {
+        const job = issueJobs.find((item) => item.document_id === doc.id);
+        return {
+          ...doc,
+          send_started: Boolean(job?.send_started_at),
+          dispatch_error: job?.last_error_code ?? null,
+        };
+      }),
+    };
   });
 
 export const getFiscalProducts = createServerFn({ method: "GET" })
@@ -330,4 +371,317 @@ export const downloadFiscalArtifact = createServerFn({ method: "POST" })
       mime: file.mime,
       filename: `${data.kind}-${doc.access_key}.${file.extension}`,
     };
+  });
+
+export const setFiscalEnabled = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    Escopo.extend({
+      enabled: z.boolean(),
+      review: z.string().trim().min(3).max(200).optional(),
+      homologationDocumentId: z.string().uuid().optional(),
+    })
+      .strict()
+      .refine((v) => !v.enabled || Boolean(v.review))
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { ctx, restaurant } = await autorizar(context, data.slug, true);
+    const { isSimulationRestaurant } = await import("./pagarme.server");
+    if (data.enabled && data.environment === "producao" && isSimulationRestaurant(data.slug))
+      throw new Error("Restaurantes de demonstração não emitem notas em produção");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: enabled, error } = await supabaseAdmin.rpc(
+      "fiscal_set_enabled" as never,
+      {
+        p_restaurant: restaurant.id,
+        p_actor: ctx.userId,
+        p_environment: data.environment,
+        p_enabled: data.enabled,
+        p_review: data.review ?? null,
+        p_homologation_document: data.homologationDocumentId ?? null,
+      } as never,
+    );
+    if (error)
+      throw new Error(
+        "Não foi possível habilitar a emissão. Confira a revisão fiscal e a NFC-e de homologação da mesma configuração.",
+      );
+    return { enabled: enabled === true };
+  });
+
+export const getFiscalSales = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    Escopo.extend({ offset: z.number().int().min(0).max(100000).default(0) })
+      .strict()
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { restaurant } = await autorizar(context, data.slug);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin
+      .from("fiscal_sales" as never)
+      .select("id, source_kind, table_number, created_at, payments_snapshot")
+      .eq("restaurant_id", restaurant.id)
+      .eq("source_kind", "table_bill")
+      .order("created_at", { ascending: false })
+      .order("id", { ascending: false })
+      .range(data.offset, data.offset + 19);
+    if (error) throw new Error("Não foi possível ler as vendas encerradas");
+    const sales = z
+      .array(
+        z.object({
+          id: z.string().uuid(),
+          source_kind: z.string(),
+          table_number: z.string().nullable(),
+          created_at: z.string(),
+          payments_snapshot: z.array(z.object({ status: z.string(), amount: z.number() })),
+        }),
+      )
+      .parse(rows);
+    const { data: docs, error: docsError } = sales.length
+      ? await supabaseAdmin
+          .from("fiscal_documents" as never)
+          .select("id, source_sale_id, state")
+          .eq("restaurant_id", restaurant.id)
+          .eq("environment", data.environment)
+          .in(
+            "source_sale_id",
+            sales.map((sale) => sale.id),
+          )
+          .in("state", ["draft", "queued", "processing", "uncertain", "authorized"])
+      : { data: [], error: null };
+    if (docsError) throw new Error("Não foi possível conferir as notas das vendas");
+    const active = z
+      .array(
+        z.object({ id: z.string().uuid(), source_sale_id: z.string().uuid(), state: z.string() }),
+      )
+      .parse(docs);
+    return {
+      sales: sales.map((s) => ({
+        id: s.id,
+        sourceKind: s.source_kind,
+        table: s.table_number,
+        createdAt: s.created_at,
+        document: active.find((doc) => doc.source_sale_id === s.id) ?? null,
+        paidAtCloseCents: s.payments_snapshot
+          .filter((p) => p.status === "approved")
+          .reduce((sum, p) => sum + Math.round(p.amount * 100), 0),
+      })),
+    };
+  });
+
+async function prepararVendaAutorizada(
+  authorized: Awaited<ReturnType<typeof autorizar>>,
+  input: {
+    slug: string;
+    environment: "homologacao" | "producao";
+    saleId: string;
+    manualPayments?: import("./fiscal/payments").ManualPagamentoFiscal[];
+  },
+) {
+  const { ctx, restaurant } = authorized;
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { prepararVendaFiscalServidor } = await import("./fiscal/source.server");
+  const prepared = await prepararVendaFiscalServidor(supabaseAdmin, {
+    restaurantId: restaurant.id,
+    slug: input.slug,
+    registeredCnpj: restaurant.cnpj,
+    environment: input.environment,
+    saleId: input.saleId,
+    ...(input.manualPayments ? { manualPayments: input.manualPayments } : {}),
+  });
+  return { ctx, restaurant, prepared, supabaseAdmin };
+}
+const VendaFiscalInput = Escopo.extend({
+  saleId: z.string().uuid(),
+  manualPayments: z.array(ManualPagamentoFiscal).max(1000).default([]),
+});
+export const prepareFiscalSale = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) => VendaFiscalInput.strict().parse(input))
+  .handler(async ({ data, context }) => {
+    const { enforceRate } = await import("./security.server");
+    const { ctx, restaurant } = await autorizar(context, data.slug);
+    await enforceRate(`fiscal-preview:${restaurant.id}:${ctx.userId}`, 60, 60, data.slug);
+    const { prepared: p } = await prepararVendaAutorizada({ ctx, restaurant }, data);
+    const items = z
+      .array(
+        z.object({
+          codigo_produto: z.string(),
+          descricao: z.string(),
+          quantidade_comercial: z.number(),
+          valor_unitario_comercial: z.number(),
+          valor_bruto: z.number(),
+          valor_outras_despesas: z.number(),
+          codigo_ncm: z.string(),
+          cfop: z.string(),
+        }),
+      )
+      .parse(p.prepared.payload["items"]);
+    return {
+      fingerprint: p.fingerprint,
+      amountCents: p.prepared.amountCents,
+      taxDate: p.taxDate,
+      enabled: p.cfg.enabled,
+      uf: p.cfg.uf,
+      taxRegime: p.cfg.tax_regime,
+      table: p.source.table_number,
+      items: items.map((i) => ({
+        code: i.codigo_produto,
+        name: i.descricao,
+        quantity: i.quantidade_comercial,
+        unitPrice: i.valor_unitario_comercial,
+        gross: i.valor_bruto,
+        expenses: i.valor_outras_despesas,
+        ncm: i.codigo_ncm,
+        cfop: i.cfop,
+      })),
+    };
+  });
+
+export const issueFiscalSale = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    VendaFiscalInput.extend({
+      fingerprint: z.string().regex(/^[a-f0-9]{64}$/),
+      requestId: z.string().uuid(),
+    })
+      .strict()
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { enforceRate } = await import("./security.server");
+    const { ctx, restaurant } = await autorizar(context, data.slug);
+    await enforceRate(`fiscal-issue:${restaurant.id}:${ctx.userId}`, 30, 60, data.slug);
+    const { isSimulationRestaurant } = await import("./pagarme.server");
+    if (data.environment === "producao" && isSimulationRestaurant(data.slug))
+      throw new Error("Restaurantes de demonstração não emitem notas em produção");
+    const { prepared: p, supabaseAdmin } = await prepararVendaAutorizada({ ctx, restaurant }, data);
+    if (p.fingerprint !== data.fingerprint)
+      throw new Error(
+        "A venda, os pagamentos ou os tributos mudaram. Confira novamente antes de emitir.",
+      );
+    if (!p.cfg.enabled) throw new Error("O responsável precisa habilitar a emissão neste ambiente");
+    const payments = p.sale.payments.map((payment) => ({
+      ...payment,
+      manual_fiscal_proof: p.manualProofs.find((proof) => proof.paymentId === payment.id) ?? null,
+      fiscal_proof: p.proofs.find((proof) => proof.paymentId === payment.id) ?? null,
+    }));
+    const { data: result, error } = await supabaseAdmin.rpc(
+      "fiscal_enqueue_sale" as never,
+      {
+        p_restaurant: restaurant.id,
+        p_actor: ctx.userId,
+        p_sale: data.saleId,
+        p_environment: data.environment,
+        p_request: data.requestId,
+        p_configuration_version: p.cfg.updated_at,
+        p_tax_date: p.taxDate,
+        p_payload: p.prepared.payload,
+        p_amount: p.prepared.amountCents,
+        p_payments: payments,
+        p_profile_ids: p.profiles.map((profile) => profile.id),
+        p_fingerprint: p.fingerprint,
+      } as never,
+    );
+    if (error)
+      throw new Error(
+        "Não foi possível enfileirar. Atualize a venda e a configuração fiscal antes de tentar novamente.",
+      );
+    return z
+      .object({ id: z.string().uuid(), state: z.string(), existing: z.boolean() })
+      .parse(result);
+  });
+
+export const discardFiscalPreparation = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({ slug: SlugFiscal, documentId: z.string().uuid() }).strict().parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { ctx, restaurant } = await autorizar(context, data.slug);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: discarded, error } = await supabaseAdmin.rpc(
+      "fiscal_discard_unsent" as never,
+      { p_restaurant: restaurant.id, p_actor: ctx.userId, p_document: data.documentId } as never,
+    );
+    if (error)
+      throw new Error(
+        "Não é possível descartar se o envio já começou. Consulte a mesma referência no emissor.",
+      );
+    return { discarded: discarded === true };
+  });
+
+export const getFiscalManualPayments = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input) =>
+    z.object({ slug: SlugFiscal, saleId: z.string().uuid() }).strict().parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { restaurant } = await autorizar(context, data.slug);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: raw, error } = await supabaseAdmin
+      .from("fiscal_sales" as never)
+      .select("payments_snapshot")
+      .eq("restaurant_id", restaurant.id)
+      .eq("id", data.saleId)
+      .single();
+    if (error) throw new Error("Venda não encontrada neste restaurante");
+    const source = z
+      .object({
+        payments_snapshot: z.array(
+          z.object({
+            id: z.string().uuid(),
+            status: z.string(),
+            method: z.string(),
+            establishment_method: z.string().nullable(),
+          }),
+        ),
+      })
+      .parse(raw);
+    const ids = source.payments_snapshot
+      .filter(
+        (p) =>
+          p.status === "approved" &&
+          p.method === "at_establishment" &&
+          p.establishment_method === "card_terminal",
+      )
+      .map((p) => p.id);
+    const payments: { id: string; customer: string; amountCents: number; createdAt: string }[] = [];
+    for (let i = 0; i < ids.length; i += 100) {
+      const { data: rows, error: paymentError } = await supabaseAdmin
+        .from("archived_payments")
+        .select("id, customer_name, amount, created_at")
+        .eq("restaurant_slug", data.slug)
+        .eq("payment_target", "restaurant")
+        .eq("status", "approved")
+        .eq("payment_method", "at_establishment")
+        .eq("establishment_method", "card_terminal")
+        .in("id", ids.slice(i, i + 100));
+      if (paymentError) throw new Error("Não foi possível conferir os pagamentos presenciais");
+      const parsed = z
+        .array(
+          z.object({
+            id: z.string().uuid(),
+            customer_name: z.string().nullable(),
+            amount: z.number(),
+            created_at: z.string(),
+          }),
+        )
+        .parse(rows);
+      payments.push(
+        ...parsed.map((p) => ({
+          id: p.id,
+          customer: p.customer_name ?? "Cliente",
+          amountCents: Math.round(p.amount * 100),
+          createdAt: p.created_at,
+        })),
+      );
+    }
+    if (payments.length !== ids.length)
+      throw new Error(
+        "Os pagamentos presenciais mudaram. Atualize e faça a conciliação antes de emitir.",
+      );
+    return { payments };
   });

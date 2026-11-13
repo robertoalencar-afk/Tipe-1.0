@@ -24,6 +24,8 @@ export type TrabalhoFiscal = {
     timeZone: string;
     taxDate: string;
     payload: Record<string, JsonFiscal>;
+    sourceSaleId?: string | null;
+    preparationFingerprint?: string | null;
   };
   configuration: {
     restaurantId: string;
@@ -41,6 +43,7 @@ export type RetornoTrabalhoFiscal = {
 export type DependenciasFilaFiscal = {
   beginSend: (job: TrabalhoFiscal, payload: Record<string, JsonFiscal>) => Promise<boolean>;
   now?: () => Date;
+  validateBeforeSend?: (job: TrabalhoFiscal) => Promise<boolean>;
   emitter: (job: TrabalhoFiscal) => Promise<EmissorFiscal>;
   finish: (job: TrabalhoFiscal, outcome: RetornoTrabalhoFiscal) => Promise<boolean>;
 };
@@ -63,15 +66,24 @@ export async function processarTrabalhoFiscal(job: TrabalhoFiscal, deps: Depende
     return;
   }
   try {
-    const emitter = await deps.emitter(job);
     let result: ResultadoFiscal;
     const terminal = ["authorized", "cancelled", "denied", "rejected"].includes(job.document.state);
-    if (
+    const consultOnly =
       job.operation === "consult" ||
       job.sendStartedAt ||
       (job.operation === "issue" && terminal) ||
-      (job.operation === "cancel" && job.document.state !== "authorized")
+      (job.operation === "cancel" && job.document.state !== "authorized");
+    if (
+      !consultOnly &&
+      job.operation === "issue" &&
+      deps.validateBeforeSend &&
+      !(await deps.validateBeforeSend(job))
     ) {
+      await deps.finish(job, { result: null, error: "sale_preflight_changed", fatal: true });
+      return;
+    }
+    const emitter = await deps.emitter(job);
+    if (consultOnly) {
       result = await emitter.consultar(job.document.model, job.document.reference);
     } else {
       if (job.operation === "cancel" && (!job.reason || job.reason.trim().length < 15))

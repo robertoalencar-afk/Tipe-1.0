@@ -1,3 +1,5 @@
+import { FiscalEmitir } from "./FiscalEmitir";
+import { FiscalHabilitacao } from "./FiscalHabilitacao";
 import { FiscalDocumentoAcoes } from "./FiscalDocumentoAcoes";
 import { FiscalImpressao } from "./FiscalImpressao";
 import { useState, type FormEvent } from "react";
@@ -25,10 +27,8 @@ import {
 const selectClass = "mt-1 h-11 w-full rounded-md border border-input bg-background px-3 text-sm";
 const brl = (cents: unknown) =>
   (Number(cents) / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-const date = (value: unknown) =>
-  typeof value === "string"
-    ? new Date(value).toLocaleString("pt-BR", { timeZone: "America/Sao_Paulo" })
-    : "—";
+const date = (value: unknown, timeZone = "America/Sao_Paulo") =>
+  typeof value === "string" ? new Date(value).toLocaleString("pt-BR", { timeZone }) : "—";
 const text = (value: unknown) =>
   typeof value === "string" || typeof value === "number" ? String(value) : "";
 const stateLabel: Record<string, string> = {
@@ -40,11 +40,13 @@ const stateLabel: Record<string, string> = {
   rejected: "Rejeitada",
   denied: "Denegada",
   cancelled: "Cancelada",
+  voided: "Descartada antes do envio",
 };
 
-export function Fiscal({ slug }: { slug: string }) {
+export function Fiscal({ slug, canConfigure = true }: { slug: string; canConfigure?: boolean }) {
   const [environment, setEnvironment] = useState<AmbienteFiscal>("homologacao");
-  const [aba, setAba] = useState("configuracao");
+  const [aba, setAba] = useState(canConfigure ? "configuracao" : "emissao");
+  const [documentId, setDocumentId] = useState<string | undefined>(undefined);
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -73,28 +75,49 @@ export function Fiscal({ slug }: { slug: string }) {
         {[
           ["configuracao", "Emitente e conexão"],
           ["produtos", "Tributos dos produtos"],
+          ["emissao", "Emitir NFC-e"],
           ["documentos", "Documentos"],
           ["impressao", "Impressora"],
-        ].map(([key, label]) => (
-          <Button
-            key={key}
-            variant={aba === key ? "default" : "ghost"}
-            aria-current={aba === key ? "page" : undefined}
-            onClick={() => setAba(key!)}
-          >
-            {label}
-          </Button>
-        ))}
+        ]
+          .filter(([key]) => canConfigure || !["configuracao", "produtos"].includes(key!))
+          .map(([key, label]) => (
+            <Button
+              key={key}
+              variant={aba === key ? "default" : "ghost"}
+              aria-current={aba === key ? "page" : undefined}
+              onClick={() => {
+                setAba(key!);
+                if (key === "documentos") setDocumentId(undefined);
+              }}
+            >
+              {label}
+            </Button>
+          ))}
       </nav>
       <div key={environment}>
-        {aba === "configuracao" ? (
+        {aba === "configuracao" && canConfigure ? (
           <Configuracao slug={slug} environment={environment} />
-        ) : aba === "produtos" ? (
+        ) : aba === "produtos" && canConfigure ? (
           <Produtos slug={slug} environment={environment} />
+        ) : aba === "emissao" ? (
+          <FiscalEmitir
+            slug={slug}
+            environment={environment}
+            onDocument={(id) => {
+              setDocumentId(id);
+              setAba("documentos");
+            }}
+          />
         ) : aba === "impressao" ? (
           <FiscalImpressao slug={slug} />
         ) : (
-          <Documentos slug={slug} environment={environment} />
+          <Documentos
+            slug={slug}
+            environment={environment}
+            documentId={documentId}
+            canConfigure={canConfigure}
+            onShowAll={() => setDocumentId(undefined)}
+          />
         )}
       </div>
     </div>
@@ -357,6 +380,13 @@ function Configuracao({ slug, environment }: { slug: string; environment: Ambien
           </Button>
         </fieldset>
       </form>
+      {settings && (
+        <FiscalHabilitacao
+          slug={slug}
+          environment={environment}
+          enabled={settings.enabled === true}
+        />
+      )}
     </section>
   );
 }
@@ -598,11 +628,23 @@ function Produtos({ slug, environment }: { slug: string; environment: AmbienteFi
   );
 }
 
-function Documentos({ slug, environment }: { slug: string; environment: AmbienteFiscal }) {
+function Documentos({
+  slug,
+  environment,
+  documentId,
+  canConfigure,
+  onShowAll,
+}: {
+  slug: string;
+  environment: AmbienteFiscal;
+  documentId: string | undefined;
+  canConfigure: boolean;
+  onShowAll: () => void;
+}) {
   const fetch = useServerFn(getFiscalDocuments);
   const q = useQuery({
-    queryKey: ["fiscal-documents", slug, environment],
-    queryFn: () => fetch({ data: { slug, environment } }),
+    queryKey: ["fiscal-documents", slug, environment, documentId],
+    queryFn: () => fetch({ data: { slug, environment, ...(documentId ? { documentId } : {}) } }),
     refetchInterval: 15000,
   });
   if (q.isPending) return <p role="status">Carregando documentos…</p>;
@@ -611,6 +653,11 @@ function Documentos({ slug, environment }: { slug: string; environment: Ambiente
     <section className="surface-card p-4 sm:p-6">
       <div className="mb-4 flex items-center justify-between gap-3">
         <h3 className="font-semibold">Documentos fiscais</h3>
+        {documentId && (
+          <Button size="sm" variant="ghost" onClick={onShowAll}>
+            Todos os documentos
+          </Button>
+        )}
         <Button size="sm" variant="outline" onClick={() => void q.refetch()}>
           Atualizar
         </Button>
@@ -633,7 +680,7 @@ function Documentos({ slug, environment }: { slug: string; environment: Ambiente
             </caption>
             <thead>
               <tr className="border-b border-border">
-                {["Registro", "Modelo", "Situação", "Valor", "Chave de acesso", "Ações"].map(
+                {["Registro", "Modelo", "Situação", "Valor", "Chave ou referência", "Ações"].map(
                   (h) => (
                     <th key={h} scope="col" className="p-3 font-medium">
                       {h}
@@ -645,16 +692,28 @@ function Documentos({ slug, environment }: { slug: string; environment: Ambiente
             <tbody>
               {q.data.documents.map((d) => (
                 <tr key={text(d.id)} className="border-b border-border last:border-0">
-                  <td className="whitespace-nowrap p-3">{date(d.created_at)}</td>
+                  <td className="whitespace-nowrap p-3">{date(d.created_at, d.time_zone)}</td>
                   <td className="p-3 uppercase">{text(d.model)}</td>
-                  <td className="p-3">{stateLabel[text(d.state)] || text(d.state)}</td>
+                  <td className="p-3">
+                    {d.state === "uncertain" && !d.send_started
+                      ? "Requer conferência antes do envio"
+                      : stateLabel[text(d.state)] || text(d.state)}
+                    {d.sefaz_code && (
+                      <span className="mt-1 block text-xs text-muted-foreground">
+                        SEFAZ {d.sefaz_code}
+                      </span>
+                    )}
+                  </td>
                   <td className="whitespace-nowrap p-3 tabular-nums">{brl(d.amount_cents)}</td>
-                  <td className="max-w-60 break-all p-3 text-xs">{text(d.access_key) || "—"}</td>
+                  <td className="max-w-60 break-all p-3 text-xs">
+                    {text(d.access_key) || text(d.provider_reference) || "—"}
+                  </td>
                   <td className="min-w-60 p-3">
                     <FiscalDocumentoAcoes
                       slug={slug}
                       document={d}
                       environment={environment}
+                      canCancel={canConfigure}
                       onQueued={() => void q.refetch()}
                     />
                   </td>

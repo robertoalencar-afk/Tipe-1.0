@@ -1,4 +1,4 @@
--- Banco isolado com as migrações 0061/0062 e o arquivo original de reabertura.
+-- Banco isolado com as migrações 0062/0063 e o arquivo original de reabertura.
 BEGIN;
 INSERT INTO restaurants(id,slug,cnpj) VALUES('20000000-0000-0000-0000-000000000001','fiscal-sale-test','12345678000195');
 INSERT INTO restaurant_tables(restaurant_id,number,session_token,waiter_id) VALUES('20000000-0000-0000-0000-000000000001','3','bill-session-before','10000000-0000-0000-0000-000000000001');
