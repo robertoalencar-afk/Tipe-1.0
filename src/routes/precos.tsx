@@ -81,7 +81,7 @@ function Precos() {
       </Secao>
       <Secao tema="escuro">
         <div className="container-page">
-          <Titulo centro titulo="O que vem em qualquer plano." />
+          <Titulo centro titulo="Order, Equipe e Cozinha em todos os planos." />
           <ul className="mt-14 grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-6">
             {SEMPRE.map(([I, t], i) => (
               <Reveal as="li" key={t} delay={i * 90} className="text-center">

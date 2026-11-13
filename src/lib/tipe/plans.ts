@@ -14,6 +14,9 @@ export const PLANS = [
       "Gorjeta extra para a equipe",
       "Painel em tempo real",
       "Lançamento TIPE incluso",
+      "Tipe Order: cardápio e pedidos pelo celular",
+      "Tipe Equipe: área do garçom e gorjetas",
+      "Tipe Cozinha: pedidos por setor (KDS)",
     ],
   },
   {
@@ -40,7 +43,6 @@ export const PLANS = [
     setupPrice: 0,
     features: [
       "Tudo do Profissional",
-      "Cozinha e bar (KDS)",
       "Controle de caixa",
       "Suporte prioritário",
     ],
@@ -51,4 +53,4 @@ export const planById = (id: string) => PLANS.find((p) => p.id === id);
 export const priceLabel = (v: number) => v.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
 
 export const PUBLIC_PRICING =
-  "Essencial: R$ 79/mês, até 10 mesas; Profissional: R$ 119/mês, até 20 mesas; Premium: R$ 179/mês, até 40 mesas. Implantação única de R$ 200 no Essencial e no Profissional; grátis a partir do Premium. Personalizado sob consulta.";
+  "Essencial: R$ 79/mês, até 10 mesas; Profissional: R$ 119/mês, até 20 mesas; Premium: R$ 179/mês, até 40 mesas. Implantação única de R$ 200 no Essencial e no Profissional; grátis a partir do Premium. Personalizado sob consulta. Todos os planos incluem Tipe Order, Tipe Equipe e Tipe Cozinha.";

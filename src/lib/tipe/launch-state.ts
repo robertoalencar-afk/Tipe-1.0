@@ -81,8 +81,8 @@ export const TEXTOS_LANCAMENTO: Record<EstadoLancamento, TextosLancamento> = {
     tituloFormulario: "Contrate o Tipe Order",
     enviar: "Quero contratar",
     quando:
-      "Já está disponível. O Tipe Order é um módulo adicional do Tipe Pay e usa o mesmo QR Code da mesa. Deixe seu contato e a equipe da Tipe cuida da contratação.",
-    fase: "Disponível como módulo adicional do Tipe Pay.",
+      "Já está disponível. O Tipe Order é incluído em todos os planos da Tipe e usa o mesmo QR Code da mesa. Deixe seu contato e a equipe da Tipe cuida da contratação.",
+    fase: "Tipe Order incluído em todos os planos da Tipe.",
   },
 };
 

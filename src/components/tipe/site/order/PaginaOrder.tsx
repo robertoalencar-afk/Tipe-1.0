@@ -3,7 +3,7 @@
  * páginas de produto. O que muda com o estado de lançamento (CTA, selo, resposta de
  * "Quando estará disponível?", título do formulário) vem de TEXTOS_LANCAMENTO.
  *
- * Regras que esta página não pode contrariar: o Order é módulo adicional do Tipe Pay e usa o
+ * Regras que esta página não pode contrariar: o Order é incluído em todos os planos da Tipe e usa o
  * mesmo QR Code; a conta se paga com Apple Pay, Google Pay, Pix ou no estabelecimento (sem
  * cartão digitado); dividir → pagar → gorjeta extra opcional como segundo pagamento. Nada de
  * números de mercado, datas ou integração com PDV que não exista.

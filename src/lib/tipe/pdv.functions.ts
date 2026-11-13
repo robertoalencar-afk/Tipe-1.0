@@ -243,7 +243,7 @@ export const saveMenuItem = createServerFn({ method: "POST" })
       : context.supabase.from("pdv_menu_items").insert(row).select("id");
     const { data: rows, error } = await q;
     if (error || !rows?.length) throw new Error(error?.code === "23505" ? "Código já usado" : "Somente o dono pode editar o cardápio");
-    return { ok: true };
+    return { ok: true, itemId: rows[0]!.id as string };
   });
 
 export const saveWaiter = createServerFn({ method: "POST" })

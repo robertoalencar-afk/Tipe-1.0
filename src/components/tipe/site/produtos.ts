@@ -281,7 +281,7 @@ export const PRODUTOS: Produto[] = [
     rotulo: "Tipe Order",
     titulo: "Peça sem esperar.",
     texto:
-      "O mesmo QR Code da conta abre o cardápio. O cliente escolhe, pede pelo celular e o pedido vai para a cozinha e entra na conta da mesa. Módulo adicional do Tipe Pay.",
+      "O mesmo QR Code da conta abre o cardápio. O cliente escolhe, pede pelo celular e o pedido vai para a cozinha e entra na conta da mesa. Incluído em todos os planos da Tipe.",
     cartao: {
       titulo: "Mesa 7 · novo pedido",
       linhas: [
@@ -343,7 +343,7 @@ export const PRODUTOS: Produto[] = [
     faq: [
       [
         "Preciso do Tipe Pay para usar o Order?",
-        "Sim. O Order é um módulo adicional do Tipe Pay: o mesmo QR Code da mesa abre o cardápio para pedir e a conta para pagar.",
+        "Sim. O Order é incluído em todos os planos da Tipe: o mesmo QR Code da mesa abre o cardápio para pedir e a conta para pagar.",
       ],
       [
         "Como o cliente paga o que pediu?",

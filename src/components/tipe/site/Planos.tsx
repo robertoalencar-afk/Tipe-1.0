@@ -103,7 +103,7 @@ export function CardsPlanos() {
           </p>
           <p className="mt-2 text-sm">{p.implantacao}</p>
           <a
-            href={`/solicitar-demonstracao?plano=${p.id ?? "personalizado"}`}
+            href={p.id ? `/cadastro?plano=${p.id}` : "/solicitar-demonstracao?plano=personalizado"}
             className={cn(
               "mt-5 flex min-h-12 items-center justify-center rounded-full font-medium",
               p.popular ? "bg-white text-[#021E34] hover:bg-white/90" : "btn-tema",
@@ -163,6 +163,8 @@ const COMPARACAO: { grupo: string; linhas: Linha[] }[] = [
       ["Mesas", "até 10", "até 20", "até 40"],
       ["Painel em tempo real", true, true, true],
       ["Lançamento TIPE", true, true, true],
+      ["Tipe Order: cardápio e pedidos", true, true, true],
+      ["Tipe Equipe: área do garçom e gorjetas", true, true, true],
       ["Relatórios por garçom", false, true, true],
       ["Material de mesa com QR Code (condições na proposta)", false, true, true],
       ["Controle de caixa", false, false, true],
@@ -172,7 +174,7 @@ const COMPARACAO: { grupo: string; linhas: Linha[] }[] = [
     grupo: "Operação e suporte",
     linhas: [
       ["Integração via API TIPE", false, "Sob análise", "Sob análise"],
-      ["Cozinha e bar (KDS)", false, false, true],
+      ["Tipe Cozinha: cozinha e bar (KDS)", true, true, true],
       ["Suporte prioritário", false, false, true],
     ],
   },
