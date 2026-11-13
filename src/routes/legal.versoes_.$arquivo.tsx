@@ -4,9 +4,16 @@ import { Termos20 } from "@/components/tipe/legal/archive/Termos20";
 import { Privacidade11 } from "@/components/tipe/legal/archive/Privacidade11";
 import { Cookies10 } from "@/components/tipe/legal/archive/Cookies10";
 import { Parceiros10 } from "@/components/tipe/legal/archive/Parceiros10";
-import { ARCHIVED } from "@/lib/tipe/legal-content";
+import { BookReader } from "@/components/tipe/legal/BookReader";
+import parceiros20 from "@/content/legal/archive/parceiros-2-0.md?raw";
+import { parseBook, ARCHIVED } from "@/lib/tipe/legal-content";
+
+function Parceiros20() {
+  return <BookReader book={parseBook(parceiros20)} />;
+}
 
 const PAGES = {
+  "parceiros-2-0": Parceiros20,
   "termos-2-0": Termos20,
   "privacidade-1-1": Privacidade11,
   "cookies-1-0": Cookies10,

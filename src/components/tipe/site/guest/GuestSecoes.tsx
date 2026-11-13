@@ -205,7 +205,7 @@ export function GuestFundadorSecao() {
             Os primeiros restaurantes do Tipe Reserva ajudam a desenhar o produto.
           </p>
           <p className="mt-3 max-w-2xl text-sm text-white/70">
-            Interessado, selecionado, implantação, testes, piloto e ativo. Vagas limitadas em
+            Demonstração do percurso de interesse e implantação. Tipe Reserva: em breve, com
             Fortaleza.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">

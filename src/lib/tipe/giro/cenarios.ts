@@ -67,15 +67,19 @@ export const CENARIOS: Record<
 
 /** Preço mensal do plano que comporta o número de mesas (fonte: src/lib/tipe/plans.ts). */
 export function custoPlanoPorMesas(mesas: number) {
-  const plano = PLANS.find((p) => mesas <= p.maxTables) ?? PLANS[2];
-  return { id: plano.id, nome: plano.name, preco: plano.price };
+  const plano = PLANS.find((p) => mesas <= p.maxTables);
+  if (!plano) return { id: "personalizado", nome: "Personalizado", preco: null };
+  return { id: plano.id, nome: plano.name, preco: plano.fullPrice };
 }
 
 /**
  * Valor inicial da assinatura. Respeita SHOW_PLAN_PRICES: com preços ocultos no
  * site, o campo começa vazio (null) e nenhum preço de plano aparece na calculadora.
  */
-export function custoInicial(mesas: number, mostrarPrecos: boolean = SHOW_PLAN_PRICES): number | null {
+export function custoInicial(
+  mesas: number,
+  mostrarPrecos: boolean = SHOW_PLAN_PRICES,
+): number | null {
   return mostrarPrecos ? custoPlanoPorMesas(mesas).preco : null;
 }
 
@@ -101,6 +105,9 @@ export const BASE_DEMO: Omit<Entradas, keyof ParametrosCenario> = {
   aumentoTicketPct: 0,
 };
 
-export function entradasDoCenario(id: CenarioId, base: Omit<Entradas, keyof ParametrosCenario> = BASE_DEMO): Entradas {
+export function entradasDoCenario(
+  id: CenarioId,
+  base: Omit<Entradas, keyof ParametrosCenario> = BASE_DEMO,
+): Entradas {
   return { ...base, ...CENARIOS[id].parametros };
 }

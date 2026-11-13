@@ -151,7 +151,7 @@ function PaginaFocinho() {
                     </p>
                     <div className="flex flex-wrap items-center gap-2.5">
                       <Botao v={v} classe={f.botao}>
-                        Teste grátis
+                        Solicitar demonstração
                       </Botao>
                       <Botao v={v} classe={f.botao} pequeno>
                         Ver a Tipe Pay

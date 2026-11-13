@@ -4,12 +4,12 @@ slug: parceiros
 title: Termos para Parceiros
 fullTitle: Livro 2. Termos para Restaurantes Parceiros
 description: Regras para restaurantes: planos, PDV, pagamentos e dados.
-version: "2.0"
-effective: 07/10/2026
+version: "2.1"
+effective: 13/11/2026
 audience: restaurante
 icon: store
 readingMinutes: 8
-summary: Você continua com o seu sistema e o seu atendimento; a TIPE cuida do fechamento da conta. Os primeiros 30 dias são grátis e sem cartão. O dinheiro dos pagamentos digitais cai direto na sua conta Pagar.me. Você é responsável pela conta lançada e por confirmar os pagamentos em dinheiro ou maquininha. Sem fidelidade.
+summary: Você continua com o seu sistema e o seu atendimento; a TIPE cuida do fechamento da conta. A implantação custa R$ 200 no Essencial e no Profissional e é grátis a partir do Premium. O dinheiro dos pagamentos digitais cai direto na sua conta Pagar.me. Você é responsável pela conta lançada e por confirmar os pagamentos em dinheiro ou maquininha. Sem fidelidade.
 ---
 
 ## 2.1 Partes e objeto {#partes-e-objeto}
@@ -20,13 +20,13 @@ Estes termos regem a relação entre a TIPE (Tipe Tecnologia de Integração par
 
 O Parceiro informa dados verdadeiros e atualizados do estabelecimento (razão social, CNPJ, endereço, telefone) e do responsável legal ou representante com poderes para contratar. O aceite eletrônico destes termos no cadastro tem validade de assinatura. Condições específicas negociadas por escrito (proposta comercial) prevalecem sobre estes termos no que forem diferentes.
 
-## 2.3 Período de teste gratuito {#periodo-de-teste-gratuito}
+## 2.3 Contratação e implantação {#periodo-de-teste-gratuito}
 
-Os restaurantes participantes do pré-lançamento têm 30 dias de uso gratuito, sem cartão de crédito, contados da ativação da primeira mesa. Ao fim do teste, a continuidade depende da contratação de um plano. Sem contratação, o acesso ao painel é suspenso, e os dados ficam disponíveis para exportação conforme a seção 2.18.
+A contratação é feita mediante escolha do plano e confirmação das condições comerciais. A implantação tem cobrança única de R$ 200 nos planos Essencial e Profissional e é grátis a partir do Premium. Não há oferta pública de período de teste gratuito. Condições já concedidas por escrito a clientes anteriores permanecem regidas pela contratação e pela versão aceita.
 
 ## 2.4 Planos, preços e cobrança {#planos-precos-e-cobranca}
 
-Os planos são mensais, definidos pelo número de mesas. Valores, forma de cobrança, data de vencimento e índice de reajuste constam na proposta comercial ou na tela de contratação. A TIPE não cobra tarifa por transação sobre o valor das contas: o Parceiro paga apenas a assinatura e as tarifas do Pagar.me, conforme o seu contrato com ele. A única exceção é a taxa da plataforma sobre a gorjeta extra (seção 2.9). Nos planos mensais não há fidelidade: o Parceiro pode cancelar a qualquer momento, e o cancelamento vale ao fim do período já pago. O plano anual tem condições próprias de cancelamento, informadas na proposta comercial. Em caso de atraso no pagamento, a TIPE pode suspender o acesso a partir do primeiro dia de atraso, com aviso por e-mail ou WhatsApp. A suspensão impede a abertura de novas mesas, mas as contas já abertas podem ser concluídas pelos clientes. O acesso é restabelecido assim que o pagamento for confirmado.
+Os planos são mensais, definidos pelo número de mesas: Essencial, R$ 79/mês para até 10 mesas; Profissional, R$ 119/mês para até 20 mesas; Premium, R$ 179/mês para até 40 mesas. O plano Personalizado é sob consulta. Valores, forma de cobrança, data de vencimento e índice de reajuste constam na proposta comercial ou na tela de contratação. A TIPE não cobra tarifa por transação sobre o valor das contas: o Parceiro paga apenas a assinatura e as tarifas do Pagar.me, conforme o seu contrato com ele. A única exceção é a taxa da plataforma sobre a gorjeta extra (seção 2.9). Nos planos mensais não há fidelidade: o Parceiro pode cancelar a qualquer momento, e o cancelamento vale ao fim do período já pago. O plano anual tem condições próprias de cancelamento, informadas na proposta comercial. Em caso de atraso no pagamento, a TIPE pode suspender o acesso a partir do primeiro dia de atraso, com aviso por e-mail ou WhatsApp. A suspensão impede a abertura de novas mesas, mas as contas já abertas podem ser concluídas pelos clientes. O acesso é restabelecido assim que o pagamento for confirmado.
 
 ## 2.5 Usuários e credenciais {#usuarios-e-credenciais}
 

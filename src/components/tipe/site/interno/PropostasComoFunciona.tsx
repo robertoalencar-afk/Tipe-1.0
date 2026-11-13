@@ -2,7 +2,7 @@
  * Três propostas para o novo "Como funciona" (V62, interno, para o Roberto comparar).
  * Mesma história nas três: 01 Escaneou, 02 Escolheu, 03 Pagou, 04 Pronto. Um só celular
  * por cena, com as telas reais do app do cliente (src/assets/telas-reais). As telas de
- * cardápio e pedido são do Tipe Order, ainda em desenvolvimento: aparecem só no modo
+ * cardápio e pedido são do Tipe Order, ainda em demonstração: aparecem só no modo
  * "Pay + Order" e com o selo de demonstração. A tela 01 (câmera lendo o QR) é uma
  * representação: a foto real do totem com a moldura de leitura por cima.
  */
@@ -67,8 +67,8 @@ const TELAS: (TelaReal | "camera")[] = ["camera", "conta", "cardapio", "dividir"
 const ALT: Partial<Record<TelaReal | "camera", string>> = {
   camera: "Câmera do celular lendo o QR Code do totem da mesa",
   conta: "Tela real da conta da mesa 12 no celular",
-  cardapio: "Tela do cardápio do Tipe Order (em desenvolvimento)",
-  pedido: "Tela de pedido do Tipe Order (em desenvolvimento)",
+  cardapio: "Tela do cardápio do Tipe Order (demonstração)",
+  pedido: "Tela de pedido do Tipe Order (demonstração)",
   dividir: "Tela real para dividir a conta",
   metodos: "Tela real de formas de pagamento",
   pix: "Tela real do Pix",
@@ -175,7 +175,7 @@ export function FoneEtapa({
       </div>
       {demo && (
         <figcaption className="absolute -bottom-9 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full bg-[#021E34] px-2.5 py-1 text-[0.65rem] font-medium text-white ring-1 ring-white/20">
-          Tipe Order · em desenvolvimento
+          Tipe Order · demonstração
         </figcaption>
       )}
     </figure>

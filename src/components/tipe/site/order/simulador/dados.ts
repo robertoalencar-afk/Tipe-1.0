@@ -74,7 +74,14 @@ export const CARDAPIO: ItemSim[] = [
     foto: fotoCaju,
     profundidade: profCaju,
   },
-  { code: "coco", nome: "Água de coco", desc: "Servida no coco, bem gelada", preco: 800, cat: "Bebidas", foto: fotoCoco },
+  {
+    code: "coco",
+    nome: "Água de coco",
+    desc: "Servida no coco, bem gelada",
+    preco: 800,
+    cat: "Bebidas",
+    foto: fotoCoco,
+  },
   {
     code: "cartola",
     nome: "Cartola",
@@ -96,12 +103,15 @@ export const CARDAPIO: ItemSim[] = [
   },
 ];
 
-export const POR_CODE = Object.fromEntries(CARDAPIO.map((i) => [i.code, i])) as Record<string, ItemSim>;
+export const POR_CODE = Object.fromEntries(CARDAPIO.map((i) => [i.code, i])) as Record<
+  string,
+  ItemSim
+>;
 
 export const METODOS_PAY: { id: MetodoPay; nome: string; desc: string }[] = [
-  { id: "pix", nome: "Pix (piloto)", desc: "Copia e cola ou QR Code" },
-  { id: "apple_pay", nome: "Apple Pay (piloto)", desc: "Com Face ID ou Touch ID" },
-  { id: "google_pay", nome: "Google Pay (piloto)", desc: "Com a carteira do Google" },
+  { id: "pix", nome: "Pix (simulação)", desc: "Copia e cola ou QR Code" },
+  { id: "apple_pay", nome: "Apple Pay (simulação)", desc: "Com Face ID ou Touch ID" },
+  { id: "google_pay", nome: "Google Pay (simulação)", desc: "Com a carteira do Google" },
   { id: "estabelecimento", nome: "Pagar no estabelecimento", desc: "A equipe confirma no caixa" },
 ];
 
@@ -113,12 +123,31 @@ export const METODOS_CAIXA: { id: MetodoCaixa; nome: string }[] = [
 
 /** Pedido externo de exemplo para a demonstração de delivery. */
 export const PEDIDOS_EXTERNOS = [
-  { origem: "Canal parceiro A", cliente: "Entrega · Aldeota", itens: [{ code: "baiao", qtd: 2 }, { code: "caju", qtd: 2 }] },
-  { origem: "Pedido pelo WhatsApp", cliente: "Entrega · Meireles", itens: [{ code: "pastel", qtd: 1 }, { code: "coco", qtd: 1 }] },
-  { origem: "Canal parceiro B", cliente: "Entrega · Praia de Iracema", itens: [{ code: "peixe", qtd: 1 }] },
+  {
+    origem: "Canal parceiro A",
+    cliente: "Entrega · Aldeota",
+    itens: [
+      { code: "baiao", qtd: 2 },
+      { code: "caju", qtd: 2 },
+    ],
+  },
+  {
+    origem: "Pedido pelo WhatsApp",
+    cliente: "Entrega · Meireles",
+    itens: [
+      { code: "pastel", qtd: 1 },
+      { code: "coco", qtd: 1 },
+    ],
+  },
+  {
+    origem: "Canal parceiro B",
+    cliente: "Entrega · Praia de Iracema",
+    itens: [{ code: "peixe", qtd: 1 }],
+  },
 ];
 
 /** Setores do mapa do evento (Tipe Localiza, demonstração). */
 export const SETORES_EVENTO = ["Pista", "Deck da piscina", "Bar central", "Lounge", "Quiosque 3"];
 
-export const brl = (c: number) => (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+export const brl = (c: number) =>
+  (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });

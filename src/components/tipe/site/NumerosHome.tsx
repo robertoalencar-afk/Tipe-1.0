@@ -35,7 +35,7 @@ export function NumerosHome() {
         <Titulo
           rotulo="O contexto"
           titulo="O cliente já paga pelo celular. A conta ainda não."
-          texto="Dados públicos de mercado. Não são resultados da Tipe, que está em pré-lançamento."
+          texto="Dados públicos de mercado. Não são resultados da Tipe."
         />
         <ul className="mt-12 grid gap-px overflow-hidden rounded-[1.75rem] bg-border sm:mt-16 md:grid-cols-3">
           {NUMEROS.map((n, i) => (

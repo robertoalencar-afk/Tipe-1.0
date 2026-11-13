@@ -3,11 +3,11 @@ import { lerComando, respostaFaq, respostaSalao, type SalaoResumo } from "./lebr
 
 describe("respostaFaq", () => {
   it("responde perguntas frequentes sem IA", () => {
-    expect(respostaFaq("Quanto custa a TIPE?")).toContain("30 dias grátis");
-    expect(respostaFaq("Quanto custa a TIPE?")).toContain("sem tarifa da TIPE por transação");
+    expect(respostaFaq("Quanto custa a TIPE?")).toContain("R$ 79/mês");
+    expect(respostaFaq("Quanto custa a TIPE?")).toContain("Sem tarifa da TIPE por transação");
     expect(respostaFaq("funciona com o meu PDV?")).toContain("PDV próprio");
     expect(respostaFaq("Precisa baixar aplicativo?")).toContain("Não precisa baixar");
-    expect(respostaFaq("tem Apple Pay?")).toContain("Pix, Apple Pay ou Google Pay");
+    expect(respostaFaq("tem Apple Pay?")).toContain("habilitação e validação");
   });
 
   it("apresenta o Tipe Pay como carro chefe e os outros produtos", () => {

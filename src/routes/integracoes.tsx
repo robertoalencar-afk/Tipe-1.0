@@ -1,11 +1,22 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { FaixaDuplaIntegracoes, HubIntegracoes, ListaIntegracoes } from "@/components/tipe/site/GradeIntegracoes";
+import {
+  FaixaDuplaIntegracoes,
+  HubIntegracoes,
+  ListaIntegracoes,
+} from "@/components/tipe/site/GradeIntegracoes";
 import { CatalogoIntegracoes } from "@/components/tipe/site/integracoes/CatalogoIntegracoes";
-import { BotaoPrincipal, BotaoSecundario, FaixaCta, Secao, SitePage, Titulo } from "@/components/tipe/site/Site";
+import {
+  BotaoPrincipal,
+  BotaoSecundario,
+  FaixaCta,
+  Secao,
+  SitePage,
+  Titulo,
+} from "@/components/tipe/site/Site";
 
 const TITLE = "Integrações da Tipe · Pagamentos, PDV e o que vem a seguir";
 const DESC =
-  "Veja o que a Tipe integra hoje (Lançamento TIPE, API TIPE, pagamentos digitais em piloto) e o que está em desenvolvimento ou planejado para PDVs, delivery, ERP e nota fiscal.";
+  "Veja o que a Tipe integra hoje (Lançamento TIPE, API TIPE, pagamentos digitais sujeitos à validação) e as condições de compatibilidade para PDVs, delivery, ERP e nota fiscal.";
 
 export const Route = createFileRoute("/integracoes")({
   head: () => ({
@@ -30,7 +41,7 @@ function Integracoes() {
             as="h1"
             rotulo="Integrações"
             titulo="Integrações com status claro."
-            texto="Hoje você opera pelo Lançamento TIPE ou envia mesas e itens pela API TIPE. Pagamentos digitais estão em piloto e outros sistemas entram por integração assistida. Mostramos o que está pronto e o que ainda não."
+            texto="Hoje você opera pelo Lançamento TIPE ou envia mesas e itens pela API TIPE. Pagamentos digitais estão sujeitos à validação por restaurante. A compatibilidade com outros sistemas é avaliada pela equipe. Mostramos o que está pronto e o que ainda não."
           />
           <div className="flex flex-wrap gap-3 lg:justify-end">
             <BotaoPrincipal>Falar com a equipe</BotaoPrincipal>
@@ -70,7 +81,10 @@ function Integracoes() {
           <ListaIntegracoes />
         </div>
       </Secao>
-      <FaixaCta titulo="Conte qual é o seu PDV." texto="A gente mostra o caminho mais curto para ligar a Tipe ao seu salão." />
+      <FaixaCta
+        titulo="Conte qual é o seu PDV."
+        texto="A gente mostra o caminho mais curto para ligar a Tipe ao seu salão."
+      />
     </SitePage>
   );
 }
