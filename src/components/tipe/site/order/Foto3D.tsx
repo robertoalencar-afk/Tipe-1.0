@@ -44,6 +44,7 @@ void main() {
 function carregar(src: string) {
   return new Promise<HTMLImageElement>((ok, erro) => {
     const im = new Image();
+    im.crossOrigin = "anonymous";
     im.decoding = "async";
     im.onload = () => ok(im);
     im.onerror = erro;

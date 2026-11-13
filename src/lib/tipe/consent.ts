@@ -1,6 +1,6 @@
 // Preferências de privacidade guardadas apenas no navegador (sem identificador pessoal).
-// Hoje o TIPE só usa tecnologias estritamente necessárias; analytics/marketing
-// NÃO existem. Qualquer script futuro deve checar hasConsent(categoria) antes de carregar.
+// Contadores opcionais de interação no cardápio exigem hasConsent("analytics").
+// Nenhum evento de medição pode ser enviado antes dessa escolha explícita.
 import { LEGAL } from "./legal";
 
 export type ConsentCategory = "functional" | "analytics" | "marketing";

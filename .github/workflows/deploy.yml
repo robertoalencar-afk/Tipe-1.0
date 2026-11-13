@@ -74,6 +74,10 @@ jobs:
           PGLITE_MODULE: ${{ runner.temp }}/lebre-sql/node_modules/@electric-sql/pglite/dist/index.js
         run: node scripts/db/tests/lebre-operation.mjs
       - run: bunx vitest run
+      - name: Testar métricas do cardápio e isolamento entre restaurantes
+        env:
+          PGLITE_MODULE: ${{ runner.temp }}/lebre-sql/node_modules/@electric-sql/pglite/dist/index.js
+        run: node scripts/db/tests/menu-intelligence.mjs
       - name: Build
         run: bun run build
         env:
