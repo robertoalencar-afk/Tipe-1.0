@@ -139,3 +139,28 @@ export async function consumeLebreQuota(kind: "panel" | "public", restaurantSlug
   }
   return null;
 }
+
+/** Autoriza operação de restaurante com o cliente da sessão, sem exceção para founder. */
+export async function requireRestaurantRoles(
+  client: import("@supabase/supabase-js").SupabaseClient<
+    import("@/integrations/supabase/types").Database
+  >,
+  userId: string,
+  slug: string,
+  roles: ("owner" | "manager" | "cashier" | "waiter")[],
+) {
+  const { data: restaurant, error } = await client
+    .from("restaurants")
+    .select("id, slug, cnpj")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (error || !restaurant) throw new Error("Restaurante não encontrado ou sem acesso");
+  const { data: allowed, error: denied } = await client.rpc("has_restaurant_role", {
+    _user_id: userId,
+    _restaurant_id: restaurant.id,
+    _roles: roles,
+  });
+  if (denied || allowed !== true)
+    throw new Error("Sua função não permite esta operação no restaurante");
+  return restaurant;
+}
