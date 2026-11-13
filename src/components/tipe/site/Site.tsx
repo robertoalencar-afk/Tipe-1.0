@@ -5,7 +5,6 @@
 import { useEffect, useRef, type ReactNode } from "react";
 import { LandingFooter, LandingHeader } from "@/components/tipe/landing/LandingChrome";
 import { Palavras } from "@/components/tipe/landing/motion";
-import { TRIAL_DAYS } from "@/lib/tipe/plans";
 import { cn } from "@/lib/utils";
 import { Fios, SetaFios } from "./Bigode";
 
@@ -201,7 +200,7 @@ export function BotaoSecundario({
 /** Faixa final com o gradiente da marca (o "Get a demo" da sunday, nas cores da Tipe). */
 export function FaixaCta({
   titulo = "Pague. Sem esperar.",
-  texto = `Os primeiros restaurantes ganham ${TRIAL_DAYS} dias grátis, sem cartão de crédito.`,
+  texto = `Conheça os planos e solicite uma demonstração com a equipe Tipe.`,
 }: {
   titulo?: string;
   texto?: string;

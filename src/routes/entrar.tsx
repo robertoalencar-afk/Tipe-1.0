@@ -243,7 +243,7 @@ function Entrar() {
               to="/solicitar-demonstracao"
               className="font-medium text-foreground underline underline-offset-4"
             >
-              Teste grátis
+              Solicitar demonstração
             </Link>
             .
           </>

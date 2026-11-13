@@ -46,7 +46,7 @@ const HOJE: { icone: typeof QrCode; t: string; d: string }[] = [
   {
     icone: QrCode,
     t: "Pagamento na mesa",
-    d: "O cliente abre a conta pelo QR Code, divide se quiser e paga com Apple Pay, Google Pay, Pix ou no estabelecimento.",
+    d: "O cliente abre a conta pelo QR Code, divide se quiser e escolhe pagar no estabelecimento. Pix e carteiras digitais dependem de habilitação e validação por restaurante.",
   },
   {
     icone: Check,

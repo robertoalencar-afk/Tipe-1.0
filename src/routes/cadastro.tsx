@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SenhaForteInput } from "@/components/tipe/SenhaForte";
 import { avaliarSenha, mensagemErroSenha, SENHA_MAX, SENHA_MIN } from "@/lib/tipe/senha";
-import { PLANS, SHOW_PLAN_PRICES, TRIAL_DAYS, priceLabel, type PlanId } from "@/lib/tipe/plans";
+import { PLANS, SHOW_PLAN_PRICES, priceLabel, type PlanId } from "@/lib/tipe/plans";
 import { signupRestaurant } from "@/lib/tipe/subscription.functions";
 import { recordLegalAcceptance } from "@/lib/tipe/legal.functions";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -23,16 +23,15 @@ export const Route = createFileRoute("/cadastro")({
   }),
   head: () => ({
     meta: [
-      { title: "Cadastre seu restaurante — 30 dias grátis | TIPE" },
+      { title: "Cadastre seu restaurante | TIPE" },
       {
         name: "description",
-        content:
-          "Cadastre seu restaurante na TIPE e teste grátis por 30 dias, sem cartão e sem limite de mesas.",
+        content: "Cadastre seu restaurante na TIPE e escolha o plano pelo número de mesas.",
       },
       { property: "og:title", content: "Cadastre seu restaurante na TIPE" },
       {
         property: "og:description",
-        content: "30 dias grátis, sem cartão. Depois, assinatura mensal sem fidelidade.",
+        content: "Planos mensais pelo número de mesas. Consulte as condições de contratação.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -110,7 +109,7 @@ function Cadastro() {
     await aceitar({ data: { documents: ["partner_terms", "privacy_policy"] } });
     const r = await signup({ data: { ...d, cnpj: d.cnpj.replace(/\D/g, "") } });
     localStorage.removeItem(PENDING);
-    toast.success(`Restaurante cadastrado! Seu teste grátis de ${TRIAL_DAYS} dias começou.`);
+    toast.success(`Restaurante cadastrado! Continue a configuração do seu estabelecimento.`);
     await qc.invalidateQueries({ queryKey: ["access"] });
     navigate({ to: "/$restaurante", params: { restaurante: r.slug } });
   }
@@ -214,7 +213,8 @@ function Cadastro() {
       </header>
       <div className="mx-auto max-w-3xl px-4 py-10 sm:px-8 sm:py-16">
         <p className="text-[clamp(1.15rem,0.95rem+0.8vw,1.5rem)] text-brand-strong">
-          {TRIAL_DAYS} dias grátis · sem cartão · sem limite de mesas
+          Planos mensais · implantação R$ 200 no Essencial e Profissional; grátis a partir do
+          Premium
         </p>
         <h1 className="mt-3 text-[clamp(2.4rem,1.6rem+3vw,4rem)] font-medium leading-[1.02] tracking-[-0.04em]">
           Cadastre seu restaurante
@@ -250,7 +250,7 @@ function Cadastro() {
                   {SHOW_PLAN_PRICES ? (
                     <p className="mt-1 font-display">
                       <span className="text-xs">R$</span>{" "}
-                      <span className="text-2xl font-extrabold">{priceLabel(p.price)}</span>
+                      <span className="text-2xl font-extrabold">{priceLabel(p.fullPrice)}</span>
                       <span className="text-xs text-muted-foreground">/mês</span>
                     </p>
                   ) : (
@@ -399,8 +399,7 @@ function Cadastro() {
                   </label>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Senhas vazadas na internet são
-                  recusadas. Esqueceu a senha de uma conta existente?{" "}
+                  Senhas vazadas na internet são recusadas. Esqueceu a senha de uma conta existente?{" "}
                   <Link to="/entrar" className="underline">
                     Recupere aqui
                   </Link>
@@ -445,7 +444,7 @@ function Cadastro() {
             </label>
           </div>
           <Button type="submit" className="w-full" size="lg" disabled={enviando || logado === null}>
-            {enviando ? "Cadastrando…" : `Começar ${TRIAL_DAYS} dias grátis`}
+            {enviando ? "Cadastrando…" : `Cadastrar restaurante`}
           </Button>
         </form>
       </div>

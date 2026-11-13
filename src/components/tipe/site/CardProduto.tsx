@@ -186,7 +186,7 @@ function Vitrine({ p }: { p: Produto }) {
             {p.cartao.rodape}
           </p>
           {p.status === "em-breve" && (
-            <p className="mt-3 text-center text-xs text-white/50">Ilustração · em breve</p>
+            <p className="mt-3 text-center text-xs text-white/50">Ilustração demonstrativa</p>
           )}
         </div>
       );

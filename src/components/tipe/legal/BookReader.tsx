@@ -60,7 +60,7 @@ function Toc({ book, active, onPick }: { book: Book; active: string; onPick?: ()
   );
 }
 
-export function BookReader({ book, destaque }: { book: Book; destaque?: string | undefined }) {
+export function BookReader({ book, destaque, archived = false }: { book: Book; destaque?: string | undefined; archived?: boolean }) {
   const navigate = useNavigate();
   const [active, setActive] = useState(book.chapters[0]?.id ?? "");
   const [drawer, setDrawer] = useState(false);
@@ -121,7 +121,7 @@ export function BookReader({ book, destaque }: { book: Book; destaque?: string |
         <article className="mx-auto w-full max-w-[70ch] py-8 lg:py-10">
           <p className="text-xs font-bold uppercase tracking-[0.18em] text-primary">Livro {book.number}</p>
           <h1 className="mt-2 font-display text-3xl font-bold leading-tight sm:text-4xl">{book.fullTitle.replace(/^Livro \d+\.\s*/, "")}</h1>
-          <p className="mt-3 text-sm text-muted-foreground">Versão {book.version} · vigente desde {book.effective} · {book.readingMinutes} min de leitura</p>
+          <p className="mt-3 text-sm text-muted-foreground">Versão {book.version} · {archived ? "arquivada, com vigência original em" : "vigente desde"} {book.effective} · {book.readingMinutes} min de leitura</p>
           <div data-noprint className="mt-4 flex flex-wrap gap-2">
             <Button size="sm" variant="outline" onClick={() => window.print()}><Download className="mr-1 h-4 w-4" />Baixar PDF</Button>
             <Button size="sm" variant="outline" asChild><Link to="/legal/versoes" hash={book.slug}><History className="mr-1 h-4 w-4" />Versões anteriores</Link></Button>

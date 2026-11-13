@@ -1,6 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { calcular, capacidade, contasPorServicoDe, economiaEfetiva, sanear, type Entradas } from "./calculo";
-import { BASE_DEMO, CENARIOS, custoInicial, custoPlanoPorMesas, entradasDoCenario } from "./cenarios";
+import {
+  calcular,
+  capacidade,
+  contasPorServicoDe,
+  economiaEfetiva,
+  sanear,
+  type Entradas,
+} from "./calculo";
+import {
+  BASE_DEMO,
+  CENARIOS,
+  custoInicial,
+  custoPlanoPorMesas,
+  entradasDoCenario,
+} from "./cenarios";
 import { SHOW_PLAN_PRICES } from "@/lib/tipe/plans";
 
 /*
@@ -12,7 +25,10 @@ import { SHOW_PLAN_PRICES } from "@/lib/tipe/plans";
  *   fator mês = 2 × 26 = 52 serviços
  *   assinatura informada nos testes: R$ 89 (o campo começa vazio quando SHOW_PLAN_PRICES = false)
  */
-const cen = (id: Parameters<typeof entradasDoCenario>[0]) => ({ ...entradasDoCenario(id), custoTipeMensal: 89 });
+const cen = (id: Parameters<typeof entradasDoCenario>[0]) => ({
+  ...entradasDoCenario(id),
+  custoTipeMensal: 89,
+});
 const REF = cen("referencia");
 const perto = (a: number, b: number, casas = 2) => expect(a).toBeCloseTo(b, casas);
 
@@ -159,7 +175,10 @@ describe("regras obrigatórias (seção 14)", () => {
     };
     for (let i = 0; i < 1000; i++) {
       const e = Object.fromEntries(
-        Object.keys(REF).map((k) => [k, k === "unidadeContas" ? (rnd() < 0.5 ? "dia" : "servico") : louco()]),
+        Object.keys(REF).map((k) => [
+          k,
+          k === "unidadeContas" ? (rnd() < 0.5 ? "dia" : "servico") : louco(),
+        ]),
       ) as unknown as Entradas;
       const r = calcular(e);
       expect(r.receitaGiroMes).toBeGreaterThanOrEqual(0);
@@ -184,7 +203,13 @@ describe("regras obrigatórias (seção 14)", () => {
     expect(r.tempoPorGarcomServicoMin).toBeNull();
     expect(r.roiPct).toBeNull();
     // ciclo projetado zerado: sem permanência e sem liberação, adoção total
-    const z = calcular({ ...REF, permanenciaMin: 0, liberacaoMin: 0, adocaoPct: 100, economiaPagamentoMin: 15 });
+    const z = calcular({
+      ...REF,
+      permanenciaMin: 0,
+      liberacaoMin: 0,
+      adocaoPct: 100,
+      economiaPagamentoMin: 15,
+    });
     expect(z.cicloProjetadoMin).toBe(0);
     expect(Number.isFinite(z.capacidadeProjetada)).toBe(true);
     expect(z.capacidadeAdicional).toBe(0);
@@ -305,17 +330,17 @@ describe("regras obrigatórias (seção 14)", () => {
 
 describe("custo do plano a partir de src/lib/tipe/plans.ts", () => {
   it("escolhe o plano pelo número de mesas", () => {
-    expect(custoPlanoPorMesas(8).preco).toBe(59);
-    expect(custoPlanoPorMesas(20).preco).toBe(89);
-    expect(custoPlanoPorMesas(35).preco).toBe(129);
-    expect(custoPlanoPorMesas(90).preco).toBe(129);
+    expect(custoPlanoPorMesas(8).preco).toBe(79);
+    expect(custoPlanoPorMesas(20).preco).toBe(119);
+    expect(custoPlanoPorMesas(35).preco).toBe(179);
+    expect(custoPlanoPorMesas(90).preco).toBeNull();
   });
 
   it("respeita SHOW_PLAN_PRICES: com preços ocultos, a assinatura começa vazia", () => {
-    expect(custoInicial(20, true)).toBe(89);
-    expect(custoInicial(8, true)).toBe(59);
+    expect(custoInicial(20, true)).toBe(119);
+    expect(custoInicial(8, true)).toBe(79);
     expect(custoInicial(20, false)).toBeNull();
-    expect(BASE_DEMO.custoTipeMensal).toBe(SHOW_PLAN_PRICES ? 89 : null);
+    expect(BASE_DEMO.custoTipeMensal).toBe(SHOW_PLAN_PRICES ? 119 : null);
   });
 
   it("sem o valor da assinatura não há resultado líquido nem ROI, mas há receita e margem", () => {

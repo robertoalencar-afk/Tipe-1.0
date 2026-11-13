@@ -1,3 +1,4 @@
+import { PUBLIC_PRICING } from "./plans";
 // Respostas da Lebre que não precisam de IA: perguntas frequentes do site, comandos
 // claros do painel e consultas rápidas sobre o salão. Custam zero tokens.
 // Funções puras: o servidor passa os dados, aqui só se decide a resposta.
@@ -58,22 +59,23 @@ const FAQ: Array<{ chave: RegExp; resposta: string }> = [
   {
     chave: /\b(quanto custa|preco|precos|valor|valores|plano|planos|mensalidade|cobra)\b/,
     resposta:
-      "A assinatura é mensal, pelo número de mesas, sem tarifa da TIPE por transação: o restaurante paga só as tarifas do Pagar.me. Os valores serão divulgados no lançamento, e os planos estão em /precos. Dá para testar 30 dias grátis, sem cartão, em /cadastro.",
+      PUBLIC_PRICING +
+      " Sem tarifa da TIPE por transação nas contas; o restaurante paga as tarifas do provedor. Veja /precos ou solicite uma demonstração em /solicitar-demonstracao.",
   },
   {
     chave: /\b(gratis|teste|testar|trial|experimentar)\b/,
     resposta:
-      "A TIPE tem 30 dias grátis, sem cartão. Para criar a conta, é só ir em /cadastro. Se quiser ver antes como funciona, abra o /simulador.",
+      "Conheça os planos em /precos e solicite uma demonstração em /solicitar-demonstracao. Para experimentar sem cobrança, abra o /simulador com dados fictícios.",
   },
   {
     chave: /\b(pdv|integra|integracao|integracoes|sistema que (eu )?uso|homologad)/,
     resposta:
-      "A TIPE tem PDV próprio, o Lançamento TIPE, para lançar os pedidos no próprio painel sem outro sistema. Se você já usa um PDV, dá para conectar pela API TIPE ou pelos conectores (Saipos, Consumer, Linx, TOTVS Chef e outros), com integração assistida pela equipe. Veja em /integracoes.",
+      "A TIPE tem PDV próprio, o Lançamento TIPE, para lançar os pedidos no próprio painel sem outro sistema. Se você já usa um PDV, dá para conectar pela API TIPE com integração assistida e compatibilidade avaliada pela equipe. Não há conectores externos homologados automaticamente. Veja em /integracoes.",
   },
   {
     chave: /\b(apple pay|google pay|carteira digital|formas? de pagamento|pix)\b/,
     resposta:
-      "Na conta da mesa, o cliente paga com Pix, Apple Pay ou Google Pay, ou escolhe pagar no estabelecimento. O dinheiro cai direto na conta do restaurante, pelo Pagar.me.",
+      "O cliente pode pagar em dinheiro ou maquininha no estabelecimento, com confirmação pelo caixa. Pix e carteiras digitais dependem de habilitação e validação por restaurante e provedor.",
   },
   {
     chave: /\b(como funciona|o que e a tipe|o que a tipe faz|qr ?code|tipe pay)\b/,
@@ -108,7 +110,7 @@ const FAQ: Array<{ chave: RegExp; resposta: string }> = [
   {
     chave: /\b(cadastrar|cadastro|criar (a |minha )?conta|comecar)\b/,
     resposta:
-      "Para criar a conta do seu restaurante, é só ir em /cadastro. São 30 dias grátis, sem cartão.",
+      "Para contratar, veja /precos ou fale com a equipe em /solicitar-demonstracao. Você pode criar a conta em /cadastro.",
   },
   {
     chave: /\b(memoria|lembra|lembrar|aprende|aprender|dados sensiveis|privacidade|lgpd)\b/,

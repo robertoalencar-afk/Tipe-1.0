@@ -7,7 +7,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
-import { TRIAL_DAYS } from "@/lib/tipe/plans";
 import { WaitlistForm } from "@/components/tipe/WaitlistForm";
 import { LandingFooter, LandingHeader } from "@/components/tipe/landing/LandingChrome";
 import { Foto, type NomeFoto } from "@/components/tipe/site/Foto";
@@ -20,7 +19,7 @@ import { cn } from "@/lib/utils";
 
 const TITLE = "Solicitar demonstração | TIPE";
 const DESC =
-  "Solicite uma demonstração do Tipe Pay: conta e divisão pelo QR Code, painel do salão e implantação acompanhada. Pix e carteiras digitais em piloto.";
+  "Solicite uma demonstração do Tipe Pay: conta e divisão pelo QR Code, painel do salão e implantação acompanhada. Pagamentos digitais sujeitos à validação por restaurante.";
 
 export const Route = createFileRoute("/solicitar-demonstracao")({
   head: () => ({
@@ -73,14 +72,14 @@ function Topo() {
     <section className="container-page grid gap-12 pb-16 pt-10 sm:pt-16 lg:grid-cols-[1fr_0.95fr] lg:gap-20 lg:pb-24">
       <div className="relative lg:pt-12">
         <p className="font-display text-[clamp(1.4rem,1.1rem+1vw,1.9rem)] text-brand-strong">
-          Teste grátis por {TRIAL_DAYS} dias
+          Solicite uma demonstração
         </p>
         <h1 className="mt-4 font-display text-[clamp(3rem,1.4rem+4.6vw,5.6rem)] font-medium leading-[0.96]">
           Vamos colocar a Tipe nas suas mesas.
         </h1>
         <p className="mt-6 max-w-lg text-lg leading-relaxed text-muted-foreground sm:text-xl">
-          Preencha o formulário e a equipe Tipe fala com você para uma demonstração. Os primeiros
-          restaurantes ganham {TRIAL_DAYS} dias grátis, sem cartão de crédito.
+          Preencha o formulário e a equipe Tipe fala com você para uma demonstração e apresenta as
+          condições de contratação.
         </p>
         <ul className="mt-8 space-y-3 text-[1.05rem]">
           {[
@@ -127,7 +126,7 @@ function Topo() {
         <WaitlistForm />
         <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
           Hoje você pode pagar em dinheiro ou na maquininha do local. Pix, Apple Pay e Google Pay
-          estão em piloto, com ativação por restaurante. Reserva V2: em breve.
+          dependem de habilitação e validação por restaurante. Reserva V2: em breve.
         </p>
       </div>
     </section>
@@ -195,7 +194,7 @@ const GRUPOS: { id: string; nome: string; cor: string; slides: Slide[] }[] = [
         eyebrow: "Para o cliente",
         titulo: "Pague sem esperar a maquininha.",
         texto:
-          "QR Code na mesa e conta ao vivo. Dinheiro e maquininha no local disponíveis; Pix, Apple Pay e Google Pay em piloto.",
+          "QR Code na mesa e conta ao vivo. Dinheiro e maquininha no local disponíveis; Pix e carteiras digitais sujeitos à validação por restaurante.",
         scene: "pix-mao",
         alt: "Cliente com o Pix aprovado no celular ao lado do totem da Tipe",
         selo: ["Pix aprovado", "Sua parte: R$ 51,97"],
@@ -204,7 +203,8 @@ const GRUPOS: { id: string; nome: string; cor: string; slides: Slide[] }[] = [
       {
         eyebrow: "Para o cliente",
         titulo: "Cada um paga o que consumiu.",
-        texto: "Por item ou dividindo um prato. Quem sai primeiro não deixa a conta para os outros.",
+        texto:
+          "Por item ou dividindo um prato. Quem sai primeiro não deixa a conta para os outros.",
         scene: "cena-praia",
         alt: "Amigos na barraca de praia pagando cada um a sua parte",
         selo: ["Mesa 12 fechada", "3 pessoas pagaram"],
@@ -256,7 +256,7 @@ const GRUPOS: { id: string; nome: string; cor: string; slides: Slide[] }[] = [
         eyebrow: "Para o caixa",
         titulo: "Cada pagamento já aparece no caixa.",
         texto:
-          "Dinheiro e maquininha aguardam confirmação do caixa. No piloto digital, só pagamentos confirmados pelo provedor são aprovados.",
+          "Dinheiro e maquininha aguardam confirmação do caixa. Nos pagamentos digitais habilitados, só a confirmação do provedor aprova a cobrança.",
         scene: "cena-caixa",
         alt: "Caixa do restaurante com os pagamentos no painel da Tipe",
         selo: ["Mesa 08 · Bruno S.", "Pix aprovado · R$ 150,60"],
@@ -472,7 +472,7 @@ function Fecho() {
         <div className="relative grid gap-8 lg:grid-cols-[1fr_auto] lg:items-end">
           <div>
             <p className="font-display text-[clamp(1.2rem,1rem+0.8vw,1.6rem)] text-[#0FC9BD]">
-              {TRIAL_DAYS} dias grátis, sem cartão de crédito
+              Conheça os planos para o seu restaurante
             </p>
             <h2 className="mt-4 max-w-[18ch] font-display text-[clamp(2.4rem,1.4rem+3.4vw,4.4rem)] font-medium leading-[1]">
               Peça sua demonstração e comece pela primeira mesa.
@@ -483,7 +483,7 @@ function Fecho() {
               href="#formulario"
               className="btn-press inline-flex h-14 items-center justify-center gap-2 rounded-full bg-[#0FC9BD] px-8 font-medium text-[#021E34]"
             >
-              Quero testar grátis <ArrowRight className="h-4 w-4" />
+              Solicitar demonstração <ArrowRight className="h-4 w-4" />
             </a>
             <Link
               to="/simulador"

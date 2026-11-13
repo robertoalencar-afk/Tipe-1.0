@@ -220,7 +220,7 @@ async function rodarAutomacaoEtapa(db: any, opp: any, stage: string, actor: stri
       await db.from("crm_activities").insert({ lead_id: opp.lead_id, opportunity_id: opp.id, kind: "system", title: "Rascunho do e-mail de confirmação preparado", body: `Olá! Confirmamos a demonstração da Tipe para o ${opp.title}. Até lá!`, actor_id: actor, meta: { draft: "email", template: "confirmacao_demo" } });
     } else if (regra === "demo_realizada") {
       await db.from("crm_tasks").insert({ lead_id: opp.lead_id, opportunity_id: opp.id, title: `Acompanhamento pós-demonstração: ${opp.title}`, due_at: em(2), created_by: actor });
-      await db.from("crm_activities").insert({ lead_id: opp.lead_id, opportunity_id: opp.id, kind: "system", title: "Rascunho da proposta preparado", body: `Proposta Tipe para o ${opp.title}: Tipe Pay, Tipe Order e Tipe Gestão, com 30 dias grátis.`, actor_id: actor, meta: { draft: "email", template: "proposta" } });
+      await db.from("crm_activities").insert({ lead_id: opp.lead_id, opportunity_id: opp.id, kind: "system", title: "Rascunho da proposta preparado", body: `Proposta Tipe para o ${opp.title}: Tipe Pay, Tipe Order e Tipe Gestão, com contratação conforme os planos publicados em /precos. Implantação única de R$ 200 no Essencial e Profissional; grátis a partir do Premium.`, actor_id: actor, meta: { draft: "email", template: "proposta" } });
     } else if (regra === "cliente_contratado") {
       if (opp.restaurant_id) await db.rpc("implantation_seed", { p_rid: opp.restaurant_id });
       await db.from("crm_tasks").insert({ lead_id: opp.lead_id, opportunity_id: opp.id, restaurant_id: opp.restaurant_id, title: `Kickoff da implantação: ${opp.title}`, due_at: em(1), created_by: actor });

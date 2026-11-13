@@ -8,7 +8,6 @@ import { useRef, type CSSProperties, type ReactNode } from "react";
 import { seloDoProduto, useEstadosLancamento } from "./useLancamento";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { Palavras, Reveal, useVelocidadeFaixa } from "@/components/tipe/landing/motion";
-import { TRIAL_DAYS } from "@/lib/tipe/plans";
 import { AbasDemo, type ItemAba } from "./AbasDemo";
 import { Focinho, SetaFios } from "./Bigode";
 import { Foto, fotoSrc, type NomeFoto } from "./Foto";
@@ -57,7 +56,8 @@ export function TopoHome() {
           className="hero-in mx-auto mt-5 max-w-2xl text-[1.05rem] leading-relaxed text-muted-foreground text-pretty sm:mt-7 sm:text-xl"
           style={{ "--d": "500ms" } as CSSProperties}
         >
-          Seu cliente confere a conta, divide e paga pelo celular. Sua equipe ganha tempo para atender, e você acompanha cada mesa em tempo real.
+          Seu cliente confere a conta, divide e paga pelo celular. Sua equipe ganha tempo para
+          atender, e você acompanha cada mesa em tempo real.
         </p>
         <div
           className="hero-in mt-9 flex flex-wrap justify-center gap-3"
@@ -70,7 +70,7 @@ export function TopoHome() {
           className="hero-in mt-5 text-sm text-muted-foreground"
           style={{ "--d": "750ms" } as CSSProperties}
         >
-          Pré-lançamento: {TRIAL_DAYS} dias grátis para restaurantes · Sem taxa para o cliente
+          Planos para restaurantes · Solicite uma demonstração
         </p>
       </div>
       <div className="hero-in pb-14 sm:pb-24" style={{ "--d": "800ms" } as CSSProperties}>
@@ -285,7 +285,7 @@ export function IntegracoesHome() {
           centro
           rotulo="Integrações"
           titulo="Integrações, com status honesto."
-          texto="Hoje: Lançamento TIPE, API TIPE e pagamento no estabelecimento. Pix e carteiras em piloto. PDVs, delivery, ERP e nota fiscal estão em desenvolvimento ou planejados."
+          texto="Hoje: Lançamento TIPE, API TIPE e pagamento no estabelecimento. Pagamentos digitais sujeitos à validação por restaurante. PDVs, delivery, ERP e nota fiscal estão sujeitos à análise de compatibilidade."
         />
       </div>
       <div className="container-page mt-12 sm:mt-16">
@@ -312,7 +312,7 @@ export function PlanosHome() {
           <Titulo
             rotulo="Planos"
             titulo="Um plano para cada tamanho de restaurante."
-            texto={`A assinatura é pelo número de mesas, sem tarifa da Tipe por transação. Os valores são informados antes da contratação. ${TRIAL_DAYS} dias grátis no pré-lançamento.`}
+            texto={`A assinatura é pelo número de mesas, sem tarifa da Tipe por transação. Mensalidades e implantação detalhadas em /precos. Consulte os planos e as condições de contratação.`}
           />
           <a
             href="/precos"

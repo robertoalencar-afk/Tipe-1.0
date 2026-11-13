@@ -86,7 +86,7 @@ for(const [k,t,d,id] of OPS){
   const el=document.createElement('section'); el.className='op'+(k===REC?' rec':'');
   el.innerHTML=`<h2>${t}${k===REC?'<span class="selo">Escolhida</span>':''}</h2><p>${d}</p>
   <div class="grande"><div>${s}</div><div class="esc">${s}</div></div>
-  ${['claro','escuro','turq'].map(f=>`<div class="fundo ${f}"><a class="btn" href="#">Teste grátis ${s}</a><a class="btn sm" href="#">Ver a Tipe Pay ${s}</a></div>`).join('')}
+  ${['claro','escuro','turq'].map(f=>`<div class="fundo ${f}"><a class="btn" href="#">Solicitar demonstração ${s}</a><a class="btn sm" href="#">Ver a Tipe Pay ${s}</a></div>`).join('')}
   <div class="medida" data-k="${k}"></div>`;
   g.appendChild(el);
 }

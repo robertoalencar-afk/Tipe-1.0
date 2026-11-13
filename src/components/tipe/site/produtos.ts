@@ -150,7 +150,7 @@ export const PRODUTOS: Produto[] = [
     rotulo: "Tipe Pay",
     titulo: "A conta chega antes de alguém pedir.",
     texto:
-      "O cliente aponta a câmera para o QR Code da mesa, confere a conta ao vivo, divide do jeito que quiser e paga com Pix, Apple Pay ou Google Pay. Sem baixar aplicativo.",
+      "O cliente aponta a câmera para o QR Code da mesa, confere a conta ao vivo, divide do jeito que quiser e escolhe pagar em dinheiro ou maquininha no local. Pix e carteiras digitais dependem de habilitação e validação por restaurante. Sem baixar aplicativo.",
     cartao: {
       titulo: "Mesa 12 · sua parte",
       linhas: [
@@ -177,7 +177,7 @@ export const PRODUTOS: Produto[] = [
       },
       {
         t: "Pague como preferir",
-        d: "Pix, Apple Pay, Google Pay ou no estabelecimento. Almoço pago em um minuto.",
+        d: "Dinheiro ou maquininha no local. Pagamentos digitais dependem de habilitação e validação por restaurante.",
         foto: "cena-executiva",
         posicao: "50% 35%",
         telaReal: "metodos",
@@ -191,15 +191,15 @@ export const PRODUTOS: Produto[] = [
       },
     ],
     banda: {
-      titulo: "Pix, Apple Pay ou Google Pay. Pago em segundos.",
+      titulo: "A conta no celular. O pagamento do seu jeito.",
       texto:
-        "O cliente escolhe como pagar no próprio celular. O Pix já sai com o código pronto para copiar, e a confirmação aparece sozinha na tela.",
+        "O cliente escolhe entre os meios habilitados pelo restaurante. Dinheiro e maquininha são confirmados pelo caixa. Pix e carteiras dependem de validação com o provedor.",
       telaReal: "pix",
       altTela: "Tela de pagamento por Pix da Mesa 12 do Maré Alta, com o código para copiar",
     },
     fatos: [
       { v: "0", t: "aplicativos para baixar" },
-      { v: "4", t: "formas de pagar na mesa" },
+      { v: "1", t: "conta compartilhada por mesa" },
       { v: "R$ 0", t: "de taxa para quem paga a conta" },
       { v: "70%", t: "da gorjeta extra vai para quem atendeu" },
     ],
@@ -207,7 +207,7 @@ export const PRODUTOS: Produto[] = [
       {
         icone: Smartphone,
         t: "Pix, Apple Pay e Google Pay",
-        d: "Processados pelo provedor de pagamento, com o dinheiro direto na conta do restaurante.",
+        d: "Sujeitos à habilitação e validação por restaurante no provedor, com recebimento na conta do estabelecimento.",
       },
       {
         icone: Wallet,
@@ -347,7 +347,7 @@ export const PRODUTOS: Produto[] = [
       ],
       [
         "Como o cliente paga o que pediu?",
-        "Pela conta da mesa, como no Tipe Pay: divide se quiser e paga em dinheiro ou na maquininha no local. Pix, Apple Pay e Google Pay estão em piloto, com habilitação por restaurante. A gorjeta extra é opcional e vem depois, como um segundo pagamento.",
+        "Pela conta da mesa, como no Tipe Pay: divide se quiser e paga em dinheiro ou na maquininha no local. Pix, Apple Pay e Google Pay estão sujeitos à habilitação e validação por restaurante. A gorjeta extra é opcional e vem depois, como um segundo pagamento.",
       ],
     ],
   },
@@ -762,7 +762,7 @@ export const PRODUTOS: Produto[] = [
       ],
       [
         "A Lebre tem memória?",
-        "Tem. Ela aprende com cada restaurante e com cada pessoa da equipe: como vocês chamam os pratos, qual mesa é a da varanda, como você prefere as respostas. Diga \"lembre que...\" para ensinar, \"o que você lembra?\" para ver e \"esqueça...\" para apagar. A memória de um restaurante nunca aparece para outro.",
+        'Tem. Ela aprende com cada restaurante e com cada pessoa da equipe: como vocês chamam os pratos, qual mesa é a da varanda, como você prefere as respostas. Diga "lembre que..." para ensinar, "o que você lembra?" para ver e "esqueça..." para apagar. A memória de um restaurante nunca aparece para outro.',
       ],
       [
         "A Lebre guarda dados sensíveis?",
@@ -811,7 +811,7 @@ export const PRODUTOS: Produto[] = [
     rotulo: "Tipe Reserva",
     titulo: "Reserve, chegue e volte.",
     texto:
-      "O app do cliente para descobrir restaurantes, reservar o horário livre, entrar na lista de espera e voltar depois. Tudo ligado à conta da mesa da Tipe. Em desenvolvimento, com restaurantes fictícios no simulador.",
+      "O app do cliente para descobrir restaurantes, reservar o horário livre, entrar na lista de espera e voltar depois. Tudo ligado à conta da mesa da Tipe. Demonstração, com restaurantes fictícios no simulador.",
     cartao: {
       titulo: "Reserva · Maré Alta",
       linhas: [
@@ -917,7 +917,7 @@ export const PRODUTOS: Produto[] = [
     faq: [
       [
         "O Tipe Reserva já está disponível?",
-        "Ainda não. Está em desenvolvimento; dá para experimentar no simulador, com restaurantes fictícios.",
+        "Ainda não. Está em breve; o simulador usa restaurantes fictícios e não aceita reservas reais.",
       ],
       [
         "O cliente paga para reservar?",
@@ -952,11 +952,11 @@ export const DUVIDAS_COMUNS: Record<string, [string, string]> = {
   ],
   pdv: [
     "Funciona com o meu PDV?",
-    "Você pode usar a Tipe completa, lançando os pedidos pelo Lançamento TIPE no próprio painel, ou enviar mesas e itens pela API TIPE. Conectores para outros PDVs estão em desenvolvimento, com integração assistida pela nossa equipe.",
+    "Você pode usar a Tipe completa, lançando os pedidos pelo Lançamento TIPE no próprio painel, ou enviar mesas e itens pela API TIPE. A compatibilidade com outros PDVs é avaliada pela equipe; nenhum conector externo é homologado automaticamente.",
   ],
   custo: [
     "Quanto custa?",
-    "Assinatura mensal de acordo com o número de mesas, sem tarifa por transação nas contas; o restaurante paga apenas as tarifas do provedor de pagamento. Os valores serão divulgados no lançamento.",
+    "Assinatura mensal de acordo com o número de mesas, sem tarifa por transação nas contas; o restaurante paga apenas as tarifas do provedor de pagamento. Consulte as mensalidades e a implantação em /precos.",
   ],
   gorjeta: [
     "Como funciona a gorjeta extra?",

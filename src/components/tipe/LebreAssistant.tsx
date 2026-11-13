@@ -65,7 +65,7 @@ const publicSuggestions = [
   { titulo: "Como a Tipe funciona?", texto: "Em 20 segundos" },
   { titulo: "Funciona com o meu PDV?", texto: "Ou uso o da Tipe" },
   { titulo: "Quais são os produtos?", texto: "Pay, Order, Kitchen..." },
-  { titulo: "Como são os 30 dias grátis?", texto: "Sem cartão" },
+  { titulo: "Quais são os planos?", texto: "Mensalidades e implantação" },
 ];
 const panelSuggestions = [
   { icone: LayoutGrid, titulo: "Resumo do salão", pergunta: "Resuma a situação do salão agora" },

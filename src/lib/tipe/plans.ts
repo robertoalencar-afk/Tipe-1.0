@@ -1,6 +1,6 @@
-// Planos de assinatura TIPE (valores mensais em R$; price = preço fundador). Fonte oficial dos limites e preços: tabela plan_catalog no banco, editável pelo founder.
-export const TRIAL_DAYS = 30;
-export const SHOW_PLAN_PRICES = false;
+// Mensalidades regulares verificadas no plan_catalog em 13/11/2026.
+// Implantação aprovada por Roberto em 13/11/2026; descontos restritos não são oferta pública.
+export const SHOW_PLAN_PRICES = true;
 export const PLANS = [
   {
     id: "essencial",
@@ -8,6 +8,7 @@ export const PLANS = [
     price: 59,
     fullPrice: 79,
     maxTables: 10,
+    setupPrice: 200,
     features: [
       "Pagamento na mesa por QR Code",
       "Gorjeta extra para a equipe",
@@ -21,12 +22,13 @@ export const PLANS = [
     price: 89,
     fullPrice: 119,
     maxTables: 20,
+    setupPrice: 200,
     popular: true,
     features: [
       "Tudo do Essencial",
       "Integração via API TIPE (sob análise)",
       "Relatórios por garçom",
-      "Totens personalizados",
+      "Material de mesa com QR Code (condições na proposta)",
     ],
   },
   {
@@ -35,6 +37,7 @@ export const PLANS = [
     price: 129,
     fullPrice: 179,
     maxTables: 40,
+    setupPrice: 0,
     features: [
       "Tudo do Profissional",
       "Cozinha e bar (KDS)",
@@ -46,3 +49,6 @@ export const PLANS = [
 export type PlanId = (typeof PLANS)[number]["id"];
 export const planById = (id: string) => PLANS.find((p) => p.id === id);
 export const priceLabel = (v: number) => v.toLocaleString("pt-BR", { minimumFractionDigits: 2 });
+
+export const PUBLIC_PRICING =
+  "Essencial: R$ 79/mês, até 10 mesas; Profissional: R$ 119/mês, até 20 mesas; Premium: R$ 179/mês, até 40 mesas. Implantação única de R$ 200 no Essencial e no Profissional; grátis a partir do Premium. Personalizado sob consulta.";

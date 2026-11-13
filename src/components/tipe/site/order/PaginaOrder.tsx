@@ -167,7 +167,9 @@ function Topo({ p, estado }: { p: Produto; estado: EstadoLancamento }) {
             className="hero-in mt-5 max-w-xl text-[1.05rem] leading-relaxed text-muted-foreground text-pretty sm:text-xl"
             style={{ "--d": "450ms" } as CSSProperties}
           >
-            Na mesa ou no balcão, no celular ou na tela de autoatendimento: o pedido encontra o caminho da sua operação. Conheça os formatos, veja as telas reais e experimente o fluxo até a cozinha.
+            Na mesa ou no balcão, no celular ou na tela de autoatendimento: o pedido encontra o
+            caminho da sua operação. Conheça os formatos, veja as telas reais e experimente o fluxo
+            até a cozinha.
           </p>
           <div
             className="hero-in mt-8 flex flex-wrap gap-3"
@@ -233,7 +235,7 @@ const PASSOS: {
   {
     n: "04",
     t: "Pague",
-    d: "Na aba Pagar está a conta com tudo o que foi pedido. Dinheiro ou maquininha no local; Pix, Apple Pay e Google Pay em piloto.",
+    d: "Na aba Pagar está a conta com tudo o que foi pedido. Dinheiro ou maquininha no local; Pix e carteiras digitais sujeitos à validação por restaurante.",
     icone: Wallet,
     tela: "order-conta",
     alt: "Conta da Mesa 12 com o pastel de camarão, o serviço e o botão Pagar R$ 74,80 (dados de exemplo)",
