@@ -23,11 +23,13 @@ export function MascoteVivo({
   className,
   alt = "",
   olhaCursor = true,
+  expressive = false,
   fecharOlhos = false,
 }: {
   className?: string;
   alt?: string;
   olhaCursor?: boolean;
+  expressive?: boolean;
   /** Mantém os olhos fechados (ex.: enquanto a senha é digitada no login). */
   fecharOlhos?: boolean;
 }) {
@@ -171,7 +173,34 @@ export function MascoteVivo({
           width={512}
           height={512}
         />
-        <img src={cabeca} alt="" className={CAMADA} width={512} height={512} />
+        <img
+          src={cabeca}
+          alt=""
+          className={CAMADA}
+          style={expressive ? { clipPath: "inset(0 31% 0 31%)" } : undefined}
+          width={512}
+          height={512}
+        />
+        {expressive && (
+          <>
+            <img
+              src={cabeca}
+              alt=""
+              className={cn(CAMADA, "lebre-bigodes-esquerda")}
+              style={{ clipPath: "inset(0 69% 0 0)", transformOrigin: "31% 82%" }}
+              width={512}
+              height={512}
+            />
+            <img
+              src={cabeca}
+              alt=""
+              className={cn(CAMADA, "lebre-bigodes-direita")}
+              style={{ clipPath: "inset(0 0 0 69%)", transformOrigin: "69% 82%" }}
+              width={512}
+              height={512}
+            />
+          </>
+        )}
         <img
           ref={olhosFechados}
           src={piscando}

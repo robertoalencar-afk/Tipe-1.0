@@ -954,7 +954,7 @@ export function RestaurantPanel({
           )}
         </DialogContent>
       </Dialog>
-      <LazyLebreAssistant slug={slug} onSuggestions={podeDono ? () => {
+      <LazyLebreAssistant slug={slug} notice={{ count: pendentes.length + d.pdvAlerts.length + (syncErro ? 1 : 0), key: JSON.stringify([pendentes.map((p) => p.id), d.pdvAlerts, !!syncErro]) }} onNotices={() => ir("inicio")} onSuggestions={podeDono ? () => {
         ir("cardapio");
         window.setTimeout(() => document.getElementById("lebre-menu-title")?.scrollIntoView({ block: "center", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" }), 150);
       } : undefined} />
