@@ -5,7 +5,7 @@ import { toast } from "sonner";
 import { Check, Copy, ExternalLink, Lock, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { connectPagarme, disconnectPagarme, getPayoutAccount, savePagarmeAccountId } from "@/lib/tipe/payout.functions";
+import { connectPagarme, disconnectPagarme, getPayoutAccount, savePagarmeAccountId, validateRestaurantPaymentApi } from "@/lib/tipe/payout.functions";
 
 function CopyField({ label, value }: { label: string; value: string }) {
   return (
@@ -33,6 +33,7 @@ export function Recebimentos({ slug, podeDono }: { slug: string; podeDono: boole
   const connect = useServerFn(connectPagarme);
   const disconnect = useServerFn(disconnectPagarme);
   const saveAccountId = useServerFn(savePagarmeAccountId);
+  const validateApi = useServerFn(validateRestaurantPaymentApi);
   const qc = useQueryClient();
   const [accountId, setAccountId] = useState("");
   const q = useQuery({ queryKey: ["payout", slug], queryFn: () => fetchAcc({ data: { slug } }), enabled: podeDono });
@@ -53,6 +54,12 @@ export function Recebimentos({ slug, podeDono }: { slug: string; podeDono: boole
         <div className="space-y-4 rounded-2xl border border-border bg-card p-5">
           <p className="flex items-center gap-2 font-semibold text-primary"><Check className="h-5 w-5" />Conta Pagar.me conectada</p>
           <p className="text-sm text-muted-foreground">Chave {a.keyMasked}{a.mode === "test" ? " (modo de teste, nada é cobrado de verdade)" : ""}</p>
+          <Button variant="outline" disabled={busy} onClick={async () => {
+            setBusy(true);
+            try { const result = await validateApi({ data: { slug } }); if (result.ok) toast.success(result.message); else toast.error(result.message); }
+            catch (e) { toast.error((e as Error).message); } finally { setBusy(false); }
+          }}>{busy ? "Validando…" : "Validar conexão sem cobrança"}</Button>
+          {a.simulation && <p role="status" className="rounded-xl border border-warning/50 bg-warning/10 p-3 text-sm">Esta é uma empresa de demonstração. Os pagamentos são simulados mesmo com uma chave de produção conectada. Para receber de clientes, conecte a conta no cadastro do restaurante real.</p>}
           <div className="space-y-3 rounded-xl bg-muted/40 p-4">
             <p className="text-sm font-semibold">Aviso de pagamento (webhook)</p>
             <p className="text-xs text-muted-foreground">No painel da Pagar.me, vá em Configurações, Webhooks, e crie um novo com estes dados. Marque os eventos de pedido (order), cobrança (charge) e contestação (chargeback). Assim a mesa atualiza sozinha quando o cliente paga, e estornos ou contestações aparecem como pendência no caixa.</p>
@@ -62,16 +69,16 @@ export function Recebimentos({ slug, podeDono }: { slug: string; podeDono: boole
           <div className="space-y-2 rounded-xl bg-muted/40 p-4">
             <p className="text-sm font-semibold">Google Pay e Apple Pay</p>
             {a.accountId ? (
-              <p className="text-sm text-muted-foreground">Conta {a.accountId} ligada às carteiras digitais.</p>
+              <p className="text-sm text-muted-foreground">ID {a.accountId} cadastrado. A habilitação das carteiras depende do provedor e da aprovação comercial; informar o ID não conclui essa validação.</p>
             ) : (
               <form className="space-y-2" onSubmit={async (e) => {
                 e.preventDefault(); setBusy(true);
-                try { await saveAccountId({ data: { slug, accountId } }); setAccountId(""); qc.invalidateQueries({ queryKey: ["payout", slug] }); toast.success("Carteiras digitais ligadas"); }
+                try { await saveAccountId({ data: { slug, accountId } }); setAccountId(""); qc.invalidateQueries({ queryKey: ["payout", slug] }); toast.success("ID da conta salvo. Confirme a habilitação das carteiras com o provedor."); }
                 catch (err) { toast.error((err as Error).message); } finally { setBusy(false); }
               }}>
                 <label htmlFor="pagarme-account-id" className="text-xs text-muted-foreground">ID da conta Pagar.me (em Configurações, Conta; começa com acc_)</label>
                 <Input id="pagarme-account-id" autoComplete="off" placeholder="acc_..." value={accountId} onChange={(e) => setAccountId(e.target.value.trim())} />
-                <Button type="submit" variant="outline" disabled={busy || accountId.length < 12}>Ligar carteiras digitais</Button>
+                <Button type="submit" variant="outline" disabled={busy || accountId.length < 12}>Salvar ID da conta</Button>
               </form>
             )}
           </div>
@@ -84,7 +91,7 @@ export function Recebimentos({ slug, podeDono }: { slug: string; podeDono: boole
         </div>
       ) : (
         <div className="rounded-2xl border border-border bg-card p-5">
-          <p role="status" className="mb-5 rounded-xl border border-warning/50 bg-warning/10 p-3 text-sm">Enquanto a conta Pagar.me não estiver conectada, seus clientes só conseguem pedir o pagamento no estabelecimento (dinheiro ou maquininha). Pix e carteiras digitais aparecem assim que a conexão for concluída.</p>
+          <p role="status" className="mb-5 rounded-xl border border-warning/50 bg-warning/10 p-3 text-sm">Enquanto a conta Pagar.me não estiver conectada, seus clientes só conseguem pedir o pagamento no estabelecimento (dinheiro ou maquininha). O Pix depende da habilitação na Pagar.me; carteiras digitais exigem validação adicional.</p>
           <ol className="space-y-5">
             <Passo n={1} titulo="Crie sua conta na Pagar.me">
               É grátis. Use o CNPJ do restaurante. A própria Pagar.me confere seus documentos e cadastra a conta bancária.

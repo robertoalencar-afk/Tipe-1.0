@@ -122,7 +122,7 @@ export function LandingHeader() {
           menu
             ? "border-b border-border/70 bg-background"
             : scrolled
-              ? "border-b border-border/70 bg-background/85 backdrop-blur-xl"
+              ? "border-b border-border/70 bg-background"
               : "border-b border-transparent bg-transparent",
         )}
       >
@@ -359,17 +359,7 @@ export function LandingHeader() {
           </div>
         )}
       </header>
-      {/* Com o cabeçalho escondido, o CTA principal continua no topo (como na sunday). */}
-      <a
-        href="/solicitar-demonstracao"
-        data-visivel={escondido || undefined}
-        aria-hidden={!escondido}
-        tabIndex={escondido ? undefined : -1}
-        className="cta-fixo btn-tema com-fios fixed right-4 top-3 z-40 inline-flex h-11 items-center gap-2 rounded-full pl-6 pr-5 text-[0.95rem] font-medium shadow-lift sm:right-6"
-      >
-        Demonstração
-        <SetaFios auto />
-      </a>
+
     </>
   );
 }

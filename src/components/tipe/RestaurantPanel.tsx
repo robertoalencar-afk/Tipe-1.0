@@ -1,5 +1,4 @@
-import { ImportarCardapio } from "./ImportarCardapio";
-import { MenuInteligente } from "./MenuInteligente";
+import { CardapioGestao } from "./CardapioGestao";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -50,8 +49,6 @@ import {
   getTablePlan,
   getPdvData,
   launchOrder,
-  saveCategory,
-  saveMenuItem,
   saveWaiter,
   updateTable,
   voidItem,
@@ -71,7 +68,7 @@ import { UploadImagem } from "@/components/tipe/UploadImagem";
 import { BancoImagens } from "@/components/tipe/BancoImagens";
 import { ComoFuncionaGestao } from "@/components/tipe/ComoFuncionaGestao";
 import { PerfilConta, useMeuPerfil } from "@/components/tipe/PerfilConta";
-import { getMidia, saveFotoItem, saveLogo } from "@/lib/tipe/midia.functions";
+import { getMidia, saveLogo } from "@/lib/tipe/midia.functions";
 import { Image as ImagemIcon, Images, BookOpen } from "lucide-react";
 import { EquipePermissoes } from "@/components/tipe/EquipePermissoes";
 import { TotemStudio } from "@/components/tipe/TotemStudio";
@@ -910,7 +907,7 @@ export function RestaurantPanel({
             onDone={refresh}
           />
         )}
-        {aba === "cardapio" && podeDono && <Cardapio slug={slug} pdv={pdv.data} onDone={refresh} midia={midia.data?.itens ?? {}} />}
+        {aba === "cardapio" && podeDono && <Cardapio restaurantName={d.restaurant.name} slug={slug} pdv={pdv.data} onDone={refresh} midia={midia.data?.itens ?? {}} />}
         {aba === "equipe" && podeDono && (
           <div className="space-y-6">
             <Garcons slug={slug} pdv={pdv.data} onDone={refresh} />
@@ -1721,235 +1718,14 @@ function Identidade({ slug, podeDono, funcao, onSair }: { slug: string; podeDono
       </section>}
       {podeDono && <section className="surface-card space-y-2 p-4 sm:p-5">
         <h2 className="font-display font-semibold">Fotos do cardápio</h2>
-        <p className="text-sm text-muted-foreground">Envie a foto de cada prato em <strong>Cardápio</strong>, ao lado do produto. Com um mapa de profundidade opcional, o prato ganha o efeito 3D no cardápio do cliente.</p>
+        <p className="text-sm text-muted-foreground">Envie a foto de cada prato em <strong>Cardápio</strong>, ao lado do produto. O motor prepara o efeito 3D automaticamente a partir da foto, sem arquivos extras.</p>
       </section>}
     </div>
   );
 }
 
-function Cardapio({ slug, pdv, onDone, midia }: { slug: string; pdv: PdvData; onDone: () => void; midia: Record<string, { foto: string | null; profundidade: string | null }> }) {
-  const qcM = useQueryClient();
-  const salvarFoto = useServerFn(saveFotoItem);
-  const saveItem = useServerFn(saveMenuItem);
-  const saveCat = useServerFn(saveCategory);
-  const vazio = {
-    id: undefined as string | undefined,
-    categoryId: pdv.categories[0]?.id ?? null,
-    code: "",
-    name: "",
-    price: 0,
-    available: true,
-    sector: "kitchen" as "kitchen" | "bar",
-    description: "",
-  };
-  const [f, setF] = useState(vazio);
-  const [novaCat, setNovaCat] = useState("");
-  async function run(fn: () => Promise<unknown>, ok: string) {
-    try {
-      await fn();
-      toast.success(ok);
-      onDone();
-      return true;
-    } catch (e) {
-      toast.error((e as Error).message);
-      return false;
-    }
-  }
-  const base = (i: PdvData["items"][number]) => ({
-    slug,
-    id: i.id,
-    categoryId: i.category_id,
-    code: i.code,
-    name: i.name,
-    price: i.price,
-    available: i.available,
-  });
-  return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-      <details className="surface-card p-4 sm:p-5 lg:col-span-2">
-        <summary className="cursor-pointer font-semibold">Como colocar uma foto com efeito 3D</summary>
-        <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
-          <li>Fotografe o prato com boa luz, inteiro e com espaço ao redor. Envie a foto no produto abaixo ou escolha no banco de imagens.</li>
-          <li>Prepare um mapa de profundidade da mesma foto, no mesmo enquadramento: branco indica o que está perto e preto o fundo. Você pode experimentar a geração no demonstrador do Tipe Order.</li>
-          <li>Ao lado da foto do produto, envie esse arquivo em “Mapa 3D (opcional)”. O selo 3D confirma que foto e mapa estão salvos.</li>
-          <li>Abra o cardápio do cliente e toque no prato para conferir o movimento. Sem mapa ou sem suporte ao efeito, a foto continua aparecendo normalmente.</li>
-        </ol>
-        <p className="mt-3 text-sm text-muted-foreground">Ao trocar a foto, envie um novo mapa. O efeito cria profundidade na foto; não é um modelo que gira em 360°. As imagens enviadas ficam públicas: use apenas material autorizado para o cardápio.</p>
-        <a href="/produtos/order" target="_blank" rel="noreferrer" className="mt-3 inline-block text-sm underline underline-offset-4">Abrir demonstrador do Tipe Order</a>
-      </details>
-      <div className="space-y-6">
-        <MenuInteligente slug={slug} />
-        <BancoImagens slug={slug} podeDono itens={pdv.items.map((i) => ({ id: i.id, name: i.name }))} onAplicada={() => { void qcM.invalidateQueries({ queryKey: ["midia", slug] }); onDone(); }} />
-        {pdv.categories.map((cat) => (
-          <section key={cat.id} className="mb-4">
-            <h3 className="mb-2 text-sm font-semibold text-muted-foreground">{cat.name}</h3>
-            <ul className="surface-card divide-y divide-border">
-              {pdv.items
-                .filter((i) => i.category_id === cat.id)
-                .map((i) => (
-                  <li key={i.id} className="flex flex-wrap items-center justify-between gap-x-2 gap-y-2 p-3 text-sm">
-                    <button
-                      className="min-w-0 flex-1 basis-40 text-left"
-                      onClick={() =>
-                        setF({
-                          id: i.id,
-                          categoryId: i.category_id,
-                          code: i.code,
-                          name: i.name,
-                          price: i.price,
-                          available: i.available,
-                          sector: (i.sector as "kitchen" | "bar") ?? "kitchen",
-                          description: i.description ?? "",
-                        })
-                      }
-                    >
-                      <span className="mr-2 text-xs text-muted-foreground">{i.code}</span>
-                      <span className={i.available ? "" : "line-through opacity-60"}>{i.name}</span>
-                      <span className="ml-2 rounded bg-muted px-1.5 text-[10px] text-muted-foreground">
-                        {i.sector === "bar" ? "Bar" : "Cozinha"}
-                      </span>
-                      {!i.available && (
-                        <span className="ml-2 text-[10px] text-destructive">Esgotado</span>
-                      )}
-                    </button>
-                    <span className="shrink-0 font-semibold">{brl(i.price)}</span>
-                    <details className="relative">
-                      <summary className="flex cursor-pointer list-none items-center gap-2 rounded-xl border border-border p-1 pr-2 text-xs hover:bg-muted" aria-label={`Foto de ${i.name}`}>
-                        <span className="relative grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-lg bg-muted text-[10px] text-muted-foreground">
-                          {midia[i.id]?.foto ? <img src={midia[i.id]!.foto!} alt="" loading="lazy" className="h-full w-full object-cover" /> : "Sem foto"}
-                          {midia[i.id]?.profundidade && <span className="absolute bottom-0 right-0 rounded-tl bg-[#021E34] px-1 text-[9px] font-bold text-white">3D</span>}
-                        </span>
-                        <span className="font-semibold">{midia[i.id]?.foto ? "Trocar" : "Adicionar foto"}</span>
-                      </summary>
-                      <div className="absolute right-0 z-20 mt-1 w-72 max-w-[calc(100vw-2rem)] space-y-3 rounded-xl border border-border bg-card p-3 shadow-lg">
-                        <UploadImagem url={midia[i.id]?.foto} rotulo="Foto do prato" quadrado maxLado={1200} onSalvar={async (imagem) => { await salvarFoto({ data: { slug, itemId: i.id, tipo: "foto", imagem } }); await qcM.invalidateQueries({ queryKey: ["midia", slug] }); }} />
-                        {midia[i.id]?.foto && <UploadImagem url={midia[i.id]?.profundidade} rotulo="Mapa 3D (opcional)" quadrado maxLado={1200} onSalvar={async (imagem) => { await salvarFoto({ data: { slug, itemId: i.id, tipo: "profundidade", imagem } }); await qcM.invalidateQueries({ queryKey: ["midia", slug] }); }} />}
-                      </div>
-                    </details>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() =>
-                        run(
-                          () => saveItem({ data: { ...base(i), available: !i.available } }),
-                          i.available ? "Marcado como esgotado" : "Item disponível",
-                        )
-                      }
-                    >
-                      {i.available ? "Esgotar" : "Ativar"}
-                    </Button>
-                  </li>
-                ))}
-            </ul>
-          </section>
-        ))}
-      </div>
-      <div className="space-y-4">
-        <form
-          className="space-y-3 surface-card p-4 sm:p-5 lg:sticky lg:top-4"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            if (
-              await run(
-                () => saveItem({ data: { slug, ...f } }),
-                f.id ? "Produto atualizado" : "Produto cadastrado",
-              )
-            )
-              setF(vazio);
-          }}
-        >
-          <h3 className="font-display font-semibold">{f.id ? "Editar produto" : "Novo produto"}</h3>
-          <select
-            className={selectCls}
-            value={f.categoryId ?? ""}
-            onChange={(e) => setF({ ...f, categoryId: e.target.value || null })}
-          >
-            {pdv.categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-          <Input
-            required
-            placeholder="Código (ex.: P10)"
-            value={f.code}
-            onChange={(e) => setF({ ...f, code: e.target.value })}
-          />
-          <Input
-            required
-            placeholder="Nome"
-            value={f.name}
-            onChange={(e) => setF({ ...f, name: e.target.value })}
-          />
-          <Input
-            placeholder="Descrição (opcional)"
-            maxLength={200}
-            value={f.description}
-            onChange={(e) => setF({ ...f, description: e.target.value })}
-          />
-          <Input
-            required
-            type="number"
-            step="0.01"
-            min={0}
-            placeholder="Preço"
-            value={f.price || ""}
-            onChange={(e) => setF({ ...f, price: Number(e.target.value) })}
-          />
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              size="sm"
-              className="flex-1"
-              variant={f.sector === "kitchen" ? "default" : "outline"}
-              onClick={() => setF({ ...f, sector: "kitchen" })}
-            >
-              Cozinha
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              className="flex-1"
-              variant={f.sector === "bar" ? "default" : "outline"}
-              onClick={() => setF({ ...f, sector: "bar" })}
-            >
-              Bar
-            </Button>
-          </div>
-          <div className="flex gap-2">
-            <Button type="submit" className="flex-1">
-              Salvar
-            </Button>
-            {f.id && (
-              <Button type="button" variant="outline" onClick={() => setF(vazio)}>
-                Novo
-              </Button>
-            )}
-          </div>
-        </form>
-        <ImportarCardapio slug={slug} onDone={onDone} />
-        <form
-          className="flex gap-2 surface-card p-4 sm:p-5"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            if (await run(() => saveCat({ data: { slug, name: novaCat } }), "Categoria criada"))
-              setNovaCat("");
-          }}
-        >
-          <Input
-            required
-            placeholder="Nova categoria"
-            value={novaCat}
-            onChange={(e) => setNovaCat(e.target.value)}
-          />
-          <Button type="submit" size="icon" variant="outline">
-            <Plus className="h-4 w-4" />
-          </Button>
-        </form>
-      </div>
-    </div>
-  );
+function Cardapio(props: { restaurantName: string; slug: string; pdv: PdvData; onDone: () => void; midia: Record<string, { foto: string | null; profundidade: string | null }> }) {
+  return <CardapioGestao {...props} />;
 }
 
 function Garcons({ slug, pdv, onDone }: { slug: string; pdv: PdvData; onDone: () => void }) {

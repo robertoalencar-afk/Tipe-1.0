@@ -83,9 +83,9 @@ export function CatalogoIntegracoes({
   };
 
   return (
-    <div className={className}>
-      <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] lg:mx-0 lg:flex-wrap lg:px-0">
+    <div className={cn("min-w-0", className)}>
+      <div className="grid min-w-0 gap-3 xl:grid-cols-[minmax(0,1fr)_16rem] xl:items-start">
+        <div className="flex min-w-0 flex-wrap gap-2 pb-1">
           {[{ id: "todas" as const, titulo: "Todas" }, ...CATEGORIAS].map((c) => (
             <button
               key={c.id}
@@ -103,7 +103,7 @@ export function CatalogoIntegracoes({
             </button>
           ))}
         </div>
-        <label className="relative block lg:w-72">
+        <label className="relative block min-w-0">
           <span className="sr-only">Buscar sistema</span>
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <input
@@ -115,19 +115,19 @@ export function CatalogoIntegracoes({
         </label>
       </div>
 
-      <ul className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+      <ul className="mt-6 grid grid-cols-1 gap-3 min-[420px]:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
         {lista.map((s) => {
           const c = CATEGORIAS.find((x) => x.id === s.cat)!;
           return (
-            <li key={s.id}>
+            <li key={s.id} className="min-w-0">
               <button
                 type="button"
                 onClick={() => abrir(s)}
                 className="group flex h-full w-full flex-col gap-4 rounded-[1.4rem] border border-border bg-card p-4 text-left transition-[border-color,transform] duration-300 hover:-translate-y-0.5 hover:border-foreground/30 sm:p-5"
               >
-                <span className="flex items-start justify-between gap-2">
+                <span className="flex min-w-0 flex-wrap items-start justify-between gap-2">
                   <MarcaSistema sis={s} />
-                  <span className="inline-flex items-center gap-1 rounded-full bg-[#0FC9BD]/12 px-2 py-0.5 text-[0.68rem] font-medium text-[#08766f]">
+                  <span className="inline-flex max-w-full items-center gap-1 rounded-full bg-[#0FC9BD]/12 px-2 py-0.5 text-[0.68rem] font-medium text-[#08766f]">
                     <span className="h-1.5 w-1.5 rounded-full bg-[#0FC9BD]" />
                     {s.id === "pagarme"
                       ? "Sujeito à validação"
