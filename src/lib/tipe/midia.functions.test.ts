@@ -109,3 +109,23 @@ it("não exclui foto em uso no cardápio", async () => {
   ).rejects.toThrow(/em uso/);
   expect(m.remove).not.toHaveBeenCalled();
 });
+
+it("grava foto e profundidade preparada juntas, sem expor envio manual", async () => {
+  await saveFotoItem({ data: { ...data, profundidade: data.imagem }, context: ctx } as never);
+  expect(m.upload).toHaveBeenCalledTimes(2);
+  expect(m.update).toHaveBeenCalledWith(
+    expect.objectContaining({ image_url: expect.any(String), depth_url: expect.any(String) }),
+  );
+});
+it("não aplica profundidade antiga se a foto foi trocada durante o processamento", async () => {
+  m.item.mockResolvedValue({
+    data: { id: data.itemId, image_url: "https://example.invalid/nova.webp" },
+  });
+  await expect(
+    saveFotoItem({
+      data: { ...data, tipo: "profundidade", sourcePhoto: "https://example.invalid/antiga.webp" },
+      context: ctx,
+    } as never),
+  ).rejects.toThrow(/foto mudou/);
+  expect(m.upload).not.toHaveBeenCalled();
+});

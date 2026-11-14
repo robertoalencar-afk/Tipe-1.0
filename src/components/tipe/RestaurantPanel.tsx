@@ -1718,7 +1718,7 @@ function Identidade({ slug, podeDono, funcao, onSair }: { slug: string; podeDono
       </section>}
       {podeDono && <section className="surface-card space-y-2 p-4 sm:p-5">
         <h2 className="font-display font-semibold">Fotos do cardápio</h2>
-        <p className="text-sm text-muted-foreground">Envie a foto de cada prato em <strong>Cardápio</strong>, ao lado do produto. Com um mapa de profundidade opcional, o prato ganha o efeito 3D no cardápio do cliente.</p>
+        <p className="text-sm text-muted-foreground">Envie a foto de cada prato em <strong>Cardápio</strong>, ao lado do produto. O motor prepara o efeito 3D automaticamente a partir da foto, sem arquivos extras.</p>
       </section>}
     </div>
   );

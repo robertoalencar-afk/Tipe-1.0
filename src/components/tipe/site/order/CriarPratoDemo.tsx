@@ -13,11 +13,10 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Camera, Check, ChevronDown, ImagePlus, Lightbulb, Loader2, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { menuPriceCents } from "@/lib/tipe/menu-price";
-import { gerarProfundidade } from "@/lib/tipe/order/profundidade";
+import { prepareDishDepth } from "@/lib/tipe/order/prepare-photo";
 import { Secao, Titulo } from "../Site";
 import { Foto3D } from "./Foto3D";
 
-const MODELO = "/modelos/depth/model.onnx";
 const CATEGORIAS = ["Petiscos", "Pratos", "Bebidas", "Sobremesas"];
 
 const DICAS: { titulo: string; texto: string }[] = [
@@ -119,6 +118,30 @@ export function CriarPratoEditor({
     [],
   );
 
+  useEffect(() => {
+    if (!initial?.photo || initial.depth) return;
+    const current = ++generation.current;
+    let cancelled = false;
+    setEtapa("processando");
+    prepareDishDepth(initial.photo, (text) => {
+      if (!cancelled && current === generation.current) setStatus(text);
+    })
+      .then((map) => {
+        if (cancelled || current !== generation.current) return;
+        const url = URL.createObjectURL(map);
+        urls.current.push(url);
+        setDepthBlob(map);
+        setProf(url);
+        setEtapa("pronto");
+      })
+      .catch(() => {
+        if (!cancelled && current === generation.current) setEtapa("sem-volume");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [initial?.photo, initial?.depth]);
+
   const parsedPrice = menuPriceCents(preco);
   const precoCentavos = parsedPrice ?? 0;
 
@@ -135,15 +158,9 @@ export function CriarPratoEditor({
     setEtapa("processando");
     setStatus("Abrindo a foto…");
     try {
-      const img = await createImageBitmap(arquivo);
-      let mapa: Blob;
-      try {
-        mapa = await gerarProfundidade(img, MODELO, (text) => {
-          if (current === generation.current) setStatus(text);
-        });
-      } finally {
-        img.close();
-      }
+      const mapa = await prepareDishDepth(arquivo, (text) => {
+        if (current === generation.current) setStatus(text);
+      });
       if (current !== generation.current) return;
       setDepthBlob(mapa);
       const u = URL.createObjectURL(mapa);
@@ -191,7 +208,7 @@ export function CriarPratoEditor({
                     : etapa === "pronto"
                       ? "Volume pronto. Veja no celular ao lado."
                       : photoChanged
-                        ? "Foto pronta. O volume não pôde ser calculado neste aparelho, então o prato aparece com a foto."
+                        ? "Não foi possível preparar o volume. Tente novamente antes de salvar."
                         : "Foto pronta. Veja no celular ao lado."}
                 </p>
                 <button
@@ -309,7 +326,12 @@ export function CriarPratoEditor({
           <button
             type="button"
             disabled={
-              busy || etapa === "processando" || nome.trim().length < 2 || parsedPrice === null || !cat
+              busy ||
+              etapa === "processando" ||
+              (!!foto && !prof) ||
+              nome.trim().length < 2 ||
+              parsedPrice === null ||
+              !cat
             }
             className="mt-6 flex min-h-12 w-full items-center justify-center rounded-full bg-[#021E34] px-6 font-semibold text-white disabled:opacity-50"
             onClick={() =>

@@ -10,6 +10,7 @@ import {
   removeBancoImagem,
   usarImagemDoBanco,
 } from "@/lib/tipe/midia.functions";
+import { prepareDishDepth, photoBlobDataUrl } from "@/lib/tipe/order/prepare-photo";
 import { reduzirImagem } from "@/components/tipe/UploadImagem";
 
 type Item = { id: string; name: string };
@@ -35,6 +36,8 @@ export function BancoImagens({
     queryKey: ["banco-imagens", slug],
     queryFn: () => fetchB({ data: { slug } }),
   });
+  const depths = useRef(new Map<string, Blob>());
+  const [processo, setProcesso] = useState("");
   const ref = useRef<HTMLInputElement>(null);
   const [enviando, setEnviando] = useState(0);
   const [escolhida, setEscolhida] = useState<string | null>(null);
@@ -46,7 +49,9 @@ export function BancoImagens({
     let ok = 0;
     for (const f of Array.from(files)) {
       try {
-        await add({ data: { slug, imagem: await reduzirImagem(f, 1200) } });
+        const depth = await prepareDishDepth(f, setProcesso);
+        const saved = await add({ data: { slug, imagem: await reduzirImagem(f, 1200) } });
+        depths.current.set(saved.nome, depth);
         ok += 1;
       } catch (e) {
         toast.error(`${f.name}: ${(e as Error).message}`);
@@ -55,19 +60,25 @@ export function BancoImagens({
     }
     if (ok) toast.success(ok === 1 ? "Imagem enviada" : `${ok} imagens enviadas`);
     if (ref.current) ref.current.value = "";
+    setProcesso("");
     await qc.invalidateQueries({ queryKey: ["banco-imagens", slug] });
   }
   async function aplicar(nome: string, itemId: string) {
     setAplicando(true);
     try {
-      await usar({ data: { slug, itemId, nome } });
+      const image = q.data?.imagens.find((im) => im.nome === nome);
+      if (!image) throw new Error("Imagem não encontrada.");
+      const depth = depths.current.get(nome) ?? (await prepareDishDepth(image.url, setProcesso));
+      await usar({ data: { slug, itemId, nome, profundidade: await photoBlobDataUrl(depth) } });
       toast.success("Foto aplicada ao prato");
       setEscolhida(null);
+      setProcesso("");
       onAplicada();
     } catch (e) {
       toast.error((e as Error).message);
     }
     setAplicando(false);
+    setProcesso("");
   }
   async function remover(nome: string) {
     try {
@@ -81,12 +92,17 @@ export function BancoImagens({
   const imagens = q.data?.imagens ?? [];
   return (
     <section className="surface-card space-y-4 p-4 sm:p-5">
+      {processo && (
+        <p role="status" className="text-sm text-muted-foreground">
+          {processo}
+        </p>
+      )}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
           <h2 className="font-display font-semibold">Banco de imagens</h2>
           <p className="text-xs text-muted-foreground">
             Guarde as fotos do restaurante em um só lugar e use em qualquer prato. PNG, JPG ou WebP;
-            o sistema reduz o tamanho sozinho.
+            o motor prepara a aparência 3D e reduz o tamanho automaticamente.
           </p>
         </div>
         {podeDono && (

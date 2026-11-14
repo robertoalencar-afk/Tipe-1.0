@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { getPdvData, saveCategory, saveMenuItem } from "@/lib/tipe/pdv.functions";
 import { saveFotoItem } from "@/lib/tipe/midia.functions";
 import { CriarPratoEditor, type PratoEditorValue } from "./site/order/CriarPratoDemo";
+import { prepareDishDepth, photoBlobDataUrl } from "@/lib/tipe/order/prepare-photo";
 import { reduzirImagem } from "./UploadImagem";
 import { MenuInteligente } from "./MenuInteligente";
 import { BancoImagens } from "./BancoImagens";
@@ -70,6 +71,54 @@ export function CardapioGestao({
   const [busy, setBusy] = useState(false);
   const saving = useRef(false);
   const [category, setCategory] = useState("");
+  const attemptedPhotos = useRef(new Set<string>());
+  const [photoProgress, setPhotoProgress] = useState("");
+  useEffect(() => {
+    let active = true;
+    const photos = Object.entries(midia).filter(
+      ([, media]) => media.foto && !media.profundidade && !attemptedPhotos.current.has(media.foto),
+    );
+    if (!photos.length) return;
+    void (async () => {
+      let prepared = 0;
+      for (const [id, media] of photos) {
+        if (!active || !media.foto) break;
+        attemptedPhotos.current.add(media.foto);
+        try {
+          const depth = await prepareDishDepth(media.foto, (text) => {
+            if (active) setPhotoProgress(`${prepared + 1}/${photos.length} · ${text}`);
+          });
+          if (!active) { attemptedPhotos.current.delete(media.foto); break; }
+          await savePhoto({
+            data: {
+              slug,
+              itemId: id,
+              tipo: "profundidade",
+              sourcePhoto: media.foto,
+              imagem: await photoBlobDataUrl(depth),
+            },
+          });
+          prepared++;
+        } catch {
+          if (active)
+            setPhotoProgress(
+              "Não foi possível preparar uma das fotos. Abra o prato para tentar novamente.",
+            );
+        }
+      }
+      if (active) {
+        await qc.invalidateQueries({ queryKey: ["midia", slug] });
+        setPhotoProgress(
+          prepared === photos.length
+            ? "Todas as fotos do cardápio estão preparadas pelo motor."
+            : "Algumas fotos precisam de nova tentativa no editor do prato.",
+        );
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [midia, slug, savePhoto, qc]);
   const refresh = async () => {
     await Promise.all([
       qc.invalidateQueries({ queryKey: ["midia", slug] }),
@@ -100,16 +149,25 @@ export function CardapioGestao({
       setDraft((d) => ({ ...d, id: result.itemId }));
       if (value.photoChanged) {
         const image = value.photo ? await reduzirImagem(value.photo, 1200) : null;
-        await savePhoto({ data: { slug, itemId: result.itemId, tipo: "foto", imagem: image } });
-        if (value.depth && value.photo)
-          await savePhoto({
-            data: {
-              slug,
-              itemId: result.itemId,
-              tipo: "profundidade",
-              imagem: await blobDataUrl(value.depth),
-            },
-          });
+        await savePhoto({
+          data: {
+            slug,
+            itemId: result.itemId,
+            tipo: "foto",
+            imagem: image,
+            ...(value.depth && value.photo ? { profundidade: await blobDataUrl(value.depth) } : {}),
+          },
+        });
+      } else if (value.depth && draft.id && midia[draft.id]?.foto) {
+        await savePhoto({
+          data: {
+            slug,
+            itemId: result.itemId,
+            tipo: "profundidade",
+            sourcePhoto: midia[draft.id]!.foto!,
+            imagem: await blobDataUrl(value.depth),
+          },
+        });
       }
       await refresh();
       toast.success("Prato salvo no cardápio");
@@ -126,7 +184,12 @@ export function CardapioGestao({
     ...(pdv.items.some((i) => !i.category_id) ? [{ id: null, name: "Sem categoria" }] : []),
   ];
   return (
-    <div className="space-y-8">
+    <div className="min-w-0 space-y-8">
+      {photoProgress && (
+        <p role="status" className="text-sm text-muted-foreground">
+          {photoProgress}
+        </p>
+      )}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="font-display text-2xl font-medium">Cardápio</h2>
