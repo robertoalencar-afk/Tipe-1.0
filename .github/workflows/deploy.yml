@@ -58,6 +58,7 @@ jobs:
           PGLITE_MODULE: ${{ runner.temp }}/lebre-sql/node_modules/@electric-sql/pglite/dist/index.js
         run: |
           node scripts/db/tests/menu-intelligence.mjs
+          node scripts/db/tests/menu-assistant.mjs
           node scripts/db/tests/plan-modules.mjs
       - name: Build
         run: bun run build

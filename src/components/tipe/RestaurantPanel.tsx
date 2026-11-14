@@ -621,6 +621,7 @@ export function RestaurantPanel({
   return (
     <Shell
       ambiente="Tipe Gestão"
+      mascotScope={slug}
       usuario={usuario}
       onSair={onSair}
       contexto={
@@ -628,11 +629,11 @@ export function RestaurantPanel({
           {logoUrl ? (
             <img src={logoUrl} alt={`Logomarca de ${d.restaurant.name}`} className="size-9 shrink-0 rounded-lg bg-white object-contain p-0.5" />
           ) : (
-            <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-white/10 text-sm font-semibold text-white">{d.restaurant.name.slice(0, 1).toUpperCase()}</span>
+            <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-sm font-semibold text-foreground">{d.restaurant.name.slice(0, 1).toUpperCase()}</span>
           )}
           <span className="min-w-0 leading-tight">
-            <span className="block truncate text-sm font-semibold text-white">{d.restaurant.name}</span>
-            <span className="block truncate text-[11px] text-white/55">tipe.digital/{slug}</span>
+            <span className="block truncate text-sm font-semibold text-foreground">{d.restaurant.name}</span>
+            <span className="block truncate text-[11px] text-muted-foreground">tipe.digital/{slug}</span>
           </span>
         </span>
       }
@@ -953,7 +954,10 @@ export function RestaurantPanel({
           )}
         </DialogContent>
       </Dialog>
-      <LazyLebreAssistant slug={slug} />
+      <LazyLebreAssistant slug={slug} onSuggestions={podeDono ? () => {
+        ir("cardapio");
+        window.setTimeout(() => document.getElementById("lebre-menu-title")?.scrollIntoView({ block: "center", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" }), 150);
+      } : undefined} />
     </Shell>
   );
 }
