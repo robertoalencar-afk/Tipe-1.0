@@ -68,6 +68,18 @@ export function CardapioGestao({
   });
   const [draft, setDraft] = useState<Draft>(empty);
   const [generation, setGeneration] = useState(0);
+  const editor = useRef<HTMLDivElement>(null);
+  const scrollToEditor = useRef(false);
+  useEffect(() => {
+    if (!scrollToEditor.current) return;
+    scrollToEditor.current = false;
+    editor.current?.scrollIntoView({
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+        ? "instant"
+        : "smooth",
+      block: "start",
+    });
+  }, [generation]);
   const [busy, setBusy] = useState(false);
   const saving = useRef(false);
   const [category, setCategory] = useState("");
@@ -88,7 +100,10 @@ export function CardapioGestao({
           const depth = await prepareDishDepth(media.foto, (text) => {
             if (active) setPhotoProgress(`${prepared + 1}/${photos.length} · ${text}`);
           });
-          if (!active) { attemptedPhotos.current.delete(media.foto); break; }
+          if (!active) {
+            attemptedPhotos.current.delete(media.foto);
+            break;
+          }
           await savePhoto({
             data: {
               slug,
@@ -201,69 +216,71 @@ export function CardapioGestao({
           Novo prato
         </Button>
       </div>
-      <CriarPratoEditor
-        key={generation}
-        hideHeading
-        title={draft.id ? "Editar prato" : "Novo prato"}
-        busy={busy}
-        initial={{
-          name: draft.name,
-          price: draft.price,
-          categoryId: draft.categoryId ?? pdv.categories[0]?.id ?? "",
-          photo: draft.id ? (midia[draft.id]?.foto ?? null) : null,
-          depth: draft.id ? (midia[draft.id]?.profundidade ?? null) : null,
-        }}
-        categories={pdv.categories}
-        restaurantName={restaurantName}
-        onSave={save}
-        fields={
-          <details>
-            <summary className="cursor-pointer text-sm font-medium">
-              Opções do prato · código, descrição e preparo
-            </summary>
-            <fieldset disabled={busy} className="mt-3 grid gap-3 sm:grid-cols-2">
-              <label className="grid gap-1 text-sm">
-                Código do prato
-                <Input
-                  maxLength={16}
-                  placeholder="Ex.: P10"
-                  value={draft.code}
-                  onChange={(e) => setDraft({ ...draft, code: e.target.value })}
-                />
-              </label>
-              <label className="grid gap-1 text-sm">
-                Enviar pedido para
-                <select
-                  className="h-11 rounded-xl border border-input bg-background px-3"
-                  value={draft.sector}
-                  onChange={(e) =>
-                    setDraft({ ...draft, sector: e.target.value as Draft["sector"] })
-                  }
-                >
-                  <option value="kitchen">Cozinha</option>
-                  <option value="bar">Bar</option>
-                </select>
-              </label>
-              <label className="grid gap-1 text-sm sm:col-span-2">
-                Descrição (opcional)
-                <Input
-                  maxLength={200}
-                  value={draft.description}
-                  onChange={(e) => setDraft({ ...draft, description: e.target.value })}
-                />
-              </label>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={draft.available}
-                  onChange={(e) => setDraft({ ...draft, available: e.target.checked })}
-                />
-                Disponível para pedidos
-              </label>
-            </fieldset>
-          </details>
-        }
-      />
+      <div ref={editor} className="scroll-mt-24">
+        <CriarPratoEditor
+          key={generation}
+          hideHeading
+          title={draft.id ? "Editar prato" : "Novo prato"}
+          busy={busy}
+          initial={{
+            name: draft.name,
+            price: draft.price,
+            categoryId: draft.categoryId ?? pdv.categories[0]?.id ?? "",
+            photo: draft.id ? (midia[draft.id]?.foto ?? null) : null,
+            depth: draft.id ? (midia[draft.id]?.profundidade ?? null) : null,
+          }}
+          categories={pdv.categories}
+          restaurantName={restaurantName}
+          onSave={save}
+          fields={
+            <details>
+              <summary className="cursor-pointer text-sm font-medium">
+                Opções do prato · código, descrição e preparo
+              </summary>
+              <fieldset disabled={busy} className="mt-3 grid gap-3 sm:grid-cols-2">
+                <label className="grid gap-1 text-sm">
+                  Código do prato
+                  <Input
+                    maxLength={16}
+                    placeholder="Ex.: P10"
+                    value={draft.code}
+                    onChange={(e) => setDraft({ ...draft, code: e.target.value })}
+                  />
+                </label>
+                <label className="grid gap-1 text-sm">
+                  Enviar pedido para
+                  <select
+                    className="h-11 rounded-xl border border-input bg-background px-3"
+                    value={draft.sector}
+                    onChange={(e) =>
+                      setDraft({ ...draft, sector: e.target.value as Draft["sector"] })
+                    }
+                  >
+                    <option value="kitchen">Cozinha</option>
+                    <option value="bar">Bar</option>
+                  </select>
+                </label>
+                <label className="grid gap-1 text-sm sm:col-span-2">
+                  Descrição (opcional)
+                  <Input
+                    maxLength={200}
+                    value={draft.description}
+                    onChange={(e) => setDraft({ ...draft, description: e.target.value })}
+                  />
+                </label>
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={draft.available}
+                    onChange={(e) => setDraft({ ...draft, available: e.target.checked })}
+                  />
+                  Disponível para pedidos
+                </label>
+              </fieldset>
+            </details>
+          }
+        />
+      </div>
       <section aria-label="Pratos cadastrados" className="space-y-5">
         <h3 className="font-display text-xl font-medium">Pratos do cardápio</h3>
         {pdv.items.length === 0 && (
@@ -294,6 +311,7 @@ export function CardapioGestao({
                           description: item.description ?? "",
                         });
                         setGeneration((n) => n + 1);
+                        scrollToEditor.current = true;
                       }}
                       className="flex min-h-20 w-full items-center gap-3 p-3 text-left hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
