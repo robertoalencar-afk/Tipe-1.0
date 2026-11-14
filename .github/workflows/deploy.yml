@@ -59,6 +59,7 @@ jobs:
         run: |
           node scripts/db/tests/menu-intelligence.mjs
           node scripts/db/tests/menu-assistant.mjs
+          node scripts/db/tests/menu-accompaniments.mjs
           node scripts/db/tests/plan-modules.mjs
       - name: Build
         run: bun run build

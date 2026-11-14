@@ -17,4 +17,5 @@ psql "$TIPE_SQL_TEST_URL" -v ON_ERROR_STOP=1 \
  -f "$repo_root/scripts/db/tests/customer-order-review.fixture.sql" \
  -f "$review_sql" \
  -f "$repo_root/drizzle/migrations/0059_customer_order_review.sql" \
+ -f "$repo_root/drizzle/migrations/0064_menu_accompaniments.sql" \
  -f "$repo_root/scripts/db/tests/customer-order-review.sql"

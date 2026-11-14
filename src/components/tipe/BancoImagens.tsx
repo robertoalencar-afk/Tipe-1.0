@@ -13,6 +13,8 @@ import {
 import { prepareDishDepth, photoBlobDataUrl } from "@/lib/tipe/order/prepare-photo";
 import { reduzirImagem } from "@/components/tipe/UploadImagem";
 
+import type { GalleryPhoto } from "./site/order/CriarPratoDemo";
+
 type Item = { id: string; name: string };
 
 /** Banco de imagens do restaurante: envie várias fotos e aplique cada uma a um prato. */
@@ -21,11 +23,15 @@ export function BancoImagens({
   podeDono,
   itens,
   onAplicada,
+  onEscolher,
+  fotosAtuais = [],
 }: {
   slug: string;
   podeDono: boolean;
   itens: Item[];
   onAplicada: () => void;
+  onEscolher?: (photo: GalleryPhoto) => Promise<void>;
+  fotosAtuais?: { id: string; name: string; url: string }[];
 }) {
   const qc = useQueryClient();
   const fetchB = useServerFn(getBancoImagens);
@@ -80,6 +86,21 @@ export function BancoImagens({
     setAplicando(false);
     setProcesso("");
   }
+  async function escolher(url: string, libraryName?: string) {
+    if (!onEscolher) return;
+    setAplicando(true);
+    try {
+      const depth =
+        (libraryName && depths.current.get(libraryName)) ||
+        (await prepareDishDepth(url, setProcesso));
+      await onEscolher({ url, depth, ...(libraryName ? { libraryName } : {}) });
+    } catch (error) {
+      toast.error((error as Error).message);
+    } finally {
+      setAplicando(false);
+      setProcesso("");
+    }
+  }
   async function remover(nome: string) {
     try {
       await del({ data: { slug, nome } });
@@ -91,7 +112,7 @@ export function BancoImagens({
   }
   const imagens = q.data?.imagens ?? [];
   return (
-    <section className="surface-card space-y-4 p-4 sm:p-5">
+    <section className={onEscolher ? "min-w-0 space-y-4" : "surface-card space-y-4 p-4 sm:p-5"}>
       {processo && (
         <p role="status" className="text-sm text-muted-foreground">
           {processo}
@@ -99,7 +120,7 @@ export function BancoImagens({
       )}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h2 className="font-display font-semibold">Banco de imagens</h2>
+          {!onEscolher && <h2 className="font-display font-semibold">Galeria do restaurante</h2>}
           <p className="text-xs text-muted-foreground">
             Guarde as fotos do restaurante em um só lugar e use em qualquer prato. PNG, JPG ou WebP;
             o motor prepara a aparência 3D e reduz o tamanho automaticamente.
@@ -112,17 +133,21 @@ export function BancoImagens({
               type="file"
               multiple
               accept="image/png,image/jpeg,image/webp"
-              className="sr-only"
+              className="hidden"
               aria-label="Enviar imagens"
               onChange={(e) => void enviar(e.target.files)}
             />
-            <Button type="button" onClick={() => ref.current?.click()} disabled={enviando > 0}>
+            <Button
+              type="button"
+              onClick={() => ref.current?.click()}
+              disabled={enviando > 0 || aplicando}
+            >
               {enviando > 0 ? (
                 <Loader2 className="mr-1.5 size-4 animate-spin" />
               ) : (
                 <ImagePlus className="mr-1.5 size-4" />
               )}
-              {enviando > 0 ? `Enviando… (${enviando})` : "Enviar imagens"}
+              {enviando > 0 ? `Enviando… (${enviando})` : "Enviar novas fotos"}
             </Button>
           </>
         )}
@@ -145,7 +170,7 @@ export function BancoImagens({
         </div>
       ) : imagens.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-          Nenhuma imagem ainda.{" "}
+          Nenhuma foto salva na galeria ainda.{" "}
           {podeDono
             ? "Envie fotos autorizadas para exibição pública no cardápio."
             : "O administrador pode enviar as fotos."}
@@ -167,7 +192,19 @@ export function BancoImagens({
                   </button>
                 )}
               </div>
-              {podeDono &&
+              {onEscolher ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="w-full"
+                  disabled={aplicando || enviando > 0}
+                  onClick={() => void escolher(im.url, im.nome)}
+                >
+                  {aplicando ? "Preparando…" : "Usar esta foto"}
+                </Button>
+              ) : (
+                podeDono &&
                 (escolhida === im.nome ? (
                   <select
                     autoFocus
@@ -197,11 +234,52 @@ export function BancoImagens({
                   >
                     Usar em um prato
                   </Button>
-                ))}
+                ))
+              )}
             </li>
           ))}
         </ul>
       )}
+      {onEscolher &&
+        fotosAtuais.some(
+          (f) => !imagens.some((i) => i.url.split("?")[0] === f.url.split("?")[0]),
+        ) && (
+          <div className="space-y-3 border-t border-border pt-4">
+            <h3 className="font-medium">Fotos já usadas no cardápio</h3>
+            <p className="text-xs text-muted-foreground">
+              Você também pode reutilizar as fotos dos pratos cadastrados.
+            </p>
+            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+              {fotosAtuais
+                .filter(
+                  (f, index, all) =>
+                    all.findIndex((x) => x.url === f.url) === index &&
+                    !imagens.some((i) => i.url.split("?")[0] === f.url.split("?")[0]),
+                )
+                .map((f) => (
+                  <li key={f.id} className="min-w-0 space-y-2">
+                    <img
+                      src={f.url}
+                      alt={f.name}
+                      loading="lazy"
+                      className="aspect-square w-full rounded-xl object-cover"
+                    />
+                    <p className="truncate text-xs">{f.name}</p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      disabled={aplicando || enviando > 0}
+                      onClick={() => void escolher(f.url)}
+                    >
+                      Usar esta foto
+                    </Button>
+                  </li>
+                ))}
+            </ul>
+          </div>
+        )}
     </section>
   );
 }

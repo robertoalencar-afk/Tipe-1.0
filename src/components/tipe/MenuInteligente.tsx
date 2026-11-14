@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useMascotPreference } from "@/lib/tipe/mascot-preference";
 import { MascoteVivo } from "./site/MascoteVivo";
-import { Check, ChevronRight, RefreshCw } from "lucide-react";
+import { LebreSuggestionButton } from "./LebreSuggestionButton";
+import { Check, ChevronRight } from "lucide-react";
 import {
   dietLabels,
   menuLanguages,
@@ -16,6 +17,7 @@ import {
   getMenuStudio,
   saveMenuLinks,
   saveMenuPresentation,
+  suggestMenuPresentation,
   getMenuAssistant,
   saveMenuAssistant,
   reviewMenuAssistant,
@@ -181,12 +183,14 @@ export function MenuInteligente({
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h4 className="text-lg font-semibold">Minhas sugestões para você</h4>
               {state.enabled && (
-                <Button variant="ghost" disabled={reviewing || busy} onClick={() => void review()}>
-                  <RefreshCw
-                    className={`mr-2 h-4 w-4 ${reviewing ? "motion-safe:animate-spin" : ""}`}
-                  />
-                  {reviewing ? "A Lebre está revisando…" : "Verificar agora"}
-                </Button>
+                <LebreSuggestionButton
+                  loading={reviewing}
+                  loadingText="A Lebre está revisando…"
+                  disabled={busy}
+                  onClick={() => void review()}
+                >
+                  Revisar com a Lebre
+                </LebreSuggestionButton>
               )}
             </div>
             {state.notice && (
@@ -344,9 +348,13 @@ export function MenuInteligente({
           </section>
           <details className="border-t border-border pt-5">
             <summary className="cursor-pointer text-sm font-medium">
-              Ajustes manuais · destaques, combinações e informações alimentares
+              Personalizar apresentação · com ajuda da Lebre
             </summary>
-            <div className="mt-4 space-y-4">
+            <div className="mt-4 space-y-5">
+              <p className="max-w-2xl text-sm text-muted-foreground">
+                Escolha um prato, peça ideias à Lebre e ajuste os detalhes. Você revisa tudo antes
+                de publicar.
+              </p>
               <label className="block text-sm font-medium">
                 Escolha um prato
                 <select
@@ -361,7 +369,15 @@ export function MenuInteligente({
                   ))}
                 </select>
               </label>
-              {item && <Editor key={item.id} slug={slug} item={item} items={studio.items} />}
+              {item && (
+                <Editor
+                  key={item.id}
+                  slug={slug}
+                  item={item}
+                  items={studio.items}
+                  onEditItem={onEditItem}
+                />
+              )}
             </div>
           </details>
           <details className="border-t border-border pt-5">
@@ -409,7 +425,9 @@ function Editor({
   slug,
   item,
   items,
+  onEditItem,
 }: {
+  onEditItem: (id: string) => void;
   slug: string;
   item: Studio["items"][number];
   items: Studio["items"];
@@ -419,6 +437,23 @@ function Editor({
   const [badge, setBadge] = useState(item.badge);
   const [allergens, setAllergens] = useState(item.allergens.join(", "));
   const [busy, setBusy] = useState(false);
+  const [section, setSection] = useState<"display" | "pairs" | "food">("display");
+  const [suggesting, setSuggesting] = useState(false);
+  const [proposal, setProposal] = useState<Awaited<
+    ReturnType<typeof suggestMenuPresentation>
+  > | null>(null);
+  async function suggest() {
+    setSuggesting(true);
+    setProposal(null);
+    try {
+      setProposal(await suggestMenuPresentation({ data: { slug, itemId: item.id } }));
+    } catch (error) {
+      toast.error((error as Error).message);
+    } finally {
+      setSuggesting(false);
+    }
+  }
+
   async function save(e: React.FormEvent) {
     e.preventDefault();
     setBusy(true);
@@ -444,103 +479,255 @@ function Editor({
     }
   }
   return (
-    <form onSubmit={save}>
-      <fieldset disabled={busy} className="space-y-4">
-        <label className="flex items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={config.featured}
-            onChange={(e) => setConfig({ ...config, featured: e.target.checked })}
-          />
-          Exibir em Destaques
-        </label>
-        <label className="block text-sm">
-          Selo do produto
-          <Input
-            className="mt-1"
-            maxLength={40}
-            placeholder="Ex.: Novidade, Especial da casa"
-            value={badge}
-            onChange={(e) => setBadge(e.target.value)}
-          />
-        </label>
-        <label className="block text-sm">
-          Alergênicos, separados por vírgula
-          <Input
-            className="mt-1"
-            value={allergens}
-            onChange={(e) => setAllergens(e.target.value)}
-            placeholder="Ex.: leite, ovos, crustáceos"
-          />
-        </label>
-        <fieldset className="rounded-xl border border-border p-3">
-          <legend className="px-1 text-sm font-medium">
-            Informações alimentares confirmadas pela cozinha
-          </legend>
-          <div className="flex flex-wrap gap-3">
-            {Object.entries(dietLabels).map(([key, label]) => (
-              <label key={key} className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={config.diets.includes(key as MenuConfig["diets"][number])}
-                  onChange={(e) =>
-                    setConfig({
-                      ...config,
-                      diets: e.target.checked
-                        ? [...config.diets, key as MenuConfig["diets"][number]]
-                        : config.diets.filter((d) => d !== key),
-                    })
-                  }
-                />
-                {label}
-              </label>
+    <form onSubmit={save} className="min-w-0 space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl bg-muted/40 p-4">
+        <div className="min-w-0 flex-1 basis-48">
+          <h5 className="text-lg font-semibold">{item.name}</h5>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Um selo e boas combinações ajudam o cliente a escolher.
+          </p>
+        </div>
+        <LebreSuggestionButton loading={suggesting} disabled={busy} onClick={() => void suggest()}>
+          Sugerir apresentação
+        </LebreSuggestionButton>
+      </div>
+      {proposal && proposal.source === menuSource(item) && (
+        <div role="status" className="space-y-3 border-b border-border pb-5">
+          <p className="font-medium">Ideia da Lebre para este prato</p>
+          <p className="max-w-2xl text-sm text-muted-foreground">{proposal.reason}</p>
+          {proposal.badge && (
+            <p className="text-sm">
+              Selo: <strong>{proposal.badge}</strong>
+            </p>
+          )}
+          {(
+            [
+              ["recommendations", "Combina bem com"],
+              ["addons", "Complementos"],
+              ["variants", "Outras versões"],
+            ] as const
+          ).map(
+            ([key, label]) =>
+              !!proposal[key].length && (
+                <p key={key} className="text-sm">
+                  <strong>{label}:</strong>{" "}
+                  {proposal[key].map((c) => items.find((i) => i.code === c)?.name).join(", ")}
+                </p>
+              ),
+          )}
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              disabled={busy}
+              onClick={() => {
+                setBadge(proposal.badge);
+                setConfig((c) => ({
+                  ...c,
+                  recommendations: proposal.recommendations,
+                  addons: proposal.addons,
+                  variants: proposal.variants,
+                }));
+                setProposal(null);
+                setSection("pairs");
+              }}
+            >
+              Usar como rascunho
+            </Button>
+            <Button type="button" variant="ghost" onClick={() => setProposal(null)}>
+              Dispensar
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            O rascunho substitui o selo e as combinações abaixo. Só será publicado ao salvar.
+          </p>
+        </div>
+      )}
+      <fieldset disabled={busy} className="min-w-0 space-y-5">
+        <div
+          role="group"
+          aria-label="Ajustes da apresentação"
+          className="grid grid-cols-2 gap-1 rounded-xl bg-muted/50 p-1 sm:grid-cols-3"
+        >
+          {(
+            [
+              ["display", "Apresentação"],
+              ["pairs", "Combinações"],
+              ["food", "Informações alimentares"],
+            ] as const
+          ).map(([key, label]) => (
+            <button
+              key={key}
+              type="button"
+              aria-pressed={section === key}
+              onClick={() => setSection(key)}
+              className={`min-h-11 min-w-0 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${key === "food" ? "col-span-2 sm:col-span-1" : ""} ${section === key ? "bg-background text-foreground shadow-sm" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        {section === "display" && (
+          <div className="space-y-5">
+            <label className="flex min-h-11 items-center gap-3 text-sm">
+              <input
+                className="h-5 w-5 accent-primary"
+                type="checkbox"
+                checked={config.featured}
+                onChange={(e) => setConfig({ ...config, featured: e.target.checked })}
+              />
+              <span className="font-medium">Mostrar nos destaques da casa</span>
+            </label>
+            <label className="block max-w-lg text-sm font-medium">
+              Selo do prato
+              <Input
+                className="mt-2"
+                maxLength={40}
+                placeholder="Ex.: Especial da casa"
+                value={badge}
+                onChange={(e) => setBadge(e.target.value)}
+              />
+            </label>
+            <p className="max-w-xl text-xs text-muted-foreground">
+              Uma frase curta aparece sobre a foto. Use apenas informações verdadeiras sobre o
+              prato.
+            </p>
+            <div className="flex flex-wrap gap-2" aria-label="Sugestões de selo">
+              {["Destaque da casa", "Experimente"].map((text) => (
+                <button
+                  type="button"
+                  key={text}
+                  onClick={() => setBadge(text)}
+                  className="min-h-11 rounded-full border border-border px-4 text-sm hover:bg-muted"
+                >
+                  {text}
+                </button>
+              ))}
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Prévia: <span className="font-medium text-foreground">{badge || "Sem selo"}</span>
+              {config.featured ? " · Nos destaques" : ""}
+            </p>
+          </div>
+        )}
+        {section === "pairs" && (
+          <div className="space-y-5">
+            <p className="text-sm text-muted-foreground">
+              Estas são sugestões de compra: cada produto entra separado, pelo preço cadastrado.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              className="h-auto min-h-11 max-w-full whitespace-normal px-4 py-2 text-left"
+              onClick={() => onEditItem(item.id)}
+            >
+              Configurar escolhas de acompanhamento no prato
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            {(
+              [
+                ["recommendations", "Combina bem com"],
+                ["addons", "Complementos à parte"],
+                ["variants", "Outras versões do prato"],
+              ] as const
+            ).map(([key, label]) => (
+              <details
+                key={key}
+                className="border-b border-border pb-4"
+                open={config[key].length > 0 || undefined}
+              >
+                <summary className="cursor-pointer py-2 text-sm font-medium">
+                  {label} · {config[key].length}/8
+                </summary>
+                <div className="mt-2 max-h-60 space-y-1 overflow-y-auto">
+                  {items
+                    .filter((i) => i.id !== item.id)
+                    .map((i) => (
+                      <label
+                        key={i.id}
+                        className="flex min-h-11 items-center gap-3 rounded-lg px-2 text-sm hover:bg-muted/40"
+                      >
+                        <input
+                          type="checkbox"
+                          className="h-5 w-5 shrink-0 accent-primary"
+                          checked={config[key].includes(i.code)}
+                          disabled={!config[key].includes(i.code) && config[key].length >= 8}
+                          onChange={(e) =>
+                            setConfig({
+                              ...config,
+                              [key]: e.target.checked
+                                ? [...config[key], i.code]
+                                : config[key].filter((c) => c !== i.code),
+                            })
+                          }
+                        />
+                        <span>
+                          {i.name}
+                          {!i.available && (
+                            <span className="block text-xs text-muted-foreground">
+                              Indisponível · não aparece para o cliente
+                            </span>
+                          )}
+                        </span>
+                      </label>
+                    ))}
+                  {items.length < 2 && (
+                    <p className="text-sm text-muted-foreground">
+                      Cadastre outro produto para oferecer combinações.
+                    </p>
+                  )}
+                </div>
+              </details>
             ))}
           </div>
-          <p className="mt-2 text-xs text-muted-foreground">
-            Não marque por dedução. Confirme ingredientes e risco de contaminação cruzada com a
-            cozinha.
-          </p>
-        </fieldset>
-        {(
-          [
-            ["recommendations", "Combina bem com"],
-            ["addons", "Adicionais e complementos"],
-            ["variants", "Outras versões do prato"],
-          ] as const
-        ).map(([key, label]) => (
-          <details key={key} className="rounded-xl border border-border p-3">
-            <summary className="cursor-pointer text-sm font-medium">
-              {label} · {config[key].length}/8
-            </summary>
-            <p className="my-2 text-xs text-muted-foreground">
-              Selecione produtos já cadastrados, cada um com seu próprio preço. Itens esgotados não
-              aparecem para o cliente. O complemento entra como item separado no pedido.
+        )}
+        {section === "food" && (
+          <div className="space-y-5">
+            <p className="max-w-2xl text-sm text-muted-foreground">
+              Confirme os ingredientes e o risco de contaminação cruzada com a cozinha. A Lebre não
+              preenche essas informações por dedução.
             </p>
-            <div className="max-h-48 space-y-2 overflow-y-auto">
-              {items
-                .filter((i) => i.id !== item.id)
-                .map((i) => (
-                  <label key={i.id} className="flex items-center gap-2 text-sm">
+            <label className="block text-sm font-medium">
+              Alergênicos confirmados
+              <Input
+                className="mt-2"
+                value={allergens}
+                onChange={(e) => setAllergens(e.target.value)}
+                placeholder="Ex.: leite, ovos — separe por vírgula"
+              />
+            </label>
+            <fieldset>
+              <legend className="mb-2 text-sm font-medium">
+                Características confirmadas pela cozinha
+              </legend>
+              <div className="flex flex-wrap gap-x-5 gap-y-2">
+                {Object.entries(dietLabels).map(([key, label]) => (
+                  <label key={key} className="flex min-h-11 items-center gap-3 text-sm">
                     <input
+                      className="h-5 w-5 accent-primary"
                       type="checkbox"
-                      checked={config[key].includes(i.code)}
-                      disabled={!config[key].includes(i.code) && config[key].length >= 8}
+                      checked={config.diets.includes(key as MenuConfig["diets"][number])}
                       onChange={(e) =>
                         setConfig({
                           ...config,
-                          [key]: e.target.checked
-                            ? [...config[key], i.code]
-                            : config[key].filter((c) => c !== i.code),
+                          diets: e.target.checked
+                            ? [...config.diets, key as MenuConfig["diets"][number]]
+                            : config.diets.filter((d) => d !== key),
                         })
                       }
                     />
-                    {i.code} · {i.name}
+                    {label}
                   </label>
                 ))}
-            </div>
-          </details>
-        ))}
-        <Button type="submit">{busy ? "Aguarde…" : "Salvar apresentação"}</Button>
+              </div>
+            </fieldset>
+          </div>
+        )}
+        <div className="flex flex-wrap items-center gap-3 border-t border-border pt-4">
+          <Button type="submit">{busy ? "Salvando…" : "Salvar apresentação"}</Button>
+          <p className="text-xs text-muted-foreground">
+            Publica apenas os ajustes revisados por você.
+          </p>
+        </div>
       </fieldset>
     </form>
   );

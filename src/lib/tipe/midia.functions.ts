@@ -45,6 +45,20 @@ async function enviar(db: Db, caminho: string, dataUrl: string) {
   return `${data.publicUrl}?v=${Date.now()}`;
 }
 
+/** Immutable library photo: taking a new photo never overwrites an older one. */
+async function guardarNoBanco(db: Db, rid: string, imagem: string) {
+  const { ext } = decodificar(imagem);
+  const { data: lista, error } = await db.storage
+    .from("restaurante-midia")
+    .list(`${rid}/banco`, { limit: 201 });
+  if (error) throw new Error("Não foi possível consultar a galeria");
+  if ((lista?.length ?? 0) >= 200)
+    throw new Error("A galeria chegou a 200 imagens. Remova fotos sem uso para enviar novas.");
+  const nome = `${crypto.randomUUID()}.${ext}`;
+  const url = (await enviar(db, `${rid}/banco/${nome}`, imagem)).split("?")[0]!;
+  return { nome, url };
+}
+
 export const getMidia = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ slug: Slug }).parse(d))
@@ -119,7 +133,9 @@ export const saveFotoItem = createServerFn({ method: "POST" })
       throw new Error("A foto mudou. Abra o prato novamente para preparar o efeito.");
     const coluna = data.tipo === "foto" ? "image_url" : "depth_url";
     const url = data.imagem
-      ? await enviar(db, `${rid}/itens/${data.itemId}-${data.tipo}`, data.imagem)
+      ? data.tipo === "foto"
+        ? (await guardarNoBanco(db, rid, data.imagem)).url
+        : await enviar(db, `${rid}/itens/${data.itemId}-${data.tipo}`, data.imagem)
       : null;
     const patch: Record<string, unknown> = { [coluna]: url };
     if (data.tipo === "foto")
@@ -183,16 +199,7 @@ export const addBancoImagem = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ slug: Slug, imagem: z.string().max(2_300_000) }).parse(d))
   .handler(async ({ data, context }) => {
     const { rid, db } = await comoAdmin(context, data.slug);
-    const { ext } = decodificar(data.imagem);
-    const { data: lista, error: listError } = await db.storage
-      .from("restaurante-midia")
-      .list(`${rid}/banco`, { limit: 201 });
-    if (listError) throw new Error("Não foi possível consultar o banco de imagens");
-    if ((lista?.length ?? 0) >= 200)
-      throw new Error("O banco chegou a 200 imagens. Remova algumas para enviar novas");
-    const nome = `${crypto.randomUUID()}.${ext}`;
-    const url = await enviar(db, `${rid}/banco/${nome}`, data.imagem);
-    return { nome, url };
+    return guardarNoBanco(db, rid, data.imagem);
   });
 
 export const removeBancoImagem = createServerFn({ method: "POST" })

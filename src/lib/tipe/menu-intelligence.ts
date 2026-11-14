@@ -12,7 +12,31 @@ const Translation = z.object({
   description: z.string().trim().max(200).default(""),
 });
 const Codes = z.array(z.string().trim().min(1).max(16)).max(8).default([]);
+export const AccompanimentsSchema = z
+  .object({
+    enabled: z.boolean().default(false),
+    min: z.number().int().min(0).max(4).default(0),
+    max: z.number().int().min(1).max(4).default(1),
+    choices: z
+      .array(z.object({ code: z.string().min(1).max(16), included: z.boolean() }))
+      .max(8)
+      .default([]),
+  })
+  .superRefine((v, ctx) => {
+    if (
+      v.enabled &&
+      (v.min > v.max ||
+        v.choices.length < v.max ||
+        new Set(v.choices.map((c) => c.code)).size !== v.choices.length)
+    )
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Selecione opções suficientes e confira os limites de escolha.",
+      });
+  });
+export type Accompaniments = z.infer<typeof AccompanimentsSchema>;
 export const MenuConfigSchema = z.object({
+  accompaniments: AccompanimentsSchema.optional(),
   translationSource: z.string().max(1000).optional(),
   featured: z.boolean().default(false),
   diets: z

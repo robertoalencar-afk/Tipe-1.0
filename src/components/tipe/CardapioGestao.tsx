@@ -6,13 +6,24 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getPdvData, saveCategory, saveMenuItem } from "@/lib/tipe/pdv.functions";
 import { suggestDishDescription } from "@/lib/tipe/menu-intelligence.functions";
-import { saveFotoItem } from "@/lib/tipe/midia.functions";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { saveFotoItem, usarImagemDoBanco } from "@/lib/tipe/midia.functions";
 import { CriarPratoEditor, type PratoEditorValue } from "./site/order/CriarPratoDemo";
 import { prepareDishDepth, photoBlobDataUrl } from "@/lib/tipe/order/prepare-photo";
 import { reduzirImagem } from "./UploadImagem";
 import { MenuInteligente } from "./MenuInteligente";
 import { BancoImagens } from "./BancoImagens";
 import { ImportarCardapio } from "./ImportarCardapio";
+
+import { LebreSuggestionButton } from "./LebreSuggestionButton";
+import { AcompanhamentosEditor } from "./AcompanhamentosEditor";
+import { readMenuConfig, type Accompaniments } from "@/lib/tipe/menu-intelligence";
 
 type Pdv = Awaited<ReturnType<typeof getPdvData>>;
 type Media = Record<string, { foto: string | null; profundidade: string | null }>;
@@ -25,6 +36,7 @@ type Draft = {
   available: boolean;
   sector: "kitchen" | "bar";
   description: string;
+  accompaniments: Accompaniments;
 };
 const blobDataUrl = (blob: Blob) =>
   new Promise<string>((resolve, reject) => {
@@ -99,6 +111,7 @@ export function CardapioGestao({
     available: true,
     sector: "kitchen",
     description: "",
+    accompaniments: { enabled: false, min: 0, max: 1, choices: [] },
   });
   const [draft, setDraft] = useState<Draft>(empty);
   const [generation, setGeneration] = useState(0);
@@ -171,6 +184,7 @@ export function CardapioGestao({
   const refresh = async () => {
     await Promise.all([
       qc.invalidateQueries({ queryKey: ["midia", slug] }),
+      qc.invalidateQueries({ queryKey: ["banco-imagens", slug] }),
       qc.invalidateQueries({ queryKey: ["menu-studio", slug] }),
     ]);
     onDone();
@@ -198,7 +212,16 @@ export function CardapioGestao({
       savedCodes.current.add(code.toUpperCase());
       // Um erro de envio de mídia não pode duplicar o produto quando o dono tenta de novo.
       setDraft((d) => ({ ...d, id: result.itemId }));
-      if (value.photoChanged) {
+      if (value.libraryName && value.photoChanged && value.depth) {
+        await usarImagemDoBanco({
+          data: {
+            slug,
+            itemId: result.itemId,
+            nome: value.libraryName,
+            profundidade: await blobDataUrl(value.depth),
+          },
+        });
+      } else if (value.photoChanged) {
         const image = value.photo ? await reduzirImagem(value.photo, 1200) : null;
         await savePhoto({
           data: {
@@ -248,6 +271,12 @@ export function CardapioGestao({
       available: item.available,
       sector: item.sector === "bar" ? "bar" : "kitchen",
       description: item.description ?? "",
+      accompaniments: readMenuConfig(item.menu_config).accompaniments ?? {
+        enabled: false,
+        min: 0,
+        max: 1,
+        choices: [],
+      },
     });
     setGeneration((n) => n + 1);
     scrollToEditor.current = true;
@@ -273,6 +302,34 @@ export function CardapioGestao({
         <CriarPratoEditor
           key={generation}
           hideHeading
+          gallery={(onPick, onClose) => (
+            <Dialog
+              open
+              onOpenChange={(open) => {
+                if (!open) onClose();
+              }}
+            >
+              <DialogContent className="max-h-[90dvh] max-w-4xl overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Galeria do restaurante</DialogTitle>
+                  <DialogDescription>
+                    Escolha uma foto salva ou envie uma nova. Ela entra no prato que você está
+                    editando.
+                  </DialogDescription>
+                </DialogHeader>
+                <BancoImagens
+                  slug={slug}
+                  podeDono
+                  itens={[]}
+                  onAplicada={() => {}}
+                  onEscolher={onPick}
+                  fotosAtuais={pdv.items.flatMap((i) =>
+                    midia[i.id]?.foto ? [{ id: i.id, name: i.name, url: midia[i.id]!.foto! }] : [],
+                  )}
+                />
+              </DialogContent>
+            </Dialog>
+          )}
           onNameChange={(name) => setDraft((d) => ({ ...d, name }))}
           onNameCommit={(name) => void suggestDescription(name, true)}
           descriptionField={
@@ -281,14 +338,14 @@ export function CardapioGestao({
                 <label htmlFor="dish-description" className="text-sm font-medium">
                   Descrição do prato
                 </label>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  disabled={busy || suggesting || draft.name.trim().length < 3}
+                <LebreSuggestionButton
+                  loading={suggesting}
+                  loadingText="A Lebre está escrevendo…"
+                  disabled={busy || draft.name.trim().length < 3}
                   onClick={() => void suggestDescription(draft.name)}
                 >
-                  {suggesting ? "A Lebre está escrevendo…" : "Sugerir texto com a Lebre"}
-                </Button>
+                  Sugerir texto com a Lebre
+                </LebreSuggestionButton>
               </div>
               <textarea
                 id="dish-description"
@@ -319,43 +376,56 @@ export function CardapioGestao({
           restaurantName={restaurantName}
           onSave={save}
           fields={
-            <details>
-              <summary className="cursor-pointer text-sm font-medium">
-                Opções do prato · código, descrição e preparo
-              </summary>
-              <fieldset disabled={busy} className="mt-3 grid gap-3 sm:grid-cols-2">
-                <label className="grid gap-1 text-sm">
-                  Código do prato
-                  <Input
-                    maxLength={16}
-                    placeholder="Ex.: P10"
-                    value={draft.code}
-                    onChange={(e) => setDraft({ ...draft, code: e.target.value })}
-                  />
-                </label>
-                <label className="grid gap-1 text-sm">
-                  Enviar pedido para
-                  <select
-                    className="h-11 rounded-xl border border-input bg-background px-3"
-                    value={draft.sector}
-                    onChange={(e) =>
-                      setDraft({ ...draft, sector: e.target.value as Draft["sector"] })
-                    }
-                  >
-                    <option value="kitchen">Cozinha</option>
-                    <option value="bar">Bar</option>
-                  </select>
-                </label>
-                <label className="flex items-center gap-2 text-sm">
-                  <input
-                    type="checkbox"
-                    checked={draft.available}
-                    onChange={(e) => setDraft({ ...draft, available: e.target.checked })}
-                  />
-                  Disponível para pedidos
-                </label>
-              </fieldset>
-            </details>
+            <>
+              <AcompanhamentosEditor
+                key={generation}
+                value={draft.accompaniments}
+                onChange={(accompaniments) => setDraft((d) => ({ ...d, accompaniments }))}
+                items={pdv.items}
+                slug={slug}
+                code={draft.code}
+                name={draft.name}
+                description={draft.description}
+                disabled={busy}
+              />
+              <details>
+                <summary className="cursor-pointer text-sm font-medium">
+                  Opções do prato · código e preparo
+                </summary>
+                <fieldset disabled={busy} className="mt-3 grid gap-3 sm:grid-cols-2">
+                  <label className="grid gap-1 text-sm">
+                    Código do prato
+                    <Input
+                      maxLength={16}
+                      placeholder="Ex.: P10"
+                      value={draft.code}
+                      onChange={(e) => setDraft({ ...draft, code: e.target.value })}
+                    />
+                  </label>
+                  <label className="grid gap-1 text-sm">
+                    Enviar pedido para
+                    <select
+                      className="h-11 rounded-xl border border-input bg-background px-3"
+                      value={draft.sector}
+                      onChange={(e) =>
+                        setDraft({ ...draft, sector: e.target.value as Draft["sector"] })
+                      }
+                    >
+                      <option value="kitchen">Cozinha</option>
+                      <option value="bar">Bar</option>
+                    </select>
+                  </label>
+                  <label className="flex items-center gap-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={draft.available}
+                      onChange={(e) => setDraft({ ...draft, available: e.target.checked })}
+                    />
+                    Disponível para pedidos
+                  </label>
+                </fieldset>
+              </details>
+            </>
           }
         />
       </div>
@@ -440,14 +510,6 @@ export function CardapioGestao({
         </Button>
       </form>
       <MenuInteligente slug={slug} onEditItem={editItem} />
-      <BancoImagens
-        slug={slug}
-        podeDono
-        itens={pdv.items.map((i) => ({ id: i.id, name: i.name }))}
-        onAplicada={() => {
-          void refresh();
-        }}
-      />
       <ImportarCardapio slug={slug} onDone={onDone} />
     </div>
   );

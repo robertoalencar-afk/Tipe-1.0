@@ -1,3 +1,4 @@
+import { AcompanhamentosCliente } from "./AcompanhamentosCliente";
 import { createPortal } from "react-dom";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { Check, Minus, Plus, Search, UtensilsCrossed } from "lucide-react";
@@ -136,6 +137,7 @@ export function MesaPedido({
   const [diet, setDiet] = useState("");
   const [largeText, setLargeText] = useState(false);
   const [carrinho, setCarrinho] = useState<Record<string, number>>({});
+  const [sides, setSides] = useState<Record<string, string[]>>({});
   const [obs, setObs] = useState<Record<string, string>>({});
   const [obsAberta, setObsAberta] = useState<string | null>(null);
   const [story, setStory] = useState<string | null>(null);
@@ -252,10 +254,61 @@ export function MesaPedido({
     );
   }
 
-  const linhas = carrinhoParaPedido(carrinho, obs);
-  const total = totalCarrinho(linhas, precoDe);
-  const qtdTotal = linhas.reduce((s, l) => s + l.qty, 0);
+  const linhas = carrinhoParaPedido(carrinho, obs).map((line) => ({
+    ...line,
+    sides: sides[line.code] ?? [],
+  }));
+  const pendingChoices = linhas.filter((line) => {
+    const config = menu.items.find((i) => i.code === line.code)?.config?.accompaniments;
+    return (
+      config?.enabled &&
+      (line.sides.length < config.min ||
+        line.sides.length > config.max ||
+        line.sides.some(
+          (code) =>
+            !menu.items.some((i) => i.code === code) ||
+            !config.choices.some((c) => c.code === code),
+        ))
+    );
+  });
+  const extraTotal = linhas.reduce((sum, line) => {
+    const config = menu.items.find((i) => i.code === line.code)?.config?.accompaniments;
+    return (
+      sum +
+      (config?.enabled
+        ? line.sides.reduce(
+            (price, code) =>
+              price + (config.choices.find((c) => c.code === code)?.included ? 0 : precoDe(code)),
+            0,
+          ) * line.qty
+        : 0)
+    );
+  }, 0);
+  const total = totalCarrinho(linhas, precoDe) + extraTotal;
+  const qtdTotal = linhas.reduce((sum, line) => {
+    const cfg = menu.items.find((i) => i.code === line.code)?.config?.accompaniments;
+    const paid = cfg?.enabled
+      ? line.sides.filter((code) => cfg.choices.some((c) => c.code === code && !c.included)).length
+      : 0;
+    return sum + line.qty * (1 + paid);
+  }, 0);
   const add = (c: string, d: number) => {
+    if (d > 0 && menu.items.find((i) => i.code === c)?.config?.accompaniments?.enabled) {
+      setStory(null);
+      setCat("");
+      setBusca("");
+      setDiet("");
+      window.setTimeout(
+        () =>
+          document.getElementById(`choices-${c}`)?.scrollIntoView({
+            behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+              ? "instant"
+              : "smooth",
+            block: "center",
+          }),
+        100,
+      );
+    }
     if (d > 0 && (carrinho[c] ?? 0) < 99) track(c, "add");
     setCarrinho((x) => ({ ...x, [c]: Math.max(0, Math.min(99, (x[c] ?? 0) + d)) }));
   };
@@ -292,6 +345,20 @@ export function MesaPedido({
 
   async function enviar() {
     if (!linhas.length || !podeEnviar) return;
+    if (pendingChoices.length) {
+      setCat("");
+      setBusca("");
+      setDiet("");
+      setErro("Escolha os acompanhamentos dos pratos antes de enviar.");
+      window.setTimeout(
+        () =>
+          document
+            .getElementById(`choices-${pendingChoices[0]!.code}`)
+            ?.scrollIntoView({ block: "center" }),
+        100,
+      );
+      return;
+    }
     setEnviando(true);
     setErro(null);
     try {
@@ -312,15 +379,18 @@ export function MesaPedido({
           return;
         }
         setErro(
-          r.error === "disabled"
-            ? "O pedido pela mesa foi desativado pelo restaurante. A sua conta continua em Pagar."
-            : r.error === "unavailable"
-              ? "Esta mesa está indisponível. Chame o garçom."
-              : "Não foi possível enviar o pedido. Tente de novo.",
+          r.error === "choices"
+            ? "Confira os acompanhamentos: respeite os limites e escolha apenas opções disponíveis. Se o cardápio mudou, atualize a página."
+            : r.error === "disabled"
+              ? "O pedido pela mesa foi desativado pelo restaurante. A sua conta continua em Pagar."
+              : r.error === "unavailable"
+                ? "Esta mesa está indisponível. Chame o garçom."
+                : "Não foi possível enviar o pedido. Tente de novo.",
         );
         return;
       }
       setCarrinho({});
+      setSides({});
       setObs({});
       setEnviado({
         itens: r.items,
@@ -531,6 +601,20 @@ export function MesaPedido({
                           </Button>
                         )}
                       </div>
+                      {q > 0 && i.config?.accompaniments?.enabled && (
+                        <div id={`choices-${i.code}`} className="scroll-mt-24 px-3.5 pb-3.5">
+                          <AcompanhamentosCliente
+                            config={i.config.accompaniments}
+                            items={displayItems}
+                            selected={sides[i.code] ?? []}
+                            onChange={(codes) =>
+                              setSides((current) => ({ ...current, [i.code]: codes }))
+                            }
+                            language={language}
+                            quantity={q}
+                          />
+                        </div>
+                      )}
                       {q > 0 && i.config && (
                         <div className="space-y-3 px-3.5 pb-3.5">
                           {(
@@ -679,7 +763,8 @@ export function MesaPedido({
             ) : (
               <>
                 <UtensilsCrossed className="mr-2 h-5 w-5" />
-                Enviar {qtdTotal} {qtdTotal === 1 ? "item" : "itens"} · {money(total)}
+                {pendingChoices.length ? "Escolher acompanhamentos · " : "Enviar "}
+                {qtdTotal} {qtdTotal === 1 ? "item" : "itens"} · {money(total)}
               </>
             )}
           </Button>
