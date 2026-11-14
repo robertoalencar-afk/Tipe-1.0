@@ -198,6 +198,22 @@ export function CardapioGestao({
     ...pdv.categories,
     ...(pdv.items.some((i) => !i.category_id) ? [{ id: null, name: "Sem categoria" }] : []),
   ];
+  function editItem(id: string) {
+    const item = pdv.items.find((i) => i.id === id);
+    if (!item) return;
+    setDraft({
+      id: item.id,
+      categoryId: item.category_id,
+      code: item.code,
+      name: item.name,
+      price: item.price,
+      available: item.available,
+      sector: item.sector === "bar" ? "bar" : "kitchen",
+      description: item.description ?? "",
+    });
+    setGeneration((n) => n + 1);
+    scrollToEditor.current = true;
+  }
   return (
     <div className="min-w-0 space-y-8">
       {photoProgress && (
@@ -300,18 +316,7 @@ export function CardapioGestao({
                       type="button"
                       disabled={busy}
                       onClick={() => {
-                        setDraft({
-                          id: item.id,
-                          categoryId: item.category_id,
-                          code: item.code,
-                          name: item.name,
-                          price: item.price,
-                          available: item.available,
-                          sector: item.sector === "bar" ? "bar" : "kitchen",
-                          description: item.description ?? "",
-                        });
-                        setGeneration((n) => n + 1);
-                        scrollToEditor.current = true;
+                        editItem(item.id);
                       }}
                       className="flex min-h-20 w-full items-center gap-3 p-3 text-left hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
@@ -372,7 +377,7 @@ export function CardapioGestao({
           Criar categoria
         </Button>
       </form>
-      <MenuInteligente slug={slug} />
+      <MenuInteligente slug={slug} onEditItem={editItem} />
       <BancoImagens
         slug={slug}
         podeDono

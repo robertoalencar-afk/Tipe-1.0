@@ -93,6 +93,7 @@ import { Route as CrmContatosIndexRouteImport } from './routes/crm.contatos.inde
 import { Route as CrmContatosIdRouteImport } from './routes/crm.contatos.$id'
 import { Route as LegalVersoesArquivoRouteImport } from './routes/legal.versoes_.$arquivo'
 import { Route as MesaRestauranteMesaRouteImport } from './routes/mesa.$restaurante.$mesa'
+import { Route as ApiPublicMenuReviewRouteImport } from './routes/api/public/menu.review'
 import { Route as ApiPublicPagarmeWebhookRouteImport } from './routes/api/public/pagarme/webhook'
 import { Route as ApiPublicPaymentsReconcileRouteImport } from './routes/api/public/payments.reconcile'
 import { Route as ApiPublicPdvSyncRouteImport } from './routes/api/public/pdv.sync'
@@ -522,6 +523,11 @@ const MesaRestauranteMesaRoute = MesaRestauranteMesaRouteImport.update({
   path: '/mesa/$restaurante/$mesa',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicMenuReviewRoute = ApiPublicMenuReviewRouteImport.update({
+  id: '/api/public/menu/review',
+  path: '/api/public/menu/review',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPagarmeWebhookRoute = ApiPublicPagarmeWebhookRouteImport.update({
   id: '/api/public/pagarme/webhook',
   path: '/api/public/pagarme/webhook',
@@ -651,6 +657,7 @@ export interface FileRoutesByFullPath {
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
   '/crm/contas/': typeof CrmContasIndexRoute
   '/crm/contatos/': typeof CrmContatosIndexRoute
+  '/api/public/menu/review': typeof ApiPublicMenuReviewRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/payments/reconcile': typeof ApiPublicPaymentsReconcileRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
@@ -743,6 +750,7 @@ export interface FileRoutesByTo {
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
   '/crm/contas': typeof CrmContasIndexRoute
   '/crm/contatos': typeof CrmContatosIndexRoute
+  '/api/public/menu/review': typeof ApiPublicMenuReviewRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/payments/reconcile': typeof ApiPublicPaymentsReconcileRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
@@ -838,6 +846,7 @@ export interface FileRoutesById {
   '/mesa/$restaurante/$mesa': typeof MesaRestauranteMesaRoute
   '/crm/contas/': typeof CrmContasIndexRoute
   '/crm/contatos/': typeof CrmContatosIndexRoute
+  '/api/public/menu/review': typeof ApiPublicMenuReviewRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/payments/reconcile': typeof ApiPublicPaymentsReconcileRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
@@ -933,6 +942,7 @@ export interface FileRouteTypes {
     | '/mesa/$restaurante/$mesa'
     | '/crm/contas/'
     | '/crm/contatos/'
+    | '/api/public/menu/review'
     | '/api/public/pagarme/webhook'
     | '/api/public/payments/reconcile'
     | '/api/public/pdv/sync'
@@ -1025,6 +1035,7 @@ export interface FileRouteTypes {
     | '/mesa/$restaurante/$mesa'
     | '/crm/contas'
     | '/crm/contatos'
+    | '/api/public/menu/review'
     | '/api/public/pagarme/webhook'
     | '/api/public/payments/reconcile'
     | '/api/public/pdv/sync'
@@ -1119,6 +1130,7 @@ export interface FileRouteTypes {
     | '/mesa/$restaurante/$mesa'
     | '/crm/contas/'
     | '/crm/contatos/'
+    | '/api/public/menu/review'
     | '/api/public/pagarme/webhook'
     | '/api/public/payments/reconcile'
     | '/api/public/pdv/sync'
@@ -1182,6 +1194,7 @@ export interface RootRouteChildren {
   ApiPublicCspReportRoute: typeof ApiPublicCspReportRoute
   LegalVersoesArquivoRoute: typeof LegalVersoesArquivoRoute
   MesaRestauranteMesaRoute: typeof MesaRestauranteMesaRoute
+  ApiPublicMenuReviewRoute: typeof ApiPublicMenuReviewRoute
   ApiPublicPagarmeWebhookRoute: typeof ApiPublicPagarmeWebhookRoute
   ApiPublicPaymentsReconcileRoute: typeof ApiPublicPaymentsReconcileRoute
   ApiPublicPdvSyncRoute: typeof ApiPublicPdvSyncRoute
@@ -1782,6 +1795,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MesaRestauranteMesaRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/menu/review': {
+      id: '/api/public/menu/review'
+      path: '/api/public/menu/review'
+      fullPath: '/api/public/menu/review'
+      preLoaderRoute: typeof ApiPublicMenuReviewRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/pagarme/webhook': {
       id: '/api/public/pagarme/webhook'
       path: '/api/public/pagarme/webhook'
@@ -1975,6 +1995,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCspReportRoute: ApiPublicCspReportRoute,
   LegalVersoesArquivoRoute: LegalVersoesArquivoRoute,
   MesaRestauranteMesaRoute: MesaRestauranteMesaRoute,
+  ApiPublicMenuReviewRoute: ApiPublicMenuReviewRoute,
   ApiPublicPagarmeWebhookRoute: ApiPublicPagarmeWebhookRoute,
   ApiPublicPaymentsReconcileRoute: ApiPublicPaymentsReconcileRoute,
   ApiPublicPdvSyncRoute: ApiPublicPdvSyncRoute,
