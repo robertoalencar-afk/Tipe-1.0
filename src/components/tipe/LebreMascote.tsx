@@ -11,10 +11,14 @@ export function LebreMascote({
   slug,
   onOpen,
   onSuggestions,
+  notice,
+  onNotices,
 }: {
   slug: string;
   onOpen: () => void;
   onSuggestions?: (() => void) | undefined;
+  notice?: { key: string; count: number } | undefined;
+  onNotices?: (() => void) | undefined;
 }) {
   const [visible, setVisible] = useMascotPreference(slug);
   const query = useQuery({
@@ -26,7 +30,9 @@ export function LebreMascote({
     retry: false,
   });
   const count = query.data?.suggestions.length ?? 0;
-  const [tipHidden, setTipHidden] = useState(false);
+  const [dismissed, setDismissed] = useState<string | null>(null);
+  const noticeCount = notice?.count ?? 0;
+  const messageKey = noticeCount ? notice!.key : `tips:${count}`;
   if (!visible)
     return (
       <button
@@ -43,7 +49,7 @@ export function LebreMascote({
       aria-label="Mascote da Lebre"
       className="pointer-events-none fixed bottom-24 right-3 z-40 flex max-w-[calc(100vw-1.5rem)] items-center gap-1 print:hidden sm:right-5 lg:bottom-5"
     >
-      {!tipHidden && (
+      {dismissed !== messageKey && (
         <div className="pointer-events-auto relative mb-6 w-44 rounded-2xl border border-border bg-background p-3 pr-7 text-sm shadow-lg sm:w-56">
           <span
             aria-hidden="true"
@@ -51,22 +57,30 @@ export function LebreMascote({
           />
           <button
             type="button"
-            onClick={() => setTipHidden(true)}
+            onClick={() => setDismissed(messageKey)}
             aria-label="Fechar dica"
             className="absolute right-1 top-1 grid size-7 place-items-center rounded-full hover:bg-muted"
           >
             <X className="size-3.5" />
           </button>
-          <button type="button" onClick={count > 0 ? onSuggestions : onOpen} className="text-left">
+          <button
+            type="button"
+            onClick={noticeCount > 0 ? onNotices : count > 0 ? onSuggestions : onOpen}
+            className="text-left"
+          >
             <span className="block font-semibold">
-              {count > 0
-                ? `Tenho ${count === 1 ? "uma ideia" : `${count} ideias`} para seu cardápio`
-                : "Quer uma ajuda? Estou por aqui."}
+              {noticeCount > 0
+                ? `Você tem ${noticeCount} ${noticeCount === 1 ? "aviso que precisa" : "avisos que precisam"} de atenção`
+                : count > 0
+                  ? `Tenho ${count === 1 ? "uma ideia" : `${count} ideias`} para seu cardápio`
+                  : "Quer uma ajuda? Estou por aqui."}
             </span>
             <span className="mt-1 block text-xs text-muted-foreground underline underline-offset-4">
-              {count > 0
-                ? "Ver sugestões da Lebre"
-                : "Peça um resumo do salão ou ajuda com um prato."}
+              {noticeCount > 0
+                ? "Ver avisos da gestão"
+                : count > 0
+                  ? "Ver sugestões da Lebre"
+                  : "Peça um resumo do salão ou ajuda com um prato."}
             </span>
           </button>
         </div>

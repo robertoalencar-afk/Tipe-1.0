@@ -4,7 +4,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useMascotPreference } from "@/lib/tipe/mascot-preference";
-import lebre from "@/assets/lebre/avatar-ola.webp";
+import { MascoteVivo } from "./site/MascoteVivo";
 import { Check, ChevronRight, RefreshCw } from "lucide-react";
 import {
   dietLabels,
@@ -121,9 +121,9 @@ export function MenuInteligente({
       aria-labelledby="lebre-menu-title"
       className="min-w-0 space-y-7 border-t border-border pt-8"
     >
-      <div className="flex items-start gap-4">
+      <div className="flex items-start gap-4 sm:gap-5">
         {mascotVisible && (
-          <img src={lebre} alt="Lebre" className="h-20 w-16 shrink-0 object-contain" />
+          <MascoteVivo alt="Lebre" expressive className="h-20 w-20 shrink-0 sm:h-28 sm:w-28" />
         )}
         <div className="min-w-0 flex-1">
           <h3 id="lebre-menu-title" className="font-display text-2xl font-medium">

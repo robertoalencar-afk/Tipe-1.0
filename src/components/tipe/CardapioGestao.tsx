@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { getPdvData, saveCategory, saveMenuItem } from "@/lib/tipe/pdv.functions";
+import { suggestDishDescription } from "@/lib/tipe/menu-intelligence.functions";
 import { saveFotoItem } from "@/lib/tipe/midia.functions";
 import { CriarPratoEditor, type PratoEditorValue } from "./site/order/CriarPratoDemo";
 import { prepareDishDepth, photoBlobDataUrl } from "@/lib/tipe/order/prepare-photo";
@@ -46,6 +47,39 @@ export function CardapioGestao({
   midia: Media;
   onDone: () => void;
 }) {
+  const [suggesting, setSuggesting] = useState(false);
+  const requestDescription = useRef(0);
+  const attemptedNames = useRef(new Set<string>());
+  async function suggestDescription(name: string, automatic = false) {
+    if (
+      name.trim().length < 3 ||
+      (automatic && (draft.description.trim() || attemptedNames.current.has(name)))
+    )
+      return;
+    attemptedNames.current.add(name);
+    const request = ++requestDescription.current;
+    const original = draft.description;
+    const originalId = draft.id;
+    setSuggesting(true);
+    try {
+      const description = await suggestDishDescription({
+        data: { slug, name, description: original },
+      });
+      if (request === requestDescription.current)
+        setDraft((current) =>
+          current.id === originalId && current.name === name && current.description === original
+            ? { ...current, description }
+            : current,
+        );
+    } catch {
+      if (request === requestDescription.current)
+        toast.error(
+          "Não consegui sugerir agora. Você pode escrever a descrição ou tentar novamente.",
+        );
+    } finally {
+      if (request === requestDescription.current) setSuggesting(false);
+    }
+  }
   const qc = useQueryClient();
   const saveItem = useServerFn(saveMenuItem);
   const savePhoto = useServerFn(saveFotoItem);
@@ -142,6 +176,8 @@ export function CardapioGestao({
     onDone();
   };
   const reset = () => {
+    requestDescription.current++;
+    setSuggesting(false);
     setDraft(empty());
     setGeneration((n) => n + 1);
   };
@@ -199,6 +235,8 @@ export function CardapioGestao({
     ...(pdv.items.some((i) => !i.category_id) ? [{ id: null, name: "Sem categoria" }] : []),
   ];
   function editItem(id: string) {
+    requestDescription.current++;
+    setSuggesting(false);
     const item = pdv.items.find((i) => i.id === id);
     if (!item) return;
     setDraft({
@@ -223,7 +261,6 @@ export function CardapioGestao({
       )}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="font-display text-2xl font-medium">Cardápio</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Uma foto, nome e preço. Confira ao lado como o cliente vai ver.
           </p>
@@ -236,6 +273,39 @@ export function CardapioGestao({
         <CriarPratoEditor
           key={generation}
           hideHeading
+          onNameChange={(name) => setDraft((d) => ({ ...d, name }))}
+          onNameCommit={(name) => void suggestDescription(name, true)}
+          descriptionField={
+            <div className="space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <label htmlFor="dish-description" className="text-sm font-medium">
+                  Descrição do prato
+                </label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  disabled={busy || suggesting || draft.name.trim().length < 3}
+                  onClick={() => void suggestDescription(draft.name)}
+                >
+                  {suggesting ? "A Lebre está escrevendo…" : "Sugerir texto com a Lebre"}
+                </Button>
+              </div>
+              <textarea
+                id="dish-description"
+                maxLength={200}
+                rows={3}
+                disabled={busy}
+                value={draft.description}
+                onChange={(e) => setDraft((d) => ({ ...d, description: e.target.value }))}
+                placeholder="Conte ao cliente o que vem no prato e como ele é preparado."
+                className="w-full resize-y rounded-xl border border-input bg-background px-3 py-2 text-sm"
+              />
+              <p className="text-xs text-muted-foreground">
+                Revise a sugestão da Lebre e confirme os ingredientes antes de salvar.{" "}
+                {draft.description.length}/200
+              </p>
+            </div>
+          }
           title={draft.id ? "Editar prato" : "Novo prato"}
           busy={busy}
           initial={{
@@ -275,14 +345,6 @@ export function CardapioGestao({
                     <option value="kitchen">Cozinha</option>
                     <option value="bar">Bar</option>
                   </select>
-                </label>
-                <label className="grid gap-1 text-sm sm:col-span-2">
-                  Descrição (opcional)
-                  <Input
-                    maxLength={200}
-                    value={draft.description}
-                    onChange={(e) => setDraft({ ...draft, description: e.target.value })}
-                  />
                 </label>
                 <label className="flex items-center gap-2 text-sm">
                   <input

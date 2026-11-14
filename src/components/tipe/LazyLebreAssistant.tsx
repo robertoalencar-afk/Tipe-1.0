@@ -17,9 +17,13 @@ const LebreAssistant = lazy(() => carregar().then((m) => ({ default: m.LebreAssi
 export function LazyLebreAssistant({
   slug,
   onSuggestions,
+  notice,
+  onNotices,
 }: {
   slug?: string | undefined;
   onSuggestions?: (() => void) | undefined;
+  notice?: { key: string; count: number } | undefined;
+  onNotices?: (() => void) | undefined;
 }) {
   const [aberta, setAberta] = useState(false);
   useEffect(() => {
@@ -33,6 +37,8 @@ export function LazyLebreAssistant({
         <Suspense fallback={null}>
           <LebreMascote
             slug={slug}
+            notice={notice}
+            onNotices={onNotices}
             onSuggestions={onSuggestions}
             onOpen={() => window.dispatchEvent(new Event(OPEN_LEBRE))}
           />
