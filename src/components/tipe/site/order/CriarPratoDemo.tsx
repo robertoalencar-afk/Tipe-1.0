@@ -52,7 +52,10 @@ type Etapa = "vazio" | "processando" | "pronto" | "sem-volume";
 const brl = (c: number) =>
   (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 
+export type GalleryPhoto = { url: string; depth: Blob; libraryName?: string };
+
 export type PratoEditorValue = {
+  libraryName?: string;
   name: string;
   price: number;
   categoryId: string;
@@ -77,6 +80,7 @@ type EditorProps = {
   onNameChange?: (name: string) => void;
   onNameCommit?: (name: string) => void;
   descriptionField?: ReactNode;
+  gallery?: (onPick: (photo: GalleryPhoto) => Promise<void>, onClose: () => void) => ReactNode;
   onSave?: (value: PratoEditorValue) => Promise<void>;
 };
 
@@ -96,7 +100,10 @@ export function CriarPratoEditor({
   onNameChange,
   onNameCommit,
   descriptionField,
+  gallery,
 }: EditorProps) {
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [libraryName, setLibraryName] = useState<string | undefined>();
   const [foto, setFoto] = useState<string | null>(initial?.photo ?? null);
   const [prof, setProf] = useState<string | null>(initial?.depth ?? null);
   const [etapa, setEtapa] = useState<Etapa>(
@@ -155,6 +162,7 @@ export function CriarPratoEditor({
   async function escolher(arquivo: File | undefined) {
     if (!arquivo || !arquivo.type.startsWith("image/")) return;
     const current = ++generation.current;
+    setLibraryName(undefined);
     setPhotoFile(arquivo);
     setDepthBlob(null);
     setPhotoChanged(true);
@@ -179,7 +187,30 @@ export function CriarPratoEditor({
     }
   }
 
+  async function selectGallery(image: GalleryPhoto) {
+    let file: File | null = null;
+    if (!image.libraryName) {
+      const response = await fetch(image.url);
+      if (!response.ok) throw new Error("Não foi possível carregar esta foto.");
+      const blob = await response.blob();
+      file = new File([blob], "foto-do-cardapio", { type: blob.type });
+    }
+    generation.current++;
+    setPhotoFile(file);
+    setLibraryName(image.libraryName);
+    setPhotoChanged(true);
+    setFoto(image.url);
+    setDepthBlob(image.depth);
+    const url = URL.createObjectURL(image.depth);
+    urls.current.push(url);
+    setProf(url);
+    setEtapa("pronto");
+    setStatus("");
+    setGalleryOpen(false);
+  }
+
   function recomecar() {
+    setLibraryName(undefined);
     generation.current++;
     setPhotoFile(null);
     setDepthBlob(null);
@@ -229,9 +260,11 @@ export function CriarPratoEditor({
               </div>
             </div>
           ) : (
-            <label
-              htmlFor="foto-prato"
-              className="flex min-h-36 cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border bg-background-muted px-4 text-center hover:border-[#0FC9BD]"
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => (gallery ? setGalleryOpen(true) : entrada.current?.click())}
+              className="flex w-full min-h-36 cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-border bg-background-muted px-4 text-center hover:border-[#0FC9BD]"
             >
               <span className="flex gap-2 text-[#03665f]">
                 <Camera className="h-6 w-6" aria-hidden />
@@ -241,7 +274,7 @@ export function CriarPratoEditor({
               <span className="text-xs text-muted-foreground">
                 Uma foto só, na vertical. Sem scanner.
               </span>
-            </label>
+            </button>
           )}
           <div className="mt-3 flex flex-wrap gap-2">
             <button
@@ -256,7 +289,7 @@ export function CriarPratoEditor({
             <button
               type="button"
               disabled={busy}
-              onClick={() => entrada.current?.click()}
+              onClick={() => (gallery ? setGalleryOpen(true) : entrada.current?.click())}
               className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 text-sm font-medium disabled:opacity-50"
             >
               <ImagePlus className="h-4 w-4" aria-hidden />
@@ -269,7 +302,7 @@ export function CriarPratoEditor({
             accept="image/*"
             capture="environment"
             aria-label="Tirar foto do prato"
-            className="sr-only"
+            className="hidden"
             disabled={busy}
             onChange={(e) => {
               void escolher(e.target.files?.[0]);
@@ -281,7 +314,7 @@ export function CriarPratoEditor({
             id="foto-prato"
             type="file"
             accept="image/*"
-            className="sr-only"
+            className="hidden"
             disabled={busy}
             onChange={(e) => {
               void escolher(e.target.files?.[0]);
@@ -289,6 +322,8 @@ export function CriarPratoEditor({
             }}
           />
         </div>
+
+        {galleryOpen && gallery?.(selectGallery, () => setGalleryOpen(false))}
 
         <div className="mt-5 grid gap-3 sm:grid-cols-[1fr_9rem]">
           <label className="grid gap-1 text-sm">
@@ -389,6 +424,7 @@ export function CriarPratoEditor({
                 photo: photoFile,
                 depth: depthBlob,
                 photoChanged,
+                ...(libraryName ? { libraryName } : {}),
               })
             }
           >

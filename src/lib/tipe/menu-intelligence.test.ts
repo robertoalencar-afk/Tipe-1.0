@@ -129,3 +129,33 @@ describe("idiomas publicados no Order", () => {
     ).toBe(false);
   });
 });
+
+it("validates accompaniment choice bounds and keeps existing menu data", async () => {
+  const { AccompanimentsSchema, readMenuConfig } = await import("./menu-intelligence");
+  expect(
+    AccompanimentsSchema.safeParse({
+      enabled: true,
+      min: 2,
+      max: 1,
+      choices: [{ code: "R", included: true }],
+    }).success,
+  ).toBe(false);
+  expect(
+    AccompanimentsSchema.safeParse({
+      enabled: true,
+      min: 0,
+      max: 2,
+      choices: [
+        { code: "R", included: true },
+        { code: "R", included: false },
+      ],
+    }).success,
+  ).toBe(false);
+  expect(
+    readMenuConfig({
+      featured: true,
+      accompaniments: { enabled: true, min: 1, max: 1, choices: [{ code: "R", included: true }] },
+    }).featured,
+  ).toBe(true);
+  expect(readMenuConfig({ featured: true }).accompaniments).toBeUndefined();
+});

@@ -156,6 +156,7 @@ export const placeCustomerOrder = createServerFn({ method: "POST" })
               code: z.string().min(1).max(16),
               qty: z.number().int().min(1).max(99),
               notes: z.string().max(140).optional(),
+              sides: z.array(z.string().min(1).max(16)).max(4).optional(),
             }),
           )
           .min(1)
@@ -168,7 +169,7 @@ export const placeCustomerOrder = createServerFn({ method: "POST" })
       data,
     }): Promise<
       | { items: number; total: number; reviewId?: string; reviewState?: string }
-      | { error: "invalid" | "disabled" | "closed" | "code" | "unavailable" | "failed" }
+      | { error: "invalid" | "disabled" | "closed" | "code" | "unavailable" | "choices" | "failed" }
     > => {
       const { enforceRate, clientIp, safeEqual, logSecurityEvent } =
         await import("./security.server");
@@ -221,6 +222,7 @@ export const placeCustomerOrder = createServerFn({ method: "POST" })
         } as never,
       );
       if (error) {
+        if (/acompanhamento/i.test(error.message)) return { error: "choices" };
         if (error.message.includes("desativado")) return { error: "disabled" };
         if (error.message.includes("não estão liberados")) return { error: "closed" };
         if (error.message.includes("Código da mesa")) return { error: "code" };

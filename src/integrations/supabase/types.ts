@@ -568,6 +568,7 @@ export type Database = {
           category_id: string | null
           code: string
           created_at: string
+          menu_config: Json
           description: string | null
           image_url: string | null
           depth_url: string | null
@@ -587,6 +588,7 @@ export type Database = {
           category_id?: string | null
           code: string
           created_at?: string
+          menu_config?: Json
           description?: string | null
           image_url?: string | null
           depth_url?: string | null
@@ -606,6 +608,7 @@ export type Database = {
           category_id?: string | null
           code?: string
           created_at?: string
+          menu_config?: Json
           description?: string | null
           image_url?: string | null
           depth_url?: string | null
