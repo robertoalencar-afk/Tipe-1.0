@@ -142,7 +142,7 @@ REVOKE ALL ON FUNCTION public.pdv_customer_order_dispatch(text,text,jsonb,text,t
 
 CREATE OR REPLACE FUNCTION public.resolve_customer_order_review(p_id uuid, p_approve boolean)
 RETURNS jsonb LANGUAGE plpgsql SECURITY DEFINER SET search_path=public,pg_temp AS $$
-DECLARE v_review customer_order_reviews%ROWTYPE; v_slug text; v_session text; v_result jsonb; v_el jsonb; v_price numeric;
+DECLARE v_review customer_order_reviews%ROWTYPE; v_slug text; v_session text; v_result jsonb; v_el jsonb; v_price numeric; v_side text;
 BEGIN
  -- Ler a referência antes do lock mantém a mesma ordem de locks do envio:
  -- mesa primeiro, revisão depois. Não divulga existência a não membros.
@@ -159,10 +159,10 @@ BEGIN
  IF p_approve THEN
   -- Included sides have no separate priced line, but must still be available when staff approves.
   FOR v_el IN SELECT * FROM jsonb_array_elements(v_review.items) LOOP
-   IF EXISTS (
-    SELECT 1 FROM jsonb_array_elements_text(coalesce(v_el->'side_codes','[]'::jsonb)) side_code
-    WHERE NOT EXISTS(SELECT 1 FROM pdv_menu_items WHERE restaurant_id=v_review.restaurant_id AND code=side_code AND available)
-   ) THEN RAISE EXCEPTION 'Acompanhamento indisponível. Recuse este pedido e peça ao cliente para enviar novamente.'; END IF;
+   FOR v_side IN SELECT jsonb_array_elements_text(coalesce(v_el->'side_codes','[]'::jsonb)) LOOP
+    PERFORM 1 FROM pdv_menu_items WHERE restaurant_id=v_review.restaurant_id AND code=v_side AND available FOR SHARE;
+    IF NOT FOUND THEN RAISE EXCEPTION 'Acompanhamento indisponível. Recuse este pedido e peça ao cliente para enviar novamente.'; END IF;
+   END LOOP;
   END LOOP;
   FOR v_el IN SELECT * FROM jsonb_array_elements(v_review.preview) LOOP
    SELECT price INTO v_price FROM pdv_menu_items WHERE restaurant_id=v_review.restaurant_id AND code=v_el->>'code' AND available FOR SHARE;

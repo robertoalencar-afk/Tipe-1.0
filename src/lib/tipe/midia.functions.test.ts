@@ -2,6 +2,7 @@ import { beforeEach, expect, it, vi } from "vitest";
 const m = vi.hoisted(() => ({
   role: vi.fn(),
   upload: vi.fn(),
+  list: vi.fn(),
   update: vi.fn(),
   remove: vi.fn(),
   item: vi.fn(),
@@ -52,6 +53,7 @@ vi.mock("@/integrations/supabase/client.server", () => ({
     storage: {
       from: () => ({
         upload: m.upload,
+        list: m.list,
         remove: m.remove,
         getPublicUrl: (path: string) => ({
           data: { publicUrl: `https://storage.invalid/${path}` },
@@ -81,6 +83,7 @@ beforeEach(() => {
   m.role.mockResolvedValue({ data: true });
   m.item.mockResolvedValue({ data: { id: data.itemId } });
   m.upload.mockResolvedValue({ error: null });
+  m.list.mockResolvedValue({ data: [], error: null });
   m.count = 0;
 });
 it("rejeita usuário sem papel owner antes de usar storage", async () => {
@@ -128,4 +131,32 @@ it("não aplica profundidade antiga se a foto foi trocada durante o processament
     } as never),
   ).rejects.toThrow(/foto mudou/);
   expect(m.upload).not.toHaveBeenCalled();
+});
+
+it("preserva fotos anteriores em arquivos diferentes na galeria do restaurante", async () => {
+  await saveFotoItem({ data, context: ctx } as never);
+  await saveFotoItem({ data, context: ctx } as never);
+  const paths = m.upload.mock.calls.map((call) => call[0]);
+  expect(paths).toHaveLength(2);
+  expect(paths[0]).toMatch(/^r1\/banco\/[0-9a-f-]{36}\.png$/);
+  expect(paths[1]).not.toBe(paths[0]);
+  expect(m.update.mock.calls[0]![0].image_url).toBe(`https://storage.invalid/${paths[0]}`);
+  expect(m.remove).not.toHaveBeenCalled();
+});
+it("galeria cheia não substitui a foto atual nem inicia upload", async () => {
+  m.list.mockResolvedValue({
+    data: Array.from({ length: 200 }, (_, i) => ({ name: `${i}.png` })),
+    error: null,
+  });
+  await expect(saveFotoItem({ data, context: ctx } as never)).rejects.toThrow(/200 imagens/);
+  expect(m.upload).not.toHaveBeenCalled();
+  expect(m.update).not.toHaveBeenCalled();
+});
+it("falha ao listar a galeria preserva a foto atual", async () => {
+  m.list.mockResolvedValue({ data: null, error: { message: "failed" } });
+  await expect(saveFotoItem({ data, context: ctx } as never)).rejects.toThrow(
+    /consultar a galeria/,
+  );
+  expect(m.upload).not.toHaveBeenCalled();
+  expect(m.update).not.toHaveBeenCalled();
 });

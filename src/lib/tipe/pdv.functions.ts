@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import type { Json } from "@/integrations/supabase/types";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { AccompanimentsSchema } from "./menu-intelligence";
+import { AccompanimentsSchema, readMenuConfig } from "./menu-intelligence";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 // Lançamento TIPE (adaptador manual). Integrações externas entram pelos
@@ -123,7 +123,7 @@ export const getPdvData = createServerFn({ method: "GET" })
     ]);
     return {
       categories: cats.data ?? [],
-      items: (items.data ?? []).map((i) => ({ ...i, price: Number(i.price) })),
+      items: (items.data ?? []).map((i) => ({ ...i, menu_config: readMenuConfig(i.menu_config), price: Number(i.price) })),
       waiters: waiters.data ?? [],
       tables: (tables.data ?? []).sort((a, b) => Number(a.number) - Number(b.number) || a.number.localeCompare(b.number)),
     };
