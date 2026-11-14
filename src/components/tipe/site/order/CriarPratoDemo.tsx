@@ -74,6 +74,9 @@ type EditorProps = {
   fields?: ReactNode;
   busy?: boolean;
   hideHeading?: boolean;
+  onNameChange?: (name: string) => void;
+  onNameCommit?: (name: string) => void;
+  descriptionField?: ReactNode;
   onSave?: (value: PratoEditorValue) => Promise<void>;
 };
 
@@ -90,6 +93,9 @@ export function CriarPratoEditor({
   busy = false,
   hideHeading = false,
   onSave,
+  onNameChange,
+  onNameCommit,
+  descriptionField,
 }: EditorProps) {
   const [foto, setFoto] = useState<string | null>(initial?.photo ?? null);
   const [prof, setProf] = useState<string | null>(initial?.depth ?? null);
@@ -291,7 +297,11 @@ export function CriarPratoEditor({
               maxLength={80}
               disabled={busy}
               value={nome}
-              onChange={(e) => setNome(e.target.value)}
+              onChange={(e) => {
+                setNome(e.target.value);
+                onNameChange?.(e.target.value);
+              }}
+              onBlur={() => onNameCommit?.(nome)}
               className="min-h-11 w-full min-w-0 rounded-xl border border-border bg-background px-3"
             />
           </label>
@@ -306,6 +316,7 @@ export function CriarPratoEditor({
             />
           </label>
         </div>
+        {descriptionField && <div className="mt-5">{descriptionField}</div>}
         <fieldset className="mt-3">
           <legend className="text-sm font-medium">Categoria</legend>
           <div className="mt-1 flex flex-wrap gap-1.5">
