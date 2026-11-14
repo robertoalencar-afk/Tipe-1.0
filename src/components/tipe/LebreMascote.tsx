@@ -1,10 +1,11 @@
-import { useEffect, useState } from "react";
-import { createPortal } from "react-dom";
+import { useState } from "react";
+
 import { useQuery } from "@tanstack/react-query";
 import { X } from "lucide-react";
 import { useMascotPreference } from "@/lib/tipe/mascot-preference";
 import { getMenuAssistant } from "@/lib/tipe/menu-intelligence.functions";
-import { MascoteVivo } from "./site/MascoteVivo";
+import lebreCorpo from "@/assets/mascot-waiting.webp";
+import { classeBotaoLebre, ConteudoBotaoLebre } from "./LebreBotao";
 
 export function LebreMascote({
   slug,
@@ -15,18 +16,6 @@ export function LebreMascote({
   onOpen: () => void;
   onSuggestions?: (() => void) | undefined;
 }) {
-  const [dock, setDock] = useState<HTMLElement | null>(null);
-  useEffect(() => {
-    const sync = () =>
-      setDock(
-        window.matchMedia("(min-width: 1024px)").matches
-          ? document.getElementById(`tipe-lebre-dock-${slug}`)
-          : null,
-      );
-    sync();
-    window.addEventListener("resize", sync);
-    return () => window.removeEventListener("resize", sync);
-  }, [slug]);
   const [visible, setVisible] = useMascotPreference(slug);
   const query = useQuery({
     queryKey: ["menu-assistant", slug],
@@ -37,35 +26,52 @@ export function LebreMascote({
     retry: false,
   });
   const count = query.data?.suggestions.length ?? 0;
-  if (!visible) return null;
+  const [tipHidden, setTipHidden] = useState(false);
+  if (!visible)
+    return (
+      <button
+        type="button"
+        onClick={onOpen}
+        className={classeBotaoLebre(slug)}
+        aria-label="Conversar com a Lebre"
+      >
+        <ConteudoBotaoLebre />
+      </button>
+    );
   const companion = (
     <aside
       aria-label="Mascote da Lebre"
-      className={
-        dock
-          ? "flex w-full flex-col items-center gap-2 px-2 pt-2 print:hidden"
-          : "fixed bottom-24 right-3 z-40 flex max-w-[calc(100vw-1.5rem)] items-end gap-2 print:hidden sm:right-5 lg:bottom-5"
-      }
+      className="pointer-events-none fixed bottom-24 right-3 z-40 flex max-w-[calc(100vw-1.5rem)] items-center gap-1 print:hidden sm:right-5 lg:bottom-5"
     >
-      {count > 0 && (
-        <button
-          type="button"
-          onClick={onSuggestions}
-          className={
-            dock
-              ? "hidden w-full rounded-xl border border-border bg-background px-3 py-2 text-left text-sm @[150px]:block"
-              : "mb-3 max-w-36 rounded-xl border border-border bg-background px-3 py-2 text-left text-xs shadow-sm"
-          }
-        >
-          <span className="block font-semibold">
-            Tenho {count === 1 ? "uma ideia" : `${count} ideias`} para seu cardápio
-          </span>
-          <span className="mt-1 block text-xs text-muted-foreground underline underline-offset-4">
-            Ver sugestões da Lebre
-          </span>
-        </button>
+      {!tipHidden && (
+        <div className="pointer-events-auto relative mb-6 w-44 rounded-2xl border border-border bg-background p-3 pr-7 text-sm shadow-lg sm:w-56">
+          <span
+            aria-hidden="true"
+            className="absolute -right-2 top-1/2 size-3 rotate-45 border-r border-t border-border bg-background"
+          />
+          <button
+            type="button"
+            onClick={() => setTipHidden(true)}
+            aria-label="Fechar dica"
+            className="absolute right-1 top-1 grid size-7 place-items-center rounded-full hover:bg-muted"
+          >
+            <X className="size-3.5" />
+          </button>
+          <button type="button" onClick={count > 0 ? onSuggestions : onOpen} className="text-left">
+            <span className="block font-semibold">
+              {count > 0
+                ? `Tenho ${count === 1 ? "uma ideia" : `${count} ideias`} para seu cardápio`
+                : "Quer uma ajuda? Estou por aqui."}
+            </span>
+            <span className="mt-1 block text-xs text-muted-foreground underline underline-offset-4">
+              {count > 0
+                ? "Ver sugestões da Lebre"
+                : "Peça um resumo do salão ou ajuda com um prato."}
+            </span>
+          </button>
+        </div>
       )}
-      <div className="relative shrink-0">
+      <div className="pointer-events-auto relative shrink-0">
         <button
           type="button"
           onClick={() => setVisible(false)}
@@ -81,13 +87,14 @@ export function LebreMascote({
           aria-label="Conversar com a Lebre"
           className="block rounded-2xl p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <MascoteVivo
-            className={dock ? "h-16 w-12 @[150px]:h-20 @[150px]:w-16" : "h-20 w-16"}
-            alt="Lebre"
+          <img
+            src={lebreCorpo}
+            alt="Lebre de corpo inteiro"
+            className="lebre-companheira h-40 w-24 object-cover sm:h-48 sm:w-28"
           />
         </button>
       </div>
     </aside>
   );
-  return dock ? createPortal(companion, dock) : companion;
+  return companion;
 }

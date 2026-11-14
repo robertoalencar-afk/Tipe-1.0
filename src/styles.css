@@ -2316,3 +2316,13 @@
     animation: none !important;
   }
 }
+
+@keyframes lebre-companheira {
+  0%, 70%, 100% { transform: translateY(0) rotate(0); }
+  76% { transform: translateY(-5px) rotate(-3deg); }
+  83% { transform: translateY(0) rotate(2deg); }
+  90% { transform: translateY(-2px) rotate(0); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .lebre-companheira { animation: lebre-companheira 9s ease-in-out infinite; transform-origin: 50% 92%; }
+}
