@@ -223,7 +223,6 @@ export function CardapioGestao({
       )}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="font-display text-2xl font-medium">Cardápio</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Uma foto, nome e preço. Confira ao lado como o cliente vai ver.
           </p>
