@@ -388,10 +388,10 @@ export function Shell({
             )}
           >
             {recolhida ? (
-              <TipeLogo variant={gestao ? "dark" : undefined} className="h-6" />
+              <TipeLogo variant={gestao ? "dark" : "light"} className="h-6" />
             ) : (
               <div className="min-w-0">
-                <TipeLogo variant={gestao ? "dark" : undefined} className="h-7" />
+                <TipeLogo variant={gestao ? "dark" : "light"} className="h-7" />
                 <p
                   className={cn(
                     "mt-1 truncate text-[11px]",
@@ -607,7 +607,7 @@ export function Shell({
             )}
           >
             <div>
-              <TipeLogo variant={gestao ? "dark" : undefined} className="h-7" />
+              <TipeLogo variant={gestao ? "dark" : "light"} className="h-7" />
               <p className="mt-1 text-[11px] text-white/55">{ambiente}</p>
             </div>
             <button
