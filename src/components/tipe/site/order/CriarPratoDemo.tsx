@@ -108,6 +108,7 @@ export function CriarPratoEditor({
   const [photoChanged, setPhotoChanged] = useState(false);
   const generation = useRef(0);
   const entrada = useRef<HTMLInputElement>(null);
+  const camera = useRef<HTMLInputElement>(null);
   const urls = useRef<string[]>([]);
 
   useEffect(
@@ -230,21 +231,56 @@ export function CriarPratoEditor({
                 <Camera className="h-6 w-6" aria-hidden />
                 <ImagePlus className="h-6 w-6" aria-hidden />
               </span>
-              <span className="text-sm font-semibold">Tirar foto ou escolher da galeria</span>
+              <span className="text-sm font-semibold">Escolha uma foto para o prato</span>
               <span className="text-xs text-muted-foreground">
                 Uma foto só, na vertical. Sem scanner.
               </span>
             </label>
           )}
+          <div className="mt-3 flex flex-wrap gap-2">
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => camera.current?.click()}
+              className="inline-flex min-h-11 items-center gap-2 rounded-full bg-primary px-4 text-sm font-semibold text-primary-foreground disabled:opacity-50"
+            >
+              <Camera className="h-4 w-4" aria-hidden />
+              Tirar foto
+            </button>
+            <button
+              type="button"
+              disabled={busy}
+              onClick={() => entrada.current?.click()}
+              className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 text-sm font-medium disabled:opacity-50"
+            >
+              <ImagePlus className="h-4 w-4" aria-hidden />
+              Escolher da galeria
+            </button>
+          </div>
+          <input
+            ref={camera}
+            type="file"
+            accept="image/*"
+            capture="environment"
+            aria-label="Tirar foto do prato"
+            className="sr-only"
+            disabled={busy}
+            onChange={(e) => {
+              void escolher(e.target.files?.[0]);
+              e.target.value = "";
+            }}
+          />
           <input
             ref={entrada}
             id="foto-prato"
             type="file"
             accept="image/*"
-            capture="environment"
             className="sr-only"
             disabled={busy}
-            onChange={(e) => escolher(e.target.files?.[0])}
+            onChange={(e) => {
+              void escolher(e.target.files?.[0]);
+              e.target.value = "";
+            }}
           />
         </div>
 
