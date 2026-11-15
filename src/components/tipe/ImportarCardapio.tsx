@@ -217,20 +217,17 @@ export function ImportarCardapio({ slug, onDone }: { slug: string; onDone: () =>
     }
   }
   const selected = rows.filter((r) => r.selected);
-  const valid =
-    selected.length > 0 &&
-    selected.every(
-      (r) =>
-        r.name.trim().length >= 2 &&
-        r.category.trim().length >= 2 &&
-        r.category.trim().toLowerCase() !== "para organizar" &&
-        r.description.trim().length >= 10 &&
-        r.imageIndex !== null &&
-        !!source?.photos[r.imageIndex] &&
-        Number.isFinite(priceOf(r.priceText)) &&
-        priceOf(r.priceText) >= 0 &&
-        priceOf(r.priceText) <= 10000,
-    );
+  const ready = (r: Draft) =>
+    r.name.trim().length >= 2 &&
+    r.category.trim().length >= 2 &&
+    r.category.trim().toLowerCase() !== "para organizar" &&
+    r.description.trim().length >= 10 &&
+    r.imageIndex !== null &&
+    !!source?.photos[r.imageIndex] &&
+    Number.isFinite(priceOf(r.priceText)) &&
+    priceOf(r.priceText) >= 0 &&
+    priceOf(r.priceText) <= 10000;
+  const valid = selected.length > 0 && selected.every(ready);
   return (
     <section className="space-y-5 border-t border-border py-6">
       <div>
@@ -310,6 +307,38 @@ export function ImportarCardapio({ slug, onDone }: { slug: string; onDone: () =>
             <h4 className="font-semibold">Revise {rows.length} itens encontrados</h4>
             <Button variant="ghost" disabled={busy} onClick={clear}>
               Trocar arquivo ou link
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              disabled={busy}
+              onClick={() => {
+                setConfirmed(false);
+                setRows((current) => current.map((r) => ({ ...r, selected: true })));
+              }}
+            >
+              Selecionar todos
+            </Button>
+            <Button
+              variant="outline"
+              disabled={busy}
+              onClick={() => {
+                setConfirmed(false);
+                setRows((current) => current.map((r) => ({ ...r, selected: false })));
+              }}
+            >
+              Desmarcar todos
+            </Button>
+            <Button
+              variant="outline"
+              disabled={busy}
+              onClick={() => {
+                setConfirmed(false);
+                setRows((current) => current.map((r) => ({ ...r, selected: ready(r) })));
+              }}
+            >
+              Selecionar completos ({rows.filter(ready).length})
             </Button>
           </div>
           {!!warnings.length && (
