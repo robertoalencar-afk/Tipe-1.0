@@ -1,3 +1,4 @@
+import { MenuPublicationsCarousel } from "./MenuPublicacoes";
 import { AcompanhamentosCliente } from "./AcompanhamentosCliente";
 import { createPortal } from "react-dom";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
@@ -135,7 +136,8 @@ export function MesaPedido({
   const [busca, setBusca] = useState("");
   const [language, setLanguage] = useState<MenuLanguage>("pt");
   const [diet, setDiet] = useState("");
-  const [largeText, setLargeText] = useState(false);
+  const [fontSize, setFontSize] = useState(1);
+  const [fontOptions, setFontOptions] = useState(false);
   const [carrinho, setCarrinho] = useState<Record<string, number>>({});
   const [sides, setSides] = useState<Record<string, string[]>>({});
   const [obs, setObs] = useState<Record<string, string>>({});
@@ -407,7 +409,7 @@ export function MesaPedido({
   return (
     <div
       lang={language}
-      className={`pb-28 ${largeText ? "[&_p]:!text-base [&_button]:!text-base [&_input]:!text-base" : ""}`}
+      className={`pb-28 ${fontSize === 2 ? "[&_p]:!text-lg [&_button]:!text-base [&_input]:!text-lg" : fontSize === 0 ? "[&_p]:!text-sm" : ""}`}
     >
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div role="group" aria-label="Idioma / Language" className="flex flex-wrap gap-1">
@@ -417,23 +419,48 @@ export function MesaPedido({
               <button
                 key={l.id}
                 type="button"
+                aria-label={l.name}
+                title={l.name}
                 aria-pressed={language === l.id}
                 onClick={() => setLanguage(l.id)}
                 className={`min-h-11 rounded-xl px-3 text-sm font-medium ${language === l.id ? "bg-primary text-primary-foreground" : "border border-border bg-card"}`}
               >
-                <span aria-hidden="true">{l.flag}</span> {l.name}
+                <span aria-hidden="true" className="text-xl">
+                  {l.flag}
+                </span>
               </button>
             ))}
         </div>
-        <button
-          type="button"
-          aria-pressed={largeText}
-          onClick={() => setLargeText(!largeText)}
-          className="min-h-10 rounded-xl border border-border px-3 text-sm font-semibold"
-        >
-          A+ · {labels.enlarge}
-        </button>
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            aria-label={labels.enlarge}
+            title={labels.enlarge}
+            aria-expanded={fontOptions}
+            onClick={() => setFontOptions(!fontOptions)}
+            className="min-h-11 min-w-11 rounded-xl border border-border px-3 font-semibold"
+          >
+            Aa
+          </button>
+          {fontOptions && (
+            <div role="group" aria-label={labels.enlarge} className="flex gap-1">
+              {["A−", "A", "A+"].map((label, index) => (
+                <button
+                  key={label}
+                  type="button"
+                  aria-label={`${labels.enlarge}: ${label}`}
+                  aria-pressed={fontSize === index}
+                  onClick={() => setFontSize(index)}
+                  className={`min-h-11 min-w-11 rounded-xl border border-border px-2 ${fontSize === index ? "bg-primary text-primary-foreground" : "bg-card"}`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
+      <MenuPublicationsCarousel posts={menu.posts ?? []} items={displayItems} onOpen={setStory} />
       <label className="flex items-center gap-2 rounded-xl border border-input bg-card px-3">
         <Search className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
         <span className="sr-only">{labels.search}</span>
