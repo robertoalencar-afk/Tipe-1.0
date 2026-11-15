@@ -182,7 +182,25 @@ export const getBancoImagens = createServerFn({ method: "GET" })
       .from("restaurante-midia")
       .list(`${rid}/banco`, { limit: 200, sortBy: { column: "created_at", order: "desc" } });
     if (error) throw new Error("Não foi possível carregar o banco de imagens");
+    const [items, restaurant] = await Promise.all([
+      db
+        .from("pdv_menu_items")
+        .select("id,name,image_url")
+        .eq("restaurant_id", rid)
+        .not("image_url", "is", null),
+      db.from("restaurants").select("logo_url").eq("id", rid).maybeSingle(),
+    ]);
+    if (items.error || restaurant.error)
+      throw new Error("Não foi possível carregar as imagens do restaurante");
     return {
+      cardapio: ((items.data ?? []) as { id: string; name: string; image_url: string }[]).map(
+        (item: { id: string; name: string; image_url: string }) => ({
+          id: item.id,
+          name: item.name,
+          url: item.image_url,
+        }),
+      ),
+      logoUrl: (restaurant.data?.logo_url ?? null) as string | null,
       imagens: ((lista ?? []) as { name: string; created_at?: string }[])
         .filter((f) => /\.(webp|png|jpg)$/.test(f.name))
         .map((f) => ({

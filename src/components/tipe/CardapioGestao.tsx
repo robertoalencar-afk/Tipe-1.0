@@ -1,3 +1,4 @@
+import { LebrePhotoReview } from "./LebrePhotoReview";
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -114,9 +115,13 @@ export function CardapioGestao({
     accompaniments: { enabled: false, min: 0, max: 1, choices: [] },
   });
   const [draft, setDraft] = useState<Draft>(empty);
+  const [reviewPhoto, setReviewPhoto] = useState<File | string | null>(null);
   const [generation, setGeneration] = useState(0);
   const editor = useRef<HTMLDivElement>(null);
   const scrollToEditor = useRef(false);
+  useEffect(() => {
+    setReviewPhoto(null);
+  }, [generation]);
   useEffect(() => {
     if (!scrollToEditor.current) return;
     scrollToEditor.current = false;
@@ -302,6 +307,8 @@ export function CardapioGestao({
         <CriarPratoEditor
           key={generation}
           hideHeading
+          description={draft.description}
+          onPhotoChange={setReviewPhoto}
           gallery={(onPick, onClose) => (
             <Dialog
               open
@@ -334,6 +341,7 @@ export function CardapioGestao({
           onNameCommit={(name) => void suggestDescription(name, true)}
           descriptionField={
             <div className="space-y-2">
+              <LebrePhotoReview key={generation} slug={slug} photo={reviewPhoto} />
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <label htmlFor="dish-description" className="text-sm font-medium">
                   Descrição do prato

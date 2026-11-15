@@ -42,6 +42,7 @@ export function BancoImagens({
     queryKey: ["banco-imagens", slug],
     queryFn: () => fetchB({ data: { slug } }),
   });
+  const [aba, setAba] = useState<"cardapio" | "envios" | "logo">("cardapio");
   const depths = useRef(new Map<string, Blob>());
   const [processo, setProcesso] = useState("");
   const ref = useRef<HTMLInputElement>(null);
@@ -51,6 +52,7 @@ export function BancoImagens({
 
   async function enviar(files: FileList | null) {
     if (!files?.length) return;
+    setAba("envios");
     setEnviando(files.length);
     let ok = 0;
     for (const f of Array.from(files)) {
@@ -111,6 +113,7 @@ export function BancoImagens({
     }
   }
   const imagens = q.data?.imagens ?? [];
+  const catalogo = q.data?.cardapio ?? fotosAtuais;
   return (
     <section className={onEscolher ? "min-w-0 space-y-4" : "surface-card space-y-4 p-4 sm:p-5"}>
       {processo && (
@@ -152,6 +155,82 @@ export function BancoImagens({
           </>
         )}
       </div>
+      <div className="flex flex-wrap gap-2" aria-label="Categorias de imagens">
+        {(
+          [
+            ["cardapio", "Cardápio"],
+            ["envios", "Fotos enviadas"],
+            ["logo", "Logomarca"],
+          ] as const
+        ).map(([id, label]) => (
+          <Button
+            key={id}
+            variant={aba === id ? "default" : "outline"}
+            aria-pressed={aba === id}
+            onClick={() => setAba(id)}
+          >
+            {label}
+          </Button>
+        ))}
+      </div>
+      {aba === "logo" &&
+        !q.isPending &&
+        !q.isError &&
+        (q.data?.logoUrl ? (
+          <div className="rounded-xl border border-border p-6">
+            <img
+              src={q.data.logoUrl}
+              alt="Logomarca do restaurante"
+              className="h-40 w-full object-contain"
+            />
+            <p className="mt-3 text-center text-sm text-muted-foreground">
+              Logomarca usada pelo restaurante
+            </p>
+          </div>
+        ) : (
+          <p className="py-6 text-sm text-muted-foreground">
+            O restaurante ainda não cadastrou uma logomarca.
+          </p>
+        ))}
+      {aba === "cardapio" &&
+        !q.isPending &&
+        !q.isError &&
+        (catalogo.length ? (
+          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {catalogo.map((f) => (
+              <li key={f.id} className="min-w-0 space-y-2">
+                <img
+                  src={f.url}
+                  alt={f.name}
+                  loading="lazy"
+                  className="aspect-square w-full rounded-xl object-cover"
+                />
+                <p className="break-words text-sm font-medium">{f.name}</p>
+                {onEscolher && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    disabled={aplicando || enviando > 0}
+                    onClick={() =>
+                      void escolher(
+                        f.url,
+                        imagens.find((i) => i.url.split("?")[0] === f.url.split("?")[0])?.nome,
+                      )
+                    }
+                  >
+                    Usar esta foto
+                  </Button>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="py-6 text-sm text-muted-foreground">
+            As fotos dos pratos cadastrados aparecerão aqui. Você também pode escolher uma das fotos
+            enviadas.
+          </p>
+        ))}
       {q.isPending ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {[0, 1, 2, 3, 4].map((i) => (
@@ -168,7 +247,7 @@ export function BancoImagens({
             Tentar novamente
           </Button>
         </div>
-      ) : imagens.length === 0 ? (
+      ) : aba !== "envios" ? null : imagens.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
           Nenhuma foto salva na galeria ainda.{" "}
           {podeDono
@@ -240,46 +319,6 @@ export function BancoImagens({
           ))}
         </ul>
       )}
-      {onEscolher &&
-        fotosAtuais.some(
-          (f) => !imagens.some((i) => i.url.split("?")[0] === f.url.split("?")[0]),
-        ) && (
-          <div className="space-y-3 border-t border-border pt-4">
-            <h3 className="font-medium">Fotos já usadas no cardápio</h3>
-            <p className="text-xs text-muted-foreground">
-              Você também pode reutilizar as fotos dos pratos cadastrados.
-            </p>
-            <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-              {fotosAtuais
-                .filter(
-                  (f, index, all) =>
-                    all.findIndex((x) => x.url === f.url) === index &&
-                    !imagens.some((i) => i.url.split("?")[0] === f.url.split("?")[0]),
-                )
-                .map((f) => (
-                  <li key={f.id} className="min-w-0 space-y-2">
-                    <img
-                      src={f.url}
-                      alt={f.name}
-                      loading="lazy"
-                      className="aspect-square w-full rounded-xl object-cover"
-                    />
-                    <p className="truncate text-xs">{f.name}</p>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      disabled={aplicando || enviando > 0}
-                      onClick={() => void escolher(f.url)}
-                    >
-                      Usar esta foto
-                    </Button>
-                  </li>
-                ))}
-            </ul>
-          </div>
-        )}
     </section>
   );
 }

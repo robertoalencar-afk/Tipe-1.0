@@ -515,7 +515,7 @@ export function MesaPedido({
                           type="button"
                           onClick={() => setStory(i.code)}
                           aria-label={`Ver ${i.name} em tela cheia`}
-                          className="group relative block aspect-[16/10] w-full overflow-hidden bg-muted"
+                          className="group relative block h-36 w-full overflow-hidden bg-muted sm:h-44"
                         >
                           <img
                             src={i.imageUrl}
@@ -555,7 +555,9 @@ export function MesaPedido({
                             )}
                           </p>
                           {i.description && (
-                            <p className="mt-0.5 text-xs text-muted-foreground">{i.description}</p>
+                            <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-relaxed text-muted-foreground">
+                              {i.description}
+                            </p>
                           )}
                           {!!i.config?.diets.length && (
                             <p className="mt-1 text-xs text-primary">
