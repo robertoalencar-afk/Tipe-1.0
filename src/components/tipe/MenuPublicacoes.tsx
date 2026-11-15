@@ -55,13 +55,16 @@ export function MenuPublicationsCarousel({
     [hover, setHover] = useState(false);
   const reduced = useMovimentoReduzido();
   const track = useRef<HTMLDivElement>(null);
-  const go = useCallback((index: number) => {
-    if (!available.length) return;
-    const next = (index + available.length) % available.length;
-    setActive(next);
-    const el = track.current;
-    el?.scrollTo({ left: next * el.clientWidth, behavior: reduced ? "instant" : "smooth" });
-  }, [available.length,reduced]);
+  const go = useCallback(
+    (index: number) => {
+      if (!available.length) return;
+      const next = (index + available.length) % available.length;
+      setActive(next);
+      const el = track.current;
+      el?.scrollTo({ left: next * el.clientWidth, behavior: reduced ? "instant" : "smooth" });
+    },
+    [available.length, reduced],
+  );
   useEffect(() => {
     if (paused || hover || reduced || available.length < 2) return;
     const t = setInterval(() => {
