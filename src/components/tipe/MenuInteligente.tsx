@@ -1,9 +1,9 @@
+import { useMascotPreference } from "@/lib/tipe/mascot-preference";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useMascotPreference } from "@/lib/tipe/mascot-preference";
 import { MascoteVivo } from "./site/MascoteVivo";
 import { LebreSuggestionButton } from "./LebreSuggestionButton";
 import { Check, ChevronRight } from "lucide-react";
@@ -32,8 +32,8 @@ export function MenuInteligente({
   slug: string;
   onEditItem: (id: string) => void;
 }) {
-  const [mascotVisible, setMascotVisible] = useMascotPreference(slug);
   const qc = useQueryClient();
+  const [mascotVisible] = useMascotPreference(slug);
   const query = useQuery({
     queryKey: ["menu-studio", slug],
     queryFn: () => getMenuStudio({ data: { slug } }),
@@ -154,16 +154,7 @@ export function MenuInteligente({
           )}
         </div>
       </div>
-      <label className="flex min-h-11 items-center gap-3 text-sm">
-        <input
-          type="checkbox"
-          className="h-5 w-5 accent-primary"
-          checked={mascotVisible}
-          onChange={(e) => setMascotVisible(e.target.checked)}
-        />
-        Exibir mascote da Lebre
-        <span className="text-xs text-muted-foreground">Neste navegador</span>
-      </label>
+
       {(query.isPending || assistant.isPending) && (
         <p role="status" className="text-sm">
           Buscando seu cardápio…

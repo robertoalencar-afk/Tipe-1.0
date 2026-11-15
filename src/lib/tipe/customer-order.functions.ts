@@ -1,3 +1,4 @@
+import { readMenuPosts, type MenuPost } from "./menu-posts";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
@@ -20,6 +21,7 @@ const Slug = z
   .regex(/^[a-z0-9-]+$/);
 
 export type PublicMenu = {
+  posts?: MenuPost[];
   languages?: MenuLanguage[];
   selfOrder: boolean;
   restaurantName: string;
@@ -89,7 +91,7 @@ export const getPublicMenu = createServerFn({ method: "GET" })
         .select("id,name,description,menu_config")
         .eq("restaurant_id", r.id)
         .eq("available", true),
-      db.from("restaurants").select("menu_links").eq("id", r.id).maybeSingle(),
+      db.from("restaurants").select("menu_links,menu_posts").eq("id", r.id).maybeSingle(),
       db
         .from("menu_assistant")
         .select("auto_translate,languages")
@@ -104,6 +106,7 @@ export const getPublicMenu = createServerFn({ method: "GET" })
     );
     const links = MenuLinksSchema.safeParse(social.data?.menu_links ?? {});
     return {
+      posts: readMenuPosts(social.data?.menu_posts).filter((p) => p.enabled),
       languages: publishedMenuLanguages(assistant.data, editorial.data ?? []),
       links: links.success ? links.data : { instagram: "", reviews: "" },
       logoUrl: (logoRow as { logo_url?: string | null } | null)?.logo_url ?? null,
