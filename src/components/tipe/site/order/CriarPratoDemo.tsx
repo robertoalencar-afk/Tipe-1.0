@@ -80,6 +80,8 @@ type EditorProps = {
   onNameChange?: (name: string) => void;
   onNameCommit?: (name: string) => void;
   descriptionField?: ReactNode;
+  description?: string;
+  onPhotoChange?: (photo: File | string | null) => void;
   gallery?: (onPick: (photo: GalleryPhoto) => Promise<void>, onClose: () => void) => ReactNode;
   onSave?: (value: PratoEditorValue) => Promise<void>;
 };
@@ -100,6 +102,8 @@ export function CriarPratoEditor({
   onNameChange,
   onNameCommit,
   descriptionField,
+  description,
+  onPhotoChange,
   gallery,
 }: EditorProps) {
   const [galleryOpen, setGalleryOpen] = useState(false);
@@ -164,6 +168,7 @@ export function CriarPratoEditor({
     const current = ++generation.current;
     setLibraryName(undefined);
     setPhotoFile(arquivo);
+    onPhotoChange?.(arquivo);
     setDepthBlob(null);
     setPhotoChanged(true);
     const url = URL.createObjectURL(arquivo);
@@ -197,6 +202,7 @@ export function CriarPratoEditor({
     }
     generation.current++;
     setPhotoFile(file);
+    onPhotoChange?.(file ?? image.url);
     setLibraryName(image.libraryName);
     setPhotoChanged(true);
     setFoto(image.url);
@@ -210,6 +216,7 @@ export function CriarPratoEditor({
   }
 
   function recomecar() {
+    onPhotoChange?.(null);
     setLibraryName(undefined);
     generation.current++;
     setPhotoFile(null);
@@ -472,6 +479,11 @@ export function CriarPratoEditor({
             <p className="mt-2 font-display text-[1.6rem] leading-[1.05] tracking-[-0.03em]">
               {nome || "Nome do prato"}
             </p>
+            {description?.trim() && (
+              <p className="mt-2 max-h-32 overflow-y-auto whitespace-pre-wrap break-words text-sm leading-relaxed text-white/90">
+                {description}
+              </p>
+            )}
             <div className="mt-3 flex h-12 items-center justify-center rounded-full bg-white text-sm font-semibold text-[#021E34]">
               Adicionar · {brl(precoCentavos)}
             </div>

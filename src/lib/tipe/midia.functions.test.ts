@@ -7,6 +7,8 @@ const m = vi.hoisted(() => ({
   remove: vi.fn(),
   item: vi.fn(),
   count: 0,
+  eq: vi.fn(),
+  catalog: [] as { id: string; name: string; image_url: string }[],
 }));
 vi.mock("@tanstack/react-start", () => ({
   createServerFn: () => {
@@ -33,7 +35,8 @@ vi.mock("@/integrations/supabase/client.server", () => ({
       interface Chain {
         select: () => Chain;
         update: (x: unknown) => Chain;
-        eq: () => Chain;
+        eq: (...args: unknown[]) => Chain;
+        not: () => Chain;
         maybeSingle: typeof m.item;
         then: (resolve: (result: { count: number; error: null }) => unknown) => unknown;
       }
@@ -43,10 +46,17 @@ vi.mock("@/integrations/supabase/client.server", () => ({
           m.update(x);
           return chain;
         },
-        eq: () => chain,
+        eq: (...args: unknown[]) => {
+          m.eq(...args);
+          return chain;
+        },
+        not: () => chain,
         maybeSingle: m.item,
         then: (resolve: (result: { count: number; error: null }) => unknown) =>
-          resolve({ count: m.count, error: null }),
+          resolve({ count: m.count, error: null, data: m.catalog } as {
+            count: number;
+            error: null;
+          }),
       };
       return chain;
     },
@@ -62,7 +72,7 @@ vi.mock("@/integrations/supabase/client.server", () => ({
     },
   },
 }));
-import { saveFotoItem, removeBancoImagem } from "./midia.functions";
+import { saveFotoItem, removeBancoImagem, getBancoImagens } from "./midia.functions";
 const ctx = {
   userId: "u1",
   supabase: {
@@ -85,6 +95,7 @@ beforeEach(() => {
   m.upload.mockResolvedValue({ error: null });
   m.list.mockResolvedValue({ data: [], error: null });
   m.count = 0;
+  m.catalog = [];
 });
 it("rejeita usuário sem papel owner antes de usar storage", async () => {
   m.role.mockResolvedValue({ data: false });
@@ -159,4 +170,17 @@ it("falha ao listar a galeria preserva a foto atual", async () => {
   );
   expect(m.upload).not.toHaveBeenCalled();
   expect(m.update).not.toHaveBeenCalled();
+});
+
+it("galeria inclui fotos existentes no cardápio e logomarca, mesmo sem envios", async () => {
+  m.catalog = [{ id: "i1", name: "Prato", image_url: "https://storage.invalid/legacy.png" }];
+  m.item.mockResolvedValue({ data: { logo_url: "https://storage.invalid/logo.png" } });
+  const gallery = await getBancoImagens({ data: { slug: "teste" }, context: ctx } as never);
+  expect(gallery.cardapio).toEqual([
+    { id: "i1", name: "Prato", url: "https://storage.invalid/legacy.png" },
+  ]);
+  expect(gallery.logoUrl).toBe("https://storage.invalid/logo.png");
+  expect(gallery.imagens).toEqual([]);
+  expect(m.eq).toHaveBeenCalledWith("restaurant_id", "r1");
+  expect(m.eq).toHaveBeenCalledWith("id", "r1");
 });
