@@ -75,6 +75,8 @@ import { Image as ImagemIcon, Images, BookOpen } from "lucide-react";
 import { EquipePermissoes } from "@/components/tipe/EquipePermissoes";
 import { TotemStudio } from "@/components/tipe/TotemStudio";
 import { LiberarPedidosMesa } from "@/components/tipe/LiberarPedidosMesa";
+import { EstacoesConfig } from "@/components/tipe/EstacoesConfig";
+import { DesignarGarcom } from "@/components/tipe/DesignarGarcom";
 import { Assinatura, AvisoAssinatura, ContaBloqueada } from "@/components/tipe/Assinatura";
 import { getAccountAccess } from "@/lib/tipe/subscription.functions";
 import { abaLiberada } from "@/lib/tipe/assinatura";
@@ -840,7 +842,12 @@ export function RestaurantPanel({
         )}
 
         {aba === "pdv" && <LancarPedido slug={slug} pdv={pdv.data} mesa={mesaPedido} setMesa={setMesaPedido} podeBalcao={podeConfirmar} onDone={refresh} />}
-        {aba === "cozinha" && <Cozinha slug={slug} podePainel={podeConfirmar} />}
+        {aba === "cozinha" && (
+          <div className="space-y-4">
+            <Cozinha slug={slug} podePainel={podeConfirmar} />
+            {(podeDono || myRoles.includes("manager")) && <EstacoesConfig slug={slug} />}
+          </div>
+        )}
         {aba === "reservas" && reservasOn && <ReservasPainel slug={slug} podeDono={podeDono} />}
         {aba === "caixa" && <><PendenciasFinanceiras slug={slug} enabled={podeConfirmar} /><Caixa slug={slug} podeCaixa={podeConfirmar} confirmacoes={confirmacoes} /></>}
 
@@ -1023,6 +1030,7 @@ function MesaDetalhe({
         </DialogTitle>
         {mesa.garcom && <p className="text-sm text-muted-foreground">Garçom: {mesa.garcom}</p>}
       </DialogHeader>
+      {podeConfirmar && <DesignarGarcom slug={slug} table={mesa.number} onDone={onDone} />}
       <LiberarPedidosMesa slug={slug} table={mesa.number} />
       {mesa.itens.length === 0 ? (
         <p className="rounded-xl bg-background-muted px-4 py-6 text-center text-sm text-muted-foreground">

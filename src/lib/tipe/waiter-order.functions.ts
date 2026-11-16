@@ -140,7 +140,9 @@ export const getWaiterPos = createServerFn({ method: "GET" })
       .slice(0, 6)
       .map(([c]) => c);
 
+    // Garçom só vê e atende as mesas que o administrador designou a ele.
     const tablesOut: WaiterTable[] = (tables.data ?? [])
+      .filter((t) => t.waiter_id === w.id)
       .sort((a, b) => Number(a.number) - Number(b.number) || a.number.localeCompare(b.number))
       .map((t) => {
         const itens = porMesa.get(t.number) ?? [];

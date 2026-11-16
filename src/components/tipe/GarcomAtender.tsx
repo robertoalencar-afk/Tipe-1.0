@@ -61,6 +61,10 @@ export function GarcomAtender() {
     refetchInterval: 15000,
   });
   const [mesaSel, setMesaSel] = useState<string | null>(null);
+  // Modo maquininha: tela pequena de PDV manual, uma mesa por linha. Lembra a escolha neste aparelho.
+  const [maquininha, setMaquininha] = useState(() => {
+    try { return localStorage.getItem("tipe-garcom-maquininha") === "1"; } catch { return false; }
+  });
   const orderAccess = useOrderAccess(q.data?.restaurantSlug);
   const [lancarMesa, setLancarMesa] = useState<string | null>(null);
 
@@ -150,6 +154,15 @@ export function GarcomAtender() {
           )}
         </div>
         <Button
+          size="sm"
+          variant={maquininha ? "default" : "outline"}
+          aria-pressed={maquininha}
+          title="Layout enxuto para a maquininha: uma mesa por linha, botões grandes"
+          onClick={() => setMaquininha((v) => { const n = !v; try { localStorage.setItem("tipe-garcom-maquininha", n ? "1" : "0"); } catch { /* sem armazenamento */ } return n; })}
+        >
+          Maquininha
+        </Button>
+        <Button
           size="icon"
           variant="ghost"
           aria-label="Atualizar"
@@ -227,7 +240,12 @@ export function GarcomAtender() {
         )}
       </section>
 
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      {ativas.length === 0 && (
+        <p className="rounded-2xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+          Nenhuma mesa designada a você agora. O dono, gerente ou caixa abre a mesa para você; ela aparece aqui na hora.
+        </p>
+      )}
+      <div className={maquininha ? "grid grid-cols-1 gap-2" : "grid grid-cols-2 gap-3 sm:grid-cols-3"}>
         {ativas.map((m) => {
           const pct = m.total > 0 ? Math.min(100, Math.round((m.pago / m.total) * 100)) : 0;
           const temItens = m.status !== "livre";
@@ -236,7 +254,7 @@ export function GarcomAtender() {
               key={m.number}
               type="button"
               onClick={() => (temItens || orderAtivo ? setMesaSel(m.number) : setLancarMesa(m.number))}
-              className={`flex min-h-[120px] flex-col rounded-2xl border-2 p-3 text-left transition active:scale-[.98] ${statusInfo[m.status].cls}`}
+              className={`flex ${maquininha ? "min-h-[72px] flex-row items-center justify-between gap-3" : "min-h-[120px] flex-col"} rounded-2xl border-2 p-3 text-left transition active:scale-[.98] ${statusInfo[m.status].cls}`}
             >
               <div className="flex items-start justify-between gap-1">
                 <span className="font-display text-xl font-bold leading-none">Mesa {m.number}</span>
