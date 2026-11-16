@@ -345,6 +345,7 @@ export function MesaPedido({
       ...(i.modelUrl ? { modelo: i.modelUrl } : {}),
       ...(i.badge ? { selo: i.badge } : {}),
       creditoFoto: menuPhotoCredit(i.config, i.imageUrl),
+      fotoIlustrativa: slug === "bistro-teste",
       ...(i.allergens.length ? { alergenicos: i.allergens } : {}),
     }));
 
@@ -592,6 +593,7 @@ export function MesaPedido({
                           <MenuPhotoCredit
                             credit={menuPhotoCredit(i.config, i.imageUrl)}
                             language={language}
+                            illustrative={slug === "bistro-teste" && !!i.imageUrl}
                           />
                           {!!i.config?.diets.length && (
                             <p className="mt-1 text-xs text-primary">

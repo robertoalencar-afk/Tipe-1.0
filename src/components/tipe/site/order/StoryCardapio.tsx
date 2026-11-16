@@ -39,6 +39,7 @@ export type ItemStory = {
   selo?: string;
   alergenicos?: string[];
   creditoFoto?: PhotoCredit | undefined;
+  fotoIlustrativa?: boolean;
 };
 
 const DURACAO = 6000;
@@ -461,7 +462,12 @@ export function StoryCardapio({
           {item.nome}
         </p>
         {item.desc && <p className="mt-1 text-sm text-white/85">{item.desc}</p>}
-        <MenuPhotoCredit credit={item.creditoFoto} inverse onOpen={() => setPausado(true)} />
+        <MenuPhotoCredit
+          credit={item.creditoFoto}
+          illustrative={!!item.fotoIlustrativa}
+          inverse
+          onOpen={() => setPausado(true)}
+        />
         {item.alergenicos?.length ? (
           <p className="mt-1 text-[0.68rem] text-white/70">
             Contém: {item.alergenicos.join(", ")} (informado pelo restaurante)

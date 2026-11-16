@@ -101,6 +101,7 @@ describe("cardápio inteligente", () => {
     "",
   ])("allows a supported link: %s", (url) => expect(safeMenuLink(url)).toBe(true));
   it.each([
+    "not a URL",
     "javascript:alert(1)",
     "http://instagram.com/a",
     "https://instagram.com.evil.test",
