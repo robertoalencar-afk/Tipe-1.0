@@ -1,7 +1,7 @@
 /**
  * Caixa de e-mail da Central (roberto@ e contato@tipe.digital): só founder com 2FA.
  * Recebimento: Cloudflare Email Routing -> Worker -> /api/public/email-inbound.
- * Envio: Resend, sempre por ação explícita do fundador. Tabelas: migração 0071.
+ * Envio: Resend, sempre por ação explícita do fundador. Tabelas: migração 0075.
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";

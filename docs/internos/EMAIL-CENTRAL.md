@@ -11,7 +11,7 @@ Nada é enviado sozinho: só quando o fundador aperta Enviar. Corpo sempre exibi
 
 ## Passos do Roberto (nada disso foi feito pelo código)
 
-1. **Migração 0071** aplicada (vai junto com o merge em main).
+1. **Migração 0075** aplicada (vai junto com o merge em main).
 2. **Segredo**: gerar um valor longo e aleatório (`openssl rand -hex 32`). Guardar como `EMAIL_INBOUND_SECRET` no Worker do site (Cloudflare > Workers > tipe > Settings > Variables) **e** no Worker de e-mail (`wrangler secret put EMAIL_INBOUND_SECRET` dentro de `email-worker/`). Nunca no código.
 3. **Worker de e-mail**: `cd email-worker && bun install && bunx wrangler deploy`. `APP_URL` em `wrangler.jsonc` deve ser o endereço do site.
 4. **Cloudflare > tipe.digital > Email > Email Routing**: ativar. Cloudflare cria os registros MX e SPF.
