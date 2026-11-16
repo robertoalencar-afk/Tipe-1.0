@@ -16,7 +16,7 @@ import {
 
 const TITLE = "Integrações da Tipe · Pagamentos, PDV e o que vem a seguir";
 const DESC =
-  "Veja o que a Tipe integra hoje (Lançamento TIPE, API TIPE, pagamentos digitais sujeitos à validação) e as condições de compatibilidade para PDVs, delivery, ERP e nota fiscal.";
+  "Veja o que a Tipe integra hoje (Lançamento TIPE, API TIPE, NFC-e pelo Focus NFe, pagamentos digitais sujeitos à validação) e as condições de compatibilidade para PDVs, delivery e ERP.";
 
 export const Route = createFileRoute("/integracoes")({
   head: () => ({

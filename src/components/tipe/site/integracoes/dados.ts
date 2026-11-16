@@ -105,8 +105,8 @@ export const INTEGRACOES_V5: Integracao[] = [
   {
     nome: "Fiscal e NFC-e",
     grupo: "Gestão",
-    status: "planejada",
-    d: "NFC-e pelo emissor do restaurante (Focus NFe, PlugNotas, eNotas). Ainda não emitimos notas.",
+    status: "disponivel",
+    d: "NFC-e da venda encerrada pelo Focus NFe, com o CNPJ, o certificado A1 e o CSC do restaurante, e impressão na térmica do caixa. Ativação guiada pela Gestão. Outros emissores sob consulta.",
   },
   {
     nome: "Delivery",
@@ -177,7 +177,7 @@ export const NOS_HUB: NoHub[] = [
   {
     id: "fiscal",
     titulo: "Fiscal, delivery e ERP",
-    sub: "NFC-e, iFood, Omie e outros sob consulta de compatibilidade",
+    sub: "NFC-e disponível pelo Focus NFe; iFood, Omie e outros sob consulta de compatibilidade",
     status: "planejada",
     icone: "fiscal",
     cartao: { titulo: "NFC-e emitida", linha: "Mesa 12 · R$ 356,40" },

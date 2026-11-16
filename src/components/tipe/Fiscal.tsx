@@ -2,6 +2,7 @@ import { FiscalEmitir } from "./FiscalEmitir";
 import { FiscalHabilitacao } from "./FiscalHabilitacao";
 import { FiscalDocumentoAcoes } from "./FiscalDocumentoAcoes";
 import { FiscalImpressao } from "./FiscalImpressao";
+import { FiscalAtivacao } from "./FiscalAtivacao";
 import { useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -45,7 +46,7 @@ const stateLabel: Record<string, string> = {
 
 export function Fiscal({ slug, canConfigure = true }: { slug: string; canConfigure?: boolean }) {
   const [environment, setEnvironment] = useState<AmbienteFiscal>("homologacao");
-  const [aba, setAba] = useState(canConfigure ? "configuracao" : "emissao");
+  const [aba, setAba] = useState(canConfigure ? "ativacao" : "emissao");
   const [documentId, setDocumentId] = useState<string | undefined>(undefined);
   return (
     <div className="space-y-6">
@@ -73,13 +74,16 @@ export function Fiscal({ slug, canConfigure = true }: { slug: string; canConfigu
         className="flex gap-2 overflow-x-auto border-b border-border pb-3"
       >
         {[
+          ["ativacao", "Ativar NFC-e"],
           ["configuracao", "Emitente e conexão"],
           ["produtos", "Tributos dos produtos"],
           ["emissao", "Emitir NFC-e"],
           ["documentos", "Documentos"],
           ["impressao", "Impressora"],
         ]
-          .filter(([key]) => canConfigure || !["configuracao", "produtos"].includes(key!))
+          .filter(
+            ([key]) => canConfigure || !["ativacao", "configuracao", "produtos"].includes(key!),
+          )
           .map(([key, label]) => (
             <Button
               key={key}
@@ -95,7 +99,15 @@ export function Fiscal({ slug, canConfigure = true }: { slug: string; canConfigu
           ))}
       </nav>
       <div key={environment}>
-        {aba === "configuracao" && canConfigure ? (
+        {aba === "ativacao" && canConfigure ? (
+          <FiscalAtivacao
+            slug={slug}
+            onIr={(destino, ambiente) => {
+              if (ambiente) setEnvironment(ambiente);
+              setAba(destino);
+            }}
+          />
+        ) : aba === "configuracao" && canConfigure ? (
           <Configuracao slug={slug} environment={environment} />
         ) : aba === "produtos" && canConfigure ? (
           <Produtos slug={slug} environment={environment} />

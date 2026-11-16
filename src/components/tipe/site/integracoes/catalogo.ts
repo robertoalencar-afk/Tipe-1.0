@@ -16,7 +16,7 @@ export const CATEGORIAS: { id: CategoriaId; titulo: string; sub: string }[] = [
   { id: "pdv", titulo: "PDV e gestão do salão", sub: "Mesas, cardápio e pedidos" },
   { id: "delivery", titulo: "Delivery", sub: "Pedidos dos apps (em implantação)" },
   { id: "erp", titulo: "ERP e contabilidade", sub: "Fechamento e recebimentos" },
-  { id: "fiscal", titulo: "Nota fiscal", sub: "NFC-e (em implantação)" },
+  { id: "fiscal", titulo: "Nota fiscal", sub: "NFC-e pelo Focus NFe, ativação guiada" },
   { id: "pagamentos", titulo: "Pagamentos", sub: "Conciliação das maquininhas" },
   { id: "cardapio", titulo: "Cardápio e planilhas", sub: "Importe sem digitar" },
 ];
@@ -109,7 +109,7 @@ const SINCRONIZA: Record<CategoriaId, string> = {
   pdv: "mesas, cardápio e pedidos; quando a conta é paga na Tipe, a baixa volta para o sistema",
   delivery: "pedidos do app, em implantação: ativação sob consulta, sem integração automática no ar hoje",
   erp: "o fechamento do dia, os recebimentos por forma de pagamento e as gorjetas",
-  fiscal: "a NFC-e de cada conta paga, em implantação: ativação sob consulta com a equipe",
+  fiscal: "a NFC-e da venda encerrada, emitida com o CNPJ, o certificado e o CSC do restaurante",
   pagamentos: "as vendas da maquininha, conciliadas com as contas pagas na mesa",
   cardapio: "categorias, itens, preços e fotos do cardápio",
 };
@@ -218,6 +218,29 @@ export function passosPara(sis: Sistema, metodo: MetodoId): Passo[] {
         },
       ];
     case "certificado":
+      if (sis.id === "focus-nfe")
+        return [
+          {
+            titulo: "Separe o certificado A1 e o CSC",
+            texto:
+              "O arquivo .pfx do e-CNPJ A1 com a senha, e o CSC com o ID dele, gerado no credenciamento de NFC-e da SEFAZ do seu estado. O contador costuma ajudar.",
+          },
+          {
+            titulo: "Cadastre o CNPJ no Focus NFe",
+            texto:
+              "Na sua conta do Focus NFe, cadastre a empresa, envie o certificado e informe o CSC. Copie o token de homologação e o de produção.",
+          },
+          {
+            titulo: "Siga o passo a passo na Gestão",
+            texto:
+              "Em Gestão › Fiscal › Ativar NFC-e: emitente e token, tributos dos produtos (com o contador), nota de teste em homologação e teste da impressora. O token fica guardado criptografado.",
+          },
+          {
+            titulo: "Ligue a produção",
+            texto:
+              "Com a nota de teste autorizada, habilite a produção. A partir daí, cada venda encerrada pode sair com NFC-e, impressa na térmica do caixa.",
+          },
+        ];
       return [
         {
           titulo: "Separe o certificado A1",
