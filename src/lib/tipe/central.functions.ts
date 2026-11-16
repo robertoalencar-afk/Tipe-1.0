@@ -628,3 +628,38 @@ export const getAdministracaoCentral = createServerFn({ method: "GET" })
     ]);
     return { seguranca: sec.data ?? [], privacidade: priv.data ?? [], dispositivos: dev.data ?? [], usuariosInternos: (founders.data ?? []).length };
   });
+
+/** Desempenho comercial: chegada de leads, tempo da primeira resposta, funil e origem (dados reais). */
+export const getLeadsDesempenho = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ dias: z.number().int().min(7).max(365).default(30) }).parse(d ?? {}))
+  .handler(async ({ data, context }) => {
+    const db = await founder(context);
+    const { calcularDesempenho } = await import("./leads-desempenho");
+    const desde = diasAtras(data.dias);
+    const [leads, ant, etapas, opps] = await Promise.all([
+      db.from("restaurant_leads").select("id, created_at, restaurant_name, contact_name, email, phone, utm_source, origin_page, discovery_source").gte("created_at", desde).order("created_at", { ascending: false }).limit(5000),
+      db.from("restaurant_leads").select("id", { count: "exact", head: true }).gte("created_at", diasAtras(data.dias * 2)).lt("created_at", desde),
+      db.from("crm_stages").select("key, label, position, kind").eq("active", true).order("position"),
+      db.from("crm_opportunities").select("lead_id, stage_key, status, created_at").limit(5000),
+    ]);
+    const lista = (leads.data ?? []) as any[];
+    const ids = lista.map((l) => l.id as string);
+    // Só contato humano conta como resposta; rascunhos preparados pelo sistema não.
+    const atividades = ids.length
+      ? await db.from("crm_activities").select("lead_id, created_at, kind, meta").in("lead_id", ids.slice(0, 1000)).in("kind", ["email", "whatsapp", "call", "meeting"]).limit(10000)
+      : { data: [] as any[] };
+    const respostas = ((atividades.data ?? []) as any[]).filter((a) => !a.meta?.draft && !a.meta?.rascunho).map((a) => ({ lead_id: a.lead_id as string, at: a.created_at as string }));
+    return {
+      dias: data.dias,
+      ...calcularDesempenho({
+        agora: Date.now(),
+        dias: data.dias,
+        leads: lista.map((l) => ({ id: l.id, created_at: l.created_at, nome: l.restaurant_name ?? l.contact_name ?? "Sem nome", contato: l.contact_name ?? l.email ?? "", origem: l.utm_source ?? l.origin_page ?? l.discovery_source ?? null })),
+        leadsAnteriores: ant.count ?? 0,
+        respostas,
+        etapas: (etapas.data ?? []) as any[],
+        oportunidades: (opps.data ?? []) as any[],
+      }),
+    };
+  });
