@@ -424,7 +424,7 @@ export const getComunicacao = createServerFn({ method: "GET" })
       config: {
         resendEnvio: Boolean(env["RESEND_API_KEY"]),
         resendWebhook: Boolean(env["RESEND_WEBHOOK_SECRET"]),
-        resendRecebimento: false, // Não há domínio de recebimento configurado: sem caixa de entrada de e-mail.
+        resendRecebimento: Boolean(env["EMAIL_INBOUND_SECRET"]), // Cloudflare Email Routing -> Worker -> /api/public/email-inbound
         whatsappWebhook: Boolean(env["WHATSAPP_APP_SECRET"] && env["WHATSAPP_VERIFY_TOKEN"]),
         whatsappEnvio: Boolean(env["WHATSAPP_TOKEN"] && env["WHATSAPP_PHONE_NUMBER_ID"]),
         remetente: env["EMAIL_FROM"] || "noreply@tipe.digital",

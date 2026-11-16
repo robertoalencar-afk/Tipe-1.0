@@ -6,10 +6,11 @@ import { Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, Aviso, Busca, Esqueleto, Painel, Segmentado, StatusBadge, Tabela, horaBR, inputCls, relativo, usePaginacao, type Tone } from "@/components/tipe/painel/ui";
 import { getComunicacao, sendWaReply, updateWaConversation } from "@/lib/tipe/central.functions";
+import { CaixaEmail } from "@/components/tipe/central/CaixaEmail";
 import type { SecaoCentral } from "@/routes/_authenticated/central";
 
 type Props = { aba?: string | undefined; id?: string | undefined; ir: (s: SecaoCentral, aba?: string, id?: string) => void };
-const ABAS = [["whatsapp", "WhatsApp"], ["email", "E-mails"], ["modelos", "Modelos"], ["conexoes", "Conexões"]] as const;
+const ABAS = [["whatsapp", "WhatsApp"], ["caixa", "Caixa de e-mail"], ["email", "Envios do sistema"], ["modelos", "Modelos"], ["conexoes", "Conexões"]] as const;
 const EMAIL_TONE: Record<string, Tone> = { sent: "neutral", delivered: "success", opened: "success", clicked: "success", delivery_delayed: "warning", bounced: "error", complained: "error", failed: "error", suppressed: "warning" };
 const EMAIL_LABEL: Record<string, string> = { sent: "Enviado", delivered: "Entregue", opened: "Aberto", clicked: "Clicado", delivery_delayed: "Atrasado", bounced: "Devolvido", complained: "Spam", failed: "Falhou", suppressed: "Suprimido" };
 
@@ -23,6 +24,7 @@ export function Comunicacao({ aba, id, ir }: Props) {
     <div className="space-y-5">
       <Segmentado label="Canal" value={atual} onChange={(a) => ir("comunicacao", a)} options={ABAS} />
       {atual === "whatsapp" && <WhatsApp d={d} conversaId={id} abrir={(c) => ir("comunicacao", "whatsapp", c)} />}
+      {atual === "caixa" && <CaixaEmail />}
       {atual === "email" && <Emails d={d} destaque={id} />}
       {atual === "modelos" && (
         <Painel titulo="Modelos de e-mail" descricao="Registrados no código (src/lib/email-templates). Envio só por ação do sistema ou sua; nunca em massa.">
@@ -106,7 +108,7 @@ function Emails({ d, destaque }: { d: Com; destaque: string | undefined }) {
   return (
     <div className="space-y-4">
       {!d.config.resendWebhook && <Aviso tone="neutral">Entregas e aberturas chegam pelo webhook do Resend (RESEND_WEBHOOK_SECRET). Sem ele, o histórico mostra só o envio.</Aviso>}
-      <Painel titulo="Histórico de e-mails" descricao={`Enviados pelo sistema via Resend, remetente ${d.config.remetente}. Não há caixa de entrada: respostas chegam no e-mail do fundador.`} semPadding acoes={<Busca value={q} onChange={(v) => { setQ(v); pag.reset(); }} placeholder="E-mail ou modelo" />}>
+      <Painel titulo="Histórico de e-mails" descricao={`Enviados pelo sistema via Resend, remetente ${d.config.remetente}. A caixa de entrada fica na aba "Caixa de e-mail".`} semPadding acoes={<Busca value={q} onChange={(v) => { setQ(v); pag.reset(); }} placeholder="E-mail ou modelo" />}>
         <Tabela linhas={pag.fatia} chave={(e: any) => e.id} rodape={pag.controles} vazio="Nenhum e-mail registrado ainda. Os próximos envios aparecem aqui." colunas={[
           { k: "q", l: "Quando", c: (e: any) => <span className={e.id === destaque ? "font-semibold" : ""}>{horaBR(e.created_at)}</span> },
           { k: "p", l: "Para", c: (e: any) => e.to_email },
@@ -128,7 +130,7 @@ function Conexoes({ c }: { c: Com["config"] }) {
       <ul className="divide-y divide-border">
         <Item ok={c.resendEnvio} l="Resend: envio" d={`Remetente ${c.remetente}. RESEND_API_KEY.`} />
         <Item ok={c.resendWebhook} l="Resend: eventos de entrega" d="Webhook /api/public/resend/webhook assinado (RESEND_WEBHOOK_SECRET)." />
-        <Item ok={c.resendRecebimento} l="Resend: recebimento" d="Sem domínio de recebimento: não há caixa de entrada de e-mail na Central." />
+        <Item ok={c.resendRecebimento} l="E-mail: recebimento (Cloudflare)" d="Cloudflare Email Routing + Worker entrega em /api/public/email-inbound (EMAIL_INBOUND_SECRET). Guia: docs/internos/EMAIL-CENTRAL.md." />
         <Item ok={c.whatsappWebhook} l="WhatsApp Cloud API: recebimento" d="Webhook /api/public/whatsapp/webhook (WHATSAPP_APP_SECRET, WHATSAPP_VERIFY_TOKEN)." />
         <Item ok={c.whatsappEnvio} l="WhatsApp Cloud API: envio" d="WHATSAPP_TOKEN e WHATSAPP_PHONE_NUMBER_ID da Meta Business." />
       </ul>

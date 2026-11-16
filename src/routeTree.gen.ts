@@ -89,6 +89,7 @@ import { Route as RedefinirSenhaIndexRouteImport } from './routes/redefinir-senh
 import { Route as RedefinirSenhaGarcomRouteImport } from './routes/redefinir-senha.garcom'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin.leads'
 import { Route as ApiPublicCspReportRouteImport } from './routes/api/public/csp-report'
+import { Route as ApiPublicEmailInboundRouteImport } from './routes/api/public/email-inbound'
 import { Route as CrmContasIndexRouteImport } from './routes/crm.contas.index'
 import { Route as CrmContasIdRouteImport } from './routes/crm.contas.$id'
 import { Route as CrmContatosIndexRouteImport } from './routes/crm.contatos.index'
@@ -505,6 +506,11 @@ const ApiPublicCspReportRoute = ApiPublicCspReportRouteImport.update({
   path: '/api/public/csp-report',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicEmailInboundRoute = ApiPublicEmailInboundRouteImport.update({
+  id: '/api/public/email-inbound',
+  path: '/api/public/email-inbound',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CrmContasIndexRoute = CrmContasIndexRouteImport.update({
   id: '/contas/',
   path: '/contas/',
@@ -665,6 +671,7 @@ export interface FileRoutesByFullPath {
   '/redefinir-senha/': typeof RedefinirSenhaIndexRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
+  '/api/public/email-inbound': typeof ApiPublicEmailInboundRoute
   '/crm/contas/$id': typeof CrmContasIdRoute
   '/crm/contatos/$id': typeof CrmContatosIdRoute
   '/legal/versoes/$arquivo': typeof LegalVersoesArquivoRoute
@@ -760,6 +767,7 @@ export interface FileRoutesByTo {
   '/redefinir-senha': typeof RedefinirSenhaIndexRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
+  '/api/public/email-inbound': typeof ApiPublicEmailInboundRoute
   '/crm/contas/$id': typeof CrmContasIdRoute
   '/crm/contatos/$id': typeof CrmContatosIdRoute
   '/legal/versoes/$arquivo': typeof LegalVersoesArquivoRoute
@@ -858,6 +866,7 @@ export interface FileRoutesById {
   '/redefinir-senha/': typeof RedefinirSenhaIndexRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
+  '/api/public/email-inbound': typeof ApiPublicEmailInboundRoute
   '/crm/contas/$id': typeof CrmContasIdRoute
   '/crm/contatos/$id': typeof CrmContatosIdRoute
   '/legal/versoes_/$arquivo': typeof LegalVersoesArquivoRoute
@@ -956,6 +965,7 @@ export interface FileRouteTypes {
     | '/redefinir-senha/'
     | '/admin/leads'
     | '/api/public/csp-report'
+    | '/api/public/email-inbound'
     | '/crm/contas/$id'
     | '/crm/contatos/$id'
     | '/legal/versoes/$arquivo'
@@ -1051,6 +1061,7 @@ export interface FileRouteTypes {
     | '/redefinir-senha'
     | '/admin/leads'
     | '/api/public/csp-report'
+    | '/api/public/email-inbound'
     | '/crm/contas/$id'
     | '/crm/contatos/$id'
     | '/legal/versoes/$arquivo'
@@ -1148,6 +1159,7 @@ export interface FileRouteTypes {
     | '/redefinir-senha/'
     | '/_authenticated/admin/leads'
     | '/api/public/csp-report'
+    | '/api/public/email-inbound'
     | '/crm/contas/$id'
     | '/crm/contatos/$id'
     | '/legal/versoes_/$arquivo'
@@ -1218,6 +1230,7 @@ export interface RootRouteChildren {
   PrivacidadeIndexRoute: typeof PrivacidadeIndexRoute
   RedefinirSenhaIndexRoute: typeof RedefinirSenhaIndexRoute
   ApiPublicCspReportRoute: typeof ApiPublicCspReportRoute
+  ApiPublicEmailInboundRoute: typeof ApiPublicEmailInboundRoute
   LegalVersoesArquivoRoute: typeof LegalVersoesArquivoRoute
   MesaRestauranteMesaRoute: typeof MesaRestauranteMesaRoute
   ApiPublicMenuReviewRoute: typeof ApiPublicMenuReviewRoute
@@ -1793,6 +1806,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCspReportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/email-inbound': {
+      id: '/api/public/email-inbound'
+      path: '/api/public/email-inbound'
+      fullPath: '/api/public/email-inbound'
+      preLoaderRoute: typeof ApiPublicEmailInboundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/crm/contas/': {
       id: '/crm/contas/'
       path: '/contas'
@@ -2035,6 +2055,7 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacidadeIndexRoute: PrivacidadeIndexRoute,
   RedefinirSenhaIndexRoute: RedefinirSenhaIndexRoute,
   ApiPublicCspReportRoute: ApiPublicCspReportRoute,
+  ApiPublicEmailInboundRoute: ApiPublicEmailInboundRoute,
   LegalVersoesArquivoRoute: LegalVersoesArquivoRoute,
   MesaRestauranteMesaRoute: MesaRestauranteMesaRoute,
   ApiPublicMenuReviewRoute: ApiPublicMenuReviewRoute,
