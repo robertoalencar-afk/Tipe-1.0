@@ -5,8 +5,8 @@ import { operationSchema } from './operations';
 
 type Context={supabase:any;userId:string;claims?:any};
 async function authorized(ctx:Context){
- const {requireFounder2fa}=await import('./founder-guard');
- await requireFounder2fa(ctx);
+ const {acessoCentral}=await import('./founder-guard');
+ await acessoCentral(ctx,'operacoes','Somente a equipe TIPE, com verificação em duas etapas');
  const {supabaseAdmin}=await import('@/integrations/supabase/client.server');
  return supabaseAdmin as unknown as {from:(table:string)=>any};
 }

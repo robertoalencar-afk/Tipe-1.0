@@ -13,9 +13,10 @@ import { TIP_SPLIT } from "./rules";
 import { PLANS } from "./plans";
 
 type Ctx = { supabase: any; userId: string; claims?: any };
-async function founder(ctx: Ctx) {
-  const { requireFounder2fa } = await import("./founder-guard");
-  await requireFounder2fa(ctx);
+/** Sem `secao`: só founder. Com `secao`: founder ou equipe interna com perfil que abre essa seção. */
+async function founder(ctx: Ctx, secao?: string) {
+  const { acessoCentral } = await import("./founder-guard");
+  await acessoCentral(ctx, secao, "Somente a equipe TIPE, com verificação em duas etapas");
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   // Tabelas da 0052 ainda não estão nos tipos gerados: acesso sem tipagem, só aqui.
   return supabaseAdmin as unknown as { from: (t: string) => any; rpc: (f: string, a?: any) => any; auth: any };
@@ -152,7 +153,7 @@ export const getCentralDashboard = createServerFn({ method: "GET" })
 export const getCrm = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const db = await founder(context);
+    const db = await founder(context, "comercial");
     const [stages, opps, leads, tasks, rest] = await Promise.all([
       db.from("crm_stages").select("*").order("position"),
       db.from("crm_opportunities").select("*").order("updated_at", { ascending: false }),
@@ -167,7 +168,7 @@ export const getLeadFicha = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ leadId: Uuid }).parse(d))
   .handler(async ({ data, context }) => {
-    const db = await founder(context);
+    const db = await founder(context, "comercial");
     const { data: lead } = await db.from("restaurant_leads").select("*").eq("id", data.leadId).maybeSingle();
     if (!lead) throw new Error("Lead não encontrado");
     const fone = String(lead.phone ?? "").replace(/\D/g, "");
@@ -188,7 +189,7 @@ export const moveOpportunity = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: Uuid, stageKey: z.string().regex(/^[a-z_]{2,40}$/), lostReason: z.string().max(60).nullable().optional() }).parse(d))
   .handler(async ({ data, context }) => {
-    const db = await founder(context);
+    const db = await founder(context, "comercial");
     const [{ data: opp }, { data: stage }] = await Promise.all([
       db.from("crm_opportunities").select("*").eq("id", data.id).maybeSingle(),
       db.from("crm_stages").select("*").eq("key", data.stageKey).maybeSingle(),
@@ -235,7 +236,7 @@ export const addCrmNote = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ leadId: Uuid, kind: z.enum(["note", "call", "meeting", "whatsapp", "email"]).default("note"), title: z.string().trim().min(1).max(200), body: z.string().trim().max(8000).optional() }).parse(d))
   .handler(async ({ data, context }) => {
-    const db = await founder(context);
+    const db = await founder(context, "comercial");
     const { data: opp } = await db.from("crm_opportunities").select("id, restaurant_id").eq("lead_id", data.leadId).eq("status", "open").maybeSingle();
     const { error } = await db.from("crm_activities").insert({ lead_id: data.leadId, opportunity_id: opp?.id ?? null, restaurant_id: opp?.restaurant_id ?? null, kind: data.kind, title: data.title, body: data.body ?? null, actor_id: context.userId });
     if (error) throw new Error("Não foi possível registrar");
@@ -249,7 +250,7 @@ export const saveCrmTask = createServerFn({ method: "POST" })
     z.object({ op: z.literal("done"), id: Uuid, done: z.boolean() }),
   ]).parse(d))
   .handler(async ({ data, context }) => {
-    const db = await founder(context);
+    const db = await founder(context, "comercial");
     if (data.op === "create") {
       const { data: opp } = data.leadId ? await db.from("crm_opportunities").select("id").eq("lead_id", data.leadId).eq("status", "open").maybeSingle() : { data: null };
       const { error } = await db.from("crm_tasks").insert({ lead_id: data.leadId, opportunity_id: opp?.id ?? null, restaurant_id: data.restaurantId ?? null, title: data.title, due_at: data.dueAt, created_by: context.userId, assigned_to: context.userId });
@@ -266,7 +267,7 @@ export const linkLeadRestaurant = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ leadId: Uuid, restaurantId: Uuid.nullable() }).parse(d))
   .handler(async ({ data, context }) => {
-    const db = await founder(context);
+    const db = await founder(context, "comercial");
     const { error } = await db.from("restaurant_leads").update({ restaurant_id: data.restaurantId }).eq("id", data.leadId);
     if (error) throw new Error("Não foi possível vincular");
     await db.from("crm_opportunities").update({ restaurant_id: data.restaurantId }).eq("lead_id", data.leadId);
@@ -306,7 +307,7 @@ export const updateImplantationStep = createServerFn({ method: "POST" })
 export const getRestaurantesCentral = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const db = await founder(context);
+    const db = await founder(context, "restaurantes");
     const since30 = diasAtras(30);
     const [rest, subs, tables, roles, pays, impl, mods, pdvErr, integ, payout, leads] = await Promise.all([
       db.from("restaurants").select("id, slug, name, cnpj, phone, address, pos_mode, pos_provider, onboarding_step, created_at").order("name"),
@@ -411,7 +412,7 @@ export const getComunicacao = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ conversaId: Uuid.optional() }).parse(d ?? {}))
   .handler(async ({ data, context }) => {
-    const db = await founder(context);
+    const db = await founder(context, "comunicacao");
     const [emails, convs, msgs, templates] = await Promise.all([
       db.from("email_log").select("*").order("created_at", { ascending: false }).limit(300),
       db.from("wa_conversations").select("*").order("last_message_at", { ascending: false, nullsFirst: false }).limit(200),
@@ -437,7 +438,7 @@ export const sendWaReply = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ conversaId: Uuid, body: z.string().trim().min(1).max(4000) }).parse(d))
   .handler(async ({ data, context }) => {
-    const db = await founder(context);
+    const db = await founder(context, "comunicacao");
     const token = process.env["WHATSAPP_TOKEN"], phoneNumberId = process.env["WHATSAPP_PHONE_NUMBER_ID"];
     if (!token || !phoneNumberId) throw new Error("WhatsApp não conectado: configure WHATSAPP_TOKEN e WHATSAPP_PHONE_NUMBER_ID (Meta Business).");
     const { data: conv } = await db.from("wa_conversations").select("*").eq("id", data.conversaId).maybeSingle();
@@ -459,7 +460,7 @@ export const updateWaConversation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: Uuid, status: z.enum(["open", "waiting", "resolved"]).optional(), leadId: Uuid.nullable().optional(), labels: z.array(z.string().max(30)).max(10).optional(), lida: z.boolean().optional() }).parse(d))
   .handler(async ({ data, context }) => {
-    const db = await founder(context);
+    const db = await founder(context, "comunicacao");
     const patch: Record<string, unknown> = {};
     if (data.status) patch["status"] = data.status;
     if (data.leadId !== undefined) patch["lead_id"] = data.leadId;
@@ -634,7 +635,7 @@ export const getLeadsDesempenho = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ dias: z.number().int().min(7).max(365).default(30) }).parse(d ?? {}))
   .handler(async ({ data, context }) => {
-    const db = await founder(context);
+    const db = await founder(context, "comercial");
     const { calcularDesempenho } = await import("./leads-desempenho");
     const desde = diasAtras(data.dias);
     const [leads, ant, etapas, opps] = await Promise.all([
