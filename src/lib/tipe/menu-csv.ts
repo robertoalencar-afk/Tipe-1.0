@@ -11,6 +11,7 @@ export const MenuImportRow = z.object({
   name: z.string().trim().min(2).max(80),
   price: z.number().finite().min(0).max(10000),
   available: z.boolean(),
+  description: z.string().trim().max(200).optional(),
 });
 export const MenuImportRows = z
   .array(MenuImportRow)
@@ -76,9 +77,9 @@ export function parseMenuCsv(text: string): MenuRow[] {
   if (row.some(Boolean)) records.push(row);
   if (/^(categoria|category)$/i.test(records[0]?.[0] ?? "")) records.shift();
   const rows = records.map((cols, i) => {
-    if (cols.length < 4 || cols.length > 5)
+    if (cols.length < 4 || cols.length > 6)
       throw new Error(`Registro ${i + 1}: use categoria, código, item, preço e ativo`);
-    const [category, code, name, raw = "", active = "sim"] = cols;
+    const [category, code, name, raw = "", active = "sim", description] = cols;
     const priceText = raw.replace(/^R\$\s*/, "").trim();
     if (
       !/^(?:\d+|\d{1,3}(?:\.\d{3})+)(?:,\d{1,2})?$/.test(priceText) &&
@@ -92,7 +93,14 @@ export function parseMenuCsv(text: string): MenuRow[] {
     );
     if (!/^(sim|s|true|1|ativo|não|nao|n|false|0|inativo)$/i.test(active))
       throw new Error(`Registro ${i + 1}: ativo deve ser sim ou não`);
-    return { category, code, name, price, available: /^(sim|s|true|1|ativo)$/i.test(active) };
+    return {
+      category,
+      code,
+      name,
+      price,
+      ...(description !== undefined ? { description } : {}),
+      available: /^(sim|s|true|1|ativo)$/i.test(active),
+    };
   });
   const result = MenuImportRows.safeParse(rows);
   if (!result.success)

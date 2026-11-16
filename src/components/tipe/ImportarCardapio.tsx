@@ -98,7 +98,7 @@ export function ImportarCardapio({ slug, onDone }: { slug: string; onDone: () =>
         try {
           dishes = parseMenuCsv(await input.text()).map((r) => ({
             ...r,
-            description: "",
+            description: r.description ?? "",
             imageIndex: null,
             photoBounds: null,
           }));
