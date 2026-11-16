@@ -1,3 +1,4 @@
+import { IdentidadeLebre } from "./IdentidadeLebre";
 import { CardapioGestao } from "./CardapioGestao";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -1717,6 +1718,7 @@ function Identidade({ slug, podeDono, funcao, onSair }: { slug: string; podeDono
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       <PerfilConta funcao={funcao} onSair={onSair} />
+      {podeDono && <IdentidadeLebre slug={slug} />}
       {podeDono && <section className="surface-card space-y-3 p-4 sm:p-5">
         <h2 className="font-display font-semibold">Logomarca</h2>
         <p className="text-xs text-muted-foreground">Aparece no menu do painel e, depois, nas telas do cliente. PNG, JPG ou WebP, fundo transparente fica melhor.</p>

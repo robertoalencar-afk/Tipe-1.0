@@ -15,6 +15,9 @@ import { cn } from "@/lib/utils";
 import { menuPriceCents } from "@/lib/tipe/menu-price";
 import { prepareDishDepth } from "@/lib/tipe/order/prepare-photo";
 import { Secao, Titulo } from "../Site";
+import { LebreSuggestionButton } from "../../LebreSuggestionButton";
+import { enhanceDishPhoto } from "@/lib/tipe/order/enhance-photo";
+import { toast } from "sonner";
 import { Foto3D } from "./Foto3D";
 
 const CATEGORIAS = ["Petiscos", "Pratos", "Bebidas", "Sobremesas"];
@@ -106,6 +109,8 @@ export function CriarPratoEditor({
   onPhotoChange,
   gallery,
 }: EditorProps) {
+  const [enhancing, setEnhancing] = useState(false);
+  const [enhanced, setEnhanced] = useState<{ file: File; url: string } | null>(null);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [libraryName, setLibraryName] = useState<string | undefined>();
   const [foto, setFoto] = useState<string | null>(initial?.photo ?? null);
@@ -166,6 +171,7 @@ export function CriarPratoEditor({
   async function escolher(arquivo: File | undefined) {
     if (!arquivo || !arquivo.type.startsWith("image/")) return;
     const current = ++generation.current;
+    setEnhanced(null);
     setLibraryName(undefined);
     setPhotoFile(arquivo);
     onPhotoChange?.(arquivo);
@@ -193,6 +199,7 @@ export function CriarPratoEditor({
   }
 
   async function selectGallery(image: GalleryPhoto) {
+    setEnhanced(null);
     let file: File | null = null;
     if (!image.libraryName) {
       const response = await fetch(image.url);
@@ -216,6 +223,7 @@ export function CriarPratoEditor({
   }
 
   function recomecar() {
+    setEnhanced(null);
     onPhotoChange?.(null);
     setLibraryName(undefined);
     generation.current++;
@@ -256,9 +264,77 @@ export function CriarPratoEditor({
                         ? "Não foi possível preparar o volume. Tente novamente antes de salvar."
                         : "Foto pronta. Veja no celular ao lado."}
                 </p>
+                <LebreSuggestionButton
+                  loading={enhancing}
+                  disabled={busy || etapa === "processando"}
+                  onClick={async () => {
+                    if (!foto) return;
+                    setEnhancing(true);
+                    try {
+                      const response = await fetch(foto);
+                      if (!response.ok) throw new Error("Não foi possível abrir a foto.");
+                      const file = await enhanceDishPhoto(await response.blob());
+                      const url = URL.createObjectURL(file);
+                      urls.current.push(url);
+                      setEnhanced({ file, url });
+                    } catch (e) {
+                      toast.error((e as Error).message);
+                    } finally {
+                      setEnhancing(false);
+                    }
+                  }}
+                >
+                  Melhorar luz da foto
+                </LebreSuggestionButton>
+                {enhanced && (
+                  <div className="mt-3 space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <figure>
+                        <img
+                          src={foto}
+                          alt="Foto original"
+                          className="h-28 w-full rounded-lg object-contain"
+                        />
+                        <figcaption className="text-xs">Original</figcaption>
+                      </figure>
+                      <figure>
+                        <img
+                          src={enhanced.url}
+                          alt="Foto com luz ajustada"
+                          className="h-28 w-full rounded-lg object-contain"
+                        />
+                        <figcaption className="text-xs">Luz ajustada</figcaption>
+                      </figure>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      Ajuste local de luz e contraste. Confira antes de usar; não recupera detalhes
+                      ausentes na foto.
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        className="min-h-11 rounded-full border px-3 text-xs"
+                        onClick={() => {
+                          const file = enhanced.file;
+                          setEnhanced(null);
+                          void escolher(file);
+                        }}
+                      >
+                        Usar e preparar volume
+                      </button>
+                      <button
+                        type="button"
+                        className="min-h-11 px-3 text-xs"
+                        onClick={() => setEnhanced(null)}
+                      >
+                        Manter original
+                      </button>
+                    </div>
+                  </div>
+                )}
                 <button
                   type="button"
-                  disabled={busy}
+                  disabled={busy || enhancing}
                   onClick={recomecar}
                   className="mt-1 inline-flex min-h-9 items-center gap-1 text-sm text-muted-foreground"
                 >
