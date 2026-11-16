@@ -351,23 +351,20 @@ export function StoryCardapio({
               )}
             </div>
           ) : item.foto && item.profundidade ? (
-            <div className="absolute inset-x-0 bottom-56 top-20">
-              <Foto3D
-                foto={item.foto}
-                profundidade={item.profundidade}
-                alt={item.nome}
-                enquadramento="contain"
-                intensidade={0.035}
-                ativo={!parado}
-              />
-            </div>
+            <Foto3D
+              foto={item.foto}
+              profundidade={item.profundidade}
+              alt={item.nome}
+              ativo={!parado}
+            />
           ) : item.foto ? (
             <img
               src={item.foto}
               alt={item.nome}
               draggable={false}
               className={cn(
-                "absolute inset-x-0 bottom-56 top-20 h-[calc(100%-19rem)] w-full select-none object-contain",
+                "absolute inset-0 h-full w-full select-none object-cover",
+                !reduzido && !parado && "story-zoom",
               )}
               style={{ animationDuration: `${DURACAO}ms` }}
             />
