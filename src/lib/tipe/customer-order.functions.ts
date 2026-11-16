@@ -113,7 +113,9 @@ export const getPublicMenu = createServerFn({ method: "GET" })
       restaurantName: (r as { name?: string }).name ?? "",
       selfOrder:
         hasOrder === true && ((r as { self_order_enabled?: boolean }).self_order_enabled ?? false),
-      categories: (cats.data ?? []).map((c) => ({ id: c.id, name: c.name })),
+      categories: (cats.data ?? [])
+        .filter((c) => (items.data ?? []).some((i) => i.category_id === c.id))
+        .map((c) => ({ id: c.id, name: c.name })),
       items: (items.data ?? []).map((i) => ({
         id: i.id,
         categoryId: i.category_id,

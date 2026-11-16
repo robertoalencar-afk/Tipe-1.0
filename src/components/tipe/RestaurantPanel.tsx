@@ -1667,7 +1667,7 @@ function MesasQr({
               </Button>
               {podeDono && (
                 <>
-                  {editing===t.id ? <form className="flex max-w-full flex-wrap gap-1" onSubmit={e=>{e.preventDefault();void run(()=>edit({data:{id:t.id,number}}),"Mesa atualizada").then(()=>setEditing(null))}}><Input aria-label="Novo número da mesa" className="w-24" value={number} maxLength={12} onChange={e=>setNumber(e.target.value)}/><Button size="sm" type="submit">Salvar</Button><Button size="sm" variant="ghost" onClick={()=>setEditing(null)}>Cancelar</Button></form> : <Button size="sm" variant="ghost" onClick={()=>{setEditing(t.id);setNumber(t.number)}}>Editar</Button>}
+                  {editing===t.id ? <form className="flex max-w-full flex-wrap gap-1" onSubmit={e=>{e.preventDefault();void run(()=>edit({data:{id:t.id,number}}),"Mesa atualizada. O link e o QR acompanham o novo número; substitua o QR impresso.").then(()=>setEditing(null))}}><Input aria-label="Novo número da mesa" className="w-24" value={number} maxLength={12} onChange={e=>setNumber(e.target.value)}/><Button size="sm" type="submit">Salvar</Button><Button size="sm" variant="ghost" onClick={()=>setEditing(null)}>Cancelar</Button></form> : <Button size="sm" variant="ghost" onClick={()=>{setEditing(t.id);setNumber(t.number)}}>Editar</Button>}
                   {!t.active && <Button size="sm" variant="ghost" onClick={()=>{if(window.confirm(`Excluir a mesa ${t.number}? Só mesas sem movimentação podem ser apagadas.`))void run(()=>edit({data:{id:t.id,remove:true}}),"Mesa excluída")}}>Excluir</Button>}
                   <Button
                     size="sm"

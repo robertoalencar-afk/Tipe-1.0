@@ -12,6 +12,7 @@ export function GravarEtiquetaNfc({
 }) {
   const [id, setId] = useState("");
   const [suporta, setSuporta] = useState(false);
+  const [ios, setIos] = useState(false);
   const [substituir, setSubstituir] = useState(false);
   const [ocupado, setOcupado] = useState(false);
   const [aviso, setAviso] = useState("");
@@ -21,6 +22,10 @@ export function GravarEtiquetaNfc({
   linkAtual.current = mesa?.url;
   useEffect(() => {
     setSuporta(!!gravadorDisponivel());
+    setIos(
+      /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1),
+    );
     return () => {
       controlador.current?.abort();
       controlador.current = null;
@@ -123,9 +128,9 @@ export function GravarEtiquetaNfc({
             </label>
           ) : (
             <p className="text-xs text-muted-foreground">
-              Este aparelho ou navegador não oferece gravação NFC. Entre na Gestão pelo Chrome de um
-              celular Android com NFC ativado para gravar a etiqueta. Computadores e Safari no
-              iPhone não permitem essa gravação pelo navegador; continuam podendo abrir o QR Code.
+              {ios
+                ? "No iPhone, gravar uma etiqueta NFC exige um aplicativo iOS com Core NFC. Chrome e Safari no iPhone não oferecem essa gravação ao site da Gestão. O iPhone pode abrir a mesa por uma etiqueta compatível já gravada ou pelo QR Code."
+                : "Este aparelho ou navegador não oferece gravação NFC. Para gravar direto pela Gestão web, use um navegador com Web NFC, como Chrome no Android, com NFC ativado. No iPhone, gravar exige um aplicativo iOS; essa função ainda não está disponível na Tipe."}
             </p>
           )}
           <p role="status" className="text-sm text-muted-foreground">
