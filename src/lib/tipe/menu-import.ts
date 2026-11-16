@@ -198,3 +198,96 @@ export type ImportPhoto = {
 export type ImportPage = { text: string; image?: string };
 export type ImportSource = { pages: ImportPage[]; photos: ImportPhoto[]; warnings: string[] };
 export const MAX_IMPORT_BYTES = 8_000_000;
+
+/**
+ * Cardápios de plataformas (iFood, 99Food, Goomer, Anota AI, sites com schema.org)
+ * costumam vir como JSON dentro da página. Percorre esse JSON e devolve linhas
+ * "Categoria / Nome — descrição — preço" para a Lebre conferir, mais as fotos.
+ * Só lê dados públicos já entregues na página; nada é executado.
+ */
+export function menuFromStructuredData(sources: unknown[]) {
+  const lines: string[] = [];
+  const photos: string[] = [];
+  const seen = new Set<string>();
+  let nodes = 0;
+  const str = (v: unknown) => (typeof v === "string" ? v.replace(/\s+/g, " ").trim() : "");
+  const priceOf = (o: Record<string, unknown>): number | null => {
+    for (const k of ["priceInCents", "unitPriceCents", "amountInCents"]) {
+      const n = parseMenuPrice(o[k]);
+      if (n !== null) return n / 100;
+    }
+    for (const k of ["price", "unitPrice", "preco"]) {
+      const raw = o[k];
+      if (raw && typeof raw === "object") {
+        // { value: 29.9 } ou { amount: 2990 } (centavos)
+        const p = raw as Record<string, unknown>;
+        const v = parseMenuPrice(p["value"]);
+        if (v !== null) return v;
+        const cents = parseMenuPrice(p["amount"]);
+        if (cents !== null) return cents / 100;
+        continue;
+      }
+      const n = parseMenuPrice(raw);
+      if (n !== null) return n;
+    }
+    const offers = o["offers"];
+    if (offers && typeof offers === "object")
+      return priceOf((Array.isArray(offers) ? offers[0] : offers) as Record<string, unknown>);
+    return null;
+  };
+  const walk = (value: unknown, category: string, depth: number) => {
+    if (depth > 14 || nodes++ > 20000 || lines.length >= 400) return;
+    if (Array.isArray(value)) {
+      for (const v of value) walk(v, category, depth + 1);
+      return;
+    }
+    if (!value || typeof value !== "object") return;
+    const o = value as Record<string, unknown>;
+    const name = str(o["name"] ?? o["title"] ?? o["nome"] ?? o["description_short"]);
+    const type = str(o["@type"]).toLowerCase();
+    const children = [
+      "hasMenuItem",
+      "itens",
+      "items",
+      "menuItems",
+      "products",
+      "produtos",
+      "hasMenuSection",
+      "sections",
+      "categories",
+      "categorias",
+      "menu",
+      "hasMenu",
+    ];
+    const hasChildren = children.some(
+      (k) => Array.isArray(o[k]) || (o[k] && typeof o[k] === "object"),
+    );
+    const price = priceOf(o);
+    if (name && price !== null && !hasChildren && type !== "menusection") {
+      const desc = str(o["description"] ?? o["details"] ?? o["descricao"]);
+      const key = `${category}|${name}|${price}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        lines.push(
+          `${category ? `[${category}] ` : ""}${name}${desc && desc !== name ? ` — ${desc.slice(0, 200)}` : ""} — R$ ${price.toFixed(2).replace(".", ",")}`,
+        );
+        const img = o["image"] ?? o["imageUrl"] ?? o["logoUrl"] ?? o["foto"];
+        const url = str(
+          Array.isArray(img)
+            ? img[0]
+            : img && typeof img === "object"
+              ? (img as { url?: unknown }).url
+              : img,
+        );
+        if (/^https:\/\//.test(url) && photos.length < 60) photos.push(url);
+      }
+      return;
+    }
+    const nextCategory =
+      name && (hasChildren || type === "menusection") ? name.slice(0, 60) : category;
+    for (const v of Object.values(o))
+      if (v && typeof v === "object") walk(v, nextCategory, depth + 1);
+  };
+  for (const s of sources) walk(s, "", 0);
+  return { text: lines.join("\n"), photos };
+}

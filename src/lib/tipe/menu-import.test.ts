@@ -4,6 +4,7 @@ import {
   parseImportAnalysis,
   parseMenuPrice,
   splitMenuText,
+  menuFromStructuredData,
 } from "./menu-import";
 it("mantém preço ausente como pendência, sem converter em zero", () => {
   const result = parseImportAnalysis(
@@ -62,4 +63,37 @@ it("divide texto longo em partes sem cortar linhas", () => {
   expect(parts.length).toBeGreaterThan(1);
   expect(parts.every((p) => p.length <= 2000)).toBe(true);
   expect(parts.join("\n")).toBe(text);
+});
+it("lê cardápio de plataforma em JSON (schema.org e formatos de delivery)", () => {
+  const { text, photos } = menuFromStructuredData([
+    {
+      "@type": "Restaurant",
+      name: "Casa",
+      hasMenu: {
+        "@type": "Menu",
+        hasMenuSection: [
+          {
+            "@type": "MenuSection",
+            name: "Pratos",
+            hasMenuItem: [
+              {
+                "@type": "MenuItem",
+                name: "Moqueca",
+                description: "Peixe no dendê",
+                offers: { "@type": "Offer", price: "89.90" },
+                image: "https://cdn.exemplo.com/m.jpg",
+              },
+            ],
+          },
+        ],
+      },
+    },
+    { props: { menu: [{ name: "Bebidas", itens: [{ name: "Suco", price: { amount: 950 } }] }] } },
+    { aggregateRating: { name: "Nota", ratingValue: 5 } },
+  ]);
+  expect(text.split("\n")).toEqual([
+    "[Pratos] Moqueca — Peixe no dendê — R$ 89,90",
+    "[Bebidas] Suco — R$ 9,50",
+  ]);
+  expect(photos).toEqual(["https://cdn.exemplo.com/m.jpg"]);
 });

@@ -71,7 +71,8 @@ import { BancoImagens } from "@/components/tipe/BancoImagens";
 import { ComoFuncionaGestao } from "@/components/tipe/ComoFuncionaGestao";
 import { PerfilConta, useMeuPerfil } from "@/components/tipe/PerfilConta";
 import { getMidia, saveLogo } from "@/lib/tipe/midia.functions";
-import { Image as ImagemIcon, Images, BookOpen } from "lucide-react";
+import { Image as ImagemIcon, Images, BookOpen, Camera } from "lucide-react";
+import { StudioFotos } from "@/components/tipe/StudioFotos";
 import { EquipePermissoes } from "@/components/tipe/EquipePermissoes";
 import { TotemStudio } from "@/components/tipe/TotemStudio";
 import { LiberarPedidosMesa } from "@/components/tipe/LiberarPedidosMesa";
@@ -255,6 +256,14 @@ const secoes = [
     g: "Configurações",
     dono: true,
     d: "Produtos, categorias e disponibilidade.",
+  },
+  {
+    k: "studio",
+    l: "Studio de fotos",
+    i: Camera,
+    g: "Configurações",
+    dono: true,
+    d: "Passo a passo para fotos bonitas e em 3D no cardápio.",
   },
   {
     k: "banco",
@@ -928,6 +937,13 @@ export function RestaurantPanel({
           </div>
         )}
         {aba === "comofunciona" && <ComoFuncionaGestao ir={ir} />}
+        {aba === "studio" && podeDono && (
+          <StudioFotos
+            ir={ir}
+            total={(pdv.data?.items ?? []).length}
+            comFoto={Object.values(midia.data?.itens ?? {}).filter((m) => m.foto).length}
+          />
+        )}
         {aba === "banco" && podeDono && <BancoImagens slug={slug} podeDono={podeDono} itens={(pdv.data?.items ?? []).map((i) => ({ id: i.id, name: i.name, code:i.code }))} onAplicada={() => void qc.invalidateQueries({ queryKey: ["midia", slug] })} />}
         {aba === "relatorios" && <Relatorios slug={slug} papel={papel} />}
         {aba === "identidade" && <Identidade slug={slug} podeDono={podeDono} funcao={usuario.funcao} onSair={onSair} />}
