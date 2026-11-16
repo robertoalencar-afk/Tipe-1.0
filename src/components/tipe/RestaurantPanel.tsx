@@ -270,7 +270,7 @@ const secoes = [
     k: "banco",
     l: "Banco de imagens",
     i: Images,
-    g: "Configurações",
+    g: "Biblioteca",
     dono: true,
     d: "Fotos do restaurante para usar no cardápio e em outras telas.",
   },
@@ -327,7 +327,7 @@ const secoes = [
     d: "Seu plano TIPE.",
   },
 ] as const;
-const GRUPOS = ["Operação", "Financeiro", "Equipe", "Configurações"] as const;
+const GRUPOS = ["Operação", "Financeiro", "Equipe", "Biblioteca", "Configurações"] as const;
 const PRINCIPAIS_MOBILE = ["inicio", "salao", "caixa", "pdv"] as const;
 
 /** Esqueleto do painel enquanto os dados chegam. */

@@ -4,6 +4,7 @@ import { AvisosCelular } from "@/components/tipe/AvisosCelular";
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { useEffect } from "react";
 import { LogOut } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { exigirSessao } from "@/integrations/supabase/lazy";
@@ -55,7 +56,6 @@ function AreaRestaurante() {
 
   const acoesTopo = (
     <>
-      {access.data?.isFounder && <Button asChild size="sm" variant="ghost"><Link to="/central">Voltar à Central</Link></Button>}
       {(myRoles.includes("owner") || myRoles.includes("manager") || myRoles.includes("cashier")) && <AvisosCelular papel="gestao" />}
     </>
   );
@@ -64,6 +64,12 @@ function AreaRestaurante() {
       <LogOut className="h-4 w-4" /> Sair
     </button>
   );
+  // Garçom não usa o painel de gestão: a área dele é /garcom.
+  const soGarcom = myRoles.length > 0 && myRoles.every((x) => x === "waiter");
+  useEffect(() => {
+    if (soGarcom) navigate({ to: "/garcom", replace: true });
+  }, [soGarcom, navigate]);
+  if (soGarcom) return <PainelCarregando />;
   // Com acesso: o painel usa a casca própria do Tipe Gestão (menu lateral, busca, mobile).
   if (r && access.data)
     return (
@@ -76,7 +82,6 @@ function AreaRestaurante() {
   return (
     <AreaShell eyebrow="Área do restaurante"
       actions={<>
-        {access.data?.isFounder && <Button asChild size="sm" variant="ghost"><Link to="/central">Voltar à Central</Link></Button>}
         <Button size="sm" variant="ghost" onClick={sair} className="text-muted-foreground"><LogOut className="h-4 w-4" />Sair</Button>
       </>}>
       <div>
