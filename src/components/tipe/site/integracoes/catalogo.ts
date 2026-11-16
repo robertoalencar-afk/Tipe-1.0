@@ -14,9 +14,9 @@ export type MetodoId = "api" | "autorizacao" | "arquivo" | "certificado" | "webh
 
 export const CATEGORIAS: { id: CategoriaId; titulo: string; sub: string }[] = [
   { id: "pdv", titulo: "PDV e gestão do salão", sub: "Mesas, cardápio e pedidos" },
-  { id: "delivery", titulo: "Delivery", sub: "Pedidos dos apps no mesmo painel" },
+  { id: "delivery", titulo: "Delivery", sub: "Pedidos dos apps (em implantação)" },
   { id: "erp", titulo: "ERP e contabilidade", sub: "Fechamento e recebimentos" },
-  { id: "fiscal", titulo: "Nota fiscal", sub: "NFC-e da conta paga" },
+  { id: "fiscal", titulo: "Nota fiscal", sub: "NFC-e (em implantação)" },
   { id: "pagamentos", titulo: "Pagamentos", sub: "Conciliação das maquininhas" },
   { id: "cardapio", titulo: "Cardápio e planilhas", sub: "Importe sem digitar" },
 ];
@@ -107,9 +107,9 @@ export type Passo = { titulo: string; texto: string };
 
 const SINCRONIZA: Record<CategoriaId, string> = {
   pdv: "mesas, cardápio e pedidos; quando a conta é paga na Tipe, a baixa volta para o sistema",
-  delivery: "pedidos do app, que entram na cozinha e no caixa da Tipe junto com os do salão",
+  delivery: "pedidos do app, em implantação: ativação sob consulta, sem integração automática no ar hoje",
   erp: "o fechamento do dia, os recebimentos por forma de pagamento e as gorjetas",
-  fiscal: "a NFC-e de cada conta paga, enviada ao cliente junto com o comprovante",
+  fiscal: "a NFC-e de cada conta paga, em implantação: ativação sob consulta com a equipe",
   pagamentos: "as vendas da maquininha, conciliadas com as contas pagas na mesa",
   cardapio: "categorias, itens, preços e fotos do cardápio",
 };
