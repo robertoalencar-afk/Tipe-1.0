@@ -63,6 +63,7 @@ jobs:
           node scripts/db/tests/menu-import.mjs
           node scripts/db/tests/table-edit.mjs
           node scripts/db/tests/menu-order.mjs
+          node scripts/db/tests/bistro-menu.mjs
           node scripts/db/tests/plan-modules.mjs
       - name: Build
         run: bun run build
