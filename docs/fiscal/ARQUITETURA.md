@@ -15,7 +15,7 @@ NFC-e (venda ao consumidor) e NF-e são os primeiros documentos de produto. NFS-
 - `src/lib/tipe/fiscal/contract.ts`: contrato de emissores, estados fiscais independentes do pagamento e seleção de perfis por UF, regime e vigência. Falta de revisão ou sobreposição bloqueia a seleção.
 - `src/lib/tipe/fiscal/focus.server.ts`: transporte server-side inicial da API Focus NFe para emitir, consultar e cancelar NF-e/NFC-e. Origens fixas, ambiente separado, validação do emitente e nenhuma repetição automática após resultado incerto. Não suporta NFS-e e não emite pela aplicação neste estágio.
 - `src/lib/tipe/fiscal/fiscal.test.ts`: testes locais com respostas simuladas. Não são comprovação de homologação na SEFAZ ou no serviço emissor.
-- `drizzle/migrations/0076_fiscal_foundation.sql`: configuração por restaurante/ambiente, perfis versionados, documentos com snapshots imutáveis, auditoria e fila com leases. Migração testada somente em PostgreSQL local isolado; ainda não aplicada em produção.
+- `drizzle/migrations/0077_fiscal_foundation.sql`: configuração por restaurante/ambiente, perfis versionados, documentos com snapshots imutáveis, auditoria e fila com leases. Migração testada somente em PostgreSQL local isolado; ainda não aplicada em produção.
 - `src/lib/tipe/fiscal.functions.ts`: configuração com credenciais cifradas, perfis e consultas autorizadas por papel explícito do restaurante. As respostas nunca incluem o token ou seu ciphertext.
 - `schemas.test.ts` e `authorization.test.ts`: CNPJ numérico/alfanumérico, validação de vigência e escopo. O script `scripts/db/tests/fiscal-foundation.sql` cobre RLS/ACL, isolamento, trilha, sobreposição e imutabilidade em banco de teste.
 - Ainda não há interface fiscal, vínculo com vendas nem processamento da fila na aplicação. Esta etapa não habilita emissão em produção nem comprova homologação.
@@ -131,7 +131,7 @@ A enumeração de UFs e os campos de IBS/CBS não constituem homologação nacio
 
 ## Atualização da emissão por venda — 13/11/2026
 
-A migração `0078_fiscal_sale_issuance.sql` liga a venda preservada ao enfileiramento explícito de NFC-e. O primeiro fluxo da Gestão é **venda presencial de consumo final na mesa, interna e sem frete**. Não anunciar esse fluxo como cobertura de NF-e, entrega, serviços ou de toda operação fiscal possível.
+A migração `0079_fiscal_sale_issuance.sql` liga a venda preservada ao enfileiramento explícito de NFC-e. O primeiro fluxo da Gestão é **venda presencial de consumo final na mesa, interna e sem frete**. Não anunciar esse fluxo como cobertura de NF-e, entrega, serviços ou de toda operação fiscal possível.
 
 A preparação lê a venda do restaurante, verifica o estado atual dos pagamentos arquivados e consulta a transação do adquirente para pagamentos digitais. A resposta pública é uma prévia com produtos, valores, NCM/CFOP e uma impressão digital dos dados. O navegador não envia preços, itens ou tributos para a emissão: o servidor prepara novamente, compara a conferência e só então chama a RPC de enfileiramento. O trabalhador faz outra conciliação antes do primeiro envio, e a RPC confere pagamentos e vigências imediatamente antes da marca durável.
 
