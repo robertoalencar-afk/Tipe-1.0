@@ -129,7 +129,7 @@ export function GravarEtiquetaNfc({
           ) : (
             <p className="text-xs text-muted-foreground">
               {ios
-                ? "No iPhone, gravar uma etiqueta NFC exige um aplicativo iOS com Core NFC. O Safari não oferece essa gravação ao site da Gestão. O iPhone pode abrir a mesa por uma etiqueta compatível já gravada ou pelo QR Code."
+                ? "No iPhone, gravar uma etiqueta NFC exige um aplicativo iOS com Core NFC. Chrome e Safari no iPhone não oferecem essa gravação ao site da Gestão. O iPhone pode abrir a mesa por uma etiqueta compatível já gravada ou pelo QR Code."
                 : "Este aparelho ou navegador não oferece gravação NFC. Para gravar direto pela Gestão web, use um navegador com Web NFC, como Chrome no Android, com NFC ativado. No iPhone, gravar exige um aplicativo iOS; essa função ainda não está disponível na Tipe."}
             </p>
           )}
