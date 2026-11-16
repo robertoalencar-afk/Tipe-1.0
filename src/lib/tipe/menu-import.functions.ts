@@ -136,6 +136,7 @@ export const publishMenuImport = createServerFn({ method: "POST" })
       .object({
         slug: Slug,
         replace: z.boolean().default(false),
+        allowNoPhoto: z.boolean().default(false),
         rows: z
           .array(
             z.object({
@@ -149,7 +150,7 @@ export const publishMenuImport = createServerFn({ method: "POST" })
                 .refine((v) => v.toLowerCase() !== "para organizar", "Defina a categoria"),
               description: z.string().trim().min(10).max(200),
               price: z.number().finite().min(0).max(10000),
-              asset: z.object({ name: AssetName, depthName: AssetName }),
+              asset: z.object({ name: AssetName, depthName: AssetName }).nullable(),
             }),
           )
           .min(1)
@@ -158,6 +159,8 @@ export const publishMenuImport = createServerFn({ method: "POST" })
       .parse(d),
   )
   .handler(async ({ data, context }) => {
+    if (!data.allowNoPhoto && data.rows.some((r) => !r.asset))
+      throw new Error("Escolha fotos ou autorize itens sem foto.");
     const rid = await menuOwner(context, data.slug);
     const { enforceRate } = await import("./security.server");
     await enforceRate(`menu-publish:${rid}`, 12, 3600, data.slug);
@@ -188,7 +191,12 @@ export const publishMenuImport = createServerFn({ method: "POST" })
     }
     const { data: count, error } = await (context.supabase as SupabaseClient).rpc(
       "publish_menu_import",
-      { p_slug: data.slug, p_rows: rows, p_replace: data.replace },
+      {
+        p_slug: data.slug,
+        p_rows: rows,
+        p_replace: data.replace,
+        p_allow_no_photo: data.allowNoPhoto,
+      },
     );
     if (error)
       throw new Error(

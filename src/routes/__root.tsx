@@ -45,9 +45,8 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: ErrorComponentProps) {
+function ErrorComponent({ error }: ErrorComponentProps) {
   console.error(error);
-  const router = useRouter();
   const [ref] = useState(() => Date.now().toString(36).toUpperCase());
   const offline = typeof navigator !== "undefined" && navigator.onLine === false;
 
@@ -58,7 +57,7 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
       texto={
         offline
           ? "Confira o Wi-Fi ou os dados móveis. Nenhum pagamento é feito sem confirmação, então dá para tentar de novo com segurança."
-          : "Algo deu errado do nosso lado, não do seu. Tente de novo em instantes. Se você estava pagando, nada é cobrado duas vezes."
+          : "Não foi possível carregar esta página. Recarregue para buscar a versão atual. Se estava pagando, confira o histórico ou fale com o caixa antes de tentar pagar novamente."
       }
       detalhe={offline ? undefined : ref}
       acoes={
@@ -66,13 +65,15 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
           <button
             type="button"
             onClick={() => {
-              router.invalidate();
-              reset();
+              window.location.reload();
             }}
             className={botaoPrimario}
           >
-            Tentar de novo
+            Recarregar página
           </button>
+          <a href="/ajuda#erros" className={botaoSecundario}>
+            Resolver erro de acesso
+          </a>
           <a href="/" className={botaoSecundario}>
             Ir para a página inicial
           </a>

@@ -72,6 +72,32 @@ assert.equal((await db.query("SELECT count(*)::int n FROM pdv_menu_categories"))
 await assert.rejects(call([rows[0], rows[0]]), /repetidos/);
 await db.exec("RESET ROLE;SET ROLE anon");
 await assert.rejects(call(), /permission/);
+await db.exec("RESET ROLE");
+await db.exec(
+  await readFile(
+    new URL("../../../drizzle/migrations/0066_menu_optional_photo.sql", import.meta.url),
+    "utf8",
+  ),
+);
+await db.exec("SET ROLE authenticated");
+await assert.rejects(
+  db.query("select publish_menu_import($1,$2,false,false)", [
+    "bistro",
+    JSON.stringify([{ ...rows[0], image_url: null, depth_url: null }]),
+  ]),
+  /preço/,
+);
+await db.query("select publish_menu_import($1,$2,false,true)", [
+  "bistro",
+  JSON.stringify([{ ...rows[0], image_url: null, depth_url: null }]),
+]);
+await assert.rejects(
+  db.query("select publish_menu_import($1,$2,false,true)", [
+    "bistro",
+    JSON.stringify([{ ...rows[0], image_url: null }]),
+  ]),
+  /preço/,
+);
 await db.close();
 console.log(
   "Menu import SQL: owner, isolation, idempotency, atomic rollback, replacement preserving history passed.",

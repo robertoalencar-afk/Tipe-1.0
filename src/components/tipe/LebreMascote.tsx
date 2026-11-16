@@ -47,7 +47,7 @@ export function LebreMascote({
   const companion = (
     <aside
       aria-label="Mascote da Lebre"
-      className="pointer-events-none fixed bottom-24 right-3 z-40 flex max-w-[calc(100vw-1.5rem)] items-center gap-1 print:hidden sm:right-5 lg:bottom-5"
+      className="pointer-events-none fixed bottom-[max(0.75rem,env(safe-area-inset-bottom))] right-2 z-40 flex max-w-[calc(100vw-1.5rem)] items-center gap-1 print:hidden sm:right-5 lg:bottom-5"
     >
       {dismissed !== messageKey && (
         <div className="pointer-events-auto relative mb-6 w-44 rounded-2xl border border-border bg-background p-3 pr-7 text-sm shadow-lg sm:w-56">

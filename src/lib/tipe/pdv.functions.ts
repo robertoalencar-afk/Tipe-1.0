@@ -231,6 +231,12 @@ export const updateTable = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const editTable = createServerFn({method:"POST"}).middleware([requireSupabaseAuth]).inputValidator(d=>z.object({id:z.string().uuid(),number:z.string().trim().min(1).max(12).optional(),remove:z.boolean().default(false)}).parse(d)).handler(async({data,context})=>{
+ const {error}=await context.supabase.rpc("edit_unused_table" as never,{p_id:data.id,p_number:data.number??null,p_delete:data.remove} as never);
+ if(error) throw new Error(error.message);
+ return {ok:true};
+});
+
 export const saveMenuItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({

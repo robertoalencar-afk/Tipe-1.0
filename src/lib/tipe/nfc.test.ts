@@ -56,7 +56,7 @@ describe("etiqueta NFC da mesa", () => {
     await expect(
       gravarLinkMesa(Reader, "https://tipe.digital/teste/mesa1", new AbortController().signal),
     ).rejects.toThrow();
-    expect(erroGravacaoNfc(new DOMException("", "NotSupportedError"))).toContain("NFC Tools");
+    expect(erroGravacaoNfc(new DOMException("", "NotSupportedError"))).toContain("Android");
     expect(gravadorDisponivel()).toBeNull();
   });
   it("diferencia permissão negada e cancelamento", () => {

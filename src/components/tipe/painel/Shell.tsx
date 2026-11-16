@@ -66,6 +66,7 @@ export type ItemNav = {
 /** Quem está logado: nome em destaque, função e (opcional) logomarca do restaurante. */
 export type Usuario = {
   nome: string;
+  avatarUrl?: string | null | undefined;
   funcao: string;
   detalhe?: string | undefined;
   logoUrl?: string | null | undefined;
@@ -91,7 +92,11 @@ function Avatar({ u, className }: { u: Usuario; className?: string }) {
       )}
       aria-hidden
     >
-      {iniciaisDe(u.nome)}
+      {u.avatarUrl ? (
+        <img src={u.avatarUrl} alt="" className="size-full object-cover" />
+      ) : (
+        iniciaisDe(u.nome)
+      )}
     </span>
   );
 }
@@ -122,7 +127,7 @@ function MenuUsuario({
           <span className={cn("min-w-0 flex-1 leading-tight", compacto && "hidden")}>
             <span
               className={cn(
-                "block truncate text-sm font-semibold",
+                "block whitespace-normal break-words text-sm font-semibold",
                 claro ? "text-foreground" : "text-white",
               )}
             >
@@ -130,7 +135,7 @@ function MenuUsuario({
             </span>
             <span
               className={cn(
-                "block truncate text-[11px] font-medium uppercase tracking-wide",
+                "block whitespace-normal break-words text-[11px] font-medium uppercase tracking-wide",
                 claro ? "text-brand-strong" : "text-brand",
               )}
             >
@@ -280,23 +285,6 @@ export function Shell({
     ],
     [grupos, busca, ir],
   );
-
-  const mascotButton = (compact = false) =>
-    mascotScope && (
-      <button
-        type="button"
-        aria-pressed={mascotVisible}
-        aria-label={mascotVisible ? "Ocultar mascote da Lebre" : "Exibir mascote da Lebre"}
-        title={mascotVisible ? "Pode descansar, Lebre" : "Mostrar a Lebre"}
-        onClick={() => setMascotVisible(!mascotVisible)}
-        className="group mx-auto my-1 flex min-h-11 max-w-full items-center justify-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 text-xs font-medium text-brand-strong hover:bg-primary/20"
-      >
-        <span className="size-5 transition-transform motion-safe:group-hover:-rotate-12">
-          <HareOutline />
-        </span>
-        {!compact && (mascotVisible ? "Pode descansar, Lebre" : "Mostrar a Lebre")}
-      </button>
-    );
 
   const nav = (compacta: boolean) => (
     <nav
@@ -461,7 +449,6 @@ export function Shell({
           {mascotScope && <div id={`tipe-lebre-dock-${mascotScope}`} className="@container" />}
           <div className={cn("border-t p-2", gestao ? "border-border" : "border-white/10")}>
             {usuario && !recolhida && <MenuUsuario u={usuario} onSair={onSair} claro={gestao} />}
-            {mascotButton(recolhida)}
             {usuario && recolhida && onSair && (
               <button
                 type="button"
@@ -547,6 +534,10 @@ export function Shell({
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-64">
                     <DropdownMenuLabel>Personalizar a gestão</DropdownMenuLabel>
+                    <DropdownMenuItem onSelect={() => setMascotVisible(!mascotVisible)}>
+                      <HareOutline className="mr-2 size-4" />
+                      {mascotVisible ? "Pode descansar, Lebre" : "Mostrar a Lebre"}
+                    </DropdownMenuItem>
 
                     <DropdownMenuSeparator />
                     <DropdownMenuItem onSelect={openLebre}>
@@ -665,7 +656,6 @@ export function Shell({
             {(rodape || usuario) && (
               <div className={cn("border-t p-2", gestao ? "border-border" : "border-white/10")}>
                 {usuario && <MenuUsuario u={usuario} onSair={onSair} claro={gestao} />}
-                {mascotButton()}
                 {rodape}
               </div>
             )}
