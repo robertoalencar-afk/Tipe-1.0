@@ -48,12 +48,20 @@ function Entrar() {
       const { data: aal } = await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
       if (aal?.nextLevel === "aal2" && aal.currentLevel !== "aal2") return setPrecisaMfa(true);
     }
-    if (r) return navigate({ to: r, replace: true } as never);
     try {
       const a = await fetchAccess();
+      const soGarcom = a.roles.length > 0 && a.roles.every((x) => x.role === "waiter");
+      // Destino pedido (r): só vale se esta conta pode abrir. Garçom vai para a própria área; endereço de
+      // restaurante sem vínculo é ignorado (evita erro ao entrar com outra conta depois de sair).
+      if (r) {
+        const slugR = /^\/([a-z0-9-]+)\/?$/.exec(r)?.[1];
+        const restR = slugR ? a.restaurants.find((x) => x.slug === slugR) : undefined;
+        const temPapelNele = !!restR && a.roles.some((x) => x.restaurantId === restR.id && x.role !== "founder" && x.role !== "waiter");
+        const ehPapelPublico = !slugR || ["central", "painel", "garcom", "demo"].includes(slugR);
+        if (!soGarcom && (ehPapelPublico || temPapelNele)) return navigate({ to: r, replace: true } as never);
+      }
       if (a.isFounder) return navigate({ to: "/central", replace: true });
-      if (a.roles.length > 0 && a.roles.every((x) => x.role === "waiter"))
-        return navigate({ to: "/garcom", replace: true });
+      if (soGarcom) return navigate({ to: "/garcom", replace: true });
       if (a.restaurants.length === 1)
         return navigate({
           to: "/$restaurante",

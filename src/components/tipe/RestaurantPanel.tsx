@@ -63,7 +63,7 @@ import {
 import { PixGarcons } from "@/components/tipe/PixGarcons";
 import { SegurancaConta } from "@/components/tipe/SegurancaConta";
 import { Atendimento } from "@/components/tipe/Atendimento";
-import { Caixa, Configuracoes, Inicio, Integracoes, Relatorios } from "@/components/tipe/AdminSections";
+import { Caixa, Configuracoes, Inicio, Integracoes, Relatorios, useOps } from "@/components/tipe/AdminSections";
 import { Cozinha } from "@/components/tipe/Kds";
 import { Shell, type GrupoNav } from "@/components/tipe/painel/Shell";
 import { UploadImagem } from "@/components/tipe/UploadImagem";
@@ -78,6 +78,7 @@ import { TotemStudio } from "@/components/tipe/TotemStudio";
 import { LiberarPedidosMesa } from "@/components/tipe/LiberarPedidosMesa";
 import { EstacoesConfig } from "@/components/tipe/EstacoesConfig";
 import { DesignarGarcom } from "@/components/tipe/DesignarGarcom";
+import { BotaoPreConta } from "@/components/tipe/PreConta";
 import { Assinatura, AvisoAssinatura, ContaBloqueada } from "@/components/tipe/Assinatura";
 import { getAccountAccess } from "@/lib/tipe/subscription.functions";
 import { abaLiberada } from "@/lib/tipe/assinatura";
@@ -269,7 +270,7 @@ const secoes = [
     k: "banco",
     l: "Banco de imagens",
     i: Images,
-    g: "Configurações",
+    g: "Biblioteca",
     dono: true,
     d: "Fotos do restaurante para usar no cardápio e em outras telas.",
   },
@@ -326,7 +327,7 @@ const secoes = [
     d: "Seu plano TIPE.",
   },
 ] as const;
-const GRUPOS = ["Operação", "Financeiro", "Equipe", "Configurações"] as const;
+const GRUPOS = ["Operação", "Financeiro", "Equipe", "Biblioteca", "Configurações"] as const;
 const PRINCIPAIS_MOBILE = ["inicio", "salao", "caixa", "pdv"] as const;
 
 /** Esqueleto do painel enquanto os dados chegam. */
@@ -1017,6 +1018,7 @@ function MesaDetalhe({
   };
   payments: PanelData["payments"];
 }) {
+  const ops = useOps(slug);
   const estornar = useServerFn(voidItem);
   const fechar = useServerFn(closeTable);
   const transferir = useServerFn(transferTable);
@@ -1047,6 +1049,13 @@ function MesaDetalhe({
         {mesa.garcom && <p className="text-sm text-muted-foreground">Garçom: {mesa.garcom}</p>}
       </DialogHeader>
       {podeConfirmar && <DesignarGarcom slug={slug} table={mesa.number} onDone={onDone} />}
+      <BotaoPreConta
+        restaurante={ops.data?.restaurant.name ?? ""}
+        mesa={mesa.number}
+        garcom={mesa.garcom ?? null}
+        taxa={ops.data?.restaurant.service_rate ?? 0}
+        linhas={mesa.itens.map((i) => ({ qty: i.ordered_quantity, nome: i.item_name, unit: i.unit_price }))}
+      />
       <LiberarPedidosMesa slug={slug} table={mesa.number} />
       {mesa.itens.length === 0 ? (
         <p className="rounded-xl bg-background-muted px-4 py-6 text-center text-sm text-muted-foreground">
