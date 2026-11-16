@@ -3,6 +3,13 @@ import { gerarProfundidade } from "./profundidade";
 // Uma inferência por vez evita disputar memória quando há várias fotos na fila.
 let queue: Promise<void> = Promise.resolve();
 const remoteDepths = new Map<string, Promise<Blob>>();
+const contentDepths = new Map<string, Blob>();
+const MAX_CACHED_PHOTOS = 32;
+function remember<K, V>(cache: Map<K, V>, key: K, value: V) {
+  cache.delete(key);
+  cache.set(key, value);
+  if (cache.size > MAX_CACHED_PHOTOS) cache.delete(cache.keys().next().value!);
+}
 export function prepareDishDepth(
   source: Blob | string,
   onStatus: (text: string) => void = () => {},
@@ -17,15 +24,28 @@ export function prepareDishDepth(
             return r.blob();
           })
         : source;
+    // File names and URLs can change while the actual photograph stays identical.
+    const hash = Array.from(
+      new Uint8Array(await crypto.subtle.digest("SHA-256", await image.arrayBuffer())),
+    )
+      .map((b) => b.toString(16).padStart(2, "0"))
+      .join("");
+    const previous = contentDepths.get(hash);
+    if (previous) {
+      onStatus("Volume da foto já preparado.");
+      return previous;
+    }
     const bitmap = await createImageBitmap(image);
     try {
-      return await gerarProfundidade(bitmap, "/modelos/depth/model.onnx", onStatus);
+      const depth = await gerarProfundidade(bitmap, "/modelos/depth/model.onnx", onStatus);
+      remember(contentDepths, hash, depth);
+      return depth;
     } finally {
       bitmap.close();
     }
   });
   if (typeof source === "string") {
-    remoteDepths.set(source, task);
+    remember(remoteDepths, source, task);
     void task.catch(() => remoteDepths.delete(source));
   }
   queue = task.then(

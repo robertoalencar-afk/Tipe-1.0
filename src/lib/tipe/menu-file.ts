@@ -1,6 +1,13 @@
 import type { ImportSource, ImportPhoto } from "./menu-import";
 import { MAX_IMPORT_BYTES } from "./menu-import";
 import { strFromU8, unzipSync } from "fflate";
+import {
+  multiplyPhotoMatrix,
+  photoPlacement,
+  photoHasStoryResolution,
+  decodedMenuPhoto,
+  type PhotoMatrix,
+} from "./menu-photo-source";
 
 const xml = (bytes: Uint8Array) => {
   const text = strFromU8(bytes);
@@ -138,14 +145,35 @@ export async function readMenuFile(
       });
       const ops = await page.getOperatorList();
       const seen = new Set<string>();
+      let matrix = [...base.transform] as PhotoMatrix;
+      const matrices: PhotoMatrix[] = [];
       for (let k = 0; k < ops.fnArray.length; k++) {
+        const op = ops.fnArray[k];
+        if (op === pdfjs.OPS.save || op === pdfjs.OPS.paintFormXObjectBegin) {
+          matrices.push([...matrix]);
+          if (op === pdfjs.OPS.paintFormXObjectBegin && ops.argsArray[k]?.[0])
+            matrix = multiplyPhotoMatrix(matrix, ops.argsArray[k][0]);
+        } else if (op === pdfjs.OPS.restore || op === pdfjs.OPS.paintFormXObjectEnd) {
+          matrix = matrices.pop() ?? ([...base.transform] as PhotoMatrix);
+        } else if (op === pdfjs.OPS.transform)
+          matrix = multiplyPhotoMatrix(matrix, ops.argsArray[k]);
         if (ops.fnArray[k] !== pdfjs.OPS.paintImageXObject) continue;
         const id = ops.argsArray[k][0] as string;
-        if (seen.has(id)) continue;
-        seen.add(id);
+        const placement = photoPlacement(matrix, base.width, base.height);
+        const occurrence = `${id}:${matrix.join(",")}`;
+        if (seen.has(occurrence)) continue;
+        seen.add(occurrence);
         const store = id.startsWith("g_") ? page.commonObjs : page.objs;
-        if (!store.has(id)) continue;
-        const im = store.get(id) as {
+        // Operator-list delivery can precede JPEG decoding. Waiting for the object
+        // prevents silently dropping the restaurant's original photographs.
+        const decoded = await decodedMenuPhoto(store, id);
+        if (!decoded) {
+          result.warnings.push(
+            `Não foi possível extrair uma foto da página ${n}. Confira as imagens na revisão.`,
+          );
+          continue;
+        }
+        const im = decoded as {
           width: number;
           height: number;
           bitmap?: ImageBitmap;
@@ -159,8 +187,13 @@ export async function readMenuFile(
           result.photos.length >= 60
         )
           continue;
-        // A scanned full page is not a dish photo.
-        if (im.width / im.height > 0.65 && im.width / im.height < 0.8 && text.trim().length < 30)
+        // Portrait photographs are common. Only exclude an actual full-page scan.
+        if (
+          placement &&
+          placement.width >= 0.9 &&
+          placement.height >= 0.9 &&
+          text.trim().length < 30
+        )
           continue;
         const c = document.createElement("canvas");
         c.width = im.width;
@@ -187,7 +220,22 @@ export async function readMenuFile(
         } else continue;
         result.photos.push({
           name: `Página ${n} · foto ${result.photos.length + 1}`,
-          url: c.toDataURL("image/jpeg", 0.85),
+          url: URL.createObjectURL(
+            await new Promise<Blob>((resolve, reject) =>
+              c.toBlob(
+                (blob) =>
+                  blob
+                    ? resolve(blob)
+                    : reject(new Error("Não foi possível extrair a foto original.")),
+                "image/jpeg",
+                0.95,
+              ),
+            ),
+          ),
+          width: im.width,
+          height: im.height,
+          pageIndex: n - 1,
+          ...(placement ? { bounds: placement } : {}),
         });
         c.width = 0;
         c.height = 0;
@@ -262,11 +310,15 @@ export async function cropMenuPhoto(
 ) {
   const image = await createImageBitmap(await (await fetch(url)).blob());
   try {
-    const width = Math.min(1200, Math.round(image.width * bounds.width));
-    const height = Math.max(
+    if (!photoHasStoryResolution(image.width * bounds.width, image.height * bounds.height))
+      return null;
+    const scale = Math.min(
       1,
-      Math.round((width * (image.height * bounds.height)) / (image.width * bounds.width)),
+      1200 / (image.width * bounds.width),
+      2000 / (image.height * bounds.height),
     );
+    const width = Math.max(1, Math.round(image.width * bounds.width * scale));
+    const height = Math.max(1, Math.round(image.height * bounds.height * scale));
     const canvas = document.createElement("canvas");
     canvas.width = Math.max(1, width);
     canvas.height = height;
@@ -283,7 +335,18 @@ export async function cropMenuPhoto(
         canvas.width,
         canvas.height,
       );
-    return canvas.toDataURL("image/jpeg", 0.9);
+    const result = URL.createObjectURL(
+      await new Promise<Blob>((resolve, reject) =>
+        canvas.toBlob(
+          (blob) =>
+            blob ? resolve(blob) : reject(new Error("Não foi possível preparar o recorte.")),
+          "image/jpeg",
+          0.94,
+        ),
+      ),
+    );
+    canvas.width = canvas.height = 0;
+    return result;
   } finally {
     image.close();
   }
