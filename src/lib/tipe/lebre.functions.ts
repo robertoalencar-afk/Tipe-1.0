@@ -55,6 +55,7 @@ Tipe Cozinha: tela da cozinha e do bar (KDS) com os pedidos por ordem de chegada
 Tipe Equipe: área do garçom com gorjetas, saldo e avaliações.
 Tipe Gestão: painel do salão, caixa e relatórios em tempo real.
 Lebre, a inteligência da Tipe (é você; antes se chamava Tipe AI): resume o salão para o dono, responde dúvidas e executa pedidos simples no painel, como mesas, equipe e cardápio, sempre com confirmação. Também lê fotos e PDFs, como um cardápio, e entende áudio.
+Integrações: a Lebre explica o passo a passo de cada integração do catálogo (PDV, delivery, ERP, nota fiscal, pagamentos e cardápio), inclusive onde conseguir a chave de API, o código de autorização ou o arquivo. A chave nunca é colada na conversa: vai só no painel, em Configurar › Integrações, guardada criptografada. A Lebre não guarda chaves, tokens nem senhas.
 Memória da Lebre: no painel, ela aprende com cada restaurante e com cada pessoa da equipe (nomes dos pratos, qual mesa é a varanda, como a pessoa gosta das respostas). Não guarda dado sensível: CPF, CNPJ, cartão, senha, e-mail, telefone, chave Pix, endereço, saúde e salário. A memória de um restaurante nunca aparece para outro, e cada pessoa pode ver e apagar a sua dizendo "o que você lembra?" ou "esqueça...".
 Tipe Reserva: reserva, lista de espera e volta do cliente. Ainda está em breve; não diga que já está disponível.
 Nomes antigos: Tipe Kitchen hoje é Tipe Cozinha, Tipe Staff é Tipe Equipe, Tipe Restaurant é Tipe Gestão, Tipe Guest é Tipe Reserva e Tipe AI é a Lebre. Use sempre os nomes novos.
@@ -106,8 +107,13 @@ export const askPublicLebre = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<LebreReply> => {
     const { enforceRate, clientIp, consumeLebreQuota } = await import("./security.server");
     await enforceRate(`lebre-public:${clientIp()}`, 12, 60);
+    // Chave colada na conversa não vai para a IA nem fica guardada.
+    const integ = await import("./lebre-integracoes");
+    if (integ.pareceSegredo(data.question)) return { answer: integ.RESPOSTA_SEGREDO };
     // Perguntas frequentes têm resposta pronta: não gastam IA nem a cota do dia.
     if (!data.files?.length) {
+      const guia = integ.respostaIntegracao(data.question);
+      if (guia) return { answer: guia };
       const { respostaFaq } = await import("./lebre-regras");
       const pronta = respostaFaq(data.question);
       if (pronta) return { answer: pronta };
@@ -359,6 +365,13 @@ export const askRestaurantLebre = createServerFn({ method: "POST" })
     const contextText = `Restaurante: ${restaurant.name}. Cargo do usuário: ${roleNames.join(", ")}. Mesas: ${tableList}. Mesas com conta aberta: ${busyTables}. Mesas com pagamento presencial aguardando confirmação: ${pendingTables}. Garçons: ${waiterList}. Pagamentos pendentes: ${pending.length}. Valor aproximado em aberto, sem taxa: R$ ${openValue.toFixed(2)}. PDV: ${restaurant.pos_mode === "external" ? `externo, ${restaurant.pos_provider ?? "não informado"}` : "TIPE"}.`;
     // Consultas rápidas e comandos claros são resolvidos sem IA e sem gastar a cota do dia.
     let raw: string | null = null;
+    // Integrações: chave colada não segue adiante; "como integro o X?" tem passo a passo pronto.
+    const integ = await import("./lebre-integracoes");
+    if (integ.pareceSegredo(data.question)) return { answer: integ.RESPOSTA_SEGREDO };
+    if (!data.files?.length) {
+      const guia = integ.respostaIntegracao(data.question);
+      if (guia) return { answer: guia };
+    }
     // Memória: pedidos diretos ("lembre que...", "o que você lembra?", "esqueça...") sem IA.
     const memoria = await import("./lebre-memoria.server");
     const { lerPedidoMemoria, motivoSensivel } = await import("./lebre-memoria");
