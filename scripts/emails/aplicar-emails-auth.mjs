@@ -49,8 +49,10 @@ principal.uri_allow_list = [...urls].join(",");
 // Só liga o Resend se o domínio tipe.digital já estiver verificado lá; senão os e-mails parariam de sair.
 let resendOk = false;
 if (resend) {
-  const d = await fetch("https://api.resend.com/domains", { headers: { Authorization: `Bearer ${resend}` } }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
-  resendOk = !!d?.data?.some((x) => x.name === "tipe.digital" && x.status === "verified");
+  // Chave só de envio (recomendada) não pode listar domínios: aí vale RESEND_DOMINIO_VERIFICADO=1, conferido no painel.
+  const r = await fetch("https://api.resend.com/domains", { headers: { Authorization: `Bearer ${resend}` } }).catch(() => null);
+  const d = r?.ok ? await r.json() : null;
+  resendOk = !!d?.data?.some((x) => x.name === "tipe.digital" && x.status === "verified") || (r?.status === 401 && process.env.RESEND_DOMINIO_VERIFICADO === "1");
   if (!resendOk) console.log("::warning::Domínio tipe.digital ainda não verificado no Resend: SMTP não alterado.");
 }
 if (resendOk) {
