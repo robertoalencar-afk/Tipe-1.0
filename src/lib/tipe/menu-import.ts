@@ -26,7 +26,14 @@ export function parseImportAnalysis(text: string) {
     JSON.parse(text.replace(/^```(?:json)?\s*/, "").replace(/\s*```$/, "")),
   );
 }
-export type ImportPhoto = { name: string; url: string };
+export type ImportPhoto = {
+  name: string;
+  url: string;
+  width?: number;
+  height?: number;
+  pageIndex?: number;
+  bounds?: import("./menu-photo-source").PhotoBounds;
+};
 export type ImportPage = { text: string; image?: string };
 export type ImportSource = { pages: ImportPage[]; photos: ImportPhoto[]; warnings: string[] };
 export const MAX_IMPORT_BYTES = 8_000_000;

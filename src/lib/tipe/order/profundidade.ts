@@ -44,6 +44,7 @@ function carregarOrt(): Promise<Ort> {
 }
 
 const sessoes = new Map<string, Promise<Sessao>>();
+const tiposEntrada = new Map<string, "float32" | "float16">();
 
 function paraF16(f: Float32Array) {
   const out = new Uint16Array(f.length);
@@ -108,12 +109,24 @@ export async function gerarProfundidade(
   etapa?.("Calculando o volume do prato…");
   const nome = sessao.inputNames[0]!;
   let saida;
+  const tipo = tiposEntrada.get(modeloUrl) ?? "float32";
   try {
-    saida = await sessao.run({ [nome]: new ort.Tensor("float32", entrada, [1, 3, LADO, LADO]) });
+    saida = await sessao.run({
+      [nome]: new ort.Tensor(tipo, tipo === "float16" ? paraF16(entrada) : entrada, [
+        1,
+        3,
+        LADO,
+        LADO,
+      ]),
+    });
+    tiposEntrada.set(modeloUrl, tipo);
   } catch {
+    if (tipo === "float16")
+      throw new Error("Não foi possível calcular o volume desta foto. Tente novamente.");
     saida = await sessao.run({
       [nome]: new ort.Tensor("float16", paraF16(entrada), [1, 3, LADO, LADO]),
     });
+    tiposEntrada.set(modeloUrl, "float16");
   }
   const bruto = saida[sessao.outputNames[0]!]!;
   const d = bruto.data instanceof Uint16Array ? deF16(bruto.data) : bruto.data;
@@ -140,7 +153,7 @@ export async function gerarProfundidade(
 
   // Volta ao enquadramento da foto, com um leve desfoque para suavizar as bordas.
   const fim = document.createElement("canvas");
-  const larg = 540;
+  const larg = Math.max(1, Math.min(540, Math.round((1080 * foto.width) / foto.height)));
   fim.width = larg;
   fim.height = Math.round((larg * foto.height) / foto.width);
   const fx = fim.getContext("2d")!;

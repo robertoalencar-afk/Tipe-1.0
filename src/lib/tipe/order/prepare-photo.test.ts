@@ -11,6 +11,21 @@ beforeEach(() => {
   m.engine.mockResolvedValue(new Blob(["depth"], { type: "image/png" }));
 });
 afterEach(() => vi.unstubAllGlobals());
+it("reutiliza fotografias idênticas enviadas em arquivos diferentes", async () => {
+  const { prepareDishDepth } = await import("./prepare-photo");
+  const [a, b] = await Promise.all([
+    prepareDishDepth(new File(["same actual photo"], "prato-a.jpg")),
+    prepareDishDepth(new File(["same actual photo"], "prato-b.jpg")),
+  ]);
+  expect(a).toBe(b);
+  expect(m.engine).toHaveBeenCalledOnce();
+});
+it("não reutiliza o volume de outra fotografia", async () => {
+  const { prepareDishDepth } = await import("./prepare-photo");
+  await prepareDishDepth(new Blob(["original"]));
+  await prepareDishDepth(new Blob(["replacement"]));
+  expect(m.engine).toHaveBeenCalledTimes(2);
+});
 it("envia a foto ao motor e libera o bitmap ao concluir", async () => {
   const { prepareDishDepth } = await import("./prepare-photo");
   const result = await prepareDishDepth(new Blob(["photo"]));

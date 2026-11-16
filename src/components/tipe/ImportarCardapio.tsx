@@ -12,6 +12,7 @@ import {
 } from "@/lib/tipe/menu-import.functions";
 import { readMenuFile, readMenuHtml, releaseMenuSource, cropMenuPhoto } from "@/lib/tipe/menu-file";
 import { parseMenuCsv } from "@/lib/tipe/menu-csv";
+import { matchOriginalPhoto } from "@/lib/tipe/menu-photo-source";
 import type { ImportedDish, ImportSource } from "@/lib/tipe/menu-import";
 import { prepareDishDepth, photoBlobDataUrl } from "@/lib/tipe/order/prepare-photo";
 import { reduzirImagem } from "./UploadImagem";
@@ -113,9 +114,20 @@ export function ImportarCardapio({ slug, onDone }: { slug: string; onDone: () =>
           for (const dish of result.items) {
             const pageImage = parsed.pages[i]?.image;
             if (dish.photoBounds && pageImage && parsed.photos.length < 60) {
-              const crop = await cropMenuPhoto(pageImage, dish.photoBounds);
-              dish.imageIndex = parsed.photos.length;
-              parsed.photos.push({ name: `Conferir recorte · ${dish.name}`, url: crop });
+              const original = matchOriginalPhoto(parsed.photos, i, dish.photoBounds);
+              const crop = await cropMenuPhoto(
+                original ? parsed.photos[original.index]!.url : pageImage,
+                original?.crop ?? dish.photoBounds,
+              );
+              if (crop) {
+                dish.imageIndex = parsed.photos.length;
+                parsed.photos.push({ name: `Conferir foto · ${dish.name}`, url: crop });
+              } else {
+                dish.imageIndex = null;
+                notices.push(
+                  `A foto de ${dish.name} é pequena para os stories. Envie a original ou publique sem foto.`,
+                );
+              }
             }
           }
           dishes.push(...result.items);
