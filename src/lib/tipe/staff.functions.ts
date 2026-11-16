@@ -14,7 +14,9 @@ export const getMyAccess = createServerFn({ method: "GET" })
     ]);
     if (rolesRes.error || restRes.error) throw new Error("Não foi possível carregar seu acesso");
     const roles = rolesRes.data ?? [];
+    const { data: interno } = await (supabase as any).from("central_staff").select("active").eq("user_id", userId).maybeSingle();
     return {
+      isCentralStaff: interno?.active === true,
       email: (context.claims as { email?: string }).email ?? "",
       isFounder: roles.some((r) => r.role === "founder"),
       roles: roles.map((r) => ({ role: r.role as StaffRole, restaurantId: r.restaurant_id })),

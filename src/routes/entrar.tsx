@@ -60,7 +60,7 @@ function Entrar() {
         const ehPapelPublico = !slugR || ["central", "painel", "garcom", "demo"].includes(slugR);
         if (!soGarcom && (ehPapelPublico || temPapelNele)) return navigate({ to: r, replace: true } as never);
       }
-      if (a.isFounder) return navigate({ to: "/central", replace: true });
+      if (a.isFounder || a.isCentralStaff) return navigate({ to: "/central", replace: true });
       if (soGarcom) return navigate({ to: "/garcom", replace: true });
       if (a.restaurants.length === 1)
         return navigate({
