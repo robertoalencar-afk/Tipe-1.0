@@ -56,6 +56,14 @@ if (resend) {
   console.log(`Resend: leitura de domínios respondeu ${r?.status ?? "sem resposta"}; chave ${resend.startsWith("re_") ? "no formato re_" : "FORA do formato re_"}.`);
   if (!resendOk) console.log("::warning::Domínio tipe.digital ainda não verificado no Resend: SMTP não alterado.");
 }
+// Prova que a chave envia de verdade antes de trocar o SMTP (chave errada pararia todos os e-mails de conta).
+if (resendOk) {
+  const t = await fetch("https://api.resend.com/emails", {
+    method: "POST", headers: { Authorization: `Bearer ${resend}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ from: "Tipe <noreply@tipe.digital>", to: ["roberto@tipe.digital"], subject: "Tipe: SMTP do Resend ligado no Supabase", text: "Teste automático: esta chave do Resend envia pelo tipe.digital. Os e-mails de conta da Tipe passam a sair por aqui." }),
+  }).catch(() => null);
+  if (!t?.ok) { resendOk = false; console.log(`::warning::Teste de envio pelo Resend falhou (${t?.status ?? "sem resposta"}): ${t ? await t.text() : ""}. SMTP não alterado.`); }
+}
 if (resendOk) {
   Object.assign(principal, {
     smtp_host: "smtp.resend.com", smtp_port: "465", smtp_user: "resend", smtp_pass: resend,
