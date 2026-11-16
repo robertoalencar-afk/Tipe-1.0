@@ -41,6 +41,6 @@ export function erroGravacaoNfc(error: unknown) {
   if (name === "NotAllowedError" || name === "SecurityError")
     return "Permita o acesso ao NFC neste navegador e tente novamente.";
   if (name === "NotSupportedError")
-    return "Este aparelho ou etiqueta não oferece a gravação NFC necessária. Use o NFC Tools com o link abaixo.";
+    return "Este aparelho ou etiqueta não oferece a gravação NFC necessária. Use um celular Android com NFC, Chrome e uma etiqueta NDEF compatível.";
   return "Não foi possível gravar. Ative o NFC, mantenha a etiqueta próxima e confira se está vazia, desbloqueada e tem espaço. Para substituir um link existente, marque a opção abaixo.";
 }

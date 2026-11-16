@@ -97,6 +97,7 @@ it("publica com o cliente autenticado e substituição explícita", async () => 
   expect(m.rpc).toHaveBeenCalledWith("publish_menu_import", {
     p_slug: "teste",
     p_replace: true,
+    p_allow_no_photo: false,
     p_rows: [
       {
         ...row,

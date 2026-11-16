@@ -1,12 +1,35 @@
 // Central de ajuda (/ajuda): perguntas frequentes por assunto. Só descreve o que o produto
 // faz hoje; o que está em desenvolvimento aparece como tal. Textos jurídicos completos
 // ficam na Central Jurídica (/legal), que é a fonte oficial.
+import { whatsappLink } from "@/lib/tipe/contact";
 import { PRIVACY_EMAIL } from "@/lib/tipe/legal";
 
 export type Pergunta = { p: string; r: string; link?: { href: string; texto: string } };
 export type Assunto = { id: string; titulo: string; perguntas: Pergunta[] };
 
 export const AJUDA: Assunto[] = [
+  {
+    id: "erros",
+    titulo: "Erros e acesso",
+    perguntas: [
+      {
+        p: "Apareceu erro 500 ou um código como MWHR878A. O que fazer?",
+        r: "O código ajuda a identificar o momento da falha; sozinho, não informa a causa. Confira a conexão e toque em Recarregar página para buscar a versão atual. Se continuar, feche a aba e abra novamente o endereço do restaurante. Não apague os dados do navegador como primeira tentativa: eles ajudam a retomar sua conta na mesa. Informe ao atendimento o código, horário, página e aparelho usados.",
+        link: {
+          href: whatsappLink("Preciso de ajuda com um erro de acesso à Tipe."),
+          texto: "Falar com a Tipe",
+        },
+      },
+      {
+        p: "A Lebre não abre no celular após uma atualização.",
+        r: "Recarregue a página e tente abrir a Lebre novamente. Uma aba aberta há muito tempo pode tentar carregar arquivos de uma versão anterior. Se a falha persistir, procure o atendimento com o código e o horário. Recarregar a página não envia um novo pedido ou pagamento.",
+      },
+      {
+        p: "A página falhou enquanto eu pagava. Devo pagar novamente?",
+        r: "Não repita o pagamento antes de conferir o histórico e o comprovante. Reabra o mesmo QR Code no mesmo navegador ou peça ao caixa para verificar o status. Uma falha na tela não confirma que o pagamento falhou.",
+      },
+    ],
+  },
   {
     id: "mesa",
     titulo: "Na mesa",

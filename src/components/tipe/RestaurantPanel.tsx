@@ -51,6 +51,7 @@ import {
   launchOrder,
   saveWaiter,
   updateTable,
+  editTable,
   voidItem,
 } from "@/lib/tipe/pdv.functions";
 import { transferTable } from "@/lib/tipe/admin.functions";
@@ -615,6 +616,7 @@ export function RestaurantPanel({
     nome: meuPerfil.data?.nome || eu?.display_name || (email ? email.split("@")[0]! : "Você"),
     funcao: cargoLabel[papel],
     detalhe: d.restaurant.name,
+    avatarUrl: meuPerfil.data?.avatarUrl,
   };
   const logoUrl = midia.data?.logoUrl ?? null;
 
@@ -903,6 +905,7 @@ export function RestaurantPanel({
           <MesasQr
             slug={slug}
             restaurante={d.restaurant.name}
+            logoUrl={logoUrl}
             tables={pdv.data.tables}
             podeDono={podeDono}
             onDone={refresh}
@@ -1515,6 +1518,7 @@ function UsoMesas({
 }
 
 function MesasQr({
+  logoUrl,
   slug,
   restaurante,
   tables,
@@ -1523,12 +1527,16 @@ function MesasQr({
 }: {
   slug: string;
   restaurante: string;
+  logoUrl?:string|null|undefined;
   tables: PdvData["tables"];
   podeDono: boolean;
   onDone: () => void;
 }) {
   const add = useServerFn(addTable);
   const upd = useServerFn(updateTable);
+  const edit = useServerFn(editTable);
+  const [editing,setEditing]=useState<string|null>(null);
+  const [number,setNumber]=useState("");
   const bulk = useServerFn(addTablesBulk);
   const [nova, setNova] = useState("");
   const [lote, setLote] = useState({ from: "", to: "" });
@@ -1658,6 +1666,8 @@ function MesasQr({
               </Button>
               {podeDono && (
                 <>
+                  {editing===t.id ? <form className="flex max-w-full flex-wrap gap-1" onSubmit={e=>{e.preventDefault();void run(()=>edit({data:{id:t.id,number}}),"Mesa atualizada").then(()=>setEditing(null))}}><Input aria-label="Novo número da mesa" className="w-24" value={number} maxLength={12} onChange={e=>setNumber(e.target.value)}/><Button size="sm" type="submit">Salvar</Button><Button size="sm" variant="ghost" onClick={()=>setEditing(null)}>Cancelar</Button></form> : <Button size="sm" variant="ghost" onClick={()=>{setEditing(t.id);setNumber(t.number)}}>Editar</Button>}
+                  {!t.active && <Button size="sm" variant="ghost" onClick={()=>{if(window.confirm(`Excluir a mesa ${t.number}? Só mesas sem movimentação podem ser apagadas.`))void run(()=>edit({data:{id:t.id,remove:true}}),"Mesa excluída")}}>Excluir</Button>}
                   <Button
                     size="sm"
                     variant="ghost"
@@ -1694,7 +1704,7 @@ function MesasQr({
           </div>
         ))}
       </div>
-      <TotemStudio tables={tables} link={link} restaurante={restaurante} />
+      <TotemStudio tables={tables} link={link} restaurante={restaurante} logoUrl={logoUrl} />
     </div>
   );
 }

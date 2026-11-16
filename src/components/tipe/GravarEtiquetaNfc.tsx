@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Copy, Nfc } from "lucide-react";
+import { Nfc } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { gravadorDisponivel, gravarLinkMesa, erroGravacaoNfc } from "@/lib/tipe/nfc";
 
@@ -70,8 +70,8 @@ export function GravarEtiquetaNfc({
         Gravar etiqueta NFC
       </h4>
       <p className="mt-1 text-sm text-muted-foreground">
-        Grave uma etiqueta por mesa com o mesmo endereço do QR Code. Depois, cole a etiqueta no
-        totem.
+        Grave uma etiqueta por mesa com o mesmo endereço do QR Code. A gravação é feita aqui, sem
+        baixar outro aplicativo. Depois, cole a etiqueta no totem.
       </p>
       {mesa ? (
         <div className="mt-3 space-y-3">
@@ -100,29 +100,10 @@ export function GravarEtiquetaNfc({
             />
           </label>
           <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={async () => {
-                try {
-                  await navigator.clipboard.writeText(mesa.url);
-                  setAviso(
-                    "Link copiado. No NFC Tools, escolha Escrever → Adicionar registro → URL/URI e grave na etiqueta.",
-                  );
-                } catch {
-                  setAviso("Selecione e copie o endereço acima para usar no NFC Tools.");
-                }
-              }}
-            >
-              <Copy className="size-4" />
-              Copiar para NFC Tools
+            <Button type="button" disabled={!suporta || ocupado} onClick={() => void gravar()}>
+              <Nfc className="size-4" />
+              {ocupado ? "Aguardando etiqueta…" : "Gravar pelo celular"}
             </Button>
-            {suporta && (
-              <Button type="button" disabled={ocupado} onClick={() => void gravar()}>
-                <Nfc className="size-4" />
-                {ocupado ? "Aguardando etiqueta…" : "Gravar etiqueta NFC"}
-              </Button>
-            )}
             {ocupado && (
               <Button type="button" variant="ghost" onClick={() => controlador.current?.abort()}>
                 Cancelar
@@ -142,8 +123,9 @@ export function GravarEtiquetaNfc({
             </label>
           ) : (
             <p className="text-xs text-muted-foreground">
-              Para gravar direto pela Gestão, abra esta página no Chrome de um Android com NFC.
-              Neste navegador, use o link no NFC Tools.
+              Este aparelho ou navegador não oferece gravação NFC. Entre na Gestão pelo Chrome de um
+              celular Android com NFC ativado para gravar a etiqueta. Computadores e Safari no
+              iPhone não permitem essa gravação pelo navegador; continuam podendo abrir o QR Code.
             </p>
           )}
           <p role="status" className="text-sm text-muted-foreground">

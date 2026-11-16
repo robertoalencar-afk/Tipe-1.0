@@ -49,6 +49,7 @@ export function ImportarCardapio({ slug, onDone }: { slug: string; onDone: () =>
   const [progress, setProgress] = useState("");
   const [error, setError] = useState("");
   const [confirmed, setConfirmed] = useState(false);
+  const [allowNoPhoto, setAllowNoPhoto] = useState(false);
   const [replace, setReplace] = useState(false);
   const assets = useRef(new Map<string, Asset>());
   const sourceRef = useRef<ImportSource | null>(null);
@@ -162,7 +163,8 @@ export function ImportarCardapio({ slug, onDone }: { slug: string; onDone: () =>
       for (const [index, row] of selected.entries()) {
         let asset: Asset | null = null;
         const photo = row.imageIndex === null ? null : source?.photos[row.imageIndex];
-        if (!photo) throw new Error(`Escolha uma foto de ${row.name} antes de publicar.`);
+        if (!photo && !allowNoPhoto)
+          throw new Error(`Escolha uma foto de ${row.name} antes de publicar.`);
         if (photo) {
           const cached = assets.current.get(photo.url);
           if (cached) asset = cached;
@@ -198,11 +200,13 @@ export function ImportarCardapio({ slug, onDone }: { slug: string; onDone: () =>
           category: row.category,
           description: row.description,
           price: priceOf(row.priceText),
-          asset: asset!,
+          asset,
         });
       }
       setProgress("Publicando os itens revisados…");
-      const result = await publishMenuImport({ data: { slug, rows: prepared, replace } });
+      const result = await publishMenuImport({
+        data: { slug, rows: prepared, replace, allowNoPhoto },
+      });
       toast.success(`${result.imported} itens publicados no cardápio`);
       clear();
       setFile(null);
@@ -222,8 +226,7 @@ export function ImportarCardapio({ slug, onDone }: { slug: string; onDone: () =>
     r.category.trim().length >= 2 &&
     r.category.trim().toLowerCase() !== "para organizar" &&
     r.description.trim().length >= 10 &&
-    r.imageIndex !== null &&
-    !!source?.photos[r.imageIndex] &&
+    (allowNoPhoto || (r.imageIndex !== null && !!source?.photos[r.imageIndex])) &&
     Number.isFinite(priceOf(r.priceText)) &&
     priceOf(r.priceText) >= 0 &&
     priceOf(r.priceText) <= 10000;
@@ -493,7 +496,7 @@ export function ImportarCardapio({ slug, onDone }: { slug: string; onDone: () =>
                 {row.selected &&
                   (!row.description.trim() ||
                     row.description.trim().length < 10 ||
-                    row.imageIndex === null ||
+                    (!allowNoPhoto && row.imageIndex === null) ||
                     row.category.toLowerCase() === "para organizar" ||
                     !row.priceText.trim()) && (
                     <p className="text-xs text-amber-800">
@@ -504,6 +507,18 @@ export function ImportarCardapio({ slug, onDone }: { slug: string; onDone: () =>
               </article>
             ))}
           </div>
+          <label className="flex min-h-11 items-start gap-3 text-sm">
+            <input
+              type="checkbox"
+              checked={allowNoPhoto}
+              disabled={busy}
+              onChange={(e) => {
+                setAllowNoPhoto(e.target.checked);
+                setConfirmed(false);
+              }}
+            />
+            Permitir itens sem foto. As fotos disponíveis continuam passando pelo motor de volume.
+          </label>
           <label className="flex min-h-11 items-start gap-3 text-sm">
             <input
               type="checkbox"
