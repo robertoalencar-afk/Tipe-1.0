@@ -52,7 +52,8 @@ if (resend) {
   // Chave só de envio (recomendada) não pode listar domínios: aí vale RESEND_DOMINIO_VERIFICADO=1, conferido no painel.
   const r = await fetch("https://api.resend.com/domains", { headers: { Authorization: `Bearer ${resend}` } }).catch(() => null);
   const d = r?.ok ? await r.json() : null;
-  resendOk = !!d?.data?.some((x) => x.name === "tipe.digital" && x.status === "verified") || ([401, 403].includes(r?.status ?? 0) && process.env.RESEND_DOMINIO_VERIFICADO === "1");
+  resendOk = !!d?.data?.some((x) => x.name === "tipe.digital" && x.status === "verified") || process.env.RESEND_DOMINIO_VERIFICADO === "1";
+  console.log(`Resend: leitura de domínios respondeu ${r?.status ?? "sem resposta"}; chave ${resend.startsWith("re_") ? "no formato re_" : "FORA do formato re_"}.`);
   if (!resendOk) console.log("::warning::Domínio tipe.digital ainda não verificado no Resend: SMTP não alterado.");
 }
 if (resendOk) {
