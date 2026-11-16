@@ -78,6 +78,7 @@ function Estacao() {
         carregando={board.isLoading}
         setorFixo={data?.sector ?? "all"}
         telaCheia
+        restaurante={data?.restaurantName ?? ""}
         onMover={(v) => bump({ data: { slug: restaurante, token, ...v } })}
         onAtualizar={() => qc.invalidateQueries({ queryKey: ["estacao", restaurante, token] })}
       />
