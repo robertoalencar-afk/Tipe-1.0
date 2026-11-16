@@ -40,15 +40,19 @@ const PhotoUrl = z
   .url()
   .max(1800)
   .refine((value) => {
-    const url = new URL(value);
-    return url.protocol === "https:" && !url.username && !url.password;
+    try {
+      const url = new URL(value);
+      return url.protocol === "https:" && !url.username && !url.password;
+    } catch {
+      return false;
+    }
   });
 export const MenuPhotoCreditSchema = z.object({
   imageUrl: PhotoUrl,
   illustrative: z.boolean(),
   author: z.string().trim().min(1).max(240),
   sourceUrl: PhotoUrl,
-  license: z.string().trim().min(1).max(100),
+  license: z.string().trim().min(1).max(100).optional(),
   licenseUrl: PhotoUrl.optional(),
   changes: z.string().trim().max(240).optional(),
 });

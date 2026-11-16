@@ -921,7 +921,7 @@ export function RestaurantPanel({
           </div>
         )}
         {aba === "comofunciona" && <ComoFuncionaGestao ir={ir} />}
-        {aba === "banco" && podeDono && <BancoImagens slug={slug} podeDono={podeDono} itens={(pdv.data?.items ?? []).map((i) => ({ id: i.id, name: i.name }))} onAplicada={() => void qc.invalidateQueries({ queryKey: ["midia", slug] })} />}
+        {aba === "banco" && podeDono && <BancoImagens slug={slug} podeDono={podeDono} itens={(pdv.data?.items ?? []).map((i) => ({ id: i.id, name: i.name, code:i.code }))} onAplicada={() => void qc.invalidateQueries({ queryKey: ["midia", slug] })} />}
         {aba === "relatorios" && <Relatorios slug={slug} papel={papel} />}
         {aba === "identidade" && <Identidade slug={slug} podeDono={podeDono} funcao={usuario.funcao} onSair={onSair} />}
         {aba === "integracoes" && <Integracoes slug={slug} podeDono={podeDono} />}

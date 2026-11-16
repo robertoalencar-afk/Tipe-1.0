@@ -12,10 +12,11 @@ import {
 } from "@/lib/tipe/midia.functions";
 import { prepareDishDepth, photoBlobDataUrl } from "@/lib/tipe/order/prepare-photo";
 import { reduzirImagem } from "@/components/tipe/UploadImagem";
+import { matchMenuPhotos } from "@/lib/tipe/menu-photo-match";
 
 import type { GalleryPhoto } from "./site/order/CriarPratoDemo";
 
-type Item = { id: string; name: string };
+type Item = { id: string; name: string; code?: string };
 
 /** Banco de imagens do restaurante: envie várias fotos e aplique cada uma a um prato. */
 export function BancoImagens({
@@ -49,19 +50,36 @@ export function BancoImagens({
   const [enviando, setEnviando] = useState(0);
   const [escolhida, setEscolhida] = useState<string | null>(null);
   const [aplicando, setAplicando] = useState(false);
+  const [relacionar, setRelacionar] = useState(false);
+  const [pendentes, setPendentes] = useState<File[]>([]);
+  const correspondencias = matchMenuPhotos(pendentes, itens);
 
-  async function enviar(files: FileList | null) {
+  async function enviar(files: FileList | File[] | null, vincular = false) {
     if (!files?.length) return;
     setAba("envios");
     setEnviando(files.length);
     let ok = 0;
+    const falhas: File[] = [];
     for (const f of Array.from(files)) {
       try {
         const depth = await prepareDishDepth(f, setProcesso);
         const saved = await add({ data: { slug, imagem: await reduzirImagem(f, 1200) } });
         depths.current.set(saved.nome, depth);
+        if (vincular) {
+          const item = matchMenuPhotos([f], itens)[0]?.item;
+          if (!item) throw new Error("Código do prato não encontrado.");
+          await usar({
+            data: {
+              slug,
+              itemId: item.id,
+              nome: saved.nome,
+              profundidade: await photoBlobDataUrl(depth),
+            },
+          });
+        }
         ok += 1;
       } catch (e) {
+        falhas.push(f);
         toast.error(`${f.name}: ${(e as Error).message}`);
       }
       setEnviando((n) => n - 1);
@@ -70,6 +88,10 @@ export function BancoImagens({
     if (ref.current) ref.current.value = "";
     setProcesso("");
     await qc.invalidateQueries({ queryKey: ["banco-imagens", slug] });
+    if (vincular) {
+      setPendentes(falhas);
+      onAplicada();
+    }
   }
   async function aplicar(nome: string, itemId: string) {
     setAplicando(true);
@@ -138,7 +160,11 @@ export function BancoImagens({
               accept="image/png,image/jpeg,image/webp"
               className="hidden"
               aria-label="Enviar imagens"
-              onChange={(e) => void enviar(e.target.files)}
+              onChange={(e) =>
+                relacionar
+                  ? setPendentes(Array.from(e.target.files ?? []))
+                  : void enviar(e.target.files)
+              }
             />
             <Button
               type="button"
@@ -155,6 +181,59 @@ export function BancoImagens({
           </>
         )}
       </div>
+      {podeDono && !onEscolher && itens.some((i) => i.code) && (
+        <div className="space-y-2 text-sm">
+          <label className="flex min-h-10 items-center gap-2">
+            <input
+              type="checkbox"
+              checked={relacionar}
+              disabled={enviando > 0}
+              onChange={(e) => {
+                setRelacionar(e.target.checked);
+                setPendentes([]);
+                if (ref.current) ref.current.value = "";
+              }}
+              className="size-4 accent-primary"
+            />
+            Relacionar fotos pelo código do prato
+          </label>
+          {relacionar && (
+            <p className="text-xs text-muted-foreground">
+              Nomeie cada arquivo com o código exato do prato (ex.: PRATO-1.jpg). Confira os
+              destinos antes de aplicar. As fotos atuais serão substituídas.
+            </p>
+          )}
+          {pendentes.length > 0 && (
+            <div className="space-y-3 rounded-xl border p-3">
+              <ul className="max-h-56 space-y-1 overflow-y-auto break-words">
+                {correspondencias.map((row, index) => (
+                  <li key={index}>
+                    {row.file.name} →{" "}
+                    {row.item?.name ??
+                      "Sem correspondência única — confira o código ou arquivos repetidos."}
+                  </li>
+                ))}
+              </ul>
+              <Button
+                disabled={enviando > 0 || correspondencias.some((row) => !row.item)}
+                onClick={() => void enviar(pendentes, true)}
+              >
+                Preparar e aplicar {pendentes.length} fotos
+              </Button>
+              <Button
+                variant="ghost"
+                disabled={enviando > 0}
+                onClick={() => {
+                  setPendentes([]);
+                  if (ref.current) ref.current.value = "";
+                }}
+              >
+                Cancelar
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
       <div className="flex flex-wrap gap-2" aria-label="Categorias de imagens">
         {(
           [
