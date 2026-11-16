@@ -2,7 +2,7 @@
 //   a cada minuto:   POST /api/public/pdv/sync          (PDVs sem webhook)
 //   a cada 5 minutos: POST /api/public/payments/reconcile (pagamentos presos)
 const JOBS = {
-  "* * * * *": ["/api/public/pdv/sync"],
+  "* * * * *": ["/api/public/pdv/sync", "/api/internal/fiscal/process"],
   "*/5 * * * *": ["/api/public/payments/reconcile", "/api/public/menu/review"],
 };
 
