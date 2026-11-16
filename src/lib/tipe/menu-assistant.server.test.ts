@@ -116,7 +116,7 @@ describe("Lebre acompanha o cardápio", () => {
       .mockResolvedValueOnce(
         JSON.stringify({
           items: m.dishes.slice(0, 8).map((i) => ({
-            id: i.id,
+            id: i["id"],
             translations: { en: { name: "Juice", description: "Cashew" } },
           })),
         }),
@@ -126,7 +126,7 @@ describe("Lebre acompanha o cardápio", () => {
     expect(m.rpc.mock.calls.filter(([name]) => name === "publish_menu_translation")).toHaveLength(
       8,
     );
-    const input = JSON.parse(m.ai.mock.calls[0][0].question);
+    const input = JSON.parse(m.ai.mock.calls[0]![0].question);
     expect(input.items).toHaveLength(8);
     expect(m.rpc.mock.calls.filter(([name]) => name === "lebre_consume")).toHaveLength(2);
   });
