@@ -269,14 +269,20 @@ export async function askAI(opts: {
       () => askClaudeFallback({ system: opts.system, question: opts.question, files, maxTokens }),
     ],
   ];
+  let dailyLimitReached = false;
   for (const [name, attempt] of attempts) {
     try {
       return await attempt();
     } catch (error) {
       if (!(error instanceof ProviderFailed)) throw error;
+      if (error.message === "teto diário atingido") dailyLimitReached = true;
       if (error.message !== "sem credenciais" && error.message !== "desligado")
         console.warn("ai", name, error.message);
     }
   }
-  throw new AIUnavailable("nenhum provedor de IA disponível");
+  throw new AIUnavailable(
+    dailyLimitReached
+      ? "A cota gratuita diária da Lebre foi atingida e não há outro provedor disponível. Tente após a renovação diária ou preencha os dados manualmente."
+      : "A Lebre está temporariamente indisponível. Tente novamente em instantes ou preencha os dados manualmente.",
+  );
 }
