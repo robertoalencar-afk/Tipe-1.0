@@ -1,0 +1,18 @@
+import assert from 'node:assert/strict';import {readFile} from 'node:fs/promises';
+const {PGlite}=await import(process.env.PGLITE_MODULE||'@electric-sql/pglite');const db=new PGlite();
+await db.exec(`create table restaurants(id uuid primary key,slug text);
+create table pdv_menu_categories(id uuid primary key default gen_random_uuid(),restaurant_id uuid,name text,position int);
+create table pdv_menu_items(id uuid primary key default gen_random_uuid(),restaurant_id uuid,category_id uuid references pdv_menu_categories(id) on delete set null,code text not null,name text not null,description text,price numeric(10,2) not null check(price>=0),available boolean not null default true,position int not null default 0,sector text not null default 'kitchen',image_url text,depth_url text,model_url text,badge text,allergens text[] not null default '{}',menu_config jsonb not null default '{}',unique(restaurant_id,code));
+insert into restaurants values('11111111-1111-4111-8111-111111111111','bistro-teste'),('22222222-2222-4222-8222-222222222222','bar-teste');
+insert into pdv_menu_categories(id,restaurant_id,name,position) values('33333333-3333-4333-8333-333333333333','11111111-1111-4111-8111-111111111111','Licores',99),('44444444-4444-4444-8444-444444444444','22222222-2222-4222-8222-222222222222','Bar',1);
+insert into pdv_menu_items(restaurant_id,category_id,code,name,price) values('11111111-1111-4111-8111-111111111111','33333333-3333-4333-8333-333333333333','X1','Licor importado',10),('22222222-2222-4222-8222-222222222222','44444444-4444-4444-8444-444444444444','B1','Chope',9);`);
+await db.exec(await readFile(new URL('../../../drizzle/migrations/0071_bistro_menu_curado.sql',import.meta.url),'utf8'));
+const items=(await db.query(`select i.code,i.name,i.description,i.price,i.sector,i.image_url,i.menu_config,c.name cat from pdv_menu_items i join pdv_menu_categories c on c.id=i.category_id where i.restaurant_id='11111111-1111-4111-8111-111111111111'`)).rows;
+assert.equal(items.length,33);assert.ok(!items.some(i=>i.code==='X1'),'cardápio importado saiu');
+assert.ok(items.every(i=>i.description.length>=10&&i.description.length<=200&&i.name.length<=80&&i.code.length<=16));
+assert.ok(items.filter(i=>i.image_url).every(i=>i.image_url.startsWith('/cardapio/')),'só fotos próprias');
+const codes=new Set(items.map(i=>i.code));for(const i of items)for(const r of i.menu_config.recommendations??[])assert.ok(codes.has(r),`recomendação ${r} existe`);
+assert.ok(items.filter(i=>['Cervejas','Coquetéis','Vinhos em taça','Cafés'].includes(i.cat)).every(i=>i.sector==='bar'));
+assert.equal((await db.query(`select count(*)::int n from pdv_menu_items where restaurant_id='22222222-2222-4222-8222-222222222222'`)).rows[0].n,1,'outra empresa intacta');
+assert.equal((await db.query(`select count(*)::int n from pdv_menu_categories where restaurant_id='11111111-1111-4111-8111-111111111111'`)).rows[0].n,11);
+await db.close();console.log('Bistrô menu: curated menu replaces imported one, own photos only, valid recommendations, other tenants untouched.');

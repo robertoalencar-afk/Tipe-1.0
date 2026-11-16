@@ -137,15 +137,15 @@ async function logomarca(rid, e) {
 async function cardapioComFotos(rid, nome) {
   const F = (n, d) => ({ image_url: `/cardapio/${n}`, ...(d ? { depth_url: `/cardapio/${d}` } : {}) });
   const grupos = [
-    ["Petiscos", [
+    ["Entradas", [
       ["MAR-PASTEL", "Pastel de camarão", 34, "cozinha", "Porção com 6 unidades", { ...F("pastel-1080.webp", "pastel-depth.png"), model_url: "/modelos/pastel-triposr.glb" }, []],
       ["MAR-ISCA", "Isca de peixe", 54, "cozinha", "Com molho tártaro da casa", { ...F("isca-1080.webp", "isca-depth.png"), badge: "Mais pedido" }, ["peixe", "ovo", "glúten"]],
     ]],
-    ["Pratos", [
+    ["Principais", [
       ["MAR-BAIAO", "Baião de dois", 42, "cozinha", "Feijão-verde, queijo coalho e nata", F("baiao-1080.webp", "baiao-depth.png"), ["leite"]],
       ["MAR-PEIXE", "Peixe na brasa", 68, "cozinha", "Pargo com pirão e salada", { ...F("peixe-720.webp"), badge: "Saindo da brasa" }, ["peixe"]],
     ]],
-    ["Bebidas", [
+    ["Águas, sucos e refrigerantes", [
       ["MAR-CAJU", "Suco de caju", 9.5, "bar", "Copo de 400 ml", F("caju-1080.webp", "caju-depth.png"), []],
       ["MAR-COCO", "Água de coco", 8, "bar", "Servida no coco, bem gelada", F("coco-720.webp"), []],
     ]],

@@ -84,9 +84,6 @@ export function Cozinha({ slug, podePainel = false, telaCheia = false }: { slug:
   const ops = useOps(slug);
   const qc = useQueryClient();
   const bump = useServerFn(bumpOrder);
-  const [setor, setSetor] = useState<Setor>("all");
-  const [som, setSom] = useState(false);
-  const agora = useAgora();
   const rid = ops.data?.restaurant.id;
 
   // Tempo real: qualquer item novo ou mudança de status atualiza a tela na hora.
@@ -99,21 +96,54 @@ export function Cozinha({ slug, podePainel = false, telaCheia = false }: { slug:
     return () => { supabase.removeChannel(ch); };
   }, [rid, slug, qc]);
 
-  const tickets = useMemo(() => montarTickets(ops.data?.kds ?? [], setor), [ops.data?.kds, setor]);
+  return (
+    <QuadroKds
+      itens={ops.data?.kds ?? []}
+      carregando={ops.isLoading}
+      onMover={(v) => bump({ data: v })}
+      onAtualizar={() => qc.invalidateQueries({ queryKey: ["ops", slug] })}
+      telaCheia={telaCheia}
+      tela={telaCheia ? undefined : { slug, podePainel }}
+    />
+  );
+}
+
+/**
+ * Quadro de tickets, sem saber de onde vêm os dados. O painel usa a sessão da equipe;
+ * a estação da cozinha e do bar usa o link com token (setorFixo trava o setor da tela).
+ */
+export function QuadroKds({
+  itens, carregando, onMover, onAtualizar, telaCheia = false, setorFixo, tela,
+}: {
+  itens: KdsItem[];
+  carregando: boolean;
+  onMover: (v: { orderId: string; status: "received" | "preparing" | "ready" | "delivered"; sector?: "kitchen" | "bar" }) => Promise<unknown>;
+  onAtualizar: () => void;
+  telaCheia?: boolean;
+  setorFixo?: Setor | undefined;
+  tela?: { slug: string; podePainel: boolean } | undefined;
+}) {
+  const slug = tela?.slug ?? "";
+  const podePainel = tela?.podePainel ?? false;
+  const [setorEscolhido, setSetor] = useState<Setor>("all");
+  const setor: Setor = setorFixo ?? setorEscolhido;
+  const [som, setSom] = useState(false);
+  const agora = useAgora();
+
+  const tickets = useMemo(() => montarTickets(itens, setor), [itens, setor]);
 
   // Bipa quando chega pedido novo (ignora a primeira carga da tela).
   const conhecidos = useRef<Set<string> | null>(null);
   useEffect(() => {
-    if (!ops.data) return;
     const novos = tickets.filter((t) => t.etapa === "received").map((t) => t.orderId);
     if (conhecidos.current && som && novos.some((id) => !conhecidos.current!.has(id))) beep(2, "pedido");
     conhecidos.current = new Set([...(conhecidos.current ?? []), ...novos]);
-  }, [tickets, som, ops.data]);
+  }, [tickets, som]);
 
   const mover = useMutation({
     mutationFn: (v: { orderId: string; status: "received" | "preparing" | "ready" | "delivered" }) =>
-      bump({ data: { ...v, ...(setor !== "all" ? { sector: setor } : {}) } }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["ops", slug] }),
+      onMover({ ...v, ...(setor !== "all" ? { sector: setor } : {}) }),
+    onSuccess: () => onAtualizar(),
     onError: (e) => toast.error((e as Error).message),
   });
 
@@ -122,7 +152,7 @@ export function Cozinha({ slug, podePainel = false, telaCheia = false }: { slug:
   return (
     <div className={telaCheia ? "flex flex-col gap-3 p-3" : "space-y-4"}>
       <div className="flex flex-wrap items-center gap-2">
-        {([["all", "Todos"], ["kitchen", "Cozinha"], ["bar", "Bar"]] as const).map(([k, l]) => (
+        {!setorFixo && ([["all", "Todos"], ["kitchen", "Cozinha"], ["bar", "Bar"]] as const).map(([k, l]) => (
           <Button key={k} size={telaCheia ? "lg" : "sm"} variant={setor === k ? "default" : "outline"} onClick={() => setSetor(k)}>{l}</Button>
         ))}
         <div className="ml-auto flex flex-wrap items-center gap-2">
@@ -130,8 +160,8 @@ export function Cozinha({ slug, podePainel = false, telaCheia = false }: { slug:
           <Button size="sm" variant="outline" onClick={() => { if (!som && !unlockSound()) { toast.error("Este navegador não permite som"); return; } setSom(!som); if (!som) beep(1); }}>
             {som ? <Bell className="mr-1 h-4 w-4" /> : <BellOff className="mr-1 h-4 w-4" />}{som ? "Som ligado" : "Ativar som"}
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => qc.invalidateQueries({ queryKey: ["ops", slug] })} aria-label="Atualizar"><RefreshCw className="h-4 w-4" /></Button>
-          {!telaCheia && (
+          <Button size="sm" variant="ghost" onClick={onAtualizar} aria-label="Atualizar"><RefreshCw className="h-4 w-4" /></Button>
+          {!telaCheia && tela && (
             <Button size="sm" variant="outline" asChild>
               <Link to="/$restaurante/cozinha" params={{ restaurante: slug }} target="_blank"><Maximize2 className="mr-1 h-4 w-4" />Tela da cozinha</Link>
             </Button>
@@ -139,7 +169,7 @@ export function Cozinha({ slug, podePainel = false, telaCheia = false }: { slug:
         </div>
       </div>
 
-      {ops.isLoading && <p className="text-muted-foreground">Carregando…</p>}
+      {carregando && <p className="text-muted-foreground">Carregando…</p>}
       <div className={`grid flex-1 gap-3 md:grid-cols-3 ${telaCheia ? "items-stretch" : ""}`}>
         {colunas.map(([etapa, label]) => {
           const lista = tickets.filter((t) => t.etapa === etapa);
@@ -189,7 +219,7 @@ export function Cozinha({ slug, podePainel = false, telaCheia = false }: { slug:
         })}
       </div>
 
-      {!telaCheia && podePainel && <PainelSenhasConfig slug={slug} />}
+      {!telaCheia && podePainel && tela && <PainelSenhasConfig slug={slug} />}
     </div>
   );
 }
