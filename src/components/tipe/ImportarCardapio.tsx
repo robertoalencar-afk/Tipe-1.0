@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { FileUp, Link as LinkIcon, Check, Image as ImageIcon } from "lucide-react";
+import { FileUp, Link as LinkIcon, Check, Image as ImageIcon, Type } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,10 +9,12 @@ import {
   loadMenuLink,
   prepareImportedPhoto,
   publishMenuImport,
+  suggestMenuDescriptions,
 } from "@/lib/tipe/menu-import.functions";
 import { readMenuFile, readMenuHtml, releaseMenuSource, cropMenuPhoto } from "@/lib/tipe/menu-file";
 import { parseMenuCsv } from "@/lib/tipe/menu-csv";
 import { matchOriginalPhoto } from "@/lib/tipe/menu-photo-source";
+import { normalizeImportedDishes, splitMenuText } from "@/lib/tipe/menu-import";
 import type { ImportedDish, ImportSource } from "@/lib/tipe/menu-import";
 import { prepareDishDepth, photoBlobDataUrl } from "@/lib/tipe/order/prepare-photo";
 import { reduzirImagem } from "./UploadImagem";
@@ -40,9 +42,11 @@ const decodeFile = (content: string, type: string, url: string) => {
   );
 };
 export function ImportarCardapio({ slug, onDone }: { slug: string; onDone: () => void }) {
-  const [mode, setMode] = useState<"file" | "link">("file");
+  const [mode, setMode] = useState<"file" | "link" | "text">("file");
   const [url, setUrl] = useState("");
-  const [file, setFile] = useState<File | null>(null);
+  const [pasted, setPasted] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
+  const file = files[0] ?? null;
   const [rows, setRows] = useState<Draft[]>([]);
   const [source, setSource] = useState<ImportSource | null>(null);
   const [warnings, setWarnings] = useState<string[]>([]);
@@ -87,9 +91,25 @@ export function ImportarCardapio({ slug, onDone }: { slug: string; onDone: () =>
           input = decodeFile(remote.content, remote.type, remote.url);
           parsed = await readMenuFile(input, setProgress);
         }
+      } else if (mode === "text") {
+        if (pasted.trim().length < 10) throw new Error("Cole o texto do cardápio.");
+        input = null;
+        parsed = { pages: [{ text: pasted.slice(0, 60000) }], photos: [], warnings: [] };
       } else {
         if (!input) throw new Error("Escolha um arquivo.");
         parsed = await readMenuFile(input, setProgress);
+        // Várias fotos do cardápio físico (ou vários arquivos) viram partes da mesma leitura.
+        for (const extra of files.slice(1)) {
+          const more = await readMenuFile(extra, setProgress);
+          const offset = parsed.pages.length;
+          parsed.pages.push(...more.pages);
+          parsed.photos.push(
+            ...more.photos.map((p) =>
+              p.pageIndex === undefined ? p : { ...p, pageIndex: p.pageIndex + offset },
+            ),
+          );
+          parsed.warnings.push(...more.warnings);
+        }
       }
       sourceRef.current = parsed;
       setSource(parsed);
@@ -107,10 +127,27 @@ export function ImportarCardapio({ slug, onDone }: { slug: string; onDone: () =>
           /* unstructured CSV goes to the same review */
         }
       }
-      if (!dishes.length)
-        for (let i = 0; i < parsed.pages.length; i++) {
-          setProgress(`A Lebre está lendo ${i + 1} de ${parsed.pages.length} parte(s)…`);
-          const result = await analyzeMenuSource({ data: { slug, ...parsed.pages[i]! } });
+      if (!dishes.length) {
+        // Textos longos (planilha, Word, site) vão em partes que a IA lê inteiras.
+        const parts = parsed.pages.flatMap((page, i) =>
+          page.image
+            ? [{ i, page: { ...page, text: page.text.slice(0, 12000) } }]
+            : splitMenuText(page.text).map((text) => ({ i, page: { text } })),
+        );
+        let failed = 0;
+        let firstError = "";
+        for (const [n, { i, page }] of parts.entries()) {
+          setProgress(`A Lebre está lendo ${n + 1} de ${parts.length} parte(s)…`);
+          let result;
+          try {
+            result = await analyzeMenuSource({ data: { slug, ...page } });
+          } catch (e) {
+            // Uma parte ilegível não descarta o restante: vira aviso para conferir.
+            failed++;
+            firstError ||= (e as Error).message;
+            notices.push(`Não consegui ler a parte ${n + 1}. Confira essa parte no original.`);
+            continue;
+          }
           for (const dish of result.items) {
             const pageImage = parsed.pages[i]?.image;
             if (dish.photoBounds && pageImage && parsed.photos.length < 60) {
@@ -133,6 +170,12 @@ export function ImportarCardapio({ slug, onDone }: { slug: string; onDone: () =>
           dishes.push(...result.items);
           notices.push(...result.warnings);
         }
+        if (failed === parts.length) throw new Error(firstError);
+        const normalized = normalizeImportedDishes(dishes);
+        dishes = normalized.dishes;
+        if (normalized.duplicates)
+          notices.push(`${normalized.duplicates} item(ns) repetido(s) foram unidos.`);
+      }
       if (!dishes.length)
         throw new Error(
           "Não encontrei pratos com segurança. Tente um arquivo mais legível ou o modelo CSV.",
@@ -163,6 +206,39 @@ export function ImportarCardapio({ slug, onDone }: { slug: string; onDone: () =>
   function edit(index: number, patch: Partial<Draft>) {
     setConfirmed(false);
     setRows((current) => current.map((r, i) => (i === index ? { ...r, ...patch } : r)));
+  }
+  async function suggestDescriptions() {
+    if (locked.current) return;
+    const pending = rows
+      .map((r, index) => ({ r, index }))
+      .filter(({ r }) => r.selected && r.description.trim().length < 10)
+      .slice(0, 40);
+    if (!pending.length) return;
+    locked.current = true;
+    setBusy(true);
+    setError("");
+    setProgress(`A Lebre está sugerindo ${pending.length} descrição(ões)…`);
+    try {
+      const texts = await suggestMenuDescriptions({
+        data: {
+          slug,
+          items: pending.map(({ r }) => ({ name: r.name.slice(0, 80), category: r.category })),
+        },
+      });
+      setConfirmed(false);
+      setRows((current) =>
+        current.map((r, i) => {
+          const at = pending.findIndex((p) => p.index === i);
+          return at < 0 || !texts[at] ? r : { ...r, description: texts[at]!, suggested: true };
+        }),
+      );
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      locked.current = false;
+      setBusy(false);
+      setProgress("");
+    }
   }
   async function publish() {
     if (locked.current || !confirmed) return;
@@ -221,8 +297,9 @@ export function ImportarCardapio({ slug, onDone }: { slug: string; onDone: () =>
       });
       toast.success(`${result.imported} itens publicados no cardápio`);
       clear();
-      setFile(null);
+      setFiles([]);
       setUrl("");
+      setPasted("");
       onDone();
     } catch (e) {
       setError((e as Error).message);
@@ -269,19 +346,43 @@ export function ImportarCardapio({ slug, onDone }: { slug: string; onDone: () =>
             >
               <LinkIcon className="size-4" /> Link
             </Button>
+            <Button
+              variant={mode === "text" ? "default" : "outline"}
+              disabled={busy}
+              onClick={() => setMode("text")}
+            >
+              <Type className="size-4" /> Texto
+            </Button>
           </div>
-          {mode === "file" ? (
+          {mode === "text" ? (
+            <label className="block space-y-2 text-xs">
+              Texto do cardápio
+              <textarea
+                maxLength={60000}
+                disabled={busy}
+                value={pasted}
+                onChange={(e) => setPasted(e.target.value)}
+                placeholder={"Entradas\nPastel de camarão (6 un.) ... 34,00"}
+                className="mt-1 min-h-40 w-full rounded-lg border border-input bg-background p-3 text-sm"
+              />
+              <span className="block text-muted-foreground">
+                Cole o texto de um PDF, WhatsApp ou site. Seções viram categorias.
+              </span>
+            </label>
+          ) : mode === "file" ? (
             <div className="space-y-2">
               <Input
                 type="file"
+                multiple
                 accept=".pdf,.docx,.xlsx,.csv,.txt,.png,.jpg,.jpeg,.webp"
-                aria-label="Arquivo do cardápio"
+                aria-label="Arquivos do cardápio"
                 disabled={busy}
-                onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+                onChange={(e) => setFiles(Array.from(e.target.files ?? []).slice(0, 12))}
               />
               <p className="text-xs text-muted-foreground">
-                PDF, Word (.docx), Excel (.xlsx), CSV, texto ou imagem. Até 8 MB, 12 páginas de PDF
-                e 200 itens. Arquivos .doc e .xls: salve no formato atual ou em PDF.
+                PDF, Word (.docx), Excel (.xlsx), CSV, texto ou fotos do cardápio físico (pode
+                escolher várias páginas de uma vez). Até 8 MB por arquivo, 12 páginas de PDF e 200
+                itens. Arquivos .doc e .xls: salve no formato atual ou em PDF.
               </p>
             </div>
           ) : (
@@ -303,7 +404,9 @@ export function ImportarCardapio({ slug, onDone }: { slug: string; onDone: () =>
           <LebreSuggestionButton
             loading={busy}
             loadingText="A Lebre está lendo…"
-            disabled={mode === "file" ? !file : !url.trim()}
+            disabled={
+              mode === "file" ? !file : mode === "text" ? pasted.trim().length < 10 : !url.trim()
+            }
             onClick={() => void analyze()}
           >
             Organizar com a Lebre
@@ -355,6 +458,15 @@ export function ImportarCardapio({ slug, onDone }: { slug: string; onDone: () =>
             >
               Selecionar completos ({rows.filter(ready).length})
             </Button>
+            {rows.some((r) => r.selected && r.description.trim().length < 10) && (
+              <LebreSuggestionButton
+                loading={busy}
+                loadingText="Sugerindo…"
+                onClick={() => void suggestDescriptions()}
+              >
+                Sugerir descrições que faltam
+              </LebreSuggestionButton>
+            )}
           </div>
           {!!warnings.length && (
             <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
@@ -435,12 +547,17 @@ export function ImportarCardapio({ slug, onDone }: { slug: string; onDone: () =>
                 </label>
                 <label className="block text-xs">
                   Descrição e detalhes do prato (obrigatório)
+                  {row.suggested && (
+                    <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-900">
+                      Sugestão da Lebre: confira
+                    </span>
+                  )}
                   <textarea
                     maxLength={200}
                     disabled={busy}
                     className="mt-1 min-h-20 w-full rounded-lg border border-input bg-background p-3 text-sm"
                     value={row.description}
-                    onChange={(e) => edit(index, { description: e.target.value })}
+                    onChange={(e) => edit(index, { description: e.target.value, suggested: false })}
                   />
                 </label>
                 {!!source?.photos.length && (
