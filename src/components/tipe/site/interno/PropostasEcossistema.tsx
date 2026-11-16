@@ -160,7 +160,7 @@ const EXTERNAS: { nome: string; status: Status }[] = [
   { nome: "Apple Pay", status: "disponivel" },
   { nome: "Google Pay", status: "disponivel" },
   { nome: "PDVs de mercado", status: "desenvolvimento" },
-  { nome: "Fiscal e NFC-e", status: "planejado" },
+  { nome: "Fiscal e NFC-e", status: "disponivel" },
   { nome: "Delivery", status: "planejado" },
 ];
 

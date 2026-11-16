@@ -285,7 +285,7 @@ export function IntegracoesHome() {
           centro
           rotulo="Integrações"
           titulo="Integrações, com status honesto."
-          texto="Hoje: Lançamento TIPE, API TIPE e pagamento no estabelecimento. Pagamentos digitais sujeitos à validação por restaurante. PDVs, delivery, ERP e nota fiscal estão sujeitos à análise de compatibilidade."
+          texto="Hoje: Lançamento TIPE, API TIPE, pagamento no estabelecimento e NFC-e pelo Focus NFe com ativação guiada na Gestão. Pagamentos digitais sujeitos à validação por restaurante. PDVs, delivery e ERP estão sujeitos à análise de compatibilidade."
         />
       </div>
       <div className="container-page mt-12 sm:mt-16">

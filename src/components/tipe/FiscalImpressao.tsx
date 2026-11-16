@@ -8,6 +8,8 @@ import {
   impressaoFiscalInicial,
   lerConfiguracaoImpressaoFiscal,
 } from "@/lib/tipe/fiscal/printing";
+import { chaveTesteImpressao } from "@/lib/tipe/fiscal/ativacao";
+import { imprimirHtml } from "@/lib/tipe/imprimir";
 
 const fieldClass = "mt-1 h-11 w-full rounded-md border border-input bg-background px-3 text-sm";
 export function FiscalImpressao({ slug }: { slug: string }) {
@@ -28,6 +30,17 @@ export function FiscalImpressao({ slug }: { slug: string }) {
       toast.success("Preferências de impressão salvas neste dispositivo");
     } catch {
       toast.error("Não foi possível salvar neste navegador");
+    }
+  }
+  function testar() {
+    imprimirHtml(
+      `<h1>Teste de impressão</h1><div class="c m">${new Date().toLocaleString("pt-BR")}</div><hr><div class="l"><span>Bobina</span><span>${config.paper === "a4" ? "A4" : `${config.paper} mm`}</span></div><div class="l"><span>Conexão</span><span>${config.connection}</span></div><hr><div class="c">Se este texto saiu inteiro e legível, a impressora está pronta para cupons e tickets.</div><hr><div class="c m">Sem valor fiscal</div>`,
+      "Teste de impressão",
+    );
+    try {
+      localStorage.setItem(chaveTesteImpressao(slug), new Date().toISOString());
+    } catch {
+      /* sem armazenamento local: o teste só não fica registrado */
     }
   }
   return (
@@ -110,6 +123,9 @@ export function FiscalImpressao({ slug }: { slug: string }) {
         <div>
           <Button disabled={!loaded} onClick={save}>
             Salvar preferências de impressão
+          </Button>
+          <Button variant="outline" className="ml-2" disabled={!loaded} onClick={testar}>
+            Imprimir página de teste
           </Button>
         </div>
       </fieldset>
