@@ -79,6 +79,7 @@ import { LiberarPedidosMesa } from "@/components/tipe/LiberarPedidosMesa";
 import { EstacoesConfig } from "@/components/tipe/EstacoesConfig";
 import { DesignarGarcom } from "@/components/tipe/DesignarGarcom";
 import { BotaoPreConta } from "@/components/tipe/PreConta";
+import { linkMesa } from "@/lib/tipe/imprimir";
 import { Assinatura, AvisoAssinatura, ContaBloqueada } from "@/components/tipe/Assinatura";
 import { getAccountAccess } from "@/lib/tipe/subscription.functions";
 import { abaLiberada } from "@/lib/tipe/assinatura";
@@ -969,6 +970,7 @@ export function RestaurantPanel({
                 .map((m) => m.number)}
               payments={d.payments.filter((p) => p.table_number === mesaSel.number)}
               podeConfirmar={podeConfirmar}
+              qrLink={linkMesa(slug, (mesaSel as { code?: string }).code ?? "", (mesaSel as { access_token?: string }).access_token ?? "", typeof window !== "undefined" ? window.location.origin : undefined)}
               onLancar={() => {
                 setMesaPedido(mesaSel.number);
                 setMesaAberta(null);
@@ -999,6 +1001,7 @@ function MesaDetalhe({
   outras,
   payments,
   podeConfirmar,
+  qrLink,
   onLancar,
   onDone,
   onClose,
@@ -1006,6 +1009,7 @@ function MesaDetalhe({
   slug: string;
   outras: string[];
   podeConfirmar: boolean;
+  qrLink?: string | undefined;
   onLancar: () => void;
   onDone: () => void;
   onClose: () => void;
@@ -1054,6 +1058,7 @@ function MesaDetalhe({
         mesa={mesa.number}
         garcom={mesa.garcom ?? null}
         taxa={ops.data?.restaurant.service_rate ?? 0}
+        link={qrLink ?? null}
         linhas={mesa.itens.map((i) => ({ qty: i.ordered_quantity, nome: i.item_name, unit: i.unit_price }))}
       />
       <LiberarPedidosMesa slug={slug} table={mesa.number} />
