@@ -1,0 +1,10 @@
+// Email Worker da Central Tipe. Passos (uma vez):
+//   cd email-worker && npm install && npx wrangler secret put EMAIL_INBOUND_SECRET && npx wrangler deploy
+// Depois, no painel do Cloudflare (tipe.digital > Email > Email Routing), aponte roberto@ e contato@
+// para este Worker ("Send to a Worker"). Veja docs/internos/EMAIL-CENTRAL.md.
+{
+  "name": "tipe-email",
+  "main": "index.js",
+  "compatibility_date": "2026-10-01",
+  "vars": { "APP_URL": "https://tipe.digital" }
+}
