@@ -18,6 +18,8 @@
  * tem foto de tudo. Com movimento reduzido, nada avança sozinho e a foto não faz zoom.
  */
 import { PhotoPinch, NO_ZOOM } from "@/lib/tipe/order/pinch-zoom";
+import { MenuPhotoCredit } from "@/components/tipe/MenuPhotoCredit";
+import type { MenuPhotoCredit as PhotoCredit } from "@/lib/tipe/menu-intelligence";
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
 import { Box, Minus, Pause, Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -36,6 +38,7 @@ export type ItemStory = {
   profundidade?: string;
   selo?: string;
   alergenicos?: string[];
+  creditoFoto?: PhotoCredit | undefined;
 };
 
 const DURACAO = 6000;
@@ -347,15 +350,23 @@ export function StoryCardapio({
               )}
             </div>
           ) : item.foto && item.profundidade ? (
-            <Foto3D foto={item.foto} profundidade={item.profundidade} alt={item.nome} />
+            <div className="absolute inset-x-0 bottom-56 top-20">
+              <Foto3D
+                foto={item.foto}
+                profundidade={item.profundidade}
+                alt={item.nome}
+                enquadramento="contain"
+                intensidade={0.035}
+                ativo={!parado}
+              />
+            </div>
           ) : item.foto ? (
             <img
               src={item.foto}
               alt={item.nome}
               draggable={false}
               className={cn(
-                "absolute inset-0 h-full w-full select-none object-cover",
-                !reduzido && !parado && "story-zoom",
+                "absolute inset-x-0 bottom-56 top-20 h-[calc(100%-19rem)] w-full select-none object-contain",
               )}
               style={{ animationDuration: `${DURACAO}ms` }}
             />
@@ -450,6 +461,7 @@ export function StoryCardapio({
           {item.nome}
         </p>
         {item.desc && <p className="mt-1 text-sm text-white/85">{item.desc}</p>}
+        <MenuPhotoCredit credit={item.creditoFoto} inverse onOpen={() => setPausado(true)} />
         {item.alergenicos?.length ? (
           <p className="mt-1 text-[0.68rem] text-white/70">
             Contém: {item.alergenicos.join(", ")} (informado pelo restaurante)

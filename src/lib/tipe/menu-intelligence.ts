@@ -35,7 +35,26 @@ export const AccompanimentsSchema = z
       });
   });
 export type Accompaniments = z.infer<typeof AccompanimentsSchema>;
+const PhotoUrl = z
+  .string()
+  .url()
+  .max(1800)
+  .refine((value) => {
+    const url = new URL(value);
+    return url.protocol === "https:" && !url.username && !url.password;
+  });
+export const MenuPhotoCreditSchema = z.object({
+  imageUrl: PhotoUrl,
+  illustrative: z.boolean(),
+  author: z.string().trim().min(1).max(240),
+  sourceUrl: PhotoUrl,
+  license: z.string().trim().min(1).max(100),
+  licenseUrl: PhotoUrl.optional(),
+  changes: z.string().trim().max(240).optional(),
+});
+export type MenuPhotoCredit = z.infer<typeof MenuPhotoCreditSchema>;
 export const MenuConfigSchema = z.object({
+  photoCredit: MenuPhotoCreditSchema.optional().catch(undefined),
   accompaniments: AccompanimentsSchema.optional(),
   translationSource: z.string().max(1000).optional(),
   featured: z.boolean().default(false),
@@ -49,6 +68,13 @@ export const MenuConfigSchema = z.object({
   translations: z.object({ en: Translation.optional(), es: Translation.optional() }).default({}),
 });
 export type MenuConfig = z.infer<typeof MenuConfigSchema>;
+/** Credits belong to a particular photo, never to a later replacement. */
+export function menuPhotoCredit(
+  config: MenuConfig | undefined,
+  imageUrl: string | null | undefined,
+) {
+  return imageUrl && config?.photoCredit?.imageUrl === imageUrl ? config.photoCredit : undefined;
+}
 export function readMenuConfig(value: unknown): MenuConfig {
   const result = MenuConfigSchema.safeParse(value);
   return result.success ? result.data : MenuConfigSchema.parse({});

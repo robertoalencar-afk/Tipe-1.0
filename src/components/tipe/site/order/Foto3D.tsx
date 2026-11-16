@@ -28,8 +28,13 @@ uniform sampler2D prof;
 uniform vec2 desloc;
 uniform vec2 escala;
 uniform float foco;
+uniform bool conter;
 void main() {
   vec2 base = (uv - 0.5) * escala + 0.5;
+  if (conter && (base.x < 0.0 || base.x > 1.0 || base.y < 0.0 || base.y > 1.0)) {
+    gl_FragColor = vec4(0.0);
+    return;
+  }
   vec2 dir = desloc;
   const int PASSOS = 14;
   vec2 c = base;
@@ -59,6 +64,7 @@ export function Foto3D({
   intensidade = 0.08,
   ativo = true,
   className,
+  enquadramento = "cover",
 }: {
   foto: string;
   profundidade: string;
@@ -68,6 +74,7 @@ export function Foto3D({
   /** Quando falso, a animação para (ex.: story pausado). */
   ativo?: boolean;
   className?: string;
+  enquadramento?: "cover" | "contain";
 }) {
   const reduzido = useMovimentoReduzido();
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -126,6 +133,7 @@ export function Foto3D({
         gl.uniform1i(gl.getUniformLocation(prog, "foto"), 0);
         gl.uniform1i(gl.getUniformLocation(prog, "prof"), 1);
         gl.uniform1f(gl.getUniformLocation(prog, "foco"), 0.5);
+        gl.uniform1i(gl.getUniformLocation(prog, "conter"), enquadramento === "contain" ? 1 : 0);
         const uDesloc = gl.getUniformLocation(prog, "desloc");
         const uEscala = gl.getUniformLocation(prog, "escala");
 
@@ -139,13 +147,21 @@ export function Foto3D({
           const aTela = r.width / Math.max(1, r.height);
           const aFoto = imF.width / imF.height;
           const m = 0.94;
-          gl.uniform2f(
-            uEscala,
-            aTela > aFoto ? m : (m * aTela) / aFoto,
-            aTela > aFoto ? (m * aFoto) / aTela : m,
-          );
+          if (enquadramento === "contain")
+            gl.uniform2f(
+              uEscala,
+              aTela > aFoto ? aTela / aFoto : 1,
+              aTela > aFoto ? 1 : aFoto / aTela,
+            );
+          else
+            gl.uniform2f(
+              uEscala,
+              aTela > aFoto ? m : (m * aTela) / aFoto,
+              aTela > aFoto ? (m * aFoto) / aTela : m,
+            );
         };
         ajustar();
+        gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
         const ro = new ResizeObserver(ajustar);
         ro.observe(cv);
 
@@ -205,7 +221,7 @@ export function Foto3D({
       cancelAnimationFrame(raf);
       limpar();
     };
-  }, [foto, profundidade, intensidade, reduzido]);
+  }, [foto, profundidade, intensidade, reduzido, enquadramento]);
 
   return (
     <div className={className} style={{ position: "absolute", inset: 0 }}>
@@ -214,7 +230,7 @@ export function Foto3D({
         alt={alt}
         draggable={false}
         className="absolute inset-0 h-full w-full select-none object-cover"
-        style={{ opacity: pronto ? 0 : 1 }}
+        style={{ opacity: pronto ? 0 : 1, objectFit: enquadramento }}
       />
       {!reduzido && (
         <canvas

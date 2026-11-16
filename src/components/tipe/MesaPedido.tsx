@@ -1,4 +1,5 @@
 import { MenuPublicationsCarousel } from "./MenuPublicacoes";
+import { MenuPhotoCredit } from "./MenuPhotoCredit";
 import { AcompanhamentosCliente } from "./AcompanhamentosCliente";
 import { createPortal } from "react-dom";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
@@ -19,6 +20,7 @@ import {
   filterMenu,
   relatedItems,
   translatedItem,
+  menuPhotoCredit,
   type MenuLanguage,
 } from "@/lib/tipe/menu-intelligence";
 import { recordMenuInteraction } from "@/lib/tipe/menu-intelligence.functions";
@@ -342,6 +344,7 @@ export function MesaPedido({
       ...(i.depthUrl ? { profundidade: i.depthUrl } : {}),
       ...(i.modelUrl ? { modelo: i.modelUrl } : {}),
       ...(i.badge ? { selo: i.badge } : {}),
+      creditoFoto: menuPhotoCredit(i.config, i.imageUrl),
       ...(i.allergens.length ? { alergenicos: i.allergens } : {}),
     }));
 
@@ -586,6 +589,10 @@ export function MesaPedido({
                               {i.description}
                             </p>
                           )}
+                          <MenuPhotoCredit
+                            credit={menuPhotoCredit(i.config, i.imageUrl)}
+                            language={language}
+                          />
                           {!!i.config?.diets.length && (
                             <p className="mt-1 text-xs text-primary">
                               {i.config.diets.map((d) => dietsByLanguage[language][d]).join(" · ")}
