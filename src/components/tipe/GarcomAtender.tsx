@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { LiberarPedidosMesa, useOrderAccess } from "@/components/tipe/LiberarPedidosMesa";
+import { BotaoPreConta } from "@/components/tipe/PreConta";
 import { PedidosConferencia } from "@/components/tipe/PedidosConferencia";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -296,6 +297,9 @@ export function GarcomAtender() {
                 setLancarMesa(mesa.number);
                 setMesaSel(null);
               }}
+              restaurante={pos.restaurantName}
+              garcom={pos.waiter.name}
+              taxa={pos.serviceRate}
             />
           )}
         </DialogContent>
@@ -318,7 +322,7 @@ export function GarcomAtender() {
   );
 }
 
-function ComandaMesa({ mesa, slug, onLancar }: { mesa: WaiterTable; slug: string; onLancar: () => void }) {
+function ComandaMesa({ mesa, slug, onLancar, restaurante, garcom, taxa }: { mesa: WaiterTable; slug: string; onLancar: () => void; restaurante: string; garcom: string; taxa: number }) {
   return (
     <>
       <DialogHeader>
@@ -326,6 +330,7 @@ function ComandaMesa({ mesa, slug, onLancar }: { mesa: WaiterTable; slug: string
       </DialogHeader>
       <div className="space-y-4">
         <LiberarPedidosMesa slug={slug} table={mesa.number} />
+        <BotaoPreConta restaurante={restaurante} mesa={mesa.number} garcom={garcom} taxa={taxa} linhas={mesa.itens.map((i) => ({ qty: i.qty, nome: i.name, unit: i.unitPrice }))} />
         <div className="rounded-2xl bg-muted/60 p-3">
           <div className="flex items-baseline justify-between">
             <span className="text-sm text-muted-foreground">Total da conta</span>

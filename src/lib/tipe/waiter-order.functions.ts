@@ -18,7 +18,7 @@ async function myWaiter(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data } = await supabaseAdmin
     .from("pdv_waiters")
-    .select("id, name, code, active, restaurant_id, restaurants(name, slug)")
+    .select("id, name, code, active, restaurant_id, restaurants(name, slug, service_rate)")
     .eq("user_id", userId)
     .maybeSingle();
   const w = data as unknown as {
@@ -27,7 +27,7 @@ async function myWaiter(userId: string) {
     code: string;
     active: boolean;
     restaurant_id: string;
-    restaurants: { name: string; slug: string };
+    restaurants: { name: string; slug: string; service_rate: number | string | null };
   } | null;
   if (!w || !w.active)
     throw new Error("Seu acesso de garçom não está ativo. Fale com o restaurante.");
@@ -49,6 +49,8 @@ export type WaiterPos = {
   waiter: { name: string; code: string };
   restaurantName: string;
   restaurantSlug: string;
+  /** Taxa de serviço do restaurante (0 a 1), para a pré-conta. */
+  serviceRate: number;
   categories: { id: string; name: string }[];
   items: {
     id: string;
@@ -168,6 +170,7 @@ export const getWaiterPos = createServerFn({ method: "GET" })
       waiter: { name: w.name, code: w.code },
       restaurantName: w.restaurants.name,
       restaurantSlug: slug,
+      serviceRate: Number(w.restaurants.service_rate ?? 0),
       categories: (cats.data ?? []).map((c) => ({ id: c.id, name: c.name })),
       items: (items.data ?? []).map((i) => ({
         id: i.id,
