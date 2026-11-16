@@ -4,6 +4,7 @@ import { template as privacyRequestNotification } from './privacy-request-notifi
 import { template as securityAlert } from './security-alert'
 import { template as pixChangeNotice } from './pix-change-notice'
 import { template as paymentReceipt } from './payment-receipt'
+import { template as reservaAviso } from './reserva-aviso'
 import type { ComponentType } from 'react'
 
 export interface TemplateEntry {
@@ -30,6 +31,7 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   'security-alert': securityAlert,
   'pix-change-notice': pixChangeNotice,
   'payment-receipt': paymentReceipt,
+  'reserva-aviso': reservaAviso,
   // Add templates here as they are created, e.g.:
   // 'welcome': welcomeTemplate,
 }
