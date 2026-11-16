@@ -22,7 +22,7 @@ import { Foto3D } from "./Foto3D";
 
 const CATEGORIAS = ["Petiscos", "Pratos", "Bebidas", "Sobremesas"];
 
-const DICAS: { titulo: string; texto: string }[] = [
+export const DICAS: { titulo: string; texto: string }[] = [
   {
     titulo: "Luz de janela",
     texto: "Luz natural de lado, sem flash. Evite sol direto e sombra forte em cima do prato.",

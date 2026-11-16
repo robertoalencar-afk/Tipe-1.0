@@ -1,5 +1,5 @@
 import type { ImportSource, ImportPhoto } from "./menu-import";
-import { MAX_IMPORT_BYTES } from "./menu-import";
+import { MAX_IMPORT_BYTES, menuFromStructuredData } from "./menu-import";
 import { strFromU8, unzipSync } from "fflate";
 import {
   multiplyPhotoMatrix,
@@ -265,11 +265,29 @@ export function releaseMenuSource(source: ImportSource) {
 /** Parse inert HTML only; scripts, forms, embeds and event handlers are never executed. */
 export function readMenuHtml(html: string, base: string): ImportSource {
   const doc = new DOMParser().parseFromString(html, "text/html");
+  // Plataformas de delivery e sites com schema.org entregam o cardápio em JSON
+  // inerte dentro da página; lemos esses dados antes de descartar os scripts.
+  const json: unknown[] = [];
+  for (const s of Array.from(
+    doc.querySelectorAll(
+      'script[type="application/ld+json"],script[type="application/json"],script#__NEXT_DATA__',
+    ),
+  ).slice(0, 30)) {
+    try {
+      json.push(JSON.parse(s.textContent ?? ""));
+    } catch {
+      /* bloco que não é JSON */
+    }
+  }
+  const structured = menuFromStructuredData(json);
   doc
     .querySelectorAll("script,style,noscript,iframe,form,nav,footer,svg")
     .forEach((n) => n.remove());
-  const photos: ImportPhoto[] = [];
-  for (const im of Array.from(doc.querySelectorAll("img")).slice(0, 60)) {
+  const photos: ImportPhoto[] = structured.photos.map((url, i) => ({
+    name: `Foto da plataforma ${i + 1}`,
+    url,
+  }));
+  for (const im of Array.from(doc.querySelectorAll("img")).slice(0, 60 - photos.length)) {
     try {
       const url = new URL(im.getAttribute("src") ?? "", base);
       if (url.protocol === "https:" && im.getAttribute("src"))
@@ -282,11 +300,13 @@ export function readMenuHtml(html: string, base: string): ImportSource {
     }
   }
   doc.querySelectorAll("br,p,div,li,tr,h1,h2,h3").forEach((n) => n.append("\n"));
-  const text =
+  const visible =
     doc.body.textContent
       ?.replace(/[ \t]+/g, " ")
       .replace(/\n\s*\n/g, "\n")
       .trim() ?? "";
+  // Com dados estruturados, eles são a fonte principal; o texto visível só complementa.
+  const text = structured.text ? `${structured.text}\n${visible}`.slice(0, 60000) : visible;
   if (text.length < 60)
     throw new Error(
       "Esse site carrega o cardápio por aplicativo ou exige acesso. Envie PDF, Word, Excel ou fotos do cardápio.",

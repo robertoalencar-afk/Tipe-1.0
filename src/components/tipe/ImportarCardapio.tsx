@@ -399,6 +399,17 @@ export function ImportarCardapio({ slug, onDone }: { slug: string; onDone: () =>
                 Link público de página ou arquivo. Sites com login ou conteúdo carregado apenas por
                 aplicativo podem exigir o envio do arquivo.
               </p>
+              <div className="rounded-xl border border-border bg-muted/40 p-3 text-xs leading-relaxed">
+                <p className="font-medium text-foreground">Vem de outra plataforma?</p>
+                <p className="mt-1 text-muted-foreground">
+                  <strong>iFood, 99Food, Rappi, Aiqfome:</strong> cole o link público da sua loja.
+                  Se a página não abrir aqui, tire prints do cardápio no app e envie em{" "}
+                  <em>Arquivo</em> (pode escolher vários de uma vez).{" "}
+                  <strong>Anota AI, Goomer e cardápios digitais:</strong> cole o link do cardápio. A
+                  Lebre lê nomes, descrições, preços e fotos públicas; você revisa tudo antes de
+                  publicar.
+                </p>
+              </div>
             </div>
           )}
           <LebreSuggestionButton
