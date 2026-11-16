@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
+import { EquipeInterna } from "@/components/tipe/central/EquipeInterna";
 import { Esqueleto, Kpi, Painel, Segmentado, StatusBadge, Tabela, horaBR } from "@/components/tipe/painel/ui";
 import { PaymentIntegration } from "./PaymentIntegration";
 import { LaunchStatesAdmin } from "@/components/tipe/LaunchStatesAdmin";
@@ -7,7 +8,7 @@ import { getAdministracaoCentral } from "@/lib/tipe/central.functions";
 import type { SecaoCentral } from "@/routes/_authenticated/central";
 
 type Props = { aba?: string | undefined; id?: string | undefined; ir: (s: SecaoCentral, aba?: string, id?: string) => void };
-const ABAS = [["pagamentos", "API de pagamentos"], ["auditoria", "Auditoria"], ["privacidade", "Privacidade"], ["dispositivos", "Dispositivos"], ["lancamentos", "Lançamentos"]] as const;
+const ABAS = [["pagamentos", "API de pagamentos"], ["auditoria", "Auditoria"], ["privacidade", "Privacidade"], ["dispositivos", "Dispositivos"], ["lancamentos", "Lançamentos"], ["equipe", "Equipe interna"]] as const;
 
 export function Administracao({ aba, ir }: Props) {
   const atual = ABAS.some(([k]) => k === aba) ? (aba as (typeof ABAS)[number][0]) : "auditoria";
@@ -24,6 +25,7 @@ export function Administracao({ aba, ir }: Props) {
       </div>
       <Segmentado label="Seção" value={atual} onChange={(a) => ir("administracao", a)} options={ABAS} />
       {atual === "pagamentos" && <PaymentIntegration />}
+      {atual === "equipe" && <EquipeInterna />}
       {atual === "auditoria" && (
         <Painel semPadding titulo="Trilha de auditoria" descricao="Últimos 200 eventos de segurança e ações sensíveis">
           <Tabela densa linhas={d.seguranca} chave={(e: any) => e.id} vazio="Sem eventos." colunas={[
