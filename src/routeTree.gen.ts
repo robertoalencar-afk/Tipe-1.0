@@ -22,6 +22,7 @@ import { Route as EquipeRouteImport } from './routes/equipe'
 import { Route as EsqueciASenhaRouteImport } from './routes/esqueci-a-senha'
 import { Route as FundadorRouteImport } from './routes/fundador'
 import { Route as GestaoRouteImport } from './routes/gestao'
+import { Route as GravarNfcRouteImport } from './routes/gravar-nfc'
 import { Route as GuestRouteImport } from './routes/guest'
 import { Route as GuestDemoRouteImport } from './routes/guest-demo'
 import { Route as IntegracoesRouteImport } from './routes/integracoes'
@@ -165,6 +166,11 @@ const FundadorRoute = FundadorRouteImport.update({
 const GestaoRoute = GestaoRouteImport.update({
   id: '/gestao',
   path: '/gestao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GravarNfcRoute = GravarNfcRouteImport.update({
+  id: '/gravar-nfc',
+  path: '/gravar-nfc',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GuestRoute = GuestRouteImport.update({
@@ -586,6 +592,7 @@ export interface FileRoutesByFullPath {
   '/esqueci-a-senha': typeof EsqueciASenhaRoute
   '/fundador': typeof FundadorRoute
   '/gestao': typeof GestaoRoute
+  '/gravar-nfc': typeof GravarNfcRoute
   '/guest': typeof GuestRoute
   '/guest-demo': typeof GuestDemoRoute
   '/integracoes': typeof IntegracoesRoute
@@ -679,6 +686,7 @@ export interface FileRoutesByTo {
   '/esqueci-a-senha': typeof EsqueciASenhaRoute
   '/fundador': typeof FundadorRoute
   '/gestao': typeof GestaoRoute
+  '/gravar-nfc': typeof GravarNfcRoute
   '/guest': typeof GuestRoute
   '/guest-demo': typeof GuestDemoRoute
   '/integracoes': typeof IntegracoesRoute
@@ -775,6 +783,7 @@ export interface FileRoutesById {
   '/esqueci-a-senha': typeof EsqueciASenhaRoute
   '/fundador': typeof FundadorRoute
   '/gestao': typeof GestaoRoute
+  '/gravar-nfc': typeof GravarNfcRoute
   '/guest': typeof GuestRoute
   '/guest-demo': typeof GuestDemoRoute
   '/integracoes': typeof IntegracoesRoute
@@ -871,6 +880,7 @@ export interface FileRouteTypes {
     | '/esqueci-a-senha'
     | '/fundador'
     | '/gestao'
+    | '/gravar-nfc'
     | '/guest'
     | '/guest-demo'
     | '/integracoes'
@@ -964,6 +974,7 @@ export interface FileRouteTypes {
     | '/esqueci-a-senha'
     | '/fundador'
     | '/gestao'
+    | '/gravar-nfc'
     | '/guest'
     | '/guest-demo'
     | '/integracoes'
@@ -1059,6 +1070,7 @@ export interface FileRouteTypes {
     | '/esqueci-a-senha'
     | '/fundador'
     | '/gestao'
+    | '/gravar-nfc'
     | '/guest'
     | '/guest-demo'
     | '/integracoes'
@@ -1155,6 +1167,7 @@ export interface RootRouteChildren {
   EsqueciASenhaRoute: typeof EsqueciASenhaRoute
   FundadorRoute: typeof FundadorRoute
   GestaoRoute: typeof GestaoRoute
+  GravarNfcRoute: typeof GravarNfcRoute
   GuestRoute: typeof GuestRoute
   GuestDemoRoute: typeof GuestDemoRoute
   IntegracoesRoute: typeof IntegracoesRoute
@@ -1296,6 +1309,13 @@ declare module '@tanstack/react-router' {
       path: '/gestao'
       fullPath: '/gestao'
       preLoaderRoute: typeof GestaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gravar-nfc': {
+      id: '/gravar-nfc'
+      path: '/gravar-nfc'
+      fullPath: '/gravar-nfc'
+      preLoaderRoute: typeof GravarNfcRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/guest': {
@@ -1956,6 +1976,7 @@ const rootRouteChildren: RootRouteChildren = {
   EsqueciASenhaRoute: EsqueciASenhaRoute,
   FundadorRoute: FundadorRoute,
   GestaoRoute: GestaoRoute,
+  GravarNfcRoute: GravarNfcRoute,
   GuestRoute: GuestRoute,
   GuestDemoRoute: GuestDemoRoute,
   IntegracoesRoute: IntegracoesRoute,
