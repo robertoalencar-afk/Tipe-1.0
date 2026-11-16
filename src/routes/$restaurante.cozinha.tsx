@@ -12,6 +12,12 @@ export const Route = createFileRoute("/$restaurante/cozinha")({
   ssr: false,
   beforeLoad: async ({ params }) => {
     if (!(await exigirSessao())) throw redirect({ to: "/entrar", search: { r: `/${params.restaurante}/cozinha` } });
+    // Garçom não opera a produção: cozinha e bar usam o link de estação criado pelo administrador.
+    const { getMyAccess } = await import("@/lib/tipe/staff.functions");
+    const a = await getMyAccess();
+    const rest = a.restaurants.find((x) => x.slug === params.restaurante);
+    const meus = a.roles.filter((r) => r.restaurantId === rest?.id).map((r) => r.role);
+    if (!a.isFounder && meus.length > 0 && meus.every((r) => r === "waiter")) throw redirect({ to: "/garcom" });
   },
   head: () => ({
     meta: [

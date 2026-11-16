@@ -32,6 +32,7 @@ BEGIN
   INSERT INTO pdv_menu_items (restaurant_id, code, name, price, sector) VALUES (v_rid, 'idem-suco', 'Suco', 9.00, 'bar');
   DELETE FROM table_payment_requests WHERE restaurant_slug = 'mare-alta' AND table_number = '4';
   DELETE FROM table_bill_items WHERE restaurant_slug = 'mare-alta' AND table_number = '4';
+  UPDATE restaurant_tables SET waiter_id = w_bia WHERE restaurant_id = v_rid AND number = '4';
   PERFORM set_config('request.jwt.claim.sub', u_bia::text, true);
 
   o1 := pdv_launch_order('mare-alta', '4', w_bia, '[{"code":"idem-suco","qty":2}]', 'req-garcom-0001');
