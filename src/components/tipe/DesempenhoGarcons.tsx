@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { MessageSquare, Star } from "lucide-react";
+import { RankingGestao } from "@/components/tipe/RankingGarcons";
 import { Button } from "@/components/ui/button";
 import { getWaiterInsights } from "@/lib/tipe/waiter-insights.functions";
 
@@ -40,6 +41,7 @@ export function DesempenhoGarcons({ slug }: { slug: string }) {
 
       {lista.length > 0 && (
         <>
+          <RankingGestao garcons={lista} dias={dias} />
           <div className="grid gap-4 lg:grid-cols-2">
             <div className="rounded-xl border border-border bg-card p-4">
               <h3 className="text-sm font-semibold">Gorjetas por garçom</h3>
