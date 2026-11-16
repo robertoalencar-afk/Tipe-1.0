@@ -1,3 +1,4 @@
+import { OPEN_LEBRE } from "@/lib/tipe/mascot-preference";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -65,7 +66,7 @@ const publicSuggestions = [
   { titulo: "Como a Tipe funciona?", texto: "Em 20 segundos" },
   { titulo: "Funciona com o meu PDV?", texto: "Ou uso o da Tipe" },
   { titulo: "Quais são os produtos?", texto: "Pay, Order, Kitchen..." },
-  { titulo: "Como são os 30 dias grátis?", texto: "Sem cartão" },
+  { titulo: "Quais são os planos?", texto: "Mensalidades e implantação" },
 ];
 const panelSuggestions = [
   { icone: LayoutGrid, titulo: "Resumo do salão", pergunta: "Resuma a situação do salão agora" },
@@ -169,9 +170,11 @@ const confirmWords = /^(sim|confirmo|confirmar|pode|ok|pode fazer|isso)[.! ]*$/i
 export function LebreAssistant({
   slug,
   inicialAberta = false,
+  hideLauncher = false,
 }: {
   slug?: string | undefined;
   inicialAberta?: boolean;
+  hideLauncher?: boolean;
 }) {
   const askPublic = useServerFn(askPublicLebre);
   const askRestaurant = useServerFn(askRestaurantLebre);
@@ -183,6 +186,12 @@ export function LebreAssistant({
   const [transcribing, setTranscribing] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const [open, setOpen] = useState(inicialAberta);
+  useEffect(() => {
+    if (!slug) return;
+    const openChat = () => setOpen(true);
+    window.addEventListener(OPEN_LEBRE, openChat);
+    return () => window.removeEventListener(OPEN_LEBRE, openChat);
+  }, [slug]);
   const [busy, setBusy] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const recorderRef = useRef<MediaRecorder | null>(null);
@@ -346,16 +355,18 @@ export function LebreAssistant({
 
   return (
     <>
-      <button
-        ref={botaoRef}
-        type="button"
-        onClick={() => setOpen(true)}
-        className={cn(classeBotaoLebre(slug), open && "max-sm:hidden")}
-        aria-label="Pergunte à Lebre"
-        aria-expanded={open}
-      >
-        <ConteudoBotaoLebre />
-      </button>
+      {!hideLauncher && (
+        <button
+          ref={botaoRef}
+          type="button"
+          onClick={() => setOpen(true)}
+          className={cn(classeBotaoLebre(slug), open && "max-sm:hidden")}
+          aria-label="Pergunte à Lebre"
+          aria-expanded={open}
+        >
+          <ConteudoBotaoLebre />
+        </button>
+      )}
       {open && (
         <section
           ref={painelRef}

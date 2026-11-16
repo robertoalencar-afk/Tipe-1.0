@@ -46,33 +46,33 @@ export type TextosLancamento = {
 export const TEXTOS_LANCAMENTO: Record<EstadoLancamento, TextosLancamento> = {
   "em-desenvolvimento": {
     nome: "Em desenvolvimento",
-    selo: "Em desenvolvimento",
+    selo: null,
     cta: "Quero conhecer",
     tituloFormulario: "Quero conhecer o Tipe Order",
     enviar: "Quero conhecer",
     quando:
-      "O Tipe Order está em desenvolvimento e ainda não tem data de lançamento. Deixe seu contato: avisamos quando abrirmos o acesso antecipado. Enquanto isso, o Tipe Pay já funciona no mesmo QR Code.",
-    fase: "Em desenvolvimento. Ainda não está à venda.",
+      "Consulte as condições de uso do Tipe Order com a equipe. A equipe avalia as condições do seu restaurante; o Tipe Pay usa o mesmo QR Code.",
+    fase: "Conheça a proposta e consulte as condições com a equipe.",
   },
   "acesso-antecipado": {
     nome: "Acesso antecipado",
-    selo: "Acesso antecipado",
-    cta: "Solicitar acesso antecipado",
-    tituloFormulario: "Solicite o acesso antecipado",
-    enviar: "Solicitar acesso antecipado",
-    quando:
-      "Estamos liberando o acesso antecipado para um grupo pequeno de restaurantes. Deixe seu contato e a equipe da Tipe conversa com você. Ainda não há data para a disponibilidade geral.",
-    fase: "Acesso antecipado para um grupo pequeno de restaurantes.",
-  },
-  piloto: {
-    nome: "Piloto",
-    selo: "Em piloto",
+    selo: null,
     cta: "Solicitar demonstração",
     tituloFormulario: "Solicite uma demonstração",
     enviar: "Solicitar demonstração",
     quando:
-      "O Tipe Order está em piloto com restaurantes selecionados. Peça uma demonstração para ver funcionando e saber se o seu restaurante pode entrar. Ainda não há data para a disponibilidade geral.",
-    fase: "Em piloto com restaurantes selecionados.",
+      "Deixe seu contato para conhecer o Tipe Order e avaliar as condições de uso com a equipe.",
+    fase: "Condições de uso avaliadas com a equipe.",
+  },
+  piloto: {
+    nome: "Piloto",
+    selo: null,
+    cta: "Solicitar demonstração",
+    tituloFormulario: "Solicite uma demonstração",
+    enviar: "Solicitar demonstração",
+    quando:
+      "Consulte as condições de uso do Tipe Order com a equipe. Peça uma demonstração para ver funcionando e saber se o seu restaurante pode entrar. Ainda não há data para a disponibilidade geral.",
+    fase: "Condições de uso avaliadas com a equipe.",
   },
   disponivel: {
     nome: "Disponível",
@@ -81,8 +81,8 @@ export const TEXTOS_LANCAMENTO: Record<EstadoLancamento, TextosLancamento> = {
     tituloFormulario: "Contrate o Tipe Order",
     enviar: "Quero contratar",
     quando:
-      "Já está disponível. O Tipe Order é um módulo adicional do Tipe Pay e usa o mesmo QR Code da mesa. Deixe seu contato e a equipe da Tipe cuida da contratação.",
-    fase: "Disponível como módulo adicional do Tipe Pay.",
+      "Já está disponível. O Tipe Order é incluído em todos os planos da Tipe e usa o mesmo QR Code da mesa. Deixe seu contato e a equipe da Tipe cuida da contratação.",
+    fase: "Tipe Order incluído em todos os planos da Tipe.",
   },
 };
 
@@ -96,7 +96,10 @@ export const statusDoEstado = (e: EstadoLancamento) =>
  * Lê a variável de teste TIPE_LAUNCH_STATE_OVERRIDE ("order=piloto,outro=disponivel").
  * Só é chamada em desenvolvimento (import.meta.env.DEV); em produção não existe.
  */
-export function lerSobrescritaDeTeste(valor: string | undefined, slug: string): EstadoLancamento | null {
+export function lerSobrescritaDeTeste(
+  valor: string | undefined,
+  slug: string,
+): EstadoLancamento | null {
   if (!valor) return null;
   for (const par of valor.split(",")) {
     const [s, e] = par.split("=").map((x) => x.trim());

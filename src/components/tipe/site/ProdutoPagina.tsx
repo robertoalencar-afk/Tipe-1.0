@@ -87,7 +87,7 @@ export function CartaoInterface({
       </p>
       {cartao.ilustracao && (
         <p className="mt-2 text-center text-[0.7rem] text-[oklch(0.5_0_0)]">
-          Ilustração · em breve
+          Ilustração demonstrativa
         </p>
       )}
     </div>
@@ -99,11 +99,11 @@ function CartaoEmDesenvolvimento({ titulo }: { titulo: string }) {
   return (
     <div className="rounded-[1.4rem] border border-white/60 bg-white/[0.88] p-4 text-[#021E34] shadow-[0_30px_60px_-25px_rgb(0_0_0/0.45)] backdrop-blur-md sm:p-5">
       <p className="flex w-fit items-center gap-1.5 rounded-full bg-[#021E34] px-2.5 py-1 text-[0.72rem] font-medium text-white">
-        <Clock className="h-3.5 w-3.5 text-[#0FC9BD]" aria-hidden /> Em desenvolvimento
+        <Clock className="h-3.5 w-3.5 text-[#0FC9BD]" aria-hidden /> Demonstração
       </p>
       <p className="mt-3 font-display text-[1.15rem] leading-tight tracking-[-0.02em]">{titulo}</p>
       <p className="mt-1.5 text-[0.88rem] leading-snug text-[#021E34]/70">
-        Ainda não está disponível. Quem entrar no teste grátis fica sabendo primeiro.
+        Conheça a proposta e consulte as condições com a equipe.
       </p>
     </div>
   );

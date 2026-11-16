@@ -52,7 +52,7 @@ function Pagina() {
         <p className="mt-3 max-w-2xl text-[#021E34]/70">
           Mesma história nas três, em quatro momentos, com telas reais do app. O seletor troca entre
           um restaurante só com Tipe Pay e um com Pay + Order. As telas do Order aparecem marcadas
-          como em desenvolvimento. A seção atual da home não foi trocada.
+          como em demonstração. A seção atual da home não foi trocada.
         </p>
         <nav className="mt-5 flex flex-wrap gap-2 text-sm">
           {PROPOSTAS.map((p) => (

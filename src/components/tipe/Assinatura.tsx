@@ -180,7 +180,7 @@ export function Assinatura({ slug }: { slug: string }) {
       ? "Atualizar cartão"
       : s.status === "canceled" || s.access.state === "blocked"
         ? "Reativar assinatura"
-        : "Ativar assinatura mensal";
+        : "Contratar plano";
 
   async function rodar(chave: string, fn: () => Promise<void>) {
     setBusy(chave);
@@ -287,7 +287,7 @@ export function Assinatura({ slug }: { slug: string }) {
           </div>
           {!SHOW_PLAN_PRICES && (
             <p className="mt-3 text-xs text-muted-foreground">
-              Valores informados no lançamento, antes de qualquer cobrança.
+              Consulte as condições de contratação com a equipe Tipe.
             </p>
           )}
         </Panel>

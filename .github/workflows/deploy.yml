@@ -77,7 +77,15 @@ jobs:
       - name: Testar métricas do cardápio e isolamento entre restaurantes
         env:
           PGLITE_MODULE: ${{ runner.temp }}/lebre-sql/node_modules/@electric-sql/pglite/dist/index.js
-        run: node scripts/db/tests/menu-intelligence.mjs
+        run: |
+          node scripts/db/tests/menu-intelligence.mjs
+          node scripts/db/tests/menu-assistant.mjs
+          node scripts/db/tests/menu-accompaniments.mjs
+          node scripts/db/tests/menu-import.mjs
+          node scripts/db/tests/table-edit.mjs
+          node scripts/db/tests/menu-order.mjs
+          node scripts/db/tests/bistro-menu.mjs
+          node scripts/db/tests/plan-modules.mjs
       - name: Build
         run: bun run build
         env:
@@ -183,6 +191,13 @@ jobs:
           GROQ_MODEL: ${{ vars.GROQ_MODEL }}
           GROQ_VISION_MODEL: ${{ vars.GROQ_VISION_MODEL }}
           LEBRE_CLAUDE_FALLBACK: ${{ vars.LEBRE_CLAUDE_FALLBACK }}
+          # WhatsApp (Meta Cloud API). Sem eles, o Tipe Reserva manda só e-mail.
+          WHATSAPP_TOKEN: ${{ secrets.WHATSAPP_TOKEN }}
+          WHATSAPP_PHONE_NUMBER_ID: ${{ secrets.WHATSAPP_PHONE_NUMBER_ID }}
+          WHATSAPP_APP_SECRET: ${{ secrets.WHATSAPP_APP_SECRET }}
+          WHATSAPP_VERIFY_TOKEN: ${{ secrets.WHATSAPP_VERIFY_TOKEN }}
+          # "aprovados" depois que a Meta aprovar os modelos tipe_reserva_* (ver docs/tipe-guest/v2/11-MENSAGENS.md).
+          WHATSAPP_RESERVA_MODELOS: ${{ vars.WHATSAPP_RESERVA_MODELOS }}
       - name: E-mails do Supabase (cadastro, convite, senha, avisos)
         # Precisa do segredo SUPABASE_ACCESS_TOKEN; sem ele só avisa. Ver docs/deploy/emails-supabase.md.
         run: node scripts/emails/aplicar-emails-auth.mjs

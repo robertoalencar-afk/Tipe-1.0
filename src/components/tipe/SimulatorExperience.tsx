@@ -112,15 +112,15 @@ const formatPortion = (value: number) => {
 
 const METHOD_DETAILS: Record<Method, { label: string; description: string; Icon: typeof QrCode }> =
   {
-    pix: { label: "Pix", description: "Em piloto · aprovado na hora na simulação", Icon: QrCode },
+    pix: { label: "Pix", description: "Simulação · aprovado na hora na simulação", Icon: QrCode },
     apple_pay: {
       label: "Apple Pay",
-      description: "Em piloto · um toque no iPhone, aprovado na simulação",
+      description: "Simulação · um toque no iPhone, aprovado na simulação",
       Icon: Smartphone,
     },
     google_pay: {
       label: "Google Pay",
-      description: "Em piloto · um toque no Android, aprovado na simulação",
+      description: "Simulação · um toque no Android, aprovado na simulação",
       Icon: WalletCards,
     },
     at_establishment: {
@@ -1107,7 +1107,7 @@ export function SimulatorExperience({ enterDirectly }: { enterDirectly: boolean 
             target="_top"
             className="mt-8 flex h-12 w-full items-center justify-center rounded-lg bg-primary text-base font-bold text-primary-foreground"
           >
-            Garantir meus 30 dias grátis
+            Solicitar demonstração
           </a>
           <Link to="/" target="_top" className="mt-5 block text-sm font-semibold text-primary">
             Voltar ao site

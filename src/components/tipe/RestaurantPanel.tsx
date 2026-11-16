@@ -1,5 +1,5 @@
-import { ImportarCardapio } from "./ImportarCardapio";
-import { MenuInteligente } from "./MenuInteligente";
+import { IdentidadeLebre } from "./IdentidadeLebre";
+import { CardapioGestao } from "./CardapioGestao";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
@@ -51,10 +51,9 @@ import {
   getTablePlan,
   getPdvData,
   launchOrder,
-  saveCategory,
-  saveMenuItem,
   saveWaiter,
   updateTable,
+  editTable,
   voidItem,
 } from "@/lib/tipe/pdv.functions";
 import { transferTable } from "@/lib/tipe/admin.functions";
@@ -65,19 +64,24 @@ import {
 import { PixGarcons } from "@/components/tipe/PixGarcons";
 import { SegurancaConta } from "@/components/tipe/SegurancaConta";
 import { Atendimento } from "@/components/tipe/Atendimento";
-import { Caixa, Configuracoes, Inicio, Integracoes, Relatorios } from "@/components/tipe/AdminSections";
+import { Caixa, Configuracoes, Inicio, Integracoes, Relatorios, useOps } from "@/components/tipe/AdminSections";
 import { Cozinha } from "@/components/tipe/Kds";
 import { Shell, type GrupoNav } from "@/components/tipe/painel/Shell";
 import { UploadImagem } from "@/components/tipe/UploadImagem";
 import { BancoImagens } from "@/components/tipe/BancoImagens";
 import { ComoFuncionaGestao } from "@/components/tipe/ComoFuncionaGestao";
 import { PerfilConta, useMeuPerfil } from "@/components/tipe/PerfilConta";
-import { getMidia, saveFotoItem, saveLogo } from "@/lib/tipe/midia.functions";
-import { Image as ImagemIcon, Images, BookOpen } from "lucide-react";
+import { getMidia, saveLogo } from "@/lib/tipe/midia.functions";
+import { Image as ImagemIcon, Images, BookOpen, Camera } from "lucide-react";
+import { StudioFotos } from "@/components/tipe/StudioFotos";
 import { EquipePermissoes } from "@/components/tipe/EquipePermissoes";
 import { Fiscal } from "@/components/tipe/Fiscal";
 import { TotemStudio } from "@/components/tipe/TotemStudio";
 import { LiberarPedidosMesa } from "@/components/tipe/LiberarPedidosMesa";
+import { EstacoesConfig } from "@/components/tipe/EstacoesConfig";
+import { DesignarGarcom } from "@/components/tipe/DesignarGarcom";
+import { BotaoPreConta } from "@/components/tipe/PreConta";
+import { linkMesa } from "@/lib/tipe/imprimir";
 import { Assinatura, AvisoAssinatura, ContaBloqueada } from "@/components/tipe/Assinatura";
 import { getAccountAccess } from "@/lib/tipe/subscription.functions";
 import { abaLiberada } from "@/lib/tipe/assinatura";
@@ -266,10 +270,18 @@ const secoes = [
     d: "Produtos, categorias e disponibilidade.",
   },
   {
+    k: "studio",
+    l: "Studio de fotos",
+    i: Camera,
+    g: "Configurações",
+    dono: true,
+    d: "Passo a passo para fotos bonitas e em 3D no cardápio.",
+  },
+  {
     k: "banco",
     l: "Banco de imagens",
     i: Images,
-    g: "Configurações",
+    g: "Biblioteca",
     dono: true,
     d: "Fotos do restaurante para usar no cardápio e em outras telas.",
   },
@@ -326,7 +338,7 @@ const secoes = [
     d: "Seu plano TIPE.",
   },
 ] as const;
-const GRUPOS = ["Operação", "Financeiro", "Equipe", "Configurações"] as const;
+const GRUPOS = ["Operação", "Financeiro", "Equipe", "Biblioteca", "Configurações"] as const;
 const PRINCIPAIS_MOBILE = ["inicio", "salao", "caixa", "pdv"] as const;
 
 /** Esqueleto do painel enquanto os dados chegam. */
@@ -629,12 +641,14 @@ export function RestaurantPanel({
     nome: meuPerfil.data?.nome || eu?.display_name || (email ? email.split("@")[0]! : "Você"),
     funcao: cargoLabel[papel],
     detalhe: d.restaurant.name,
+    avatarUrl: meuPerfil.data?.avatarUrl,
   };
   const logoUrl = midia.data?.logoUrl ?? null;
 
   return (
     <Shell
       ambiente="Tipe Gestão"
+      mascotScope={slug}
       usuario={usuario}
       onSair={onSair}
       contexto={
@@ -642,11 +656,11 @@ export function RestaurantPanel({
           {logoUrl ? (
             <img src={logoUrl} alt={`Logomarca de ${d.restaurant.name}`} className="size-9 shrink-0 rounded-lg bg-white object-contain p-0.5" />
           ) : (
-            <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-white/10 text-sm font-semibold text-white">{d.restaurant.name.slice(0, 1).toUpperCase()}</span>
+            <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-muted text-sm font-semibold text-foreground">{d.restaurant.name.slice(0, 1).toUpperCase()}</span>
           )}
           <span className="min-w-0 leading-tight">
-            <span className="block truncate text-sm font-semibold text-white">{d.restaurant.name}</span>
-            <span className="block truncate text-[11px] text-white/55">tipe.digital/{slug}</span>
+            <span className="block truncate text-sm font-semibold text-foreground">{d.restaurant.name}</span>
+            <span className="block truncate text-[11px] text-muted-foreground">tipe.digital/{slug}</span>
           </span>
         </span>
       }
@@ -850,7 +864,12 @@ export function RestaurantPanel({
         )}
 
         {aba === "pdv" && <LancarPedido slug={slug} pdv={pdv.data} mesa={mesaPedido} setMesa={setMesaPedido} podeBalcao={podeConfirmar} onDone={refresh} />}
-        {aba === "cozinha" && <Cozinha slug={slug} podePainel={podeConfirmar} />}
+        {aba === "cozinha" && (
+          <div className="space-y-4">
+            <Cozinha slug={slug} podePainel={podeConfirmar} />
+            {(podeDono || myRoles.includes("manager")) && <EstacoesConfig slug={slug} />}
+          </div>
+        )}
         {aba === "reservas" && reservasOn && <ReservasPainel slug={slug} podeDono={podeDono} />}
         {aba === "caixa" && <><PendenciasFinanceiras slug={slug} enabled={podeConfirmar} /><Caixa slug={slug} podeCaixa={podeConfirmar} confirmacoes={confirmacoes} /></>}
 
@@ -916,12 +935,13 @@ export function RestaurantPanel({
           <MesasQr
             slug={slug}
             restaurante={d.restaurant.name}
+            logoUrl={logoUrl}
             tables={pdv.data.tables}
             podeDono={podeDono}
             onDone={refresh}
           />
         )}
-        {aba === "cardapio" && podeDono && <Cardapio slug={slug} pdv={pdv.data} onDone={refresh} midia={midia.data?.itens ?? {}} />}
+        {aba === "cardapio" && podeDono && <Cardapio restaurantName={d.restaurant.name} slug={slug} pdv={pdv.data} onDone={refresh} midia={midia.data?.itens ?? {}} />}
         {aba === "equipe" && podeDono && (
           <div className="space-y-6">
             <Garcons slug={slug} pdv={pdv.data} onDone={refresh} />
@@ -930,7 +950,14 @@ export function RestaurantPanel({
           </div>
         )}
         {aba === "comofunciona" && <ComoFuncionaGestao ir={ir} />}
-        {aba === "banco" && podeDono && <BancoImagens slug={slug} podeDono={podeDono} itens={(pdv.data?.items ?? []).map((i) => ({ id: i.id, name: i.name }))} onAplicada={() => void qc.invalidateQueries({ queryKey: ["midia", slug] })} />}
+        {aba === "studio" && podeDono && (
+          <StudioFotos
+            ir={ir}
+            total={(pdv.data?.items ?? []).length}
+            comFoto={Object.values(midia.data?.itens ?? {}).filter((m) => m.foto).length}
+          />
+        )}
+        {aba === "banco" && podeDono && <BancoImagens slug={slug} podeDono={podeDono} itens={(pdv.data?.items ?? []).map((i) => ({ id: i.id, name: i.name, code:i.code }))} onAplicada={() => void qc.invalidateQueries({ queryKey: ["midia", slug] })} />}
         {aba === "relatorios" && <Relatorios slug={slug} papel={papel} />}
         {aba === "identidade" && <Identidade slug={slug} podeDono={podeDono} funcao={usuario.funcao} onSair={onSair} />}
         {aba === "integracoes" && <Integracoes slug={slug} podeDono={podeDono} />}
@@ -955,6 +982,7 @@ export function RestaurantPanel({
                 .map((m) => m.number)}
               payments={d.payments.filter((p) => p.table_number === mesaSel.number)}
               podeConfirmar={podeConfirmar}
+              qrLink={linkMesa(slug, (mesaSel as { code?: string }).code ?? "", (mesaSel as { access_token?: string }).access_token ?? "", typeof window !== "undefined" ? window.location.origin : undefined)}
               onLancar={() => {
                 setMesaPedido(mesaSel.number);
                 setMesaAberta(null);
@@ -968,7 +996,10 @@ export function RestaurantPanel({
           )}
         </DialogContent>
       </Dialog>
-      <LazyLebreAssistant slug={slug} />
+      <LazyLebreAssistant slug={slug} notice={{ count: pendentes.length + d.pdvAlerts.length + (syncErro ? 1 : 0), key: JSON.stringify([pendentes.map((p) => p.id), d.pdvAlerts, !!syncErro]) }} onNotices={() => ir("inicio")} onSuggestions={podeDono ? () => {
+        ir("cardapio");
+        window.setTimeout(() => document.getElementById("lebre-menu-title")?.scrollIntoView({ block: "center", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" }), 150);
+      } : undefined} />
     </Shell>
   );
 }
@@ -982,6 +1013,7 @@ function MesaDetalhe({
   outras,
   payments,
   podeConfirmar,
+  qrLink,
   onLancar,
   onDone,
   onClose,
@@ -989,6 +1021,7 @@ function MesaDetalhe({
   slug: string;
   outras: string[];
   podeConfirmar: boolean;
+  qrLink?: string | undefined;
   onLancar: () => void;
   onDone: () => void;
   onClose: () => void;
@@ -1001,6 +1034,7 @@ function MesaDetalhe({
   };
   payments: PanelData["payments"];
 }) {
+  const ops = useOps(slug);
   const estornar = useServerFn(voidItem);
   const fechar = useServerFn(closeTable);
   const transferir = useServerFn(transferTable);
@@ -1030,6 +1064,15 @@ function MesaDetalhe({
         </DialogTitle>
         {mesa.garcom && <p className="text-sm text-muted-foreground">Garçom: {mesa.garcom}</p>}
       </DialogHeader>
+      {podeConfirmar && <DesignarGarcom slug={slug} table={mesa.number} onDone={onDone} />}
+      <BotaoPreConta
+        restaurante={ops.data?.restaurant.name ?? ""}
+        mesa={mesa.number}
+        garcom={mesa.garcom ?? null}
+        taxa={ops.data?.restaurant.service_rate ?? 0}
+        link={qrLink ?? null}
+        linhas={mesa.itens.map((i) => ({ qty: i.ordered_quantity, nome: i.item_name, unit: i.unit_price }))}
+      />
       <LiberarPedidosMesa slug={slug} table={mesa.number} />
       {mesa.itens.length === 0 ? (
         <p className="rounded-xl bg-background-muted px-4 py-6 text-center text-sm text-muted-foreground">
@@ -1526,6 +1569,7 @@ function UsoMesas({
 }
 
 function MesasQr({
+  logoUrl,
   slug,
   restaurante,
   tables,
@@ -1534,12 +1578,16 @@ function MesasQr({
 }: {
   slug: string;
   restaurante: string;
+  logoUrl?:string|null|undefined;
   tables: PdvData["tables"];
   podeDono: boolean;
   onDone: () => void;
 }) {
   const add = useServerFn(addTable);
   const upd = useServerFn(updateTable);
+  const edit = useServerFn(editTable);
+  const [editing,setEditing]=useState<string|null>(null);
+  const [number,setNumber]=useState("");
   const bulk = useServerFn(addTablesBulk);
   const [nova, setNova] = useState("");
   const [lote, setLote] = useState({ from: "", to: "" });
@@ -1669,6 +1717,8 @@ function MesasQr({
               </Button>
               {podeDono && (
                 <>
+                  {editing===t.id ? <form className="flex max-w-full flex-wrap gap-1" onSubmit={e=>{e.preventDefault();void run(()=>edit({data:{id:t.id,number}}),"Mesa atualizada. O link e o QR acompanham o novo número; substitua o QR impresso.").then(()=>setEditing(null))}}><Input aria-label="Novo número da mesa" className="w-24" value={number} maxLength={12} onChange={e=>setNumber(e.target.value)}/><Button size="sm" type="submit">Salvar</Button><Button size="sm" variant="ghost" onClick={()=>setEditing(null)}>Cancelar</Button></form> : <Button size="sm" variant="ghost" onClick={()=>{setEditing(t.id);setNumber(t.number)}}>Editar</Button>}
+                  {!t.active && <Button size="sm" variant="ghost" onClick={()=>{if(window.confirm(`Excluir a mesa ${t.number}? Só mesas sem movimentação podem ser apagadas.`))void run(()=>edit({data:{id:t.id,remove:true}}),"Mesa excluída")}}>Excluir</Button>}
                   <Button
                     size="sm"
                     variant="ghost"
@@ -1705,7 +1755,7 @@ function MesasQr({
           </div>
         ))}
       </div>
-      <TotemStudio tables={tables} link={link} restaurante={restaurante} />
+      <TotemStudio tables={tables} link={link} restaurante={restaurante} logoUrl={logoUrl} />
     </div>
   );
 }
@@ -1718,6 +1768,7 @@ function Identidade({ slug, podeDono, funcao, onSair }: { slug: string; podeDono
   return (
     <div className="grid gap-4 lg:grid-cols-2">
       <PerfilConta funcao={funcao} onSair={onSair} />
+      {podeDono && <IdentidadeLebre slug={slug} />}
       {podeDono && <section className="surface-card space-y-3 p-4 sm:p-5">
         <h2 className="font-display font-semibold">Logomarca</h2>
         <p className="text-xs text-muted-foreground">Aparece no menu do painel e, depois, nas telas do cliente. PNG, JPG ou WebP, fundo transparente fica melhor.</p>
@@ -1733,235 +1784,14 @@ function Identidade({ slug, podeDono, funcao, onSair }: { slug: string; podeDono
       </section>}
       {podeDono && <section className="surface-card space-y-2 p-4 sm:p-5">
         <h2 className="font-display font-semibold">Fotos do cardápio</h2>
-        <p className="text-sm text-muted-foreground">Envie a foto de cada prato em <strong>Cardápio</strong>, ao lado do produto. Com um mapa de profundidade opcional, o prato ganha o efeito 3D no cardápio do cliente.</p>
+        <p className="text-sm text-muted-foreground">Envie a foto de cada prato em <strong>Cardápio</strong>, ao lado do produto. O motor prepara o efeito 3D automaticamente a partir da foto, sem arquivos extras.</p>
       </section>}
     </div>
   );
 }
 
-function Cardapio({ slug, pdv, onDone, midia }: { slug: string; pdv: PdvData; onDone: () => void; midia: Record<string, { foto: string | null; profundidade: string | null }> }) {
-  const qcM = useQueryClient();
-  const salvarFoto = useServerFn(saveFotoItem);
-  const saveItem = useServerFn(saveMenuItem);
-  const saveCat = useServerFn(saveCategory);
-  const vazio = {
-    id: undefined as string | undefined,
-    categoryId: pdv.categories[0]?.id ?? null,
-    code: "",
-    name: "",
-    price: 0,
-    available: true,
-    sector: "kitchen" as "kitchen" | "bar",
-    description: "",
-  };
-  const [f, setF] = useState(vazio);
-  const [novaCat, setNovaCat] = useState("");
-  async function run(fn: () => Promise<unknown>, ok: string) {
-    try {
-      await fn();
-      toast.success(ok);
-      onDone();
-      return true;
-    } catch (e) {
-      toast.error((e as Error).message);
-      return false;
-    }
-  }
-  const base = (i: PdvData["items"][number]) => ({
-    slug,
-    id: i.id,
-    categoryId: i.category_id,
-    code: i.code,
-    name: i.name,
-    price: i.price,
-    available: i.available,
-  });
-  return (
-    <div className="grid gap-6 lg:grid-cols-[1fr_320px]">
-      <details className="surface-card p-4 sm:p-5 lg:col-span-2">
-        <summary className="cursor-pointer font-semibold">Como colocar uma foto com efeito 3D</summary>
-        <ol className="mt-3 list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
-          <li>Fotografe o prato com boa luz, inteiro e com espaço ao redor. Envie a foto no produto abaixo ou escolha no banco de imagens.</li>
-          <li>Prepare um mapa de profundidade da mesma foto, no mesmo enquadramento: branco indica o que está perto e preto o fundo. Você pode experimentar a geração no demonstrador do Tipe Order.</li>
-          <li>Ao lado da foto do produto, envie esse arquivo em “Mapa 3D (opcional)”. O selo 3D confirma que foto e mapa estão salvos.</li>
-          <li>Abra o cardápio do cliente e toque no prato para conferir o movimento. Sem mapa ou sem suporte ao efeito, a foto continua aparecendo normalmente.</li>
-        </ol>
-        <p className="mt-3 text-sm text-muted-foreground">Ao trocar a foto, envie um novo mapa. O efeito cria profundidade na foto; não é um modelo que gira em 360°. As imagens enviadas ficam públicas: use apenas material autorizado para o cardápio.</p>
-        <a href="/produtos/order" target="_blank" rel="noreferrer" className="mt-3 inline-block text-sm underline underline-offset-4">Abrir demonstrador do Tipe Order</a>
-      </details>
-      <div className="space-y-6">
-        <MenuInteligente slug={slug} />
-        <BancoImagens slug={slug} podeDono itens={pdv.items.map((i) => ({ id: i.id, name: i.name }))} onAplicada={() => { void qcM.invalidateQueries({ queryKey: ["midia", slug] }); onDone(); }} />
-        {pdv.categories.map((cat) => (
-          <section key={cat.id} className="mb-4">
-            <h3 className="mb-2 text-sm font-semibold text-muted-foreground">{cat.name}</h3>
-            <ul className="surface-card divide-y divide-border">
-              {pdv.items
-                .filter((i) => i.category_id === cat.id)
-                .map((i) => (
-                  <li key={i.id} className="flex flex-wrap items-center justify-between gap-x-2 gap-y-2 p-3 text-sm">
-                    <button
-                      className="min-w-0 flex-1 basis-40 text-left"
-                      onClick={() =>
-                        setF({
-                          id: i.id,
-                          categoryId: i.category_id,
-                          code: i.code,
-                          name: i.name,
-                          price: i.price,
-                          available: i.available,
-                          sector: (i.sector as "kitchen" | "bar") ?? "kitchen",
-                          description: i.description ?? "",
-                        })
-                      }
-                    >
-                      <span className="mr-2 text-xs text-muted-foreground">{i.code}</span>
-                      <span className={i.available ? "" : "line-through opacity-60"}>{i.name}</span>
-                      <span className="ml-2 rounded bg-muted px-1.5 text-[10px] text-muted-foreground">
-                        {i.sector === "bar" ? "Bar" : "Cozinha"}
-                      </span>
-                      {!i.available && (
-                        <span className="ml-2 text-[10px] text-destructive">Esgotado</span>
-                      )}
-                    </button>
-                    <span className="shrink-0 font-semibold">{brl(i.price)}</span>
-                    <details className="relative">
-                      <summary className="flex cursor-pointer list-none items-center gap-2 rounded-xl border border-border p-1 pr-2 text-xs hover:bg-muted" aria-label={`Foto de ${i.name}`}>
-                        <span className="relative grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-lg bg-muted text-[10px] text-muted-foreground">
-                          {midia[i.id]?.foto ? <img src={midia[i.id]!.foto!} alt="" loading="lazy" className="h-full w-full object-cover" /> : "Sem foto"}
-                          {midia[i.id]?.profundidade && <span className="absolute bottom-0 right-0 rounded-tl bg-[#021E34] px-1 text-[9px] font-bold text-white">3D</span>}
-                        </span>
-                        <span className="font-semibold">{midia[i.id]?.foto ? "Trocar" : "Adicionar foto"}</span>
-                      </summary>
-                      <div className="absolute right-0 z-20 mt-1 w-72 max-w-[calc(100vw-2rem)] space-y-3 rounded-xl border border-border bg-card p-3 shadow-lg">
-                        <UploadImagem url={midia[i.id]?.foto} rotulo="Foto do prato" quadrado maxLado={1200} onSalvar={async (imagem) => { await salvarFoto({ data: { slug, itemId: i.id, tipo: "foto", imagem } }); await qcM.invalidateQueries({ queryKey: ["midia", slug] }); }} />
-                        {midia[i.id]?.foto && <UploadImagem url={midia[i.id]?.profundidade} rotulo="Mapa 3D (opcional)" quadrado maxLado={1200} onSalvar={async (imagem) => { await salvarFoto({ data: { slug, itemId: i.id, tipo: "profundidade", imagem } }); await qcM.invalidateQueries({ queryKey: ["midia", slug] }); }} />}
-                      </div>
-                    </details>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() =>
-                        run(
-                          () => saveItem({ data: { ...base(i), available: !i.available } }),
-                          i.available ? "Marcado como esgotado" : "Item disponível",
-                        )
-                      }
-                    >
-                      {i.available ? "Esgotar" : "Ativar"}
-                    </Button>
-                  </li>
-                ))}
-            </ul>
-          </section>
-        ))}
-      </div>
-      <div className="space-y-4">
-        <form
-          className="space-y-3 surface-card p-4 sm:p-5 lg:sticky lg:top-4"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            if (
-              await run(
-                () => saveItem({ data: { slug, ...f } }),
-                f.id ? "Produto atualizado" : "Produto cadastrado",
-              )
-            )
-              setF(vazio);
-          }}
-        >
-          <h3 className="font-display font-semibold">{f.id ? "Editar produto" : "Novo produto"}</h3>
-          <select
-            className={selectCls}
-            value={f.categoryId ?? ""}
-            onChange={(e) => setF({ ...f, categoryId: e.target.value || null })}
-          >
-            {pdv.categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-          <Input
-            required
-            placeholder="Código (ex.: P10)"
-            value={f.code}
-            onChange={(e) => setF({ ...f, code: e.target.value })}
-          />
-          <Input
-            required
-            placeholder="Nome"
-            value={f.name}
-            onChange={(e) => setF({ ...f, name: e.target.value })}
-          />
-          <Input
-            placeholder="Descrição (opcional)"
-            maxLength={200}
-            value={f.description}
-            onChange={(e) => setF({ ...f, description: e.target.value })}
-          />
-          <Input
-            required
-            type="number"
-            step="0.01"
-            min={0}
-            placeholder="Preço"
-            value={f.price || ""}
-            onChange={(e) => setF({ ...f, price: Number(e.target.value) })}
-          />
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              size="sm"
-              className="flex-1"
-              variant={f.sector === "kitchen" ? "default" : "outline"}
-              onClick={() => setF({ ...f, sector: "kitchen" })}
-            >
-              Cozinha
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              className="flex-1"
-              variant={f.sector === "bar" ? "default" : "outline"}
-              onClick={() => setF({ ...f, sector: "bar" })}
-            >
-              Bar
-            </Button>
-          </div>
-          <div className="flex gap-2">
-            <Button type="submit" className="flex-1">
-              Salvar
-            </Button>
-            {f.id && (
-              <Button type="button" variant="outline" onClick={() => setF(vazio)}>
-                Novo
-              </Button>
-            )}
-          </div>
-        </form>
-        <ImportarCardapio slug={slug} onDone={onDone} />
-        <form
-          className="flex gap-2 surface-card p-4 sm:p-5"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            if (await run(() => saveCat({ data: { slug, name: novaCat } }), "Categoria criada"))
-              setNovaCat("");
-          }}
-        >
-          <Input
-            required
-            placeholder="Nova categoria"
-            value={novaCat}
-            onChange={(e) => setNovaCat(e.target.value)}
-          />
-          <Button type="submit" size="icon" variant="outline">
-            <Plus className="h-4 w-4" />
-          </Button>
-        </form>
-      </div>
-    </div>
-  );
+function Cardapio(props: { restaurantName: string; slug: string; pdv: PdvData; onDone: () => void; midia: Record<string, { foto: string | null; profundidade: string | null }> }) {
+  return <CardapioGestao {...props} />;
 }
 
 function Garcons({ slug, pdv, onDone }: { slug: string; pdv: PdvData; onDone: () => void }) {

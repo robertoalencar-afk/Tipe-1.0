@@ -3,7 +3,7 @@
 //   a cada 5 minutos: POST /api/public/payments/reconcile (pagamentos presos)
 const JOBS = {
   "* * * * *": ["/api/public/pdv/sync", "/api/internal/fiscal/process"],
-  "*/5 * * * *": ["/api/public/payments/reconcile"],
+  "*/5 * * * *": ["/api/public/payments/reconcile", "/api/public/menu/review"],
 };
 
 export default {

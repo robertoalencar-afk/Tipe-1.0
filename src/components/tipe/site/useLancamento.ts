@@ -62,5 +62,5 @@ export function useEstadosLancamento() {
 export function seloDoProduto(p: Produto, mapa: Record<string, EstadoLancamento>): string | null {
   const estado = mapa[p.slug];
   if (estado) return TEXTOS_LANCAMENTO[estado].selo;
-  return p.status === "em-breve" ? "Em breve" : null;
+  return p.slug === "guest" ? "Em breve" : null;
 }

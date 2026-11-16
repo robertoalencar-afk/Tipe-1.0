@@ -547,9 +547,9 @@ export function CalculadoraGiro() {
                         max={1000}
                         passo={1}
                         ajuda={
-                          SHOW_PLAN_PRICES
-                            ? `Valor inicial: plano ${custoPlanoPorMesas(e.mesas).nome}, que comporta ${numero(e.mesas)} mesas, pela tabela de planos da Tipe. Edite se quiser.`
-                            : "Informe o valor mensal da sua assinatura da Tipe. Sem ele, não calculamos o resultado líquido."
+                          SHOW_PLAN_PRICES && e.mesas <= 40
+                            ? `Valor inicial: plano ${custoPlanoPorMesas(e.mesas).nome}, que comporta ${numero(e.mesas)} mesas, pela tabela de planos da Tipe. A implantação é única (R$ 200 no Essencial e Profissional; grátis a partir do Premium) e não entra neste cálculo mensal. Edite se quiser.`
+                            : "Acima de 40 mesas, o plano Personalizado é sob consulta. Informe o valor mensal da proposta para calcular o resultado líquido."
                         }
                       />
                     </div>

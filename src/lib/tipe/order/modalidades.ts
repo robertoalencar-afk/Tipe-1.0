@@ -8,28 +8,47 @@
  * funcionando não prova nada: só o fluxo real no banco e no painel conta.
  */
 
-export const MODALIDADES = ["mesas", "balcao", "comanda", "retirada", "delivery", "totem", "pulseira"] as const;
+export const MODALIDADES = [
+  "mesas",
+  "balcao",
+  "comanda",
+  "retirada",
+  "delivery",
+  "totem",
+  "pulseira",
+] as const;
 export type Modalidade = (typeof MODALIDADES)[number];
 
 /** Estado comercial honesto de uma modalidade. */
-export const DISPONIBILIDADES = ["operacional", "piloto", "desenvolvimento", "demonstracao", "planejada"] as const;
+export const DISPONIBILIDADES = [
+  "operacional",
+  "piloto",
+  "desenvolvimento",
+  "demonstracao",
+  "planejada",
+] as const;
 export type Disponibilidade = (typeof DISPONIBILIDADES)[number];
 
-export const TEXTO_DISPONIBILIDADE: Record<Disponibilidade, { selo: string; curto: string; longo: string }> = {
+export const TEXTO_DISPONIBILIDADE: Record<
+  Disponibilidade,
+  { selo: string; curto: string; longo: string }
+> = {
   operacional: {
     selo: "Disponível",
     curto: "Funciona hoje nos restaurantes com o módulo ativo.",
     longo: "Código em produção, testado de ponta a ponta e ligado pelo painel do restaurante.",
   },
   piloto: {
-    selo: "Em piloto",
+    selo: "Sob análise",
     curto: "O fluxo existe no sistema e está em validação com restaurantes.",
-    longo: "O fluxo está no sistema e passa nos testes, mas ainda não foi validado em operação real. Entra sob acompanhamento da equipe da Tipe.",
+    longo:
+      "O fluxo está no sistema e passa nos testes, mas ainda não foi validado em operação real. Entra sob acompanhamento da equipe da Tipe.",
   },
   desenvolvimento: {
-    selo: "Em desenvolvimento",
+    selo: "Demonstração",
     curto: "Existe uma primeira versão; faltam partes antes de abrir para contratação.",
-    longo: "Há uma primeira versão no sistema, sem algumas partes do fluxo completo. Não está à venda ainda.",
+    longo:
+      "Há uma primeira versão no sistema, sem algumas partes do fluxo completo. Não está à venda ainda.",
   },
   demonstracao: {
     selo: "Demonstração",
@@ -37,7 +56,7 @@ export const TEXTO_DISPONIBILIDADE: Record<Disponibilidade, { selo: string; curt
     longo: "Só a simulação existe. Serve para mostrar como a Tipe pretende tratar essa operação.",
   },
   planejada: {
-    selo: "Planejada",
+    selo: "Sob consulta",
     curto: "No roteiro da Tipe. Ainda não existe no sistema.",
     longo: "Está no roteiro da Tipe, com a arquitetura definida, mas ainda não existe no sistema.",
   },
@@ -50,11 +69,15 @@ export type CanalPedido = "mesa" | "balcao" | "totem" | "tablet" | "delivery";
 export type OrigemPedido = "cliente_celular" | "equipe" | "cliente_terminal" | "canal_externo";
 
 /** Como a conta se fecha. */
-export type Fechamento = "conta_da_mesa" | "antes_de_produzir" | "comanda_individual" | "canal_externo";
+export type Fechamento =
+  "conta_da_mesa" | "antes_de_produzir" | "comanda_individual" | "canal_externo";
 
 export type ModuloTipe = "pay" | "order" | "kitchen" | "staff" | "restaurant" | "totem";
 
-export type PassoFluxo = { quem: "cliente" | "equipe" | "cozinha" | "caixa" | "sistema"; o_que: string };
+export type PassoFluxo = {
+  quem: "cliente" | "equipe" | "cozinha" | "caixa" | "sistema";
+  o_que: string;
+};
 
 export type DefinicaoModalidade = {
   id: Modalidade;
@@ -94,14 +117,14 @@ export const DEFINICOES: Record<Modalidade, DefinicaoModalidade> = {
     origem: "cliente_celular",
     fechamento: "conta_da_mesa",
     fluxo: [
-      { quem: "equipe", o_que: "Libera a mesa para pedir (com código, se o restaurante quiser)" },
+      { quem: "equipe", o_que: "O administrador abre a mesa para um garçom e libera o pedido pelo celular (com código, se quiser)" },
       { quem: "cliente", o_que: "Lê o QR Code da mesa; o cardápio abre no navegador" },
       { quem: "cliente", o_que: "Escolhe, escreve observação e envia" },
-      { quem: "cozinha", o_que: "Recebe os itens no Tipe Cozinha" },
-      { quem: "equipe", o_que: "Acompanha o status e leva à mesa" },
+      { quem: "cozinha", o_que: "Recebe os itens na tela da cozinha ou do bar, aberta por um link do administrador" },
+      { quem: "equipe", o_que: "O garçom da mesa acompanha o status e leva o prato" },
       { quem: "sistema", o_que: "Os itens entram na conta da mesa" },
       { quem: "cliente", o_que: "Confere, divide e paga pelo Tipe Pay" },
-      { quem: "caixa", o_que: "Vê a confirmação no painel" },
+      { quem: "caixa", o_que: "Vê a confirmação no painel; a pré-conta impressa traz o QR da mesa para pagar pelo Tipe Pay" },
     ],
     beneficios: [
       { t: "Ninguém espera para pedir", d: "O cliente pede quando quer, sem chamar alguém." },
@@ -154,7 +177,10 @@ export const DEFINICOES: Record<Modalidade, DefinicaoModalidade> = {
     origem: "cliente_celular",
     fechamento: "comanda_individual",
     fluxo: [
-      { quem: "equipe", o_que: "Abre uma comanda para o cliente (QR individual, cartão ou pulseira)" },
+      {
+        quem: "equipe",
+        o_que: "Abre uma comanda para o cliente (QR individual, cartão ou pulseira)",
+      },
       { quem: "cliente", o_que: "Pede em qualquer ponto; tudo entra na mesma comanda" },
       { quem: "cozinha", o_que: "Recebe os itens com o número da comanda" },
       { quem: "cliente", o_que: "Confere o consumo no celular" },
@@ -234,7 +260,14 @@ export const DEFINICOES: Record<Modalidade, DefinicaoModalidade> = {
     disponibilidade: "desenvolvimento",
     motivo:
       "Existe uma primeira versão (tela em /restaurante/totem com o cardápio real, senha e pedido aguardando o caixa cobrar). Faltam pagamento no terminal, personalização de itens, gestão de vários dispositivos e validação em equipamento real.",
-    indicada: ["Fast-food", "Lanchonetes", "Cafeterias", "Padarias", "Praças de alimentação", "Quiosques"],
+    indicada: [
+      "Fast-food",
+      "Lanchonetes",
+      "Cafeterias",
+      "Padarias",
+      "Praças de alimentação",
+      "Quiosques",
+    ],
     canal: "totem",
     origem: "cliente_terminal",
     fechamento: "antes_de_produzir",
@@ -251,7 +284,10 @@ export const DEFINICOES: Record<Modalidade, DefinicaoModalidade> = {
       { t: "Fila menor no caixa", d: "O cliente monta o pedido sozinho." },
       { t: "Cardápio da casa", d: "Categorias, produtos e carrinho na tela touchscreen." },
       { t: "Mesmo cadastro", d: "Totem, balcão e mesa usam os mesmos produtos." },
-      { t: "Sem dado de cartão na tela", d: "Pagamento no caixa, em dinheiro ou na maquininha do estabelecimento." },
+      {
+        t: "Sem dado de cartão na tela",
+        d: "Pagamento no caixa, em dinheiro ou na maquininha do estabelecimento.",
+      },
     ],
     modulos: ["totem", "order", "kitchen", "restaurant"],
     moduloContratado: "totem",
@@ -269,17 +305,33 @@ export const DEFINICOES: Record<Modalidade, DefinicaoModalidade> = {
     origem: "cliente_celular",
     fechamento: "comanda_individual",
     fluxo: [
-      { quem: "equipe", o_que: "Ativa a pulseira numerada e vincula à comanda do cliente no Tipe Gestão" },
-      { quem: "cliente", o_que: "Aproxima o celular da pulseira (ou lê o QR de apoio); o Tipe Order abre" },
-      { quem: "cliente", o_que: "Escolhe no cardápio do celular e envia; tudo entra na mesma comanda" },
+      {
+        quem: "equipe",
+        o_que: "Ativa a pulseira numerada e vincula à comanda do cliente no Tipe Gestão",
+      },
+      {
+        quem: "cliente",
+        o_que: "Aproxima o celular da pulseira (ou lê o QR de apoio); o Tipe Order abre",
+      },
+      {
+        quem: "cliente",
+        o_que: "Escolhe no cardápio do celular e envia; tudo entra na mesma comanda",
+      },
       { quem: "cozinha", o_que: "Recebe os itens no Tipe Cozinha com o número da pulseira" },
-      { quem: "equipe", o_que: "Consulta o setor informado ou o GPS compartilhado com consentimento e entrega ao cliente" },
+      {
+        quem: "equipe",
+        o_que:
+          "Consulta o setor informado ou o GPS compartilhado com consentimento e entrega ao cliente",
+      },
       { quem: "cliente", o_que: "Acompanha o consumo e paga pelo Tipe Pay" },
       { quem: "equipe", o_que: "Encerra a comanda; a pulseira volta ao estoque para reutilizar" },
     ],
     beneficios: [
       { t: "Sem comanda de papel", d: "A pulseira numerada substitui a cartela e o cartão." },
-      { t: "Reutilizável", d: "Depois de encerrar a comanda e higienizar a pulseira, ela fica pronta para um novo atendimento." },
+      {
+        t: "Reutilizável",
+        d: "Depois de encerrar a comanda e higienizar a pulseira, ela fica pronta para um novo atendimento.",
+      },
       { t: "Garçom encontra o cliente", d: "Mapa do evento e localização com consentimento." },
       { t: "Sem aplicativo", d: "Android e iPhone abrem a URL ao aproximar." },
     ],
@@ -288,7 +340,15 @@ export const DEFINICOES: Record<Modalidade, DefinicaoModalidade> = {
   },
 };
 
-export const ORDEM_SELETOR: Modalidade[] = ["mesas", "balcao", "totem", "retirada", "pulseira", "comanda", "delivery"];
+export const ORDEM_SELETOR: Modalidade[] = [
+  "mesas",
+  "balcao",
+  "totem",
+  "retirada",
+  "pulseira",
+  "comanda",
+  "delivery",
+];
 
 export const ehModalidade = (v: unknown): v is Modalidade =>
   typeof v === "string" && (MODALIDADES as readonly string[]).includes(v);
@@ -328,7 +388,14 @@ export const NOME_COMO_PEDEM: Record<ComoPedem, string> = {
   combinacao: "Uma combinação",
 };
 
-export const MELHORIAS = ["agilidade", "organizacao", "fechamento", "cozinha", "caixa", "experiencia"] as const;
+export const MELHORIAS = [
+  "agilidade",
+  "organizacao",
+  "fechamento",
+  "cozinha",
+  "caixa",
+  "experiencia",
+] as const;
 export type Melhoria = (typeof MELHORIAS)[number];
 export const NOME_MELHORIA: Record<Melhoria, string> = {
   agilidade: "Agilidade no atendimento",
@@ -356,11 +423,12 @@ export const NOME_MODULO: Record<ModuloTipe, string> = {
 };
 
 export const PAPEL_MODULO: Record<ModuloTipe, string> = {
-  pay: "A conta da mesa no celular: dividir, pagar no estabelecimento; Pix, Apple Pay e Google Pay em piloto.",
+  pay: "A conta da mesa no celular: dividir, pagar no estabelecimento; Pix e carteiras sujeitos à habilitação e validação por restaurante.",
   order: "O cardápio e o pedido pelo celular do cliente, no mesmo QR Code da conta.",
   kitchen: "A tela da cozinha e do bar: cada pedido com tempo, setor e status.",
   staff: "O app do garçom: mesas, liberação de pedidos, avisos de prato pronto e gorjetas.",
-  restaurant: "O painel do restaurante: caixa, lançamento de pedidos, cardápio, equipe e relatórios.",
+  restaurant:
+    "O painel do restaurante: caixa, lançamento de pedidos, cardápio, equipe e relatórios.",
   totem: "A tela de autoatendimento para o cliente montar o pedido e receber a senha.",
 };
 
@@ -410,7 +478,9 @@ export type Recomendacao = {
 };
 
 const lista = (nomes: string[]) =>
-  nomes.length <= 1 ? nomes.join("") : `${nomes.slice(0, -1).join(", ")} e ${nomes[nomes.length - 1]}`;
+  nomes.length <= 1
+    ? nomes.join("")
+    : `${nomes.slice(0, -1).join(", ")} e ${nomes[nomes.length - 1]}`;
 
 /**
  * Recomendação de módulos a partir das respostas. Regras:
@@ -429,9 +499,11 @@ export function recomendar(r: RespostasConfigurador): Recomendacao {
   pedir("pay", null);
   pedir("restaurant", null);
   for (const m of r.modalidades) for (const mod of DEFINICOES[m].modulos) pedir(mod, m);
-  if ((r.comoPedem === "celular" || r.comoPedem === "combinacao") && !por.has("order")) pedir("order", "mesas");
+  if ((r.comoPedem === "celular" || r.comoPedem === "combinacao") && !por.has("order"))
+    pedir("order", "mesas");
   if (r.comoPedem === "garcom") pedir("staff", null);
-  if (r.melhorias.includes("cozinha") || r.melhorias.includes("organizacao")) pedir("kitchen", null);
+  if (r.melhorias.includes("cozinha") || r.melhorias.includes("organizacao"))
+    pedir("kitchen", null);
   if (r.melhorias.includes("caixa")) pedir("restaurant", null);
 
   // Disponibilidade do módulo: o próprio estado dele, puxado para baixo só quando TODAS as
@@ -441,7 +513,8 @@ export function recomendar(r: RespostasConfigurador): Recomendacao {
     const origens = por.get(modulo) ?? [];
     if (!origens.length) return propria;
     const melhor = origens.reduce<Disponibilidade>(
-      (acc, m) => (PESO[DEFINICOES[m].disponibilidade] < PESO[acc] ? DEFINICOES[m].disponibilidade : acc),
+      (acc, m) =>
+        PESO[DEFINICOES[m].disponibilidade] < PESO[acc] ? DEFINICOES[m].disponibilidade : acc,
       "planejada",
     );
     return PESO[melhor] > PESO[propria] ? melhor : propria;
@@ -458,8 +531,11 @@ export function recomendar(r: RespostasConfigurador): Recomendacao {
     .filter((m) => m.disponibilidade === "operacional" || m.disponibilidade === "piloto")
     .map((m) => m.modulo);
   const futuros = modulos.filter((m) => !disponiveis.includes(m.modulo)).map((m) => m.modulo);
-  const quem = r.estabelecimento ? NOME_ESTABELECIMENTO[r.estabelecimento].toLowerCase() : "estabelecimento";
-  const artigo = r.estabelecimento === "cafeteria" || r.estabelecimento === "lanchonete" ? "a sua" : "o seu";
+  const quem = r.estabelecimento
+    ? NOME_ESTABELECIMENTO[r.estabelecimento].toLowerCase()
+    : "estabelecimento";
+  const artigo =
+    r.estabelecimento === "cafeteria" || r.estabelecimento === "lanchonete" ? "a sua" : "o seu";
   const nomesDisp = disponiveis.map((m) => NOME_MODULO[m]);
   const frase = nomesDisp.length
     ? `Para ${artigo} ${quem}, sugerimos ${lista(nomesDisp)}.`
@@ -484,7 +560,8 @@ export function resumoParaCrm(r: RespostasConfigurador, rec: Recomendacao): stri
     `Quer melhorar: ${r.melhorias.length ? r.melhorias.map((m) => NOME_MELHORIA[m]).join(", ") : "não informado"}`,
     `Sugeridos: ${rec.disponiveis.map((m) => NOME_MODULO[m]).join(", ") || "—"}`,
   ];
-  if (rec.futuros.length) partes.push(`Futuros: ${rec.futuros.map((m) => NOME_MODULO[m]).join(", ")}`);
+  if (rec.futuros.length)
+    partes.push(`Futuros: ${rec.futuros.map((m) => NOME_MODULO[m]).join(", ")}`);
   if (rec.interesseTotem) partes.push("Interesse em totem de autoatendimento: sim");
   return partes.join("\n");
 }

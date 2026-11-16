@@ -38,6 +38,10 @@ const POS: Record<string, [number, number]> = {
 };
 
 const CSS = `
+.hub-wide { display: none; }
+.hub-stack { display: block; }
+@container (min-width: 1120px) { .hub-wide { display: block; } .hub-stack { display: none; } }
+
 .hub { --ciclo: ${CICLO}s; }
 .hub-pulso { stroke-dasharray: 16 140; stroke-dashoffset: 16; animation: hub-sai var(--ciclo) cubic-bezier(.45,0,.2,1) var(--d) infinite both; }
 .hub-pulso[data-entra] { animation-name: hub-entra; }
@@ -208,7 +212,7 @@ export function HubIntegracoes({ compacto = false, className }: { compacto?: boo
     <figure
       ref={ref}
       className={cn(
-        "hub relative isolate overflow-hidden rounded-[2rem] bg-[#021E34] text-white sm:rounded-[2.5rem]",
+        "hub @container relative isolate overflow-hidden rounded-[2rem] bg-[#021E34] text-white sm:rounded-[2.5rem]",
         className,
       )}
     >
@@ -227,7 +231,7 @@ export function HubIntegracoes({ compacto = false, className }: { compacto?: boo
       />
 
       {/* ---------- Versão larga (lg+) ---------- */}
-      <div aria-hidden className="relative hidden lg:block" style={{ aspectRatio: `${W} / ${H}` }}>
+      <div aria-hidden className="hub-wide relative" style={{ aspectRatio: `${W} / ${H}` }}>
         <svg viewBox={`0 0 ${W} ${H}`} className="absolute inset-0 h-full w-full" fill="none">
           <defs>
             <filter id={`brilho-${uid}`} x="-20%" y="-20%" width="140%" height="140%">
@@ -295,7 +299,7 @@ export function HubIntegracoes({ compacto = false, className }: { compacto?: boo
       </div>
 
       {/* ---------- Versão em coluna (celular e tablet) ---------- */}
-      <div aria-hidden className={cn("relative px-4 pb-6 pt-8 sm:px-8 sm:pb-10 sm:pt-12 lg:hidden")}>
+      <div aria-hidden className={cn("hub-stack relative px-4 pb-6 pt-8 sm:px-8 sm:pb-10 sm:pt-12")}>
         <div className="flex justify-center">
           <Centro tamanho={compacto ? "p" : "m"} />
         </div>

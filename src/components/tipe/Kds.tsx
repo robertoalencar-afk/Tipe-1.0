@@ -3,13 +3,14 @@ import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
-import { Bell, BellOff, Copy, ExternalLink, Maximize2, MonitorPlay, RefreshCw, Undo2 } from "lucide-react";
+import { Bell, BellOff, Copy, Printer, ExternalLink, Maximize2, MonitorPlay, RefreshCw, Undo2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useOps, type OpsData } from "@/components/tipe/AdminSections";
 import { bumpOrder, getDisplayToken } from "@/lib/tipe/orders.functions";
 import { beep, unlockSound } from "@/lib/tipe/beep";
+import { htmlTicket, imprimirHtml } from "@/lib/tipe/imprimir";
 
 // KDS por pedido, como no Colibri: cada pedido vira um ticket com cronômetro
 // que muda de cor (verde até 10 min, laranja até 20, vermelho depois).
@@ -84,9 +85,6 @@ export function Cozinha({ slug, podePainel = false, telaCheia = false }: { slug:
   const ops = useOps(slug);
   const qc = useQueryClient();
   const bump = useServerFn(bumpOrder);
-  const [setor, setSetor] = useState<Setor>("all");
-  const [som, setSom] = useState(false);
-  const agora = useAgora();
   const rid = ops.data?.restaurant.id;
 
   // Tempo real: qualquer item novo ou mudança de status atualiza a tela na hora.
@@ -99,21 +97,72 @@ export function Cozinha({ slug, podePainel = false, telaCheia = false }: { slug:
     return () => { supabase.removeChannel(ch); };
   }, [rid, slug, qc]);
 
-  const tickets = useMemo(() => montarTickets(ops.data?.kds ?? [], setor), [ops.data?.kds, setor]);
+  return (
+    <QuadroKds
+      itens={ops.data?.kds ?? []}
+      carregando={ops.isLoading}
+      onMover={(v) => bump({ data: v })}
+      onAtualizar={() => qc.invalidateQueries({ queryKey: ["ops", slug] })}
+      telaCheia={telaCheia}
+      restaurante={ops.data?.restaurant.name ?? ""}
+      tela={telaCheia ? undefined : { slug, podePainel }}
+    />
+  );
+}
+
+/**
+ * Quadro de tickets, sem saber de onde vêm os dados. O painel usa a sessão da equipe;
+ * a estação da cozinha e do bar usa o link com token (setorFixo trava o setor da tela).
+ */
+export function QuadroKds({
+  itens, carregando, onMover, onAtualizar, telaCheia = false, setorFixo, tela, restaurante = "",
+}: {
+  restaurante?: string;
+  itens: KdsItem[];
+  carregando: boolean;
+  onMover: (v: { orderId: string; status: "received" | "preparing" | "ready" | "delivered"; sector?: "kitchen" | "bar" }) => Promise<unknown>;
+  onAtualizar: () => void;
+  telaCheia?: boolean;
+  setorFixo?: Setor | undefined;
+  tela?: { slug: string; podePainel: boolean } | undefined;
+}) {
+  const slug = tela?.slug ?? "";
+  const imprimir = (t: Ticket) =>
+    imprimirHtml(
+      htmlTicket({
+        restaurante, titulo: t.titulo, subtitulo: t.subtitulo,
+        setor: setor === "bar" ? "Bar" : setor === "kitchen" ? "Cozinha" : "Cozinha e bar",
+        hora: new Date(t.desde),
+        itens: t.itens.map((i) => ({ qty: i.quantity, nome: i.item_name, obs: i.notes })),
+      }),
+      `Ticket ${t.titulo}`,
+    );
+  const podePainel = tela?.podePainel ?? false;
+  const [setorEscolhido, setSetor] = useState<Setor>("all");
+  const setor: Setor = setorFixo ?? setorEscolhido;
+  const [som, setSom] = useState(false);
+  // Impressão automática de cada pedido novo. O navegador abre a janela de impressão a cada ticket;
+  // para imprimir direto, abra o Chrome da estação com --kiosk-printing.
+  const [autoImprimir, setAutoImprimir] = useState(false);
+  const agora = useAgora();
+
+  const tickets = useMemo(() => montarTickets(itens, setor), [itens, setor]);
 
   // Bipa quando chega pedido novo (ignora a primeira carga da tela).
   const conhecidos = useRef<Set<string> | null>(null);
   useEffect(() => {
-    if (!ops.data) return;
     const novos = tickets.filter((t) => t.etapa === "received").map((t) => t.orderId);
-    if (conhecidos.current && som && novos.some((id) => !conhecidos.current!.has(id))) beep(2, "pedido");
+    const chegou = conhecidos.current ? novos.filter((id) => !conhecidos.current!.has(id)) : [];
+    if (chegou.length > 0 && som) beep(2, "pedido");
+    if (chegou.length > 0 && autoImprimir) for (const id of chegou) { const t = tickets.find((x) => x.orderId === id); if (t) imprimir(t); }
     conhecidos.current = new Set([...(conhecidos.current ?? []), ...novos]);
-  }, [tickets, som, ops.data]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tickets, som, autoImprimir]);
 
   const mover = useMutation({
     mutationFn: (v: { orderId: string; status: "received" | "preparing" | "ready" | "delivered" }) =>
-      bump({ data: { ...v, ...(setor !== "all" ? { sector: setor } : {}) } }),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["ops", slug] }),
+      onMover({ ...v, ...(setor !== "all" ? { sector: setor } : {}) }),
+    onSuccess: () => onAtualizar(),
     onError: (e) => toast.error((e as Error).message),
   });
 
@@ -122,7 +171,7 @@ export function Cozinha({ slug, podePainel = false, telaCheia = false }: { slug:
   return (
     <div className={telaCheia ? "flex flex-col gap-3 p-3" : "space-y-4"}>
       <div className="flex flex-wrap items-center gap-2">
-        {([["all", "Todos"], ["kitchen", "Cozinha"], ["bar", "Bar"]] as const).map(([k, l]) => (
+        {!setorFixo && ([["all", "Todos"], ["kitchen", "Cozinha"], ["bar", "Bar"]] as const).map(([k, l]) => (
           <Button key={k} size={telaCheia ? "lg" : "sm"} variant={setor === k ? "default" : "outline"} onClick={() => setSetor(k)}>{l}</Button>
         ))}
         <div className="ml-auto flex flex-wrap items-center gap-2">
@@ -130,8 +179,14 @@ export function Cozinha({ slug, podePainel = false, telaCheia = false }: { slug:
           <Button size="sm" variant="outline" onClick={() => { if (!som && !unlockSound()) { toast.error("Este navegador não permite som"); return; } setSom(!som); if (!som) beep(1); }}>
             {som ? <Bell className="mr-1 h-4 w-4" /> : <BellOff className="mr-1 h-4 w-4" />}{som ? "Som ligado" : "Ativar som"}
           </Button>
-          <Button size="sm" variant="ghost" onClick={() => qc.invalidateQueries({ queryKey: ["ops", slug] })} aria-label="Atualizar"><RefreshCw className="h-4 w-4" /></Button>
-          {!telaCheia && (
+          <Button size="sm" variant={autoImprimir ? "default" : "outline"} aria-pressed={autoImprimir} title="Imprime cada pedido novo assim que chega" onClick={() => setAutoImprimir((v) => !v)}>
+            <Printer className="mr-1 h-4 w-4" />{autoImprimir ? "Imprimindo pedidos" : "Imprimir pedidos novos"}
+          </Button>
+          <Button size="sm" variant={autoImprimir ? "default" : "outline"} aria-pressed={autoImprimir} title="Imprime cada pedido novo assim que chega" onClick={() => setAutoImprimir((v) => !v)}>
+            <Printer className="mr-1 h-4 w-4" />{autoImprimir ? "Imprimindo pedidos" : "Imprimir pedidos novos"}
+          </Button>
+          <Button size="sm" variant="ghost" onClick={onAtualizar} aria-label="Atualizar"><RefreshCw className="h-4 w-4" /></Button>
+          {!telaCheia && tela && (
             <Button size="sm" variant="outline" asChild>
               <Link to="/$restaurante/cozinha" params={{ restaurante: slug }} target="_blank"><Maximize2 className="mr-1 h-4 w-4" />Tela da cozinha</Link>
             </Button>
@@ -139,7 +194,7 @@ export function Cozinha({ slug, podePainel = false, telaCheia = false }: { slug:
         </div>
       </div>
 
-      {ops.isLoading && <p className="text-muted-foreground">Carregando…</p>}
+      {carregando && <p className="text-muted-foreground">Carregando…</p>}
       <div className={`grid flex-1 gap-3 md:grid-cols-3 ${telaCheia ? "items-stretch" : ""}`}>
         {colunas.map(([etapa, label]) => {
           const lista = tickets.filter((t) => t.etapa === etapa);
@@ -173,6 +228,7 @@ export function Cozinha({ slug, podePainel = false, telaCheia = false }: { slug:
                         ))}
                       </ul>
                       <div className="flex gap-2 px-3 pb-3">
+                        <Button size="sm" variant="ghost" aria-label={`Imprimir ticket ${t.titulo}`} title="Imprimir ticket" onClick={() => imprimir(t)}><Printer className="h-4 w-4" /></Button>
                         {anterior[etapa] && (
                           <Button size="sm" variant="ghost" disabled={ocupado} aria-label="Voltar etapa" onClick={() => mover.mutate({ orderId: t.orderId, status: anterior[etapa]! })}><Undo2 className="h-4 w-4" /></Button>
                         )}
@@ -189,7 +245,7 @@ export function Cozinha({ slug, podePainel = false, telaCheia = false }: { slug:
         })}
       </div>
 
-      {!telaCheia && podePainel && <PainelSenhasConfig slug={slug} />}
+      {!telaCheia && podePainel && tela && <PainelSenhasConfig slug={slug} />}
     </div>
   );
 }

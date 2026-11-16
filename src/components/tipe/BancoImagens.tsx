@@ -10,9 +10,13 @@ import {
   removeBancoImagem,
   usarImagemDoBanco,
 } from "@/lib/tipe/midia.functions";
+import { prepareDishDepth, photoBlobDataUrl } from "@/lib/tipe/order/prepare-photo";
 import { reduzirImagem } from "@/components/tipe/UploadImagem";
+import { matchMenuPhotos } from "@/lib/tipe/menu-photo-match";
 
-type Item = { id: string; name: string };
+import type { GalleryPhoto } from "./site/order/CriarPratoDemo";
+
+type Item = { id: string; name: string; code?: string };
 
 /** Banco de imagens do restaurante: envie várias fotos e aplique cada uma a um prato. */
 export function BancoImagens({
@@ -20,11 +24,15 @@ export function BancoImagens({
   podeDono,
   itens,
   onAplicada,
+  onEscolher,
+  fotosAtuais = [],
 }: {
   slug: string;
   podeDono: boolean;
   itens: Item[];
   onAplicada: () => void;
+  onEscolher?: (photo: GalleryPhoto) => Promise<void>;
+  fotosAtuais?: { id: string; name: string; url: string }[];
 }) {
   const qc = useQueryClient();
   const fetchB = useServerFn(getBancoImagens);
@@ -35,39 +43,87 @@ export function BancoImagens({
     queryKey: ["banco-imagens", slug],
     queryFn: () => fetchB({ data: { slug } }),
   });
+  const [aba, setAba] = useState<"cardapio" | "envios" | "logo">("cardapio");
+  const depths = useRef(new Map<string, Blob>());
+  const [processo, setProcesso] = useState("");
   const ref = useRef<HTMLInputElement>(null);
   const [enviando, setEnviando] = useState(0);
   const [escolhida, setEscolhida] = useState<string | null>(null);
   const [aplicando, setAplicando] = useState(false);
+  const [relacionar, setRelacionar] = useState(false);
+  const [pendentes, setPendentes] = useState<File[]>([]);
+  const correspondencias = matchMenuPhotos(pendentes, itens);
 
-  async function enviar(files: FileList | null) {
+  async function enviar(files: FileList | File[] | null, vincular = false) {
     if (!files?.length) return;
+    setAba("envios");
     setEnviando(files.length);
     let ok = 0;
+    const falhas: File[] = [];
     for (const f of Array.from(files)) {
       try {
-        await add({ data: { slug, imagem: await reduzirImagem(f, 1200) } });
+        const depth = await prepareDishDepth(f, setProcesso);
+        const saved = await add({ data: { slug, imagem: await reduzirImagem(f, 1200) } });
+        depths.current.set(saved.nome, depth);
+        if (vincular) {
+          const item = matchMenuPhotos([f], itens)[0]?.item;
+          if (!item) throw new Error("Código do prato não encontrado.");
+          await usar({
+            data: {
+              slug,
+              itemId: item.id,
+              nome: saved.nome,
+              profundidade: await photoBlobDataUrl(depth),
+            },
+          });
+        }
         ok += 1;
       } catch (e) {
+        falhas.push(f);
         toast.error(`${f.name}: ${(e as Error).message}`);
       }
       setEnviando((n) => n - 1);
     }
     if (ok) toast.success(ok === 1 ? "Imagem enviada" : `${ok} imagens enviadas`);
     if (ref.current) ref.current.value = "";
+    setProcesso("");
     await qc.invalidateQueries({ queryKey: ["banco-imagens", slug] });
+    if (vincular) {
+      setPendentes(falhas);
+      onAplicada();
+    }
   }
   async function aplicar(nome: string, itemId: string) {
     setAplicando(true);
     try {
-      await usar({ data: { slug, itemId, nome } });
+      const image = q.data?.imagens.find((im) => im.nome === nome);
+      if (!image) throw new Error("Imagem não encontrada.");
+      const depth = depths.current.get(nome) ?? (await prepareDishDepth(image.url, setProcesso));
+      await usar({ data: { slug, itemId, nome, profundidade: await photoBlobDataUrl(depth) } });
       toast.success("Foto aplicada ao prato");
       setEscolhida(null);
+      setProcesso("");
       onAplicada();
     } catch (e) {
       toast.error((e as Error).message);
     }
     setAplicando(false);
+    setProcesso("");
+  }
+  async function escolher(url: string, libraryName?: string) {
+    if (!onEscolher) return;
+    setAplicando(true);
+    try {
+      const depth =
+        (libraryName && depths.current.get(libraryName)) ||
+        (await prepareDishDepth(url, setProcesso));
+      await onEscolher({ url, depth, ...(libraryName ? { libraryName } : {}) });
+    } catch (error) {
+      toast.error((error as Error).message);
+    } finally {
+      setAplicando(false);
+      setProcesso("");
+    }
   }
   async function remover(nome: string) {
     try {
@@ -79,14 +135,20 @@ export function BancoImagens({
     }
   }
   const imagens = q.data?.imagens ?? [];
+  const catalogo = q.data?.cardapio ?? fotosAtuais;
   return (
-    <section className="surface-card space-y-4 p-4 sm:p-5">
+    <section className={onEscolher ? "min-w-0 space-y-4" : "surface-card space-y-4 p-4 sm:p-5"}>
+      {processo && (
+        <p role="status" className="text-sm text-muted-foreground">
+          {processo}
+        </p>
+      )}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h2 className="font-display font-semibold">Banco de imagens</h2>
+          {!onEscolher && <h2 className="font-display font-semibold">Galeria do restaurante</h2>}
           <p className="text-xs text-muted-foreground">
             Guarde as fotos do restaurante em um só lugar e use em qualquer prato. PNG, JPG ou WebP;
-            o sistema reduz o tamanho sozinho.
+            o motor prepara a aparência 3D e reduz o tamanho automaticamente.
           </p>
         </div>
         {podeDono && (
@@ -96,21 +158,158 @@ export function BancoImagens({
               type="file"
               multiple
               accept="image/png,image/jpeg,image/webp"
-              className="sr-only"
+              className="hidden"
               aria-label="Enviar imagens"
-              onChange={(e) => void enviar(e.target.files)}
+              onChange={(e) =>
+                relacionar
+                  ? setPendentes(Array.from(e.target.files ?? []))
+                  : void enviar(e.target.files)
+              }
             />
-            <Button type="button" onClick={() => ref.current?.click()} disabled={enviando > 0}>
+            <Button
+              type="button"
+              onClick={() => ref.current?.click()}
+              disabled={enviando > 0 || aplicando}
+            >
               {enviando > 0 ? (
                 <Loader2 className="mr-1.5 size-4 animate-spin" />
               ) : (
                 <ImagePlus className="mr-1.5 size-4" />
               )}
-              {enviando > 0 ? `Enviando… (${enviando})` : "Enviar imagens"}
+              {enviando > 0 ? `Enviando… (${enviando})` : "Enviar novas fotos"}
             </Button>
           </>
         )}
       </div>
+      {podeDono && !onEscolher && itens.some((i) => i.code) && (
+        <div className="space-y-2 text-sm">
+          <label className="flex min-h-10 items-center gap-2">
+            <input
+              type="checkbox"
+              checked={relacionar}
+              disabled={enviando > 0}
+              onChange={(e) => {
+                setRelacionar(e.target.checked);
+                setPendentes([]);
+                if (ref.current) ref.current.value = "";
+              }}
+              className="size-4 accent-primary"
+            />
+            Relacionar fotos pelo código do prato
+          </label>
+          {relacionar && (
+            <p className="text-xs text-muted-foreground">
+              Nomeie cada arquivo com o código exato do prato (ex.: PRATO-1.jpg). Confira os
+              destinos antes de aplicar. As fotos atuais serão substituídas.
+            </p>
+          )}
+          {pendentes.length > 0 && (
+            <div className="space-y-3 rounded-xl border p-3">
+              <ul className="max-h-56 space-y-1 overflow-y-auto break-words">
+                {correspondencias.map((row, index) => (
+                  <li key={index}>
+                    {row.file.name} →{" "}
+                    {row.item?.name ??
+                      "Sem correspondência única — confira o código ou arquivos repetidos."}
+                  </li>
+                ))}
+              </ul>
+              <Button
+                disabled={enviando > 0 || correspondencias.some((row) => !row.item)}
+                onClick={() => void enviar(pendentes, true)}
+              >
+                Preparar e aplicar {pendentes.length} fotos
+              </Button>
+              <Button
+                variant="ghost"
+                disabled={enviando > 0}
+                onClick={() => {
+                  setPendentes([]);
+                  if (ref.current) ref.current.value = "";
+                }}
+              >
+                Cancelar
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+      <div className="flex flex-wrap gap-2" aria-label="Categorias de imagens">
+        {(
+          [
+            ["cardapio", "Cardápio"],
+            ["envios", "Fotos enviadas"],
+            ["logo", "Logomarca"],
+          ] as const
+        ).map(([id, label]) => (
+          <Button
+            key={id}
+            variant={aba === id ? "default" : "outline"}
+            aria-pressed={aba === id}
+            onClick={() => setAba(id)}
+          >
+            {label}
+          </Button>
+        ))}
+      </div>
+      {aba === "logo" &&
+        !q.isPending &&
+        !q.isError &&
+        (q.data?.logoUrl ? (
+          <div className="rounded-xl border border-border p-6">
+            <img
+              src={q.data.logoUrl}
+              alt="Logomarca do restaurante"
+              className="h-40 w-full object-contain"
+            />
+            <p className="mt-3 text-center text-sm text-muted-foreground">
+              Logomarca usada pelo restaurante
+            </p>
+          </div>
+        ) : (
+          <p className="py-6 text-sm text-muted-foreground">
+            O restaurante ainda não cadastrou uma logomarca.
+          </p>
+        ))}
+      {aba === "cardapio" &&
+        !q.isPending &&
+        !q.isError &&
+        (catalogo.length ? (
+          <ul className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            {catalogo.map((f) => (
+              <li key={f.id} className="min-w-0 space-y-2">
+                <img
+                  src={f.url}
+                  alt={f.name}
+                  loading="lazy"
+                  className="aspect-square w-full rounded-xl object-cover"
+                />
+                <p className="break-words text-sm font-medium">{f.name}</p>
+                {onEscolher && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="w-full"
+                    disabled={aplicando || enviando > 0}
+                    onClick={() =>
+                      void escolher(
+                        f.url,
+                        imagens.find((i) => i.url.split("?")[0] === f.url.split("?")[0])?.nome,
+                      )
+                    }
+                  >
+                    Usar esta foto
+                  </Button>
+                )}
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="py-6 text-sm text-muted-foreground">
+            As fotos dos pratos cadastrados aparecerão aqui. Você também pode escolher uma das fotos
+            enviadas.
+          </p>
+        ))}
       {q.isPending ? (
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           {[0, 1, 2, 3, 4].map((i) => (
@@ -127,9 +326,9 @@ export function BancoImagens({
             Tentar novamente
           </Button>
         </div>
-      ) : imagens.length === 0 ? (
+      ) : aba !== "envios" ? null : imagens.length === 0 ? (
         <div className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-muted-foreground">
-          Nenhuma imagem ainda.{" "}
+          Nenhuma foto salva na galeria ainda.{" "}
           {podeDono
             ? "Envie fotos autorizadas para exibição pública no cardápio."
             : "O administrador pode enviar as fotos."}
@@ -151,7 +350,19 @@ export function BancoImagens({
                   </button>
                 )}
               </div>
-              {podeDono &&
+              {onEscolher ? (
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="w-full"
+                  disabled={aplicando || enviando > 0}
+                  onClick={() => void escolher(im.url, im.nome)}
+                >
+                  {aplicando ? "Preparando…" : "Usar esta foto"}
+                </Button>
+              ) : (
+                podeDono &&
                 (escolhida === im.nome ? (
                   <select
                     autoFocus
@@ -181,7 +392,8 @@ export function BancoImagens({
                   >
                     Usar em um prato
                   </Button>
-                ))}
+                ))
+              )}
             </li>
           ))}
         </ul>

@@ -2,7 +2,7 @@
 // public/offline.html é a versão "sem internet" salva em arquivo (o service worker a serve offline);
 // o teste error-page.test.ts garante que o arquivo e o código não se separem.
 
-type Opcoes = { codigo: string; titulo: string; texto: string; recarregar: boolean };
+type Opcoes = { codigo: string; titulo: string; texto: string; piada: string; recarregar: boolean };
 
 const ESTILO = `
   :root { --bg:#ffffff; --fg:#021e34; --muted:#5b6675; --line:#e5e8ec; --brand:#0fc9bd; --brand-strong:#00796d; }
@@ -12,7 +12,10 @@ const ESTILO = `
   header { max-width: 64rem; width:100%; margin: 0 auto; padding: 24px 0; }
   .logo { height: 32px; width: auto; }
   main { flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; max-width: 28rem; margin: 0 auto; padding-bottom: 64px; }
-  .lebre { width: 128px; height: 128px; object-fit: contain; }
+  .lebre { width: 144px; height: 144px; object-fit: contain; transform-origin: 50% 100%; animation: balanco 4.2s ease-in-out infinite; }
+  .piada { margin: 0 0 12px; padding: 10px 16px; border-radius: 16px; background: color-mix(in srgb, var(--brand) 20%, var(--bg)); font-size: 14px; font-weight: 600; max-width: 20rem; }
+  @keyframes balanco { 0%, 100% { transform: translateY(0) rotate(-1.2deg); } 50% { transform: translateY(-8px) rotate(1.2deg); } }
+  @media (prefers-reduced-motion: reduce) { .lebre { animation: none; } }
   .codigo { margin: 24px 0 0; font: 500 12px/1 ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .2em; text-transform: uppercase; color: var(--brand-strong); }
   h1 { margin: 8px 0 0; font-size: 1.6rem; line-height: 1.2; letter-spacing: -0.01em; }
   p.texto { margin: 12px 0 0; color: var(--muted); }
@@ -38,7 +41,8 @@ function pagina(o: Opcoes): string {
   <body>
     <header><a href="/" aria-label="Página inicial da Tipe"><img class="logo" src="/marca/tipe-logo.svg" alt="Tipe" width="105" height="32" /></a></header>
     <main>
-      <img class="lebre" src="/marca/lebre-esperando.webp" alt="" width="128" height="128" />
+      <p class="piada">${o.piada}</p>
+      <img class="lebre" src="/marca/lebre-esperando.webp" alt="" width="144" height="144" />
       <p class="codigo">${o.codigo}</p>
       <h1>${o.titulo}</h1>
       <p class="texto">${o.texto}</p>
@@ -55,8 +59,9 @@ function pagina(o: Opcoes): string {
 export function renderErrorPage(): string {
   return pagina({
     codigo: "Erro 500",
-    titulo: "Esta página não carregou",
+    titulo: "A cozinha derrubou a bandeja",
     texto: "Algo deu errado do nosso lado, não do seu. Tente de novo em instantes. Se você estava pagando, nada é cobrado duas vezes.",
+    piada: "Foi só um tropeço. Já estou varrendo o chão.",
     recarregar: true,
   });
 }
@@ -64,8 +69,9 @@ export function renderErrorPage(): string {
 export function renderOfflinePage(): string {
   return pagina({
     codigo: "Sem internet",
-    titulo: "Você está sem internet",
+    titulo: "A internet foi buscar gelo",
     texto: "Confira o Wi-Fi ou os dados móveis e tente de novo. Nenhum pagamento é feito sem confirmação.",
+    piada: "Conferi o Wi-Fi. Ele disse que volta já.",
     recarregar: true,
   });
 }

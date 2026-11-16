@@ -1,0 +1,6 @@
+{
+  "name": "tipe-email-worker",
+  "private": true,
+  "type": "module",
+  "dependencies": { "postal-mime": "2.4.3" }
+}

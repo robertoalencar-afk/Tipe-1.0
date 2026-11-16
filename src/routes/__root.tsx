@@ -29,8 +29,14 @@ function NotFoundComponent() {
   return (
     <ErroPagina
       codigo="Erro 404"
-      titulo="Essa página saiu da mesa"
-      texto="O endereço pode ter mudado ou foi digitado com algum detalhe diferente. Se você leu o QR Code da mesa, peça ao garçom um código novo."
+      titulo="Essa página saiu sem pagar a conta"
+      texto="Brincadeira: ela só sumiu. O endereço pode ter mudado ou foi digitado com algum detalhe diferente. Se você leu o QR Code da mesa, peça ao garçom um código novo."
+      pose="conta"
+      piadas={[
+        "Procurei debaixo da mesa. Só achei um guardanapo.",
+        "Aqui ninguém dá calote. Essa página deu um migué.",
+        "Já olhei no cardápio inteiro. Ela não está lá.",
+      ]}
       acoes={
         <>
           <Link to="/" className={botaoPrimario}>
@@ -45,20 +51,33 @@ function NotFoundComponent() {
   );
 }
 
-function ErrorComponent({ error, reset }: ErrorComponentProps) {
+function ErrorComponent({ error }: ErrorComponentProps) {
   console.error(error);
-  const router = useRouter();
   const [ref] = useState(() => Date.now().toString(36).toUpperCase());
   const offline = typeof navigator !== "undefined" && navigator.onLine === false;
 
   return (
     <ErroPagina
       codigo={offline ? "Sem internet" : "Erro 500"}
-      titulo={offline ? "Você está sem internet" : "Esta página não carregou"}
+      titulo={offline ? "A internet foi buscar gelo" : "A cozinha derrubou a bandeja"}
+      pose={offline ? "espera" : "obrigada"}
+      piadas={
+        offline
+          ? [
+              "Conferi o Wi-Fi. Ele disse que volta já.",
+              "Sem sinal por aqui. Nem a Lebre alcança.",
+              "Respira. Pagamento nenhum acontece sem confirmação.",
+            ]
+          : [
+              "Foi só um tropeço. Já estou varrendo o chão.",
+              "Prometo: nenhum prato quebrou, só uma linha de código.",
+              "Respira. A conta continua certinha.",
+            ]
+      }
       texto={
         offline
           ? "Confira o Wi-Fi ou os dados móveis. Nenhum pagamento é feito sem confirmação, então dá para tentar de novo com segurança."
-          : "Algo deu errado do nosso lado, não do seu. Tente de novo em instantes. Se você estava pagando, nada é cobrado duas vezes."
+          : "Algo deu errado do nosso lado, não do seu. Recarregue para buscar a versão atual. Se estava pagando, confira o histórico ou fale com o caixa antes de tentar pagar novamente."
       }
       detalhe={offline ? undefined : ref}
       acoes={
@@ -66,13 +85,15 @@ function ErrorComponent({ error, reset }: ErrorComponentProps) {
           <button
             type="button"
             onClick={() => {
-              router.invalidate();
-              reset();
+              window.location.reload();
             }}
             className={botaoPrimario}
           >
-            Tentar de novo
+            Recarregar página
           </button>
+          <a href="/ajuda#erros" className={botaoSecundario}>
+            Resolver erro de acesso
+          </a>
           <a href="/" className={botaoSecundario}>
             Ir para a página inicial
           </a>

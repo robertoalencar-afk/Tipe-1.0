@@ -8,6 +8,7 @@ import {
   Banknote,
   Bot,
   Building2,
+  CalendarCheck,
   GitPullRequest,
   LayoutDashboard,
   LogOut,
@@ -30,8 +31,9 @@ import { PerfilConta, useMeuPerfil } from "@/components/tipe/PerfilConta";
 import { Administracao } from "@/components/tipe/central/Administracao";
 
 import { Operacoes } from "@/components/tipe/central/Operacoes";
+import { ReservaCentral } from "@/components/tipe/central/ReservaCentral";
 
-const SECOES = ["inicio", "comercial", "comunicacao", "restaurantes", "financeiro", "inteligencia", "administracao", "operacoes", "perfil"] as const;
+const SECOES = ["inicio", "comercial", "comunicacao", "restaurantes", "financeiro", "inteligencia", "reserva", "administracao", "operacoes", "perfil"] as const;
 export type SecaoCentral = (typeof SECOES)[number];
 
 export const Route = createFileRoute("/_authenticated/central")({
@@ -61,6 +63,7 @@ const TITULOS: Record<SecaoCentral, { t: string; d: string }> = {
   restaurantes: { t: "Restaurantes", d: "Ficha única, assinaturas, implantações e integrações." },
   financeiro: { t: "Financeiro", d: "Volume processado não é receita. Receita da Tipe: 30% das gorjetas e assinaturas." },
   inteligencia: { t: "Inteligência", d: "Lebre do fundador, automações e limites. Só rascunhos: nenhuma ação sem aprovação." },
+  reserva: { t: "Tipe Reserva", d: "Restaurante Fundador por etapa, reservas agregadas e mensagens. Sem dados pessoais de cliente." },
   administracao: { t: "Administração", d: "Segurança, auditoria, privacidade, dispositivos e lançamentos." },
   operacoes: { t: "Operações e produto", d: "PRs, publicações, produtos, infraestrutura e Tipe Pulse. Acompanhamento com evidências e histórico." },
   perfil: { t: "Perfil", d: "Seu nome, e-mail de acesso e senha." },
@@ -91,6 +94,7 @@ function Central() {
     { l: "Restaurantes", itens: [{ k: "restaurantes", l: "Clientes", i: Building2, badge: k?.emImplantacao, badgeTone: "neutral", busca: "assinaturas implantação integrações pdv" }] },
     { l: "Financeiro", itens: [{ k: "financeiro", l: "Financeiro", i: Banknote, badge: k?.saquesPendentes, badgeTone: "warning", busca: "receita gmv gorjetas saques planos" }] },
     { l: "Inteligência", itens: [{ k: "inteligencia", l: "Lebre e automações", i: Bot, badge: k?.automacoesFalhas, badgeTone: "warning", busca: "ia assistente regras limites" }] },
+    { l: "Produtos", itens: [{ k: "reserva", l: "Tipe Reserva", i: CalendarCheck, busca: "reservas fundador parceiros etapas piloto guest" }] },
     { l: "Operações", itens: [{ k: "operacoes", l: "Operações e produto", i: GitPullRequest, busca: "projetos prs github cloudflare supabase domínio produtos pulse nfc testes publicação" }] },
     { l: "Administração", itens: [{ k: "administracao", l: "Segurança", i: ShieldCheck, busca: "auditoria privacidade dispositivos lançamentos" }, { k: "perfil", l: "Perfil", i: UserRound, busca: "nome conta senha sair" }] },
   ];
@@ -133,6 +137,7 @@ function Central() {
       {secao === "financeiro" && <Financeiro {...comum} />}
       {secao === "inteligencia" && <Inteligencia {...comum} />}
       {secao === "operacoes" && <Operacoes {...comum} />}
+      {secao === "reserva" && <ReservaCentral />}
       {secao === "administracao" && <Administracao {...comum} />}
       {secao === "perfil" && <div className="max-w-xl"><PerfilConta funcao="Fundador" onSair={sair} /></div>}
     </Shell>

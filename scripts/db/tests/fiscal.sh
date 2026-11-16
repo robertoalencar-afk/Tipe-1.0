@@ -16,9 +16,9 @@ PYTHON
 psql "$TIPE_SQL_TEST_URL" -v ON_ERROR_STOP=1 \
   -f "$repo_root/scripts/db/tests/fiscal.fixture.sql" \
   -f "$archive_sql" \
-  -f "$repo_root/drizzle/migrations/0062_fiscal_foundation.sql" \
+  -f "$repo_root/drizzle/migrations/0076_fiscal_foundation.sql" \
   -f "$repo_root/scripts/db/tests/fiscal-foundation.sql" \
-  -f "$repo_root/drizzle/migrations/0063_fiscal_sale_snapshots.sql" \
+  -f "$repo_root/drizzle/migrations/0077_fiscal_sale_snapshots.sql" \
   -f "$repo_root/scripts/db/tests/fiscal-sales.sql" \
-  -f "$repo_root/drizzle/migrations/0064_fiscal_sale_issuance.sql" \
+  -f "$repo_root/drizzle/migrations/0078_fiscal_sale_issuance.sql" \
   -f "$repo_root/scripts/db/tests/fiscal-issuance.sql"

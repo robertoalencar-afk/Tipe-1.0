@@ -8,19 +8,20 @@ import {
   Aviso, Busca, Campo, Esqueleto, Kpi, Painel, PainelLateral, Segmentado, StatusBadge, Tabela, dataBR, horaBR, inputCls, relativo, usePaginacao, type Tone,
 } from "@/components/tipe/painel/ui";
 import {
-  addCrmNote, getCrm, getLeadFicha, linkLeadRestaurant, moveOpportunity, saveCrmStages, saveCrmTask, updateImplantationStep,
+  addCrmNote, getCrm, getLeadFicha, getLeadsDesempenho, linkLeadRestaurant, moveOpportunity, saveCrmStages, saveCrmTask, updateImplantationStep,
 } from "@/lib/tipe/central.functions";
 import { leadScore, ROLE_LABEL, SOURCES } from "@/lib/tipe/leads-score";
+import { duracaoCurta } from "@/lib/tipe/leads-desempenho";
 import type { SecaoCentral } from "@/routes/_authenticated/central";
 
 type Props = { aba?: string | undefined; id?: string | undefined; ir: (s: SecaoCentral, aba?: string, id?: string) => void };
-const ABAS = [["funil", "Funil"], ["leads", "Leads"], ["tarefas", "Tarefas"], ["etapas", "Etapas"]] as const;
+const ABAS = [["painel", "Desempenho"], ["funil", "Funil"], ["leads", "Leads"], ["tarefas", "Tarefas"], ["etapas", "Etapas"]] as const;
 type Aba = (typeof ABAS)[number][0];
 
 const KIND_TONE: Record<string, Tone> = { open: "brand", won: "success", lost: "error" };
 
 export function Comercial({ aba, id, ir }: Props) {
-  const atual = (ABAS.some(([k]) => k === aba) ? aba : "funil") as Aba;
+  const atual = (ABAS.some(([k]) => k === aba) ? aba : "painel") as Aba;
   const fetchCrm = useServerFn(getCrm);
   const crm = useQuery({ queryKey: ["central-crm"], queryFn: () => fetchCrm(), refetchInterval: 60_000 });
   const abrir = (leadId: string) => ir("comercial", atual, leadId);
@@ -30,6 +31,7 @@ export function Comercial({ aba, id, ir }: Props) {
   return (
     <div className="space-y-5">
       <Segmentado label="Seção do comercial" value={atual} onChange={(a) => ir("comercial", a)} options={ABAS} />
+      {atual === "painel" && <Desempenho abrir={abrir} />}
       {atual === "funil" && <Funil d={d} abrir={abrir} />}
       {atual === "leads" && <Leads d={d} abrir={abrir} />}
       {atual === "tarefas" && <Tarefas d={d} abrir={abrir} />}
@@ -302,5 +304,76 @@ function Ficha({ leadId, d, onFechar }: { leadId: string; d: Crm; onFechar: () =
         </div>
       )}
     </PainelLateral>
+  );
+}
+
+const PERIODOS_LEADS = [[7, "7 d"], [30, "30 d"], [90, "90 d"]] as const;
+
+/** Visão comercial: leads que chegam, tempo de resposta, funil e origem. */
+function Desempenho({ abrir }: { abrir: (id: string) => void }) {
+  const [dias, setDias] = useState<7 | 30 | 90>(30);
+  const fetchD = useServerFn(getLeadsDesempenho);
+  const q = useQuery({ queryKey: ["central-leads-desempenho", dias], queryFn: () => fetchD({ data: { dias } }), refetchInterval: 60_000 });
+  if (q.isPending || !q.data) return <Esqueleto linhas={6} />;
+  const d = q.data;
+  const delta = d.totalAnterior > 0 ? Math.round(((d.total - d.totalAnterior) / d.totalAnterior) * 100) : undefined;
+  const maxDia = Math.max(1, ...d.porDia.map((x) => x.total));
+  const maxFunil = Math.max(1, ...d.funil.map((f) => f.atingiram));
+  const lento = (d.tempoMedioMin ?? 0) > 60;
+  return (
+    <div className="space-y-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-sm text-muted-foreground">Primeira resposta conta quando há e-mail, WhatsApp, ligação ou reunião registrados na ficha do lead.</p>
+        <Segmentado label="Período" value={dias} onChange={setDias} options={PERIODOS_LEADS} />
+      </div>
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+        <Kpi label="Leads recebidos" value={d.total} delta={delta} hint={`${d.totalAnterior} no período anterior`} tone="brand" />
+        <Kpi label="Tempo médio de resposta" value={duracaoCurta(d.tempoMedioMin)} hint={d.medianaMin !== null ? `mediana ${duracaoCurta(d.medianaMin)}` : "sem respostas ainda"} tone={lento ? "warning" : undefined} />
+        <Kpi label="Respondidos em até 15 min" value={d.ate15Pct === null ? "—" : `${d.ate15Pct}%`} hint={d.ate60Pct === null ? undefined : `${d.ate60Pct}% em até 1 h`} />
+        <Kpi label="Aguardando resposta" value={d.semResposta} tone={d.semResposta ? "warning" : undefined} hint={d.aguardando[0] ? `mais antigo: ${duracaoCurta(d.aguardando[0].minutos)}` : "tudo respondido"} />
+        <Kpi label="Conversão em cliente" value={`${d.conversaoPct}%`} hint={`${d.ganhos} cliente(s) ativos`} />
+      </div>
+      <div className="grid gap-5 lg:grid-cols-[1.2fr_1fr]">
+        <Painel titulo="Leads que precisam de resposta" descricao="Do mais antigo para o mais novo" semPadding>
+          <Tabela linhas={d.aguardando} chave={(l) => l.id} vazio="Nenhum lead esperando resposta." onLinha={(l) => abrir(l.id)} colunas={[
+            { k: "n", l: "Lead", c: (l) => l.nome },
+            { k: "c", l: "Contato", md: true, c: (l) => l.contato || "—" },
+            { k: "t", l: "Esperando", num: true, c: (l) => <StatusBadge tone={l.minutos > 60 ? "error" : l.minutos > 15 ? "warning" : "neutral"}>{duracaoCurta(l.minutos)}</StatusBadge> },
+          ]} />
+        </Painel>
+        <Painel titulo="Chegada por dia" descricao={`Últimos ${d.dias} dias`}>
+          <div className="flex h-36 items-end gap-0.5" role="img" aria-label="Leads recebidos por dia">
+            {d.porDia.map((x) => (
+              <div key={x.dia} className="flex h-full min-w-0 flex-1 items-end" title={`${x.dia.slice(8)}/${x.dia.slice(5, 7)}: ${x.total}`}>
+                <div className="w-full rounded-t-sm bg-brand/80" style={{ height: `${x.total ? Math.max(6, (x.total / maxDia) * 100) : 2}%`, opacity: x.total ? 1 : 0.25 }} />
+              </div>
+            ))}
+          </div>
+        </Painel>
+      </div>
+      <div className="grid gap-5 lg:grid-cols-2">
+        <Painel titulo="Funil de conversão" descricao="Quantas oportunidades chegaram a cada etapa e quanto passa da anterior">
+          <ul className="space-y-3 text-sm">
+            {d.funil.map((f) => (
+              <li key={f.key}>
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="truncate">{f.label}</span>
+                  <span className="shrink-0 tabular-nums"><strong>{f.atingiram}</strong>{f.passoPct !== null && <span className="ml-2 text-xs text-muted-foreground">{f.passoPct}% da anterior</span>}</span>
+                </div>
+                <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-background-muted"><div className="h-full rounded-full bg-ink" style={{ width: `${(f.atingiram / maxFunil) * 100}%` }} /></div>
+              </li>
+            ))}
+          </ul>
+        </Painel>
+        <Painel titulo="Origem dos leads" semPadding>
+          <Tabela linhas={d.porOrigem} chave={(o) => o.origem} vazio="Sem leads no período." colunas={[
+            { k: "o", l: "Origem", c: (o) => o.origem },
+            { k: "t", l: "Leads", num: true, c: (o) => o.total },
+            { k: "r", l: "Respondidos", num: true, md: true, c: (o) => o.respondidos },
+            { k: "g", l: "Clientes", num: true, c: (o) => o.ganhos },
+          ]} />
+        </Painel>
+      </div>
+    </div>
   );
 }

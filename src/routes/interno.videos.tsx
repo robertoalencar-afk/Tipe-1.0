@@ -232,7 +232,7 @@ function Q({ q }: { q: Quadro }) {
         )}
         {q.demo && (
           <span className="absolute left-2 top-2 rounded-full bg-[#021E34] px-2 py-0.5 text-[0.6rem] text-white">
-            Order · em desenvolvimento
+            Order · em demonstração
           </span>
         )}
       </div>

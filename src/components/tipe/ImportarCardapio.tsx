@@ -1,118 +1,703 @@
-import { useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
+import { useEffect, useRef, useState } from "react";
+import { FileUp, Link as LinkIcon, Check, Image as ImageIcon, Type } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { importMenuCsv } from "@/lib/tipe/pdv-integrations.functions";
-import { parseMenuCsv, type MenuRow } from "@/lib/tipe/menu-csv";
-
+import { LebreSuggestionButton } from "./LebreSuggestionButton";
+import {
+  analyzeMenuSource,
+  loadMenuLink,
+  prepareImportedPhoto,
+  publishMenuImport,
+  suggestMenuDescriptions,
+} from "@/lib/tipe/menu-import.functions";
+import { readMenuFile, readMenuHtml, releaseMenuSource, cropMenuPhoto } from "@/lib/tipe/menu-file";
+import { parseMenuCsv } from "@/lib/tipe/menu-csv";
+import { matchOriginalPhoto } from "@/lib/tipe/menu-photo-source";
+import { normalizeImportedDishes, splitMenuText } from "@/lib/tipe/menu-import";
+import type { ImportedDish, ImportSource } from "@/lib/tipe/menu-import";
+import { prepareDishDepth, photoBlobDataUrl } from "@/lib/tipe/order/prepare-photo";
+import { reduzirImagem } from "./UploadImagem";
+type Draft = ImportedDish & { code: string; selected: boolean; priceText: string };
+type Asset = { name: string; depthName: string };
+const priceOf = (text: string) => (text.trim() ? Number(text.replace(",", ".")) : NaN);
+const decodeFile = (content: string, type: string, url: string) => {
+  const bytes = Uint8Array.from(atob(content), (c) => c.charCodeAt(0));
+  const extensions: Record<string, string> = {
+    "application/pdf": "pdf",
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": "docx",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": "xlsx",
+    "image/png": "png",
+    "image/jpeg": "jpg",
+    "image/webp": "webp",
+    "text/csv": "csv",
+    "text/plain": "txt",
+  };
+  return new File(
+    [bytes],
+    extensions[type]
+      ? `cardapio.${extensions[type]}`
+      : new URL(url).pathname.split("/").pop() || "cardapio",
+    { type },
+  );
+};
 export function ImportarCardapio({ slug, onDone }: { slug: string; onDone: () => void }) {
-  const importar = useServerFn(importMenuCsv);
-  const [rows, setRows] = useState<MenuRow[]>([]);
+  const [mode, setMode] = useState<"file" | "link" | "text">("file");
+  const [url, setUrl] = useState("");
+  const [pasted, setPasted] = useState("");
+  const [files, setFiles] = useState<File[]>([]);
+  const file = files[0] ?? null;
+  const [rows, setRows] = useState<Draft[]>([]);
+  const [source, setSource] = useState<ImportSource | null>(null);
+  const [warnings, setWarnings] = useState<string[]>([]);
   const [busy, setBusy] = useState(false);
+  const [progress, setProgress] = useState("");
   const [error, setError] = useState("");
-  async function ler(file?: File) {
+  const [confirmed, setConfirmed] = useState(false);
+  const [allowNoPhoto, setAllowNoPhoto] = useState(false);
+  const [replace, setReplace] = useState(false);
+  const assets = useRef(new Map<string, Asset>());
+  const sourceRef = useRef<ImportSource | null>(null);
+  const locked = useRef(false);
+  useEffect(
+    () => () => {
+      if (sourceRef.current) releaseMenuSource(sourceRef.current);
+    },
+    [],
+  );
+  function clear() {
+    if (sourceRef.current) releaseMenuSource(sourceRef.current);
+    sourceRef.current = null;
+    setSource(null);
     setRows([]);
+    setWarnings([]);
+    setConfirmed(false);
+    assets.current.clear();
+  }
+  async function analyze() {
+    if (locked.current) return;
+    locked.current = true;
+    setBusy(true);
     setError("");
-    if (!file) return;
+    setProgress("Preparando o cardápio…");
+    clear();
     try {
-      if (file.size > 1_000_000) throw new Error("Use um CSV de até 1 MB");
-      setRows(parseMenuCsv(await file.text()));
+      let input: File | null = file,
+        parsed: ImportSource;
+      if (mode === "link") {
+        const remote = await loadMenuLink({ data: { slug, url } });
+        if (remote.kind === "html") parsed = readMenuHtml(remote.content, remote.url);
+        else {
+          input = decodeFile(remote.content, remote.type, remote.url);
+          parsed = await readMenuFile(input, setProgress);
+        }
+      } else if (mode === "text") {
+        if (pasted.trim().length < 10) throw new Error("Cole o texto do cardápio.");
+        input = null;
+        parsed = { pages: [{ text: pasted.slice(0, 60000) }], photos: [], warnings: [] };
+      } else {
+        if (!input) throw new Error("Escolha um arquivo.");
+        parsed = await readMenuFile(input, setProgress);
+        // Várias fotos do cardápio físico (ou vários arquivos) viram partes da mesma leitura.
+        for (const extra of files.slice(1)) {
+          const more = await readMenuFile(extra, setProgress);
+          const offset = parsed.pages.length;
+          parsed.pages.push(...more.pages);
+          parsed.photos.push(
+            ...more.photos.map((p) =>
+              p.pageIndex === undefined ? p : { ...p, pageIndex: p.pageIndex + offset },
+            ),
+          );
+          parsed.warnings.push(...more.warnings);
+        }
+      }
+      sourceRef.current = parsed;
+      setSource(parsed);
+      let dishes: ImportedDish[] = [];
+      const notices = [...parsed.warnings];
+      if (input?.name.toLowerCase().endsWith(".csv")) {
+        try {
+          dishes = parseMenuCsv(await input.text()).map((r) => ({
+            ...r,
+            description: r.description ?? "",
+            imageIndex: null,
+            photoBounds: null,
+          }));
+        } catch {
+          /* unstructured CSV goes to the same review */
+        }
+      }
+      if (!dishes.length) {
+        // Textos longos (planilha, Word, site) vão em partes que a IA lê inteiras.
+        const parts = parsed.pages.flatMap((page, i) =>
+          page.image
+            ? [{ i, page: { ...page, text: page.text.slice(0, 12000) } }]
+            : splitMenuText(page.text).map((text) => ({ i, page: { text } })),
+        );
+        let failed = 0;
+        let firstError = "";
+        for (const [n, { i, page }] of parts.entries()) {
+          setProgress(`A Lebre está lendo ${n + 1} de ${parts.length} parte(s)…`);
+          let result;
+          try {
+            result = await analyzeMenuSource({ data: { slug, ...page } });
+          } catch (e) {
+            // Uma parte ilegível não descarta o restante: vira aviso para conferir.
+            failed++;
+            firstError ||= (e as Error).message;
+            notices.push(`Não consegui ler a parte ${n + 1}. Confira essa parte no original.`);
+            continue;
+          }
+          for (const dish of result.items) {
+            const pageImage = parsed.pages[i]?.image;
+            if (dish.photoBounds && pageImage && parsed.photos.length < 60) {
+              const original = matchOriginalPhoto(parsed.photos, i, dish.photoBounds);
+              const crop = await cropMenuPhoto(
+                original ? parsed.photos[original.index]!.url : pageImage,
+                original?.crop ?? dish.photoBounds,
+              );
+              if (crop) {
+                dish.imageIndex = parsed.photos.length;
+                parsed.photos.push({ name: `Conferir foto · ${dish.name}`, url: crop });
+              } else {
+                dish.imageIndex = null;
+                notices.push(
+                  `A foto de ${dish.name} é pequena para os stories. Envie a original ou publique sem foto.`,
+                );
+              }
+            }
+          }
+          dishes.push(...result.items);
+          notices.push(...result.warnings);
+        }
+        if (failed === parts.length) throw new Error(firstError);
+        const normalized = normalizeImportedDishes(dishes);
+        dishes = normalized.dishes;
+        if (normalized.duplicates)
+          notices.push(`${normalized.duplicates} item(ns) repetido(s) foram unidos.`);
+      }
+      if (!dishes.length)
+        throw new Error(
+          "Não encontrei pratos com segurança. Tente um arquivo mais legível ou o modelo CSV.",
+        );
+      if (dishes.length > 200)
+        throw new Error(
+          "Foram encontrados mais de 200 itens. Divida o arquivo para revisar por partes.",
+        );
+      const batch = crypto.randomUUID().replaceAll("-", "").slice(0, 8).toUpperCase();
+      setRows(
+        dishes.map((dish, i) => ({
+          ...dish,
+          code: `I${batch}${String(i).padStart(3, "0")}`,
+          selected: true,
+          priceText: dish.price === null ? "" : dish.price.toFixed(2).replace(".", ","),
+        })),
+      );
+      setWarnings([...new Set(notices)]);
+      setProgress("");
     } catch (e) {
       setError((e as Error).message);
+      setProgress("");
+    } finally {
+      locked.current = false;
+      setBusy(false);
     }
   }
+  function edit(index: number, patch: Partial<Draft>) {
+    setConfirmed(false);
+    setRows((current) => current.map((r, i) => (i === index ? { ...r, ...patch } : r)));
+  }
+  async function suggestDescriptions() {
+    if (locked.current) return;
+    const pending = rows
+      .map((r, index) => ({ r, index }))
+      .filter(({ r }) => r.selected && r.description.trim().length < 10)
+      .slice(0, 40);
+    if (!pending.length) return;
+    locked.current = true;
+    setBusy(true);
+    setError("");
+    setProgress(`A Lebre está sugerindo ${pending.length} descrição(ões)…`);
+    try {
+      const texts = await suggestMenuDescriptions({
+        data: {
+          slug,
+          items: pending.map(({ r }) => ({ name: r.name.slice(0, 80), category: r.category })),
+        },
+      });
+      setConfirmed(false);
+      setRows((current) =>
+        current.map((r, i) => {
+          const at = pending.findIndex((p) => p.index === i);
+          return at < 0 || !texts[at] ? r : { ...r, description: texts[at]!, suggested: true };
+        }),
+      );
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      locked.current = false;
+      setBusy(false);
+      setProgress("");
+    }
+  }
+  async function publish() {
+    if (locked.current || !confirmed) return;
+    locked.current = true;
+    setBusy(true);
+    setError("");
+    try {
+      const selected = rows.filter((r) => r.selected);
+      const prepared = [];
+      for (const [index, row] of selected.entries()) {
+        let asset: Asset | null = null;
+        const photo = row.imageIndex === null ? null : source?.photos[row.imageIndex];
+        if (!photo && !allowNoPhoto)
+          throw new Error(`Escolha uma foto de ${row.name} antes de publicar.`);
+        if (photo) {
+          const cached = assets.current.get(photo.url);
+          if (cached) asset = cached;
+          else {
+            setProgress(`Preparando foto ${index + 1} de ${selected.length} para os stories…`);
+            let image: File;
+            if (photo.url.startsWith("https:")) {
+              const remote = await loadMenuLink({ data: { slug, url: photo.url } });
+              if (remote.kind !== "file" || !remote.type.startsWith("image/"))
+                throw new Error(
+                  "A foto do link não está acessível. Escolha outra ou envie uma foto deste prato.",
+                );
+              image = decodeFile(remote.content, remote.type, remote.url);
+            } else {
+              const response = await fetch(photo.url);
+              const blob = await response.blob();
+              image = new File([blob], "prato.jpg", { type: blob.type });
+            }
+            const depth = await prepareDishDepth(image, setProgress);
+            asset = await prepareImportedPhoto({
+              data: {
+                slug,
+                image: await reduzirImagem(image, 1200),
+                depth: await photoBlobDataUrl(depth),
+              },
+            });
+            assets.current.set(photo.url, asset);
+          }
+        }
+        prepared.push({
+          code: row.code,
+          name: row.name,
+          category: row.category,
+          description: row.description,
+          price: priceOf(row.priceText),
+          asset,
+        });
+      }
+      setProgress("Publicando os itens revisados…");
+      const result = await publishMenuImport({
+        data: { slug, rows: prepared, replace, allowNoPhoto },
+      });
+      toast.success(`${result.imported} itens publicados no cardápio`);
+      clear();
+      setFiles([]);
+      setUrl("");
+      setPasted("");
+      onDone();
+    } catch (e) {
+      setError((e as Error).message);
+    } finally {
+      setBusy(false);
+      locked.current = false;
+      setProgress("");
+    }
+  }
+  const selected = rows.filter((r) => r.selected);
+  const ready = (r: Draft) =>
+    r.name.trim().length >= 2 &&
+    r.category.trim().length >= 2 &&
+    r.category.trim().toLowerCase() !== "para organizar" &&
+    r.description.trim().length >= 10 &&
+    (allowNoPhoto || (r.imageIndex !== null && !!source?.photos[r.imageIndex])) &&
+    Number.isFinite(priceOf(r.priceText)) &&
+    priceOf(r.priceText) >= 0 &&
+    priceOf(r.priceText) <= 10000;
+  const valid = selected.length > 0 && selected.every(ready);
   return (
-    <section className="surface-card space-y-3 p-4 sm:p-5">
-      <h3 className="font-display font-semibold">Migrar cardápio de outro sistema</h3>
-      <p className="text-sm text-muted-foreground">
-        Exporte o cardápio do sistema atual como CSV e organize as colunas na ordem abaixo. Confira
-        a prévia antes de importar. Fotos são adicionadas pelo banco de imagens.
-      </p>
-      <a
-        className="inline-block text-sm underline underline-offset-4"
-        href={`data:text/csv;charset=utf-8,${encodeURIComponent("categoria;codigo;item;preco;ativo\nPratos;P01;Prato exemplo;12,50;sim\n")}`}
-        download="modelo-cardapio-tipe.csv"
-      >
-        Baixar modelo CSV
-      </a>
-      <p className="text-xs text-muted-foreground">
-        Categoria; código; item; preço; ativo (sim/não). Códigos iguais atualizam nome, categoria,
-        preço e disponibilidade. Os demais produtos e suas fotos são preservados. Até 500 itens por
-        arquivo.
-      </p>
-      <Input
-        aria-label="Selecionar CSV do cardápio"
-        type="file"
-        accept=".csv,text/csv"
-        disabled={busy}
-        onChange={(e) => {
-          void ler(e.target.files?.[0]);
-          e.currentTarget.value = "";
-        }}
-      />
+    <section className="space-y-5 border-t border-border py-6">
+      <div>
+        <h3 className="font-display text-xl font-semibold">Traga seu cardápio</h3>
+        <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted-foreground">
+          Envie um arquivo ou cole um link. A Lebre organiza os pratos; você confere textos, preços
+          e fotos antes de publicar.
+        </p>
+      </div>
+      {!rows.length ? (
+        <>
+          <div role="group" aria-label="Origem do cardápio" className="flex gap-2">
+            <Button
+              variant={mode === "file" ? "default" : "outline"}
+              disabled={busy}
+              onClick={() => setMode("file")}
+            >
+              <FileUp className="size-4" /> Arquivo
+            </Button>
+            <Button
+              variant={mode === "link" ? "default" : "outline"}
+              disabled={busy}
+              onClick={() => setMode("link")}
+            >
+              <LinkIcon className="size-4" /> Link
+            </Button>
+            <Button
+              variant={mode === "text" ? "default" : "outline"}
+              disabled={busy}
+              onClick={() => setMode("text")}
+            >
+              <Type className="size-4" /> Texto
+            </Button>
+          </div>
+          {mode === "text" ? (
+            <label className="block space-y-2 text-xs">
+              Texto do cardápio
+              <textarea
+                maxLength={60000}
+                disabled={busy}
+                value={pasted}
+                onChange={(e) => setPasted(e.target.value)}
+                placeholder={"Entradas\nPastel de camarão (6 un.) ... 34,00"}
+                className="mt-1 min-h-40 w-full rounded-lg border border-input bg-background p-3 text-sm"
+              />
+              <span className="block text-muted-foreground">
+                Cole o texto de um PDF, WhatsApp ou site. Seções viram categorias.
+              </span>
+            </label>
+          ) : mode === "file" ? (
+            <div className="space-y-2">
+              <Input
+                type="file"
+                multiple
+                accept=".pdf,.docx,.xlsx,.csv,.txt,.png,.jpg,.jpeg,.webp"
+                aria-label="Arquivos do cardápio"
+                disabled={busy}
+                onChange={(e) => setFiles(Array.from(e.target.files ?? []).slice(0, 12))}
+              />
+              <p className="text-xs text-muted-foreground">
+                PDF, Word (.docx), Excel (.xlsx), CSV, texto ou fotos do cardápio físico (pode
+                escolher várias páginas de uma vez). Até 8 MB por arquivo, 12 páginas de PDF e 200
+                itens. Arquivos .doc e .xls: salve no formato atual ou em PDF.
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Input
+                type="url"
+                aria-label="Link público do cardápio"
+                placeholder="https://…"
+                value={url}
+                disabled={busy}
+                onChange={(e) => setUrl(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Link público de página ou arquivo. Sites com login ou conteúdo carregado apenas por
+                aplicativo podem exigir o envio do arquivo.
+              </p>
+              <div className="rounded-xl border border-border bg-muted/40 p-3 text-xs leading-relaxed">
+                <p className="font-medium text-foreground">Vem de outra plataforma?</p>
+                <p className="mt-1 text-muted-foreground">
+                  <strong>iFood, 99Food, Rappi, Aiqfome:</strong> cole o link público da sua loja.
+                  Se a página não abrir aqui, tire prints do cardápio no app e envie em{" "}
+                  <em>Arquivo</em> (pode escolher vários de uma vez).{" "}
+                  <strong>Anota AI, Goomer e cardápios digitais:</strong> cole o link do cardápio. A
+                  Lebre lê nomes, descrições, preços e fotos públicas; você revisa tudo antes de
+                  publicar.
+                </p>
+              </div>
+            </div>
+          )}
+          <LebreSuggestionButton
+            loading={busy}
+            loadingText="A Lebre está lendo…"
+            disabled={
+              mode === "file" ? !file : mode === "text" ? pasted.trim().length < 10 : !url.trim()
+            }
+            onClick={() => void analyze()}
+          >
+            Organizar com a Lebre
+          </LebreSuggestionButton>
+          <a
+            className="ml-3 inline-block text-xs underline underline-offset-4"
+            href={`data:text/csv;charset=utf-8,${encodeURIComponent("categoria;codigo;item;preco;ativo\nPratos;P01;Prato exemplo;12,50;sim\n")}`}
+            download="modelo-cardapio-tipe.csv"
+          >
+            Baixar modelo CSV
+          </a>
+        </>
+      ) : (
+        <>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h4 className="font-semibold">Revise {rows.length} itens encontrados</h4>
+            <Button variant="ghost" disabled={busy} onClick={clear}>
+              Trocar arquivo ou link
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <Button
+              variant="outline"
+              disabled={busy}
+              onClick={() => {
+                setConfirmed(false);
+                setRows((current) => current.map((r) => ({ ...r, selected: true })));
+              }}
+            >
+              Selecionar todos
+            </Button>
+            <Button
+              variant="outline"
+              disabled={busy}
+              onClick={() => {
+                setConfirmed(false);
+                setRows((current) => current.map((r) => ({ ...r, selected: false })));
+              }}
+            >
+              Desmarcar todos
+            </Button>
+            <Button
+              variant="outline"
+              disabled={busy}
+              onClick={() => {
+                setConfirmed(false);
+                setRows((current) => current.map((r) => ({ ...r, selected: ready(r) })));
+              }}
+            >
+              Selecionar completos ({rows.filter(ready).length})
+            </Button>
+            {rows.some((r) => r.selected && r.description.trim().length < 10) && (
+              <LebreSuggestionButton
+                loading={busy}
+                loadingText="Sugerindo…"
+                onClick={() => void suggestDescriptions()}
+              >
+                Sugerir descrições que faltam
+              </LebreSuggestionButton>
+            )}
+          </div>
+          {!!warnings.length && (
+            <ul className="list-disc space-y-1 pl-5 text-sm text-muted-foreground">
+              {warnings.map((w, i) => (
+                <li key={i}>{w}</li>
+              ))}
+            </ul>
+          )}
+          <p className="text-sm text-muted-foreground">
+            Cada prato precisa de nome, categoria definida, descrição com detalhes confirmados,
+            preço e foto. A foto passa pelo motor de volume antes da publicação. Complete as
+            pendências ou desmarque o item para cuidar dele depois.
+          </p>
+          {!!source?.photos.length && (
+            <details className="rounded-xl border border-border p-3">
+              <summary className="cursor-pointer text-sm font-medium">
+                Ver {source.photos.length} fotos extraídas
+              </summary>
+              <ul className="mt-3 grid max-h-80 grid-cols-3 gap-3 overflow-y-auto sm:grid-cols-5">
+                {source.photos.map((photo, i) => (
+                  <li key={i}>
+                    <img
+                      src={photo.url}
+                      alt={photo.name}
+                      loading="lazy"
+                      className="aspect-square w-full rounded-lg object-cover"
+                    />
+                    <p className="mt-1 text-xs">
+                      {i + 1}. {photo.name}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </details>
+          )}
+          <div className="max-h-[65dvh] space-y-4 overflow-y-auto pr-2">
+            {rows.map((row, index) => (
+              <article key={row.code} className="space-y-3 rounded-xl border border-border p-4">
+                <label className="flex min-h-11 items-center gap-2 text-sm font-medium">
+                  <input
+                    type="checkbox"
+                    checked={row.selected}
+                    disabled={busy}
+                    onChange={(e) => edit(index, { selected: e.target.checked })}
+                  />{" "}
+                  Incluir item {index + 1}
+                </label>
+                <div className="grid gap-3 sm:grid-cols-[1fr_8rem]">
+                  <label className="text-xs">
+                    Nome
+                    <Input
+                      maxLength={80}
+                      disabled={busy}
+                      value={row.name}
+                      onChange={(e) => edit(index, { name: e.target.value })}
+                    />
+                  </label>
+                  <label className="text-xs">
+                    Preço (R$)
+                    <Input
+                      inputMode="decimal"
+                      aria-invalid={row.selected && !Number.isFinite(priceOf(row.priceText))}
+                      placeholder="Conferir"
+                      disabled={busy}
+                      value={row.priceText}
+                      onChange={(e) => edit(index, { priceText: e.target.value })}
+                    />
+                  </label>
+                </div>
+                <label className="block text-xs">
+                  Categoria
+                  <Input
+                    maxLength={60}
+                    disabled={busy}
+                    value={row.category}
+                    onChange={(e) => edit(index, { category: e.target.value })}
+                  />
+                </label>
+                <label className="block text-xs">
+                  Descrição e detalhes do prato (obrigatório)
+                  {row.suggested && (
+                    <span className="ml-2 rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-900">
+                      Sugestão da Lebre: confira
+                    </span>
+                  )}
+                  <textarea
+                    maxLength={200}
+                    disabled={busy}
+                    className="mt-1 min-h-20 w-full rounded-lg border border-input bg-background p-3 text-sm"
+                    value={row.description}
+                    onChange={(e) => edit(index, { description: e.target.value, suggested: false })}
+                  />
+                </label>
+                {!!source?.photos.length && (
+                  <div className="flex items-center gap-3">
+                    <div className="grid size-16 shrink-0 place-items-center overflow-hidden rounded-lg bg-muted">
+                      {row.imageIndex === null ? (
+                        <ImageIcon className="size-5 text-muted-foreground" />
+                      ) : (
+                        <img
+                          src={source.photos[row.imageIndex]?.url}
+                          alt="Foto selecionada"
+                          className="size-full object-cover"
+                        />
+                      )}
+                    </div>
+                    <label className="min-w-0 flex-1 text-xs">
+                      Foto extraída
+                      <select
+                        className="mt-1 h-11 w-full rounded-lg border border-input bg-background px-2 text-sm"
+                        disabled={busy}
+                        value={row.imageIndex ?? ""}
+                        onChange={(e) =>
+                          edit(index, {
+                            imageIndex: e.target.value === "" ? null : Number(e.target.value),
+                          })
+                        }
+                      >
+                        <option value="">Escolher foto (obrigatório)</option>
+                        {source.photos.map((photo, i) => (
+                          <option key={i} value={i}>
+                            {i + 1}. {photo.name}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+                )}
+                <label className="block text-xs">
+                  Enviar foto deste prato
+                  <Input
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp"
+                    disabled={busy}
+                    onChange={async (e) => {
+                      const image = e.target.files?.[0];
+                      if (!image || !sourceRef.current) return;
+                      if (image.size > 8_000_000) {
+                        setError("A foto deve ter até 8 MB.");
+                        return;
+                      }
+                      if (sourceRef.current.photos.length >= 60) {
+                        setError("Limite de 60 fotos por importação. Divida o cardápio em partes.");
+                        return;
+                      }
+                      const indexPhoto = sourceRef.current.photos.length;
+                      sourceRef.current.photos.push({
+                        name: `Foto enviada · ${row.name}`,
+                        url: URL.createObjectURL(image),
+                      });
+                      setSource({ ...sourceRef.current });
+                      edit(index, { imageIndex: indexPhoto });
+                    }}
+                  />
+                </label>
+                {row.selected &&
+                  (!row.description.trim() ||
+                    row.description.trim().length < 10 ||
+                    (!allowNoPhoto && row.imageIndex === null) ||
+                    row.category.toLowerCase() === "para organizar" ||
+                    !row.priceText.trim()) && (
+                    <p className="text-xs text-amber-800">
+                      Pendente: confira categoria, descrição, preço e foto. Este prato ainda não
+                      está pronto para publicar.
+                    </p>
+                  )}
+              </article>
+            ))}
+          </div>
+          <label className="flex min-h-11 items-start gap-3 text-sm">
+            <input
+              type="checkbox"
+              checked={allowNoPhoto}
+              disabled={busy}
+              onChange={(e) => {
+                setAllowNoPhoto(e.target.checked);
+                setConfirmed(false);
+              }}
+            />
+            Permitir itens sem foto. As fotos disponíveis continuam passando pelo motor de volume.
+          </label>
+          <label className="flex min-h-11 items-start gap-3 text-sm">
+            <input
+              type="checkbox"
+              className="mt-1"
+              checked={replace}
+              disabled={busy}
+              onChange={(e) => {
+                setReplace(e.target.checked);
+                setConfirmed(false);
+              }}
+            />{" "}
+            Substituir o cardápio atual: os pratos anteriores ficarão indisponíveis, com seu
+            histórico preservado.
+          </label>
+          <label className="flex min-h-11 items-start gap-3 text-sm">
+            <input
+              className="mt-1"
+              type="checkbox"
+              disabled={busy || !valid}
+              checked={confirmed}
+              onChange={(e) => setConfirmed(e.target.checked)}
+            />{" "}
+            Conferi os textos, preços e fotos selecionados e tenho autorização para publicá-los.
+          </label>
+          <Button disabled={busy || !confirmed || !valid} onClick={() => void publish()}>
+            <Check className="size-4" />{" "}
+            {busy ? "Publicando…" : `Publicar ${selected.length} itens`}
+          </Button>
+        </>
+      )}
+      {progress && (
+        <p role="status" className="text-sm text-muted-foreground">
+          {progress}
+        </p>
+      )}
       {error && (
         <p role="alert" className="text-sm text-destructive">
           {error}
         </p>
-      )}
-      {rows.length > 0 && (
-        <>
-          <p role="status" className="text-sm font-medium">
-            {rows.length === 1
-              ? "1 item pronto para importar"
-              : `${rows.length} itens prontos para importar`}
-          </p>
-          <div className="max-h-64 overflow-auto">
-            <table className="w-full text-left text-sm">
-              <caption className="sr-only">Prévia do cardápio</caption>
-              <thead>
-                <tr>
-                  <th className="p-2">Código / item</th>
-                  <th className="p-2">Preço / ativo</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((r) => (
-                  <tr key={r.code} className="border-t border-border">
-                    <td className="p-2">
-                      {r.code} — {r.name}
-                      <span className="block text-xs text-muted-foreground">{r.category}</span>
-                    </td>
-                    <td className="p-2">
-                      {r.price.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                      <span className="block text-xs">{r.available ? "Sim" : "Não"}</span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              disabled={busy}
-              onClick={async () => {
-                setBusy(true);
-                setError("");
-                try {
-                  const r = await importar({ data: { slug, rows } });
-                  toast.success(`${r.imported} itens importados`);
-                  setRows([]);
-                  onDone();
-                } catch (e) {
-                  setError((e as Error).message);
-                } finally {
-                  setBusy(false);
-                }
-              }}
-            >
-              {busy ? "Importando…" : "Confirmar importação"}
-            </Button>
-            <Button variant="outline" disabled={busy} onClick={() => setRows([])}>
-              Cancelar
-            </Button>
-          </div>
-        </>
       )}
     </section>
   );

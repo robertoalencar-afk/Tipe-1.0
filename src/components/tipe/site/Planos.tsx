@@ -4,7 +4,7 @@
  * Fonte dos planos: src/lib/tipe/plans.ts (preços só aparecem com SHOW_PLAN_PRICES).
  */
 import { Check, ChevronDown, Minus } from "lucide-react";
-import { PLANS, SHOW_PLAN_PRICES, TRIAL_DAYS, priceLabel } from "@/lib/tipe/plans";
+import { PLANS, SHOW_PLAN_PRICES, priceLabel } from "@/lib/tipe/plans";
 import { Reveal } from "@/components/tipe/landing/motion";
 import { cn } from "@/lib/utils";
 
@@ -18,8 +18,11 @@ const CARDS = [
   ...PLANS.map((p) => ({
     id: p.id as string | null,
     nome: p.name,
-    preco: SHOW_PLAN_PRICES ? priceLabel(p.price) : null,
+    preco: SHOW_PLAN_PRICES ? priceLabel(p.fullPrice) : null,
     mesas: `${p.maxTables}`,
+    implantacao: p.setupPrice
+      ? `Implantação única: R$ ${priceLabel(p.setupPrice)}`
+      : "Implantação grátis",
     popular: "popular" in p ? p.popular : false,
     itens: [...p.features] as string[],
     para: PARA[p.id] ?? "",
@@ -27,6 +30,7 @@ const CARDS = [
   {
     id: null,
     nome: "Personalizado",
+    implantacao: "Implantação grátis",
     preco: null,
     mesas: "40+",
     popular: false,
@@ -92,19 +96,20 @@ export function CardsPlanos() {
             {p.preco ? (
               <span className="money">R$ {p.preco}/mês</span>
             ) : p.id ? (
-              "Assinatura mensal · valor no lançamento"
+              "Assinatura mensal · consulte as condições"
             ) : (
               "Sob consulta"
             )}
           </p>
+          <p className="mt-2 text-sm">{p.implantacao}</p>
           <a
-            href={`/solicitar-demonstracao?plano=${p.id ?? "personalizado"}`}
+            href={p.id ? `/cadastro?plano=${p.id}` : "/solicitar-demonstracao?plano=personalizado"}
             className={cn(
               "mt-5 flex min-h-12 items-center justify-center rounded-full font-medium",
               p.popular ? "bg-white text-[#021E34] hover:bg-white/90" : "btn-tema",
             )}
           >
-            {p.id ? `Solicitar ${TRIAL_DAYS} dias grátis` : "Falar com a equipe"}
+            {p.id ? `Contratar este plano` : "Falar com a equipe"}
           </a>
           <p
             className={cn(
@@ -140,7 +145,13 @@ const COMPARACAO: { grupo: string; linhas: Linha[] }[] = [
     grupo: "Pagamento na mesa",
     linhas: [
       ["QR Code por mesa", true, true, true],
-      ["Pix, Apple Pay e Google Pay", "Em piloto", "Em piloto", "Em piloto"],
+      ["Implantação (cobrança única)", "R$ 200", "R$ 200", "Grátis"],
+      [
+        "Pix, Apple Pay e Google Pay",
+        "Sujeito à validação",
+        "Sujeito à validação",
+        "Sujeito à validação",
+      ],
       ["Pagar no estabelecimento", true, true, true],
       ["Divisão da conta", true, true, true],
       ["Gorjeta extra para a equipe", true, true, true],
@@ -152,8 +163,10 @@ const COMPARACAO: { grupo: string; linhas: Linha[] }[] = [
       ["Mesas", "até 10", "até 20", "até 40"],
       ["Painel em tempo real", true, true, true],
       ["Lançamento TIPE", true, true, true],
+      ["Tipe Order: cardápio e pedidos", true, true, true],
+      ["Tipe Equipe: área do garçom e gorjetas", true, true, true],
       ["Relatórios por garçom", false, true, true],
-      ["Totens personalizados", false, true, true],
+      ["Material de mesa com QR Code (condições na proposta)", false, true, true],
       ["Controle de caixa", false, false, true],
     ],
   },
@@ -161,7 +174,7 @@ const COMPARACAO: { grupo: string; linhas: Linha[] }[] = [
     grupo: "Operação e suporte",
     linhas: [
       ["Integração via API TIPE", false, "Sob análise", "Sob análise"],
-      ["Cozinha e bar (KDS)", false, false, true],
+      ["Tipe Cozinha: cozinha e bar (KDS)", true, true, true],
       ["Suporte prioritário", false, false, true],
     ],
   },

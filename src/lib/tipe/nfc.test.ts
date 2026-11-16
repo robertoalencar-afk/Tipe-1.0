@@ -1,5 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
-import { erroGravacaoNfc, gravadorDisponivel, gravarLinkMesa } from "./nfc";
+import {
+  erroGravacaoNfc,
+  gravadorDisponivel,
+  gravarLinkMesa,
+  lerPedidoGravacao,
+  linkGravacaoRemota,
+  modoGravacao,
+} from "./nfc";
 
 describe("etiqueta NFC da mesa", () => {
   it("grava o link do QR como URL NDEF, preservando o token de acesso", async () => {
@@ -56,11 +63,40 @@ describe("etiqueta NFC da mesa", () => {
     await expect(
       gravarLinkMesa(Reader, "https://tipe.digital/teste/mesa1", new AbortController().signal),
     ).rejects.toThrow();
-    expect(erroGravacaoNfc(new DOMException("", "NotSupportedError"))).toContain("NFC Tools");
+    expect(erroGravacaoNfc(new DOMException("", "NotSupportedError"))).toContain("Android");
     expect(gravadorDisponivel()).toBeNull();
   });
   it("diferencia permissão negada e cancelamento", () => {
     expect(erroGravacaoNfc(new DOMException("", "NotAllowedError"))).toContain("Permita");
     expect(erroGravacaoNfc(new DOMException("", "AbortError"))).toContain("cancelada");
+  });
+});
+
+describe("gravação NFC em iPhone e tablets", () => {
+  const origem = "https://tipe.digital";
+  const link = "https://tipe.digital/bistro/mesa3?t=qr-publico";
+  it("monta a página pública de gravação e lê de volta o mesmo link", () => {
+    const remoto = linkGravacaoRemota(origem, link, "3");
+    const u = new URL(remoto);
+    expect(u.pathname).toBe("/gravar-nfc");
+    expect(
+      lerPedidoGravacao({ u: u.searchParams.get("u"), m: u.searchParams.get("m") }, origem),
+    ).toEqual({ link, mesa: "3" });
+  });
+  it("recusa link de outro site, sem HTTPS ou com sessão do cliente", () => {
+    expect(lerPedidoGravacao({ u: "https://golpe.com/x", m: "1" }, origem)).toBeNull();
+    expect(lerPedidoGravacao({ u: "http://tipe.digital/x", m: "1" }, origem)).toBeNull();
+    expect(lerPedidoGravacao({ u: `${link}&session=abc` }, origem)).toBeNull();
+    expect(lerPedidoGravacao({ u: 42 }, origem)).toBeNull();
+    expect(() => linkGravacaoRemota(origem, "http://tipe.digital/x", "1")).toThrow();
+  });
+  it("sem Web NFC: iPhone usa app gratuito; iPad e outros usam outro celular", () => {
+    vi.stubGlobal("navigator", {
+      userAgent: "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X)",
+    });
+    expect(modoGravacao()).toBe("iphone");
+    vi.stubGlobal("navigator", { userAgent: "Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X)" });
+    expect(modoGravacao()).toBe("sem-nfc");
+    vi.unstubAllGlobals();
   });
 });

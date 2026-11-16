@@ -5,7 +5,7 @@
  * Regra de verdade: produtos Tipe (módulos internos) e integrações externas ficam
  * separados, e cada um mostra o status real. Order e 3D Studio não aparecem como
  * disponíveis. "Tipe Connect" é nome provisório para a camada de API e conectores de
- * PDV (API TIPE disponível; conectores em desenvolvimento, ver integracoes/dados.ts).
+ * PDV (API TIPE disponível; conectores em demonstração, ver integracoes/dados.ts).
  * Valores e nomes são do restaurante fictício Maré Alta.
  */
 import { useEffect, useState, type ReactNode } from "react";
@@ -20,7 +20,7 @@ import garcom from "@/assets/telas-v4/garcom-gorjetas-390.webp";
 type Status = "disponivel" | "desenvolvimento" | "planejado";
 const ROTULO: Record<Status, string> = {
   disponivel: "Disponível",
-  desenvolvimento: "Em desenvolvimento",
+  desenvolvimento: "Demonstração",
   planejado: "Planejado",
 };
 
@@ -148,7 +148,7 @@ const MODULOS: Modulo[] = [
     status: "desenvolvimento",
     faz: [
       "API TIPE disponível hoje",
-      "Conectores de PDV em desenvolvimento",
+      "Compatibilidade com PDVs sob análise",
       "Baixa automática quando a conta é paga",
     ],
   },
@@ -608,8 +608,8 @@ export function Proposta3TempoReal() {
           ))}
         </div>
         <p className="mt-6 text-sm text-white/45">
-          Pedido pelo celular depende do Tipe Order, em desenvolvimento. Valores demonstrativos: dos
-          R$ 37,80 de gorjeta extra, 70% vão para a Joyce e 30% ficam com a Tipe.
+          Pedido pelo celular depende do Tipe Order, em demonstração. Valores demonstrativos: dos R$
+          37,80 de gorjeta extra, 70% vão para a Joyce e 30% ficam com a Tipe.
         </p>
       </div>
     </section>

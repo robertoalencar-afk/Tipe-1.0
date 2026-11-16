@@ -51,7 +51,7 @@ function Pagina() {
         </h1>
         <p className="mt-3 max-w-2xl text-[#021E34]/70">
           O hub atual continua na home até você escolher. Produtos Tipe e integrações externas ficam
-          separados, e cada item mostra o status real: disponível, em desenvolvimento ou planejado.
+          separados, e cada item mostra o status real: disponível, em demonstração ou planejado.
           "Tipe Connect" é um nome provisório para a API e os conectores de PDV.
         </p>
         <nav className="mt-5 flex flex-wrap gap-2 text-sm">

@@ -4,7 +4,12 @@
  */
 import { Reveal } from "@/components/tipe/landing/motion";
 import { cn } from "@/lib/utils";
-import { ehParcial, INTEGRACOES_V5, STATUS_ROTULO, type StatusIntegracao } from "./integracoes/dados";
+import {
+  ehParcial,
+  INTEGRACOES_V5,
+  STATUS_ROTULO,
+  type StatusIntegracao,
+} from "./integracoes/dados";
 import { ICONE_INTEGRACAO } from "./integracoes/FaixaDupla";
 import { Plug } from "lucide-react";
 
@@ -65,18 +70,26 @@ export function GradeIntegracoes({ compacta = false }: { compacta?: boolean }) {
 }
 
 const GRUPOS: { status: StatusIntegracao; t: string; d: string }[] = [
-  { status: "disponivel", t: "Disponível", d: "Funciona hoje, sem depender de terceiros para ligar." },
+  {
+    status: "disponivel",
+    t: "Disponível",
+    d: "Funciona hoje, sem depender de terceiros para ligar.",
+  },
   {
     status: "piloto",
-    t: "Em piloto",
-    d: "Pronto e testado em ambiente de teste. A cobrança real começa restaurante a restaurante, depois de ativar a conta no provedor de pagamento.",
+    t: "Sujeito à validação",
+    d: "Pagamentos digitais dependem de habilitação e validação por restaurante no provedor. Consulte as condições com a equipe.",
   },
   {
     status: "desenvolvimento",
-    t: "Em desenvolvimento",
-    d: "A base já está no código. Nenhum restaurante usa ainda; hoje a ligação é assistida pela nossa equipe.",
+    t: "Demonstração",
+    d: "A compatibilidade depende do sistema do restaurante e de avaliação técnica pela equipe.",
   },
-  { status: "planejada", t: "Planejada", d: "No plano, sem data. Nada aqui está pronto." },
+  {
+    status: "planejada",
+    t: "Sob consulta",
+    d: "Consulte a equipe sobre a proposta e os requisitos de compatibilidade; não há ativação automática.",
+  },
 ];
 
 /** Lista da página de integrações: agrupada por status, com o que cada uma faz. */

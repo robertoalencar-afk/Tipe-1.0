@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { PUBLIC_PRICING } from "@/lib/tipe/plans";
 import { ArrowRight, ChevronDown } from "lucide-react";
-import { TRIAL_DAYS } from "@/lib/tipe/plans";
 import { LazyLebreAssistant } from "@/components/tipe/LazyLebreAssistant";
 import { Eyebrow } from "@/components/tipe/ds";
 import { LebreTartaruga } from "@/components/tipe/landing/LebreTartaruga";
@@ -17,7 +17,7 @@ import { SitePage } from "@/components/tipe/site/Site";
 
 const TITLE = "Tipe | Pague. Sem esperar. | Pagamento na mesa por QR Code";
 const DESCRIPTION =
-  "Tipe Pay: seu cliente confere, divide e paga a conta pelo celular, e sua equipe ganha tempo para atender. Pré-lançamento com 30 dias grátis para restaurantes.";
+  "Tipe Pay: seu cliente confere, divide e paga a conta pelo celular, e sua equipe ganha tempo para atender. Conheça os planos e solicite uma demonstração.";
 const OG_IMAGE = "https://tipe.digital/marca/tipe-logo-redondo.png";
 
 export const Route = createFileRoute("/")({
@@ -84,7 +84,7 @@ const FAQ: { label: string; faqs: [string, string][] }[] = [
       ],
       [
         "Quais formas de pagamento estão disponíveis?",
-        "Pagamento no estabelecimento (dinheiro ou maquininha), confirmado pelo caixa, já funciona. Pix, Apple Pay e Google Pay pelo celular, via provedor de pagamento, estão em piloto: a cobrança real começa restaurante a restaurante, depois de ativar a conta no provedor de pagamento. O restaurante escolhe no painel quais formas oferecer.",
+        "Pagamento no estabelecimento (dinheiro ou maquininha), confirmado pelo caixa, já funciona. Pix, Apple Pay e Google Pay pelo celular, via provedor de pagamento, dependem de habilitação e validação da conta de cada restaurante no provedor. O restaurante escolhe no painel quais formas oferecer.",
       ],
       [
         "Dá para pagar só a minha parte?",
@@ -105,7 +105,7 @@ const FAQ: { label: string; faqs: [string, string][] }[] = [
       ],
       [
         "Funciona com o meu PDV?",
-        "Você pode usar a Tipe completa, lançando os pedidos pelo Lançamento TIPE no próprio painel, ou enviar mesas e itens pela API TIPE. Conectores para outros PDVs estão em desenvolvimento, com integração assistida pela nossa equipe.",
+        "Você pode usar a Tipe completa, lançando os pedidos pelo Lançamento TIPE no próprio painel, ou enviar mesas e itens pela API TIPE. A compatibilidade de outros PDVs é avaliada pela equipe; não há homologação automática.",
       ],
       [
         "A demonstração ativa cobranças ou reservas?",
@@ -117,11 +117,12 @@ const FAQ: { label: string; faqs: [string, string][] }[] = [
       ],
       [
         "Quanto custa?",
-        `Assinatura mensal de acordo com o número de mesas, sem tarifa por transação nas contas; o restaurante paga apenas as tarifas do provedor de pagamento. Os valores serão divulgados no lançamento e os primeiros restaurantes ganham ${TRIAL_DAYS} dias grátis, sem cartão de crédito.`,
+        PUBLIC_PRICING +
+          " Sem tarifa da TIPE por transação nas contas; tarifas do provedor de pagamento são contratadas pelo restaurante.",
       ],
       [
         "De onde vêm os números da página?",
-        'Os números de "O impacto de cada minuto" são resultados publicados pelo Sunday, empresa de pagamento na mesa, com o link de cada fonte ao lado. Não são resultados da Tipe, que está em pré-lançamento. A calculadora usa os dados que você preenche e mostra a conta e as premissas de cada cenário.',
+        'Os números de "O impacto de cada minuto" são resultados publicados pelo Sunday, empresa de pagamento na mesa, com o link de cada fonte ao lado. Não são resultados da Tipe. A calculadora usa os dados que você preenche e mostra a conta e as premissas de cada cenário.',
       ],
       [
         "E se um pagamento sair errado?",

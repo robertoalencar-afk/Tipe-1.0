@@ -405,14 +405,20 @@ export const agirReserva = createServerFn({ method: "POST" })
     const ctx = context as Ctx;
     await ligado(ctx, data.slug, "confirmar_chegada");
     const srv = await import("./reservas.server");
-    if (data.to === "cancelar")
-      return srv.cancelReservation({
+    const { avisarReserva } = await import("./mensagens.server");
+    if (data.to === "cancelar") {
+      const r = await srv.cancelReservation({
         reservationId: data.id,
         actorId: ctx.userId,
         by: "restaurante",
         reason: data.reason,
       });
-    return srv.setReservationStatus({ reservationId: data.id, actorId: ctx.userId, to: data.to });
+      await avisarReserva("cancelada", data.id);
+      return r;
+    }
+    const r = await srv.setReservationStatus({ reservationId: data.id, actorId: ctx.userId, to: data.to });
+    if (data.to === "confirmada") await avisarReserva("confirmada", data.id);
+    return r;
   });
 
 /** Check-in na mesa: registra a mesa em que o grupo sentou. O pagamento da mesa segue igual. */
@@ -462,7 +468,7 @@ export const novaReservaEquipe = createServerFn({ method: "POST" })
       party: data.party,
       start: data.start,
     });
-    return srv.confirmReservation({
+    const id = await srv.confirmReservation({
       holdId: hold.holdId,
       sessionKey,
       idempotencyKey: `painel:${data.requestId}`,
@@ -472,6 +478,9 @@ export const novaReservaEquipe = createServerFn({ method: "POST" })
       notes: data.notes || null,
       channel: data.channel,
     });
+    const { avisarReserva } = await import("./mensagens.server");
+    await avisarReserva("confirmada", id);
+    return id;
   });
 
 /** Avisa o próximo da lista de espera; ele tem o prazo para responder pelo app. */
@@ -490,7 +499,10 @@ export const chamarEspera = createServerFn({ method: "POST" })
     const ctx = context as Ctx;
     await ligado(ctx, data.slug, "gerenciar_espera");
     const { callWaitlist } = await import("./reservas.server");
-    return callWaitlist({ entryId: data.id, actorId: ctx.userId, minutes: data.minutes });
+    const r = await callWaitlist({ entryId: data.id, actorId: ctx.userId, minutes: data.minutes });
+    const { avisarEspera } = await import("./mensagens.server");
+    await avisarEspera(data.id, data.minutes);
+    return r;
   });
 
 // ---------------------------------------------------------------- configuração (só dono)

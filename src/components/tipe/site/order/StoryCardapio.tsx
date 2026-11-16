@@ -5,6 +5,7 @@
  * Gestos:
  * - toque na direita avança, toque na esquerda volta;
  * - segurar pausa;
+ * - dois dedos ampliam a foto até 4x, soltando retorna ao tamanho original;
  * - arrastar para os lados troca de categoria;
  * - arrastar para baixo fecha.
  * Teclado: setas, Espaço (pausa) e Esc (fecha).
@@ -16,6 +17,9 @@
  * Sem foto, o quadro mostra o nome do prato em tipografia, porque nem todo restaurante
  * tem foto de tudo. Com movimento reduzido, nada avança sozinho e a foto não faz zoom.
  */
+import { PhotoPinch, NO_ZOOM } from "@/lib/tipe/order/pinch-zoom";
+import { MenuPhotoCredit } from "@/components/tipe/MenuPhotoCredit";
+import type { MenuPhotoCredit as PhotoCredit } from "@/lib/tipe/menu-intelligence";
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
 import { Box, Minus, Pause, Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -34,6 +38,8 @@ export type ItemStory = {
   profundidade?: string;
   selo?: string;
   alergenicos?: string[];
+  creditoFoto?: PhotoCredit | undefined;
+  fotoIlustrativa?: boolean;
 };
 
 const DURACAO = 6000;
@@ -94,6 +100,9 @@ export function StoryCardapio({
   })();
 
   const [pos, setPos] = useState(posInicial);
+  const pinch = useRef(new PhotoPinch());
+  const [zoom, setZoom] = useState(NO_ZOOM);
+  const [zooming, setZooming] = useState(false);
   const [pausado, setPausado] = useState(false);
   const [em3d, setEm3d] = useState(false);
   const [mv, setMv] = useState<"ocioso" | "carregando" | "pronto" | "erro">("ocioso");
@@ -107,9 +116,12 @@ export function StoryCardapio({
   const grupo = grupos[pos.g]!;
   const item = grupo.itens[pos.k]!;
   const q = carrinho[item.code] ?? 0;
-  const parado = pausado || em3d || reduzido;
+  const parado = pausado || zooming || em3d || reduzido;
 
   const irPara = useCallback((g: number, k: number, lado: "" | "esq" | "dir" = "") => {
+    pinch.current.reset();
+    setZoom(NO_ZOOM);
+    setZooming(false);
     setEm3d(false);
     setProgresso(0);
     setTroca(lado);
@@ -166,6 +178,7 @@ export function StoryCardapio({
 
   useEffect(() => {
     raiz.current?.focus();
+    return () => clearTimeout(timerSegurar.current);
   }, []);
 
   useEffect(() => {
@@ -191,6 +204,23 @@ export function StoryCardapio({
 
   function baixo(e: PointerEvent<HTMLDivElement>) {
     if ((e.target as HTMLElement).closest("[data-sem-gesto]")) return;
+    if (e.pointerType === "touch" && item.foto && !em3d) {
+      e.currentTarget.setPointerCapture(e.pointerId);
+      if (
+        pinch.current.down(
+          e.pointerId,
+          { x: e.clientX, y: e.clientY },
+          e.currentTarget.getBoundingClientRect(),
+        )
+      ) {
+        clearTimeout(timerSegurar.current);
+        toque.current = null;
+        setArraste({ x: 0, y: 0 });
+        setPausado(false);
+        setZooming(true);
+        return;
+      }
+    }
     toque.current = { x: e.clientX, y: e.clientY, t: Date.now(), segurou: false };
     timerSegurar.current = window.setTimeout(() => {
       if (toque.current) {
@@ -200,6 +230,11 @@ export function StoryCardapio({
     }, 220);
   }
   function mover(e: PointerEvent<HTMLDivElement>) {
+    if (pinch.current.active) {
+      setZoom({ ...pinch.current.move(e.pointerId, { x: e.clientX, y: e.clientY }) });
+      return;
+    }
+    pinch.current.move(e.pointerId, { x: e.clientX, y: e.clientY });
     const t = toque.current;
     if (!t) return;
     const dx = e.clientX - t.x;
@@ -212,6 +247,14 @@ export function StoryCardapio({
   }
   function cima(e: PointerEvent<HTMLDivElement>) {
     clearTimeout(timerSegurar.current);
+    if (pinch.current.up(e.pointerId)) {
+      toque.current = null;
+      setArraste({ x: 0, y: 0 });
+      setZoom({ ...pinch.current.value });
+      setZooming(pinch.current.active);
+      setPausado(false);
+      return;
+    }
     const t = toque.current;
     toque.current = null;
     setArraste({ x: 0, y: 0 });
@@ -236,7 +279,10 @@ export function StoryCardapio({
       aria-label={`Cardápio em stories, ${grupo.cat}`}
       tabIndex={-1}
       onKeyDown={teclado}
-      className={cn(tela ? "fixed inset-0 z-[100] h-dvh w-screen" : "absolute inset-0 z-30", "overflow-hidden bg-[#021E34] text-white outline-none")}
+      className={cn(
+        tela ? "fixed inset-0 z-[100] h-dvh w-screen" : "absolute inset-0 z-30",
+        "overflow-hidden bg-[#021E34] text-white outline-none",
+      )}
       style={{
         transform: arraste.y
           ? `translateY(${arraste.y * 0.6}px) scale(${1 - Math.min(arraste.y, 300) / 1500})`
@@ -255,67 +301,81 @@ export function StoryCardapio({
         )}
         style={arraste.x ? { transform: `translateX(${arraste.x * 0.35}px)` } : undefined}
       >
-        {em3d && item.modelo ? (
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,#0b3a5c,#021E34_70%)]">
-            {mv === "pronto" ? (
-              <model-viewer
-                src={item.modelo}
-                alt={`${item.nome} em 3D`}
-                camera-controls=""
-                auto-rotate=""
-                ar=""
-                ar-modes="webxr scene-viewer quick-look"
-                shadow-intensity="1"
-                exposure="1.05"
-                camera-orbit="30deg 70deg auto"
-                interaction-prompt="none"
-                data-sem-gesto=""
-                style={{
-                  position: "absolute",
-                  inset: "4.5rem 0 13rem",
-                  width: "100%",
-                  height: "auto",
-                }}
-              >
-                <button
-                  slot="ar-button"
-                  type="button"
-                  className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-white px-4 py-2 text-xs font-semibold text-[#021E34]"
+        <div
+          className="absolute inset-0"
+          style={{
+            transform: `translate(${zoom.x}px, ${zoom.y}px) scale(${zoom.scale})`,
+            transformOrigin: "center",
+            transition: zooming || reduzido ? "none" : "transform 180ms ease-out",
+          }}
+        >
+          {em3d && item.modelo ? (
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,#0b3a5c,#021E34_70%)]">
+              {mv === "pronto" ? (
+                <model-viewer
+                  src={item.modelo}
+                  alt={`${item.nome} em 3D`}
+                  camera-controls=""
+                  auto-rotate=""
+                  ar=""
+                  ar-modes="webxr scene-viewer quick-look"
+                  shadow-intensity="1"
+                  exposure="1.05"
+                  camera-orbit="30deg 70deg auto"
+                  interaction-prompt="none"
+                  data-sem-gesto=""
+                  style={{
+                    position: "absolute",
+                    inset: "4.5rem 0 13rem",
+                    width: "100%",
+                    height: "auto",
+                  }}
                 >
-                  Ver na minha mesa
-                </button>
-              </model-viewer>
-            ) : (
-              <p
-                role="status"
-                className="absolute inset-x-0 top-1/3 text-center text-sm text-white/80"
-              >
-                {mv === "erro"
-                  ? "Não deu para abrir o 3D agora. A foto continua aqui."
-                  : "Abrindo o prato em 3D…"}
+                  <button
+                    slot="ar-button"
+                    type="button"
+                    className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-full bg-white px-4 py-2 text-xs font-semibold text-[#021E34]"
+                  >
+                    Ver na minha mesa
+                  </button>
+                </model-viewer>
+              ) : (
+                <p
+                  role="status"
+                  className="absolute inset-x-0 top-1/3 text-center text-sm text-white/80"
+                >
+                  {mv === "erro"
+                    ? "Não deu para abrir o 3D agora. A foto continua aqui."
+                    : "Abrindo o prato em 3D…"}
+                </p>
+              )}
+            </div>
+          ) : item.foto && item.profundidade ? (
+            <Foto3D
+              foto={item.foto}
+              profundidade={item.profundidade}
+              alt={item.nome}
+              ativo={!parado}
+            />
+          ) : item.foto ? (
+            <img
+              src={item.foto}
+              alt={item.nome}
+              draggable={false}
+              className={cn(
+                "absolute inset-0 h-full w-full select-none object-cover",
+                !reduzido && !parado && "story-zoom",
+              )}
+              style={{ animationDuration: `${DURACAO}ms` }}
+            />
+          ) : (
+            <div className="absolute inset-0 grid place-items-center bg-[radial-gradient(circle_at_30%_20%,#0FC9BD_0%,#03665f_35%,#021E34_75%)] px-8">
+              <p className="text-center font-display text-4xl leading-[1.05] tracking-[-0.03em]">
+                {item.nome}
               </p>
-            )}
-          </div>
-        ) : item.foto && item.profundidade ? (
-          <Foto3D foto={item.foto} profundidade={item.profundidade} alt={item.nome} />
-        ) : item.foto ? (
-          <img
-            src={item.foto}
-            alt={item.nome}
-            draggable={false}
-            className={cn(
-              "absolute inset-0 h-full w-full select-none object-cover",
-              !reduzido && !parado && "story-zoom",
-            )}
-            style={{ animationDuration: `${DURACAO}ms` }}
-          />
-        ) : (
-          <div className="absolute inset-0 grid place-items-center bg-[radial-gradient(circle_at_30%_20%,#0FC9BD_0%,#03665f_35%,#021E34_75%)] px-8">
-            <p className="text-center font-display text-4xl leading-[1.05] tracking-[-0.03em]">
-              {item.nome}
-            </p>
-          </div>
-        )}
+            </div>
+          )}
+        </div>
         <div className="pointer-events-none absolute inset-x-0 top-0 h-28 bg-gradient-to-b from-black/55 to-transparent" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 h-[55%] bg-gradient-to-t from-black/85 via-black/45 to-transparent" />
       </div>
@@ -327,6 +387,10 @@ export function StoryCardapio({
         onPointerMove={mover}
         onPointerUp={cima}
         onPointerCancel={() => {
+          clearTimeout(timerSegurar.current);
+          pinch.current.reset();
+          setZoom(NO_ZOOM);
+          setZooming(false);
           toque.current = null;
           setArraste({ x: 0, y: 0 });
           setPausado(false);
@@ -395,6 +459,12 @@ export function StoryCardapio({
           {item.nome}
         </p>
         {item.desc && <p className="mt-1 text-sm text-white/85">{item.desc}</p>}
+        <MenuPhotoCredit
+          credit={item.creditoFoto}
+          illustrative={!!item.fotoIlustrativa}
+          inverse
+          onOpen={() => setPausado(true)}
+        />
         {item.alergenicos?.length ? (
           <p className="mt-1 text-[0.68rem] text-white/70">
             Contém: {item.alergenicos.join(", ")} (informado pelo restaurante)
@@ -434,7 +504,7 @@ export function StoryCardapio({
           )}
         </div>
         <p className="mt-2 text-center text-[0.65rem] text-white/60">
-          Toque para avançar · segure para pausar · arraste ↓ para fechar
+          Toque para avançar · dois dedos para ampliar · arraste ↓ para fechar
         </p>
       </div>
       <p className="sr-only" aria-live="polite">

@@ -7,7 +7,6 @@
 import { useEffect, useRef, useState, type CSSProperties, type PointerEvent } from "react";
 import { Check, Heart, Star, Divide } from "lucide-react";
 import { Palavras } from "@/components/tipe/landing/motion";
-import { TRIAL_DAYS } from "@/lib/tipe/plans";
 import { cn } from "@/lib/utils";
 import { CelularReal, useSequencia, type EtapaCelular } from "./CelularReal";
 import { Foto } from "./Foto";
@@ -167,7 +166,8 @@ export function AberturaMesa({ secao = false }: { secao?: boolean } = {}) {
         className="hero-in mx-auto mt-5 max-w-xl text-[1.05rem] leading-relaxed text-muted-foreground text-pretty sm:mt-6 sm:text-lg lg:mx-0"
         style={{ "--d": "480ms" } as CSSProperties}
       >
-        Seu cliente confere a conta, divide e paga pelo celular. Sua equipe ganha tempo para atender, e você acompanha cada mesa em tempo real.
+        Seu cliente confere a conta, divide e paga pelo celular. Sua equipe ganha tempo para
+        atender, e você acompanha cada mesa em tempo real.
       </p>
       <div
         className="hero-in mt-8 flex flex-wrap justify-center gap-3 lg:justify-start"
@@ -180,7 +180,7 @@ export function AberturaMesa({ secao = false }: { secao?: boolean } = {}) {
         className="hero-in mt-5 text-sm text-muted-foreground"
         style={{ "--d": "720ms" } as CSSProperties}
       >
-        Pré-lançamento: {TRIAL_DAYS} dias grátis para restaurantes · Sem taxa para o cliente
+        Planos para restaurantes · Solicite uma demonstração
       </p>
     </>
   );

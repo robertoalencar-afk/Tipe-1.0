@@ -1,5 +1,8 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import type { Json } from "@/integrations/supabase/types";
+import type { SupabaseClient } from "@supabase/supabase-js";
+import { AccompanimentsSchema, readMenuConfig } from "./menu-intelligence";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 // Lançamento TIPE (adaptador manual). Integrações externas entram pelos
@@ -114,13 +117,13 @@ export const getPdvData = createServerFn({ method: "GET" })
     const rid = await restaurantId(context.supabase, data.slug);
     const [cats, items, waiters, tables] = await Promise.all([
       context.supabase.from("pdv_menu_categories").select("id, name, position").eq("restaurant_id", rid).order("position"),
-      context.supabase.from("pdv_menu_items").select("id, category_id, code, name, price, available, position, sector, description").eq("restaurant_id", rid).order("position"),
+      context.supabase.from("pdv_menu_items").select("id, category_id, code, name, price, available, position, sector, description, menu_config").eq("restaurant_id", rid).order("position"),
       context.supabase.from("pdv_waiters").select("id, code, name, active, email, user_id").eq("restaurant_id", rid).order("code"),
       context.supabase.from("restaurant_tables").select("id, number, code, active, access_token, waiter_id").eq("restaurant_id", rid),
     ]);
     return {
       categories: cats.data ?? [],
-      items: (items.data ?? []).map((i) => ({ ...i, price: Number(i.price) })),
+      items: (items.data ?? []).map((i) => ({ ...i, menu_config: readMenuConfig(i.menu_config), price: Number(i.price) })),
       waiters: waiters.data ?? [],
       tables: (tables.data ?? []).sort((a, b) => Number(a.number) - Number(b.number) || a.number.localeCompare(b.number)),
     };
@@ -228,22 +231,48 @@ export const updateTable = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+export const editTable = createServerFn({method:"POST"}).middleware([requireSupabaseAuth]).inputValidator(d=>z.object({id:z.string().uuid(),number:z.string().trim().min(1).max(12).optional(),remove:z.boolean().default(false)}).parse(d)).handler(async({data,context})=>{
+ const {error}=await context.supabase.rpc("edit_unused_table" as never,{p_id:data.id,p_number:data.number??null,p_delete:data.remove} as never);
+ if(error) throw new Error(error.message);
+ return {ok:true};
+});
+
 export const saveMenuItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({
     slug: Slug, id: z.string().uuid().optional(), categoryId: z.string().uuid().nullable(),
     code: z.string().trim().min(1).max(16), name: z.string().trim().min(2).max(80), price: z.number().min(0).max(10000), available: z.boolean(),
+    accompaniments: AccompanimentsSchema.optional(),
     sector: z.enum(["kitchen", "bar"]).optional(), description: z.string().trim().max(200).optional(),
   }).parse(d))
   .handler(async ({ data, context }) => {
     const rid = await restaurantId(context.supabase, data.slug);
-    const row = { restaurant_id: rid, category_id: data.categoryId, code: data.code.toUpperCase(), name: data.name, price: data.price, available: data.available, ...(data.sector ? { sector: data.sector } : {}), ...(data.description !== undefined ? { description: data.description || null } : {}) };
-    const q = data.id
-      ? context.supabase.from("pdv_menu_items").update(row).eq("id", data.id).select("id")
-      : context.supabase.from("pdv_menu_items").insert(row).select("id");
+    // Only an explicitly scoped owner may change choice rules. Keep unrelated editorial data.
+    const db = context.supabase as SupabaseClient;
+    const { data: owner, error: roleError } = await db.rpc("has_restaurant_role", { _user_id: context.userId, _restaurant_id: rid, _roles: ["owner"] });
+    if (roleError || !owner) throw new Error("Somente o dono pode editar o cardápio");
+    let config: Record<string, Json | undefined> | undefined;
+    let previousConfig: Json | undefined;
+    if (data.accompaniments !== undefined) {
+      if (data.id) {
+        const { data: current, error } = await db.from("pdv_menu_items").select("menu_config").eq("restaurant_id", rid).eq("id", data.id).single();
+        if (error || !current) throw new Error("Prato não encontrado neste restaurante");
+        previousConfig = current.menu_config;
+        config = { ...current.menu_config, accompaniments: data.accompaniments };
+      } else config = { accompaniments: data.accompaniments };
+      const codes = data.accompaniments.choices.map(c => c.code);
+      if (codes.length) {
+        const { data: matches, error } = await db.from("pdv_menu_items").select("code").eq("restaurant_id", rid).in("code", codes);
+        if (error || matches?.length !== codes.length || codes.includes(data.code.toUpperCase())) throw new Error("Escolha acompanhamentos cadastrados neste restaurante, diferentes do prato.");
+      }
+    }
+    const row = { ...(config ? { menu_config: config } : {}), restaurant_id: rid, category_id: data.categoryId, code: data.code.toUpperCase(), name: data.name, price: data.price, available: data.available, ...(data.sector ? { sector: data.sector } : {}), ...(data.description !== undefined ? { description: data.description || null } : {}) };
+    let update = context.supabase.from("pdv_menu_items").update(row).eq("restaurant_id", rid).eq("id", data.id ?? "");
+    if (previousConfig !== undefined) update = previousConfig === null ? update.is("menu_config", null) : update.eq("menu_config", previousConfig);
+    const q = data.id ? update.select("id") : context.supabase.from("pdv_menu_items").insert(row).select("id");
     const { data: rows, error } = await q;
-    if (error || !rows?.length) throw new Error(error?.code === "23505" ? "Código já usado" : "Somente o dono pode editar o cardápio");
-    return { ok: true };
+    if (error || !rows?.length) throw new Error(error?.code === "23505" ? "Código já usado" : "O prato pode ter sido atualizado. Reabra a edição e tente novamente.");
+    return { ok: true, itemId: rows[0]!.id as string };
   });
 
 export const saveWaiter = createServerFn({ method: "POST" })

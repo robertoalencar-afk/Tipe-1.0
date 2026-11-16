@@ -18,7 +18,7 @@ async function myWaiter(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data } = await supabaseAdmin
     .from("pdv_waiters")
-    .select("id, name, code, active, restaurant_id, restaurants(name, slug)")
+    .select("id, name, code, active, restaurant_id, restaurants(name, slug, service_rate)")
     .eq("user_id", userId)
     .maybeSingle();
   const w = data as unknown as {
@@ -27,7 +27,7 @@ async function myWaiter(userId: string) {
     code: string;
     active: boolean;
     restaurant_id: string;
-    restaurants: { name: string; slug: string };
+    restaurants: { name: string; slug: string; service_rate: number | string | null };
   } | null;
   if (!w || !w.active)
     throw new Error("Seu acesso de garçom não está ativo. Fale com o restaurante.");
@@ -43,12 +43,16 @@ export type WaiterTable = {
   disponivel: number;
   itens: { code: string; name: string; qty: number; unitPrice: number }[];
   minhaMesa: boolean;
+  /** Endereço da conta da mesa (QR da pré-conta). */
+  qrPath: string;
 };
 
 export type WaiterPos = {
   waiter: { name: string; code: string };
   restaurantName: string;
   restaurantSlug: string;
+  /** Taxa de serviço do restaurante (0 a 1), para a pré-conta. */
+  serviceRate: number;
   categories: { id: string; name: string }[];
   items: {
     id: string;
@@ -84,7 +88,7 @@ export const getWaiterPos = createServerFn({ method: "GET" })
         .eq("restaurant_id", rid)
         .eq("available", true)
         .order("position"),
-      db.from("restaurant_tables").select("number, active, waiter_id").eq("restaurant_id", rid),
+      db.from("restaurant_tables").select("number, active, waiter_id, code, access_token").eq("restaurant_id", rid),
       db
         .from("table_bill_items")
         .select(
@@ -140,7 +144,9 @@ export const getWaiterPos = createServerFn({ method: "GET" })
       .slice(0, 6)
       .map(([c]) => c);
 
+    // Garçom só vê e atende as mesas que o administrador designou a ele.
     const tablesOut: WaiterTable[] = (tables.data ?? [])
+      .filter((t) => t.waiter_id === w.id)
       .sort((a, b) => Number(a.number) - Number(b.number) || a.number.localeCompare(b.number))
       .map((t) => {
         const itens = porMesa.get(t.number) ?? [];
@@ -159,6 +165,7 @@ export const getWaiterPos = createServerFn({ method: "GET" })
             unitPrice: i.unit_price,
           })),
           minhaMesa: t.waiter_id === w.id,
+          qrPath: `/${slug}/${t.code}?t=${t.access_token}`,
         };
       });
 
@@ -166,6 +173,7 @@ export const getWaiterPos = createServerFn({ method: "GET" })
       waiter: { name: w.name, code: w.code },
       restaurantName: w.restaurants.name,
       restaurantSlug: slug,
+      serviceRate: Number(w.restaurants.service_rate ?? 0),
       categories: (cats.data ?? []).map((c) => ({ id: c.id, name: c.name })),
       items: (items.data ?? []).map((i) => ({
         id: i.id,

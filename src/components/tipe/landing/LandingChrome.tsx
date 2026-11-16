@@ -12,7 +12,6 @@ import { CAMINHO_PRODUTO, GRUPOS, PRODUTOS } from "@/components/tipe/site/produt
 import { seloDoProduto, useEstadosLancamento } from "@/components/tipe/site/useLancamento";
 import { PrivacyPreferences } from "@/components/tipe/PrivacyPreferences";
 import { COMPANY } from "@/lib/tipe/legal";
-import { TRIAL_DAYS } from "@/lib/tipe/plans";
 import { WHATSAPP_NUMBER, WHATSAPP_SITE_MESSAGE, whatsappLink } from "@/lib/tipe/contact";
 import { cn } from "@/lib/utils";
 import { useHeaderEscondido } from "./motion";
@@ -123,7 +122,7 @@ export function LandingHeader() {
           menu
             ? "border-b border-border/70 bg-background"
             : scrolled
-              ? "border-b border-border/70 bg-background/85 backdrop-blur-xl"
+              ? "border-b border-border/70 bg-background"
               : "border-b border-transparent bg-transparent",
         )}
       >
@@ -360,17 +359,7 @@ export function LandingHeader() {
           </div>
         )}
       </header>
-      {/* Com o cabeçalho escondido, o CTA principal continua no topo (como na sunday). */}
-      <a
-        href="/solicitar-demonstracao"
-        data-visivel={escondido || undefined}
-        aria-hidden={!escondido}
-        tabIndex={escondido ? undefined : -1}
-        className="cta-fixo btn-tema com-fios fixed right-4 top-3 z-40 inline-flex h-11 items-center gap-2 rounded-full pl-6 pr-5 text-[0.95rem] font-medium shadow-lift sm:right-6"
-      >
-        Demonstração
-        <SetaFios auto />
-      </a>
+
     </>
   );
 }
@@ -416,8 +405,7 @@ export function LandingFooter() {
           Sem esperar.
         </h2>
         <p className="mx-auto mt-6 max-w-[36ch] text-[1.05rem] leading-relaxed text-[#021E34]/75 sm:text-lg">
-          Pagamento na mesa por QR Code para restaurantes, bares e cafeterias. {TRIAL_DAYS} dias
-          grátis no pré-lançamento.
+          Conta na mesa por QR Code para restaurantes, bares e cafeterias. Conheça os planos.
         </p>
         <div className="rodape-ctas mx-auto mt-8 flex max-w-sm flex-col gap-3 sm:max-w-none sm:flex-row sm:justify-center">
           {!noTeste && (
@@ -488,7 +476,9 @@ export function LandingFooter() {
                 </a>
               </li>
               <li>
-                <a href="/restaurante-fundador" className={a}>Restaurante Fundador</a>
+                <a href="/restaurante-fundador" className={a}>
+                  Restaurante Fundador
+                </a>
               </li>
               <li>
                 <a href="/ajuda" className={a}>

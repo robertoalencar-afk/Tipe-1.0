@@ -22,6 +22,7 @@ import { Route as EquipeRouteImport } from './routes/equipe'
 import { Route as EsqueciASenhaRouteImport } from './routes/esqueci-a-senha'
 import { Route as FundadorRouteImport } from './routes/fundador'
 import { Route as GestaoRouteImport } from './routes/gestao'
+import { Route as GravarNfcRouteImport } from './routes/gravar-nfc'
 import { Route as GuestRouteImport } from './routes/guest'
 import { Route as GuestDemoRouteImport } from './routes/guest-demo'
 import { Route as IntegracoesRouteImport } from './routes/integracoes'
@@ -40,6 +41,7 @@ import { Route as TesteGratisRouteImport } from './routes/teste-gratis'
 import { Route as RestauranteIndexRouteImport } from './routes/$restaurante.index'
 import { Route as RestauranteMesaRouteImport } from './routes/$restaurante.$mesa'
 import { Route as RestauranteCozinhaRouteImport } from './routes/$restaurante.cozinha'
+import { Route as RestauranteEstacaoRouteImport } from './routes/$restaurante.estacao'
 import { Route as RestauranteFilaRouteImport } from './routes/$restaurante.fila'
 import { Route as RestauranteSenhasRouteImport } from './routes/$restaurante.senhas'
 import { Route as RestauranteTotemRouteImport } from './routes/$restaurante.totem'
@@ -87,6 +89,7 @@ import { Route as RedefinirSenhaIndexRouteImport } from './routes/redefinir-senh
 import { Route as RedefinirSenhaGarcomRouteImport } from './routes/redefinir-senha.garcom'
 import { Route as AuthenticatedAdminLeadsRouteImport } from './routes/_authenticated/admin.leads'
 import { Route as ApiPublicCspReportRouteImport } from './routes/api/public/csp-report'
+import { Route as ApiPublicEmailInboundRouteImport } from './routes/api/public/email-inbound'
 import { Route as CrmContasIndexRouteImport } from './routes/crm.contas.index'
 import { Route as CrmContasIdRouteImport } from './routes/crm.contas.$id'
 import { Route as CrmContatosIndexRouteImport } from './routes/crm.contatos.index'
@@ -94,6 +97,7 @@ import { Route as CrmContatosIdRouteImport } from './routes/crm.contatos.$id'
 import { Route as LegalVersoesArquivoRouteImport } from './routes/legal.versoes_.$arquivo'
 import { Route as MesaRestauranteMesaRouteImport } from './routes/mesa.$restaurante.$mesa'
 import { Route as ApiInternalFiscalProcessRouteImport } from './routes/api/internal/fiscal.process'
+import { Route as ApiPublicMenuReviewRouteImport } from './routes/api/public/menu.review'
 import { Route as ApiPublicPagarmeWebhookRouteImport } from './routes/api/public/pagarme/webhook'
 import { Route as ApiPublicPaymentsReconcileRouteImport } from './routes/api/public/payments.reconcile'
 import { Route as ApiPublicPdvSyncRouteImport } from './routes/api/public/pdv.sync'
@@ -165,6 +169,11 @@ const FundadorRoute = FundadorRouteImport.update({
 const GestaoRoute = GestaoRouteImport.update({
   id: '/gestao',
   path: '/gestao',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GravarNfcRoute = GravarNfcRouteImport.update({
+  id: '/gravar-nfc',
+  path: '/gravar-nfc',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GuestRoute = GuestRouteImport.update({
@@ -255,6 +264,11 @@ const RestauranteMesaRoute = RestauranteMesaRouteImport.update({
 const RestauranteCozinhaRoute = RestauranteCozinhaRouteImport.update({
   id: '/$restaurante/cozinha',
   path: '/$restaurante/cozinha',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RestauranteEstacaoRoute = RestauranteEstacaoRouteImport.update({
+  id: '/$restaurante/estacao',
+  path: '/$restaurante/estacao',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RestauranteFilaRoute = RestauranteFilaRouteImport.update({
@@ -493,6 +507,11 @@ const ApiPublicCspReportRoute = ApiPublicCspReportRouteImport.update({
   path: '/api/public/csp-report',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicEmailInboundRoute = ApiPublicEmailInboundRouteImport.update({
+  id: '/api/public/email-inbound',
+  path: '/api/public/email-inbound',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CrmContasIndexRoute = CrmContasIndexRouteImport.update({
   id: '/contas/',
   path: '/contas/',
@@ -529,6 +548,11 @@ const ApiInternalFiscalProcessRoute =
     path: '/api/internal/fiscal/process',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicMenuReviewRoute = ApiPublicMenuReviewRouteImport.update({
+  id: '/api/public/menu/review',
+  path: '/api/public/menu/review',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPagarmeWebhookRoute = ApiPublicPagarmeWebhookRouteImport.update({
   id: '/api/public/pagarme/webhook',
   path: '/api/public/pagarme/webhook',
@@ -587,6 +611,7 @@ export interface FileRoutesByFullPath {
   '/esqueci-a-senha': typeof EsqueciASenhaRoute
   '/fundador': typeof FundadorRoute
   '/gestao': typeof GestaoRoute
+  '/gravar-nfc': typeof GravarNfcRoute
   '/guest': typeof GuestRoute
   '/guest-demo': typeof GuestDemoRoute
   '/integracoes': typeof IntegracoesRoute
@@ -604,6 +629,7 @@ export interface FileRoutesByFullPath {
   '/teste-gratis': typeof TesteGratisRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
   '/$restaurante/cozinha': typeof RestauranteCozinhaRoute
+  '/$restaurante/estacao': typeof RestauranteEstacaoRoute
   '/$restaurante/fila': typeof RestauranteFilaRoute
   '/$restaurante/senhas': typeof RestauranteSenhasRoute
   '/$restaurante/totem': typeof RestauranteTotemRoute
@@ -652,6 +678,7 @@ export interface FileRoutesByFullPath {
   '/redefinir-senha/': typeof RedefinirSenhaIndexRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
+  '/api/public/email-inbound': typeof ApiPublicEmailInboundRoute
   '/crm/contas/$id': typeof CrmContasIdRoute
   '/crm/contatos/$id': typeof CrmContatosIdRoute
   '/legal/versoes/$arquivo': typeof LegalVersoesArquivoRoute
@@ -659,6 +686,7 @@ export interface FileRoutesByFullPath {
   '/crm/contas/': typeof CrmContasIndexRoute
   '/crm/contatos/': typeof CrmContatosIndexRoute
   '/api/internal/fiscal/process': typeof ApiInternalFiscalProcessRoute
+  '/api/public/menu/review': typeof ApiPublicMenuReviewRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/payments/reconcile': typeof ApiPublicPaymentsReconcileRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
@@ -680,6 +708,7 @@ export interface FileRoutesByTo {
   '/esqueci-a-senha': typeof EsqueciASenhaRoute
   '/fundador': typeof FundadorRoute
   '/gestao': typeof GestaoRoute
+  '/gravar-nfc': typeof GravarNfcRoute
   '/guest': typeof GuestRoute
   '/guest-demo': typeof GuestDemoRoute
   '/integracoes': typeof IntegracoesRoute
@@ -697,6 +726,7 @@ export interface FileRoutesByTo {
   '/teste-gratis': typeof TesteGratisRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
   '/$restaurante/cozinha': typeof RestauranteCozinhaRoute
+  '/$restaurante/estacao': typeof RestauranteEstacaoRoute
   '/$restaurante/fila': typeof RestauranteFilaRoute
   '/$restaurante/senhas': typeof RestauranteSenhasRoute
   '/$restaurante/totem': typeof RestauranteTotemRoute
@@ -745,6 +775,7 @@ export interface FileRoutesByTo {
   '/redefinir-senha': typeof RedefinirSenhaIndexRoute
   '/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
+  '/api/public/email-inbound': typeof ApiPublicEmailInboundRoute
   '/crm/contas/$id': typeof CrmContasIdRoute
   '/crm/contatos/$id': typeof CrmContatosIdRoute
   '/legal/versoes/$arquivo': typeof LegalVersoesArquivoRoute
@@ -752,6 +783,7 @@ export interface FileRoutesByTo {
   '/crm/contas': typeof CrmContasIndexRoute
   '/crm/contatos': typeof CrmContatosIndexRoute
   '/api/internal/fiscal/process': typeof ApiInternalFiscalProcessRoute
+  '/api/public/menu/review': typeof ApiPublicMenuReviewRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/payments/reconcile': typeof ApiPublicPaymentsReconcileRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
@@ -776,6 +808,7 @@ export interface FileRoutesById {
   '/esqueci-a-senha': typeof EsqueciASenhaRoute
   '/fundador': typeof FundadorRoute
   '/gestao': typeof GestaoRoute
+  '/gravar-nfc': typeof GravarNfcRoute
   '/guest': typeof GuestRoute
   '/guest-demo': typeof GuestDemoRoute
   '/integracoes': typeof IntegracoesRoute
@@ -793,6 +826,7 @@ export interface FileRoutesById {
   '/teste-gratis': typeof TesteGratisRoute
   '/$restaurante/$mesa': typeof RestauranteMesaRoute
   '/$restaurante/cozinha': typeof RestauranteCozinhaRoute
+  '/$restaurante/estacao': typeof RestauranteEstacaoRoute
   '/$restaurante/fila': typeof RestauranteFilaRoute
   '/$restaurante/senhas': typeof RestauranteSenhasRoute
   '/$restaurante/totem': typeof RestauranteTotemRoute
@@ -841,6 +875,7 @@ export interface FileRoutesById {
   '/redefinir-senha/': typeof RedefinirSenhaIndexRoute
   '/_authenticated/admin/leads': typeof AuthenticatedAdminLeadsRoute
   '/api/public/csp-report': typeof ApiPublicCspReportRoute
+  '/api/public/email-inbound': typeof ApiPublicEmailInboundRoute
   '/crm/contas/$id': typeof CrmContasIdRoute
   '/crm/contatos/$id': typeof CrmContatosIdRoute
   '/legal/versoes_/$arquivo': typeof LegalVersoesArquivoRoute
@@ -848,6 +883,7 @@ export interface FileRoutesById {
   '/crm/contas/': typeof CrmContasIndexRoute
   '/crm/contatos/': typeof CrmContatosIndexRoute
   '/api/internal/fiscal/process': typeof ApiInternalFiscalProcessRoute
+  '/api/public/menu/review': typeof ApiPublicMenuReviewRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/payments/reconcile': typeof ApiPublicPaymentsReconcileRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
@@ -872,6 +908,7 @@ export interface FileRouteTypes {
     | '/esqueci-a-senha'
     | '/fundador'
     | '/gestao'
+    | '/gravar-nfc'
     | '/guest'
     | '/guest-demo'
     | '/integracoes'
@@ -889,6 +926,7 @@ export interface FileRouteTypes {
     | '/teste-gratis'
     | '/$restaurante/$mesa'
     | '/$restaurante/cozinha'
+    | '/$restaurante/estacao'
     | '/$restaurante/fila'
     | '/$restaurante/senhas'
     | '/$restaurante/totem'
@@ -937,6 +975,7 @@ export interface FileRouteTypes {
     | '/redefinir-senha/'
     | '/admin/leads'
     | '/api/public/csp-report'
+    | '/api/public/email-inbound'
     | '/crm/contas/$id'
     | '/crm/contatos/$id'
     | '/legal/versoes/$arquivo'
@@ -944,6 +983,7 @@ export interface FileRouteTypes {
     | '/crm/contas/'
     | '/crm/contatos/'
     | '/api/internal/fiscal/process'
+    | '/api/public/menu/review'
     | '/api/public/pagarme/webhook'
     | '/api/public/payments/reconcile'
     | '/api/public/pdv/sync'
@@ -965,6 +1005,7 @@ export interface FileRouteTypes {
     | '/esqueci-a-senha'
     | '/fundador'
     | '/gestao'
+    | '/gravar-nfc'
     | '/guest'
     | '/guest-demo'
     | '/integracoes'
@@ -982,6 +1023,7 @@ export interface FileRouteTypes {
     | '/teste-gratis'
     | '/$restaurante/$mesa'
     | '/$restaurante/cozinha'
+    | '/$restaurante/estacao'
     | '/$restaurante/fila'
     | '/$restaurante/senhas'
     | '/$restaurante/totem'
@@ -1030,6 +1072,7 @@ export interface FileRouteTypes {
     | '/redefinir-senha'
     | '/admin/leads'
     | '/api/public/csp-report'
+    | '/api/public/email-inbound'
     | '/crm/contas/$id'
     | '/crm/contatos/$id'
     | '/legal/versoes/$arquivo'
@@ -1037,6 +1080,7 @@ export interface FileRouteTypes {
     | '/crm/contas'
     | '/crm/contatos'
     | '/api/internal/fiscal/process'
+    | '/api/public/menu/review'
     | '/api/public/pagarme/webhook'
     | '/api/public/payments/reconcile'
     | '/api/public/pdv/sync'
@@ -1060,6 +1104,7 @@ export interface FileRouteTypes {
     | '/esqueci-a-senha'
     | '/fundador'
     | '/gestao'
+    | '/gravar-nfc'
     | '/guest'
     | '/guest-demo'
     | '/integracoes'
@@ -1077,6 +1122,7 @@ export interface FileRouteTypes {
     | '/teste-gratis'
     | '/$restaurante/$mesa'
     | '/$restaurante/cozinha'
+    | '/$restaurante/estacao'
     | '/$restaurante/fila'
     | '/$restaurante/senhas'
     | '/$restaurante/totem'
@@ -1125,6 +1171,7 @@ export interface FileRouteTypes {
     | '/redefinir-senha/'
     | '/_authenticated/admin/leads'
     | '/api/public/csp-report'
+    | '/api/public/email-inbound'
     | '/crm/contas/$id'
     | '/crm/contatos/$id'
     | '/legal/versoes_/$arquivo'
@@ -1132,6 +1179,7 @@ export interface FileRouteTypes {
     | '/crm/contas/'
     | '/crm/contatos/'
     | '/api/internal/fiscal/process'
+    | '/api/public/menu/review'
     | '/api/public/pagarme/webhook'
     | '/api/public/payments/reconcile'
     | '/api/public/pdv/sync'
@@ -1156,6 +1204,7 @@ export interface RootRouteChildren {
   EsqueciASenhaRoute: typeof EsqueciASenhaRoute
   FundadorRoute: typeof FundadorRoute
   GestaoRoute: typeof GestaoRoute
+  GravarNfcRoute: typeof GravarNfcRoute
   GuestRoute: typeof GuestRoute
   GuestDemoRoute: typeof GuestDemoRoute
   IntegracoesRoute: typeof IntegracoesRoute
@@ -1173,6 +1222,7 @@ export interface RootRouteChildren {
   TesteGratisRoute: typeof TesteGratisRoute
   RestauranteMesaRoute: typeof RestauranteMesaRoute
   RestauranteCozinhaRoute: typeof RestauranteCozinhaRoute
+  RestauranteEstacaoRoute: typeof RestauranteEstacaoRoute
   RestauranteFilaRoute: typeof RestauranteFilaRoute
   RestauranteSenhasRoute: typeof RestauranteSenhasRoute
   RestauranteTotemRoute: typeof RestauranteTotemRoute
@@ -1193,9 +1243,11 @@ export interface RootRouteChildren {
   PrivacidadeIndexRoute: typeof PrivacidadeIndexRoute
   RedefinirSenhaIndexRoute: typeof RedefinirSenhaIndexRoute
   ApiPublicCspReportRoute: typeof ApiPublicCspReportRoute
+  ApiPublicEmailInboundRoute: typeof ApiPublicEmailInboundRoute
   LegalVersoesArquivoRoute: typeof LegalVersoesArquivoRoute
   MesaRestauranteMesaRoute: typeof MesaRestauranteMesaRoute
   ApiInternalFiscalProcessRoute: typeof ApiInternalFiscalProcessRoute
+  ApiPublicMenuReviewRoute: typeof ApiPublicMenuReviewRoute
   ApiPublicPagarmeWebhookRoute: typeof ApiPublicPagarmeWebhookRoute
   ApiPublicPaymentsReconcileRoute: typeof ApiPublicPaymentsReconcileRoute
   ApiPublicPdvSyncRoute: typeof ApiPublicPdvSyncRoute
@@ -1297,6 +1349,13 @@ declare module '@tanstack/react-router' {
       path: '/gestao'
       fullPath: '/gestao'
       preLoaderRoute: typeof GestaoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/gravar-nfc': {
+      id: '/gravar-nfc'
+      path: '/gravar-nfc'
+      fullPath: '/gravar-nfc'
+      preLoaderRoute: typeof GravarNfcRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/guest': {
@@ -1423,6 +1482,13 @@ declare module '@tanstack/react-router' {
       path: '/$restaurante/cozinha'
       fullPath: '/$restaurante/cozinha'
       preLoaderRoute: typeof RestauranteCozinhaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/$restaurante/estacao': {
+      id: '/$restaurante/estacao'
+      path: '/$restaurante/estacao'
+      fullPath: '/$restaurante/estacao'
+      preLoaderRoute: typeof RestauranteEstacaoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$restaurante/fila': {
@@ -1754,6 +1820,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicCspReportRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/email-inbound': {
+      id: '/api/public/email-inbound'
+      path: '/api/public/email-inbound'
+      fullPath: '/api/public/email-inbound'
+      preLoaderRoute: typeof ApiPublicEmailInboundRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/crm/contas/': {
       id: '/crm/contas/'
       path: '/contas'
@@ -1801,6 +1874,13 @@ declare module '@tanstack/react-router' {
       path: '/api/internal/fiscal/process'
       fullPath: '/api/internal/fiscal/process'
       preLoaderRoute: typeof ApiInternalFiscalProcessRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/menu/review': {
+      id: '/api/public/menu/review'
+      path: '/api/public/menu/review'
+      fullPath: '/api/public/menu/review'
+      preLoaderRoute: typeof ApiPublicMenuReviewRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/public/pagarme/webhook': {
@@ -1957,6 +2037,7 @@ const rootRouteChildren: RootRouteChildren = {
   EsqueciASenhaRoute: EsqueciASenhaRoute,
   FundadorRoute: FundadorRoute,
   GestaoRoute: GestaoRoute,
+  GravarNfcRoute: GravarNfcRoute,
   GuestRoute: GuestRoute,
   GuestDemoRoute: GuestDemoRoute,
   IntegracoesRoute: IntegracoesRoute,
@@ -1974,6 +2055,7 @@ const rootRouteChildren: RootRouteChildren = {
   TesteGratisRoute: TesteGratisRoute,
   RestauranteMesaRoute: RestauranteMesaRoute,
   RestauranteCozinhaRoute: RestauranteCozinhaRoute,
+  RestauranteEstacaoRoute: RestauranteEstacaoRoute,
   RestauranteFilaRoute: RestauranteFilaRoute,
   RestauranteSenhasRoute: RestauranteSenhasRoute,
   RestauranteTotemRoute: RestauranteTotemRoute,
@@ -1994,9 +2076,11 @@ const rootRouteChildren: RootRouteChildren = {
   PrivacidadeIndexRoute: PrivacidadeIndexRoute,
   RedefinirSenhaIndexRoute: RedefinirSenhaIndexRoute,
   ApiPublicCspReportRoute: ApiPublicCspReportRoute,
+  ApiPublicEmailInboundRoute: ApiPublicEmailInboundRoute,
   LegalVersoesArquivoRoute: LegalVersoesArquivoRoute,
   MesaRestauranteMesaRoute: MesaRestauranteMesaRoute,
   ApiInternalFiscalProcessRoute: ApiInternalFiscalProcessRoute,
+  ApiPublicMenuReviewRoute: ApiPublicMenuReviewRoute,
   ApiPublicPagarmeWebhookRoute: ApiPublicPagarmeWebhookRoute,
   ApiPublicPaymentsReconcileRoute: ApiPublicPaymentsReconcileRoute,
   ApiPublicPdvSyncRoute: ApiPublicPdvSyncRoute,

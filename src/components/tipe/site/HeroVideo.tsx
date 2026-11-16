@@ -14,7 +14,6 @@
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { Pause, Play } from "lucide-react";
 import { Palavras } from "@/components/tipe/landing/motion";
-import { TRIAL_DAYS } from "@/lib/tipe/plans";
 import { BotaoPrincipal, BotaoSecundario } from "./Site";
 import { tocarMudo } from "./videoAuto";
 
@@ -182,9 +181,10 @@ export function HeroVideo() {
           className="hero-in mt-5 pr-14 text-sm text-white/85 sm:pr-0"
           style={{ "--d": "720ms" } as CSSProperties}
         >
-          {TRIAL_DAYS} dias grátis no pré-lançamento · Sem cartão para solicitar
+          Conheça os planos · Solicite uma demonstração
           <span className="mt-2 block">
-            Dinheiro e maquininha no local disponíveis. Pix e carteiras digitais em piloto.
+            Dinheiro e maquininha no local disponíveis. Pagamentos digitais sujeitos à validação por
+            restaurante.
           </span>
         </p>
       </div>

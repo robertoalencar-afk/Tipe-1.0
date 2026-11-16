@@ -27,8 +27,10 @@ export const getPayoutAccount = createServerFn({ method: "GET" })
     if (!a || a.status !== "active") return { connected: false as const };
     // Consulta separada: antes da migração 0031 a coluna não existe e a tela segue funcionando.
     const acc = await supabaseAdmin.from("restaurant_pagarme_accounts").select("account_id" as never).eq("restaurant_id", r.id).maybeSingle();
+    const { isSimulationRestaurant } = await import("./pagarme.server");
     return {
       connected: true as const,
+      simulation: isSimulationRestaurant(data.slug),
       keyMasked: `${a.key_prefix}••••••••`,
       mode: a.key_mode as "live" | "test",
       connectedAt: a.connected_at,
@@ -85,6 +87,24 @@ export const savePagarmeAccountId = createServerFn({ method: "POST" })
     const { logSecurityEvent } = await import("./security.server");
     await logSecurityEvent({ action: "pagarme_account_id_saved", resource: "restaurant_pagarme_accounts", restaurantId: r.id, actorId: context.userId });
     return { ok: true };
+  });
+
+/** O proprietário pode conferir a credencial já salva sem gerar cobrança. */
+export const validateRestaurantPaymentApi = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ slug: Slug }).parse(d))
+  .handler(async ({ data, context }) => {
+    const r = await ownerRestaurant(context, data.slug);
+    const { enforceRate, logSecurityEvent } = await import("./security.server");
+    await enforceRate(`restaurant-payment-check:${r.id}`, 5, 300, data.slug);
+    const { restaurantPagarmeKey, pagarme, isSimulationRestaurant } = await import("./pagarme.server");
+    const key = await restaurantPagarmeKey(r.id);
+    if (!key) throw new Error("Conecte a conta Pagar.me do restaurante primeiro.");
+    let ok = false;
+    try { await pagarme("/orders?page=1&size=1", { secretKey: key }); ok = true; }
+    catch { /* Não expõe a resposta da API ou dados dos pedidos. */ }
+    await logSecurityEvent({ action: "restaurant_payment_api_checked", actorId: context.userId, restaurantId: r.id, resource: "pagarme", result: ok ? "ok" : "error" });
+    return { ok, message: !ok ? "A API não confirmou a conexão. Confira a chave e a disponibilidade do provedor." : isSimulationRestaurant(data.slug) ? "A API aceitou a credencial. Esta empresa de demonstração continua sem cobranças reais." : key.startsWith("sk_test_") ? "A API aceitou a credencial de teste. Nenhuma cobrança real foi feita." : "A API aceitou a credencial de produção. Nenhuma cobrança foi feita; valide Pix e o webhook antes de atender clientes." };
   });
 
 export const disconnectPagarme = createServerFn({ method: "POST" })

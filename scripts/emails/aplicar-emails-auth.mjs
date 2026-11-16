@@ -49,9 +49,20 @@ principal.uri_allow_list = [...urls].join(",");
 // Só liga o Resend se o domínio tipe.digital já estiver verificado lá; senão os e-mails parariam de sair.
 let resendOk = false;
 if (resend) {
-  const d = await fetch("https://api.resend.com/domains", { headers: { Authorization: `Bearer ${resend}` } }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
-  resendOk = !!d?.data?.some((x) => x.name === "tipe.digital" && x.status === "verified");
+  // Chave só de envio (recomendada) não pode listar domínios: aí vale RESEND_DOMINIO_VERIFICADO=1, conferido no painel.
+  const r = await fetch("https://api.resend.com/domains", { headers: { Authorization: `Bearer ${resend}` } }).catch(() => null);
+  const d = r?.ok ? await r.json() : null;
+  resendOk = !!d?.data?.some((x) => x.name === "tipe.digital" && x.status === "verified") || process.env.RESEND_DOMINIO_VERIFICADO === "1";
+  console.log(`Resend: leitura de domínios respondeu ${r?.status ?? "sem resposta"}; chave ${resend.startsWith("re_") ? "no formato re_" : "FORA do formato re_"}.`);
   if (!resendOk) console.log("::warning::Domínio tipe.digital ainda não verificado no Resend: SMTP não alterado.");
+}
+// Prova que a chave envia de verdade antes de trocar o SMTP (chave errada pararia todos os e-mails de conta).
+if (resendOk) {
+  const t = await fetch("https://api.resend.com/emails", {
+    method: "POST", headers: { Authorization: `Bearer ${resend}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ from: "Tipe <noreply@tipe.digital>", to: ["roberto@tipe.digital"], subject: "Tipe: SMTP do Resend ligado no Supabase", text: "Teste automático: esta chave do Resend envia pelo tipe.digital. Os e-mails de conta da Tipe passam a sair por aqui." }),
+  }).catch(() => null);
+  if (!t?.ok) { resendOk = false; console.log(`::warning::Teste de envio pelo Resend falhou (${t?.status ?? "sem resposta"}): ${t ? await t.text() : ""}. SMTP não alterado.`); }
 }
 if (resendOk) {
   Object.assign(principal, {

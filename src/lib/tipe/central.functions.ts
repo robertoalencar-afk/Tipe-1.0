@@ -220,7 +220,7 @@ async function rodarAutomacaoEtapa(db: any, opp: any, stage: string, actor: stri
       await db.from("crm_activities").insert({ lead_id: opp.lead_id, opportunity_id: opp.id, kind: "system", title: "Rascunho do e-mail de confirmação preparado", body: `Olá! Confirmamos a demonstração da Tipe para o ${opp.title}. Até lá!`, actor_id: actor, meta: { draft: "email", template: "confirmacao_demo" } });
     } else if (regra === "demo_realizada") {
       await db.from("crm_tasks").insert({ lead_id: opp.lead_id, opportunity_id: opp.id, title: `Acompanhamento pós-demonstração: ${opp.title}`, due_at: em(2), created_by: actor });
-      await db.from("crm_activities").insert({ lead_id: opp.lead_id, opportunity_id: opp.id, kind: "system", title: "Rascunho da proposta preparado", body: `Proposta Tipe para o ${opp.title}: Tipe Pay, Tipe Order e Tipe Gestão, com 30 dias grátis.`, actor_id: actor, meta: { draft: "email", template: "proposta" } });
+      await db.from("crm_activities").insert({ lead_id: opp.lead_id, opportunity_id: opp.id, kind: "system", title: "Rascunho da proposta preparado", body: `Proposta Tipe para o ${opp.title}: Tipe Pay, Tipe Order e Tipe Gestão, com contratação conforme os planos publicados em /precos. Implantação única de R$ 200 no Essencial e Profissional; grátis a partir do Premium.`, actor_id: actor, meta: { draft: "email", template: "proposta" } });
     } else if (regra === "cliente_contratado") {
       if (opp.restaurant_id) await db.rpc("implantation_seed", { p_rid: opp.restaurant_id });
       await db.from("crm_tasks").insert({ lead_id: opp.lead_id, opportunity_id: opp.id, restaurant_id: opp.restaurant_id, title: `Kickoff da implantação: ${opp.title}`, due_at: em(1), created_by: actor });
@@ -424,7 +424,7 @@ export const getComunicacao = createServerFn({ method: "GET" })
       config: {
         resendEnvio: Boolean(env["RESEND_API_KEY"]),
         resendWebhook: Boolean(env["RESEND_WEBHOOK_SECRET"]),
-        resendRecebimento: false, // Não há domínio de recebimento configurado: sem caixa de entrada de e-mail.
+        resendRecebimento: Boolean(env["EMAIL_INBOUND_SECRET"]), // Cloudflare Email Routing -> Worker -> /api/public/email-inbound
         whatsappWebhook: Boolean(env["WHATSAPP_APP_SECRET"] && env["WHATSAPP_VERIFY_TOKEN"]),
         whatsappEnvio: Boolean(env["WHATSAPP_TOKEN"] && env["WHATSAPP_PHONE_NUMBER_ID"]),
         remetente: env["EMAIL_FROM"] || "noreply@tipe.digital",
@@ -627,4 +627,39 @@ export const getAdministracaoCentral = createServerFn({ method: "GET" })
       db.from("user_roles").select("user_id").eq("role", "founder"),
     ]);
     return { seguranca: sec.data ?? [], privacidade: priv.data ?? [], dispositivos: dev.data ?? [], usuariosInternos: (founders.data ?? []).length };
+  });
+
+/** Desempenho comercial: chegada de leads, tempo da primeira resposta, funil e origem (dados reais). */
+export const getLeadsDesempenho = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ dias: z.number().int().min(7).max(365).default(30) }).parse(d ?? {}))
+  .handler(async ({ data, context }) => {
+    const db = await founder(context);
+    const { calcularDesempenho } = await import("./leads-desempenho");
+    const desde = diasAtras(data.dias);
+    const [leads, ant, etapas, opps] = await Promise.all([
+      db.from("restaurant_leads").select("id, created_at, restaurant_name, contact_name, email, phone, utm_source, origin_page, discovery_source").gte("created_at", desde).order("created_at", { ascending: false }).limit(5000),
+      db.from("restaurant_leads").select("id", { count: "exact", head: true }).gte("created_at", diasAtras(data.dias * 2)).lt("created_at", desde),
+      db.from("crm_stages").select("key, label, position, kind").eq("active", true).order("position"),
+      db.from("crm_opportunities").select("lead_id, stage_key, status, created_at").limit(5000),
+    ]);
+    const lista = (leads.data ?? []) as any[];
+    const ids = lista.map((l) => l.id as string);
+    // Só contato humano conta como resposta; rascunhos preparados pelo sistema não.
+    const atividades = ids.length
+      ? await db.from("crm_activities").select("lead_id, created_at, kind, meta").in("lead_id", ids.slice(0, 1000)).in("kind", ["email", "whatsapp", "call", "meeting"]).limit(10000)
+      : { data: [] as any[] };
+    const respostas = ((atividades.data ?? []) as any[]).filter((a) => !a.meta?.draft && !a.meta?.rascunho).map((a) => ({ lead_id: a.lead_id as string, at: a.created_at as string }));
+    return {
+      dias: data.dias,
+      ...calcularDesempenho({
+        agora: Date.now(),
+        dias: data.dias,
+        leads: lista.map((l) => ({ id: l.id, created_at: l.created_at, nome: l.restaurant_name ?? l.contact_name ?? "Sem nome", contato: l.contact_name ?? l.email ?? "", origem: l.utm_source ?? l.origin_page ?? l.discovery_source ?? null })),
+        leadsAnteriores: ant.count ?? 0,
+        respostas,
+        etapas: (etapas.data ?? []) as any[],
+        oportunidades: (opps.data ?? []) as any[],
+      }),
+    };
   });

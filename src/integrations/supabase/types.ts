@@ -568,6 +568,7 @@ export type Database = {
           category_id: string | null
           code: string
           created_at: string
+          menu_config: Json
           description: string | null
           image_url: string | null
           depth_url: string | null
@@ -587,6 +588,7 @@ export type Database = {
           category_id?: string | null
           code: string
           created_at?: string
+          menu_config?: Json
           description?: string | null
           image_url?: string | null
           depth_url?: string | null
@@ -606,6 +608,7 @@ export type Database = {
           category_id?: string | null
           code?: string
           created_at?: string
+          menu_config?: Json
           description?: string | null
           image_url?: string | null
           depth_url?: string | null
@@ -1618,6 +1621,7 @@ export type Database = {
       }
       restaurants: {
         Row: {
+          brand_context: Json
           address: string | null
           bill_payment_methods: string[]
           cnpj: string | null
@@ -1638,6 +1642,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          brand_context?: Json
           address?: string | null
           bill_payment_methods?: string[]
           cnpj?: string | null
@@ -1658,6 +1663,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          brand_context?: Json
           address?: string | null
           bill_payment_methods?: string[]
           cnpj?: string | null
