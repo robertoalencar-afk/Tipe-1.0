@@ -53,8 +53,8 @@ function GravarNfcPagina() {
           </p>
           {estado.modo === "sem-nfc" ? (
             <p className="text-sm">
-              Este aparelho não grava NFC por aqui. Abra esta página num Android com Chrome (NFC ligado)
-              ou num iPhone.
+              Este aparelho não grava NFC por aqui. Abra esta página num Android com Chrome (NFC
+              ligado) ou num iPhone.
             </p>
           ) : (
             <GravadorEtiqueta
