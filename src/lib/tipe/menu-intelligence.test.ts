@@ -9,6 +9,7 @@ import {
   relatedItems,
   safeMenuLink,
   translatedItem,
+  menuPhotoCredit,
 } from "./menu-intelligence";
 
 const item = (code: string, name: string, config = {}) => ({
@@ -20,6 +21,31 @@ const item = (code: string, name: string, config = {}) => ({
   config: readMenuConfig(config),
 });
 describe("cardápio inteligente", () => {
+  const credit = {
+    imageUrl: "https://storage.example/photo.webp",
+    illustrative: true,
+    author: "Fotógrafo",
+    sourceUrl: "https://commons.wikimedia.org/wiki/File:Photo.jpg",
+    license: "CC BY-SA 4.0",
+    licenseUrl: "https://creativecommons.org/licenses/by-sa/4.0/",
+  };
+  it("preserves attribution but never attaches it to a replacement photo", () => {
+    const config = readMenuConfig({ photoCredit: credit, diets: ["vegetarian"] });
+    expect(menuPhotoCredit(config, credit.imageUrl)).toEqual(credit);
+    expect(menuPhotoCredit(config, "https://storage.example/new.webp")).toBeUndefined();
+    expect(menuPhotoCredit(config, null)).toBeUndefined();
+  });
+  it.each(["javascript:alert(1)", "data:text/html,bad", "https://user:password@example.com"])(
+    "ignores unsafe credit links without losing menu settings: %s",
+    (sourceUrl) => {
+      const config = readMenuConfig({
+        photoCredit: { ...credit, sourceUrl },
+        diets: ["vegetarian"],
+      });
+      expect(config.photoCredit).toBeUndefined();
+      expect(config.diets).toEqual(["vegetarian"]);
+    },
+  );
   it("finds accented names, ingredients and categories", () => {
     const items = [item("B", "Baião")];
     for (const query of ["baiao", " QUEIJO ", "refeicoes"])
