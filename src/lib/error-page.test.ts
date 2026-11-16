@@ -6,7 +6,7 @@ describe("páginas de erro estáticas", () => {
   it("500 em português, na marca, sem detalhes internos", () => {
     const html = renderErrorPage();
     expect(html).toContain('lang="pt-BR"');
-    expect(html).toContain("Esta página não carregou");
+    expect(html).toContain("A cozinha derrubou a bandeja");
     expect(html).toContain("/marca/tipe-logo.svg");
     expect(html).not.toMatch(/stack|Error:|undefined/);
   });

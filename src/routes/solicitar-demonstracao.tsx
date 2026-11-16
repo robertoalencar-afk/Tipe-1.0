@@ -5,7 +5,7 @@
  * 04/11: cada foto aparece uma vez só na página (cenas do casting).
  */
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { WaitlistForm } from "@/components/tipe/WaitlistForm";
 import { LandingFooter, LandingHeader } from "@/components/tipe/landing/LandingChrome";
@@ -14,7 +14,7 @@ import { ResultadosMesa } from "@/components/tipe/site/ResultadosMesa";
 import { SimboloTipe } from "@/components/tipe/landing/Marcas";
 import { useVelocidadeFaixa } from "@/components/tipe/landing/motion";
 import { useMovimentoReduzido, useVisivel } from "@/components/tipe/site/produto/useVisivel";
-import mascotWaiting from "@/assets/lebre/rosto-ola.webp";
+import { LebreConversa } from "@/components/tipe/site/LebreConversa";
 import { cn } from "@/lib/utils";
 
 const TITLE = "Solicitar demonstração | TIPE";
@@ -105,14 +105,7 @@ function Topo() {
           </Link>
           .
         </p>
-        <img
-          src={mascotWaiting}
-          alt=""
-          aria-hidden
-          width={1024}
-          height={1024}
-          className="bob mt-8 hidden w-32 lg:block"
-        />
+        <LebreConversa className="mt-10 hidden max-w-md lg:flex" />
       </div>
       <div
         id="formulario"
@@ -194,9 +187,9 @@ const GRUPOS: { id: string; nome: string; cor: string; slides: Slide[] }[] = [
         eyebrow: "Para o cliente",
         titulo: "Pague sem esperar a maquininha.",
         texto:
-          "QR Code na mesa e conta ao vivo. Dinheiro e maquininha no local disponíveis; Pix e carteiras digitais sujeitos à validação por restaurante.",
-        scene: "pix-mao",
-        alt: "Cliente com o Pix aprovado no celular ao lado do totem da Tipe",
+          "QR Code na mesa, conta ao vivo e nenhum aplicativo para baixar. Dinheiro e maquininha no local disponíveis; Pix e carteiras digitais sujeitos à validação por restaurante.",
+        scene: "cena-casal",
+        alt: "Casal à mesa pagando pelo celular, com o totem da Tipe entre os pratos",
         selo: ["Pix aprovado", "Sua parte: R$ 51,97"],
         link: ["/pay", "Como o cliente paga"],
       },
@@ -210,15 +203,6 @@ const GRUPOS: { id: string; nome: string; cor: string; slides: Slide[] }[] = [
         selo: ["Mesa 12 fechada", "3 pessoas pagaram"],
         link: ["/simulador", "Testar o simulador"],
       },
-      {
-        eyebrow: "Para o cliente",
-        titulo: "Sem baixar aplicativo.",
-        texto: "A conta abre direto na câmera do celular, em segundos.",
-        scene: "scan",
-        alt: "Cliente lendo o QR Code do totem com a câmera do celular",
-        selo: ["Conta aberta", "Mesa 12 · Maré Alta"],
-        link: ["/#como-funciona", "Ver a Mesa Viva"],
-      },
     ],
   },
   {
@@ -231,8 +215,8 @@ const GRUPOS: { id: string; nome: string; cor: string; slides: Slide[] }[] = [
         titulo: "A gorjeta extra tem destino claro.",
         texto:
           "70% da gorjeta extra vai para quem atendeu e 30% para a Tipe. Saques seguem ciclos quinzenais e confirmação do Pix.",
-        scene: "garcom",
-        alt: "Garçom sorrindo com a bandeja no salão, ao lado do totem da Tipe",
+        scene: "cena-garcom",
+        alt: "Garçom sorrindo no salão, ao lado do totem da Tipe na mesa",
         selo: ["Gorjeta extra da Mesa 12", "R$ 7,00 no seu saldo"],
         link: ["/equipe", "Área do garçom"],
       },
@@ -240,8 +224,8 @@ const GRUPOS: { id: string; nome: string; cor: string; slides: Slide[] }[] = [
         eyebrow: "Para a equipe",
         titulo: "Menos corrida com maquininha.",
         texto: "O garçom atende mais mesas e só leva a maquininha a quem escolher pagar no local.",
-        scene: "cena-garconete",
-        alt: "Garçonete no balcão acompanhando as mesas pelo celular",
+        scene: "cena-bartender",
+        alt: "Bartender no balcão com o totem da Tipe ao lado, sem correr com a maquininha",
         selo: ["Mesa 07", "Paga pelo celular"],
         link: ["/equipe", "Como a equipe usa"],
       },
@@ -291,8 +275,8 @@ const GRUPOS: { id: string; nome: string; cor: string; slides: Slide[] }[] = [
         eyebrow: "Para o dono",
         titulo: "Mais giro, sem taxa para o cliente.",
         texto: "Assinatura mensal por número de mesas. Quem está na mesa não paga nada a mais.",
-        scene: "cena-familia",
-        alt: "Família almoçando com o totem da Tipe na mesa",
+        scene: "cena-dono",
+        alt: "Dono do restaurante acompanhando as vendas no notebook",
         selo: ["Sem taxa para o cliente", "Assinatura por mesas"],
         link: ["/precos", "Ver preços"],
       },
@@ -301,45 +285,64 @@ const GRUPOS: { id: string; nome: string; cor: string; slides: Slide[] }[] = [
 ];
 
 function Categorias() {
+  const [ativo, setAtivo] = useState(0);
+  const g = GRUPOS[ativo] ?? GRUPOS[0]!;
   return (
     <section aria-labelledby="beneficios" className="pb-24 pt-20 sm:pb-32 sm:pt-28">
       <div className="container-page">
+        <p className="font-display text-[clamp(1.2rem,1rem+0.8vw,1.6rem)] text-brand-strong">
+          Para cada pessoa do salão
+        </p>
         <h2
           id="beneficios"
-          className="max-w-3xl font-display text-[clamp(2.4rem,1.4rem+3.4vw,4.6rem)] font-medium leading-[1]"
+          className="mt-3 max-w-3xl font-display text-[clamp(2.4rem,1.4rem+3.4vw,4.6rem)] font-medium leading-[1]"
         >
           A Tipe trabalha para todo mundo do salão.
         </h2>
-        <ul className="mt-8 flex flex-wrap gap-2.5">
-          {GRUPOS.map((g) => (
-            <li key={g.id}>
-              <a
-                href={`#${g.id}`}
-                className="inline-flex h-11 items-center rounded-full border border-border px-5 font-medium hover:border-foreground/40"
-              >
-                {g.nome}
-              </a>
-            </li>
+        <div role="tablist" aria-label="Escolha quem você é" className="mt-8 flex flex-wrap gap-2.5">
+          {GRUPOS.map((x, n) => (
+            <button
+              key={x.id}
+              id={`aba-${x.id}`}
+              type="button"
+              role="tab"
+              aria-selected={n === ativo}
+              aria-controls="painel-beneficios"
+              onClick={() => setAtivo(n)}
+              className={cn(
+                "btn-press inline-flex h-11 items-center gap-2 rounded-full border px-5 font-medium transition-colors",
+                n === ativo
+                  ? "border-foreground bg-foreground text-background"
+                  : "border-border hover:border-foreground/40",
+              )}
+            >
+              <span aria-hidden className="h-2 w-2 rounded-full" style={{ background: x.cor }} />
+              {x.nome}
+            </button>
           ))}
-        </ul>
+        </div>
       </div>
-      <div className="container-page mt-12 space-y-8 sm:space-y-12">
-        {GRUPOS.map((g) => (
-          <Carrossel key={g.id} id={g.id} cor={g.cor} slides={g.slides} />
-        ))}
+      <div
+        id="painel-beneficios"
+        role="tabpanel"
+        aria-labelledby={`aba-${g.id}`}
+        className="container-page mt-10"
+      >
+        <Carrossel key={g.id} cor={g.cor} slides={g.slides} />
       </div>
     </section>
   );
 }
 
-const PASSO_MS = 6000;
+const PASSO_MS = 6500;
 
-/** Carrossel que anda sozinho na tela; para com o mouse ou o foco em cima e com movimento reduzido. */
-function Carrossel({ id, cor, slides }: { id: string; cor: string; slides: Slide[] }) {
+/** Carrossel de tela cheia: a foto aproxima devagar, o texto fica sobre ela e o grupo anda sozinho. */
+function Carrossel({ cor, slides }: { cor: string; slides: Slide[] }) {
   const [i, setI] = useState(0);
   const [parado, setParado] = useState(false);
   const [ref, visivel] = useVisivel<HTMLDivElement>();
   const reduzido = useMovimentoReduzido();
+  const inicio = useRef<number | null>(null);
   const anda = slides.length > 1 && visivel && !parado && !reduzido;
   const s = slides[i] ?? slides[0]!;
   const ir = (d: number) => setI((v) => (v + d + slides.length) % slides.length);
@@ -351,37 +354,111 @@ function Carrossel({ id, cor, slides }: { id: string; cor: string; slides: Slide
   return (
     <div
       ref={ref}
-      id={id}
-      onPointerEnter={() => setParado(true)}
-      onPointerLeave={() => setParado(false)}
+      onPointerEnter={(e) => e.pointerType === "mouse" && setParado(true)}
+      onPointerLeave={(e) => e.pointerType === "mouse" && setParado(false)}
       onFocus={() => setParado(true)}
       onBlur={() => setParado(false)}
-      className="grid scroll-mt-24 overflow-hidden rounded-[2.5rem] bg-background-muted lg:grid-cols-2"
+      onTouchStart={(e) => {
+        inicio.current = e.touches[0]?.clientX ?? null;
+      }}
+      onTouchEnd={(e) => {
+        const x0 = inicio.current;
+        const x1 = e.changedTouches[0]?.clientX;
+        inicio.current = null;
+        if (x0 == null || x1 == null || Math.abs(x1 - x0) < 48) return;
+        ir(x1 < x0 ? 1 : -1);
+      }}
+      className="relative isolate min-h-[34rem] overflow-hidden rounded-[2.5rem] bg-ink text-white sm:min-h-[38rem]"
     >
-      <div className="flex flex-col justify-center p-8 sm:p-12 lg:p-16">
+      {slides.map((x, n) => (
+        <div
+          key={x.titulo}
+          aria-hidden={n !== i}
+          className={cn(
+            "absolute inset-0 transition-opacity duration-700 motion-reduce:transition-none",
+            n === i ? "opacity-100" : "opacity-0",
+          )}
+        >
+          <div key={n === i ? `on${i}` : "off"} className={cn("h-full w-full", n === i && "zoom-lento")}>
+            <Foto
+              nome={x.scene}
+              alt={x.alt}
+              sizes="(min-width: 1024px) 1200px, 100vw"
+              className="h-full w-full"
+            />
+          </div>
+        </div>
+      ))}
+      <div
+        aria-hidden
+        className="absolute inset-0 bg-[linear-gradient(0deg,oklch(0.2_0.04_250/0.92)_0%,oklch(0.2_0.04_250/0.55)_45%,oklch(0.2_0.04_250/0.05)_80%)] lg:bg-[linear-gradient(90deg,oklch(0.2_0.04_250/0.9)_0%,oklch(0.2_0.04_250/0.6)_38%,transparent_68%)]"
+      />
+      <div
+        key={`selo${i}`}
+        className="pop-in absolute right-5 top-5 max-w-[15rem] rounded-2xl border border-white/20 bg-white/10 p-3.5 backdrop-blur-xl sm:right-8 sm:top-8"
+      >
+        <p className="flex items-center gap-2 text-sm font-semibold">
+          <span className="grid h-6 w-6 place-items-center rounded-full bg-brand text-ink">
+            <Check className="h-3.5 w-3.5" strokeWidth={3} />
+          </span>
+          {s.selo[0]}
+        </p>
+        <p className="mt-1 pl-8 text-sm text-white/75">{s.selo[1]}</p>
+      </div>
+      <div className="relative flex min-h-[34rem] flex-col justify-end p-6 sm:min-h-[38rem] sm:p-10 lg:max-w-[40rem] lg:p-14">
         <div key={i} className="hero-in">
-          <p className="font-display text-[clamp(1.4rem,1.1rem+1vw,2rem)]" style={{ color: cor }}>
-            {s.eyebrow}
+          <p className="font-display text-[clamp(1.2rem,1rem+0.8vw,1.6rem)]" style={{ color: cor }}>
+            <span className="rounded-full bg-white/90 px-3 py-1 text-ink">{s.eyebrow}</span>
           </p>
-          <h3 className="mt-6 font-display text-[clamp(2.2rem,1.4rem+2.6vw,3.6rem)] font-medium leading-[1.02] tracking-[-0.035em]">
+          <h3 className="mt-5 font-display text-[clamp(2.1rem,1.3rem+2.6vw,3.6rem)] font-medium leading-[1.02]">
             {s.titulo}
           </h3>
-          <p className="mt-6 max-w-md text-lg leading-relaxed text-muted-foreground">{s.texto}</p>
+          <p className="mt-4 max-w-md text-lg leading-relaxed text-white/80">{s.texto}</p>
           <a
             href={s.link[0]}
-            className="btn-press mt-8 inline-flex h-14 items-center gap-2 rounded-full border border-border bg-surface px-7 font-medium hover:border-foreground/40"
+            className="btn-press mt-7 inline-flex h-12 items-center gap-2 rounded-full bg-white px-6 font-medium text-ink hover:bg-white/90"
           >
             {s.link[1]} <ArrowRight className="h-4 w-4" />
           </a>
         </div>
-        {slides.length > 1 && (
-          <div className="mt-10 flex items-center justify-between">
-            <div className="flex gap-3">
+        <div className="mt-8 flex items-center gap-4">
+          <div className="flex flex-1 gap-2" role="group" aria-label="Escolher slide">
+            {slides.map((x, n) => (
+              <button
+                key={x.titulo}
+                type="button"
+                aria-label={`Mostrar: ${x.titulo}`}
+                aria-current={n === i}
+                onClick={() => setI(n)}
+                className="relative h-1.5 max-w-20 flex-1 overflow-hidden rounded-full bg-white/30"
+              >
+                <span
+                  key={`${i}-${anda}`}
+                  className={cn(
+                    "absolute inset-y-0 left-0 rounded-full bg-white",
+                    n === i && "carrossel-progresso",
+                  )}
+                  style={
+                    n < i || (n === i && !anda)
+                      ? { width: "100%" }
+                      : n === i
+                        ? { animationDuration: `${PASSO_MS}ms` }
+                        : { width: "0%" }
+                  }
+                />
+              </button>
+            ))}
+          </div>
+          <span aria-hidden className="text-sm tabular-nums text-white/70">
+            {String(i + 1).padStart(2, "0")} / {String(slides.length).padStart(2, "0")}
+          </span>
+          {slides.length > 1 && (
+            <div className="flex gap-2">
               <button
                 type="button"
                 onClick={() => ir(-1)}
                 aria-label="Anterior"
-                className="btn-press grid h-14 w-14 place-items-center rounded-full border border-border bg-surface hover:border-foreground/40"
+                className="btn-press grid h-11 w-11 place-items-center rounded-full border border-white/30 hover:bg-white/10"
               >
                 <ArrowLeft className="h-5 w-5" />
               </button>
@@ -389,70 +466,12 @@ function Carrossel({ id, cor, slides }: { id: string; cor: string; slides: Slide
                 type="button"
                 onClick={() => ir(1)}
                 aria-label="Próximo"
-                className="btn-press grid h-14 w-14 place-items-center rounded-full border border-border bg-surface hover:border-foreground/40"
+                className="btn-press grid h-11 w-11 place-items-center rounded-full border border-white/30 hover:bg-white/10"
               >
                 <ArrowRight className="h-5 w-5" />
               </button>
             </div>
-            <div className="flex gap-2">
-              {slides.map((x, n) => (
-                <button
-                  key={x.titulo}
-                  type="button"
-                  aria-label={`Mostrar: ${x.titulo}`}
-                  aria-current={n === i}
-                  onClick={() => setI(n)}
-                  className={cn(
-                    "relative h-2.5 overflow-hidden rounded-full bg-foreground/20 transition-all",
-                    n === i ? "w-10" : "w-2.5",
-                  )}
-                >
-                  {n === i && (
-                    <span
-                      key={`${i}-${anda}`}
-                      className="carrossel-progresso absolute inset-y-0 left-0 rounded-full bg-foreground"
-                      style={{
-                        animationDuration: `${PASSO_MS}ms`,
-                        animationPlayState: anda ? "running" : "paused",
-                        width: anda ? undefined : "100%",
-                      }}
-                    />
-                  )}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-      <div className="relative min-h-[22rem] lg:min-h-[34rem]">
-        {slides.map((x, n) => (
-          <div
-            key={x.titulo}
-            aria-hidden={n !== i}
-            className={cn(
-              "absolute inset-0 transition-opacity duration-700 motion-reduce:transition-none",
-              n === i ? "opacity-100" : "opacity-0",
-            )}
-          >
-            <Foto
-              nome={x.scene}
-              alt={x.alt}
-              sizes="(min-width: 1024px) 50vw, 100vw"
-              className="h-full w-full"
-            />
-          </div>
-        ))}
-        <div
-          key={`selo${i}`}
-          className="pop-in absolute bottom-6 right-6 max-w-[16rem] rounded-2xl border border-white/15 bg-[oklch(0.15_0_0/0.6)] p-4 text-white backdrop-blur-xl"
-        >
-          <p className="flex items-center gap-2 font-semibold">
-            <span className="grid h-6 w-6 place-items-center rounded-full bg-brand text-ink">
-              <Check className="h-3.5 w-3.5" strokeWidth={3} />
-            </span>
-            {s.selo[0]}
-          </p>
-          <p className="mt-1 pl-8 text-sm text-white/70">{s.selo[1]}</p>
+          )}
         </div>
       </div>
     </div>

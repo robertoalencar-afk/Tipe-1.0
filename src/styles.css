@@ -2337,3 +2337,37 @@
   .lebre-bigodes-esquerda { animation: lebre-bigodes 6.5s ease-in-out infinite; }
   .lebre-bigodes-direita { animation: lebre-bigodes 6.5s ease-in-out infinite reverse; }
 }
+
+/* Lebre de corpo inteiro (conversa na demonstração e páginas de erro). */
+@keyframes tipe-lebre-balanco {
+  0%, 100% { transform: translateY(0) rotate(-1.2deg); }
+  50% { transform: translateY(-8px) rotate(1.2deg); }
+}
+.lebre-balanco {
+  transform-origin: 50% 100%;
+  animation: tipe-lebre-balanco 4.2s ease-in-out infinite;
+}
+@keyframes tipe-lebre-tropeco {
+  0%, 100% { transform: rotate(0deg); }
+  20% { transform: rotate(-9deg) translateX(-6px); }
+  45% { transform: rotate(7deg) translateX(5px); }
+  70% { transform: rotate(-3deg); }
+}
+.lebre-tropeco {
+  transform-origin: 50% 100%;
+  animation: tipe-lebre-tropeco 0.9s ease-in-out;
+}
+@keyframes tipe-ponto {
+  0%, 80%, 100% { opacity: 0.25; transform: translateY(0); }
+  40% { opacity: 1; transform: translateY(-3px); }
+}
+.ponto-digitando { animation: tipe-ponto 1s ease-in-out infinite; }
+/* Carrossel: a foto aproxima devagar enquanto o slide está na tela. */
+@keyframes tipe-zoom-lento {
+  from { transform: scale(1.02); }
+  to { transform: scale(1.1); }
+}
+.zoom-lento { animation: tipe-zoom-lento 7s ease-out both; }
+@media (prefers-reduced-motion: reduce) {
+  .lebre-balanco, .lebre-tropeco, .ponto-digitando, .zoom-lento { animation: none !important; }
+}
