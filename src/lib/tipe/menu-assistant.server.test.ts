@@ -7,6 +7,7 @@ const m = vi.hoisted(() => ({
   claimed: true,
   allowed: true,
   auto: true,
+  dishes: [] as Array<Record<string, unknown>>,
 }));
 vi.mock("./ai.server", () => ({ askAI: m.ai }));
 const rid = "11111111-1111-4111-8111-111111111111";
@@ -48,7 +49,7 @@ vi.mock("@/integrations/supabase/client.server", () => ({
                       reviewed_at: null,
                     }
                   : table === "pdv_menu_items"
-                    ? [dish]
+                    ? m.dishes
                     : [],
             error: null,
           }),
@@ -64,6 +65,7 @@ beforeEach(() => {
   m.claimed = true;
   m.allowed = true;
   m.auto = true;
+  m.dishes = [dish];
   m.rpc.mockImplementation(async (name: string) => ({
     data:
       name === "claim_menu_assistant"
@@ -75,6 +77,59 @@ beforeEach(() => {
   }));
 });
 describe("Lebre acompanha o cardápio", () => {
+  it("repairs missing descriptions even when translated names are already current", async () => {
+    m.dishes = [
+      {
+        ...dish,
+        menu_config: {
+          translationSource: menuSource(dish),
+          translations: { en: { name: "Juice", description: "" } },
+        },
+      },
+    ];
+    m.ai
+      .mockResolvedValueOnce(
+        JSON.stringify({
+          items: [
+            {
+              id: dish.id,
+              translations: {
+                en: { name: "Juice", description: "Cashew" },
+              },
+            },
+          ],
+        }),
+      )
+      .mockResolvedValueOnce('{"suggestions":[]}');
+    await runMenuAssistant(rid);
+    expect(
+      m.rpc.mock.calls.find(([name]) => name === "publish_menu_translation")?.[1].p_config
+        .translations.en.description,
+    ).toBe("Cashew");
+  });
+  it("translates eight pending products per review and leaves the rest for the next lease", async () => {
+    m.dishes = Array.from({ length: 9 }, (_, n) => ({
+      ...dish,
+      id: `aaaaaaaa-aaaa-4aaa-8aaa-${String(n).padStart(12, "0")}`,
+    }));
+    m.ai
+      .mockResolvedValueOnce(
+        JSON.stringify({
+          items: m.dishes.slice(0, 8).map((i) => ({
+            id: i["id"],
+            translations: { en: { name: "Juice", description: "Cashew" } },
+          })),
+        }),
+      )
+      .mockResolvedValueOnce('{"suggestions":[]}');
+    await runMenuAssistant(rid);
+    expect(m.rpc.mock.calls.filter(([name]) => name === "publish_menu_translation")).toHaveLength(
+      8,
+    );
+    const input = JSON.parse(m.ai.mock.calls[0]![0].question);
+    expect(input.items).toHaveLength(8);
+    expect(m.rpc.mock.calls.filter(([name]) => name === "lebre_consume")).toHaveLength(2);
+  });
   it("does not call AI when another worker owns the lease or the restaurant is disabled", async () => {
     m.claimed = false;
     await runMenuAssistant(rid);

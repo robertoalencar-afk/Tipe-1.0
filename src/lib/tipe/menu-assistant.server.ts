@@ -76,10 +76,14 @@ export async function runMenuAssistant(restaurantId: string) {
               const c = readMenuConfig(i.menu_config);
               return (
                 c.translationSource !== menuSource(i) ||
-                languages.some((l) => !c.translations[l as "en" | "es"]?.name)
+                languages.some(
+                  (l) =>
+                    !c.translations[l as "en" | "es"]?.name ||
+                    (!!i.description && !c.translations[l as "en" | "es"]?.description),
+                )
               );
             })
-            .slice(0, 3)
+            .slice(0, 8)
         : [];
     if (pending.length) {
       try {
@@ -93,7 +97,7 @@ export async function runMenuAssistant(restaurantId: string) {
               description: i.description ?? "",
             })),
           }),
-          2000,
+          6000,
         );
         const translated = z
           .object({
@@ -104,7 +108,7 @@ export async function runMenuAssistant(restaurantId: string) {
                   translations: MenuConfigSchema.shape.translations,
                 }),
               )
-              .max(3),
+              .max(8),
           })
           .parse(decode(answer));
         for (const source of pending) {
@@ -132,7 +136,7 @@ export async function runMenuAssistant(restaurantId: string) {
             translationSource: menuSource(source),
           };
           // Atomic opt-in and compare-and-swap check, including concurrent owner edits.
-          const { error } = await db.rpc("publish_menu_translation", {
+          const { data: published, error } = await db.rpc("publish_menu_translation", {
             p_restaurant: restaurantId,
             p_item: source.id,
             p_source: [source.name, source.description ?? ""],
@@ -140,7 +144,7 @@ export async function runMenuAssistant(restaurantId: string) {
             p_config: config,
             p_languages: settings.languages,
           });
-          if (error) throw new Error("Não foi possível publicar a tradução.");
+          if (error || !published) throw new Error("Não foi possível publicar a tradução.");
         }
       } catch {
         notice =
