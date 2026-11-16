@@ -22,3 +22,4 @@ Checklist ao mudar o fluxo de conta, pagamento, gorjeta, taxa de serviço, nomes
 - O administrador abre a mesa para um garçom específico (Gestão, ao abrir a mesa). Só esse garçom lança pedidos e libera o celular da mesa; a designação some ao fechar a conta.
 - O garçom tem o modo "Maquininha" (uma mesa por linha, botões grandes) para PDV manual.
 - Simuladores revisados: texto do fluxo de Mesas em `src/lib/tipe/order/modalidades.ts` (usado pelo seletor e pelo simulador da landing).
+- Pré-conta impressa (Gestão e garçom) traz o QR da conta da mesa para pagar pelo Tipe Pay; o fluxo de Mesas em `modalidades.ts` já menciona isso.

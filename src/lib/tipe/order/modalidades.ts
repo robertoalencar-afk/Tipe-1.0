@@ -124,7 +124,7 @@ export const DEFINICOES: Record<Modalidade, DefinicaoModalidade> = {
       { quem: "equipe", o_que: "O garçom da mesa acompanha o status e leva o prato" },
       { quem: "sistema", o_que: "Os itens entram na conta da mesa" },
       { quem: "cliente", o_que: "Confere, divide e paga pelo Tipe Pay" },
-      { quem: "caixa", o_que: "Vê a confirmação no painel" },
+      { quem: "caixa", o_que: "Vê a confirmação no painel; a pré-conta impressa traz o QR da mesa para pagar pelo Tipe Pay" },
     ],
     beneficios: [
       { t: "Ninguém espera para pedir", d: "O cliente pede quando quer, sem chamar alguém." },

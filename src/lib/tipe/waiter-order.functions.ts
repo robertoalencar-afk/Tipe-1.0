@@ -43,6 +43,8 @@ export type WaiterTable = {
   disponivel: number;
   itens: { code: string; name: string; qty: number; unitPrice: number }[];
   minhaMesa: boolean;
+  /** Endereço da conta da mesa (QR da pré-conta). */
+  qrPath: string;
 };
 
 export type WaiterPos = {
@@ -86,7 +88,7 @@ export const getWaiterPos = createServerFn({ method: "GET" })
         .eq("restaurant_id", rid)
         .eq("available", true)
         .order("position"),
-      db.from("restaurant_tables").select("number, active, waiter_id").eq("restaurant_id", rid),
+      db.from("restaurant_tables").select("number, active, waiter_id, code, access_token").eq("restaurant_id", rid),
       db
         .from("table_bill_items")
         .select(
@@ -163,6 +165,7 @@ export const getWaiterPos = createServerFn({ method: "GET" })
             unitPrice: i.unit_price,
           })),
           minhaMesa: t.waiter_id === w.id,
+          qrPath: `/${slug}/${t.code}?t=${t.access_token}`,
         };
       });
 

@@ -300,6 +300,7 @@ export function GarcomAtender() {
               restaurante={pos.restaurantName}
               garcom={pos.waiter.name}
               taxa={pos.serviceRate}
+              qr={(typeof window !== "undefined" && !/workers\.dev|localhost/.test(window.location.origin) ? window.location.origin : "https://tipe.digital") + mesa.qrPath}
             />
           )}
         </DialogContent>
@@ -322,7 +323,7 @@ export function GarcomAtender() {
   );
 }
 
-function ComandaMesa({ mesa, slug, onLancar, restaurante, garcom, taxa }: { mesa: WaiterTable; slug: string; onLancar: () => void; restaurante: string; garcom: string; taxa: number }) {
+function ComandaMesa({ mesa, slug, onLancar, restaurante, garcom, taxa, qr }: { mesa: WaiterTable; slug: string; onLancar: () => void; restaurante: string; garcom: string; taxa: number; qr: string }) {
   return (
     <>
       <DialogHeader>
@@ -330,7 +331,7 @@ function ComandaMesa({ mesa, slug, onLancar, restaurante, garcom, taxa }: { mesa
       </DialogHeader>
       <div className="space-y-4">
         <LiberarPedidosMesa slug={slug} table={mesa.number} />
-        <BotaoPreConta restaurante={restaurante} mesa={mesa.number} garcom={garcom} taxa={taxa} linhas={mesa.itens.map((i) => ({ qty: i.qty, nome: i.name, unit: i.unitPrice }))} />
+        <BotaoPreConta restaurante={restaurante} mesa={mesa.number} garcom={garcom} taxa={taxa} link={qr} linhas={mesa.itens.map((i) => ({ qty: i.qty, nome: i.name, unit: i.unitPrice }))} />
         <div className="rounded-2xl bg-muted/60 p-3">
           <div className="flex items-baseline justify-between">
             <span className="text-sm text-muted-foreground">Total da conta</span>

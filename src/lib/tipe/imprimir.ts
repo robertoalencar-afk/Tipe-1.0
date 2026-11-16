@@ -15,6 +15,7 @@ h2 { font-size: 22px; margin: 6px 0; text-align: center; }
 hr { border: 0; border-top: 1px dashed #000; margin: 6px 0; }
 .l { display: flex; justify-content: space-between; gap: 6px; }
 .l span:first-child { flex: 1; } .t { font-weight: 700; font-size: 15px; }
+.c svg { width: 34mm; height: 34mm; margin: 4px auto; display: block; }
 .obs { margin-left: 14px; font-weight: 700; }
 `;
 
@@ -36,12 +37,18 @@ export function totaisPreConta(linhas: LinhaConta[], taxa: number) {
   return { subtotal, servico, total: Math.round((subtotal + servico) * 100) / 100 };
 }
 
-export function htmlPreConta(v: { restaurante: string; mesa: string; garcom?: string | null; hora: Date; linhas: LinhaConta[]; taxa: number }) {
+/** Endereço que o QR da pré-conta abre: a conta da mesa, onde o cliente divide e paga pelo Tipe Pay. */
+export function linkMesa(slug: string, code: string, token: string, origem?: string) {
+  const base = origem && !/workers\.dev|localhost/.test(origem) ? origem : "https://tipe.digital";
+  return `${base}/${slug}/${code}?t=${token}`;
+}
+
+export function htmlPreConta(v: { restaurante: string; mesa: string; garcom?: string | null; hora: Date; linhas: LinhaConta[]; taxa: number; qrSvg?: string | null }) {
   const t = totaisPreConta(v.linhas, v.taxa);
   const linhas = v.linhas
     .map((l) => `<div class="l"><span>${l.qty}× ${esc(l.nome)}</span><span>${brl(l.qty * l.unit)}</span></div>`)
     .join("");
-  return `<h1>${esc(v.restaurante)}</h1><div class="c m">PRÉ-CONTA · ${v.hora.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</div><hr><div class="c t">Mesa ${esc(v.mesa)}</div>${v.garcom ? `<div class="c m">Garçom: ${esc(v.garcom)}</div>` : ""}<hr>${linhas}<hr><div class="l"><span>Subtotal</span><span>${brl(t.subtotal)}</span></div>${v.taxa > 0 ? `<div class="l"><span>Serviço (${Math.round(v.taxa * 1000) / 10}%)</span><span>${brl(t.servico)}</span></div>` : ""}<div class="l t"><span>Total</span><span>${brl(t.total)}</span></div><hr><div class="c m">Sem valor fiscal. Para conferência da mesa.</div>`;
+  return `<h1>${esc(v.restaurante)}</h1><div class="c m">PRÉ-CONTA · ${v.hora.toLocaleString("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" })}</div><hr><div class="c t">Mesa ${esc(v.mesa)}</div>${v.garcom ? `<div class="c m">Garçom: ${esc(v.garcom)}</div>` : ""}<hr>${linhas}<hr><div class="l"><span>Subtotal</span><span>${brl(t.subtotal)}</span></div>${v.taxa > 0 ? `<div class="l"><span>Serviço (${Math.round(v.taxa * 1000) / 10}%)</span><span>${brl(t.servico)}</span></div>` : ""}<div class="l t"><span>Total</span><span>${brl(t.total)}</span></div><hr>${v.qrSvg ? `<div class="c">${v.qrSvg}</div><div class="c m">Aponte a câmera para dividir e pagar pelo Tipe Pay</div><hr>` : ""}<div class="c m">Sem valor fiscal. Para conferência da mesa.</div>`;
 }
 
 /** Imprime um trecho de HTML num iframe oculto. */
