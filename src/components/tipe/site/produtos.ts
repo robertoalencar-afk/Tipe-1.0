@@ -761,6 +761,10 @@ export const PRODUTOS: Produto[] = [
         "Não. Ela responde e propõe. A ação só acontece quando você toca em Confirmar, e cada uma fica registrada.",
       ],
       [
+        "A Lebre ajuda a conectar as integrações?",
+        "Ajuda. Pergunte \"como integro o iFood?\" ou o nome de qualquer sistema do catálogo (PDV, delivery, ERP, nota fiscal, pagamentos, cardápio) e ela mostra o passo a passo, inclusive onde gerar a chave de API ou o código de autorização. A chave você cola só no painel, em Configurar › Integrações, onde fica criptografada. Se alguém colar uma chave na conversa, a Lebre não usa nem guarda.",
+      ],
+      [
         "A Lebre tem memória?",
         'Tem. Ela aprende com cada restaurante e com cada pessoa da equipe: como vocês chamam os pratos, qual mesa é a da varanda, como você prefere as respostas. Diga "lembre que..." para ensinar, "o que você lembra?" para ver e "esqueça..." para apagar. A memória de um restaurante nunca aparece para outro.',
       ],

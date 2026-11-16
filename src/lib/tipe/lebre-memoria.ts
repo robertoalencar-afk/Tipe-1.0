@@ -7,6 +7,7 @@ const SENSIVEL: Array<[RegExp, string]> = [
   [/\b\d{2}\.?\d{3}\.?\d{3}\/?\d{4}-?\d{2}\b/, "CNPJ"],
   [/\b(?:\d[ -]?){13,19}\b/, "número de cartão"],
   [/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i, "e-mail"],
+  [/\b(?:sk|pk|ak|rk)_[A-Za-z0-9_]{12,}|\beyJ[A-Za-z0-9_-]{10,}\.|\b(?=[A-Za-z0-9_-]{28,}\b)(?=[A-Za-z0-9_-]*\d)[A-Za-z0-9_-]+\b/, "chave ou token"],
   [/(?:\+?55\s?)?\(?\d{2}\)?\s?9?\d{4}[-\s]?\d{4}\b/, "telefone"],
   [
     /\b(senha|password|token|api[ _-]?key|chave pix|cvv|cvc|c[oó]digo de seguran[cç]a|conta banc[aá]ria|ag[eê]ncia|\brg\b)/i,
