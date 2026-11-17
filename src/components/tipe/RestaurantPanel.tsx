@@ -71,6 +71,7 @@ import { UploadImagem } from "@/components/tipe/UploadImagem";
 import { BancoImagens } from "@/components/tipe/BancoImagens";
 import { ComoFuncionaGestao } from "@/components/tipe/ComoFuncionaGestao";
 import { PerfilConta, useMeuPerfil } from "@/components/tipe/PerfilConta";
+import { avisoDasPendencias, type Pendencia } from "@/lib/tipe/pendencias";
 import { getMidia, saveLogo } from "@/lib/tipe/midia.functions";
 import { Image as ImagemIcon, Images, BookOpen, Camera } from "lucide-react";
 import { StudioFotos } from "@/components/tipe/StudioFotos";
@@ -623,6 +624,29 @@ export function RestaurantPanel({
 
   const contagem = (s: Status) => mesas.filter((m) => m.status === s).length;
 
+  // Pendências por aba: bolinha vermelha no menu e a Lebre explica cada uma.
+  const abaVisivel = (k: string) => (visiveis.some((x) => x.k === k) ? k : "inicio");
+  const rotuloDe = (k: string) => (k === "pdv" ? "Lançar pedido" : (visiveis.find((x) => x.k === k)?.l ?? "Início"));
+  const pendencia = (k: string, n: number, texto: string): Pendencia => ({ aba: abaVisivel(k), rotulo: rotuloDe(abaVisivel(k)), texto, n });
+  const pendencias: Pendencia[] = [
+    pendentes.length > 0 &&
+      pendencia(
+        "caixa",
+        pendentes.length,
+        pendentes.length === 1
+          ? "Um pagamento no balcão espera você confirmar ou recusar."
+          : `${pendentes.length} pagamentos no balcão esperam você confirmar ou recusar.`,
+      ),
+    d.pdvAlerts.length > 0 &&
+      pendencia(
+        "pdv",
+        d.pdvAlerts.length,
+        d.pdvAlerts.length === 1 ? "Um cancelamento no PDV precisa da sua conferência." : `${d.pdvAlerts.length} cancelamentos no PDV precisam da sua conferência.`,
+      ),
+    syncErro && pendencia("integracoes", 1, "A sincronização com o seu sistema está com erro. Os pedidos seguem pelo Lançamento TIPE."),
+  ].filter((p): p is Pendencia => Boolean(p));
+  const pendenciaDa = (k: string) => pendencias.filter((p) => p.aba === k).reduce((t, p) => t + p.n, 0);
+
   const grupos: GrupoNav[] = GRUPOS.map((g) => ({
     l: g,
     itens: visiveis
@@ -632,7 +656,7 @@ export function RestaurantPanel({
         l: x.k === "pdv" ? "Lançar pedido" : x.l,
         i: x.i,
         busca: x.d,
-        ...(x.k === "caixa" && pendentes.length > 0 ? { badge: pendentes.length, badgeTone: "warning" as const } : {}),
+        ...(pendenciaDa(x.k) > 0 ? { badge: pendenciaDa(x.k), badgeTone: "warning" as const } : {}),
       })),
   })).filter((g) => g.itens.length > 0);
 
@@ -1007,7 +1031,7 @@ export function RestaurantPanel({
           )}
         </DialogContent>
       </Dialog>
-      <LazyLebreAssistant slug={slug} notice={{ count: pendentes.length + d.pdvAlerts.length + (syncErro ? 1 : 0), key: JSON.stringify([pendentes.map((p) => p.id), d.pdvAlerts, !!syncErro]) }} onNotices={() => ir("inicio")} onSuggestions={podeDono ? () => {
+      <LazyLebreAssistant slug={slug} notice={avisoDasPendencias(pendencias)} onNotices={(k) => ir(k ?? "inicio")} onSuggestions={podeDono ? () => {
         ir("cardapio");
         window.setTimeout(() => document.getElementById("lebre-menu-title")?.scrollIntoView({ block: "center", behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth" }), 150);
       } : undefined} />

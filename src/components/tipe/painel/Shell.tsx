@@ -262,6 +262,9 @@ export function Shell({
   const nomeAmbiente = ambiente === "Central Tipe" ? "central" : "gestão";
   const [mascotVisible, setMascotVisible] = useMascotPreference(mascotScope);
   const [recolhida, setRecolhida] = useState(false);
+  const temPendencia = grupos.some((g) =>
+    g.itens.some((i) => (i.badge ?? 0) > 0 && i.badgeTone === "warning"),
+  );
   const [gaveta, setGaveta] = useState(false);
   const [buscaAberta, setBuscaAberta] = useState(false);
 
@@ -402,10 +405,15 @@ export function Shell({
                     {!compacta && <span className="truncate">{l}</span>}
                     {badge ? (
                       <span
+                        aria-label={
+                          badgeTone === "warning"
+                            ? `${badge} pendência${badge === 1 ? "" : "s"}`
+                            : undefined
+                        }
                         className={cn(
                           "ml-auto rounded-full px-1.5 py-0.5 text-[10.5px] font-semibold leading-none",
                           badgeTone === "warning"
-                            ? "bg-highlight text-ink"
+                            ? "min-w-[1.25rem] bg-destructive text-center text-white"
                             : gestao
                               ? "bg-foreground/10 text-foreground"
                               : "bg-white/15 text-white",
@@ -454,7 +462,15 @@ export function Shell({
             )}
           >
             {recolhida ? (
-              <TipeLogo variant={gestao ? "dark" : "light"} className="h-6" />
+              <button
+                type="button"
+                onClick={alternar}
+                title="Expandir menu"
+                aria-label="Expandir menu"
+                className="grid size-10 place-items-center rounded-lg hover:bg-foreground/5"
+              >
+                <ChevronsRight className="size-4" />
+              </button>
             ) : (
               <div className="min-w-0">
                 <TipeLogo variant={gestao ? "dark" : "light"} className="h-7" />
@@ -467,6 +483,22 @@ export function Shell({
                   {ambiente}
                 </p>
               </div>
+            )}
+            {!recolhida && (
+              <button
+                type="button"
+                onClick={alternar}
+                title="Recolher menu"
+                aria-label="Recolher menu"
+                className={cn(
+                  "grid size-9 shrink-0 place-items-center rounded-lg",
+                  gestao
+                    ? "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
+                    : "text-white/55 hover:bg-white/[0.07] hover:text-white",
+                )}
+              >
+                <PanelLeftClose className="size-[18px]" />
+              </button>
             )}
           </div>
           {!recolhida && contexto && (
@@ -519,24 +551,6 @@ export function Shell({
               />
             )}
             {!recolhida && rodape}
-            <button
-              type="button"
-              onClick={alternar}
-              className={cn(
-                "mt-1 flex min-h-10 w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-xs",
-                gestao
-                  ? "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
-                  : "text-white/55 hover:bg-white/[0.07] hover:text-white",
-              )}
-              aria-label={recolhida ? "Expandir menu" : "Recolher menu"}
-            >
-              {recolhida ? (
-                <ChevronsRight className="h-4 w-4" />
-              ) : (
-                <ChevronsLeft className="h-4 w-4" />
-              )}
-              {!recolhida && "Recolher"}
-            </button>
           </div>
         </aside>
 
@@ -547,11 +561,17 @@ export function Shell({
               <Button
                 size="icon"
                 variant="ghost"
-                className="lg:hidden"
+                className="relative lg:hidden"
                 onClick={() => setGaveta(true)}
-                aria-label="Abrir menu"
+                aria-label={temPendencia ? "Abrir menu, há pendências" : "Abrir menu"}
               >
                 <Menu className="h-5 w-5" />
+                {temPendencia && (
+                  <span
+                    aria-hidden
+                    className="absolute right-1.5 top-1.5 size-2.5 rounded-full bg-destructive ring-2 ring-background"
+                  />
+                )}
               </Button>
               <TipeLogo variant="dark" className="h-6 lg:hidden" />
               <div className="min-w-0 flex-1" />

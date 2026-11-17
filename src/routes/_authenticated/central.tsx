@@ -30,6 +30,7 @@ import { Restaurantes } from "@/components/tipe/central/Restaurantes";
 import { Financeiro } from "@/components/tipe/central/Financeiro";
 import { Inteligencia } from "@/components/tipe/central/Inteligencia";
 import { LebreCentral } from "@/components/tipe/central/LebreCentral";
+import type { Pendencia } from "@/lib/tipe/pendencias";
 import { PerfilConta, useMeuPerfil } from "@/components/tipe/PerfilConta";
 import { Administracao } from "@/components/tipe/central/Administracao";
 
@@ -125,6 +126,15 @@ function Central() {
   useEffect(() => { if (acesso.data?.papel === "nenhum") navigate({ to: "/painel", replace: true }); }, [acesso.data, navigate]);
   useEffect(() => { if (permitidas && !permitidas.includes(secao)) ir("inicio"); }, [permitidas, secao]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Pendências: bolinha vermelha no menu e a Lebre explica cada uma.
+  const plural = (n: number, um: string, varios: string) => (n === 1 ? um : varios.replace("#", String(n)));
+  const pendencias: Pendencia[] = [
+    { aba: "inicio", rotulo: "Início", n: k?.pendencias ?? 0, texto: plural(k?.pendencias ?? 0, "Um item precisa da sua atenção hoje.", "# itens precisam da sua atenção hoje.") },
+    { aba: "comunicacao", rotulo: "WhatsApp e e-mail", n: k?.mensagensAguardando ?? 0, texto: plural(k?.mensagensAguardando ?? 0, "Uma mensagem espera resposta.", "# mensagens esperam resposta.") },
+    { aba: "financeiro", rotulo: "Financeiro", n: k?.saquesPendentes ?? 0, texto: plural(k?.saquesPendentes ?? 0, "Um saque de gorjeta espera aprovação.", "# saques de gorjeta esperam aprovação.") },
+    { aba: "inteligencia", rotulo: "Lebre e automações", n: k?.automacoesFalhas ?? 0, texto: plural(k?.automacoesFalhas ?? 0, "Uma automação falhou.", "# automações falharam.") },
+  ].filter((p) => p.n > 0 && (!permitidas || permitidas.includes(p.aba)));
+
   const busca: AcaoBusca[] = (dash.data?.atencao ?? []).slice(0, 30).map((a) => ({
     k: a.id, l: a.titulo, grupo: "Precisa da sua atenção", d: a.quem, onSelect: () => ir(a.abrir.secao as SecaoCentral, a.abrir.aba, a.abrir.id),
   }));
@@ -174,7 +184,7 @@ function Central() {
       {secao === "operacoes" && <Operacoes {...comum} />}
       {secao === "reserva" && <ReservaCentral />}
       {secao === "administracao" && <Administracao {...comum} />}
-      {!interno && secao !== "inteligencia" && <LebreCentral />}
+      {!interno && secao !== "inteligencia" && <LebreCentral pendencias={pendencias} onPendencia={(a) => ir(a as SecaoCentral)} />}
       {secao === "perfil" && <div className="max-w-xl"><PerfilConta funcao={interno && acesso.data?.perfil ? PERFIL_INFO[acesso.data.perfil].rotulo : "Fundador"} onSair={sair} /></div>}
     </Shell>
   );

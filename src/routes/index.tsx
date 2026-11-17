@@ -42,10 +42,7 @@ export const Route = createFileRoute("/")({
 function LandingPage() {
   const previaHero = usePreviaHeroVideo();
   return (
-    <SitePage
-      initialTheme={TEM_VIDEO_HERO || previaHero ? "escuro" : "claro"}
-      extra={<LazyLebreAssistant />}
-    >
+    <SitePage initialTheme={TEM_VIDEO_HERO || previaHero ? "escuro" : "claro"}>
       <span id="principal" aria-hidden />
       {TEM_VIDEO_HERO || previaHero ? (
         <>

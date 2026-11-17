@@ -1,14 +1,40 @@
 import { useLocation } from "@tanstack/react-router";
 import { WHATSAPP_SITE_MESSAGE, whatsappLink } from "@/lib/tipe/contact";
 
-const PUBLIC = ["/", "/simulador", "/cadastro", "/entrar"];
+const PUBLICAS = [
+  "/",
+  "/simulador",
+  "/cadastro",
+  "/entrar",
+  "/precos",
+  "/pay",
+  "/order",
+  "/cozinha",
+  "/equipe",
+  "/gestao",
+  "/lebre",
+  "/reserva",
+  "/integracoes",
+  "/ajuda",
+  "/solicitar-demonstracao",
+  "/teste-gratis",
+  "/termos",
+  "/termos-parceiros",
+  "/cookies",
+];
+const PREFIXOS = ["/legal", "/produtos/", "/privacidade"];
 
-/** Botão flutuante de WhatsApp nas páginas públicas. Na home fica acima do botão da Lebre. */
+/** Páginas públicas do site: lá aparecem o WhatsApp e a Lebre flutuantes. */
+export function ehPaginaPublica(pathname: string) {
+  const path = pathname.replace(/\/$/, "") || "/";
+  return PUBLICAS.includes(path) || PREFIXOS.some((p) => path.startsWith(p));
+}
+
+/** Botão flutuante de WhatsApp nas páginas públicas, logo acima do botão da Lebre. */
 export function WhatsAppFloat() {
   const { pathname } = useLocation();
-  const path = pathname.replace(/\/$/, "") || "/";
-  if (!PUBLIC.includes(path) && !pathname.startsWith("/legal")) return null;
-  const aboveLebre = path === "/";
+  if (!ehPaginaPublica(pathname)) return null;
+  const aboveLebre = true;
   return (
     <a
       href={whatsappLink(WHATSAPP_SITE_MESSAGE)}

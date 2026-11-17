@@ -5,6 +5,7 @@ import {
   createRootRouteWithContext,
   useRouter,
   useMatches,
+  useLocation,
   HeadContent,
   Scripts,
   type ErrorComponentProps,
@@ -16,7 +17,8 @@ import { Toaster } from "@/components/ui/sonner";
 import { CookieBanner } from "@/components/tipe/PrivacyPreferences";
 import { ErroPagina, botaoPrimario, botaoSecundario } from "@/components/tipe/ErroPagina";
 import { AvisoSemInternet } from "@/components/tipe/AvisoSemInternet";
-import { WhatsAppFloat } from "@/components/tipe/WhatsAppFloat";
+import { WhatsAppFloat, ehPaginaPublica } from "@/components/tipe/WhatsAppFloat";
+import { LazyLebreAssistant } from "@/components/tipe/LazyLebreAssistant";
 import { BarraNavegacao } from "@/components/tipe/BarraNavegacao";
 import { captureAttribution, loadMeasurement, trackPagina } from "@/lib/tipe/tracking";
 import {
@@ -226,6 +228,8 @@ function RootComponent() {
     select: (matches) => matches.some((match) => match.routeId === "/$restaurante/$mesa"),
   });
 
+  const publica = useLocation({ select: (l) => ehPaginaPublica(l.pathname) });
+
   return (
     <QueryClientProvider client={queryClient}>
       <BarraNavegacao />
@@ -235,6 +239,7 @@ function RootComponent() {
       <AvisoSemInternet />
       {!embedded && !naContaDaMesa && <CookieBanner />}
       {!embedded && <WhatsAppFloat />}
+      {!embedded && publica && <LazyLebreAssistant />}
     </QueryClientProvider>
   );
 }

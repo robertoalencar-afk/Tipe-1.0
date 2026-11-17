@@ -47,6 +47,7 @@ import {
   type LebreProposal,
 } from "@/lib/tipe/lebre.functions";
 import { askFounderAssistant } from "@/lib/tipe/central.functions";
+import type { Pendencia } from "@/lib/tipe/pendencias";
 import lebre from "@/assets/lebre/avatar-feliz.webp";
 import lebreOla from "@/assets/lebre/avatar-ola.webp";
 import { cn } from "@/lib/utils";
@@ -188,7 +189,12 @@ export function LebreAssistant({
   central = false,
   inicialAberta = false,
   hideLauncher = false,
+  pendencias = [],
+  onPendencia,
 }: {
+  /** Pendências das abas: a Lebre conta o que são e leva até lá. */
+  pendencias?: Pendencia[] | undefined;
+  onPendencia?: ((aba: string) => void) | undefined;
   slug?: string | undefined;
   /** Lebre do fundador na Central: mesmo chat da Gestão, respondendo com os dados da Tipe. */
   central?: boolean;
@@ -372,6 +378,7 @@ export function LebreAssistant({
           message.id === messageId ? { ...message, result: result.message } : message,
         ),
       );
+      window.dispatchEvent(new Event("tipe:lebre-feliz"));
     } catch (error) {
       setMessages((current) =>
         current.map((message) =>
@@ -400,6 +407,14 @@ export function LebreAssistant({
           aria-expanded={open}
         >
           <ConteudoBotaoLebre />
+          {pendencias.length > 0 && (
+            <span className="absolute -right-0.5 -top-0.5 grid size-5 place-items-center rounded-full bg-destructive text-[10px] font-bold text-white ring-2 ring-background">
+              {Math.min(
+                pendencias.reduce((t, p) => t + p.n, 0),
+                99,
+              )}
+            </span>
+          )}
         </button>
       )}
       {open && (
@@ -494,6 +509,40 @@ export function LebreAssistant({
                       </p>
                     </div>
                   </div>
+                  {pendencias.length > 0 && (
+                    <div className="mt-5 rounded-2xl border border-destructive/25 bg-destructive/[0.05] p-3">
+                      <p className="text-sm font-semibold">
+                        {pendencias.length === 1
+                          ? "Uma pendência pede atenção"
+                          : `${pendencias.length} pendências pedem atenção`}
+                      </p>
+                      <ul className="mt-2 space-y-2">
+                        {pendencias.map((p) => (
+                          <li key={p.aba + p.texto}>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                onPendencia?.(p.aba);
+                                setOpen(false);
+                              }}
+                              className="flex w-full items-start gap-2 text-left text-sm"
+                            >
+                              <span
+                                aria-hidden
+                                className="mt-1.5 size-2 shrink-0 rounded-full bg-destructive"
+                              />
+                              <span>
+                                {p.texto}{" "}
+                                <span className="font-medium text-brand-strong underline underline-offset-2">
+                                  Ver em {p.rotulo}
+                                </span>
+                              </span>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                   <div className="mt-6 grid grid-cols-2 gap-2">
                     {painel
                       ? (central ? centralSuggestions : panelSuggestions).map(
