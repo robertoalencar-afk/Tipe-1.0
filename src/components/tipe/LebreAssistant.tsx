@@ -1,4 +1,4 @@
-import { OPEN_LEBRE } from "@/lib/tipe/mascot-preference";
+import { OPEN_LEBRE, tomarPerguntaPendente } from "@/lib/tipe/mascot-preference";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
@@ -76,7 +76,7 @@ const panelSuggestions = [
     titulo: "Lançar pedido",
     pergunta: "Lança 2 chopp e 1 picanha na mesa 5",
   },
-  { icone: UtensilsCrossed, titulo: "Cardápio", pergunta: "Pausar o item Suco de laranja" },
+  { icone: UtensilsCrossed, titulo: "Cardápio", pergunta: "Muda o preço da picanha para 89,90" },
 ];
 const PENSANDO_PUBLICO = ["Farejando a resposta", "Correndo atrás", "Quase lá"];
 const PENSANDO_PAINEL = ["Olhando o salão", "Conferindo as mesas", "Quase lá"];
@@ -188,7 +188,13 @@ export function LebreAssistant({
   const [open, setOpen] = useState(inicialAberta);
   useEffect(() => {
     if (!slug) return;
-    const openChat = () => setOpen(true);
+    const openChat = () => {
+      setOpen(true);
+      const p = tomarPerguntaPendente();
+      if (p) setDraft(p);
+    };
+    const pendente = tomarPerguntaPendente();
+    if (pendente) setDraft(pendente);
     window.addEventListener(OPEN_LEBRE, openChat);
     return () => window.removeEventListener(OPEN_LEBRE, openChat);
   }, [slug]);

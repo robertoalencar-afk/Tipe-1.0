@@ -1,8 +1,9 @@
-// Server-only: IA da Lebre e da sugestão de divisão, sem custo por padrão.
-// Ordem: Cloudflare Workers AI (cota grátis diária, com teto para nunca gerar cobrança),
-// depois Groq (cota grátis), depois Claude só se LEBRE_CLAUDE_FALLBACK=true.
-// Se nenhuma responder, lança AIUnavailable e a Lebre avisa que volta mais tarde.
-// Lê CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_AI_TOKEN, GROQ_API_KEY. Nunca importe no cliente.
+// Server-only: IA da Lebre, sem custo por padrão, guiada pela Rota da Lebre (lebre-rota.ts).
+// A rota escolhe a fila de modelos pela tarefa (rápida, esperta ou visão): Cloudflare Workers AI
+// (cota grátis diária, com teto para nunca gerar cobrança), vários modelos do Groq (cada um com
+// cota própria), OpenRouter grátis se houver chave, e Claude só se LEBRE_CLAUDE_FALLBACK=true.
+// Modelo que falha descansa no disjuntor. Se ninguém responder, lança AIUnavailable.
+// Lê CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_AI_TOKEN, GROQ_API_KEY, OPENROUTER_API_KEY. Nunca importe no cliente.
 
 export type AIFile = { name: string; mediaType: string; dataUrl: string };
 
@@ -12,12 +13,14 @@ type ContentPart =
   { type: "text"; text: string } | { type: "image_url"; image_url: { url: string } };
 type ChatMessage = { role: "system" | "user"; content: string | ContentPart[] };
 
-const CF_MODEL = () =>
-  process.env["CLOUDFLARE_AI_MODEL"] || "@cf/meta/llama-4-scout-17b-16e-instruct";
-const GROQ_TEXT_MODEL = () =>
-  process.env["GROQ_MODEL"] || "meta-llama/llama-4-scout-17b-16e-instruct";
-const GROQ_VISION_MODEL = () =>
-  process.env["GROQ_VISION_MODEL"] || "meta-llama/llama-4-scout-17b-16e-instruct";
+import {
+  classificarTarefa,
+  disjuntor,
+  lerRetryAfter,
+  rotaPara,
+  type Candidato,
+  type Tarefa,
+} from "./lebre-rota";
 
 /** Teto diário de chamadas ao Workers AI. No plano Workers Paid, passar da cota grátis
  * (10 mil neurons por dia) é cobrado; ~150 perguntas da Lebre ficam dentro dela. */
@@ -147,7 +150,18 @@ async function buildMessages(
   };
 }
 
-class ProviderFailed extends Error {}
+class ProviderFailed extends Error {
+  constructor(
+    message: string,
+    readonly status?: number,
+    readonly retryAfterS?: number,
+  ) {
+    super(message);
+  }
+}
+
+/** Falhas que não são culpa do modelo: não abrem o disjuntor. */
+const SEM_CULPA = new Set(["sem credenciais", "desligado", "teto diário atingido"]);
 
 async function chatCompletion(
   url: string,
@@ -155,20 +169,30 @@ async function chatCompletion(
   model: string,
   messages: ChatMessage[],
   maxTokens: number,
+  timeoutMs: number,
+  extraHeaders: Record<string, string> = {},
 ): Promise<string> {
   let response: Response;
   try {
     response = await fetch(url, {
       method: "POST",
-      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+        ...extraHeaders,
+      },
       body: JSON.stringify({ model, messages, max_tokens: maxTokens, temperature: 0.3 }),
-      signal: AbortSignal.timeout(30_000),
+      signal: AbortSignal.timeout(timeoutMs),
     });
   } catch (error) {
     throw new ProviderFailed(`rede: ${String(error)}`);
   }
   if (!response.ok)
-    throw new ProviderFailed(`${response.status} ${(await response.text()).slice(0, 200)}`);
+    throw new ProviderFailed(
+      `${response.status} ${(await response.text()).slice(0, 200)}`,
+      response.status,
+      lerRetryAfter(response.headers.get("retry-after")),
+    );
   const body = (await response.json()) as {
     choices?: Array<{ message?: { content?: string | null } }>;
   };
@@ -188,7 +212,21 @@ function bindingText(out: unknown): string | undefined {
   return o?.choices?.[0]?.message?.content?.trim() ?? undefined;
 }
 
-async function askCloudflare(messages: ChatMessage[], maxTokens: number): Promise<string> {
+function comTempo<T>(p: Promise<T>, ms: number): Promise<T> {
+  let t: ReturnType<typeof setTimeout> | undefined;
+  return Promise.race([
+    p,
+    new Promise<T>((_, rej) => {
+      t = setTimeout(() => rej(new ProviderFailed("tempo esgotado")), ms);
+    }),
+  ]).finally(() => clearTimeout(t));
+}
+
+async function askCloudflare(
+  messages: ChatMessage[],
+  maxTokens: number,
+  c: Candidato,
+): Promise<string> {
   const binding = aiBinding();
   const creds = cloudflareCreds();
   if (!binding && !creds) throw new ProviderFailed("sem credenciais");
@@ -197,8 +235,12 @@ async function askCloudflare(messages: ChatMessage[], maxTokens: number): Promis
   if (binding) {
     let out: unknown;
     try {
-      out = await binding.run(CF_MODEL(), { messages, max_tokens: maxTokens, temperature: 0.3 });
+      out = await comTempo(
+        binding.run(c.modelo, { messages, max_tokens: maxTokens, temperature: 0.3 }),
+        c.timeoutMs,
+      );
     } catch (error) {
+      if (error instanceof ProviderFailed) throw error;
       throw new ProviderFailed(`binding: ${String(error)}`);
     }
     const text = bindingText(out);
@@ -208,25 +250,42 @@ async function askCloudflare(messages: ChatMessage[], maxTokens: number): Promis
   return chatCompletion(
     `https://api.cloudflare.com/client/v4/accounts/${creds!.accountId}/ai/v1/chat/completions`,
     creds!.token,
-    CF_MODEL(),
+    c.modelo,
     messages,
     maxTokens,
+    c.timeoutMs,
   );
 }
 
-async function askGroq(
-  messages: ChatMessage[],
-  maxTokens: number,
-  hasImage: boolean,
-): Promise<string> {
+async function askGroq(messages: ChatMessage[], maxTokens: number, c: Candidato): Promise<string> {
   const key = process.env["GROQ_API_KEY"];
   if (!key) throw new ProviderFailed("sem credenciais");
   return chatCompletion(
     "https://api.groq.com/openai/v1/chat/completions",
     key,
-    hasImage ? GROQ_VISION_MODEL() : GROQ_TEXT_MODEL(),
+    c.modelo,
     messages,
     maxTokens,
+    c.timeoutMs,
+  );
+}
+
+async function askOpenRouter(
+  messages: ChatMessage[],
+  maxTokens: number,
+  c: Candidato,
+): Promise<string> {
+  const key = process.env["OPENROUTER_API_KEY"];
+  if (!key) throw new ProviderFailed("sem credenciais");
+  if (!c.modelo.endsWith(":free")) throw new ProviderFailed("desligado");
+  return chatCompletion(
+    "https://openrouter.ai/api/v1/chat/completions",
+    key,
+    c.modelo,
+    messages,
+    maxTokens,
+    c.timeoutMs,
+    { "X-Title": "Tipe" },
   );
 }
 
@@ -251,33 +310,67 @@ async function askClaudeFallback(opts: {
   }
 }
 
-/** Faz uma pergunta à IA e devolve o texto. Tenta os provedores grátis em ordem. */
-export async function askAI(opts: {
+export type RespostaIA = {
+  texto: string;
+  provedor: string;
+  modelo: string;
+  tarefa: Tarefa;
+  ms: number;
+};
+
+/** Pergunta à IA pela Rota da Lebre e conta quem respondeu. */
+export async function askAIDetalhado(opts: {
   system: string;
   question: string;
   files?: AIFile[] | undefined;
   maxTokens?: number;
-}): Promise<string> {
+  tarefa?: Tarefa;
+}): Promise<RespostaIA> {
+  const inicio = Date.now();
   const files = opts.files ?? [];
   const maxTokens = opts.maxTokens ?? 800;
   const { messages, hasImage } = await buildMessages(opts.system, opts.question, files);
-  const attempts: Array<[string, () => Promise<string>]> = [
-    ["cloudflare", () => askCloudflare(messages, maxTokens)],
-    ["groq", () => askGroq(messages, maxTokens, hasImage)],
-    [
-      "claude",
-      () => askClaudeFallback({ system: opts.system, question: opts.question, files, maxTokens }),
-    ],
-  ];
+  const tarefa = classificarTarefa({
+    hasImage,
+    question: opts.question,
+    maxTokens,
+    tarefa: opts.tarefa,
+  });
+  const fila = rotaPara(tarefa);
+  const tentados = new Set<string>();
   let dailyLimitReached = false;
-  for (const [name, attempt] of attempts) {
+  // Primeiro só os modelos descansados; se todos estiverem no disjuntor, tenta mesmo assim.
+  const ordem = [
+    ...fila.filter((c) => disjuntor.disponivel(c)),
+    ...fila.filter((c) => !disjuntor.disponivel(c)),
+  ];
+  for (const c of ordem) {
+    const chave = `${c.provedor}:${c.modelo}`;
+    if (tentados.has(chave)) continue;
+    tentados.add(chave);
     try {
-      return await attempt();
+      const texto =
+        c.provedor === "cloudflare"
+          ? await askCloudflare(messages, maxTokens, c)
+          : c.provedor === "groq"
+            ? await askGroq(messages, maxTokens, c)
+            : c.provedor === "openrouter"
+              ? await askOpenRouter(messages, maxTokens, c)
+              : await askClaudeFallback({
+                  system: opts.system,
+                  question: opts.question,
+                  files,
+                  maxTokens,
+                });
+      disjuntor.funcionou(c);
+      return { texto, provedor: c.provedor, modelo: c.modelo, tarefa, ms: Date.now() - inicio };
     } catch (error) {
       if (!(error instanceof ProviderFailed)) throw error;
       if (error.message === "teto diário atingido") dailyLimitReached = true;
-      if (error.message !== "sem credenciais" && error.message !== "desligado")
-        console.warn("ai", name, error.message);
+      if (!SEM_CULPA.has(error.message)) {
+        disjuntor.falhou(c, error.status, error.retryAfterS);
+        console.warn("ai rota", tarefa, chave, error.message);
+      }
     }
   }
   throw new AIUnavailable(
@@ -285,4 +378,15 @@ export async function askAI(opts: {
       ? "A cota gratuita diária da Lebre foi atingida e não há outro provedor disponível. Tente após a renovação diária ou preencha os dados manualmente."
       : "A Lebre está temporariamente indisponível. Tente novamente em instantes ou preencha os dados manualmente.",
   );
+}
+
+/** Faz uma pergunta à IA e devolve só o texto. */
+export async function askAI(opts: {
+  system: string;
+  question: string;
+  files?: AIFile[] | undefined;
+  maxTokens?: number;
+  tarefa?: Tarefa;
+}): Promise<string> {
+  return (await askAIDetalhado(opts)).texto;
 }

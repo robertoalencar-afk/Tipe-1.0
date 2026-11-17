@@ -6,6 +6,7 @@ vi.mock("@/integrations/supabase/client.server", () => ({
 }));
 
 const { askAI, AIUnavailable } = await import("./ai.server");
+const { disjuntor } = await import("./lebre-rota");
 
 const ok = (text: string) =>
   new Response(JSON.stringify({ choices: [{ message: { content: text } }] }), { status: 200 });
@@ -13,6 +14,7 @@ const fetchMock = vi.fn<typeof fetch>();
 
 beforeEach(() => {
   vi.stubGlobal("fetch", fetchMock);
+  fetchMock.mockImplementation(async () => new Response("fora", { status: 503 }));
   vi.stubEnv("CLOUDFLARE_ACCOUNT_ID", "conta");
   vi.stubEnv("CLOUDFLARE_AI_TOKEN", "token-cf");
   vi.stubEnv("GROQ_API_KEY", "token-groq");
@@ -24,6 +26,7 @@ afterEach(() => {
   vi.unstubAllEnvs();
   fetchMock.mockReset();
   rpc.mockReset();
+  disjuntor.limpar();
 });
 
 const host = (call: unknown[]) => new URL(String(call[0])).host;
@@ -105,5 +108,38 @@ describe("askAI", () => {
     fetchMock.mockResolvedValueOnce(ok("oi do groq"));
     await expect(askAI({ system: "s", question: "q" })).resolves.toBe("oi do groq");
     expect(host(fetchMock.mock.calls[0]!)).toBe("api.groq.com");
+  });
+});
+
+describe("Rota da Lebre no askAI", () => {
+  it("pergunta curta vai no modelo rápido do Groq", async () => {
+    fetchMock.mockResolvedValueOnce(ok("rapidinho"));
+    await expect(askAI({ system: "s", question: "q", maxTokens: 200 })).resolves.toBe("rapidinho");
+    expect(host(fetchMock.mock.calls[0]!)).toBe("api.groq.com");
+    expect(JSON.parse(String(fetchMock.mock.calls[0]![1]!.body)).model).toBe(
+      "llama-3.1-8b-instant",
+    );
+  });
+
+  it("modelo que falhou descansa e a próxima pergunta já vai direto no seguinte", async () => {
+    fetchMock.mockResolvedValueOnce(
+      new Response("limite", { status: 429, headers: { "retry-after": "60" } }),
+    );
+    fetchMock.mockResolvedValueOnce(ok("um"));
+    await askAI({ system: "s", question: "q", maxTokens: 200 });
+    fetchMock.mockResolvedValueOnce(ok("dois"));
+    await expect(askAI({ system: "s", question: "q", maxTokens: 200 })).resolves.toBe("dois");
+    expect(host(fetchMock.mock.calls[2]!)).toBe("api.cloudflare.com");
+  });
+
+  it("usa OpenRouter grátis quando há chave e os outros falham", async () => {
+    vi.stubEnv("OPENROUTER_API_KEY", "token-or");
+    rpc.mockResolvedValue({ data: false, error: null });
+    fetchMock
+      .mockResolvedValueOnce(new Response("x", { status: 500 }))
+      .mockResolvedValueOnce(new Response("x", { status: 500 }))
+      .mockResolvedValueOnce(ok("oi do openrouter"));
+    await expect(askAI({ system: "s", question: "q" })).resolves.toBe("oi do openrouter");
+    expect(host(fetchMock.mock.calls[2]!)).toBe("openrouter.ai");
   });
 });
