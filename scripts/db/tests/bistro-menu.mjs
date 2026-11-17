@@ -36,4 +36,7 @@ assert.ok(!fim.some(i=>['BT-REFRI','BT-CERVEJA','BT-CERV-ZERO'].includes(i.code)
 const pub=(u)=>new URL('../../../public'+(u.startsWith('https://')?new URL(u).pathname:u),import.meta.url);
 for(const i of fim){assert.ok(i.image_url&&i.depth_url,`${i.code} com foto e 3D`);assert.ok(existsSync(pub(i.image_url))&&existsSync(pub(i.depth_url)),`arquivos de ${i.code}`);}
 const all=new Set(fim.map(i=>i.code));for(const i of fim)for(const r of i.menu_config.recommendations??[])assert.ok(all.has(r),`recomendação ${r}`);
+await db.exec(await readFile(new URL('../../../drizzle/migrations/0086_bistro_marcas_destilados.sql',import.meta.url),'utf8'));
+const marcas=(await db.query(`select name from pdv_menu_items where restaurant_id='11111111-1111-4111-8111-111111111111' and code in ('BT-CAIPI','BT-VINHO-T','BT-AGUA')`)).rows.map(r=>r.name).join(' ');
+assert.ok(/Ypióca/.test(marcas)&&/Casillero/.test(marcas)&&/Crystal/.test(marcas),'marcas reais');
 await db.close();console.log('Bistrô menu: curated menu with real branded drinks, every item with photo and 3D depth, full dish sheet (allergens, diets), valid recommendations, other tenants untouched.');
