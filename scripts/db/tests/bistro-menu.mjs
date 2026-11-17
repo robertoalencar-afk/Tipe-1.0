@@ -39,4 +39,15 @@ const all=new Set(fim.map(i=>i.code));for(const i of fim)for(const r of i.menu_c
 await db.exec(await readFile(new URL('../../../drizzle/migrations/0086_bistro_marcas_destilados.sql',import.meta.url),'utf8'));
 const marcas=(await db.query(`select name from pdv_menu_items where restaurant_id='11111111-1111-4111-8111-111111111111' and code in ('BT-CAIPI','BT-VINHO-T','BT-AGUA')`)).rows.map(r=>r.name).join(' ');
 assert.ok(/Ypióca/.test(marcas)&&/Casillero/.test(marcas)&&/Crystal/.test(marcas),'marcas reais');
+await db.exec(await readFile(new URL('../../../drizzle/migrations/0087_bistro_cardapio_real.sql',import.meta.url),'utf8'));
+const real=(await db.query(`select i.code,i.name,i.description,i.image_url,i.depth_url,i.model_url,i.sector,i.allergens,i.menu_config,c.name cat from pdv_menu_items i join pdv_menu_categories c on c.id=i.category_id where i.restaurant_id='11111111-1111-4111-8111-111111111111'`)).rows;
+assert.equal(real.length,56,'36 pratos do cardápio real + 20 bebidas');const cozinha=real.filter(i=>i.sector==='kitchen');assert.equal(cozinha.length,36);
+assert.ok(!real.some(i=>['MAR-BAIAO','BT-RISOTO','BT-MACAX','MAR-CARTOLA'].includes(i.code)),'pratos antigos saem');assert.ok(real.some(i=>i.code==='BT-HEINEKEN')&&real.some(i=>i.code==='BT-CAIPI'),'bebidas ficam');
+for(const i of cozinha){assert.ok(i.image_url.includes('/cardapio/bistro/real/')&&i.depth_url.endsWith('-depth.png')&&!i.model_url,`${i.code} foto real`);assert.ok(existsSync(pub(i.image_url))&&existsSync(pub(i.depth_url)),`arquivos ${i.code}`);
+  assert.ok(i.description.length>=25&&i.description.length<=200&&Array.isArray(i.menu_config.diets)&&i.menu_config.diets.every(d=>DIETS.has(d)),`ficha ${i.code}`);}
+assert.equal(new Set(cozinha.map(i=>i.image_url)).size,36,'uma foto por prato');
+const rc=new Set(real.map(i=>i.code));for(const i of real)for(const r of i.menu_config.recommendations??[])assert.ok(rc.has(r),`recomendação ${r}`);
+assert.equal((await db.query(`select count(*)::int n from pdv_menu_categories where restaurant_id='11111111-1111-4111-8111-111111111111'`)).rows[0].n,14,'8 categorias de cozinha + 6 de bebidas');
+await db.exec(await readFile(new URL('../../../drizzle/migrations/0087_bistro_cardapio_real.sql',import.meta.url),'utf8'));
+assert.equal((await db.query(`select count(*)::int n from pdv_menu_items where restaurant_id='11111111-1111-4111-8111-111111111111'`)).rows[0].n,56,'reaplicar não duplica');
 await db.close();console.log('Bistrô menu: curated menu with real branded drinks, every item with photo and 3D depth, full dish sheet (allergens, diets), valid recommendations, other tenants untouched.');
