@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 import { useQuery } from "@tanstack/react-query";
-import { ChevronsDown, ChevronsUp, X } from "lucide-react";
+import { ChevronsDown, X } from "lucide-react";
 import { openLebre, useMascotPreference } from "@/lib/tipe/mascot-preference";
 import { getMenuAssistant } from "@/lib/tipe/menu-intelligence.functions";
 import poseEsperando from "@/assets/mascot-waiting.webp";
@@ -117,16 +117,6 @@ export function LebreMascote({
       <div className="print:hidden">
         <button
           type="button"
-          onClick={() => setVisible(true)}
-          title="Mostrar a Lebre de corpo inteiro"
-          aria-label="Mostrar a Lebre de corpo inteiro"
-          className="fixed bottom-[4.75rem] right-3 z-40 flex items-center gap-1.5 rounded-full border border-border bg-background px-2.5 py-1.5 text-xs font-medium shadow-md hover:border-primary sm:right-5 lg:bottom-[5.75rem]"
-        >
-          <ChevronsUp className="size-3.5" aria-hidden />
-          Mostrar a Lebre
-        </button>
-        <button
-          type="button"
           onClick={onOpen}
           className={classeBotaoLebre(slug)}
           aria-label="Conversar com a Lebre"
@@ -230,12 +220,14 @@ export function LebreMascote({
           aria-label="Conversar com a Lebre"
           className="block rounded-2xl p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <span key={pulo} className="lebre-pulo block">
-            <img
-              src={pose}
-              alt="Lebre de corpo inteiro"
-              className="lebre-companheira h-40 w-24 object-cover transition-opacity sm:h-48 sm:w-28"
-            />
+          <span className="lebre-passeio block">
+            <span key={pulo} className="lebre-pulo block">
+              <img
+                src={pose}
+                alt="Lebre de corpo inteiro"
+                className="lebre-companheira h-40 w-24 object-cover transition-opacity sm:h-48 sm:w-28"
+              />
+            </span>
           </span>
         </button>
       </div>

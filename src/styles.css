@@ -2342,6 +2342,29 @@
   .lebre-pulo { animation: lebre-pulo 0.7s ease-out both; transform-origin: 50% 100%; }
 }
 
+@keyframes lebre-passeio {
+  0%, 58% { transform: translate(0, 0) rotate(0); }
+  59% { transform: translate(30px, -12px) rotate(6deg); }
+  60.5% { transform: translate(60px, 0px) rotate(2deg); }
+  62% { transform: translate(90px, -12px) rotate(6deg); }
+  63.5% { transform: translate(120px, 0px) rotate(2deg); }
+  65% { transform: translate(150px, -12px) rotate(6deg); }
+  66.5% { transform: translate(180px, 0px) rotate(2deg); }
+  68%, 73% { transform: translate(260px, 0) rotate(0); }
+  74% { transform: translate(217px, -12px) rotate(-6deg); }
+  75.5% { transform: translate(174px, 0px) rotate(-2deg); }
+  77% { transform: translate(131px, -12px) rotate(-6deg); }
+  78.5% { transform: translate(88px, 0px) rotate(-2deg); }
+  80% { transform: translate(45px, -12px) rotate(-6deg); }
+  81.5% { transform: translate(2px, 0px) rotate(-2deg); }
+  83% { transform: translate(0, -18px) rotate(0); }
+  85% { transform: translate(0, 0) scaleY(0.92); }
+  87%, 100% { transform: translate(0, 0) rotate(0); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .lebre-passeio { animation: lebre-passeio 26s ease-in-out 6s infinite; transform-origin: 50% 100%; }
+}
+
 @keyframes lebre-bigodes {
   0%, 68%, 100% { rotate: 0deg; }
   72%, 80% { rotate: -3deg; }
