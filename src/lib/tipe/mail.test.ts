@@ -71,3 +71,21 @@ describe("fecho com assinatura", () => {
     expect(corpoHtml("só texto")).not.toContain("font-weight:700");
   });
 });
+
+describe("assinatura profissional", () => {
+  const h = assinaturaHtml("Equipe Tipe\nAtendimento a restaurantes\ncontato@tipe.digital\ntipe.digital\nTelefone: +55 85 99999-0000\nCTA: Agende uma demonstração | https://tipe.digital/solicitar-demonstracao");
+  it("tem logo, rótulos de contato, botão e aviso de confidencialidade", () => {
+    expect(h).toContain("tipe-logo-email.png");
+    expect(h).toContain(">E-mail<");
+    expect(h).toContain(">Site<");
+    expect(h).toContain(">Telefone<");
+    expect(h).toContain('href="tel:+5585999990000"');
+    expect(h).toContain('href="https://tipe.digital/solicitar-demonstracao"');
+    expect(h).toContain("Agende uma demonstração");
+    expect(h).toContain("confidenciais");
+  });
+  it("botão só com https e sem aspas no link", () => {
+    expect(assinaturaHtml("A\nB\nCTA: Clique | javascript:alert(1)")).not.toContain("javascript:");
+    expect(assinaturaHtml('A\nB\nCTA: X | https://a.com/"onmouseover="x')).not.toContain("onmouseover");
+  });
+});
