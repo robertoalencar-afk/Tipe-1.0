@@ -17,6 +17,7 @@ import {
   Target,
   UserRound,
 } from "lucide-react";
+import { TipeSymbol } from "@/components/tipe/Logo";
 import { FounderMfaGate } from "@/components/tipe/FounderMfaGate";
 import { Shell, type GrupoNav, type AcaoBusca } from "@/components/tipe/painel/Shell";
 import { supabase } from "@/integrations/supabase/client";
@@ -141,10 +142,18 @@ function Central() {
   return (
     <Shell
       ambiente="Central Tipe"
-      usuario={{ nome: meu.data?.nome || meu.data?.email.split("@")[0] || (interno ? "Equipe" : "Fundador"), funcao: interno && acesso.data?.perfil ? PERFIL_INFO[acesso.data.perfil].rotulo : "Fundador", detalhe: "Tipe" }}
+      usuario={{ nome: meu.data?.nome || meu.data?.email.split("@")[0] || (interno ? "Equipe" : "Fundador"), funcao: interno && acesso.data?.perfil ? PERFIL_INFO[acesso.data.perfil].rotulo : "Fundador", detalhe: "Tipe", avatarUrl: meu.data?.avatarUrl }}
       onSair={sair}
       acoes={secao === "inicio" ? <Segmentado label="Período" value={dias} onChange={setDias} options={[[7, "7 d"], [30, "30 d"], [90, "90 d"]] as const} /> : undefined}
-      contexto={interno ? "Equipe interna" : "Área do fundador"}
+      contexto={
+        <span className="flex items-center gap-2.5">
+          <span className="grid size-9 shrink-0 place-items-center rounded-lg bg-white p-1"><TipeSymbol className="size-7" /></span>
+          <span className="min-w-0 leading-tight">
+            <span className="block truncate text-sm font-semibold text-foreground">Tipe</span>
+            <span className="block truncate text-[11px] text-muted-foreground">{interno ? "Equipe interna" : "Área do fundador"} · tipe.digital</span>
+          </span>
+        </span>
+      }
       grupos={grupos}
       ativo={secao}
       onNavegar={(s) => ir(s as SecaoCentral)}
