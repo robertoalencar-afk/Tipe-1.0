@@ -147,6 +147,7 @@ export function Scanner3D({ slug, items }: { slug: string; items: Item[] }) {
 
   return (
     <section
+      id="scanner-3d"
       aria-labelledby="scanner-3d-titulo"
       className="space-y-4 rounded-2xl border border-border p-4 sm:p-5"
     >
