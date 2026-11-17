@@ -23,6 +23,18 @@ export function lerEnderecos(entrada: string): { nome: string; email: string }[]
 
 export const formatarEndereco = (a: { nome?: string | null; email: string }) => (a.nome ? `${a.nome.replace(/[<>"]/g, "")} <${a.email}>` : a.email);
 
+/**
+ * Nome que o destinatário vê no "De:". Padrão dos grandes (Stripe, Nubank, HubSpot):
+ * caixa compartilhada = "Equipe Tipe"; caixa pessoal = "Nome Sobrenome | Tipe".
+ * O nome completo vem da 1ª linha da assinatura; sem ela, do rótulo da caixa.
+ */
+export function nomeRemetente(cx: { address: string; label: string; signature?: string | null }) {
+  if (cx.address.split("@")[0] === "contato") return "Equipe Tipe";
+  const linha = (cx.signature ?? "").split("\n")[0]?.trim() ?? "";
+  const nome = linha.length >= 3 && linha.length <= 40 && !/[@/:]|tipe/i.test(linha) && /\s/.test(linha) ? linha : cx.label.trim();
+  return /tipe/i.test(nome) ? nome : `${nome} | Tipe`;
+}
+
 export const limparAssunto = (s: string) => s.replace(/^\s*((re|res|enc|fw|fwd)\s*:\s*)+/i, "").trim();
 export const assuntoResposta = (s: string) => `Re: ${limparAssunto(s)}`;
 export const assuntoEncaminhar = (s: string) => `Enc: ${limparAssunto(s)}`;

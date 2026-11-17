@@ -6,7 +6,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { PASTAS, chaveConversa, comAssinatura, corpoHtml, formatarEndereco, htmlParaTexto, lerEnderecos, resumo, textoParaHtml } from "./mail";
+import { PASTAS, chaveConversa, comAssinatura, corpoHtml, formatarEndereco, htmlParaTexto, nomeRemetente, lerEnderecos, resumo, textoParaHtml } from "./mail";
 
 type Ctx = { supabase: any; userId: string; claims?: any };
 /** Founder vê as duas caixas; equipe interna (comercial/atendimento) só as do perfil (contato@). `permitidas` null = todas. */
@@ -153,7 +153,7 @@ export const sendMail = createServerFn({ method: "POST" })
     const r = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json", "Idempotency-Key": crypto.randomUUID() },
-      body: JSON.stringify({ from: formatarEndereco({ nome: cx.label === "Contato" ? "Tipe" : cx.label, email: cx.address }), to: para.map((a) => a.email), ...(cc.length ? { cc: cc.map((a) => a.email) } : {}), reply_to: cx.address, subject: data.assunto, text: corpo, html: corpoHtml(corpo), headers }),
+      body: JSON.stringify({ from: formatarEndereco({ nome: nomeRemetente(cx), email: cx.address }), to: para.map((a) => a.email), ...(cc.length ? { cc: cc.map((a) => a.email) } : {}), reply_to: cx.address, subject: data.assunto, text: corpo, html: corpoHtml(corpo), headers }),
     });
     const j = (await r.json().catch(() => ({}))) as { id?: string; message?: string };
     if (!r.ok) throw new Error(j.message ? `Resend recusou o envio: ${j.message}` : "Resend recusou o envio");
@@ -163,7 +163,7 @@ export const sendMail = createServerFn({ method: "POST" })
     }
     const key = threadKey ?? chaveConversa({ messageId, assunto: data.assunto, contato: para[0]!.email });
     const agora = new Date().toISOString();
-    const row = { mailbox: cx.address, direction: "out", folder: "sent", message_id: messageId, in_reply_to: inReplyTo, thread_key: key, from_addr: cx.address, from_name: cx.label, to_addrs: para, cc_addrs: cc, subject: data.assunto, text_body: corpo, snippet: resumo(corpo), is_read: true, resend_id: j.id ?? null, lead_id: leadId, at: agora };
+    const row = { mailbox: cx.address, direction: "out", folder: "sent", message_id: messageId, in_reply_to: inReplyTo, thread_key: key, from_addr: cx.address, from_name: nomeRemetente(cx), to_addrs: para, cc_addrs: cc, subject: data.assunto, text_body: corpo, snippet: resumo(corpo), is_read: true, resend_id: j.id ?? null, lead_id: leadId, at: agora };
     if (data.rascunhoId) await db.from("mail_messages").delete().eq("id", data.rascunhoId).eq("mailbox", cx.address).eq("folder", "drafts");
     await db.from("mail_messages").insert(row);
     if (leadId) await db.from("crm_activities").insert({ lead_id: leadId, kind: "email", title: `E-mail enviado: ${data.assunto}`.slice(0, 200), body: resumo(data.texto), actor_id: context.userId });
