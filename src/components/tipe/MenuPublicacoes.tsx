@@ -6,34 +6,70 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { LebreSuggestionButton } from "./LebreSuggestionButton";
 import { getMenuPosts, saveMenuPosts, suggestMenuPosts } from "@/lib/tipe/menu-posts.functions";
-import type { MenuPost } from "@/lib/tipe/menu-posts";
+import {
+  MENU_POST_TAGS,
+  WEEKDAYS,
+  postDaysLabel,
+  postShowsOn,
+  type MenuPost,
+} from "@/lib/tipe/menu-posts";
 import { useMovimentoReduzido } from "./site/produto/useVisivel";
 type Item = { code: string; name: string; imageUrl: string | null };
 export function PublicationArt({ post, item }: { post: MenuPost; item: Item }) {
+  const paper = post.theme === "paper";
+  const days = postDaysLabel(post.days);
   return (
     <div
-      className={`relative flex min-h-52 h-full overflow-hidden rounded-xl ${post.theme === "paper" ? "bg-[#e5f8f5] text-[#021E34]" : "bg-[#021E34] text-white"}`}
+      className={`relative isolate flex h-full min-h-60 overflow-hidden rounded-2xl sm:min-h-64 ${paper ? "bg-[#F6F1E7] text-[#021E34]" : "bg-[#021E34] text-white"}`}
     >
       <img
         src={item.imageUrl!}
         alt={item.name}
         loading="lazy"
         className={
-          post.theme === "paper"
-            ? "absolute inset-y-0 right-0 h-full w-[48%] object-cover"
-            : "absolute inset-0 h-full w-full object-cover"
+          paper
+            ? "absolute inset-y-0 right-0 -z-10 h-full w-[46%] object-cover"
+            : "absolute inset-0 -z-10 h-full w-full object-cover"
         }
       />
-      {post.theme === "photo" && (
-        <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/50 to-transparent" />
-      )}
       <div
-        className={`relative flex min-h-52 flex-col justify-center p-5 sm:p-7 ${post.theme === "paper" ? "w-[56%]" : "w-[78%]"}`}
+        aria-hidden
+        className={`absolute inset-0 -z-10 ${paper ? "bg-gradient-to-r from-[#F6F1E7] from-50% via-[#F6F1E7]/70 via-[56%] to-transparent to-[70%]" : "bg-gradient-to-tr from-black/90 via-black/55 to-black/5"}`}
+      />
+      <div
+        className={`flex min-h-60 flex-col justify-between gap-4 p-5 sm:min-h-64 sm:p-7 ${paper ? "w-[60%]" : "w-full max-w-[34rem]"}`}
       >
-        <p className="font-display text-2xl font-semibold leading-tight tracking-tight sm:text-3xl">
-          {post.title}
-        </p>
-        {post.caption && <p className="mt-3 text-sm leading-relaxed">{post.caption}</p>}
+        {post.tag || days ? (
+          <p className="flex flex-wrap items-center gap-2 text-[0.68rem] font-semibold uppercase tracking-[0.12em]">
+            {post.tag && (
+              <span
+                className={`rounded-full px-2.5 py-1 ${paper ? "bg-[#021E34] text-white" : "bg-[#2ED3B7] text-[#021E34]"}`}
+              >
+                {MENU_POST_TAGS[post.tag]}
+              </span>
+            )}
+            {days && <span className={paper ? "text-[#021E34]/70" : "text-white/80"}>{days}</span>}
+          </p>
+        ) : (
+          <span />
+        )}
+        <div>
+          <p className="font-display text-[1.7rem] font-semibold leading-[1.05] tracking-tight sm:text-4xl">
+            {post.title}
+          </p>
+          {post.caption && (
+            <p
+              className={`mt-3 line-clamp-3 text-sm leading-relaxed ${paper ? "text-[#021E34]/80" : "text-white/85"}`}
+            >
+              {post.caption}
+            </p>
+          )}
+          <span
+            className={`mt-4 inline-flex items-center gap-1 border-b pb-0.5 text-xs font-semibold ${paper ? "border-[#021E34]/40" : "border-white/50"}`}
+          >
+            Ver {item.name} <ChevronRight className="size-3.5" aria-hidden />
+          </span>
+        </div>
       </div>
     </div>
   );
@@ -47,8 +83,10 @@ export function MenuPublicationsCarousel({
   items: Item[];
   onOpen: (code: string) => void;
 }) {
+  const today = new Date().getDay();
   const available = posts.filter(
-    (p) => p.enabled && items.some((i) => i.code === p.itemCode && i.imageUrl),
+    (p) =>
+      p.enabled && postShowsOn(p, today) && items.some((i) => i.code === p.itemCode && i.imageUrl),
   );
   const [active, setActive] = useState(0),
     [paused, setPaused] = useState(false),
@@ -161,7 +199,8 @@ export function MenuPublicacoes({ slug, items }: { slug: string; items: Item[] }
   });
   const [posts, setPosts] = useState<MenuPost[] | null>(null),
     [busy, setBusy] = useState(false),
-    [suggesting, setSuggesting] = useState(false);
+    [suggesting, setSuggesting] = useState(false),
+    [brief, setBrief] = useState("");
   const list = posts ?? q.data ?? [];
   const photos = items.filter((i) => i.imageUrl);
   function patch(index: number, p: Partial<MenuPost>) {
@@ -172,20 +211,45 @@ export function MenuPublicacoes({ slug, items }: { slug: string; items: Item[] }
       <div>
         <h3 className="font-display text-xl font-semibold">Publicações no cardápio</h3>
         <p className="mt-1 text-sm text-muted-foreground">
-          Fotos reais dos pratos, texto e um toque da Lebre. Monte até seis artes para o carrossel
-          do cliente.
+          Banners com foto real do prato: promoções por dia da semana, pratos novos e eventos. Monte
+          até oito artes para o carrossel do cliente.
         </p>
       </div>
+      <label className="block text-sm">
+        O que você quer divulgar?
+        <textarea
+          className="mt-1 min-h-20 w-full rounded-lg border border-input bg-background p-3 text-sm"
+          maxLength={300}
+          value={brief}
+          disabled={busy || suggesting}
+          placeholder="Ex.: toda terça, quem pedir camarão para dois ganha a sobremesa"
+          onChange={(e) => setBrief(e.target.value)}
+        />
+        <span className="text-xs text-muted-foreground">
+          A Lebre escreve o título e o texto, escolhe o prato e os dias. Deixe em branco para ela
+          sugerir destaques do cardápio.
+        </span>
+      </label>
       <div className="flex flex-wrap gap-2">
         <LebreSuggestionButton
           loading={suggesting}
-          disabled={q.isPending || q.isError || busy || !photos.length || list.length > 3}
+          disabled={
+            q.isPending ||
+            q.isError ||
+            busy ||
+            !photos.length ||
+            list.length > (brief.trim() ? 7 : 5)
+          }
           onClick={async () => {
             setSuggesting(true);
             try {
-              const ideas = await suggestMenuPosts({ data: { slug } });
-              setPosts([...list, ...ideas].slice(0, 6));
-              toast.success("Sugestões prontas. Revise e marque as que deseja exibir.");
+              const text = brief.trim();
+              const ideas = await suggestMenuPosts({
+                data: { slug, ...(text ? { brief: text } : {}) },
+              });
+              setPosts([...list, ...ideas].slice(0, 8));
+              if (text) setBrief("");
+              toast.success("Banner pronto. Revise e marque para exibir.");
             } catch (e) {
               toast.error((e as Error).message);
             } finally {
@@ -193,12 +257,12 @@ export function MenuPublicacoes({ slug, items }: { slug: string; items: Item[] }
             }
           }}
         >
-          Criar artes com a Lebre
+          Criar banner com a Lebre
         </LebreSuggestionButton>
         <Button
           variant="outline"
           disabled={
-            q.isPending || q.isError || busy || suggesting || !photos.length || list.length >= 6
+            q.isPending || q.isError || busy || suggesting || !photos.length || list.length >= 8
           }
           onClick={() =>
             setPosts([
@@ -276,6 +340,50 @@ export function MenuPublicacoes({ slug, items }: { slug: string; items: Item[] }
                   <option value="paper">Fundo claro</option>
                 </select>
               </div>
+              <div className="flex flex-wrap gap-2">
+                <select
+                  aria-label="Selo da arte"
+                  className="h-11 rounded-lg border border-input bg-background px-2 text-sm"
+                  value={p.tag ?? ""}
+                  disabled={busy || suggesting}
+                  onChange={(e) =>
+                    patch(i, { tag: (e.target.value || undefined) as MenuPost["tag"] })
+                  }
+                >
+                  <option value="">Sem selo</option>
+                  {Object.entries(MENU_POST_TAGS).map(([v, label]) => (
+                    <option key={v} value={v}>
+                      {label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <fieldset>
+                <legend className="text-xs">Dias em que aparece (nenhum marcado: todos)</legend>
+                <div className="mt-1 flex flex-wrap gap-1">
+                  {WEEKDAYS.map((d, n) => {
+                    const on = p.days?.includes(n) ?? false;
+                    return (
+                      <button
+                        key={d}
+                        type="button"
+                        aria-pressed={on}
+                        disabled={busy || suggesting}
+                        onClick={() =>
+                          patch(i, {
+                            days: on
+                              ? (p.days ?? []).filter((x) => x !== n)
+                              : [...(p.days ?? []), n].sort(),
+                          })
+                        }
+                        className={`min-h-11 min-w-11 rounded-lg border px-2 text-sm ${on ? "border-primary bg-primary text-primary-foreground" : "border-input"}`}
+                      >
+                        {d}
+                      </button>
+                    );
+                  })}
+                </div>
+              </fieldset>
               <div className="flex items-center justify-between">
                 <label className="flex min-h-11 items-center gap-2 text-sm">
                   <input

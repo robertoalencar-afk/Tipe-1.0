@@ -50,4 +50,11 @@ const rc=new Set(real.map(i=>i.code));for(const i of real)for(const r of i.menu_
 assert.equal((await db.query(`select count(*)::int n from pdv_menu_categories where restaurant_id='11111111-1111-4111-8111-111111111111'`)).rows[0].n,14,'8 categorias de cozinha + 6 de bebidas');
 await db.exec(await readFile(new URL('../../../drizzle/migrations/0087_bistro_cardapio_real.sql',import.meta.url),'utf8'));
 assert.equal((await db.query(`select count(*)::int n from pdv_menu_items where restaurant_id='11111111-1111-4111-8111-111111111111'`)).rows[0].n,56,'reaplicar não duplica');
+await db.exec(`alter table restaurants add column menu_posts jsonb not null default '[]'::jsonb`);
+await db.exec(await readFile(new URL('../../../drizzle/migrations/0088_bistro_banners.sql',import.meta.url),'utf8'));
+const posts=(await db.query(`select menu_posts from restaurants where slug='bistro-teste'`)).rows[0].menu_posts;
+assert.equal(posts.length,7,'sete banners');assert.equal(new Set(posts.map(p=>p.id)).size,7);
+for(const p of posts){const it=real.find(i=>i.code===p.itemCode);assert.ok(it?.image_url,`banner ${p.title} aponta prato com foto`);
+  assert.ok(p.title.length<=70&&p.caption.length<=180&&['promo','novo','evento'].includes(p.tag)&&(p.days??[]).every(d=>d>=0&&d<=6));}
+assert.deepEqual((await db.query(`select menu_posts from restaurants where slug='bar-teste'`)).rows[0].menu_posts,[],'outra empresa intacta');
 await db.close();console.log('Bistrô menu: curated menu with real branded drinks, every item with photo and 3D depth, full dish sheet (allergens, diets), valid recommendations, other tenants untouched.');
