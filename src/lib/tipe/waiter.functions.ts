@@ -48,7 +48,16 @@ export const getWaiterDashboard = createServerFn({ method: "GET" })
     const ord = (orders.data ?? []) as unknown as Array<{ table_number: string; pdv_order_items: Array<{ unit_price: number; quantity: number }> }>;
     const salesToday = ord.reduce((s, o) => s + o.pdv_order_items.reduce((x, i) => x + Number(i.unit_price) * i.quantity, 0), 0);
     const a = acc.data;
+    // Ranking do restaurante nos últimos 30 dias: o garçom vê só a própria posição, pontos e metas (nunca os números dos colegas).
+    const { coletarGarcons } = await import("./garcom-ranking.server");
+    const { calcularRanking, metasDoGarcom } = await import("./garcom-ranking");
+    const todos = await coletarGarcons({ id: w.restaurant_id, slug: w.restaurants.slug }, 30);
+    const rk = calcularRanking(todos);
+    const eu = rk.find((x) => x.id === w.id);
+    const meuDados = todos.find((x) => x.id === w.id);
+    const ranking = eu && meuDados ? { posicao: eu.posicao, total: rk.length, pontos: eu.pontos, destaque: eu.destaque, mesasPagas: meuDados.tablesPaid, notaMedia: meuDados.ratingAvg, avaliacoes: meuDados.ratingCount, metas: metasDoGarcom(meuDados) } : null;
     return {
+      ranking,
       waiter: { name: w.name, code: w.code, restaurant: w.restaurants.name },
       balance: { available: Number(b?.available ?? 0), currentCycle: Number(b?.current_cycle ?? 0), withdrawn: Number(b?.withdrawn ?? 0) },
       today: {

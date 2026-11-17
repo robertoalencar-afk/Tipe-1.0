@@ -1,3 +1,4 @@
+import { MeuRanking } from "@/components/tipe/RankingGarcons";
 import { SegurancaConta } from "@/components/tipe/SegurancaConta";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -240,6 +241,7 @@ function AreaGarcom() {
                     sub="em saques pagos"
                   />
                 </div>
+                <MeuRanking r={d.ranking} />
                 <section className="surface-card p-5">
                   <div className="flex items-baseline justify-between gap-2">
                     <h2 className="font-display font-semibold">Gorjetas extras</h2>
