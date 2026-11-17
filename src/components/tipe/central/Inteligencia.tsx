@@ -29,12 +29,13 @@ export function Inteligencia({ aba, ir }: Props) {
 }
 
 /** Chat da Lebre do fundador. `embutido` tira a moldura para caber no painel flutuante. */
-export function Assistente({ embutido = false }: { embutido?: boolean }) {
+export function Assistente({ embutido = false, inicial }: { embutido?: boolean; inicial?: string | undefined }) {
   const qc = useQueryClient();
   const hist = useQuery({ queryKey: ["central-lebre"], queryFn: useServerFn(getAssistantHistory) });
   const perguntar = useServerFn(askFounderAssistant);
   const [p, setP] = useState("");
   const fim = useRef<HTMLDivElement>(null);
+  useEffect(() => { if (inicial) setP(inicial); }, [inicial]);
   const m = useMutation({ mutationFn: (pergunta: string) => perguntar({ data: { pergunta } }), onSuccess: () => { setP(""); qc.invalidateQueries({ queryKey: ["central-lebre"] }); }, onError: (e: Error) => toast.error(e.message) });
   useEffect(() => { fim.current?.scrollIntoView({ block: "end" }); }, [hist.data, m.isPending]);
   const enviar = (t: string) => { if (t.trim().length >= 2 && !m.isPending) m.mutate(t.trim()); };
