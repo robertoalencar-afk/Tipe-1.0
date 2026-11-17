@@ -1,5 +1,13 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { BarChart3, Headphones, QrCode, ShieldCheck, Smartphone, Wallet } from "lucide-react";
+import {
+  BarChart3,
+  Check,
+  Headphones,
+  QrCode,
+  ShieldCheck,
+  Smartphone,
+  Wallet,
+} from "lucide-react";
 import { PUBLIC_PRICING } from "@/lib/tipe/plans";
 import { Reveal } from "@/components/tipe/landing/motion";
 import { CardsPlanos, ComparacaoPlanos } from "@/components/tipe/site/Planos";
@@ -45,6 +53,10 @@ const PERGUNTAS: [string, string][] = [
     `Conheça os planos e solicite uma demonstração com a equipe Tipe. A gente cadastra as mesas e treina a equipe com você.`,
   ],
   [
+    "Quais formas de pagamento o cliente tem?",
+    "Pix, Apple Pay, Google Pay e pagar no estabelecimento, em todos os planos. Os pagamentos digitais passam pelo provedor de pagamento ligado na conta do restaurante, e o dinheiro cai direto nela.",
+  ],
+  [
     "E se eu passar do limite de mesas?",
     "As mesas acima do limite do plano não abrem novas contas. É só mudar de plano para liberar.",
   ],
@@ -60,16 +72,19 @@ function Precos() {
             centro
             rotulo="Planos"
             titulo="Um plano para cada tamanho de restaurante."
-            texto={`A assinatura é pelo número de mesas, sem tarifa da Tipe por transação. Implantação única de R$ 200 no Essencial e no Profissional; grátis a partir do Premium. Pagamentos digitais têm custos do provedor e dependem de habilitação e validação por restaurante.`}
+            texto="Você paga pelo número de mesas, sem tarifa da Tipe por transação. Order, Equipe e Cozinha vêm em todos os planos."
           />
-          <ul className="mx-auto mt-8 flex max-w-3xl flex-wrap justify-center gap-2 text-[0.95rem]">
+          <ul className="mx-auto mt-8 flex max-w-3xl flex-wrap justify-center gap-x-6 gap-y-3 text-[0.95rem]">
             {[
               "Sem tarifa da Tipe por transação",
               "Sem taxa para o cliente",
-              "Mensal sem fidelidade",
-              `Implantação acompanhada`,
+              "Mensal, sem fidelidade",
+              "Implantação acompanhada",
             ].map((t) => (
-              <li key={t} className="rounded-full border border-border px-4 py-2">
+              <li key={t} className="inline-flex items-center gap-2">
+                <span className="grid h-5 w-5 place-items-center rounded-full bg-brand-soft text-brand-strong">
+                  <Check className="h-3 w-3" strokeWidth={3} aria-hidden />
+                </span>
                 {t}
               </li>
             ))}
@@ -77,27 +92,38 @@ function Precos() {
           <div className="mt-12">
             <CardsPlanos />
           </div>
+          <p className="mx-auto mt-6 max-w-2xl text-center text-sm text-muted-foreground text-pretty">
+            Valores mensais por restaurante. Nos pagamentos digitais, o restaurante paga só a tarifa
+            do provedor de pagamento, que é ativado na conta do próprio restaurante.
+          </p>
         </div>
       </Secao>
       <Secao tema="escuro">
         <div className="container-page">
           <Titulo centro titulo="Order, Equipe e Cozinha em todos os planos." />
-          <ul className="mt-14 grid grid-cols-2 gap-x-6 gap-y-10 sm:grid-cols-3 lg:grid-cols-6">
+          <ul className="mt-12 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
             {SEMPRE.map(([I, t], i) => (
-              <Reveal as="li" key={t} delay={i * 90} className="text-center">
-                <span className="mx-auto grid h-14 w-14 place-items-center rounded-2xl border border-border">
-                  <I className="h-6 w-6 text-brand" />
+              <Reveal
+                as="li"
+                key={t}
+                delay={i * 90}
+                className="flex flex-col gap-6 rounded-[1.5rem] border border-border p-5"
+              >
+                <span className="grid h-11 w-11 place-items-center rounded-xl bg-brand/15">
+                  <I className="h-5 w-5 text-brand" strokeWidth={1.8} aria-hidden />
                 </span>
-                <p className="mx-auto mt-4 max-w-[10rem] text-[0.98rem] font-medium">{t}</p>
+                <p className="text-[0.98rem] font-medium leading-snug">{t}</p>
               </Reveal>
             ))}
           </ul>
         </div>
       </Secao>
       <Secao tema="claro">
-        <div className="container-page grid grid-cols-1 gap-10 lg:grid-cols-[0.75fr_1.25fr] lg:gap-16 [&>*]:min-w-0">
-          <Titulo titulo="Tudo nos detalhes." texto="Compare o que cada plano inclui." />
-          <ComparacaoPlanos />
+        <div className="container-page">
+          <Titulo titulo="Compare os planos." texto="Tudo o que cada plano inclui, lado a lado." />
+          <div className="mt-10 sm:mt-14">
+            <ComparacaoPlanos />
+          </div>
         </div>
       </Secao>
       <Secao tema="claro" className="!pt-0">

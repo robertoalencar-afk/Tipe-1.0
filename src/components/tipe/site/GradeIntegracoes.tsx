@@ -73,7 +73,7 @@ const GRUPOS: { status: StatusIntegracao; t: string; d: string }[] = [
   {
     status: "disponivel",
     t: "Disponível",
-    d: "Funciona hoje, sem depender de terceiros para ligar.",
+    d: "Pronto para integração. Cada conexão é ativada com os dados do restaurante, com ajuda da equipe.",
   },
   {
     status: "piloto",

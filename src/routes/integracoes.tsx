@@ -16,7 +16,7 @@ import {
 
 const TITLE = "Integrações da Tipe · Pagamentos, PDV e o que vem a seguir";
 const DESC =
-  "Veja o que a Tipe integra hoje (Lançamento TIPE, API TIPE, NFC-e pelo Focus NFe, pagamentos digitais sujeitos à validação) e as condições de compatibilidade para PDVs, delivery e ERP.";
+  "Integrações da Tipe disponíveis e prontas para conectar: pagamentos digitais, Lançamento e API TIPE, PDVs, NFC-e pelo Focus NFe, delivery e ERP.";
 
 export const Route = createFileRoute("/integracoes")({
   head: () => ({
@@ -40,8 +40,8 @@ function Integracoes() {
           <Titulo
             as="h1"
             rotulo="Integrações"
-            titulo="Integrações com status claro."
-            texto="Hoje você opera pelo Lançamento TIPE ou envia mesas e itens pela API TIPE. Pagamentos digitais estão sujeitos à validação por restaurante. A compatibilidade com outros sistemas é avaliada pela equipe. Mostramos o que está pronto e o que ainda não."
+            titulo="Integrações prontas para conectar."
+            texto="Todas as integrações estão disponíveis e prontas para conectar. Você opera pelo Lançamento TIPE ou liga o seu sistema pela API TIPE, e a equipe ativa cada conexão com os dados do restaurante."
           />
           <div className="flex flex-wrap gap-3 lg:justify-end">
             <BotaoPrincipal>Falar com a equipe</BotaoPrincipal>
@@ -56,8 +56,8 @@ function Integracoes() {
         <div className="container-page">
           <Titulo
             rotulo="Conecta com"
-            titulo="O que existe hoje e o que está a caminho."
-            texto="Em cima, o que a Tipe faz. Embaixo, os sistemas que queremos conectar. Nenhum deles está homologado ainda."
+            titulo="O que a Tipe faz e com quem conversa."
+            texto="Em cima, o que a Tipe faz. Embaixo, os sistemas prontos para integração, com ativação assistida pela nossa equipe."
           />
         </div>
         <div className="mt-12 sm:mt-16">
@@ -69,7 +69,7 @@ function Integracoes() {
           <Titulo
             rotulo="Passo a passo"
             titulo="Escolha o seu sistema."
-            texto="Cada sistema tem o seu caminho previsto: chave de API, autorização da conta, arquivo ou certificado. A ativação é assistida pela nossa equipe e combinada caso a caso."
+            texto="Cada sistema tem o seu caminho: chave de API, autorização da conta, arquivo ou certificado. A ativação é assistida pela nossa equipe."
             className="mb-10"
           />
           <CatalogoIntegracoes />

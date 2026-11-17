@@ -284,8 +284,8 @@ export function IntegracoesHome() {
         <Titulo
           centro
           rotulo="Integrações"
-          titulo="Integrações, com status honesto."
-          texto="Hoje: Lançamento TIPE, API TIPE, pagamento no estabelecimento e NFC-e pelo Focus NFe com ativação guiada na Gestão. Pagamentos digitais sujeitos à validação por restaurante. PDVs, delivery e ERP estão sujeitos à análise de compatibilidade."
+          titulo="Tudo conectado, pronto para integrar."
+          texto="Pagamentos, salão, cozinha, caixa, PDV, NFC-e, delivery e ERP falam com a Tipe. A equipe ativa cada integração com os dados do seu restaurante."
         />
       </div>
       <div className="container-page mt-12 sm:mt-16">
@@ -312,7 +312,7 @@ export function PlanosHome() {
           <Titulo
             rotulo="Planos"
             titulo="Um plano para cada tamanho de restaurante."
-            texto={`A assinatura é pelo número de mesas, sem tarifa da Tipe por transação. Mensalidades e implantação detalhadas em /precos. Consulte os planos e as condições de contratação.`}
+            texto="Você paga pelo número de mesas, sem tarifa da Tipe por transação. Order, Equipe e Cozinha vêm em todos os planos."
           />
           <a
             href="/precos"
