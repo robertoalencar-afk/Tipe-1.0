@@ -27,24 +27,24 @@ function CenaMesa({ cena }: { cena: Cena }) {
 export function ResultadosMesa() {
   const [ativa, selecionar] = useState(0);
   const atual = cenas[ativa]!;
-  return <section aria-labelledby="resultados" className="bg-[#021e34] py-16 text-white sm:py-24">
+  return <section aria-labelledby="resultados" className="bg-background-muted py-16 text-foreground sm:py-24">
     <div className="container-page">
-      <div className="mb-9 flex flex-wrap items-end justify-between gap-5 border-b border-white/20 pb-8">
-        <div><p className="mb-4 font-display text-[clamp(1.2rem,1rem+0.8vw,1.6rem)] text-brand">O que muda na sua mesa</p>
-          <h2 id="resultados" className="max-w-[16ch] scroll-mt-24 font-display text-[clamp(2.4rem,1.4rem+3.4vw,4.6rem)] font-medium leading-[1]">Do QR Code <span className="text-brand">à mesa livre.</span></h2></div>
-        <a href="/simulador" className="inline-flex min-h-11 items-center gap-3 rounded-full border border-white/35 px-5 text-sm font-medium hover:bg-white/10">Experimentar a Mesa 12 <ArrowUpRight size={16} /></a>
+      <div className="mb-9 flex flex-wrap items-end justify-between gap-5 border-b border-border pb-8">
+        <div><p className="mb-4 font-display text-[clamp(1.2rem,1rem+0.8vw,1.6rem)] text-brand-strong">O que muda na sua mesa</p>
+          <h2 id="resultados" className="max-w-[16ch] scroll-mt-24 font-display text-[clamp(2.4rem,1.4rem+3.4vw,4.6rem)] font-medium leading-[1]">Do QR Code <span className="text-brand-strong">à mesa livre.</span></h2></div>
+        <a href="/simulador" className="inline-flex min-h-11 items-center gap-3 rounded-full border border-foreground/25 px-5 text-sm font-medium hover:bg-foreground/5">Experimentar a Mesa 12 <ArrowUpRight size={16} /></a>
       </div>
       <div className="grid items-stretch gap-10 lg:grid-cols-[1.12fr_1fr]">
         <div className="hidden lg:block"><CenaMesa cena={atual} /></div>
         <div className="flex flex-col justify-center">{cenas.map((c,i) => {
           const aberta = i === ativa;
-          return <div key={c.titulo} className="border-b border-white/20">
-            <h3><button type="button" aria-expanded={aberta} aria-controls={`mesa-cena-${i}`} onClick={()=>selecionar(i)} className="group flex w-full items-center gap-4 py-5 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand">
-              <span aria-hidden className={aberta ? "h-5 w-1 shrink-0 rounded-full bg-brand" : "h-1 w-1 shrink-0 rounded-full bg-white/45"} />
-              <span className={`flex-1 font-display text-[clamp(1.35rem,2.4vw,2.15rem)] leading-tight tracking-tight ${aberta ? "text-white" : "text-white/70 group-hover:text-white"}`}>{c.titulo}</span>
-              {aberta ? <Check size={18} className="text-brand" /> : <ArrowDownRight size={18} aria-hidden />}
+          return <div key={c.titulo} className="border-b border-border">
+            <h3><button type="button" aria-expanded={aberta} aria-controls={`mesa-cena-${i}`} onClick={()=>selecionar(i)} className="group flex w-full items-center gap-4 py-5 text-left focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-strong">
+              <span aria-hidden className={aberta ? "h-5 w-1 shrink-0 rounded-full bg-brand" : "h-1 w-1 shrink-0 rounded-full bg-foreground/30"} />
+              <span className={`flex-1 font-display text-[clamp(1.35rem,2.4vw,2.15rem)] leading-tight tracking-tight ${aberta ? "text-foreground" : "text-muted-foreground group-hover:text-foreground"}`}>{c.titulo}</span>
+              {aberta ? <Check size={18} className="text-brand-strong" /> : <ArrowDownRight size={18} aria-hidden />}
             </button></h3>
-            <div id={`mesa-cena-${i}`} hidden={!aberta}>{aberta && <div className="pb-6"><p className="mb-4 max-w-[45ch] pl-5 text-base leading-relaxed text-white/80">{c.texto}</p><div className="lg:hidden"><CenaMesa cena={c} /></div></div>}</div>
+            <div id={`mesa-cena-${i}`} hidden={!aberta}>{aberta && <div className="pb-6"><p className="mb-4 max-w-[45ch] pl-5 text-base leading-relaxed text-muted-foreground">{c.texto}</p><div className="lg:hidden"><CenaMesa cena={c} /></div></div>}</div>
           </div>;
         })}</div>
       </div>

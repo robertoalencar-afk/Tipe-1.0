@@ -2371,3 +2371,43 @@
 @media (prefers-reduced-motion: reduce) {
   .lebre-balanco, .lebre-tropeco, .ponto-digitando, .zoom-lento { animation: none !important; }
 }
+/* Lebre: pulo com achatamento (cada fala nova) e brilhos de comemoração. */
+@keyframes tipe-lebre-pulo {
+  0% { transform: translateY(0) scale(1, 1); }
+  18% { transform: translateY(0) scale(1.1, 0.88); }
+  48% { transform: translateY(-26px) scale(0.93, 1.1) rotate(-3deg); }
+  72% { transform: translateY(0) scale(1.07, 0.93) rotate(2deg); }
+  100% { transform: translateY(0) scale(1, 1); }
+}
+.lebre-pulo { transform-origin: 50% 100%; animation: tipe-lebre-pulo 0.8s cubic-bezier(0.3, 0.7, 0.4, 1) both; }
+@keyframes tipe-sombra-pulo {
+  0%, 100% { transform: scaleX(1); opacity: 0.28; }
+  48% { transform: scaleX(0.6); opacity: 0.14; }
+}
+.lebre-sombra { animation: tipe-sombra-pulo 0.8s ease-out both; }
+@keyframes tipe-brilho {
+  0% { opacity: 0; transform: translateY(6px) scale(0.4) rotate(0deg); }
+  40% { opacity: 1; }
+  100% { opacity: 0; transform: translateY(-34px) scale(1.1) rotate(60deg); }
+}
+.brilho { animation: tipe-brilho 1.6s ease-out infinite; }
+@media (prefers-reduced-motion: reduce) { .lebre-pulo, .lebre-sombra, .brilho { animation: none !important; } }
+/* Botão da Lebre: pula de tempos em tempos, tem anel pulsante e o rótulo aparece alguns segundos. */
+@keyframes tipe-chamar {
+  0%, 82%, 100% { transform: translateY(0); }
+  88% { transform: translateY(-10px) rotate(-6deg); }
+  94% { transform: translateY(0) rotate(4deg); }
+}
+.lebre-chamar { animation: tipe-chamar 7s ease-in-out 3s infinite; }
+@keyframes tipe-anel {
+  0% { transform: scale(1); opacity: 0.45; }
+  100% { transform: scale(1.7); opacity: 0; }
+}
+.lebre-anel { animation: tipe-anel 2.6s ease-out infinite; }
+@keyframes tipe-rotulo {
+  0%, 8% { opacity: 0; transform: translateX(8px); }
+  14%, 80% { opacity: 1; transform: none; }
+  100% { opacity: 0; }
+}
+.lebre-rotulo { opacity: 0; animation: tipe-rotulo 9s ease-out 1.5s 1 both; }
+@media (prefers-reduced-motion: reduce) { .lebre-chamar, .lebre-anel, .lebre-rotulo { animation: none !important; } }

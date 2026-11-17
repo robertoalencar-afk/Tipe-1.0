@@ -9,7 +9,7 @@ import { acceptInvite } from "@/lib/tipe/equipe.functions";
 export const Route = createFileRoute("/convite/$token")({
   head: () => ({
     meta: [
-      { title: "Convite para a equipe | TIPE" },
+      { title: "Convite para a equipe | Tipe" },
       { name: "robots", content: "noindex" },
       { name: "referrer", content: "no-referrer" },
     ],
@@ -49,11 +49,11 @@ function Convite() {
         <p className="text-sm text-muted-foreground">Entre com a conta do e-mail que recebeu o convite para aceitar. O convite vale uma vez e expira em 7 dias.</p>
         {erro && <p role="alert" className="rounded-lg bg-destructive/10 p-3 text-sm text-destructive">{erro}</p>}
         {logado === false ? (
-          <Button asChild variant="brand" className="w-full"><Link to="/entrar">Entrar ou criar conta</Link></Button>
+          <Button asChild variant="brand" className="w-full"><Link to="/entrar" search={{ r: `/convite/${token}` }}>Entrar ou criar conta</Link></Button>
         ) : (
           <Button variant="brand" className="w-full" disabled={enviando || logado === null} onClick={entrar}>Aceitar convite</Button>
         )}
-        {logado === false && <p className="text-xs text-muted-foreground">Depois de entrar, abra este link de novo para aceitar.</p>}
+        {logado === false && <p className="text-xs text-muted-foreground">Use o mesmo e-mail do convite. Depois de entrar, você volta para cá para aceitar.</p>}
       </div>
     </main>
   );
