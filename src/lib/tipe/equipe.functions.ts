@@ -58,7 +58,34 @@ export const getEquipe = createServerFn({ method: "GET" })
     };
   });
 
-/** Cria o convite e devolve o link UMA vez. Nada é enviado por e-mail: o administrador compartilha o link. */
+/** Manda o convite por e-mail (Resend). Falha no envio não desfaz o convite: o link segue na tela. */
+async function enviarConvite(db: Db, rid: string, autor: string, d: { email: string; name: string; role: z.infer<typeof Papel> }, token: string) {
+  try {
+    const [{ data: r }, { data: eu }] = await Promise.all([
+      db.from("restaurants").select("name").eq("id", rid).maybeSingle(),
+      db.from("staff_members").select("display_name").eq("user_id", autor).eq("restaurant_id", rid).maybeSingle(),
+    ]);
+    const { getRequestHeader } = await import("@tanstack/react-start/server");
+    const { origemConfiavel } = await import("./recuperar-senha");
+    const { PAPEL_LABEL } = await import("./permissoes");
+    const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
+    const res = await sendTemplateEmail("convite-equipe", d.email, {
+      templateData: {
+        nome: d.name, restaurante: r?.name ?? "o restaurante", papel: PAPEL_LABEL[d.role],
+        quemConvidou: eu?.display_name?.split(" ")[0], link: `${origemConfiavel(getRequestHeader("origin"))}/convite/${token}`, dias: 7,
+      },
+      idempotencyKey: `convite-${token.slice(0, 16)}`,
+      replyTo: "contato@tipe.digital",
+      restaurantId: rid,
+    });
+    return res.sent;
+  } catch (e) {
+    console.error("convite_email", (e as Error).message);
+    return false;
+  }
+}
+
+/** Cria o convite, manda por e-mail e devolve o link UMA vez (para compartilhar também por WhatsApp). */
 export const createInvite = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ slug: Slug, email: z.string().trim().toLowerCase().email().max(255), name: z.string().trim().min(2).max(80), role: Papel }).parse(d))
@@ -70,7 +97,8 @@ export const createInvite = createServerFn({ method: "POST" })
     const { error } = await db.from("staff_invites").insert({ restaurant_id: rid, email: data.email, name: data.name, role: data.role, token_hash: await hash(token), created_by: context.userId });
     if (error) throw new Error("Não foi possível criar o convite");
     await auditar(db, rid, context.userId, "convite_criado", null, `${data.email} como ${data.role}`);
-    return { token, validoPorDias: 7 };
+    const emailEnviado = await enviarConvite(db, rid, context.userId, data, token);
+    return { token, validoPorDias: 7, emailEnviado };
   });
 
 export const revokeInvite = createServerFn({ method: "POST" })

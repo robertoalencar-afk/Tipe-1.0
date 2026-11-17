@@ -28,7 +28,7 @@ export function EquipePermissoes({ slug }: { slug: string }) {
   const [f, setF] = useState({ name: "", email: "", role: "cashier" as (typeof PAPEIS)[number] });
   const [link, setLink] = useState<string | null>(null);
   const erro = (e: Error) => toast.error(e.message);
-  const mConvite = useMutation({ mutationFn: () => convidar({ data: { slug, ...f } }), onSuccess: (r) => { setLink(`${window.location.origin}/convite/${r.token}`); setF({ ...f, name: "", email: "" }); recarregar(); }, onError: erro });
+  const mConvite = useMutation({ mutationFn: () => convidar({ data: { slug, ...f } }), onSuccess: (r) => { setLink(`${window.location.origin}/convite/${r.token}`); if (r.emailEnviado) toast.success(`Convite enviado para ${f.email}`); else toast.warning("Não deu para mandar o e-mail agora. Copie o link e envie por WhatsApp."); setF({ ...f, name: "", email: "" }); recarregar(); }, onError: erro });
   const mRevogar = useMutation({ mutationFn: (id: string) => revogar({ data: { slug, id } }), onSuccess: recarregar, onError: erro });
   const mPapel = useMutation({ mutationFn: (v: { userId: string; role: (typeof PAPEIS)[number] }) => trocar({ data: { slug, ...v } }), onSuccess: () => { toast.success("Papel alterado"); recarregar(); }, onError: erro });
   const mExtras = useMutation({ mutationFn: (v: { userId: string; permissoes: string[] }) => extras({ data: { slug, ...v } }), onSuccess: () => { toast.success("Permissões salvas"); recarregar(); }, onError: erro });
@@ -70,11 +70,11 @@ export function EquipePermissoes({ slug }: { slug: string }) {
         <div className="grid gap-4 md:grid-cols-2">
           <form className="surface-card space-y-3 p-4" onSubmit={(e) => { e.preventDefault(); mConvite.mutate(); }}>
             <h2 className="flex items-center gap-2 font-display font-semibold"><UserPlus className="size-4" /> Convidar pessoa</h2>
-            <p className="text-xs text-muted-foreground">Gera um link de uso único, válido por 7 dias. Nada é enviado automaticamente: você compartilha o link.</p>
+            <p className="text-xs text-muted-foreground">A pessoa recebe o convite por e-mail, com link de uso único válido por 7 dias. O link também aparece aqui para mandar por WhatsApp.</p>
             <Input required placeholder="Nome" value={f.name} onChange={(e) => setF({ ...f, name: e.target.value })} maxLength={80} />
             <Input required type="email" placeholder="E-mail da pessoa" value={f.email} onChange={(e) => setF({ ...f, email: e.target.value })} />
             <select className={inputCls} value={f.role} onChange={(e) => setF({ ...f, role: e.target.value as typeof f.role })} aria-label="Papel">{PAPEIS.map((r) => <option key={r} value={r}>{PAPEL_LABEL[r]}</option>)}</select>
-            <Button type="submit" variant="brand" className="w-full" disabled={mConvite.isPending}>Gerar convite</Button>
+            <Button type="submit" variant="brand" className="w-full" disabled={mConvite.isPending}>Enviar convite</Button>
             {link && (
               <div className="rounded-lg bg-brand-soft p-3 text-sm"><p className="mb-2 font-medium">Link do convite (aparece só agora)</p><p className="break-all text-xs">{link}</p>
                 <Button type="button" size="sm" variant="outline" className="mt-2" onClick={() => { navigator.clipboard.writeText(link).then(() => toast.success("Link copiado")); }}><Copy className="size-4" /> Copiar</Button></div>
