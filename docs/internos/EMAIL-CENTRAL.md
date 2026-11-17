@@ -20,6 +20,13 @@ Nada é enviado sozinho: só quando o fundador aperta Enviar. Corpo sempre exibi
 6. **Resend**: domínio `tipe.digital` verificado (SPF + DKIM). O domínio pode já estar verificado pela thread de e-mails personalizados; não duplique registros. `RESEND_API_KEY` já existe no site.
 7. Teste: mande um e-mail de fora para contato@; ele aparece em Caixa de entrada em até 1 min. Responda pela Central.
 
+## E-mails de funcionários e assinaturas
+
+- Em Central > Administração > Equipe interna, ao criar o membro (setores com Comunicação: comercial, vendas, marketing, atendimento) dá para criar também `nome@tipe.digital`. O membro vê só a própria caixa e as caixas do setor (contato@ para comercial, vendas e atendimento); nunca roberto@.
+- **Recebimento de caixas novas:** no Cloudflare Email Routing, deixe a regra **catch-all** apontando para o Worker `tipe-email`. Assim qualquer `nome@tipe.digital` criado na Central passa a receber sem nova regra. O servidor descarta o que não tem caixa cadastrada.
+- **Envio** usa o domínio já verificado no Resend; nada a cadastrar por pessoa.
+- Assinaturas: roberto@ e contato@ já vêm prontas (nome, cargo, contatos, filete turquesa). Edite em Caixa de e-mail > Assinatura; a prévia mostra como sai. O fundador edita qualquer uma; cada membro edita só a da própria caixa.
+
 ## Segurança
 
 - Entrada: assinatura HMAC-SHA256 de `timestamp.corpo`, janela de 5 min, comparação em tempo constante.
