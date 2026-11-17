@@ -119,7 +119,7 @@ export function MesaViva() {
       ref={ref}
       data-tema="escuro"
       aria-labelledby="mv-titulo"
-      className="relative overflow-hidden bg-[#021E34] py-20 text-white sm:py-28"
+      className="relative overflow-hidden bg-[#021E34] py-14 text-white sm:py-20"
     >
       <div className="container-page">
         <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-14">

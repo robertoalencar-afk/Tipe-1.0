@@ -388,7 +388,7 @@ function Contato({ estado }: { estado: EstadoLancamento }) {
     <section
       data-tema="claro"
       id={ANCORA_FORM}
-      className="scroll-mt-16 px-4 py-16 sm:px-6 sm:py-24"
+      className="scroll-mt-16 px-4 py-12 sm:px-6 sm:py-16 lg:py-20"
     >
       <div className="relative mx-auto grid max-w-7xl gap-10 overflow-hidden rounded-[2.25rem] bg-[linear-gradient(120deg,#021E34_0%,#03465a_55%,#0b8f87_100%)] px-5 py-12 text-white sm:px-12 sm:py-16 lg:grid-cols-[0.85fr_1.15fr] lg:gap-14 lg:px-16">
         <div>

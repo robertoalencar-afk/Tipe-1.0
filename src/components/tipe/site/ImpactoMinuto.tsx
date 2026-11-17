@@ -133,7 +133,7 @@ export function ImpactoMinuto() {
     <section
       data-tema="claro"
       aria-label="O impacto de cada minuto"
-      className="px-4 py-14 sm:px-6 sm:py-20 lg:py-28"
+      className="px-4 py-12 sm:px-6 sm:py-16 lg:py-20"
     >
       <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2rem] bg-[#021E34] text-white lg:rounded-[2.75rem]">
         <div

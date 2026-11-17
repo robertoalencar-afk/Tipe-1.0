@@ -318,7 +318,7 @@ export function CalculadoraGiro() {
       id="calculadora"
       data-tema="claro"
       aria-label="Calculadora de giro de mesas"
-      className="scroll-mt-16 py-14 sm:py-20 lg:py-28"
+      className="scroll-mt-16 py-12 sm:py-16 lg:py-20"
     >
       <style>{ESTILO_SLIDER}</style>
       <div className="container-page">

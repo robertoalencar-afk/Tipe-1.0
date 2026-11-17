@@ -27,7 +27,7 @@ function CenaMesa({ cena }: { cena: Cena }) {
 export function ResultadosMesa() {
   const [ativa, selecionar] = useState(0);
   const atual = cenas[ativa]!;
-  return <section aria-labelledby="resultados" className="bg-background-muted py-16 text-foreground sm:py-24">
+  return <section aria-labelledby="resultados" className="bg-background-muted py-12 text-foreground sm:py-16 lg:py-20">
     <div className="container-page">
       <div className="mb-9 flex flex-wrap items-end justify-between gap-5 border-b border-border pb-8">
         <div><p className="mb-4 font-display text-[clamp(1.2rem,1rem+0.8vw,1.6rem)] text-brand-strong">O que muda na sua mesa</p>

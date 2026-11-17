@@ -87,7 +87,7 @@ export function Secao({
       id={id}
       data-tema={tema}
       aria-label={ariaLabel}
-      className={cn("relative scroll-mt-16 py-14 sm:py-20 lg:py-28", className)}
+      className={cn("relative scroll-mt-16 py-12 sm:py-16 lg:py-20", className)}
     >
       {children}
     </section>
@@ -206,7 +206,7 @@ export function FaixaCta({
   texto?: string;
 }) {
   return (
-    <section data-tema="claro" className="px-4 py-16 sm:px-6 sm:py-24">
+    <section data-tema="claro" className="px-4 py-10 sm:px-6 sm:py-14">
       <div className="relative mx-auto max-w-7xl overflow-hidden rounded-[2.25rem] bg-[linear-gradient(120deg,#021E34_0%,#03465a_45%,#0FC9BD_100%)] px-7 py-14 text-white sm:px-14 sm:py-20">
         <div
           aria-hidden

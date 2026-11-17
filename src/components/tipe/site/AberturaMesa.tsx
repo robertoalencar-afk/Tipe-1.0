@@ -212,7 +212,7 @@ export function AberturaMesa({ secao = false }: { secao?: boolean } = {}) {
       id={secao ? "ao-vivo" : undefined}
       className={
         secao
-          ? "relative overflow-hidden py-14 sm:py-20 lg:py-28"
+          ? "relative overflow-hidden py-12 sm:py-16 lg:py-20"
           : "relative -mt-16 overflow-hidden pt-16"
       }
     >
