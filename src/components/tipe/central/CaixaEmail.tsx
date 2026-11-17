@@ -51,7 +51,8 @@ export function CaixaEmail() {
 
   return (
     <div className="space-y-3">
-      {!o.recebimento && <Aviso tone="warning">Recebimento ainda não conectado: configure o Cloudflare Email Routing e o segredo EMAIL_INBOUND_SECRET (docs/internos/EMAIL-CENTRAL.md). Enviar já funciona se o Resend estiver ativo.</Aviso>}
+      {o.recebimento === "sem_segredo" && <Aviso tone="warning">Recebimento sem segredo: o segredo EMAIL_INBOUND_SECRET sai na próxima publicação do site. Depois falta ligar o Email Routing no Cloudflare (docs/internos/EMAIL-CENTRAL.md).</Aviso>}
+      {o.recebimento === "aguardando" && <Aviso tone="neutral">Recebimento pronto no servidor, aguardando o primeiro e-mail. Falta ligar o Cloudflare Email Routing para roberto@ e contato@ (passos 3 e 4 do guia); até lá, o recebimento continua no provedor atual.</Aviso>}
       {!o.envio && <Aviso tone="warning">Envio desligado: falta RESEND_API_KEY.</Aviso>}
       <div className="grid gap-3 lg:grid-cols-[220px_340px_1fr]">
         <nav aria-label="Pastas" className={`${aberto ? "hidden lg:block" : ""} space-y-3 rounded-xl border border-border bg-card p-3`}>
