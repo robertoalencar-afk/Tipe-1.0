@@ -505,6 +505,7 @@ export function RestaurantPanel({
     }
   }
 
+  const [editarPrato, setEditarPrato] = useState<string | null>(null);
   if (q.isLoading || pdv.isLoading) return <PainelCarregando />;
   if (q.error || !q.data || pdv.error || !pdv.data)
     return (
@@ -941,7 +942,7 @@ export function RestaurantPanel({
             onDone={refresh}
           />
         )}
-        {aba === "cardapio" && podeDono && <Cardapio restaurantName={d.restaurant.name} slug={slug} pdv={pdv.data} onDone={refresh} midia={midia.data?.itens ?? {}} />}
+        {aba === "cardapio" && podeDono && <Cardapio restaurantName={d.restaurant.name} slug={slug} pdv={pdv.data} onDone={refresh} midia={midia.data?.itens ?? {}} editarId={editarPrato} onEditarAberto={() => setEditarPrato(null)} />}
         {aba === "equipe" && podeDono && (
           <div className="space-y-6">
             <Garcons slug={slug} pdv={pdv.data} onDone={refresh} />
@@ -953,8 +954,13 @@ export function RestaurantPanel({
         {aba === "studio" && podeDono && (
           <StudioFotos
             ir={ir}
-            total={(pdv.data?.items ?? []).length}
-            comFoto={Object.values(midia.data?.itens ?? {}).filter((m) => m.foto).length}
+            items={pdv.data?.items ?? []}
+            categories={pdv.data?.categories ?? []}
+            midia={midia.data?.itens ?? {}}
+            onFotografar={(id) => {
+              setEditarPrato(id);
+              ir("cardapio");
+            }}
           />
         )}
         {aba === "banco" && podeDono && <BancoImagens slug={slug} podeDono={podeDono} itens={(pdv.data?.items ?? []).map((i) => ({ id: i.id, name: i.name, code:i.code }))} onAplicada={() => void qc.invalidateQueries({ queryKey: ["midia", slug] })} />}
@@ -1790,7 +1796,7 @@ function Identidade({ slug, podeDono, funcao, onSair }: { slug: string; podeDono
   );
 }
 
-function Cardapio(props: { restaurantName: string; slug: string; pdv: PdvData; onDone: () => void; midia: Record<string, { foto: string | null; profundidade: string | null }> }) {
+function Cardapio(props: { restaurantName: string; slug: string; pdv: PdvData; onDone: () => void; midia: Record<string, { foto: string | null; profundidade: string | null }>; editarId?: string | null; onEditarAberto?: () => void }) {
   return <CardapioGestao {...props} />;
 }
 
