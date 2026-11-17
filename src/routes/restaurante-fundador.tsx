@@ -213,7 +213,7 @@ function RestauranteFundador() {
               programa.
             </p>
             <a
-              href="/produtos/guest"
+              href="/reserva"
               className="mt-6 inline-flex min-h-11 items-center gap-2 text-white/85 underline underline-offset-4"
             >
               O que é o Tipe Guest (em breve) <ArrowRight className="h-4 w-4" aria-hidden />

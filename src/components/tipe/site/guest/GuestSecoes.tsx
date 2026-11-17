@@ -1,5 +1,5 @@
 /**
- * Seções extras da página /produtos/guest (Projeto 4): restaurantes e experiências, como
+ * Seções extras da página /reserva (Projeto 4): restaurantes e experiências, como
  * reservar, Guest Manager, integração com o Tipe Pay, avaliações e pontos, Restaurante Fundador e
  * CTA de interesse. O Guest segue "Em breve": nada aqui reserva de verdade. Os restaurantes são os
  * fictícios da demonstração, sempre rotulados.
@@ -55,7 +55,7 @@ export function GuestVitrine() {
           ))}
         </div>
         <div className="mt-6">
-          <BotaoSecundario href="/guest-demo">Abrir a demonstração completa</BotaoSecundario>
+          <BotaoSecundario href="/reserva-demo">Abrir a demonstração completa</BotaoSecundario>
         </div>
       </div>
     </Secao>
@@ -136,7 +136,7 @@ export function GuestManagerSecao() {
             19:30 Ana · mesa 1 · aniversário · alergia a camarão
           </p>
           <div className="mt-4">
-            <BotaoSecundario href="/guest-demo?lado=restaurante" className="text-white">
+            <BotaoSecundario href="/reserva-demo?lado=restaurante" className="text-white">
               Ver a gestão de reservas
             </BotaoSecundario>
           </div>

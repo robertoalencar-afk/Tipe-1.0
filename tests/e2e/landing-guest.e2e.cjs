@@ -11,7 +11,7 @@ const fs = require("fs");
 const BASE = process.env.BASE_URL || "http://127.0.0.1:5182";
 const OUT = process.env.OUT_DIR || require("path").resolve(__dirname, "../../docs/tipe-guest/capturas/fase-8");
 const LARGURAS = [375, 390, 768, 1280, 1440];
-const PAGINAS = [["guest", "/produtos/guest"], ["fundador", "/restaurante-fundador"], ["home", "/"]];
+const PAGINAS = [["guest", "/reserva"], ["fundador", "/restaurante-fundador"], ["home", "/"]];
 const res = [];
 const ok = (cond, msg) => { res.push(`${cond ? "OK  " : "FALHA"} ${msg}`); if (!cond) process.exitCode = 1; };
 

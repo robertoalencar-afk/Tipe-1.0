@@ -6,6 +6,7 @@
  */
 import { useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
+import { LogoTipe } from "@/components/tipe/site/marca/LogoTipe";
 import { localDay, localInstant, localTime } from "@/lib/tipe/guest/reservas";
 import { guestCan, GUEST_ROLES, profileFor, type GuestRole } from "@/lib/tipe/guest/permissoes";
 import {
@@ -216,11 +217,16 @@ export function GuestManagerDemo() {
   return (
     <div className="min-h-[720px] bg-[#F6F8FA] text-[#021E34]">
       <header className="border-b border-[#021E34]/10 bg-white">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-3 px-4 py-3">
-          <p className="font-display text-lg font-semibold tracking-[-0.02em]">
-            Gestão de reservas{" "}
-            <span className="text-sm font-normal text-[#5b6b78]">· Maré Alta (fictício)</span>
-          </p>
+        <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-3 gap-y-2 px-4 py-3">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <LogoTipe titulo="Tipe" className="h-6 w-auto shrink-0" />
+            <div className="min-w-0 border-l border-[#021E34]/15 pl-2.5 leading-tight">
+              <p className="font-display text-[0.95rem] font-semibold tracking-[-0.01em]">
+                Gestão de reservas
+              </p>
+              <p className="text-xs text-[#5b6b78]">Maré Alta · restaurante fictício</p>
+            </div>
+          </div>
           <label className="ml-auto flex items-center gap-2 text-sm">
             Ver como
             <select
@@ -337,7 +343,7 @@ export function GuestManagerDemo() {
                 As mesas são as mesmas do Tipe Gestão.
               </p>
             </div>
-            <div className="relative mt-3 aspect-[4/3] sm:aspect-[16/9] rounded-xl bg-[#F6F8FA]">
+            <div className="relative mt-3 aspect-[5/6] rounded-xl sm:aspect-[16/9] bg-[#F6F8FA]">
               <span className="absolute bottom-2 left-3 text-[0.65rem] uppercase tracking-wide text-[#5b6b78]">
                 Entrada
               </span>

@@ -4,7 +4,7 @@
  * Tudo roda no navegador com restaurantes FICTÍCIOS; nada é enviado e nenhuma cobrança acontece.
  * Horários saem do motor real (src/lib/tipe/guest/reservas.ts via vitrine.ts).
  */
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   ArrowLeft,
   BadgeCheck,
@@ -19,7 +19,8 @@ import {
   Users,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import lebrePensando from "@/assets/lebre/avatar-pensando.webp";
+import lebreFeliz from "@/assets/lebre/avatar-feliz.webp";
+import { LogoTipe } from "@/components/tipe/site/marca/LogoTipe";
 import {
   addDays,
   guestCanChange,
@@ -102,6 +103,19 @@ export function VitrineCliente() {
     },
   ]);
 
+  // Cada tela nova começa do topo: na página inteira ou dentro da moldura do simulador da landing.
+  const raiz = useRef<HTMLDivElement>(null);
+  const primeira = useRef(true);
+  useEffect(() => {
+    if (primeira.current) {
+      primeira.current = false;
+      return;
+    }
+    const caixa = raiz.current?.closest<HTMLElement>("[data-rolagem]");
+    if (caixa) caixa.scrollTo({ top: 0 });
+    else window.scrollTo({ top: 0 });
+  }, [tela]);
+
   const alvo = localInstant(dia, hora, S);
   const fav = (id: string) =>
     setFavs((x) => (x.includes(id) ? x.filter((y) => y !== id) : [...x, id]));
@@ -117,28 +131,36 @@ export function VitrineCliente() {
   };
 
   return (
-    <div className="min-h-[720px] bg-[#F6F8FA] text-[#021E34]">
+    <div ref={raiz} className="min-h-[720px] bg-[#F6F8FA] text-[#021E34]">
       <header className="sticky top-0 z-20 border-b border-[#021E34]/10 bg-white/95 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 py-3">
+        <div className="mx-auto flex max-w-6xl items-center gap-2.5 px-4 py-3">
           <button
             type="button"
             onClick={() => setTela({ k: "home" })}
-            className="font-display text-lg font-semibold tracking-[-0.02em]"
+            aria-label="Tipe Reserva, início"
+            className="flex shrink-0 items-center gap-2"
           >
-            Tipe <span style={{ color: TURQ }}>Reserva</span>
+            <LogoTipe titulo="" className="h-6 w-auto" />
+            <span className="border-l border-[#021E34]/15 pl-2 font-display text-[0.95rem] font-semibold tracking-[-0.01em]">
+              Reserva
+            </span>
           </button>
-          <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[0.65rem] font-medium text-amber-900">
-            Demonstração · restaurantes fictícios
+          <span className="whitespace-nowrap rounded-full bg-amber-100 px-2 py-0.5 text-[0.65rem] font-medium text-amber-900">
+            Demo<span className="hidden sm:inline">nstração · restaurantes fictícios</span>
           </span>
-          <div className="ml-auto flex items-center gap-1">
-            <button
-              type="button"
-              onClick={() => setTela({ k: "minhas" })}
-              className="flex items-center gap-1.5 rounded-full px-3 py-2 text-sm hover:bg-[#021E34]/5"
-            >
-              <CalendarDays className="h-4 w-4" /> Minhas reservas
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => setTela({ k: "minhas" })}
+            aria-label="Minhas reservas"
+            className={cn(
+              "ml-auto flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full px-3 py-2 text-sm hover:bg-[#021E34]/5",
+              tela.k === "minhas" && "bg-[#021E34]/5 font-medium",
+            )}
+          >
+            <CalendarDays className="h-4 w-4" />
+            <span className="hidden sm:inline">Minhas reservas</span>
+            <span className="sm:hidden">Reservas</span>
+          </button>
         </div>
       </header>
 
@@ -253,8 +275,8 @@ function Home(p: {
         <h1 className="font-display text-3xl font-semibold tracking-[-0.03em] sm:text-5xl">
           Sua mesa em Fortaleza, <span style={{ color: TURQ }}>sem fila</span>.
         </h1>
-        <div className="mt-5 grid gap-2 rounded-[1.4rem] bg-white p-2 shadow-[0_1px_0_rgba(2,30,52,.06),0_12px_32px_-16px_rgba(2,30,52,.25)] sm:grid-cols-[1.6fr_1fr_.8fr_.8fr]">
-          <label className="flex items-center gap-2 rounded-xl px-3 py-2.5 hover:bg-[#021E34]/[.03]">
+        <div className="mt-5 grid gap-2 rounded-[1.4rem] bg-white p-2 shadow-[0_1px_0_rgba(2,30,52,.06),0_12px_32px_-16px_rgba(2,30,52,.25)] grid-cols-[1fr_.9fr_1.25fr] sm:grid-cols-[1.6fr_1fr_.8fr_.8fr]">
+          <label className="col-span-3 flex items-center gap-2 rounded-xl px-3 py-2.5 hover:bg-[#021E34]/[.03] sm:col-span-1">
             <Search className="h-4 w-4 shrink-0 opacity-60" />
             <span className="sr-only">Buscar</span>
             <input
@@ -480,7 +502,7 @@ function Home(p: {
 
 function Campo({ rotulo, children }: { rotulo: string; children: ReactNode }) {
   return (
-    <label className="block rounded-xl px-3 py-1.5 hover:bg-[#021E34]/[.03]">
+    <label className="block min-w-0 rounded-xl px-3 py-1.5 hover:bg-[#021E34]/[.03]">
       <span className="block text-[0.65rem] font-medium uppercase tracking-wide text-[#5b6b78]">
         {rotulo}
       </span>
@@ -504,7 +526,7 @@ function Chip({
       aria-pressed={on}
       onClick={onClick}
       className={cn(
-        "rounded-full border px-3 py-1 text-sm transition-colors",
+        "shrink-0 whitespace-nowrap rounded-full border px-3 py-1 text-sm transition-colors",
         on
           ? "border-[#021E34] bg-[#021E34] text-white"
           : "border-[#021E34]/15 bg-white hover:border-[#021E34]/40",
@@ -642,19 +664,30 @@ function Mapa({ lista, ctx }: { lista: R[]; ctx: Ctx }) {
   );
 }
 
+const SUGESTOES_LEBRE = ["Jantar romântico com vista", "Comida regional", "Café da manhã"];
+
 function Lebre({ ctx }: { ctx: Ctx }) {
   const [q, setQ] = useState("");
   const [resp, setResp] = useState<RespostaLebre | null>(null);
+  const perguntar = (texto: string) => {
+    if (texto.trim()) setResp(perguntarLebre(texto));
+  };
   return (
     <div className="mt-4 rounded-[1.4rem] border border-[#0FC9BD]/40 bg-white p-3">
       <form
-        className="flex items-center gap-2"
+        className="flex items-center gap-2.5"
         onSubmit={(e) => {
           e.preventDefault();
-          if (q.trim()) setResp(perguntarLebre(q));
+          perguntar(q);
         }}
       >
-        <img src={lebrePensando} alt="" className="h-9 w-9 rounded-full" />
+        <img
+          src={lebreFeliz}
+          alt=""
+          width={40}
+          height={40}
+          className="h-10 w-10 shrink-0 rounded-full bg-[#0FC9BD]/12 object-cover ring-1 ring-[#0FC9BD]/40"
+        />
         <label className="sr-only" htmlFor="lebre-q">
           Pergunte à Lebre onde ir
         </label>
@@ -662,16 +695,33 @@ function Lebre({ ctx }: { ctx: Ctx }) {
           id="lebre-q"
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Pergunte à Lebre onde ir: jantar romântico com vista para o mar"
-          className="w-full bg-transparent text-sm outline-none"
+          placeholder="Pergunte à Lebre"
+          className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-[#5b6b78]"
         />
         <button
           type="submit"
-          className="shrink-0 rounded-full bg-[#021E34] px-4 py-2 text-sm text-white"
+          className="shrink-0 rounded-full bg-[#021E34] px-4 py-2 text-sm font-medium text-white hover:bg-[#0a2f4d]"
         >
           Perguntar
         </button>
       </form>
+      {!resp && (
+        <div className="mt-2.5 flex flex-wrap gap-1.5 pl-[3.1rem]">
+          {SUGESTOES_LEBRE.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => {
+                setQ(s);
+                perguntar(s);
+              }}
+              className="rounded-full border border-[#021E34]/12 px-2.5 py-1 text-xs text-[#33475a] hover:border-[#0FC9BD] hover:text-[#021E34]"
+            >
+              {s}
+            </button>
+          ))}
+        </div>
+      )}
       {resp && (
         <div className="mt-3 border-t border-[#021E34]/10 pt-3">
           <p className="text-sm">{resp.texto}</p>

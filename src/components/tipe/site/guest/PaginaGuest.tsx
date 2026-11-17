@@ -1,5 +1,5 @@
 /**
- * Página do Tipe Guest (/produtos/guest), Fase 8 do projeto Tipe Guest.
+ * Página do Tipe Guest (/reserva), Fase 8 do projeto Tipe Guest.
  *
  * Regra da página: separar sempre o que está DISPONÍVEL HOJE na Tipe (avaliação logo depois do
  * pagamento e nome lembrado no mesmo aparelho), o que é PLANEJADO NO GUEST (descoberta, reservas,
