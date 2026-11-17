@@ -15,4 +15,13 @@ const codes=new Set(items.map(i=>i.code));for(const i of items)for(const r of i.
 assert.ok(items.filter(i=>['Cervejas','Coquetéis','Vinhos em taça','Cafés'].includes(i.cat)).every(i=>i.sector==='bar'));
 assert.equal((await db.query(`select count(*)::int n from pdv_menu_items where restaurant_id='22222222-2222-4222-8222-222222222222'`)).rows[0].n,1,'outra empresa intacta');
 assert.equal((await db.query(`select count(*)::int n from pdv_menu_categories where restaurant_id='11111111-1111-4111-8111-111111111111'`)).rows[0].n,11);
-await db.close();console.log('Bistrô menu: curated menu replaces imported one, own photos only, valid recommendations, other tenants untouched.');
+await db.exec(await readFile(new URL('../../../drizzle/migrations/0083_bistro_fotos_reais.sql',import.meta.url),'utf8'));
+const {existsSync}=await import('node:fs');
+const after=(await db.query(`select code,name,description,image_url,depth_url,menu_config from pdv_menu_items where restaurant_id='11111111-1111-4111-8111-111111111111'`)).rows;
+assert.equal(after.length,33);assert.ok(after.every(i=>i.image_url),'todo prato tem foto');
+for(const i of after.filter(i=>i.image_url.startsWith('https://'))){const c=i.menu_config.photoCredit;
+  assert.equal(c?.imageUrl,i.image_url,`crédito de ${i.code} é da foto atual`);assert.ok(c.author&&c.sourceUrl.startsWith('https://unsplash.com/photos/')&&c.license==='Unsplash License');
+  assert.equal(i.depth_url,null,'volume antigo sai');assert.ok(existsSync(new URL('../../../public'+new URL(i.image_url).pathname,import.meta.url)),`arquivo de ${i.code} existe`);
+  assert.ok(i.description.length<=200&&i.name.length<=80);}
+assert.equal(after.filter(i=>!i.image_url.startsWith('https://')).length,1,'só o suco de caju mantém foto própria');
+await db.close();console.log('Bistrô menu: curated menu, every dish with a real licensed photo and credit, valid recommendations, other tenants untouched.');
