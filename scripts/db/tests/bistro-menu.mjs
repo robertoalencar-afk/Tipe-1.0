@@ -24,4 +24,9 @@ for(const i of after.filter(i=>i.image_url.startsWith('https://'))){const c=i.me
   assert.equal(i.depth_url,null,'volume antigo sai');assert.ok(existsSync(new URL('../../../public'+new URL(i.image_url).pathname,import.meta.url)),`arquivo de ${i.code} existe`);
   assert.ok(i.description.length<=200&&i.name.length<=80);}
 assert.equal(after.filter(i=>!i.image_url.startsWith('https://')).length,1,'só o suco de caju mantém foto própria');
-await db.close();console.log('Bistrô menu: curated menu, every dish with a real licensed photo and credit, valid recommendations, other tenants untouched.');
+await db.exec(await readFile(new URL('../../../drizzle/migrations/0084_bistro_ficha_pratos.sql',import.meta.url),'utf8'));
+const ficha=(await db.query(`select code,description,allergens,menu_config from pdv_menu_items where restaurant_id='11111111-1111-4111-8111-111111111111'`)).rows;
+const DIETS=new Set(['vegan','vegetarian','gluten_free','lactose_free']);
+for(const i of ficha){assert.ok(i.description.length>=25&&i.description.length<=200,`ficha de ${i.code}`);assert.ok(Array.isArray(i.menu_config.diets)&&i.menu_config.diets.every(d=>DIETS.has(d)));}
+assert.ok(ficha.find(i=>i.code==='BT-MOQUECA').allergens.includes('crustáceos'));assert.ok(ficha.find(i=>i.code==='BT-SALADA').menu_config.diets.includes('vegan'));
+await db.close();console.log('Bistrô menu: curated menu, every dish with a real licensed photo, full dish sheet (allergens, diets), valid recommendations, other tenants untouched.');

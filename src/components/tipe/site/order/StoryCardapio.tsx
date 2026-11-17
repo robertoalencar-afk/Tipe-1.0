@@ -18,8 +18,6 @@
  * tem foto de tudo. Com movimento reduzido, nada avança sozinho e a foto não faz zoom.
  */
 import { PhotoPinch, NO_ZOOM } from "@/lib/tipe/order/pinch-zoom";
-import { MenuPhotoCredit } from "@/components/tipe/MenuPhotoCredit";
-import type { MenuPhotoCredit as PhotoCredit } from "@/lib/tipe/menu-intelligence";
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
 import { Box, Minus, Pause, Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -38,8 +36,8 @@ export type ItemStory = {
   profundidade?: string;
   selo?: string;
   alergenicos?: string[];
-  creditoFoto?: PhotoCredit | undefined;
-  fotoIlustrativa?: boolean;
+  /** Vegano, vegetariano, sem glúten, sem lactose: já no idioma do cliente. */
+  dietas?: string[];
 };
 
 const DURACAO = 6000;
@@ -459,12 +457,18 @@ export function StoryCardapio({
           {item.nome}
         </p>
         {item.desc && <p className="mt-1 text-sm text-white/85">{item.desc}</p>}
-        <MenuPhotoCredit
-          credit={item.creditoFoto}
-          illustrative={!!item.fotoIlustrativa}
-          inverse
-          onOpen={() => setPausado(true)}
-        />
+        {item.dietas?.length ? (
+          <p className="mt-1.5 flex flex-wrap gap-1">
+            {item.dietas.map((d) => (
+              <span
+                key={d}
+                className="rounded-full border border-white/35 px-2 py-0.5 text-[0.68rem] font-medium"
+              >
+                {d}
+              </span>
+            ))}
+          </p>
+        ) : null}
         {item.alergenicos?.length ? (
           <p className="mt-1 text-[0.68rem] text-white/70">
             Contém: {item.alergenicos.join(", ")} (informado pelo restaurante)
