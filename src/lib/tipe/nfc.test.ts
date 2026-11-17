@@ -6,6 +6,7 @@ import {
   lerPedidoGravacao,
   linkGravacaoRemota,
   modoGravacao,
+  appClipIos,
 } from "./nfc";
 
 describe("etiqueta NFC da mesa", () => {
@@ -98,5 +99,21 @@ describe("gravação NFC em iPhone e tablets", () => {
     vi.stubGlobal("navigator", { userAgent: "Mozilla/5.0 (iPad; CPU OS 18_0 like Mac OS X)" });
     expect(modoGravacao()).toBe("sem-nfc");
     vi.unstubAllGlobals();
+  });
+});
+
+describe("App Clip do iPhone", () => {
+  it("fica desligado sem o app publicado e liga com id + bundle", () => {
+    expect(appClipIos({})).toBeNull();
+    expect(appClipIos({ VITE_IOS_APP_ID: "abc", VITE_IOS_CLIP_BUNDLE: "x" })).toBeNull();
+    expect(
+      appClipIos({ VITE_IOS_APP_ID: "123", VITE_IOS_CLIP_BUNDLE: "digital.tipe.app.Clip" })?.banner,
+    ).toBe("app-id=123, app-clip-bundle-id=digital.tipe.app.Clip, app-clip-display=card");
+  });
+  it("leva o pedido de substituir até o iPhone", () => {
+    const u = new URL(
+      linkGravacaoRemota("https://tipe.digital", "https://tipe.digital/b/m1?t=x", "1", true),
+    );
+    expect(u.searchParams.get("s")).toBe("1");
   });
 });
