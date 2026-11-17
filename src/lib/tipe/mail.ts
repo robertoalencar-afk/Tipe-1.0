@@ -74,17 +74,48 @@ export function iguais(a: string, b: string) {
 }
 
 const ESC = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
-const linkar = (linha: string) =>
-  ESC(linha)
-    .replace(/([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})/g, '<a href="mailto:$1" style="color:#0b8f7c;text-decoration:none">$1</a>')
-    .replace(/(^|[\s·])((?:www\.)?tipe\.digital)(?![\w.@-])/g, '$1<a href="https://$2" style="color:#0b8f7c;text-decoration:none">$2</a>');
+const COR = { tinta: "#071727", cinza: "#5b6470", claro: "#8a93a0", turquesa: "#10d1b4", turquesaEscuro: "#0b8f7c", filete: "#e5e7eb" };
+const FONTE = "font-family:Arial,Helvetica,sans-serif";
+const LOGO = "https://tipe.digital/email/tipe-logo-email.png";
+export const AVISO_CONFIDENCIAL = "Esta mensagem e seus anexos são confidenciais e destinados somente ao destinatário. Se a recebeu por engano, avise o remetente e apague-a.";
+const urlSegura = (u: string) => (/^https:\/\/[^\s"'<>]+$/i.test(u) ? u : "");
 
-/** Assinatura em HTML: 1ª linha é o nome (negrito), 2ª o cargo, demais linhas contatos; filete turquesa na lateral. */
+/**
+ * Assinatura em HTML, em tabela (funciona no Outlook, Gmail e Apple Mail).
+ * Formato do texto: 1ª linha nome; 2ª cargo; depois contatos (e-mail, site, telefone) e, opcionalmente,
+ * "CTA: texto | https://link" para o botão. Sempre fecha com a linha dos produtos e o aviso de confidencialidade.
+ */
 export function assinaturaHtml(assinatura: string) {
   const linhas = assinatura.split("\n").map((l) => l.trim()).filter(Boolean);
   if (!linhas.length) return "";
   const [nome, cargo, ...resto] = linhas;
-  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:20px;font-family:Arial,Helvetica,sans-serif"><tr><td style="border-left:3px solid #10d1b4;padding-left:12px"><div style="font-size:15px;font-weight:700;color:#071727">${ESC(nome ?? "")}</div>${cargo ? `<div style="font-size:13px;color:#575b5f;margin-top:2px">${ESC(cargo)}</div>` : ""}${resto.length ? `<div style="font-size:13px;color:#575b5f;margin-top:6px;line-height:1.5">${resto.map(linkar).join("<br>")}</div>` : ""}</td></tr></table>`;
+  const cta = resto.find((l) => /^cta:/i.test(l));
+  const contatos = resto.filter((l) => !/^cta:/i.test(l));
+  const linhaContato = (l: string) => {
+    const t = ESC(l);
+    let rotulo = "";
+    let valor = t;
+    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(l)) { rotulo = "E-mail"; valor = `<a href="mailto:${t}" style="color:${COR.tinta};text-decoration:none">${t}</a>`; }
+    else if (/^(https?:\/\/)?(www\.)?[a-z0-9-]+(\.[a-z0-9-]+)+(\/\S*)?$/i.test(l) && !/\s/.test(l)) { rotulo = "Site"; valor = `<a href="${/^https?:/i.test(l) ? t : `https://${t}`}" style="color:${COR.tinta};text-decoration:none">${t.replace(/^https?:\/\//i, "")}</a>`; }
+    else if (/^(telefone|tel|fone|whatsapp)[:\s]/i.test(l) || /^\+?[\d\s().-]{8,}$/.test(l)) { const num = l.replace(/^(telefone|tel|fone|whatsapp)[:\s]*/i, ""); rotulo = /^whatsapp/i.test(l) ? "WhatsApp" : "Telefone"; valor = `<a href="tel:${ESC(num.replace(/[^\d+]/g, ""))}" style="color:${COR.tinta};text-decoration:none">${ESC(num)}</a>`; }
+    return `<tr><td style="${FONTE};font-size:12px;color:${COR.claro};padding:2px 10px 2px 0;white-space:nowrap">${rotulo}</td><td style="${FONTE};font-size:13px;color:${COR.tinta};padding:2px 0">${valor}</td></tr>`;
+  };
+  let botao = "";
+  if (cta) {
+    const [texto, url] = cta.replace(/^cta:\s*/i, "").split("|").map((x) => x.trim());
+    const href = urlSegura(url ?? "");
+    if (texto && href) botao = `<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:14px"><tr><td style="background:${COR.tinta};border-radius:6px"><a href="${href}" style="${FONTE};display:inline-block;padding:9px 16px;font-size:13px;font-weight:700;color:#ffffff;text-decoration:none">${ESC(texto)}<span style="color:${COR.turquesa}"> &rarr;</span></a></td></tr></table>`;
+  }
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:22px;border-collapse:collapse"><tr>
+<td valign="top" style="padding:0 18px 0 0;border-right:3px solid ${COR.turquesa}"><a href="https://tipe.digital"><img src="${LOGO}" alt="Tipe" width="92" style="display:block;width:92px;height:auto;border:0"></a></td>
+<td valign="top" style="padding:0 0 0 18px">
+<div style="${FONTE};font-size:17px;font-weight:700;color:${COR.tinta};line-height:1.2">${ESC(nome ?? "")}</div>
+${cargo ? `<div style="${FONTE};font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:${COR.turquesaEscuro};margin-top:3px">${ESC(cargo)}</div>` : ""}
+${contatos.length ? `<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:10px;border-collapse:collapse">${contatos.map(linhaContato).join("")}</table>` : ""}
+${botao}
+</td></tr>
+<tr><td colspan="2" style="padding-top:16px"><div style="border-top:1px solid ${COR.filete};padding-top:10px;${FONTE};font-size:12px;color:${COR.cinza}"><strong style="color:${COR.tinta}">Tipe Pay &middot; Tipe Order &middot; Tipe Gestão</strong><br>Gorjeta, pedido e gestão do restaurante em um só lugar.</div>
+<div style="${FONTE};font-size:10.5px;line-height:1.5;color:${COR.claro};margin-top:8px;max-width:460px">${ESC(AVISO_CONFIDENCIAL)}</div></td></tr></table>`;
 }
 
 const FECHO = /(^|\n)Atenciosamente,?[ \t]*\n/;
