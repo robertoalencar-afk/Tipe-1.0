@@ -2327,6 +2327,21 @@
   .lebre-companheira { animation: lebre-companheira 9s ease-in-out infinite; transform-origin: 50% 92%; }
 }
 
+@keyframes lebre-balao {
+  from { opacity: 0; transform: translateY(6px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes lebre-pulo {
+  0%, 100% { transform: translateY(0); }
+  30% { transform: translateY(-14px) rotate(-4deg); }
+  55% { transform: translateY(0) scaleY(0.94); }
+  70% { transform: translateY(-4px); }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .lebre-balao { animation: lebre-balao 0.35s cubic-bezier(0.2, 0.8, 0.2, 1) both; transform-origin: 100% 100%; }
+  .lebre-pulo { animation: lebre-pulo 0.7s ease-out both; transform-origin: 50% 100%; }
+}
+
 @keyframes lebre-bigodes {
   0%, 68%, 100% { rotate: 0deg; }
   72%, 80% { rotate: -3deg; }
