@@ -2,6 +2,7 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { classeBotaoLebre, ConteudoBotaoLebre } from "@/components/tipe/LebreBotao";
 
 import { OPEN_LEBRE } from "@/lib/tipe/mascot-preference";
+import type { Pendencia } from "@/lib/tipe/pendencias";
 const LebreMascote = lazy(() =>
   import("./LebreMascote").then((m) => ({ default: m.LebreMascote })),
 );
@@ -22,8 +23,8 @@ export function LazyLebreAssistant({
 }: {
   slug?: string | undefined;
   onSuggestions?: (() => void) | undefined;
-  notice?: { key: string; count: number } | undefined;
-  onNotices?: (() => void) | undefined;
+  notice?: { key: string; count: number; itens?: Pendencia[] | undefined } | undefined;
+  onNotices?: ((aba?: string) => void) | undefined;
 }) {
   const [aberta, setAberta] = useState(false);
   useEffect(() => {
@@ -54,7 +55,13 @@ export function LazyLebreAssistant({
               </p>
             }
           >
-            <LebreAssistant slug={slug} inicialAberta hideLauncher />
+            <LebreAssistant
+              slug={slug}
+              inicialAberta
+              hideLauncher
+              pendencias={notice?.itens}
+              onPendencia={(aba) => onNotices?.(aba)}
+            />
           </Suspense>
         )}
       </>

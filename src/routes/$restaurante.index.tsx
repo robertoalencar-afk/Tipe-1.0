@@ -17,12 +17,16 @@ import { PainelCarregando } from "@/components/tipe/RestaurantPanel";
 export const Route = createFileRoute("/$restaurante/")({
   ssr: false,
   beforeLoad: async ({ params }) => {
-    if (!(await exigirSessao())) throw redirect({ to: "/entrar", search: { r: `/${params.restaurante}` } });
+    if (!(await exigirSessao()))
+      throw redirect({ to: "/entrar", search: { r: `/${params.restaurante}` } });
   },
   head: () => ({
     meta: [
       { title: "Área do restaurante — TIPE" },
-      { name: "description", content: "Mesas, pedidos do PDV, QR Codes e confirmação de pagamentos do restaurante." },
+      {
+        name: "description",
+        content: "Mesas, pedidos do PDV, QR Codes e confirmação de pagamentos do restaurante.",
+      },
       { property: "og:title", content: "Área do restaurante — TIPE" },
       { property: "og:description", content: "Painel do restaurante na TIPE." },
       { property: "og:type", content: "website" },
@@ -51,18 +55,18 @@ function AreaRestaurante() {
   }
 
   const visibleRestaurant = access.data?.restaurants.find((x) => x.slug === restaurante);
-  const myRoles = access.data?.roles.filter((x) => x.restaurantId === visibleRestaurant?.id && x.role !== "founder").map((x) => x.role) ?? [];
+  const myRoles =
+    access.data?.roles
+      .filter((x) => x.restaurantId === visibleRestaurant?.id && x.role !== "founder")
+      .map((x) => x.role) ?? [];
   const r = myRoles.length > 0 ? visibleRestaurant : undefined;
 
   const acoesTopo = (
     <>
-      {(myRoles.includes("owner") || myRoles.includes("manager") || myRoles.includes("cashier")) && <AvisosCelular papel="gestao" />}
+      {(myRoles.includes("owner") ||
+        myRoles.includes("manager") ||
+        myRoles.includes("cashier")) && <AvisosCelular papel="gestao" />}
     </>
-  );
-  const rodape = (
-    <button type="button" onClick={sair} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-white/70 hover:bg-white/10 hover:text-white">
-      <LogOut className="h-4 w-4" /> Sair
-    </button>
   );
   // Garçom não usa o painel de gestão: a área dele é /garcom.
   const soGarcom = myRoles.length > 0 && myRoles.every((x) => x === "waiter");
@@ -75,27 +79,54 @@ function AreaRestaurante() {
     return (
       <>
         <PartnerTermsNotice />
-        <RestaurantPanel key={restaurante} slug={restaurante} myRoles={myRoles} isFounder={false} topoAcoes={acoesTopo} rodape={rodape} email={access.data.email} onSair={sair} />
+        <RestaurantPanel
+          key={restaurante}
+          slug={restaurante}
+          myRoles={myRoles}
+          isFounder={false}
+          topoAcoes={acoesTopo}
+          email={access.data.email}
+          onSair={sair}
+        />
       </>
     );
 
   return (
-    <AreaShell eyebrow="Área do restaurante"
-      actions={<>
-        <Button size="sm" variant="ghost" onClick={sair} className="text-muted-foreground"><LogOut className="h-4 w-4" />Sair</Button>
-      </>}>
+    <AreaShell
+      eyebrow="Área do restaurante"
+      actions={
+        <>
+          <Button size="sm" variant="ghost" onClick={sair} className="text-muted-foreground">
+            <LogOut className="h-4 w-4" />
+            Sair
+          </Button>
+        </>
+      }
+    >
       <div>
         {access.isLoading && <PainelCarregando />}
         {access.error && <p className="text-destructive">{(access.error as Error).message}</p>}
         {access.data && !r && (
           <div className="mx-auto mt-10 max-w-md rounded-2xl border border-border bg-card p-6 text-center shadow-xs">
             <h1 className="font-display text-lg font-semibold">Sem acesso a este restaurante</h1>
-            <p className="mt-2 text-sm text-muted-foreground">O endereço não existe ou sua conta ({access.data.email}) não faz parte da equipe. Peça ao dono para adicionar você.</p>
-            <Link to="/painel" className="mt-4 inline-block text-sm underline">Ir para meus restaurantes</Link>
+            <p className="mt-2 text-sm text-muted-foreground">
+              O endereço não existe ou sua conta ({access.data.email}) não faz parte da equipe. Peça
+              ao dono para adicionar você.
+            </p>
+            <Link to="/painel" className="mt-4 inline-block text-sm underline">
+              Ir para meus restaurantes
+            </Link>
           </div>
         )}
         {r && access.data && <PartnerTermsNotice />}
-        {r && access.data && <RestaurantPanel key={restaurante} slug={restaurante} myRoles={myRoles} isFounder={false} />}
+        {r && access.data && (
+          <RestaurantPanel
+            key={restaurante}
+            slug={restaurante}
+            myRoles={myRoles}
+            isFounder={false}
+          />
+        )}
       </div>
     </AreaShell>
   );

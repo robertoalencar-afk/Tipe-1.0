@@ -3,11 +3,9 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ChevronsDown, X } from "lucide-react";
 import { openLebre, useMascotPreference } from "@/lib/tipe/mascot-preference";
+import type { Pendencia } from "@/lib/tipe/pendencias";
 import { getMenuAssistant } from "@/lib/tipe/menu-intelligence.functions";
-import poseEsperando from "@/assets/mascot-waiting.webp";
-import poseFeliz from "@/assets/mascot-thanks.webp";
-import poseEstrela from "@/assets/mascot-rating.webp";
-import poseAviso from "@/assets/mascot-table-closed.webp";
+import { LebreViva, comemorar, useHumorDaLebre } from "./LebreViva";
 import { classeBotaoLebre, ConteudoBotaoLebre } from "./LebreBotao";
 
 export type Fala = { t: string; d: string; pergunta?: string };
@@ -69,8 +67,9 @@ export function LebreMascote({
   /** O que fazer ao tocar numa fala com frase pronta. Padrão: abrir a Lebre do painel com ela escrita. */
   onPergunta?: ((pergunta: string) => void) | undefined;
   onSuggestions?: (() => void) | undefined;
-  notice?: { key: string; count: number } | undefined;
-  onNotices?: (() => void) | undefined;
+  notice?: { key: string; count: number; itens?: Pendencia[] | undefined } | undefined;
+  /** Abre a aba da pendência (ou o início, sem aba). */
+  onNotices?: ((aba?: string) => void) | undefined;
 }) {
   const [visible, setVisible] = useMascotPreference(slug);
   const query = useQuery({
@@ -86,7 +85,6 @@ export function LebreMascote({
   const [dismissed, setDismissed] = useState<string | null>(null);
   const [giro, setGiro] = useState(-1);
   const [pulo, setPulo] = useState(0);
-  const [feliz, setFeliz] = useState(false);
   const [pausado, setPausado] = useState(false);
 
   useEffect(() => {
@@ -104,13 +102,7 @@ export function LebreMascote({
     giro < 0
       ? { t: saudacao(new Date().getHours()), d: "Toque em mim para conversar." }
       : FALAS_USADAS[giro]!;
-  const pose = feliz
-    ? poseFeliz
-    : noticeCount > 0
-      ? poseAviso
-      : count > 0
-        ? poseEstrela
-        : poseEsperando;
+  const humor = useHumorDaLebre(noticeCount);
 
   if (!visible)
     return (
@@ -156,19 +148,55 @@ export function LebreMascote({
           >
             <X className="size-3.5" />
           </button>
-          {urgente ? (
-            <button
-              type="button"
-              onClick={noticeCount > 0 ? onNotices : onSuggestions}
-              className="text-left"
-            >
+          {noticeCount > 0 ? (
+            <div className="text-left">
               <span className="block font-semibold">
-                {noticeCount > 0
-                  ? `Você tem ${noticeCount} ${noticeCount === 1 ? "aviso que precisa" : "avisos que precisam"} de atenção`
-                  : `Tenho ${count === 1 ? "uma ideia" : `${count} ideias`} para seu cardápio`}
+                {noticeCount === 1
+                  ? "Tem uma pendência para você"
+                  : `Tem ${noticeCount} pendências para você`}
+              </span>
+              <ul className="mt-1.5 space-y-1.5">
+                {(notice?.itens?.length
+                  ? notice.itens
+                  : [
+                      {
+                        aba: "",
+                        rotulo: "Início",
+                        texto: "Veja os avisos no início da gestão.",
+                        n: noticeCount,
+                      },
+                    ]
+                )
+                  .slice(0, 3)
+                  .map((p) => (
+                    <li key={p.aba + p.texto}>
+                      <button
+                        type="button"
+                        onClick={() => onNotices?.(p.aba || undefined)}
+                        className="flex w-full items-start gap-2 rounded-lg text-left text-xs hover:text-foreground"
+                      >
+                        <span
+                          aria-hidden
+                          className="mt-1 size-2 shrink-0 rounded-full bg-destructive"
+                        />
+                        <span>
+                          <span className="text-muted-foreground">{p.texto}</span>{" "}
+                          <span className="font-medium text-brand-strong underline underline-offset-2">
+                            Ver em {p.rotulo}
+                          </span>
+                        </span>
+                      </button>
+                    </li>
+                  ))}
+              </ul>
+            </div>
+          ) : urgente ? (
+            <button type="button" onClick={onSuggestions} className="text-left">
+              <span className="block font-semibold">
+                {`Tenho ${count === 1 ? "uma ideia" : `${count} ideias`} para seu cardápio`}
               </span>
               <span className="mt-1 block text-xs text-muted-foreground underline underline-offset-4">
-                {noticeCount > 0 ? "Ver avisos da gestão" : "Ver sugestões da Lebre"}
+                Ver sugestões da Lebre
               </span>
             </button>
           ) : (
@@ -211,23 +239,14 @@ export function LebreMascote({
         <button
           type="button"
           onClick={() => {
-            setFeliz(true);
-            window.setTimeout(() => setFeliz(false), 1600);
+            comemorar();
             onOpen();
           }}
-          onMouseEnter={() => setFeliz(true)}
-          onMouseLeave={() => setFeliz(false)}
           aria-label="Conversar com a Lebre"
           className="block rounded-2xl p-1 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <span className="lebre-passeio block">
-            <span key={pulo} className="lebre-pulo block">
-              <img
-                src={pose}
-                alt="Lebre de corpo inteiro"
-                className="lebre-companheira h-40 w-24 object-cover transition-opacity sm:h-48 sm:w-28"
-              />
-            </span>
+          <span key={pulo} className={humor === "sono" ? "block" : "lebre-pulo block"}>
+            <LebreViva humor={humor} className="h-40 sm:h-48" />
           </span>
         </button>
       </div>

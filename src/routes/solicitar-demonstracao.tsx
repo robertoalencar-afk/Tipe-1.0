@@ -62,7 +62,6 @@ function TesteGratis() {
         <Fecho />
       </main>
       <LandingFooter />
-      <LazyLebreAssistant />
     </div>
   );
 }
@@ -301,7 +300,11 @@ function Categorias() {
         >
           A Tipe trabalha para todo mundo do salão.
         </h2>
-        <div role="tablist" aria-label="Escolha quem você é" className="mt-8 flex flex-wrap gap-2.5">
+        <div
+          role="tablist"
+          aria-label="Escolha quem você é"
+          className="mt-8 flex flex-wrap gap-2.5"
+        >
           {GRUPOS.map((x, n) => (
             <button
               key={x.id}
@@ -381,7 +384,10 @@ function Carrossel({ cor, slides }: { cor: string; slides: Slide[] }) {
             n === i ? "opacity-100" : "opacity-0",
           )}
         >
-          <div key={n === i ? `on${i}` : "off"} className={cn("h-full w-full", n === i && "zoom-lento")}>
+          <div
+            key={n === i ? `on${i}` : "off"}
+            className={cn("h-full w-full", n === i && "zoom-lento")}
+          >
             <Foto
               nome={x.scene}
               alt={x.alt}
