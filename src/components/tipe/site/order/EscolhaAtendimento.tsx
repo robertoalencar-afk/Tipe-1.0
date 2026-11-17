@@ -4,12 +4,14 @@
  * simulador já na modalidade escolhida. Tudo sem recarregar; animação curta de troca,
  * desligada quando o sistema pede menos movimento.
  *
- * Disponibilidade vem de DEFINICOES (auditada no código), nunca do que o simulador faz.
+ * "Sua casa é…" destaca os formatos que combinam com o tipo de casa; cada aba mostra o selo de
+ * disponibilidade. Disponibilidade vem de DEFINICOES (auditada no código), nunca do que o simulador faz.
  */
-import { useId, useRef, type KeyboardEvent } from "react";
+import { useId, useRef, useState, type KeyboardEvent } from "react";
 import {
   ArrowRight,
   Check,
+  ChevronDown,
   Bike,
   ClipboardList,
   Nfc,
@@ -24,6 +26,7 @@ import { cn } from "@/lib/utils";
 import {
   DEFINICOES,
   ORDEM_SELETOR,
+  estaContratavel,
   TEXTO_DISPONIBILIDADE,
   type Disponibilidade,
   type Modalidade,
@@ -67,7 +70,7 @@ const COR_STATUS: Record<Disponibilidade, string> = {
   operacional: "bg-[#0FC9BD]",
   piloto: "bg-[#03665f]",
   desenvolvimento: "bg-amber-500",
-  demonstracao: "bg-slate-400",
+  demonstracao: "bg-amber-500",
   planejada: "bg-slate-300",
 };
 
@@ -87,6 +90,28 @@ export function SeloDisponibilidade({ d, className }: { d: Disponibilidade; clas
 
 /* ------------------------------------------------------------------ seletor */
 
+/** Rótulo curto da aba (o nome completo aparece no painel). */
+const ROTULO_ABA: Record<Modalidade, string> = {
+  mesas: "Mesas",
+  balcao: "Balcão",
+  comanda: "Comanda",
+  retirada: "Retirada",
+  delivery: "Delivery",
+  totem: "Totem",
+  pulseira: "Pulseira",
+};
+
+/** Atalho "Sua casa é…": pré-seleciona o formato mais indicado e destaca os que combinam. */
+const PERFIS: { id: string; nome: string; modalidades: Modalidade[] }[] = [
+  { id: "restaurante", nome: "Restaurante", modalidades: ["mesas", "retirada", "delivery"] },
+  { id: "bar", nome: "Bar", modalidades: ["mesas", "comanda", "pulseira"] },
+  { id: "cafeteria", nome: "Cafeteria ou padaria", modalidades: ["balcao", "retirada", "totem"] },
+  { id: "rapido", nome: "Lanchonete ou fast-food", modalidades: ["totem", "balcao", "retirada"] },
+  { id: "evento", nome: "Evento ou beach club", modalidades: ["pulseira", "comanda", "mesas"] },
+];
+
+const ETAPAS_VISIVEIS = 4;
+
 export function EscolhaAtendimento({
   modalidade,
   onModalidade,
@@ -97,14 +122,27 @@ export function EscolhaAtendimento({
   const reduzido = useMovimentoReduzido();
   const base = useId();
   const abas = useRef<(HTMLButtonElement | null)[]>([]);
+  const [perfil, setPerfil] = useState<string | null>(null);
+  const [jornadaAberta, setJornadaAberta] = useState(false);
   const def = DEFINICOES[modalidade];
   const vis = VISUAL[modalidade];
   const Icone = ICONE_MODALIDADE[modalidade];
+  const combinam = PERFIS.find((p) => p.id === perfil)?.modalidades ?? [];
+  const contratavel = estaContratavel(modalidade);
+  const fluxo = def.fluxo;
+  const escondidas = fluxo.length - ETAPAS_VISIVEIS;
 
-  const escolher = (m: Modalidade) => {
+  const escolher = (m: Modalidade, origem = "modalidade") => {
+    setJornadaAberta(false);
     if (m === modalidade) return;
     onModalidade(m);
-    trackProduto("produto_cta", { produto: "order", local: `modalidade_${m}` });
+    trackProduto("produto_cta", { produto: "order", local: `${origem}_${m}` });
+  };
+  const escolherPerfil = (id: string) => {
+    const novo = perfil === id ? null : id;
+    setPerfil(novo);
+    const p = PERFIS.find((x) => x.id === novo);
+    if (p) escolher(p.modalidades[0]!, `perfil_${p.id}`);
   };
   const teclas = (e: KeyboardEvent<HTMLDivElement>) => {
     const i = ORDEM_SELETOR.indexOf(modalidade);
@@ -118,6 +156,7 @@ export function EscolhaAtendimento({
     e.preventDefault();
     escolher(ORDEM_SELETOR[alvo]!);
     abas.current[alvo]?.focus();
+    abas.current[alvo]?.scrollIntoView({ block: "nearest", inline: "nearest" });
   };
 
   return (
@@ -129,16 +168,50 @@ export function EscolhaAtendimento({
           texto="O mesmo cardápio, a mesma cozinha e a mesma conta, no formato em que a sua casa atende. Escolha um formato para acompanhar o caminho do pedido."
         />
 
+        {/* Atalho por tipo de casa */}
+        <div className="mt-8 lg:mt-12">
+          <p id={`${base}-perfil`} className="text-sm font-medium text-muted-foreground">
+            Sua casa é…
+          </p>
+          <div
+            role="group"
+            aria-labelledby={`${base}-perfil`}
+            className="-mx-6 mt-3 flex gap-2 overflow-x-auto px-6 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0 [&::-webkit-scrollbar]:hidden"
+          >
+            {PERFIS.map((p) => {
+              const ativo = p.id === perfil;
+              return (
+                <button
+                  key={p.id}
+                  type="button"
+                  aria-pressed={ativo}
+                  onClick={() => escolherPerfil(p.id)}
+                  className={cn(
+                    "min-h-10 shrink-0 rounded-full border px-4 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#03665f]",
+                    ativo
+                      ? "border-[#03665f] bg-[#e6faf8] text-[#03665f]"
+                      : "border-dashed border-border text-foreground hover:border-[#03665f]/50",
+                  )}
+                >
+                  {p.nome}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Abas: rolagem lateral no celular, uma linha no desktop */}
         <div
           role="tablist"
           aria-label="Modalidades de atendimento"
           onKeyDown={teclas}
-          className="mt-8 flex flex-wrap gap-2 pb-2 lg:mt-12"
+          className="-mx-6 mt-5 flex snap-x scroll-px-6 gap-2 overflow-x-auto px-6 pb-2 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0 [&::-webkit-scrollbar]:hidden"
         >
           {ORDEM_SELETOR.map((m, i) => {
             const d = DEFINICOES[m];
             const I = ICONE_MODALIDADE[m];
             const ativa = m === modalidade;
+            const combina = combinam.includes(m);
             return (
               <button
                 key={m}
@@ -153,21 +226,39 @@ export function EscolhaAtendimento({
                 tabIndex={ativa ? 0 : -1}
                 onClick={() => escolher(m)}
                 className={cn(
-                  "flex min-h-12 shrink-0 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#03665f] items-center gap-2 rounded-full border px-4 py-2 text-[0.95rem] font-medium transition-[background-color,color,border-color] duration-200",
+                  "relative flex min-h-12 shrink-0 snap-start items-center gap-2 rounded-full border px-4 py-2 text-[0.95rem] font-medium transition-[background-color,color,border-color,opacity] duration-200 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#03665f]",
                   ativa
                     ? "border-[#021E34] bg-[#021E34] text-white"
                     : "border-border bg-background text-foreground hover:border-foreground/40",
+                  perfil && !combina && !ativa && "opacity-45",
+                  combina && !ativa && "border-[#0FC9BD]",
                 )}
               >
                 <I
                   className={cn("h-4.5 w-4.5", ativa ? "text-[#0FC9BD]" : "text-[#03665f]")}
                   aria-hidden
                 />
-                {d.nome}
+                {ROTULO_ABA[m]}
+                <span
+                  className={cn("h-1.5 w-1.5 rounded-full", COR_STATUS[d.disponibilidade])}
+                  aria-hidden
+                />
+                <span className="sr-only">({TEXTO_DISPONIBILIDADE[d.disponibilidade].selo})</span>
               </button>
             );
           })}
         </div>
+        <p
+          className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground"
+          aria-hidden
+        >
+          {(["operacional", "piloto", "desenvolvimento", "planejada"] as const).map((d) => (
+            <span key={d} className="inline-flex items-center gap-1.5">
+              <span className={cn("h-1.5 w-1.5 rounded-full", COR_STATUS[d])} />
+              {TEXTO_DISPONIBILIDADE[d].selo}
+            </span>
+          ))}
+        </p>
 
         <div
           key={modalidade}
@@ -182,7 +273,7 @@ export function EscolhaAtendimento({
         >
           {/* Visual */}
           <div className="relative min-w-0">
-            <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-[#021E34] sm:aspect-[5/4] lg:aspect-[4/5]">
+            <div className="relative aspect-[4/5] overflow-hidden rounded-[2rem] bg-[#021E34] sm:aspect-[5/4] lg:sticky lg:top-28 lg:aspect-[4/5]">
               {modalidade === "totem" ? (
                 <TotemDemonstracao />
               ) : modalidade === "pulseira" ? (
@@ -223,10 +314,32 @@ export function EscolhaAtendimento({
               <h3 className="font-display text-[1.7rem] leading-none tracking-[-0.035em] sm:text-[2rem]">
                 {def.nome}
               </h3>
+              <SeloDisponibilidade d={def.disponibilidade} className="text-[#021E34]" />
             </div>
             <p className="mt-4 text-[1.1rem] leading-relaxed text-muted-foreground sm:text-xl">
               {def.promessa}
             </p>
+            {!contratavel && (
+              <p className="mt-3 rounded-xl bg-muted px-4 py-3 text-sm leading-snug text-muted-foreground">
+                {TEXTO_DISPONIBILIDADE[def.disponibilidade].curto}
+              </p>
+            )}
+
+            <div className="mt-5">
+              <h4 className="text-xs font-semibold uppercase tracking-[0.08em] text-muted-foreground">
+                Ideal para
+              </h4>
+              <ul className="mt-2 flex flex-wrap gap-1.5">
+                {def.indicada.map((x) => (
+                  <li
+                    key={x}
+                    className="rounded-full bg-[#021E34]/[0.05] px-3 py-1 text-sm text-[#021E34]"
+                  >
+                    {x}
+                  </li>
+                ))}
+              </ul>
+            </div>
 
             <ul className="mt-6 space-y-2.5">
               {def.beneficios.slice(0, 3).map((b) => (
@@ -246,18 +359,50 @@ export function EscolhaAtendimento({
 
             <div className="mt-6 border-t border-border pt-5">
               <h4 className="mb-4 text-sm font-semibold">Do pedido à entrega</h4>
-              <ol className="space-y-2 pb-4">
-                {def.fluxo.map((p, i) => (
-                  <li key={i} className="flex gap-3 text-[0.92rem] leading-snug">
-                    <span className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#021E34] text-[0.65rem] font-semibold text-white tabular-nums">
+              <ol className="relative space-y-3">
+                <span
+                  className="absolute bottom-3 left-[0.6875rem] top-3 w-px bg-border"
+                  aria-hidden
+                />
+                {fluxo.map((p, i) => (
+                  <li
+                    key={i}
+                    className={cn(
+                      "relative flex gap-3 text-[0.92rem] leading-snug",
+                      !jornadaAberta && i >= ETAPAS_VISIVEIS && "hidden",
+                    )}
+                  >
+                    <span className="relative mt-px flex h-[1.375rem] w-[1.375rem] shrink-0 items-center justify-center rounded-full bg-[#021E34] text-[0.65rem] font-semibold text-white tabular-nums ring-4 ring-background">
                       {i + 1}
                     </span>
                     <span>
-                      <span className="text-muted-foreground">{QUEM[p.quem]}:</span> {p.o_que}
+                      <span
+                        className={cn(
+                          "mr-1.5 inline-block rounded-md px-1.5 py-px text-[0.7rem] font-semibold uppercase tracking-[0.04em]",
+                          COR_QUEM[p.quem],
+                        )}
+                      >
+                        {QUEM[p.quem]}
+                      </span>
+                      {p.o_que}
                     </span>
                   </li>
                 ))}
               </ol>
+              {escondidas > 0 && (
+                <button
+                  type="button"
+                  aria-expanded={jornadaAberta}
+                  onClick={() => setJornadaAberta((v) => !v)}
+                  className="mt-3 inline-flex min-h-10 items-center gap-1.5 text-sm font-medium text-[#03665f] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#03665f]"
+                >
+                  {jornadaAberta ? "Mostrar menos" : `Ver as ${fluxo.length} etapas`}
+                  <ChevronDown
+                    className={cn("h-4 w-4 transition-transform", jornadaAberta && "rotate-180")}
+                    aria-hidden
+                  />
+                </button>
+              )}
             </div>
 
             <div className="mt-7 flex flex-wrap gap-3">
@@ -271,7 +416,8 @@ export function EscolhaAtendimento({
                 }
                 className="inline-flex min-h-12 items-center gap-2 rounded-full bg-[#021E34] px-6 text-[0.95rem] font-medium text-white transition-colors hover:bg-[#03465a]"
               >
-                Ver funcionando <ArrowRight className="h-4 w-4" aria-hidden />
+                Simular {ROTULO_ABA[modalidade].toLowerCase()}{" "}
+                <ArrowRight className="h-4 w-4" aria-hidden />
               </a>
               <a
                 href="#quero-o-order"
@@ -280,7 +426,7 @@ export function EscolhaAtendimento({
                 }
                 className="inline-flex min-h-12 items-center rounded-full border border-[#021E34]/30 px-6 text-[0.95rem] font-medium text-[#021E34] transition-colors hover:border-[#021E34]"
               >
-                Conversar sobre este formato
+                {contratavel ? "Conversar sobre este formato" : "Avise-me quando abrir"}
               </a>
             </div>
           </div>
@@ -296,4 +442,12 @@ const QUEM: Record<"cliente" | "equipe" | "cozinha" | "caixa" | "sistema", strin
   cozinha: "Cozinha",
   caixa: "Caixa",
   sistema: "Tipe",
+};
+
+const COR_QUEM: Record<keyof typeof QUEM, string> = {
+  cliente: "bg-[#e6faf8] text-[#03665f]",
+  equipe: "bg-[#021E34]/[0.07] text-[#021E34]",
+  cozinha: "bg-amber-100 text-amber-800",
+  caixa: "bg-sky-100 text-sky-800",
+  sistema: "bg-[#0FC9BD]/15 text-[#03665f]",
 };
