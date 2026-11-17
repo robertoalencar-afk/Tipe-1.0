@@ -89,3 +89,16 @@ describe("assinatura profissional", () => {
     expect(assinaturaHtml('A\nB\nCTA: X | https://a.com/"onmouseover="x')).not.toContain("onmouseover");
   });
 });
+
+import { nomeRemetente } from "./mail";
+describe("nomeRemetente", () => {
+  it("caixa compartilhada vira Equipe Tipe", () => {
+    expect(nomeRemetente({ address: "contato@tipe.digital", label: "Contato", signature: "Equipe Tipe\nAtendimento" })).toBe("Equipe Tipe");
+  });
+  it("caixa pessoal usa o nome completo da assinatura + Tipe", () => {
+    expect(nomeRemetente({ address: "roberto@tipe.digital", label: "Roberto", signature: "Roberto Alencar\nFundador · Tipe" })).toBe("Roberto Alencar | Tipe");
+  });
+  it("sem assinatura usa o rótulo", () => {
+    expect(nomeRemetente({ address: "ana@tipe.digital", label: "Ana Lima", signature: null })).toBe("Ana Lima | Tipe");
+  });
+});
