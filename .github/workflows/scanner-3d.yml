@@ -1,0 +1,49 @@
+name: Scanner 3D
+
+# Monta os modelos 3D dos pratos enviados pelo Gestão (tabela menu_item_scans).
+# O app chama workflow_dispatch quando há fotos novas (secret GITHUB_SCANNER_TOKEN no Worker);
+# sem o token, o agendamento abaixo pega a fila. Cada prato leva ~20-40 min de CPU.
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 */6 * * *"
+
+concurrency:
+  group: scanner-3d
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  fila:
+    runs-on: ubuntu-24.04
+    environment: producao
+    timeout-minutes: 300
+    env:
+      SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL || 'https://bnggnbwmihqexvihrqvy.supabase.co' }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+    steps:
+      - name: Há prato na fila?
+        id: fila
+        run: |
+          n=$(curl -sf "$SUPABASE_URL/rest/v1/menu_item_scans?select=id&or=(status.eq.na_fila,status.eq.processando)&limit=5" \
+            -H "apikey: $SUPABASE_SERVICE_ROLE_KEY" -H "authorization: Bearer $SUPABASE_SERVICE_ROLE_KEY" | jq length)
+          echo "pratos=$n" >> "$GITHUB_OUTPUT"
+          echo "Pratos na fila: $n"
+      - uses: actions/checkout@v4
+        if: steps.fila.outputs.pratos != '0'
+      - uses: actions/cache@v4
+        if: steps.fila.outputs.pratos != '0'
+        with:
+          path: ~/openmvs
+          key: openmvs-v2.3.0-ubuntu24-${{ hashFiles('scripts/scanner-3d/instalar.sh') }}
+      - name: Instalar COLMAP e OpenMVS
+        if: steps.fila.outputs.pratos != '0'
+        run: scripts/scanner-3d/instalar.sh
+      - name: Dependências Python
+        if: steps.fila.outputs.pratos != '0'
+        run: pip install --break-system-packages -q numpy scipy networkx trimesh pillow
+      - name: Processar a fila
+        if: steps.fila.outputs.pratos != '0'
+        run: node scripts/scanner-3d/fila.mjs --max 4

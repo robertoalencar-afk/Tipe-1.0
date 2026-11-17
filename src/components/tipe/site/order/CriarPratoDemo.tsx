@@ -355,7 +355,7 @@ export function CriarPratoEditor({
               </span>
               <span className="text-sm font-semibold">Escolha uma foto para o prato</span>
               <span className="text-xs text-muted-foreground">
-                Uma foto só, na vertical. Sem scanner.
+                Uma foto só, na vertical. Para 3D de verdade, use o Scanner 3D.
               </span>
             </button>
           )}

@@ -17,6 +17,7 @@
  * Sem foto, o quadro mostra o nome do prato em tipografia, porque nem todo restaurante
  * tem foto de tudo. Com movimento reduzido, nada avança sozinho e a foto não faz zoom.
  */
+import { carregarModelViewer } from "@/lib/tipe/model-viewer";
 import { PhotoPinch, NO_ZOOM } from "@/lib/tipe/order/pinch-zoom";
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
 import { Box, Minus, Pause, Plus, X } from "lucide-react";
@@ -43,24 +44,6 @@ export type ItemStory = {
 const DURACAO = 6000;
 const brl = (c: number) =>
   (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-
-let scriptMv: Promise<void> | null = null;
-function carregarModelViewer() {
-  if (typeof window === "undefined") return Promise.resolve();
-  if (customElements.get("model-viewer")) return Promise.resolve();
-  scriptMv ??= new Promise<void>((ok, erro) => {
-    const s = document.createElement("script");
-    s.type = "module";
-    s.src = "/vendor/model-viewer/model-viewer.min.js";
-    s.onload = () => ok();
-    s.onerror = () => {
-      scriptMv = null;
-      erro(new Error("model-viewer"));
-    };
-    document.head.appendChild(s);
-  });
-  return scriptMv;
-}
 
 export function StoryCardapio({
   itens,

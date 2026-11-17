@@ -134,7 +134,7 @@ const MODULOS: Modulo[] = [
     id: "studio",
     nome: "Tipe 3D Studio",
     frase: "Veja antes de pedir.",
-    status: "planejado",
+    status: "desenvolvimento",
     faz: [
       "Fotografe ou filme o prato",
       "Modelo 3D no cardápio do Order",
@@ -178,7 +178,7 @@ function Miniatura({ m }: { m: Modulo }) {
             </span>
           </p>
         ) : m.id === "studio" ? (
-          <p>Ainda sem tela. Entra no cardápio do Order quando o 3D Studio sair.</p>
+          <p>Scanner 3D no Gestão, em teste: falta validar com um prato real de restaurante.</p>
         ) : (
           <p className="font-mono text-[0.72rem] leading-relaxed text-white/70">
             POST /api/pdv/mesa-12
