@@ -652,6 +652,11 @@ export function RestaurantPanel({
       mascotScope={slug}
       usuario={usuario}
       onSair={onSair}
+      menuConta={[
+        { l: "Perfil", i: ImagemIcon, onSelect: () => ir("identidade") },
+        { l: "Segurança da conta", i: ShieldCheck, onSelect: () => ir("seguranca") },
+        { l: "Como funciona", i: BookOpen, onSelect: () => ir("comofunciona") },
+      ]}
       contexto={
         <span className="flex items-center gap-2.5">
           {logoUrl ? (

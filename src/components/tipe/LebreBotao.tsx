@@ -2,7 +2,7 @@ import rosto from "@/assets/lebre/rosto-ola.webp";
 
 /** Classes do botão flutuante da Lebre (compartilhadas entre o atalho leve e o chat completo). */
 export function classeBotaoLebre(slug?: string | undefined) {
-  return `group fixed right-3 z-40 grid place-items-center rounded-full bg-brand text-ink shadow-xl ring-4 ring-white/70 transition-transform hover:-translate-y-1 hover:scale-105 active:scale-95 print:hidden ${slug ? "bottom-[max(1rem,env(safe-area-inset-bottom))] h-12 w-12 sm:right-5 lg:bottom-5 lg:h-16 lg:w-16" : "bottom-4 h-14 w-14 sm:bottom-6 sm:right-6 sm:h-16 sm:w-16"}`;
+  return `group fixed right-3 z-40 grid place-items-center rounded-full bg-brand text-ink shadow-xl ring-white/70 transition-transform hover:-translate-y-1 hover:scale-105 active:scale-95 print:hidden ${slug ? "ring-4 bottom-[max(1rem,env(safe-area-inset-bottom))] h-12 w-12 sm:right-5 lg:bottom-5 lg:h-16 lg:w-16" : "bottom-4 h-11 w-11 ring-2 sm:bottom-6 sm:right-6 sm:h-12 sm:w-12"}`;
 }
 
 export function ConteudoBotaoLebre() {

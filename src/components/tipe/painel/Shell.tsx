@@ -16,7 +16,7 @@ import {
   type ReactNode,
 } from "react";
 import {
-  ChevronDown,
+  ChevronsUpDown,
   ChevronsLeft,
   ChevronsRight,
   LogOut,
@@ -101,16 +101,24 @@ function Avatar({ u, className }: { u: Usuario; className?: string }) {
   );
 }
 
+/** Atalho do menu da conta (perfil, segurança...). */
+export type OpcaoConta = { l: string; i: Icone; onSelect: () => void };
+
+/** Menu da conta como no Claude: avatar e nome no pé da barra; ao tocar, abre as opções para cima. */
 function MenuUsuario({
   u,
   onSair,
   claro = false,
   compacto = false,
+  lado = "top",
+  opcoes,
 }: {
   u: Usuario;
   onSair?: (() => void) | undefined;
   claro?: boolean;
   compacto?: boolean;
+  lado?: "top" | "bottom";
+  opcoes?: ReactNode;
 }) {
   return (
     <DropdownMenu>
@@ -118,16 +126,18 @@ function MenuUsuario({
         <button
           type="button"
           className={cn(
-            "flex w-full items-center gap-2.5 rounded-xl p-1.5 text-left transition-colors",
+            "flex w-full items-center gap-2.5 rounded-xl p-1.5 text-left transition-colors data-[state=open]:bg-muted",
+            compacto && "w-auto justify-center",
             claro ? "hover:bg-muted" : "hover:bg-white/[0.07]",
           )}
           aria-label={`Conta de ${u.nome}`}
+          title={compacto ? u.nome : undefined}
         >
           <Avatar u={u} />
           <span className={cn("min-w-0 flex-1 leading-tight", compacto && "hidden")}>
             <span
               className={cn(
-                "block whitespace-normal break-words text-sm font-semibold",
+                "block truncate text-sm font-semibold",
                 claro ? "text-foreground" : "text-white",
               )}
             >
@@ -135,14 +145,14 @@ function MenuUsuario({
             </span>
             <span
               className={cn(
-                "block whitespace-normal break-words text-[11px] font-medium uppercase tracking-wide",
-                claro ? "text-brand-strong" : "text-brand",
+                "block truncate text-xs",
+                claro ? "text-muted-foreground" : "text-white/60",
               )}
             >
               {u.funcao}
             </span>
           </span>
-          <ChevronDown
+          <ChevronsUpDown
             className={cn(
               "size-4 shrink-0",
               compacto && "hidden",
@@ -151,14 +161,28 @@ function MenuUsuario({
           />
         </button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-60">
-        <DropdownMenuLabel className="font-normal">
-          <span className="block text-sm font-semibold">{u.nome}</span>
-          <span className="block text-xs text-muted-foreground">
-            {u.funcao}
-            {u.detalhe ? ` · ${u.detalhe}` : ""}
+      <DropdownMenuContent
+        side={lado}
+        align="start"
+        sideOffset={8}
+        className="w-[min(16rem,calc(100vw-1.5rem))]"
+      >
+        <DropdownMenuLabel className="flex items-center gap-2.5 font-normal">
+          <Avatar u={u} className="size-8" />
+          <span className="min-w-0 leading-tight">
+            <span className="block truncate text-sm font-semibold">{u.nome}</span>
+            <span className="block truncate text-xs text-muted-foreground">
+              {u.funcao}
+              {u.detalhe ? ` · ${u.detalhe}` : ""}
+            </span>
           </span>
         </DropdownMenuLabel>
+        {opcoes && (
+          <>
+            <DropdownMenuSeparator />
+            {opcoes}
+          </>
+        )}
         {onSair && (
           <>
             <DropdownMenuSeparator />
@@ -208,6 +232,7 @@ export function Shell({
   usuario,
   onSair,
   busca,
+  menuConta,
   children,
 }: {
   /** Nome do ambiente: "Central Tipe" ou "Tipe Gestão". */
@@ -228,6 +253,8 @@ export function Shell({
   onSair?: (() => void) | undefined;
   /** Itens extras da busca global além da navegação (registros, atalhos). */
   busca?: AcaoBusca[] | undefined;
+  /** Atalhos no menu da conta (Perfil, Segurança...). */
+  menuConta?: OpcaoConta[] | undefined;
   children: ReactNode;
 }) {
   // Central e Gestão têm o mesmo visual (barra clara, Lebre e busca no menu): ver docs/internos/PADRAO-CENTRAL-GESTAO.md.
@@ -249,6 +276,38 @@ export function Shell({
       return !v;
     });
   }, []);
+
+  const opcoesConta = (
+    <>
+      {menuConta?.map((o) => (
+        <DropdownMenuItem key={o.l} onSelect={o.onSelect}>
+          <o.i className="mr-2 size-4" />
+          {o.l}
+        </DropdownMenuItem>
+      ))}
+      {menuConta?.length ? <DropdownMenuSeparator /> : null}
+      {gestao && (
+        <DropdownMenuItem onSelect={() => openLebre()}>
+          <MessageSquare className="mr-2 size-4" />
+          Conversar com a Lebre
+        </DropdownMenuItem>
+      )}
+      {mascotScope && (
+        <DropdownMenuItem onSelect={() => setMascotVisible(!mascotVisible)}>
+          <HareOutline className="mr-2 size-4" />
+          {mascotVisible ? "Esconder a Lebre" : "Mostrar a Lebre"}
+        </DropdownMenuItem>
+      )}
+      <DropdownMenuItem onSelect={() => setBuscaAberta(true)}>
+        <Search className="mr-2 size-4" />
+        Buscar na {nomeAmbiente}
+      </DropdownMenuItem>
+      <DropdownMenuItem onSelect={alternar} className="hidden lg:flex">
+        <PanelLeftClose className="mr-2 size-4" />
+        {recolhida ? "Expandir menu" : "Recolher menu"}
+      </DropdownMenuItem>
+    </>
+  );
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -450,22 +509,14 @@ export function Shell({
           {nav(recolhida)}
           {mascotScope && <div id={`tipe-lebre-dock-${mascotScope}`} className="@container" />}
           <div className={cn("border-t p-2", gestao ? "border-border" : "border-white/10")}>
-            {usuario && !recolhida && <MenuUsuario u={usuario} onSair={onSair} claro={gestao} />}
-            {usuario && recolhida && onSair && (
-              <button
-                type="button"
-                onClick={onSair}
-                className={cn(
-                  "mb-1 flex w-full items-center justify-center rounded-xl p-2",
-                  gestao
-                    ? "text-muted-foreground hover:bg-foreground/5 hover:text-foreground"
-                    : "text-white/70 hover:bg-white/[0.07] hover:text-white",
-                )}
-                aria-label="Sair"
-                title="Sair"
-              >
-                <LogOut className="h-4 w-4" />
-              </button>
+            {usuario && (
+              <MenuUsuario
+                u={usuario}
+                onSair={onSair}
+                claro={gestao}
+                compacto={recolhida}
+                opcoes={opcoesConta}
+              />
             )}
             {!recolhida && rodape}
             <button
@@ -527,49 +578,16 @@ export function Shell({
               >
                 <Search className="h-5 w-5" />
               </Button>
-              {mascotScope && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" aria-label="Opções da gestão">
-                      <MoreHorizontal className="size-5" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-64">
-                    <DropdownMenuLabel>Personalizar a gestão</DropdownMenuLabel>
-                    <DropdownMenuItem onSelect={() => setMascotVisible(!mascotVisible)}>
-                      <HareOutline className="mr-2 size-4" />
-                      {mascotVisible ? "Pode descansar, Lebre" : "Mostrar a Lebre"}
-                    </DropdownMenuItem>
-
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem onSelect={openLebre}>
-                      <MessageSquare className="mr-2 size-4" />
-                      Conversar com a Lebre
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={() => setBuscaAberta(true)}>
-                      <Search className="mr-2 size-4" />
-                      Buscar na {nomeAmbiente}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem onSelect={alternar} className="hidden lg:flex">
-                      <PanelLeftClose className="mr-2 size-4" />
-                      {recolhida ? "Expandir menu" : "Recolher menu"}
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
               {acoes && <div className="flex items-center gap-1.5">{acoes}</div>}
               {usuario && (
-                <div className="ml-1 hidden w-56 border-l border-border pl-3 sm:block">
-                  <MenuUsuario u={usuario} onSair={onSair} claro />
-                </div>
-              )}
-              {usuario && (
-                <div className="sm:hidden">
+                <div className="lg:hidden">
                   <MenuUsuario
-                    u={{ ...usuario, nome: usuario.nome }}
+                    u={usuario}
                     onSair={onSair}
                     claro
                     compacto
+                    lado="bottom"
+                    opcoes={opcoesConta}
                   />
                 </div>
               )}
@@ -657,7 +675,9 @@ export function Shell({
             {nav(false)}
             {(rodape || usuario) && (
               <div className={cn("border-t p-2", gestao ? "border-border" : "border-white/10")}>
-                {usuario && <MenuUsuario u={usuario} onSair={onSair} claro={gestao} />}
+                {usuario && (
+                  <MenuUsuario u={usuario} onSair={onSair} claro={gestao} opcoes={opcoesConta} />
+                )}
                 {rodape}
               </div>
             )}

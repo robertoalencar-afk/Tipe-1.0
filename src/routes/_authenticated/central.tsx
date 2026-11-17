@@ -143,6 +143,10 @@ function Central() {
       ambiente="Central Tipe"
       usuario={{ nome: meu.data?.nome || meu.data?.email.split("@")[0] || (interno ? "Equipe" : "Fundador"), funcao: interno && acesso.data?.perfil ? PERFIL_INFO[acesso.data.perfil].rotulo : "Fundador", detalhe: "Tipe", avatarUrl: meu.data?.avatarUrl }}
       onSair={sair}
+      menuConta={[
+        { l: "Perfil", i: UserRound, onSelect: () => ir("perfil") },
+        ...(interno ? [] : [{ l: "Segurança", i: ShieldCheck, onSelect: () => ir("administracao") }]),
+      ]}
       acoes={secao === "inicio" ? <Segmentado label="Período" value={dias} onChange={setDias} options={[[7, "7 d"], [30, "30 d"], [90, "90 d"]] as const} /> : undefined}
       contexto={
         <span className="flex items-center gap-2.5">

@@ -46,6 +46,7 @@ import {
   type LebreFile,
   type LebreProposal,
 } from "@/lib/tipe/lebre.functions";
+import { askFounderAssistant } from "@/lib/tipe/central.functions";
 import lebre from "@/assets/lebre/avatar-feliz.webp";
 import lebreOla from "@/assets/lebre/avatar-ola.webp";
 import { cn } from "@/lib/utils";
@@ -78,6 +79,21 @@ const panelSuggestions = [
   },
   { icone: UtensilsCrossed, titulo: "Cardápio", pergunta: "Muda o preço da picanha para 89,90" },
 ];
+const centralSuggestions = [
+  {
+    icone: LayoutGrid,
+    titulo: "Atenção hoje",
+    pergunta: "Quais restaurantes precisam de atenção hoje?",
+  },
+  { icone: Users, titulo: "Leads", pergunta: "Quais leads estão sem resposta?" },
+  { icone: Table2, titulo: "Resumo", pergunta: "Resumo executivo da semana" },
+  {
+    icone: UtensilsCrossed,
+    titulo: "Implantação",
+    pergunta: "Quais clientes estão em implantação?",
+  },
+];
+const PENSANDO_CENTRAL = ["Consultando os dados", "Conferindo as fontes", "Quase lá"];
 const PENSANDO_PUBLICO = ["Farejando a resposta", "Correndo atrás", "Quase lá"];
 const PENSANDO_PAINEL = ["Olhando o salão", "Conferindo as mesas", "Quase lá"];
 
@@ -144,8 +160,8 @@ function AttachButton({ disabled }: { disabled: boolean }) {
 }
 
 /** Indicador de "pensando": três passos de lebre e uma frase que troca rápido. */
-function Pensando({ painel }: { painel: boolean }) {
-  const frases = painel ? PENSANDO_PAINEL : PENSANDO_PUBLICO;
+function Pensando({ painel, central = false }: { painel: boolean; central?: boolean }) {
+  const frases = central ? PENSANDO_CENTRAL : painel ? PENSANDO_PAINEL : PENSANDO_PUBLICO;
   const [i, setI] = useState(0);
   useEffect(() => {
     const t = window.setInterval(() => setI((v) => Math.min(v + 1, frases.length - 1)), 1100);
@@ -169,15 +185,19 @@ const confirmWords = /^(sim|confirmo|confirmar|pode|ok|pode fazer|isso)[.! ]*$/i
 
 export function LebreAssistant({
   slug,
+  central = false,
   inicialAberta = false,
   hideLauncher = false,
 }: {
   slug?: string | undefined;
+  /** Lebre do fundador na Central: mesmo chat da Gestão, respondendo com os dados da Tipe. */
+  central?: boolean;
   inicialAberta?: boolean;
   hideLauncher?: boolean;
 }) {
   const askPublic = useServerFn(askPublicLebre);
   const askRestaurant = useServerFn(askRestaurantLebre);
+  const askFounder = useServerFn(askFounderAssistant);
   const execute = useServerFn(executeLebreProposal);
   const transcribe = useServerFn(transcribeLebreAudio);
   const [draft, setDraft] = useState("");
@@ -187,7 +207,7 @@ export function LebreAssistant({
   const [notice, setNotice] = useState<string | null>(null);
   const [open, setOpen] = useState(inicialAberta);
   useEffect(() => {
-    if (!slug) return;
+    if (!slug && !central) return;
     const openChat = () => {
       setOpen(true);
       const p = tomarPerguntaPendente();
@@ -197,14 +217,14 @@ export function LebreAssistant({
     if (pendente) setDraft(pendente);
     window.addEventListener(OPEN_LEBRE, openChat);
     return () => window.removeEventListener(OPEN_LEBRE, openChat);
-  }, [slug]);
+  }, [slug, central]);
   const [busy, setBusy] = useState(false);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const timerRef = useRef<number | null>(null);
   const painelRef = useRef<HTMLElement | null>(null);
   const botaoRef = useRef<HTMLButtonElement | null>(null);
-  const painel = Boolean(slug);
+  const painel = Boolean(slug) || central;
 
   // Abre já com o cursor no campo; Esc fecha e devolve o foco ao botão.
   useEffect(() => {
@@ -311,11 +331,17 @@ export function LebreAssistant({
     setBusy(true);
     const inicio = performance.now();
     try {
-      const reply = slug
-        ? await askRestaurant({
-            data: { slug, question, history, ...(files.length ? { files } : {}) },
-          })
-        : await askPublic({ data: { question, ...(files.length ? { files } : {}) } });
+      const reply: { answer: string; proposal?: LebreProposal | undefined } = central
+        ? {
+            answer:
+              (await askFounder({ data: { pergunta: question.slice(0, 2000) } })).resposta +
+              (files.length ? "\n\n*Anexos ainda não são lidos na Central.*" : ""),
+          }
+        : slug
+          ? await askRestaurant({
+              data: { slug, question, history, ...(files.length ? { files } : {}) },
+            })
+          : await askPublic({ data: { question, ...(files.length ? { files } : {}) } });
       const assistant: ChatMessage = {
         id: crypto.randomUUID(),
         role: "assistant",
@@ -366,7 +392,10 @@ export function LebreAssistant({
           ref={botaoRef}
           type="button"
           onClick={() => setOpen(true)}
-          className={cn(classeBotaoLebre(slug), open && "max-sm:hidden")}
+          className={cn(
+            classeBotaoLebre(slug ?? (central ? "central" : undefined)),
+            open && "max-sm:hidden",
+          )}
           aria-label="Pergunte à Lebre"
           aria-expanded={open}
         >
@@ -450,31 +479,39 @@ export function LebreAssistant({
                     />
                     <div className="pb-1">
                       <p className="font-display text-[1.45rem] font-semibold leading-[1.1] tracking-[-0.03em]">
-                        {painel ? "Pode mandar." : "Oi, eu sou a Lebre."}
+                        {central
+                          ? "Pode perguntar."
+                          : painel
+                            ? "Pode mandar."
+                            : "Oi, eu sou a Lebre."}
                       </p>
                       <p className="mt-1.5 text-sm text-ink/60">
-                        {painel
-                          ? "Eu leio o salão e faço o serviço. Você só confirma."
-                          : "Pergunte rápido que eu respondo mais rápido ainda."}
+                        {central
+                          ? "Eu consulto os dados da Tipe e entrego rascunhos. Nada sai sem você."
+                          : painel
+                            ? "Eu leio o salão e faço o serviço. Você só confirma."
+                            : "Pergunte rápido que eu respondo mais rápido ainda."}
                       </p>
                     </div>
                   </div>
                   <div className="mt-6 grid grid-cols-2 gap-2">
                     {painel
-                      ? panelSuggestions.map(({ icone: I, titulo, pergunta }) => (
-                          <button
-                            key={titulo}
-                            type="button"
-                            onClick={() => void send(pergunta)}
-                            className="group/s flex min-h-[76px] flex-col justify-between rounded-2xl border border-ink/10 bg-white p-3 text-left transition-[border-color,transform] duration-150 hover:-translate-y-0.5 hover:border-primary active:translate-y-0"
-                          >
-                            <I className="h-[18px] w-[18px] text-brand-strong" />
-                            <span>
-                              <span className="block text-sm font-semibold">{titulo}</span>
-                              <span className="line-clamp-1 text-xs text-ink/60">{pergunta}</span>
-                            </span>
-                          </button>
-                        ))
+                      ? (central ? centralSuggestions : panelSuggestions).map(
+                          ({ icone: I, titulo, pergunta }) => (
+                            <button
+                              key={titulo}
+                              type="button"
+                              onClick={() => void send(pergunta)}
+                              className="group/s flex min-h-[76px] flex-col justify-between rounded-2xl border border-ink/10 bg-white p-3 text-left transition-[border-color,transform] duration-150 hover:-translate-y-0.5 hover:border-primary active:translate-y-0"
+                            >
+                              <I className="h-[18px] w-[18px] text-brand-strong" />
+                              <span>
+                                <span className="block text-sm font-semibold">{titulo}</span>
+                                <span className="line-clamp-1 text-xs text-ink/60">{pergunta}</span>
+                              </span>
+                            </button>
+                          ),
+                        )
                       : publicSuggestions.map(({ titulo, texto }) => (
                           <button
                             key={titulo}
@@ -491,9 +528,11 @@ export function LebreAssistant({
                         ))}
                   </div>
                   <p className="mt-4 text-xs text-ink/60">
-                    {painel
-                      ? "Escreva, fale ou mande uma foto do cardápio. Nada muda sem a sua confirmação."
-                      : "Escreva, fale ou mande uma foto. Respondo em segundos."}
+                    {central
+                      ? "Escreva ou fale. Eu cito o período e a fonte de cada número."
+                      : painel
+                        ? "Escreva, fale ou mande uma foto do cardápio. Nada muda sem a sua confirmação."
+                        : "Escreva, fale ou mande uma foto. Respondo em segundos."}
                   </p>
                 </div>
               )}
@@ -605,7 +644,7 @@ export function LebreAssistant({
                   </div>
                 ),
               )}
-              {busy && <Pensando painel={painel} />}
+              {busy && <Pensando painel={painel} central={central} />}
             </ConversationContent>
             <ConversationScrollButton />
           </Conversation>
