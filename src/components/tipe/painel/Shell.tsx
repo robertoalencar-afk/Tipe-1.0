@@ -230,7 +230,9 @@ export function Shell({
   busca?: AcaoBusca[] | undefined;
   children: ReactNode;
 }) {
-  const gestao = ambiente === "Tipe Gestão";
+  // Central e Gestão têm o mesmo visual (barra clara, Lebre e busca no menu): ver docs/internos/PADRAO-CENTRAL-GESTAO.md.
+  const gestao = ambiente === "Tipe Gestão" || ambiente === "Central Tipe";
+  const nomeAmbiente = ambiente === "Central Tipe" ? "central" : "gestão";
   const [mascotVisible, setMascotVisible] = useMascotPreference(mascotScope);
   const [recolhida, setRecolhida] = useState(false);
   const [gaveta, setGaveta] = useState(false);
@@ -432,13 +434,13 @@ export function Shell({
               <button
                 type="button"
                 onClick={() => setBuscaAberta(true)}
-                title="Buscar na gestão"
+                title={`Buscar na ${nomeAmbiente}`}
                 className="flex min-h-11 w-full items-center gap-2.5 rounded-lg px-3 text-sm text-muted-foreground hover:bg-foreground/5"
               >
                 <Search className="size-[18px] shrink-0" />
                 {!recolhida && (
                   <>
-                    <span className="flex-1 text-left">Buscar na gestão</span>
+                    <span className="flex-1 text-left">Buscar na {nomeAmbiente}</span>
                     <kbd className="text-[10px]">⌘ K</kbd>
                   </>
                 )}
@@ -546,7 +548,7 @@ export function Shell({
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={() => setBuscaAberta(true)}>
                       <Search className="mr-2 size-4" />
-                      Buscar na gestão
+                      Buscar na {nomeAmbiente}
                     </DropdownMenuItem>
                     <DropdownMenuItem onSelect={alternar} className="hidden lg:flex">
                       <PanelLeftClose className="mr-2 size-4" />
