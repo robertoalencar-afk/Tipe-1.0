@@ -12,8 +12,8 @@ Nada é enviado sozinho: só quando o fundador aperta Enviar. Corpo sempre exibi
 ## Passos do Roberto (nada disso foi feito pelo código)
 
 1. **Migração 0075** aplicada (vai junto com o merge em main).
-2. **Segredo**: gerar um valor longo e aleatório (`openssl rand -hex 32`). Guardar como `EMAIL_INBOUND_SECRET` no Worker do site (Cloudflare > Workers > tipe > Settings > Variables) **e** no Worker de e-mail (`wrangler secret put EMAIL_INBOUND_SECRET` dentro de `email-worker/`). Nunca no código.
-3. **Worker de e-mail**: `cd email-worker && bun install && bunx wrangler deploy`. `APP_URL` em `wrangler.jsonc` deve ser o endereço do site.
+2. **Segredo e Worker de e-mail: automático.** A publicação do site (deploy.yml) já publica o Worker `tipe-email` e grava o mesmo `EMAIL_INBOUND_SECRET` nos dois Workers (derivado do `CRON_SECRET` por HMAC; para usar outro valor, crie o segredo `EMAIL_INBOUND_SECRET` no ambiente `producao` do GitHub). Nada a fazer aqui.
+3. (feito pela publicação, ver o passo 2.)
 4. **Cloudflare > tipe.digital > Email > Email Routing**: ativar. Cloudflare cria os registros MX e SPF.
    - **Atenção:** trocar o MX desliga o recebimento atual (Zoho). Faça só depois do passo 3 e avise antes. Confirme que não há e-mail importante pendente no Zoho.
 5. Em **Routing rules** criar duas regras "Send to a Worker" (Worker do passo 3): `roberto@tipe.digital` e `contato@tipe.digital`. Opcional: catch-all para o mesmo Worker; endereços fora das duas caixas são descartados pelo servidor.

@@ -28,14 +28,16 @@ export const getMailOverview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { db, permitidas } = await founder(context);
-    const [{ data: caixas }, { data: nao }] = await Promise.all([
+    const [{ data: caixas }, { data: nao }, { data: ultima }] = await Promise.all([
       db.from("mail_mailboxes").select("address,label,signature,active").order("address"),
       db.from("mail_messages").select("mailbox,folder").eq("is_read", false).in("folder", ["inbox", "spam"]).limit(5000),
+      db.from("mail_messages").select("at").eq("direction", "in").order("at", { ascending: false }).limit(1),
     ]);
+    const recebimento: "sem_segredo" | "aguardando" | "ativo" = !process.env["EMAIL_INBOUND_SECRET"] ? "sem_segredo" : ultima?.length ? "ativo" : "aguardando";
     const ok = (a: string) => !permitidas || permitidas.includes(a);
     const naoLidas: Record<string, number> = {};
     for (const m of ((nao ?? []) as { mailbox: string; folder: string }[]).filter((x) => ok(x.mailbox))) { const k = `${m.mailbox}|${m.folder}`; naoLidas[k] = (naoLidas[k] ?? 0) + 1; }
-    return { caixas: ((caixas ?? []) as { address: string; label: string; signature: string | null; active: boolean }[]).filter((c) => ok(c.address)), naoLidas, envio: Boolean(process.env["RESEND_API_KEY"]), recebimento: Boolean(process.env["EMAIL_INBOUND_SECRET"]) };
+    return { caixas: ((caixas ?? []) as { address: string; label: string; signature: string | null; active: boolean }[]).filter((c) => ok(c.address)), naoLidas, envio: Boolean(process.env["RESEND_API_KEY"]), recebimento };
   });
 
 export const listMail = createServerFn({ method: "POST" })

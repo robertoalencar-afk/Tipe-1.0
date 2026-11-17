@@ -2,6 +2,7 @@
 // (no GitHub Actions elas vêm dos segredos do ambiente "producao").
 //   node scripts/deploy/segredos.mjs app  | wrangler secret bulk
 //   node scripts/deploy/segredos.mjs cron | wrangler secret bulk --config cron-worker/wrangler.jsonc
+//   node scripts/deploy/segredos.mjs email | wrangler secret bulk --config email-worker/wrangler.jsonc
 const LISTAS = {
   app: [
     "SUPABASE_URL", "SUPABASE_PUBLISHABLE_KEY", "SUPABASE_SERVICE_ROLE_KEY",
@@ -12,11 +13,19 @@ const LISTAS = {
     "CLOUDFLARE_AI_MODEL", "CLOUDFLARE_AI_DAILY_LIMIT",
     "GROQ_API_KEY", "GROQ_MODEL", "GROQ_VISION_MODEL", "LEBRE_CLAUDE_FALLBACK",
     "WHATSAPP_TOKEN", "WHATSAPP_PHONE_NUMBER_ID", "WHATSAPP_APP_SECRET", "WHATSAPP_VERIFY_TOKEN", "WHATSAPP_RESERVA_MODELOS",
+    "EMAIL_INBOUND_SECRET",
   ],
   cron: ["CRON_SECRET"],
+  email: ["EMAIL_INBOUND_SECRET"],
 };
+// Segredo do recebimento de e-mail (Worker de e-mail -> site). Se não foi definido à mão, deriva-se do
+// CRON_SECRET por HMAC: o mesmo valor sai nos dois Workers a cada publicação e nada novo precisa ser cadastrado.
+if (!process.env.EMAIL_INBOUND_SECRET && process.env.CRON_SECRET) {
+  const { createHmac } = await import("node:crypto");
+  process.env.EMAIL_INBOUND_SECRET = createHmac("sha256", process.env.CRON_SECRET).update("tipe-email-inbound-v1").digest("hex");
+}
 const nomes = LISTAS[process.argv[2]];
-if (!nomes) { console.error("uso: segredos.mjs app|cron"); process.exit(1); }
+if (!nomes) { console.error("uso: segredos.mjs app|cron|email"); process.exit(1); }
 const out = Object.fromEntries(nomes.filter((n) => process.env[n]).map((n) => [n, process.env[n]]));
 console.error(`segredos enviados: ${Object.keys(out).join(", ") || "nenhum"}`);
 process.stdout.write(JSON.stringify(out));
