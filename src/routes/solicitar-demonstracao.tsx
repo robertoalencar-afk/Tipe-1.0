@@ -7,6 +7,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
+import { LazyLebreAssistant } from "@/components/tipe/LazyLebreAssistant";
 import { WaitlistForm } from "@/components/tipe/WaitlistForm";
 import { LandingFooter, LandingHeader } from "@/components/tipe/landing/LandingChrome";
 import { Foto, type NomeFoto } from "@/components/tipe/site/Foto";
@@ -61,6 +62,7 @@ function TesteGratis() {
         <Fecho />
       </main>
       <LandingFooter />
+      <LazyLebreAssistant />
     </div>
   );
 }

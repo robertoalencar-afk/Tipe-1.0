@@ -1,15 +1,16 @@
-import { HareOutline } from "@/components/tipe/HareOutline";
+import rosto from "@/assets/lebre/rosto-ola.webp";
 
 /** Classes do botão flutuante da Lebre (compartilhadas entre o atalho leve e o chat completo). */
 export function classeBotaoLebre(slug?: string | undefined) {
-  return `group fixed right-3 z-40 grid place-items-center rounded-full bg-primary text-primary-foreground shadow-xl transition-transform hover:-translate-y-0.5 print:hidden ${slug ? "bottom-24 h-12 w-12 sm:right-5 lg:bottom-5 lg:h-14 lg:w-14" : "bottom-4 h-11 w-11 sm:bottom-6 sm:right-6 sm:h-12 sm:w-12"}`;
+  return `group fixed right-3 z-40 grid place-items-center rounded-full bg-brand text-ink shadow-xl ring-4 ring-white/70 transition-transform hover:-translate-y-1 hover:scale-105 active:scale-95 lebre-chamar print:hidden ${slug ? "bottom-24 h-12 w-12 sm:right-5 lg:bottom-5 lg:h-16 lg:w-16" : "bottom-4 h-14 w-14 sm:bottom-6 sm:right-6 sm:h-16 sm:w-16"}`;
 }
 
 export function ConteudoBotaoLebre() {
   return (
     <>
-      <HareOutline className="h-7 w-6" />
-      <span className="pointer-events-none absolute right-full mr-3 hidden whitespace-nowrap rounded-full bg-foreground px-3 py-1.5 text-xs font-semibold text-background opacity-0 shadow-md transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100 sm:block">
+      <span aria-hidden className="lebre-anel pointer-events-none absolute inset-0 rounded-full bg-brand" />
+      <img src={rosto} alt="" width={64} height={64} className="relative h-[88%] w-[88%] rounded-full object-cover" />
+      <span className="lebre-rotulo pointer-events-none absolute right-full mr-3 hidden whitespace-nowrap rounded-full bg-foreground px-4 py-2 text-sm font-semibold text-background shadow-md transition-opacity group-hover:!opacity-100 group-focus-visible:!opacity-100 sm:block">
         Pergunte à Lebre
       </span>
     </>
