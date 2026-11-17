@@ -6,7 +6,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { PASTAS, assinaturaHtml, chaveConversa, formatarEndereco, htmlParaTexto, lerEnderecos, resumo, textoParaHtml } from "./mail";
+import { PASTAS, chaveConversa, comAssinatura, corpoHtml, formatarEndereco, htmlParaTexto, lerEnderecos, resumo, textoParaHtml } from "./mail";
 
 type Ctx = { supabase: any; userId: string; claims?: any };
 /** Founder vê as duas caixas; equipe interna (comercial/atendimento) só as do perfil (contato@). `permitidas` null = todas. */
@@ -146,14 +146,14 @@ export const sendMail = createServerFn({ method: "POST" })
       const { data: o } = await db.from("mail_messages").select("message_id,thread_key,lead_id").eq("id", data.respondeId).eq("mailbox", cx.address).maybeSingle();
       if (o) { inReplyTo = o.message_id; refs = o.message_id; threadKey = o.thread_key; leadId = o.lead_id; }
     }
-    const corpo = cx.signature ? `${data.texto}\n\n-- \n${cx.signature}` : data.texto;
+    const corpo = comAssinatura(data.texto, cx.signature);
     const messageId = `<${crypto.randomUUID()}@tipe.digital>`;
     const headers: Record<string, string> = { "Message-ID": messageId };
     if (inReplyTo) { headers["In-Reply-To"] = inReplyTo; if (refs) headers["References"] = refs; }
     const r = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json", "Idempotency-Key": crypto.randomUUID() },
-      body: JSON.stringify({ from: formatarEndereco({ nome: cx.label === "Contato" ? "Tipe" : cx.label, email: cx.address }), to: para.map((a) => a.email), ...(cc.length ? { cc: cc.map((a) => a.email) } : {}), reply_to: cx.address, subject: data.assunto, text: corpo, html: textoParaHtml(data.texto) + (cx.signature ? assinaturaHtml(cx.signature) : ""), headers }),
+      body: JSON.stringify({ from: formatarEndereco({ nome: cx.label === "Contato" ? "Tipe" : cx.label, email: cx.address }), to: para.map((a) => a.email), ...(cc.length ? { cc: cc.map((a) => a.email) } : {}), reply_to: cx.address, subject: data.assunto, text: corpo, html: corpoHtml(corpo), headers }),
     });
     const j = (await r.json().catch(() => ({}))) as { id?: string; message?: string };
     if (!r.ok) throw new Error(j.message ? `Resend recusou o envio: ${j.message}` : "Resend recusou o envio");

@@ -6,7 +6,7 @@ import { Archive, ArrowLeft, Ban, Forward, Inbox, Mail, Paperclip, Pencil, Reply
 import { Button } from "@/components/ui/button";
 import { Aviso, Avatar, Busca, Esqueleto, horaBR, inputCls, relativo } from "@/components/tipe/painel/ui";
 import { deleteMailForever, getMailOverview, getMailThread, listMail, saveMailDraft, saveMailSignature, sendMail, updateMail } from "@/lib/tipe/central-email.functions";
-import { PASTA_LABEL, assinaturaHtml, assuntoEncaminhar, assuntoResposta, citar, type Pasta } from "@/lib/tipe/mail";
+import { PASTA_LABEL, assinaturaHtml, assuntoEncaminhar, blocoAssinatura, assuntoResposta, citar, type Pasta } from "@/lib/tipe/mail";
 
 const ICONE: Record<Pasta, typeof Inbox> = { inbox: Inbox, sent: Send, drafts: FileText, spam: Ban, trash: Trash2, archive: Archive };
 const ORDEM: Pasta[] = ["inbox", "sent", "drafts", "archive", "spam", "trash"];
@@ -44,11 +44,18 @@ export function CaixaEmail() {
   function responder(m: any, todos = false) {
     const para = m.direction === "out" ? (m.to_addrs ?? []).map((a: any) => a.email).join(", ") : m.from_addr;
     const cc = todos ? (m.cc_addrs ?? []).map((a: any) => a.email).filter((e: string) => e !== caixa).join(", ") : "";
-    setEscrevendo({ para, cc, assunto: assuntoResposta(m.subject), texto: citar(m.from_name || m.from_addr, new Date(m.at), m.text_body ?? ""), respondeId: m.id });
+    setEscrevendo({ para, cc, assunto: assuntoResposta(m.subject), texto: blocoAssinatura(cx?.signature) + citar(m.from_name || m.from_addr, new Date(m.at), m.text_body ?? ""), respondeId: m.id });
   }
-  const encaminhar = (m: any) => setEscrevendo({ para: "", cc: "", assunto: assuntoEncaminhar(m.subject), texto: `\n\n---------- Mensagem encaminhada ----------\nDe: ${m.from_name ? `${m.from_name} <${m.from_addr}>` : m.from_addr}\nAssunto: ${m.subject}\n\n${m.text_body ?? ""}` });
-  const abrirItem = (it: any) => {
-    if (it.folder === "drafts") { setEscrevendo({ id: it.id, para: (it.to_addrs ?? []).map((a: any) => a.email).join(", "), cc: "", assunto: it.subject, texto: it.snippet ?? "" }); return; }
+  const encaminhar = (m: any) => setEscrevendo({ para: "", cc: "", assunto: assuntoEncaminhar(m.subject), texto: `${blocoAssinatura(cx?.signature)}\n\n---------- Mensagem encaminhada ----------\nDe: ${m.from_name ? `${m.from_name} <${m.from_addr}>` : m.from_addr}\nAssunto: ${m.subject}\n\n${m.text_body ?? ""}` });
+  const abrirItem = async (it: any) => {
+    if (it.folder === "drafts") {
+      try {
+        const r = await fThread({ data: { id: it.id } });
+        const m = r.mensagens.find((x: any) => x.id === it.id) ?? r.mensagens[0];
+        setEscrevendo({ id: it.id, para: (it.to_addrs ?? []).map((a: any) => a.email).join(", "), cc: (m?.cc_addrs ?? []).map((a: any) => a.email).join(", "), assunto: it.subject, texto: m?.text_body ?? it.snippet ?? "" });
+      } catch (e) { toast.error((e as Error).message); }
+      return;
+    }
     setAberto(it.id);
   };
 
@@ -59,7 +66,7 @@ export function CaixaEmail() {
       {!o.envio && <Aviso tone="warning">Envio desligado: falta RESEND_API_KEY.</Aviso>}
       <div className="grid gap-3 lg:grid-cols-[220px_340px_1fr]">
         <nav aria-label="Pastas" className={`${aberto ? "hidden lg:block" : ""} space-y-3 rounded-xl border border-border bg-card p-3`}>
-          <Button variant="brand" className="w-full" onClick={() => setEscrevendo({ para: "", cc: "", assunto: "", texto: "" })}><Pencil className="size-4" /> Escrever</Button>
+          <Button variant="brand" className="w-full" onClick={() => setEscrevendo({ para: "", cc: "", assunto: "", texto: blocoAssinatura(cx?.signature) })}><Pencil className="size-4" /> Escrever</Button>
           <select className={`${inputCls} h-9 w-full`} value={caixa ?? ""} onChange={(e) => { setCaixa(e.target.value); setAberto(null); }} aria-label="Caixa">
             {o.caixas.map((c) => <option key={c.address} value={c.address}>{c.address}</option>)}
           </select>
@@ -158,7 +165,7 @@ export function CaixaEmail() {
             <label className="text-sm font-medium">Cc<input className={`${inputCls} mt-1 h-10 w-full`} value={escrevendo.cc} onChange={(e) => setEscrevendo({ ...escrevendo, cc: e.target.value })} /></label>
             <label className="text-sm font-medium">Assunto<input className={`${inputCls} mt-1 h-10 w-full`} value={escrevendo.assunto} onChange={(e) => setEscrevendo({ ...escrevendo, assunto: e.target.value })} maxLength={300} /></label>
             <label className="text-sm font-medium">Mensagem<textarea className={`${inputCls} mt-1 min-h-52 w-full py-2`} value={escrevendo.texto} onChange={(e) => setEscrevendo({ ...escrevendo, texto: e.target.value })} /></label>
-            {cx?.signature && <p className="text-xs text-muted-foreground">A assinatura de {cx.address} é adicionada ao enviar.</p>}
+            {cx?.signature && <p className="text-xs text-muted-foreground">A assinatura de {cx.address} já está no texto, abaixo de "Atenciosamente,". Escreva acima dela.</p>}
             <div className="flex flex-wrap justify-end gap-2">
               <Button type="button" variant="outline" disabled={mDraft.isPending} onClick={() => mDraft.mutate(escrevendo)}>Salvar rascunho</Button>
               <Button type="submit" variant="brand" disabled={mSend.isPending || !o.envio || !escrevendo.para.trim() || !escrevendo.assunto.trim() || !escrevendo.texto.trim()}><Send className="size-4" /> Enviar</Button>

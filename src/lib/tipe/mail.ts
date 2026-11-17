@@ -86,3 +86,21 @@ export function assinaturaHtml(assinatura: string) {
   const [nome, cargo, ...resto] = linhas;
   return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:20px;font-family:Arial,Helvetica,sans-serif"><tr><td style="border-left:3px solid #10d1b4;padding-left:12px"><div style="font-size:15px;font-weight:700;color:#071727">${ESC(nome ?? "")}</div>${cargo ? `<div style="font-size:13px;color:#575b5f;margin-top:2px">${ESC(cargo)}</div>` : ""}${resto.length ? `<div style="font-size:13px;color:#575b5f;margin-top:6px;line-height:1.5">${resto.map(linkar).join("<br>")}</div>` : ""}</td></tr></table>`;
 }
+
+const FECHO = /(^|\n)Atenciosamente,?[ \t]*\n/;
+/** Bloco de fecho que entra no editor: linha em branco, "Atenciosamente," e a assinatura da caixa. */
+export const blocoAssinatura = (assinatura: string | null | undefined) => (assinatura?.trim() ? `\n\nAtenciosamente,\n${assinatura.trim()}` : "");
+/** Garante o fecho com assinatura no corpo; se a pessoa já tem "Atenciosamente," no texto, não duplica. */
+export const comAssinatura = (texto: string, assinatura: string | null | undefined) => (!assinatura?.trim() || FECHO.test(`${texto}\n`) ? texto : `${texto.trimEnd()}${blocoAssinatura(assinatura)}`);
+
+/** Corpo em HTML: o que vem depois de "Atenciosamente," até a primeira linha em branco vira assinatura formatada. */
+export function corpoHtml(texto: string) {
+  const m = FECHO.exec(texto);
+  if (!m) return textoParaHtml(texto);
+  const antes = texto.slice(0, m.index);
+  const resto = texto.slice(m.index + m[0].length);
+  const fim = resto.search(/\n[ \t]*\n/);
+  const bloco = fim === -1 ? resto : resto.slice(0, fim);
+  const depois = fim === -1 ? "" : resto.slice(fim).trim();
+  return textoParaHtml(antes.trimEnd()) + `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#111;margin-top:16px">Atenciosamente,</div>` + assinaturaHtml(bloco) + (depois ? textoParaHtml(`\n${depois}`) : "");
+}

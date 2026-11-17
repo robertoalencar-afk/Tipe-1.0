@@ -47,3 +47,27 @@ describe("assinatura em HTML", () => {
     expect(assinaturaHtml("  \n ")).toBe("");
   });
 });
+
+import { blocoAssinatura, comAssinatura, corpoHtml } from "./mail";
+describe("fecho com assinatura", () => {
+  const sig = "Roberto Alencar\nFundador · Tipe\nroberto@tipe.digital";
+  it("monta o bloco abaixo de Atenciosamente,", () => {
+    expect(blocoAssinatura(sig)).toBe("\n\nAtenciosamente,\nRoberto Alencar\nFundador · Tipe\nroberto@tipe.digital");
+    expect(blocoAssinatura(null)).toBe("");
+  });
+  it("acrescenta uma vez só", () => {
+    const t = comAssinatura("Olá!", sig);
+    expect(t).toContain("Atenciosamente,\nRoberto Alencar");
+    expect(comAssinatura(t, sig)).toBe(t);
+  });
+  it("HTML: assinatura formatada abaixo de Atenciosamente, e citação depois", () => {
+    const h = corpoHtml("Olá!\n\nAtenciosamente,\nRoberto Alencar\nFundador · Tipe\nroberto@tipe.digital\n\nEm 16/11, Ana escreveu:\n> oi");
+    expect(h).toContain("Atenciosamente,");
+    expect(h).toContain("font-weight:700");
+    expect(h).toContain('href="mailto:roberto@tipe.digital"');
+    expect(h.indexOf("Atenciosamente,")).toBeLessThan(h.indexOf("Ana escreveu"));
+  });
+  it("sem fecho, vira texto simples", () => {
+    expect(corpoHtml("só texto")).not.toContain("font-weight:700");
+  });
+});

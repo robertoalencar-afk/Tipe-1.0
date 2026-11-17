@@ -11,7 +11,6 @@ import {
   CalendarCheck,
   GitPullRequest,
   LayoutDashboard,
-  LogOut,
   MessageSquare,
   ShieldCheck,
   Target,
@@ -160,11 +159,6 @@ function Central() {
       titulo={TITULOS[secao].t}
       descricao={TITULOS[secao].d}
       busca={busca}
-      rodape={
-        <button type="button" onClick={sair} className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-white/70 hover:bg-white/10 hover:text-white">
-          <LogOut className="size-4" /> Sair
-        </button>
-      }
     >
       {secao === "inicio" && interno && <InicioInterno nome={meu.data?.nome || acesso.data?.nome || "equipe"} secoes={permitidas ?? []} ir={ir} />}
       {secao === "inicio" && !interno && <VisaoGeral dash={dash.data} carregando={dash.isPending} ir={ir} nome={meu.data?.nome || meu.data?.email.split("@")[0] || "Fundador"} />}
