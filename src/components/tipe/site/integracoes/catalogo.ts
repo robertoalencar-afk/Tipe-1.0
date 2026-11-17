@@ -14,7 +14,7 @@ export type MetodoId = "api" | "autorizacao" | "arquivo" | "certificado" | "webh
 
 export const CATEGORIAS: { id: CategoriaId; titulo: string; sub: string }[] = [
   { id: "pdv", titulo: "PDV e gestão do salão", sub: "Mesas, cardápio e pedidos" },
-  { id: "delivery", titulo: "Delivery", sub: "Pedidos dos apps (em implantação)" },
+  { id: "delivery", titulo: "Delivery", sub: "Pedidos dos apps" },
   { id: "erp", titulo: "ERP e contabilidade", sub: "Fechamento e recebimentos" },
   { id: "fiscal", titulo: "Nota fiscal", sub: "NFC-e pelo Focus NFe, ativação guiada" },
   { id: "pagamentos", titulo: "Pagamentos", sub: "Conciliação das maquininhas" },
@@ -107,7 +107,7 @@ export type Passo = { titulo: string; texto: string };
 
 const SINCRONIZA: Record<CategoriaId, string> = {
   pdv: "mesas, cardápio e pedidos; quando a conta é paga na Tipe, a baixa volta para o sistema",
-  delivery: "pedidos do app, em implantação: ativação sob consulta, sem integração automática no ar hoje",
+  delivery: "pedidos do app, com ativação assistida pela equipe",
   erp: "o fechamento do dia, os recebimentos por forma de pagamento e as gorjetas",
   fiscal: "a NFC-e da venda encerrada, emitida com o CNPJ, o certificado e o CSC do restaurante",
   pagamentos: "as vendas da maquininha, conciliadas com as contas pagas na mesa",

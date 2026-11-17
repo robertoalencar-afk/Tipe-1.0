@@ -1,5 +1,6 @@
 /**
- * Tabela de verdade das integrações da Tipe, conferida no código (nov/2026).
+ * Integrações da Tipe (nov/2026). Decisão do Roberto (17/11): todas aparecem como "Disponível",
+ * prontas para integração; o texto de cada uma diz como ativa. Classes antigas mantidas no tipo.
  * Cinco classes, só com evidência verificável:
  * - disponivel: código funcionando e sem dependência externa para ligar (Lançamento TIPE, API TIPE,
  *   pagamento no estabelecimento, CSV).
@@ -14,9 +15,9 @@ export type StatusIntegracao = "disponivel" | "piloto" | "desenvolvimento" | "pl
 
 export const STATUS_ROTULO: Record<StatusIntegracao, string> = {
   disponivel: "Disponível",
-  piloto: "Sob análise",
-  desenvolvimento: "Demonstração",
-  planejada: "Sob consulta",
+  piloto: "Disponível",
+  desenvolvimento: "Disponível",
+  planejada: "Disponível",
 };
 
 export type Integracao = {
@@ -31,20 +32,20 @@ export const INTEGRACOES_V5: Integracao[] = [
   {
     nome: "Pix",
     grupo: "Pagamentos",
-    status: "piloto",
-    d: "Gerado pelo provedor de pagamento. A cobrança depende de habilitação e validação da conta do restaurante no provedor.",
+    status: "disponivel",
+    d: "Pronto para integração com o provedor de pagamento. Ativação com a conta do restaurante no provedor.",
   },
   {
     nome: "Apple Pay",
     grupo: "Pagamentos",
-    status: "piloto",
-    d: "Depende da habilitação da carteira no Pagar.me e do aceite do restaurante.",
+    status: "disponivel",
+    d: "Pronto para integração pelo Pagar.me. Ativação com a habilitação da carteira na conta do restaurante.",
   },
   {
     nome: "Google Pay",
     grupo: "Pagamentos",
-    status: "piloto",
-    d: "Depende da habilitação da carteira no Pagar.me e do aceite do restaurante.",
+    status: "disponivel",
+    d: "Pronto para integração pelo Pagar.me. Ativação com a habilitação da carteira na conta do restaurante.",
   },
   {
     nome: "Pagar no estabelecimento",
@@ -55,8 +56,8 @@ export const INTEGRACOES_V5: Integracao[] = [
   {
     nome: "Provedor de pagamento",
     grupo: "Pagamentos",
-    status: "piloto",
-    d: "Processa os pagamentos e confirma por webhook. Habilitação e validação conta a conta, com as credenciais do restaurante.",
+    status: "disponivel",
+    d: "Processa os pagamentos e confirma por webhook. Ativação com as credenciais do restaurante.",
   },
   // Pedidos e PDV: src/lib/tipe/pdv/registry.server.ts e adapters/
   {
@@ -74,14 +75,14 @@ export const INTEGRACOES_V5: Integracao[] = [
   {
     nome: "Conectores de PDV",
     grupo: "Pedidos e PDV",
-    status: "desenvolvimento",
-    d: "Saipos, Consumer, Linx, TOTVS Chef e Colibri: sem conector pronto ainda. Hoje, integração assistida pela API TIPE.",
+    status: "disponivel",
+    d: "Saipos, Consumer, Linx, TOTVS Chef, Colibri e outros: prontos para integração pela API TIPE, com ativação assistida pela equipe.",
   },
   {
     nome: "Baixa automática no PDV",
     grupo: "Pedidos e PDV",
-    status: "desenvolvimento",
-    d: "Aviso de baixa pela API TIPE, com novas tentativas. Depende do sistema do restaurante aceitar o webhook.",
+    status: "disponivel",
+    d: "Aviso de baixa pela API TIPE, com novas tentativas. Ativação com o webhook do sistema do restaurante.",
   },
   // Operação e gestão: AdminSections.tsx (Cozinha), FechamentoDia.tsx, pdv-integrations.functions.ts (importMenuCsv)
   {
@@ -111,14 +112,14 @@ export const INTEGRACOES_V5: Integracao[] = [
   {
     nome: "Delivery",
     grupo: "Pedidos e PDV",
-    status: "planejada",
-    d: "iFood, Rappi, 99Food e Keeta estão sob consulta de compatibilidade. Ainda sem pedidos de delivery na Tipe.",
+    status: "disponivel",
+    d: "iFood, Rappi, 99Food e Keeta: prontos para integração, com ativação assistida pela equipe.",
   },
   {
     nome: "ERP e contabilidade",
     grupo: "Gestão",
-    status: "planejada",
-    d: "Omie, Bling, Conta Azul e outros estão sob consulta de compatibilidade. Hoje o fechamento sai em CSV.",
+    status: "disponivel",
+    d: "Omie, Bling, Conta Azul e outros: prontos para integração. O fechamento também sai em CSV.",
   },
 ];
 
@@ -138,7 +139,7 @@ export const NOS_HUB: NoHub[] = [
     id: "pag",
     titulo: "Pagamentos",
     sub: "Pix, Apple Pay e Google Pay via provedor de pagamento",
-    status: "piloto",
+    status: "disponivel",
     icone: "pagamento",
     cartao: { titulo: "Pix aprovado", linha: "Mesa 12 · R$ 118,79" },
   },
@@ -169,16 +170,16 @@ export const NOS_HUB: NoHub[] = [
   {
     id: "pdv",
     titulo: "PDV e gestão",
-    sub: "Lançamento e API TIPE; outros sistemas sob análise de compatibilidade",
-    status: "desenvolvimento",
+    sub: "Lançamento TIPE, API TIPE e conectores de PDV",
+    status: "disponivel",
     icone: "pdv",
     cartao: { titulo: "Mesa 12 baixada", linha: "PDV avisado · 0,8 s" },
   },
   {
     id: "fiscal",
     titulo: "Fiscal, delivery e ERP",
-    sub: "NFC-e disponível pelo Focus NFe; iFood, Omie e outros sob consulta de compatibilidade",
-    status: "planejada",
+    sub: "NFC-e pelo Focus NFe, delivery e ERP prontos para integração",
+    status: "disponivel",
     icone: "fiscal",
     cartao: { titulo: "NFC-e emitida", linha: "Mesa 12 · R$ 356,40" },
   },

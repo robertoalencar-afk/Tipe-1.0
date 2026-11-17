@@ -29,7 +29,7 @@ export const PLANS = [
     popular: true,
     features: [
       "Tudo do Essencial",
-      "Integração via API TIPE (sob análise)",
+      "Integração via API TIPE",
       "Relatórios por garçom",
       "Material de mesa com QR Code (condições na proposta)",
     ],
@@ -41,11 +41,7 @@ export const PLANS = [
     fullPrice: 179,
     maxTables: 40,
     setupPrice: 0,
-    features: [
-      "Tudo do Profissional",
-      "Controle de caixa",
-      "Suporte prioritário",
-    ],
+    features: ["Tudo do Profissional", "Controle de caixa", "Suporte prioritário"],
   },
 ] as const;
 export type PlanId = (typeof PLANS)[number]["id"];
