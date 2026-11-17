@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Aviso, Esqueleto, Painel, Segmentado, StatusBadge, Tabela, horaBR, inputCls, type Tone } from "@/components/tipe/painel/ui";
 import { LebreLimits } from "@/components/tipe/LebreLimits";
+import { LebreTexto } from "@/components/tipe/LebreTexto";
 import { askFounderAssistant, getAssistantHistory, getAutomacoes, toggleAutomacao } from "@/lib/tipe/central.functions";
 import type { SecaoCentral } from "@/routes/_authenticated/central";
 
@@ -27,7 +28,8 @@ export function Inteligencia({ aba, ir }: Props) {
   );
 }
 
-function Assistente() {
+/** Chat da Lebre do fundador. `embutido` tira a moldura para caber no painel flutuante. */
+export function Assistente({ embutido = false }: { embutido?: boolean }) {
   const qc = useQueryClient();
   const hist = useQuery({ queryKey: ["central-lebre"], queryFn: useServerFn(getAssistantHistory) });
   const perguntar = useServerFn(askFounderAssistant);
@@ -36,29 +38,34 @@ function Assistente() {
   const m = useMutation({ mutationFn: (pergunta: string) => perguntar({ data: { pergunta } }), onSuccess: () => { setP(""); qc.invalidateQueries({ queryKey: ["central-lebre"] }); }, onError: (e: Error) => toast.error(e.message) });
   useEffect(() => { fim.current?.scrollIntoView({ block: "end" }); }, [hist.data, m.isPending]);
   const enviar = (t: string) => { if (t.trim().length >= 2 && !m.isPending) m.mutate(t.trim()); };
+  const vazio = hist.data?.historico.length === 0;
+  const corpo = (
+    <div className={embutido ? "flex h-full min-h-0 flex-col" : "flex h-[65vh] flex-col"}>
+      <div className="flex-1 space-y-4 overflow-y-auto p-4">
+        {hist.isPending && <Esqueleto linhas={3} />}
+        {vazio && !m.isPending && <Aviso tone="neutral">Pergunte sobre restaurantes, leads, WhatsApp, implantações, receita ou integrações. Eu consulto só dados autorizados e entrego rascunhos para você aprovar.</Aviso>}
+        {hist.data?.historico.map((h: any) => (
+          <div key={h.id} className="space-y-2">
+            <p className="ml-auto w-fit max-w-[85%] rounded-2xl bg-ink px-3 py-2 text-sm text-white">{h.question}</p>
+            <div className="max-w-[92%] rounded-2xl bg-muted px-3 py-2 text-sm"><LebreTexto>{h.answer}</LebreTexto><p className="mt-1 text-[10px] text-muted-foreground">{horaBR(h.created_at)} · {h.provider === "ia" ? "IA" : "dados diretos"} · fontes: {(h.tools ?? []).join(", ")}</p></div>
+          </div>
+        ))}
+        {m.isPending && <p className="text-sm text-muted-foreground">Consultando os dados…</p>}
+        <div ref={fim} />
+      </div>
+      <div className="flex gap-2 overflow-x-auto border-t border-border px-3 pt-3 [scrollbar-width:none]" aria-label="Sugestões">
+        {SUGESTOES.map((s) => <button key={s} type="button" disabled={m.isPending} className="shrink-0 rounded-full border border-border px-3 py-1.5 text-xs hover:border-primary hover:bg-brand-soft disabled:opacity-50" onClick={() => enviar(s)}>{s}</button>)}
+      </div>
+      <form className="flex gap-2 p-3" onSubmit={(e) => { e.preventDefault(); enviar(p); }}>
+        <input className={`${inputCls} h-10 flex-1`} value={p} onChange={(e) => setP(e.target.value)} placeholder="Pergunte à Lebre" aria-label="Pergunta para a Lebre" maxLength={2000} />
+        <Button type="submit" variant="brand" disabled={m.isPending} aria-label="Enviar"><Send className="size-4" /></Button>
+      </form>
+    </div>
+  );
+  if (embutido) return corpo;
   return (
     <Painel titulo="Lebre do fundador" descricao="Consulta só dados autorizados do banco. Não envia nada, não altera contratos, dinheiro nem permissões: entrega rascunhos para você aprovar." semPadding>
-      <div className="flex h-[65vh] flex-col">
-        <div className="flex-1 space-y-4 overflow-y-auto p-4">
-          {hist.isPending && <Esqueleto linhas={3} />}
-          {hist.data?.historico.length === 0 && !m.isPending && (
-            <div className="space-y-3"><Aviso tone="neutral">Pergunte sobre restaurantes, leads, WhatsApp, implantações, receita ou integrações.</Aviso>
-              <div className="flex flex-wrap gap-2">{SUGESTOES.map((s) => <button key={s} type="button" className="rounded-full border border-border px-3 py-1.5 text-sm hover:bg-muted" onClick={() => enviar(s)}>{s}</button>)}</div></div>
-          )}
-          {hist.data?.historico.map((h: any) => (
-            <div key={h.id} className="space-y-2">
-              <p className="ml-auto w-fit max-w-[85%] rounded-2xl bg-ink px-3 py-2 text-sm text-white">{h.question}</p>
-              <div className="max-w-[90%] rounded-2xl bg-muted px-3 py-2 text-sm"><p className="whitespace-pre-wrap">{h.answer}</p><p className="mt-1 text-[10px] text-muted-foreground">{horaBR(h.created_at)} · {h.provider === "ia" ? "IA" : "dados diretos"} · fontes: {(h.tools ?? []).join(", ")}</p></div>
-            </div>
-          ))}
-          {m.isPending && <p className="text-sm text-muted-foreground">Consultando os dados…</p>}
-          <div ref={fim} />
-        </div>
-        <form className="flex gap-2 border-t border-border p-3" onSubmit={(e) => { e.preventDefault(); enviar(p); }}>
-          <input className={`${inputCls} h-10 flex-1`} value={p} onChange={(e) => setP(e.target.value)} placeholder="Pergunte à Lebre" maxLength={2000} />
-          <Button type="submit" variant="brand" disabled={m.isPending} aria-label="Enviar"><Send className="size-4" /></Button>
-        </form>
-      </div>
+      {corpo}
     </Painel>
   );
 }

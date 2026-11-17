@@ -16,6 +16,7 @@ export type LebreAction =
   | { action: "add_waiter"; name: string; email?: string }
   | { action: "invite_waiter"; name: string; email: string }
   | { action: "set_item_available"; name: string; available: boolean }
+  | { action: "set_item_price"; name: string; price: number }
   | { action: "open_table"; number: string }
   | {
       action: "launch_order";
@@ -56,6 +57,8 @@ Tipe Equipe: área do garçom com gorjetas, saldo e avaliações.
 Tipe Gestão: painel do salão, caixa e relatórios em tempo real.
 Lebre, a inteligência da Tipe (é você; antes se chamava Tipe AI): resume o salão para o dono, responde dúvidas e executa pedidos simples no painel, como mesas, equipe e cardápio, sempre com confirmação. Também lê fotos e PDFs, como um cardápio, e entende áudio.
 Integrações: a Lebre explica o passo a passo de cada integração do catálogo (PDV, delivery, ERP, nota fiscal, pagamentos e cardápio), inclusive onde conseguir a chave de API, o código de autorização ou o arquivo. A chave nunca é colada na conversa: vai só no painel, em Configurar › Integrações, guardada criptografada. A Lebre não guarda chaves, tokens nem senhas.
+Habilidades da Lebre no painel: incluir (abrir mesa, lançar pedido, cadastrar mesa e garçom), modificar (mudar preço, pausar ou voltar item, ativar ou desativar QR de mesa, fechar conta) e aprender (memória). Tudo com confirmação. Passo a passo em Gestão › Como funciona.
+Rota da Lebre: tecnologia própria da Tipe que escolhe o modelo de IA certo para cada pergunta (rápido, de raciocínio ou com visão) e troca na hora se um falhar, para a Lebre quase nunca ficar fora do ar.
 Memória da Lebre: no painel, ela aprende com cada restaurante e com cada pessoa da equipe (nomes dos pratos, qual mesa é a varanda, como a pessoa gosta das respostas). Não guarda dado sensível: CPF, CNPJ, cartão, senha, e-mail, telefone, chave Pix, endereço, saúde e salário. A memória de um restaurante nunca aparece para outro, e cada pessoa pode ver e apagar a sua dizendo "o que você lembra?" ou "esqueça...".
 Tipe Reserva: reserva, lista de espera e volta do cliente. Ainda está em breve; não diga que já está disponível.
 Nomes antigos: Tipe Kitchen hoje é Tipe Cozinha, Tipe Staff é Tipe Equipe, Tipe Restaurant é Tipe Gestão, Tipe Guest é Tipe Reserva e Tipe AI é a Lebre. Use sempre os nomes novos.
@@ -174,6 +177,11 @@ const ActionSchema = z.discriminatedUnion("action", [
     available: z.boolean(),
   }),
   z.object({
+    action: z.literal("set_item_price"),
+    name: z.string().trim().min(2).max(120),
+    price: z.coerce.number().min(0.5).max(100_000),
+  }),
+  z.object({
     action: z.literal("open_table"),
     number: z
       .string()
@@ -259,6 +267,11 @@ function describe(a: LebreAction, restaurant: string): { title: string; summary:
             title: `Pausar "${a.name}"`,
             summary: `Vou marcar "${a.name}" como indisponível até você reativar.`,
           };
+    case "set_item_price":
+      return {
+        title: `Mudar o preço de "${a.name}"`,
+        summary: `Vou trocar o preço de "${a.name}" para ${a.price.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}. Pedidos já lançados não mudam.`,
+      };
     case "open_table":
       return {
         title: `Abrir mesa ${a.number}`,
@@ -489,6 +502,7 @@ Você pode PROPOR estas ações (o sistema mostra um botão para o usuário conf
 - add_waiter {name, email?}: cadastrar garçom novo, com e-mail opcional para convite
 - invite_waiter {name, email}: enviar convite de acesso a garçom já cadastrado
 - set_item_available {name, available}: pausar ou reativar item do cardápio
+- set_item_price {name, price}: mudar o preço de um item do cardápio (price em reais, número, ex.: 32.9)
 - open_table {number}: abrir uma mesa existente para atender ("abrir a mesa 5", "abre a 5"). Se a mesa não existir, proponha add_table
 - launch_order {number, items: [{name, qty, notes?}]}: lançar itens do cardápio na conta de uma mesa ("lança 2 chopp e 1 picanha na mesa 4"). Use os nomes do cardápio abaixo; qty é inteiro; notes é observação curta (ex.: "sem cebola")
 ${canManage ? "" : canOperate ? "Este usuário pode propor open_table e launch_order. close_table só para dono, gerente e caixa. Para cadastros, explique que só o dono pode." : "Este usuário NÃO pode alterar nada. Nunca proponha ações."}
@@ -529,6 +543,13 @@ Se houver anexos (foto, comprovante, cardápio ou PDF), leia com atenção, desc
       if (!value || typeof value !== "object") return value;
       const obj = { ...(value as Record<string, unknown>) };
       if (typeof obj["number"] === "number") obj["number"] = String(obj["number"]);
+      if (typeof obj["price"] === "string")
+        obj["price"] = Number(
+          String(obj["price"])
+            .replace(/[^\d,.]/g, "")
+            .replace(/\.(?=\d{3}\b)/g, "")
+            .replace(",", "."),
+        );
       for (const key of ["active", "available"])
         if (typeof obj[key] === "string") obj[key] = obj[key] === "true";
       return obj;
@@ -862,6 +883,23 @@ export const executeLebreProposal = createServerFn({ method: "POST" })
       message = a.available
         ? `"${found[0]!.name}" voltou ao cardápio.`
         : `"${found[0]!.name}" pausado.`;
+    } else if (a.action === "set_item_price") {
+      const { data: found } = await sb
+        .from("pdv_menu_items")
+        .select("id, name, price")
+        .eq("restaurant_id", rid)
+        .ilike("name", `%${a.name}%`)
+        .limit(2);
+      if (!found?.length) throw new Error(`Não encontrei "${a.name}" no cardápio.`);
+      if (found.length > 1)
+        throw new Error(`Encontrei mais de um item com "${a.name}". Seja mais específico.`);
+      const { error } = await sb
+        .from("pdv_menu_items")
+        .update({ price: Math.round(a.price * 100) / 100 })
+        .eq("id", found[0]!.id);
+      if (error) throw new Error("Não foi possível mudar o preço.");
+      const brl = (v: number) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+      message = `"${found[0]!.name}" agora custa ${brl(a.price)} (antes ${brl(Number(found[0]!.price))}).`;
     }
     await logSecurityEvent({
       action: "lebre_execute",

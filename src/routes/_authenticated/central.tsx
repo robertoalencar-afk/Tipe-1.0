@@ -29,6 +29,7 @@ import { Comunicacao } from "@/components/tipe/central/Comunicacao";
 import { Restaurantes } from "@/components/tipe/central/Restaurantes";
 import { Financeiro } from "@/components/tipe/central/Financeiro";
 import { Inteligencia } from "@/components/tipe/central/Inteligencia";
+import { LebreCentral } from "@/components/tipe/central/LebreCentral";
 import { PerfilConta, useMeuPerfil } from "@/components/tipe/PerfilConta";
 import { Administracao } from "@/components/tipe/central/Administracao";
 
@@ -166,6 +167,7 @@ function Central() {
       {secao === "operacoes" && <Operacoes {...comum} />}
       {secao === "reserva" && <ReservaCentral />}
       {secao === "administracao" && <Administracao {...comum} />}
+      {!interno && secao !== "inteligencia" && <LebreCentral />}
       {secao === "perfil" && <div className="max-w-xl"><PerfilConta funcao={interno && acesso.data?.perfil ? PERFIL_INFO[acesso.data.perfil].rotulo : "Fundador"} onSair={sair} /></div>}
     </Shell>
   );

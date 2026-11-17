@@ -1,8 +1,16 @@
 import { useEffect, useState } from "react";
 const EVENT = "tipe:mascot-preference";
 export const OPEN_LEBRE = "tipe:open-lebre";
-export function openLebre() {
+let perguntaPendente: string | null = null;
+/** Abre a Lebre; com uma pergunta, ela já aparece escrita na caixa para a pessoa enviar ou ajustar. */
+export function openLebre(pergunta?: unknown) {
+  perguntaPendente = typeof pergunta === "string" ? pergunta : null;
   window.dispatchEvent(new Event(OPEN_LEBRE));
+}
+export function tomarPerguntaPendente(): string | null {
+  const p = perguntaPendente;
+  perguntaPendente = null;
+  return p;
 }
 /** Personal display preference on this browser; never changes the restaurant's AI settings. */
 export function useMascotPreference(scope?: string) {

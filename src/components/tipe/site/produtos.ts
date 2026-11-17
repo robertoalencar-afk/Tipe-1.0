@@ -765,6 +765,14 @@ export const PRODUTOS: Produto[] = [
         "Ajuda. Pergunte \"como integro o iFood?\" ou o nome de qualquer sistema do catálogo (PDV, delivery, ERP, nota fiscal, pagamentos, cardápio) e ela mostra o passo a passo, inclusive onde gerar a chave de API ou o código de autorização. A chave você cola só no painel, em Configurar › Integrações, onde fica criptografada. Se alguém colar uma chave na conversa, a Lebre não usa nem guarda.",
       ],
       [
+        "O que a Lebre sabe fazer no painel?",
+        'Três tipos de coisa. Incluir: abrir mesa, lançar pedido, cadastrar mesa e garçom. Modificar: mudar preço, pausar o que acabou, voltar item ao cardápio, ativar ou desativar o QR de uma mesa e fechar conta. Aprender: guardar o jeito da casa e o seu. Tudo com confirmação, e o passo a passo fica em Gestão › Como funciona.',
+      ],
+      [
+        "A Lebre fica fora do ar se uma IA cair?",
+        "Quase nunca. A Rota da Lebre, tecnologia própria da Tipe, escolhe o modelo certo para cada pergunta (um rápido para o simples, um maior para o que exige raciocínio, um com visão para fotos) e, se um modelo falhar ou atingir o limite, passa para o próximo na hora. Quem falhou descansa alguns segundos antes de voltar à fila.",
+      ],
+      [
         "A Lebre tem memória?",
         'Tem. Ela aprende com cada restaurante e com cada pessoa da equipe: como vocês chamam os pratos, qual mesa é a da varanda, como você prefere as respostas. Diga "lembre que..." para ensinar, "o que você lembra?" para ver e "esqueça..." para apagar. A memória de um restaurante nunca aparece para outro.',
       ],

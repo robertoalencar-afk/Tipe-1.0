@@ -10,6 +10,7 @@ export type RegraAcao =
   | { action: "add_waiter"; name: string; email?: string }
   | { action: "invite_waiter"; name: string; email: string }
   | { action: "set_item_available"; name: string; available: boolean }
+  | { action: "set_item_price"; name: string; price: number }
   | { action: "open_table"; number: string }
   | { action: "launch_order"; number: string; items: Array<{ name: string; qty: number }> };
 
@@ -199,6 +200,16 @@ export function lerComando(pergunta: string, mesasExistentes: string[]): RegraAc
       q,
     )?.[1];
   if (voltar) return { action: "set_item_available", name: voltar, available: true };
+  const preco =
+    /^(?:pode\s+)?(?:mud\w*|alter\w*|troc\w*|atualiz\w*|ajust\w*|coloc\w*|bot\w*)\s+(?:o\s+)?(?:preco|valor)\s+(?:d[oa]s?\s+)?(.{2,60}?)\s+(?:para|pra|por|em)\s+(?:r\$\s*)?(\d{1,5}(?:[.,]\d{1,2})?)(?:\s*reais)?$/.exec(
+      q,
+    );
+  if (preco)
+    return {
+      action: "set_item_price",
+      name: preco[1]!,
+      price: Number(preco[2]!.replace(",", ".")),
+    };
   return null;
 }
 

@@ -75,6 +75,19 @@ describe("lerComando", () => {
     });
   });
 
+  it("lê mudança de preço", () => {
+    expect(lerComando("muda o preço da picanha para 89,90", mesas)).toEqual({
+      action: "set_item_price",
+      name: "picanha",
+      price: 89.9,
+    });
+    expect(lerComando("alterar valor do chopp pra R$ 12", mesas)).toEqual({
+      action: "set_item_price",
+      name: "chopp",
+      price: 12,
+    });
+  });
+
   it("lê comandos do cardápio", () => {
     expect(lerComando("pausar a picanha", mesas)).toEqual({
       action: "set_item_available",
