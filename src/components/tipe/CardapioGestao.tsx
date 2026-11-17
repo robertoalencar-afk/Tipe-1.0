@@ -22,6 +22,7 @@ import { reduzirImagem } from "./UploadImagem";
 import { MenuInteligente } from "./MenuInteligente";
 import { BancoImagens } from "./BancoImagens";
 import { ImportarCardapio } from "./ImportarCardapio";
+import { RevisaoLebre } from "./RevisaoLebre";
 
 import { LebreSuggestionButton } from "./LebreSuggestionButton";
 import { AcompanhamentosEditor } from "./AcompanhamentosEditor";
@@ -54,7 +55,11 @@ export function CardapioGestao({
   midia,
   onDone,
   restaurantName,
+  editarId,
+  onEditarAberto,
 }: {
+  editarId?: string | null | undefined;
+  onEditarAberto?: (() => void) | undefined;
   restaurantName: string;
   slug: string;
   pdv: Pdv;
@@ -263,6 +268,13 @@ export function CardapioGestao({
     ...pdv.categories,
     ...(pdv.items.some((i) => !i.category_id) ? [{ id: null, name: "Sem categoria" }] : []),
   ];
+  // Vindo do Studio de fotos: abre direto o editor do prato escolhido.
+  useEffect(() => {
+    if (!editarId || !pdv.items.some((i) => i.id === editarId)) return;
+    editItem(editarId);
+    onEditarAberto?.();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editarId, pdv.items]);
   function editItem(id: string) {
     requestDescription.current++;
     setSuggesting(false);
@@ -518,6 +530,14 @@ export function CardapioGestao({
           Criar categoria
         </Button>
       </form>
+      <RevisaoLebre
+        slug={slug}
+        items={pdv.items}
+        categories={pdv.categories}
+        midia={midia}
+        onDone={onDone}
+        onEditItem={editItem}
+      />
       <MenuInteligente slug={slug} onEditItem={editItem} />
       <ImportarCardapio slug={slug} onDone={refresh} />
       <MenuPublicacoes
