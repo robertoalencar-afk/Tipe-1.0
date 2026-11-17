@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Avatar, Aviso, Busca, Esqueleto, Painel, Segmentado, StatusBadge, Tabela, horaBR, inputCls, relativo, usePaginacao, type Tone } from "@/components/tipe/painel/ui";
 import { getComunicacao, sendWaReply, updateWaConversation } from "@/lib/tipe/central.functions";
 import { CaixaEmail } from "@/components/tipe/central/CaixaEmail";
+import { getAcessoCentral } from "@/lib/tipe/central-equipe.functions";
+import { temWhatsapp } from "@/lib/tipe/central-perfis";
 import type { SecaoCentral } from "@/routes/_authenticated/central";
 
 type Props = { aba?: string | undefined; id?: string | undefined; ir: (s: SecaoCentral, aba?: string, id?: string) => void };
@@ -15,14 +17,19 @@ const EMAIL_TONE: Record<string, Tone> = { sent: "neutral", delivered: "success"
 const EMAIL_LABEL: Record<string, string> = { sent: "Enviado", delivered: "Entregue", opened: "Aberto", clicked: "Clicado", delivery_delayed: "Atrasado", bounced: "Devolvido", complained: "Spam", failed: "Falhou", suppressed: "Suprimido" };
 
 export function Comunicacao({ aba, id, ir }: Props) {
-  const atual = ABAS.some(([k]) => k === aba) ? (aba as (typeof ABAS)[number][0]) : "whatsapp";
+  const acesso = useQuery({ queryKey: ["central-acesso"], queryFn: useServerFn(getAcessoCentral), staleTime: 60_000 });
+  const perfil = acesso.data?.perfil ?? null;
+  const fundador = acesso.data?.papel === "founder";
+  // Equipe interna: só a caixa de e-mail e, nos setores com WhatsApp, as conversas. Histórico, modelos e conexões são do fundador.
+  const abas = ABAS.filter(([k]) => fundador || k === "caixa" || (k === "whatsapp" && perfil !== null && temWhatsapp(perfil)));
+  const atual = abas.some(([k]) => k === aba) ? (aba as (typeof ABAS)[number][0]) : (abas[0]?.[0] ?? "caixa");
   const fetchCom = useServerFn(getComunicacao);
   const q = useQuery({ queryKey: ["central-com", atual === "whatsapp" ? id : undefined], queryFn: () => fetchCom({ data: atual === "whatsapp" && id ? { conversaId: id } : {} }), refetchInterval: 30_000 });
   if (q.isPending || !q.data) return <Esqueleto linhas={6} />;
   const d = q.data;
   return (
     <div className="space-y-5">
-      <Segmentado label="Canal" value={atual} onChange={(a) => ir("comunicacao", a)} options={ABAS} />
+      <Segmentado label="Canal" value={atual} onChange={(a) => ir("comunicacao", a)} options={abas} />
       {atual === "whatsapp" && <WhatsApp d={d} conversaId={id} abrir={(c) => ir("comunicacao", "whatsapp", c)} />}
       {atual === "caixa" && <CaixaEmail />}
       {atual === "email" && <Emails d={d} destaque={id} />}

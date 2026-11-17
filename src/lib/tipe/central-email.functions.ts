@@ -6,7 +6,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { PASTAS, chaveConversa, formatarEndereco, htmlParaTexto, lerEnderecos, resumo, textoParaHtml } from "./mail";
+import { PASTAS, assinaturaHtml, chaveConversa, formatarEndereco, htmlParaTexto, lerEnderecos, resumo, textoParaHtml } from "./mail";
 
 type Ctx = { supabase: any; userId: string; claims?: any };
 /** Founder vê as duas caixas; equipe interna (comercial/atendimento) só as do perfil (contato@). `permitidas` null = todas. */
@@ -14,9 +14,15 @@ async function founder(ctx: Ctx) {
   const { acessoCentral } = await import("./founder-guard");
   const a = await acessoCentral(ctx, "comunicacao");
   let permitidas: string[] | null = null;
-  if (a.papel === "interno") { const { caixasDoPerfil } = await import("./central-perfis"); permitidas = [...caixasDoPerfil(a.perfil)]; if (!permitidas.length) throw new Error("Seu perfil não tem caixa de e-mail"); }
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-  return { db: supabaseAdmin as unknown as { from: (t: string) => any }, permitidas };
+  const db = supabaseAdmin as unknown as { from: (t: string) => any };
+  if (a.papel === "interno") {
+    const { caixasDoPerfil } = await import("./central-perfis");
+    const { data: minhas } = await db.from("mail_mailboxes").select("address").eq("owner_user_id", ctx.userId).eq("active", true);
+    permitidas = [...caixasDoPerfil(a.perfil), ...((minhas ?? []) as { address: string }[]).map((m) => m.address)];
+    if (!permitidas.length) throw new Error("Seu perfil não tem caixa de e-mail");
+  }
+  return { db, permitidas, ehFundador: a.papel === "founder", userId: ctx.userId };
 }
 const checar = (permitidas: string[] | null, caixa: string) => { if (permitidas && !permitidas.includes(caixa)) throw new Error("Sem acesso a esta caixa"); };
 const Uuid = z.string().uuid();
@@ -27,7 +33,7 @@ const COLS = "id,mailbox,direction,folder,thread_key,from_addr,from_name,to_addr
 export const getMailOverview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const { db, permitidas } = await founder(context);
+    const { db, permitidas, ehFundador, userId } = await founder(context);
     const [{ data: caixas }, { data: nao }, { data: ultima }] = await Promise.all([
       db.from("mail_mailboxes").select("address,label,signature,active").order("address"),
       db.from("mail_messages").select("mailbox,folder").eq("is_read", false).in("folder", ["inbox", "spam"]).limit(5000),
@@ -44,7 +50,7 @@ export const listMail = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ caixa: Caixa, pasta: Pasta, busca: z.string().trim().max(80).optional(), estrela: z.boolean().optional(), pagina: z.number().int().min(0).max(200).default(0) }).parse(d))
   .handler(async ({ data, context }) => {
-    const { db, permitidas } = await founder(context);
+    const { db, permitidas, ehFundador, userId } = await founder(context);
     checar(permitidas, data.caixa);
     let q = db.from("mail_messages").select(COLS).eq("mailbox", data.caixa).eq("folder", data.pasta).order("at", { ascending: false }).range(data.pagina * 40, data.pagina * 40 + 39);
     if (data.estrela) q = q.eq("starred", true);
@@ -59,7 +65,7 @@ export const getMailThread = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: Uuid }).parse(d))
   .handler(async ({ data, context }) => {
-    const { db, permitidas } = await founder(context);
+    const { db, permitidas, ehFundador, userId } = await founder(context);
     const { data: base } = await db.from("mail_messages").select("id,mailbox,thread_key,lead_id").eq("id", data.id).maybeSingle();
     if (!base) throw new Error("Mensagem não encontrada");
     checar(permitidas, base.mailbox);
@@ -74,7 +80,7 @@ export const updateMail = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ ids: z.array(Uuid).min(1).max(100), pasta: Pasta.optional(), lida: z.boolean().optional(), estrela: z.boolean().optional() }).parse(d))
   .handler(async ({ data, context }) => {
-    const { db, permitidas } = await founder(context);
+    const { db, permitidas, ehFundador, userId } = await founder(context);
     const patch: Record<string, unknown> = {};
     if (data.pasta) patch["folder"] = data.pasta;
     if (data.lida !== undefined) patch["is_read"] = data.lida;
@@ -91,7 +97,7 @@ export const deleteMailForever = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ ids: z.array(Uuid).min(1).max(100) }).parse(d))
   .handler(async ({ data, context }) => {
-    const { db, permitidas } = await founder(context);
+    const { db, permitidas, ehFundador, userId } = await founder(context);
     let del = db.from("mail_messages").delete().in("id", data.ids).eq("folder", "trash");
     if (permitidas) del = del.in("mailbox", permitidas);
     await del;
@@ -109,7 +115,7 @@ export const saveMailDraft = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => Envio.partial({ para: true, assunto: true, texto: true }).required({ caixa: true }).parse(d))
   .handler(async ({ data, context }) => {
-    const { db, permitidas } = await founder(context);
+    const { db, permitidas, ehFundador, userId } = await founder(context);
     checar(permitidas, data.caixa);
     const row = {
       mailbox: data.caixa, direction: "out", folder: "drafts", thread_key: `rascunho:${data.rascunhoId ?? crypto.randomUUID()}`,
@@ -126,7 +132,7 @@ export const sendMail = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => Envio.parse(d))
   .handler(async ({ data, context }) => {
-    const { db, permitidas } = await founder(context);
+    const { db, permitidas, ehFundador, userId } = await founder(context);
     const apiKey = process.env["RESEND_API_KEY"];
     if (!apiKey) throw new Error("Envio não configurado: falta RESEND_API_KEY.");
     checar(permitidas, data.caixa);
@@ -147,7 +153,7 @@ export const sendMail = createServerFn({ method: "POST" })
     const r = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json", "Idempotency-Key": crypto.randomUUID() },
-      body: JSON.stringify({ from: formatarEndereco({ nome: cx.label === "Contato" ? "Tipe" : cx.label, email: cx.address }), to: para.map((a) => a.email), ...(cc.length ? { cc: cc.map((a) => a.email) } : {}), reply_to: cx.address, subject: data.assunto, text: corpo, html: textoParaHtml(corpo), headers }),
+      body: JSON.stringify({ from: formatarEndereco({ nome: cx.label === "Contato" ? "Tipe" : cx.label, email: cx.address }), to: para.map((a) => a.email), ...(cc.length ? { cc: cc.map((a) => a.email) } : {}), reply_to: cx.address, subject: data.assunto, text: corpo, html: textoParaHtml(data.texto) + (cx.signature ? assinaturaHtml(cx.signature) : ""), headers }),
     });
     const j = (await r.json().catch(() => ({}))) as { id?: string; message?: string };
     if (!r.ok) throw new Error(j.message ? `Resend recusou o envio: ${j.message}` : "Resend recusou o envio");
@@ -161,5 +167,19 @@ export const sendMail = createServerFn({ method: "POST" })
     if (data.rascunhoId) await db.from("mail_messages").delete().eq("id", data.rascunhoId).eq("mailbox", cx.address).eq("folder", "drafts");
     await db.from("mail_messages").insert(row);
     if (leadId) await db.from("crm_activities").insert({ lead_id: leadId, kind: "email", title: `E-mail enviado: ${data.assunto}`.slice(0, 200), body: resumo(data.texto), actor_id: context.userId });
+    return { ok: true };
+  });
+
+/** Edita a assinatura: o fundador, de qualquer caixa; a equipe, só da própria caixa. */
+export const saveMailSignature = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ caixa: Caixa, assinatura: z.string().trim().max(600) }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { db, permitidas, ehFundador, userId } = await founder(context);
+    checar(permitidas, data.caixa);
+    let q = db.from("mail_mailboxes").update({ signature: data.assinatura || null }).eq("address", data.caixa);
+    if (!ehFundador) q = q.eq("owner_user_id", userId); // equipe não muda a assinatura de caixa compartilhada
+    const { error } = await q;
+    if (error) throw new Error("Não foi possível salvar a assinatura");
     return { ok: true };
   });

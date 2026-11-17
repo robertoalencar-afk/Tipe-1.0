@@ -5,8 +5,8 @@ import { toast } from "sonner";
 import { Archive, ArrowLeft, Ban, Forward, Inbox, Mail, Paperclip, Pencil, Reply, Send, Star, Trash2, FileText, Undo2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Aviso, Avatar, Busca, Esqueleto, horaBR, inputCls, relativo } from "@/components/tipe/painel/ui";
-import { deleteMailForever, getMailOverview, getMailThread, listMail, saveMailDraft, sendMail, updateMail } from "@/lib/tipe/central-email.functions";
-import { PASTA_LABEL, assuntoEncaminhar, assuntoResposta, citar, type Pasta } from "@/lib/tipe/mail";
+import { deleteMailForever, getMailOverview, getMailThread, listMail, saveMailDraft, saveMailSignature, sendMail, updateMail } from "@/lib/tipe/central-email.functions";
+import { PASTA_LABEL, assinaturaHtml, assuntoEncaminhar, assuntoResposta, citar, type Pasta } from "@/lib/tipe/mail";
 
 const ICONE: Record<Pasta, typeof Inbox> = { inbox: Inbox, sent: Send, drafts: FileText, spam: Ban, trash: Trash2, archive: Archive };
 const ORDEM: Pasta[] = ["inbox", "sent", "drafts", "archive", "spam", "trash"];
@@ -14,13 +14,14 @@ type Rascunho = { id?: string; para: string; cc: string; assunto: string; texto:
 
 export function CaixaEmail() {
   const qc = useQueryClient();
-  const fOverview = useServerFn(getMailOverview), fLista = useServerFn(listMail), fThread = useServerFn(getMailThread), fUpd = useServerFn(updateMail), fDel = useServerFn(deleteMailForever), fSend = useServerFn(sendMail), fDraft = useServerFn(saveMailDraft);
+  const fOverview = useServerFn(getMailOverview), fLista = useServerFn(listMail), fThread = useServerFn(getMailThread), fUpd = useServerFn(updateMail), fDel = useServerFn(deleteMailForever), fSend = useServerFn(sendMail), fDraft = useServerFn(saveMailDraft), fSig = useServerFn(saveMailSignature);
   const [caixa, setCaixa] = useState<string | null>(null);
   const [pasta, setPasta] = useState<Pasta>("inbox");
   const [busca, setBusca] = useState("");
   const [estrela, setEstrela] = useState(false);
   const [aberto, setAberto] = useState<string | null>(null);
   const [escrevendo, setEscrevendo] = useState<Rascunho | null>(null);
+  const [assinando, setAssinando] = useState<string | null>(null);
 
   const ov = useQuery({ queryKey: ["mail-ov"], queryFn: () => fOverview(), refetchInterval: 30_000 });
   useEffect(() => { if (!caixa && ov.data?.caixas[0]) setCaixa(ov.data.caixas[0].address); }, [ov.data, caixa]);
@@ -31,6 +32,8 @@ export function CaixaEmail() {
   const mDel = useMutation({ mutationFn: (ids: string[]) => fDel({ data: { ids } }), onSuccess: () => { setAberto(null); toast.success("Excluído para sempre"); inv(); }, onError: (e: Error) => toast.error(e.message) });
   const mSend = useMutation({ mutationFn: (r: Rascunho) => fSend({ data: { caixa: caixa!, para: r.para, cc: r.cc, assunto: r.assunto, texto: r.texto, ...(r.respondeId ? { respondeId: r.respondeId } : {}), ...(r.id ? { rascunhoId: r.id } : {}) } }), onSuccess: () => { toast.success("E-mail enviado"); setEscrevendo(null); inv(); }, onError: (e: Error) => toast.error(e.message) });
   const mDraft = useMutation({ mutationFn: (r: Rascunho) => fDraft({ data: { caixa: caixa!, para: r.para, cc: r.cc, assunto: r.assunto, texto: r.texto, ...(r.id ? { rascunhoId: r.id } : {}) } }), onSuccess: () => { toast.success("Rascunho salvo"); setEscrevendo(null); inv(); }, onError: (e: Error) => toast.error(e.message) });
+
+  const mSig = useMutation({ mutationFn: (v: { caixa: string; assinatura: string }) => fSig({ data: v }), onSuccess: () => { toast.success("Assinatura salva"); setAssinando(null); inv(); }, onError: (e: Error) => toast.error(e.message) });
 
   if (ov.isPending || !ov.data) return <Esqueleto linhas={6} />;
   const o = ov.data, cx = o.caixas.find((c) => c.address === caixa);
@@ -65,6 +68,7 @@ export function CaixaEmail() {
               <li key={p}><button type="button" onClick={() => { setPasta(p); setAberto(null); }} className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm hover:bg-muted ${pasta === p ? "bg-muted font-semibold" : ""}`}><I className="size-4" />{PASTA_LABEL[p]}{n > 0 && <span className="ml-auto rounded-full bg-highlight px-1.5 text-xs font-semibold text-white">{n}</span>}</button></li>
             ); })}
           </ul>
+          <Button variant="outline" size="sm" className="w-full" onClick={() => setAssinando(cx?.signature ?? "")}>Assinatura</Button>
           <label className="flex items-center gap-2 px-3 text-xs text-muted-foreground"><input type="checkbox" checked={estrela} onChange={(e) => setEstrela(e.target.checked)} /> Só com estrela</label>
         </nav>
 
@@ -133,6 +137,17 @@ export function CaixaEmail() {
         </section>
       </div>
 
+      {assinando !== null && (
+        <div role="dialog" aria-modal="true" aria-label="Assinatura" className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4">
+          <form className="flex max-h-[92vh] w-full max-w-lg flex-col gap-3 overflow-y-auto rounded-t-2xl bg-card p-4 shadow-xl sm:rounded-2xl" onSubmit={(e) => { e.preventDefault(); mSig.mutate({ caixa: caixa!, assinatura: assinando }); }}>
+            <h2 className="font-display text-lg font-bold">Assinatura de {cx?.address}</h2>
+            <label className="text-sm font-medium">Texto<textarea className={`${inputCls} mt-1 min-h-28 w-full py-2`} value={assinando} onChange={(e) => setAssinando(e.target.value)} maxLength={600} /></label>
+            <p className="text-xs text-muted-foreground">1ª linha: nome. 2ª: cargo. Demais: contatos. E-mails e tipe.digital viram link.</p>
+            <div className="rounded-xl border border-border bg-white p-4" aria-label="Prévia"><div dangerouslySetInnerHTML={{ __html: assinaturaHtml(assinando) || "<em style='color:#575b5f;font-size:13px'>Sem assinatura</em>" }} /></div>
+            <div className="flex justify-end gap-2"><Button type="button" variant="outline" onClick={() => setAssinando(null)}>Cancelar</Button><Button type="submit" variant="brand" disabled={mSig.isPending}>Salvar</Button></div>
+          </form>
+        </div>
+      )}
       {escrevendo && (
         <div role="dialog" aria-modal="true" aria-label="Nova mensagem" className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-0 sm:items-center sm:p-4">
           <form className="flex max-h-[92vh] w-full max-w-2xl flex-col gap-3 overflow-y-auto rounded-t-2xl bg-card p-4 shadow-xl sm:rounded-2xl"

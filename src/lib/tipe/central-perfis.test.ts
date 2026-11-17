@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { PERFIS, caixasDoPerfil, ehPerfil, podeSecao } from "./central-perfis";
+import { PERFIS, caixasDoPerfil, ehPerfil, podeSecao, temWhatsapp } from "./central-perfis";
 
 describe("perfis internos da Central", () => {
   it("nenhum perfil abre financeiro, inteligência, reserva ou administração", () => {
@@ -16,6 +16,12 @@ describe("perfis internos da Central", () => {
     expect(caixasDoPerfil("comercial")).toEqual(["contato@tipe.digital"]);
     expect(caixasDoPerfil("atendimento")).not.toContain("roberto@tipe.digital");
     expect(caixasDoPerfil("dev")).toEqual([]);
+  });
+  it("marketing abre leads e e-mail próprio, mas não WhatsApp nem restaurantes", () => {
+    expect(podeSecao("marketing", "comercial")).toBe(true);
+    expect(podeSecao("marketing", "restaurantes")).toBe(false);
+    expect(temWhatsapp("marketing")).toBe(false);
+    expect(temWhatsapp("vendas")).toBe(true);
   });
   it("rejeita perfil desconhecido", () => {
     expect(ehPerfil("founder")).toBe(false);

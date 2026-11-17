@@ -72,3 +72,17 @@ export function iguais(a: string, b: string) {
   for (let i = 0; i < a.length; i++) r |= a.charCodeAt(i) ^ b.charCodeAt(i);
   return r === 0;
 }
+
+const ESC = (s: string) => s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+const linkar = (linha: string) =>
+  ESC(linha)
+    .replace(/([A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})/g, '<a href="mailto:$1" style="color:#0b8f7c;text-decoration:none">$1</a>')
+    .replace(/(^|[\s·])((?:www\.)?tipe\.digital)(?![\w.@-])/g, '$1<a href="https://$2" style="color:#0b8f7c;text-decoration:none">$2</a>');
+
+/** Assinatura em HTML: 1ª linha é o nome (negrito), 2ª o cargo, demais linhas contatos; filete turquesa na lateral. */
+export function assinaturaHtml(assinatura: string) {
+  const linhas = assinatura.split("\n").map((l) => l.trim()).filter(Boolean);
+  if (!linhas.length) return "";
+  const [nome, cargo, ...resto] = linhas;
+  return `<table role="presentation" cellpadding="0" cellspacing="0" style="margin-top:20px;font-family:Arial,Helvetica,sans-serif"><tr><td style="border-left:3px solid #10d1b4;padding-left:12px"><div style="font-size:15px;font-weight:700;color:#071727">${ESC(nome ?? "")}</div>${cargo ? `<div style="font-size:13px;color:#575b5f;margin-top:2px">${ESC(cargo)}</div>` : ""}${resto.length ? `<div style="font-size:13px;color:#575b5f;margin-top:6px;line-height:1.5">${resto.map(linkar).join("<br>")}</div>` : ""}</td></tr></table>`;
+}

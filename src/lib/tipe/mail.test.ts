@@ -33,3 +33,17 @@ describe("mail", () => {
     expect(iguais(a, await assinarEntrada("{}", "2", "s"))).toBe(false);
   });
 });
+
+import { assinaturaHtml } from "./mail";
+describe("assinatura em HTML", () => {
+  it("nome em negrito, e-mail e site viram links, HTML é escapado", () => {
+    const h = assinaturaHtml("Roberto <b>Alencar</b>\nFundador · Tipe\nroberto@tipe.digital\ntipe.digital");
+    expect(h).toContain("&lt;b&gt;");
+    expect(h).toContain('href="mailto:roberto@tipe.digital"');
+    expect(h).toContain('href="https://tipe.digital"');
+    expect(h).toContain("font-weight:700");
+  });
+  it("assinatura vazia não gera nada", () => {
+    expect(assinaturaHtml("  \n ")).toBe("");
+  });
+});

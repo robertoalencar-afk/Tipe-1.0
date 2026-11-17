@@ -15,11 +15,20 @@ import { PLANS } from "./plans";
 type Ctx = { supabase: any; userId: string; claims?: any };
 /** Sem `secao`: só founder. Com `secao`: founder ou equipe interna com perfil que abre essa seção. */
 async function founder(ctx: Ctx, secao?: string) {
+  return (await acesso(ctx, secao)).db;
+}
+async function acesso(ctx: Ctx, secao?: string) {
   const { acessoCentral } = await import("./founder-guard");
-  await acessoCentral(ctx, secao, "Somente a equipe TIPE, com verificação em duas etapas");
+  const a = await acessoCentral(ctx, secao, "Somente a equipe TIPE, com verificação em duas etapas");
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   // Tabelas da 0052 ainda não estão nos tipos gerados: acesso sem tipagem, só aqui.
-  return supabaseAdmin as unknown as { from: (t: string) => any; rpc: (f: string, a?: any) => any; auth: any };
+  return { a, db: supabaseAdmin as unknown as { from: (t: string) => any; rpc: (f: string, a?: any) => any; auth: any } };
+}
+/** WhatsApp é do fundador e dos perfis com WhatsApp (marketing e dev não). */
+async function podeWhatsapp(a: { papel: string; perfil?: string }) {
+  if (a.papel === "founder") return true;
+  const { ehPerfil, temWhatsapp } = await import("./central-perfis");
+  return ehPerfil(a.perfil) && temWhatsapp(a.perfil);
 }
 const iso = (d: Date) => d.toISOString();
 const diasAtras = (n: number) => iso(new Date(Date.now() - n * 864e5));
@@ -412,12 +421,15 @@ export const getComunicacao = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ conversaId: Uuid.optional() }).parse(d ?? {}))
   .handler(async ({ data, context }) => {
-    const db = await founder(context, "comunicacao");
+    const { db, a } = await acesso(context, "comunicacao");
+    const fundador = a.papel === "founder";
+    const wa = await podeWhatsapp(a);
+    const vazio = Promise.resolve({ data: [] });
     const [emails, convs, msgs, templates] = await Promise.all([
-      db.from("email_log").select("*").order("created_at", { ascending: false }).limit(300),
-      db.from("wa_conversations").select("*").order("last_message_at", { ascending: false, nullsFirst: false }).limit(200),
-      data.conversaId ? db.from("wa_messages").select("*").eq("conversation_id", data.conversaId).order("at").limit(500) : Promise.resolve({ data: [] }),
-      import("@/lib/email-templates/registry").then((m) => Object.entries(m.TEMPLATES).map(([k, t]) => ({ key: k, nome: t.displayName ?? k, assunto: typeof t.subject === "function" ? "(dinâmico)" : t.subject, fixo: t.to ?? null }))),
+      !fundador ? vazio : db.from("email_log").select("*").order("created_at", { ascending: false }).limit(300),
+      !wa ? vazio : db.from("wa_conversations").select("*").order("last_message_at", { ascending: false, nullsFirst: false }).limit(200),
+      wa && data.conversaId ? db.from("wa_messages").select("*").eq("conversation_id", data.conversaId).order("at").limit(500) : Promise.resolve({ data: [] }),
+      !fundador ? Promise.resolve([]) : import("@/lib/email-templates/registry").then((m) => Object.entries(m.TEMPLATES).map(([k, t]) => ({ key: k, nome: t.displayName ?? k, assunto: typeof t.subject === "function" ? "(dinâmico)" : t.subject, fixo: t.to ?? null }))),
     ]);
     const env = process.env;
     return {
@@ -438,7 +450,8 @@ export const sendWaReply = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ conversaId: Uuid, body: z.string().trim().min(1).max(4000) }).parse(d))
   .handler(async ({ data, context }) => {
-    const db = await founder(context, "comunicacao");
+    const { db, a } = await acesso(context, "comunicacao");
+    if (!(await podeWhatsapp(a))) throw new Error("Seu perfil não acessa o WhatsApp");
     const token = process.env["WHATSAPP_TOKEN"], phoneNumberId = process.env["WHATSAPP_PHONE_NUMBER_ID"];
     if (!token || !phoneNumberId) throw new Error("WhatsApp não conectado: configure WHATSAPP_TOKEN e WHATSAPP_PHONE_NUMBER_ID (Meta Business).");
     const { data: conv } = await db.from("wa_conversations").select("*").eq("id", data.conversaId).maybeSingle();
@@ -460,7 +473,8 @@ export const updateWaConversation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ id: Uuid, status: z.enum(["open", "waiting", "resolved"]).optional(), leadId: Uuid.nullable().optional(), labels: z.array(z.string().max(30)).max(10).optional(), lida: z.boolean().optional() }).parse(d))
   .handler(async ({ data, context }) => {
-    const db = await founder(context, "comunicacao");
+    const { db, a } = await acesso(context, "comunicacao");
+    if (!(await podeWhatsapp(a))) throw new Error("Seu perfil não acessa o WhatsApp");
     const patch: Record<string, unknown> = {};
     if (data.status) patch["status"] = data.status;
     if (data.leadId !== undefined) patch["lead_id"] = data.leadId;
