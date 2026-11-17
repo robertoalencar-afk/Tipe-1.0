@@ -25,7 +25,7 @@ export function LebreCentral() {
         Lebre
       </button>
       <Sheet open={aberta} onOpenChange={setAberta}>
-        <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-md">
+        <SheetContent side="right" className="flex w-full flex-col gap-0 p-0 sm:max-w-md [&>button]:text-white [&>button]:opacity-90">
           <SheetHeader className="border-b border-border bg-ink px-4 py-3 text-left text-white">
             <SheetTitle className="flex items-center gap-2 text-white">
               <img src={lebreOla} alt="" className="size-8 rounded-full bg-white object-cover" />
