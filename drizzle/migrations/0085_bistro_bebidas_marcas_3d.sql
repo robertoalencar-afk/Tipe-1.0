@@ -46,6 +46,13 @@ begin
          from jsonb_array_elements_text(menu_config->'recommendations') r))
   where restaurant_id = rid and menu_config ? 'recommendations';
 
+  -- Modelos 3D gerados (pastel, abacate) pareciam de jogo: saem até haver um modelo
+  -- fotorrealista. O volume fica por conta do mapa de profundidade.
+  update public.pdv_menu_items set model_url = null where restaurant_id = rid and model_url is not null;
+  update public.pdv_menu_items
+  set description = 'Abacate batido com limão e rapadura, sem leite. Taça individual.'
+  where restaurant_id = rid and code = 'MAR-ABACATE';
+
   -- Volume 3D: toda foto da pasta bistro tem o mapa ao lado (-depth.png).
   update public.pdv_menu_items
   set depth_url = replace(image_url, '.webp', '-depth.png')

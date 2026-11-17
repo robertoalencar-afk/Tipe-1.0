@@ -30,8 +30,8 @@ const DIETS=new Set(['vegan','vegetarian','gluten_free','lactose_free']);
 for(const i of ficha){assert.ok(i.description.length>=25&&i.description.length<=200,`ficha de ${i.code}`);assert.ok(Array.isArray(i.menu_config.diets)&&i.menu_config.diets.every(d=>DIETS.has(d)));}
 assert.ok(ficha.find(i=>i.code==='BT-MOQUECA').allergens.includes('crustáceos'));assert.ok(ficha.find(i=>i.code==='BT-SALADA').menu_config.diets.includes('vegan'));
 await db.exec(await readFile(new URL('../../../drizzle/migrations/0085_bistro_bebidas_marcas_3d.sql',import.meta.url),'utf8'));
-const fim=(await db.query(`select code,name,image_url,depth_url,menu_config from pdv_menu_items where restaurant_id='11111111-1111-4111-8111-111111111111'`)).rows;
-assert.equal(fim.length,41);assert.ok(fim.some(i=>i.name.startsWith('Coca-Cola'))&&fim.some(i=>i.name.startsWith('Heineken')),'bebidas de marca');
+const fim=(await db.query(`select code,name,image_url,depth_url,model_url,menu_config from pdv_menu_items where restaurant_id='11111111-1111-4111-8111-111111111111'`)).rows;
+assert.equal(fim.length,41);assert.ok(fim.every(i=>!i.model_url),'sem modelos 3D de jogo');assert.ok(fim.some(i=>i.name.startsWith('Coca-Cola'))&&fim.some(i=>i.name.startsWith('Heineken')),'bebidas de marca');
 assert.ok(!fim.some(i=>['BT-REFRI','BT-CERVEJA','BT-CERV-ZERO'].includes(i.code)),'genéricas saem');
 const pub=(u)=>new URL('../../../public'+(u.startsWith('https://')?new URL(u).pathname:u),import.meta.url);
 for(const i of fim){assert.ok(i.image_url&&i.depth_url,`${i.code} com foto e 3D`);assert.ok(existsSync(pub(i.image_url))&&existsSync(pub(i.depth_url)),`arquivos de ${i.code}`);}
