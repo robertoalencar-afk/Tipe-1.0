@@ -7,7 +7,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
-import { LazyLebreAssistant } from "@/components/tipe/LazyLebreAssistant";
 import { WaitlistForm } from "@/components/tipe/WaitlistForm";
 import { LandingFooter, LandingHeader } from "@/components/tipe/landing/LandingChrome";
 import { Foto, type NomeFoto } from "@/components/tipe/site/Foto";
@@ -70,7 +69,7 @@ function TesteGratis() {
 
 function Topo() {
   return (
-    <section className="container-page grid gap-12 pb-16 pt-10 sm:pt-16 lg:grid-cols-[1fr_0.95fr] lg:gap-20 lg:pb-24">
+    <section className="container-page grid gap-12 pb-12 pt-10 sm:pt-14 lg:grid-cols-[1fr_0.95fr] lg:gap-20 lg:pb-16">
       <div className="relative lg:pt-12">
         <p className="font-display text-[clamp(1.4rem,1.1rem+1vw,1.9rem)] text-brand-strong">
           Solicite uma demonstração
@@ -106,7 +105,7 @@ function Topo() {
           </Link>
           .
         </p>
-        <LebreConversa className="mt-10 hidden max-w-md lg:flex" />
+        <LebreConversa className="mt-6 hidden max-w-md lg:flex" />
       </div>
       <div
         id="formulario"
@@ -289,7 +288,7 @@ function Categorias() {
   const [ativo, setAtivo] = useState(0);
   const g = GRUPOS[ativo] ?? GRUPOS[0]!;
   return (
-    <section aria-labelledby="beneficios" className="pb-24 pt-20 sm:pb-32 sm:pt-28">
+    <section aria-labelledby="beneficios" className="pb-14 pt-12 sm:pb-20 sm:pt-16">
       <div className="container-page">
         <p className="font-display text-[clamp(1.2rem,1rem+0.8vw,1.6rem)] text-brand-strong">
           Para cada pessoa do salão
@@ -490,7 +489,7 @@ function Carrossel({ cor, slides }: { cor: string; slides: Slide[] }) {
 
 function Fecho() {
   return (
-    <section className="container-page pb-24 sm:pb-32">
+    <section className="container-page pb-14 sm:pb-20">
       <div className="relative overflow-hidden rounded-[2.5rem] bg-[#021E34] px-6 py-14 text-white sm:px-14 sm:py-20">
         <div
           aria-hidden

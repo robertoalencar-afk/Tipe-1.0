@@ -131,7 +131,7 @@ const FAQ: { label: string; faqs: [string, string][] }[] = [
 
 function Duvidas() {
   return (
-    <section id="duvidas" className="scroll-mt-16 bg-background-muted py-14 sm:py-20 lg:py-28">
+    <section id="duvidas" className="scroll-mt-16 bg-background-muted py-12 sm:py-16 lg:py-20">
       <div className="container-page grid gap-12 lg:grid-cols-[0.8fr_1.2fr] lg:gap-20">
         <div>
           <Eyebrow>Dúvidas</Eyebrow>

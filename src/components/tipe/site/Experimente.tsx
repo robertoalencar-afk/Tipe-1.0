@@ -19,7 +19,7 @@ export function Experimente() {
     <section
       id="experimente"
       data-tema="claro"
-      className="scroll-mt-16 overflow-hidden py-16 sm:py-28"
+      className="scroll-mt-16 overflow-hidden py-12 sm:py-16 lg:py-20"
     >
       <div className="container-page grid items-center gap-14 lg:grid-cols-[1fr_auto] lg:gap-24">
         <div>

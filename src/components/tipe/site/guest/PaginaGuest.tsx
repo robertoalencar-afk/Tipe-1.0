@@ -451,7 +451,7 @@ function QuandoChega() {
 
 function Avisar() {
   return (
-    <section data-tema="claro" id="avisar" className="scroll-mt-16 px-4 py-16 sm:px-6 sm:py-24">
+    <section data-tema="claro" id="avisar" className="scroll-mt-16 px-4 py-12 sm:px-6 sm:py-16 lg:py-20">
       <div className="relative mx-auto grid max-w-7xl gap-10 overflow-hidden rounded-[2.25rem] bg-[linear-gradient(120deg,#021E34_0%,#03465a_55%,#0b9e94_100%)] px-6 py-12 text-white sm:px-12 sm:py-16 lg:grid-cols-[0.9fr_1.1fr] lg:items-center lg:gap-14">
         <div>
           <Palavras

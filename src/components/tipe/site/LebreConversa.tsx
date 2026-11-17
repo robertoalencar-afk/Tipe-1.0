@@ -10,7 +10,11 @@ import obrigada from "@/assets/mascot-thanks.webp";
 import conta from "@/assets/mascot-table-closed.webp";
 import estrela from "@/assets/mascot-rating.webp";
 
-export type Fala = { quem: "lebre" | "cliente"; texto: string; pose?: "espera" | "obrigada" | "conta" | "estrela" };
+export type Fala = {
+  quem: "lebre" | "cliente";
+  texto: string;
+  pose?: "espera" | "obrigada" | "conta" | "estrela";
+};
 
 const POSES = { espera, obrigada, conta, estrela } as const;
 
@@ -25,7 +29,13 @@ const PADRAO: Fala[] = [
 
 const PASSO_MS = 2600;
 
-export function LebreConversa({ falas = PADRAO, className }: { falas?: Fala[]; className?: string }) {
+export function LebreConversa({
+  falas = PADRAO,
+  className,
+}: {
+  falas?: Fala[];
+  className?: string;
+}) {
   const [ref, visivel] = useVisivel<HTMLDivElement>();
   const reduz = useMovimentoReduzido();
   const [n, setN] = useState(0); // quantas falas já apareceram
@@ -35,7 +45,8 @@ export function LebreConversa({ falas = PADRAO, className }: { falas?: Fala[]; c
     if (reduz || !visivel) return;
     let vivo = true;
     const timers: number[] = [];
-    const depois = (ms: number, fn: () => void) => timers.push(window.setTimeout(() => vivo && fn(), ms));
+    const depois = (ms: number, fn: () => void) =>
+      timers.push(window.setTimeout(() => vivo && fn(), ms));
     const avancar = (i: number) => {
       if (i >= falas.length) {
         depois(4200, () => {
@@ -73,7 +84,7 @@ export function LebreConversa({ falas = PADRAO, className }: { falas?: Fala[]; c
       aria-label="A Lebre da Tipe conversando sobre como a conta chega na mesa"
       className={cn("flex items-end gap-4", className)}
     >
-      <div className="relative h-64 w-40 shrink-0 sm:h-72 sm:w-44">
+      <div className="relative h-48 w-44 shrink-0 sm:h-56 sm:w-52">
         <span
           key={`s${n}`}
           aria-hidden
@@ -114,7 +125,10 @@ export function LebreConversa({ falas = PADRAO, className }: { falas?: Fala[]; c
           ))}
         </div>
       </div>
-      <ul aria-hidden className="flex min-h-[10.5rem] min-w-0 flex-1 flex-col justify-end gap-2 pb-4">
+      <ul
+        aria-hidden
+        className="flex min-h-[10.5rem] min-w-0 flex-1 flex-col justify-end gap-2 pb-4"
+      >
         {recentes.map((f, i) => (
           <li
             key={f.texto}
@@ -133,11 +147,17 @@ export function LebreConversa({ falas = PADRAO, className }: { falas?: Fala[]; c
           <li
             className={cn(
               "flex w-fit gap-1 rounded-2xl px-4 py-3",
-              proxima.quem === "lebre" ? "self-start rounded-bl-md bg-brand/20" : "self-end rounded-br-md bg-foreground/10",
+              proxima.quem === "lebre"
+                ? "self-start rounded-bl-md bg-brand/20"
+                : "self-end rounded-br-md bg-foreground/10",
             )}
           >
             {[0, 1, 2].map((d) => (
-              <span key={d} className="ponto-digitando h-1.5 w-1.5 rounded-full bg-foreground/60" style={{ animationDelay: `${d * 150}ms` }} />
+              <span
+                key={d}
+                className="ponto-digitando h-1.5 w-1.5 rounded-full bg-foreground/60"
+                style={{ animationDelay: `${d * 150}ms` }}
+              />
             ))}
           </li>
         )}
