@@ -1,5 +1,5 @@
 // Tipe Reserva · vitrine do cliente e salão do Guest Manager (Projeto 4). Regras puras, sem rede,
-// usadas pela demonstração web (/guest-demo) e prontas para o app (apps/guest). Os restaurantes
+// usadas pela demonstração web (/reserva-demo) e prontas para o app (apps/guest). Os restaurantes
 // daqui são FICTÍCIOS e rotulados como demonstração: nunca se misturam com dados de produção.
 
 import {

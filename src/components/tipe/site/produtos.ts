@@ -1005,5 +1005,5 @@ export const CAMINHO_PRODUTO: Record<string, string> = {
   kitchen: "/cozinha",
   restaurant: "/gestao",
   ai: "/lebre",
-  guest: "/guest",
+  guest: "/reserva",
 };

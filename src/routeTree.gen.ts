@@ -30,6 +30,8 @@ import { Route as LebreRouteImport } from './routes/lebre'
 import { Route as OrderRouteImport } from './routes/order'
 import { Route as PayRouteImport } from './routes/pay'
 import { Route as PrecosRouteImport } from './routes/precos'
+import { Route as ReservaRouteImport } from './routes/reserva'
+import { Route as ReservaDemoRouteImport } from './routes/reserva-demo'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as RestauranteFundadorRouteImport } from './routes/restaurante-fundador'
 import { Route as SimuladorRouteImport } from './routes/simulador'
@@ -209,6 +211,16 @@ const PayRoute = PayRouteImport.update({
 const PrecosRoute = PrecosRouteImport.update({
   id: '/precos',
   path: '/precos',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReservaRoute = ReservaRouteImport.update({
+  id: '/reserva',
+  path: '/reserva',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ReservaDemoRoute = ReservaDemoRouteImport.update({
+  id: '/reserva-demo',
+  path: '/reserva-demo',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -619,6 +631,8 @@ export interface FileRoutesByFullPath {
   '/order': typeof OrderRoute
   '/pay': typeof PayRoute
   '/precos': typeof PrecosRoute
+  '/reserva': typeof ReservaRoute
+  '/reserva-demo': typeof ReservaDemoRoute
   '/reset-password': typeof ResetPasswordRoute
   '/restaurante-fundador': typeof RestauranteFundadorRoute
   '/simulador': typeof SimuladorRoute
@@ -716,6 +730,8 @@ export interface FileRoutesByTo {
   '/order': typeof OrderRoute
   '/pay': typeof PayRoute
   '/precos': typeof PrecosRoute
+  '/reserva': typeof ReservaRoute
+  '/reserva-demo': typeof ReservaDemoRoute
   '/reset-password': typeof ResetPasswordRoute
   '/restaurante-fundador': typeof RestauranteFundadorRoute
   '/simulador': typeof SimuladorRoute
@@ -816,6 +832,8 @@ export interface FileRoutesById {
   '/order': typeof OrderRoute
   '/pay': typeof PayRoute
   '/precos': typeof PrecosRoute
+  '/reserva': typeof ReservaRoute
+  '/reserva-demo': typeof ReservaDemoRoute
   '/reset-password': typeof ResetPasswordRoute
   '/restaurante-fundador': typeof RestauranteFundadorRoute
   '/simulador': typeof SimuladorRoute
@@ -916,6 +934,8 @@ export interface FileRouteTypes {
     | '/order'
     | '/pay'
     | '/precos'
+    | '/reserva'
+    | '/reserva-demo'
     | '/reset-password'
     | '/restaurante-fundador'
     | '/simulador'
@@ -1013,6 +1033,8 @@ export interface FileRouteTypes {
     | '/order'
     | '/pay'
     | '/precos'
+    | '/reserva'
+    | '/reserva-demo'
     | '/reset-password'
     | '/restaurante-fundador'
     | '/simulador'
@@ -1112,6 +1134,8 @@ export interface FileRouteTypes {
     | '/order'
     | '/pay'
     | '/precos'
+    | '/reserva'
+    | '/reserva-demo'
     | '/reset-password'
     | '/restaurante-fundador'
     | '/simulador'
@@ -1212,6 +1236,8 @@ export interface RootRouteChildren {
   OrderRoute: typeof OrderRoute
   PayRoute: typeof PayRoute
   PrecosRoute: typeof PrecosRoute
+  ReservaRoute: typeof ReservaRoute
+  ReservaDemoRoute: typeof ReservaDemoRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
   RestauranteFundadorRoute: typeof RestauranteFundadorRoute
   SimuladorRoute: typeof SimuladorRoute
@@ -1405,6 +1431,20 @@ declare module '@tanstack/react-router' {
       path: '/precos'
       fullPath: '/precos'
       preLoaderRoute: typeof PrecosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reserva': {
+      id: '/reserva'
+      path: '/reserva'
+      fullPath: '/reserva'
+      preLoaderRoute: typeof ReservaRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reserva-demo': {
+      id: '/reserva-demo'
+      path: '/reserva-demo'
+      fullPath: '/reserva-demo'
+      preLoaderRoute: typeof ReservaDemoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/reset-password': {
@@ -2045,6 +2085,8 @@ const rootRouteChildren: RootRouteChildren = {
   OrderRoute: OrderRoute,
   PayRoute: PayRoute,
   PrecosRoute: PrecosRoute,
+  ReservaRoute: ReservaRoute,
+  ReservaDemoRoute: ReservaDemoRoute,
   ResetPasswordRoute: ResetPasswordRoute,
   RestauranteFundadorRoute: RestauranteFundadorRoute,
   SimuladorRoute: SimuladorRoute,

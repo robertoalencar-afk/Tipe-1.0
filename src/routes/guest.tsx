@@ -1,4 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { opcoesRotaProduto } from "@/components/tipe/site/rotaProduto";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 
-export const Route = createFileRoute("/guest")(opcoesRotaProduto("guest"));
+/** Endereço antigo do Tipe Reserva (ex-Guest): redireciona (301) para /reserva. */
+export const Route = createFileRoute("/guest")({
+  beforeLoad: ({ location }) => {
+    throw redirect({
+      href: `/reserva${location.searchStr ?? ""}${location.hash ? `#${location.hash}` : ""}`,
+      statusCode: 301,
+    });
+  },
+});
