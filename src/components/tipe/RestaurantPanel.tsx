@@ -986,9 +986,22 @@ export function RestaurantPanel({
             items={pdv.data?.items ?? []}
             categories={pdv.data?.categories ?? []}
             midia={midia.data?.itens ?? {}}
+            restaurante={d.restaurant.name}
             onFotografar={(id) => {
               setEditarPrato(id);
               ir("cardapio");
+            }}
+            onAbrirScanner={() => {
+              // O Cardápio abre direto na aba 3D quando o hash é #scanner-3d.
+              window.location.hash = "scanner-3d";
+              ir("cardapio");
+              // A seção do Scanner 3D (Cardápio) tem id="scanner-3d"; espera a aba montar.
+              const rolar = (n: number) => {
+                const el = document.getElementById("scanner-3d");
+                if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+                else if (n > 0) setTimeout(() => rolar(n - 1), 120);
+              };
+              requestAnimationFrame(() => rolar(15));
             }}
           />
         )}
