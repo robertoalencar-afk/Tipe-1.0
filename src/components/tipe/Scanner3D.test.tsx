@@ -57,7 +57,8 @@ it("mostra as instruções e os escaneamentos com o status", () => {
     </QueryClientProvider>,
   );
   expect(html).toContain("Scanner 3D");
-  expect(html).toContain("Gravar vídeo do prato");
+  expect(html).toContain("Escanear agora");
+  expect(html).toContain("Enviar vídeo");
   expect(html).toContain("Pronto para revisar");
   expect(html).toContain("Publicar no cardápio");
   expect(html).toContain("Ver o 3D");
