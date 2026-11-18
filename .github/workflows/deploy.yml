@@ -199,6 +199,8 @@ jobs:
           # "aprovados" depois que a Meta aprovar os modelos tipe_reserva_* (ver docs/tipe-guest/v2/11-MENSAGENS.md).
           WHATSAPP_RESERVA_MODELOS: ${{ vars.WHATSAPP_RESERVA_MODELOS }}
           EMAIL_INBOUND_SECRET: ${{ secrets.EMAIL_INBOUND_SECRET }}
+          # Opcional: token do GitHub (Actions: write neste repositório) para o Scanner 3D começar na hora.
+          GITHUB_SCANNER_TOKEN: ${{ secrets.GITHUB_SCANNER_TOKEN }}
       - name: E-mails do Supabase (cadastro, convite, senha, avisos)
         # Precisa do segredo SUPABASE_ACCESS_TOKEN; sem ele só avisa. Ver docs/deploy/emails-supabase.md.
         run: node scripts/emails/aplicar-emails-auth.mjs

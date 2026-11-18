@@ -24,6 +24,7 @@ import { MenuInteligente } from "./MenuInteligente";
 import { BancoImagens } from "./BancoImagens";
 import { ImportarCardapio } from "./ImportarCardapio";
 import { RevisaoLebre } from "./RevisaoLebre";
+import { Scanner3D } from "./Scanner3D";
 
 import { LebreSuggestionButton } from "./LebreSuggestionButton";
 import { AcompanhamentosEditor } from "./AcompanhamentosEditor";
@@ -502,6 +503,7 @@ export function CardapioGestao({
           </div>
         ))}
       </section>
+      <Scanner3D slug={slug} items={pdv.items.map((i) => ({ id: i.id, name: i.name }))} />
       <form
         className="flex flex-wrap gap-2"
         onSubmit={async (e) => {

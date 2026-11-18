@@ -17,6 +17,8 @@
  * Sem foto, o quadro mostra o nome do prato em tipografia, porque nem todo restaurante
  * tem foto de tudo. Com movimento reduzido, nada avança sozinho e a foto não faz zoom.
  */
+import { carregarModelViewer } from "@/lib/tipe/model-viewer";
+import { FundoCamera } from "../../FundoCamera";
 import { PhotoPinch, NO_ZOOM } from "@/lib/tipe/order/pinch-zoom";
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from "react";
 import { Box, Minus, Pause, Plus, X } from "lucide-react";
@@ -43,24 +45,6 @@ export type ItemStory = {
 const DURACAO = 6000;
 const brl = (c: number) =>
   (c / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-
-let scriptMv: Promise<void> | null = null;
-function carregarModelViewer() {
-  if (typeof window === "undefined") return Promise.resolve();
-  if (customElements.get("model-viewer")) return Promise.resolve();
-  scriptMv ??= new Promise<void>((ok, erro) => {
-    const s = document.createElement("script");
-    s.type = "module";
-    s.src = "/vendor/model-viewer/model-viewer.min.js";
-    s.onload = () => ok();
-    s.onerror = () => {
-      scriptMv = null;
-      erro(new Error("model-viewer"));
-    };
-    document.head.appendChild(s);
-  });
-  return scriptMv;
-}
 
 export function StoryCardapio({
   itens,
@@ -308,7 +292,8 @@ export function StoryCardapio({
           }}
         >
           {em3d && item.modelo ? (
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_40%,#0b3a5c,#021E34_70%)]">
+            <div className="absolute inset-0">
+              <FundoCamera />
               {mv === "pronto" ? (
                 <model-viewer
                   src={item.modelo}
@@ -319,7 +304,7 @@ export function StoryCardapio({
                   ar-modes="webxr scene-viewer quick-look"
                   shadow-intensity="1"
                   exposure="1.05"
-                  camera-orbit="30deg 70deg auto"
+                  camera-orbit="20deg 55deg auto"
                   interaction-prompt="none"
                   data-sem-gesto=""
                   style={{
@@ -340,7 +325,7 @@ export function StoryCardapio({
               ) : (
                 <p
                   role="status"
-                  className="absolute inset-x-0 top-1/3 text-center text-sm text-white/80"
+                  className="absolute inset-x-0 top-1/3 z-10 text-center text-sm text-white drop-shadow"
                 >
                   {mv === "erro"
                     ? "Não deu para abrir o 3D agora. A foto continua aqui."
