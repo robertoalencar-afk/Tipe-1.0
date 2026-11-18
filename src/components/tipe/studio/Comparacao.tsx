@@ -7,6 +7,7 @@
 import { Check, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Foto3D } from "../site/order/Foto3D";
+import { Aparelho } from "./Aparelho";
 
 export type Guia = "grade" | "foco" | "angulo" | "luz" | "margem";
 export type Lado = {
@@ -85,7 +86,7 @@ function GuiaSobre({ guia }: { guia: Guia }) {
     <div className="pointer-events-none absolute inset-0" aria-hidden>
       <span className="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-amber-100/35 to-transparent" />
       <span className="absolute left-2 top-8 rounded-full bg-black/55 px-2 py-1 text-[10px] font-medium text-white backdrop-blur">
-        ☀ janela
+        ☀ Janela
       </span>
     </div>
   );
@@ -96,42 +97,42 @@ function Celular({ lado, certo }: { lado: Lado; certo: boolean }) {
     <figure className="min-w-0 flex-1">
       <div
         className={cn(
-          "relative mx-auto aspect-[9/16] w-full max-w-[13.5rem] overflow-hidden rounded-[1.6rem] border-[5px] bg-black shadow-2xl transition-transform duration-500",
-          certo
-            ? "border-white/90 shadow-teal-500/20 motion-safe:sm:-rotate-1"
-            : "border-white/25 opacity-95 motion-safe:sm:rotate-1",
+          "mx-auto w-full max-w-[12.5rem] transition-transform duration-500",
+          certo ? "motion-safe:sm:-rotate-2" : "motion-safe:sm:rotate-2 sm:translate-y-3",
         )}
       >
-        <img
-          src={lado.src}
-          alt=""
-          loading="lazy"
-          className="size-full object-cover"
-          style={{ filter: lado.filtro, objectPosition: lado.posicao }}
-        />
-        {lado.guia && <GuiaSobre guia={lado.guia} />}
-        <span
-          className="absolute left-1/2 top-1.5 h-1 w-10 -translate-x-1/2 rounded-full bg-black/60"
-          aria-hidden
-        />
-        <span
-          className={cn(
-            "absolute left-2 top-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-semibold shadow",
-            certo ? "bg-teal-400 text-[#071d2b]" : "bg-red-500 text-white",
-          )}
-        >
-          {certo ? <Check className="size-3" aria-hidden /> : <X className="size-3" aria-hidden />}
-          {certo ? "Assim" : "Evite"}
-        </span>
-        {lado.simulacao && (
-          <span className="absolute right-2 top-2 rounded-full bg-black/50 px-1.5 py-0.5 text-[9px] text-white/80">
-            simulação
+        <Aparelho apagado={!certo}>
+          <img
+            src={lado.src}
+            alt=""
+            loading="lazy"
+            className="size-full object-cover"
+            style={{ filter: lado.filtro, objectPosition: lado.posicao }}
+          />
+          {lado.guia && <GuiaSobre guia={lado.guia} />}
+          <span
+            className={cn(
+              "absolute left-[7%] top-[9%] inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-semibold shadow",
+              certo ? "bg-teal-400 text-[#071d2b]" : "bg-red-500 text-white",
+            )}
+          >
+            {certo ? (
+              <Check className="size-3" aria-hidden />
+            ) : (
+              <X className="size-3" aria-hidden />
+            )}
+            {certo ? "Assim" : "Evite"}
           </span>
-        )}
+          {lado.simulacao && (
+            <span className="absolute right-[7%] top-[9%] rounded-full bg-black/55 px-1.5 py-0.5 text-[10px] text-white/85 backdrop-blur">
+              Simulação
+            </span>
+          )}
+        </Aparelho>
       </div>
       <figcaption
         className={cn(
-          "mx-auto mt-3 max-w-[13.5rem] text-center text-[11px] leading-snug sm:text-xs",
+          "mx-auto mt-4 max-w-[13rem] text-center text-xs font-medium leading-snug sm:text-[13px]",
           certo ? "text-teal-200" : "text-red-200",
         )}
       >
