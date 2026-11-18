@@ -17,7 +17,22 @@ async function rest(supabase: any, slug: string) {
   data.order_session_mode = omErr ? "staff_opens" : (om?.order_session_mode ?? "staff_opens");
   const { data: tt, error: ttErr } = await supabase.from("restaurants").select("totem_enabled").eq("id", data.id).maybeSingle();
   data.totem_enabled = ttErr ? false : (tt?.totem_enabled ?? false);
-  return data as { id: string; slug: string; name: string; pos_provider: string; pos_mode: string; service_rate: number; phone: string | null; address: string | null; opening_hours: string | null; bill_payment_methods: string[]; google_review_url: string | null; self_order_enabled: boolean; order_session_mode: "staff_opens" | "table_code"; totem_enabled: boolean };
+  // Dados do cabeçalho da pré-conta (não fiscal): CNPJ e razão social. Tolerante a coluna/tabela ausente.
+  const { data: cj, error: cjErr } = await supabase.from("restaurants").select("cnpj").eq("id", data.id).maybeSingle();
+  data.cnpj = cjErr ? null : (cj?.cnpj ?? null);
+  // A tabela fiscal só abre para service_role; o acesso ao restaurante já foi checado acima (RLS).
+  // Projeção mínima: só nome e CNPJ, nunca credenciais. Produção antes de homologação.
+  let fiscal: { legal_name?: string | null; cnpj?: string | null } | null = null;
+  try {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: fs, error: fsErr } = await supabaseAdmin.from("restaurant_fiscal_settings" as never).select("legal_name, cnpj").eq("restaurant_id" as never, data.id as never).order("environment" as never, { ascending: false }).limit(1);
+    fiscal = fsErr ? null : ((fs as { legal_name?: string | null; cnpj?: string | null }[] | null)?.[0] ?? null);
+  } catch {
+    fiscal = null;
+  }
+  data.legal_name = fiscal?.legal_name ?? null;
+  if (!data.cnpj && fiscal?.cnpj) data.cnpj = fiscal.cnpj;
+  return data as { cnpj: string | null; legal_name: string | null; id: string; slug: string; name: string; pos_provider: string; pos_mode: string; service_rate: number; phone: string | null; address: string | null; opening_hours: string | null; bill_payment_methods: string[]; google_review_url: string | null; self_order_enabled: boolean; order_session_mode: "staff_opens" | "table_code"; totem_enabled: boolean };
 }
 const err = (m: string, fb: string) => {
   for (const k of ["Sem permissão", "Já existe", "Abra o caixa", "Nenhum caixa", "Valor inválido", "Valor contado inválido", "Escolha outra", "Há pagamentos", "Mesa inativa", "Informe o motivo", "Quantidade"]) if (m.includes(k)) return m;

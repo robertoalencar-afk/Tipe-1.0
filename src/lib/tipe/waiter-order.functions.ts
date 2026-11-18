@@ -18,7 +18,7 @@ async function myWaiter(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data } = await supabaseAdmin
     .from("pdv_waiters")
-    .select("id, name, code, active, restaurant_id, restaurants(name, slug, service_rate)")
+    .select("id, name, code, active, restaurant_id, restaurants(name, slug, service_rate, cnpj, address, phone)")
     .eq("user_id", userId)
     .maybeSingle();
   const w = data as unknown as {
@@ -27,7 +27,7 @@ async function myWaiter(userId: string) {
     code: string;
     active: boolean;
     restaurant_id: string;
-    restaurants: { name: string; slug: string; service_rate: number | string | null };
+    restaurants: { name: string; slug: string; service_rate: number | string | null; cnpj?: string | null; address?: string | null; phone?: string | null };
   } | null;
   if (!w || !w.active)
     throw new Error("Seu acesso de garçom não está ativo. Fale com o restaurante.");
@@ -53,6 +53,10 @@ export type WaiterPos = {
   restaurantSlug: string;
   /** Taxa de serviço do restaurante (0 a 1), para a pré-conta. */
   serviceRate: number;
+  /** Cabeçalho da pré-conta (não fiscal). */
+  restaurantCnpj: string | null;
+  restaurantAddress: string | null;
+  restaurantPhone: string | null;
   categories: { id: string; name: string }[];
   items: {
     id: string;
@@ -174,6 +178,9 @@ export const getWaiterPos = createServerFn({ method: "GET" })
       restaurantName: w.restaurants.name,
       restaurantSlug: slug,
       serviceRate: Number(w.restaurants.service_rate ?? 0),
+      restaurantCnpj: w.restaurants.cnpj ?? null,
+      restaurantAddress: w.restaurants.address ?? null,
+      restaurantPhone: w.restaurants.phone ?? null,
       categories: (cats.data ?? []).map((c) => ({ id: c.id, name: c.name })),
       items: (items.data ?? []).map((i) => ({
         id: i.id,
