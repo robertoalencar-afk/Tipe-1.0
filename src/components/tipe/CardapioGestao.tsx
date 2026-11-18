@@ -1,5 +1,8 @@
 import { MenuPublicacoes } from "./MenuPublicacoes";
 import { PromocoesCardapio } from "./PromocoesCardapio";
+import { ABAS_CARDAPIO, EstudioCardapio, type AbaCardapio } from "./EstudioCardapio";
+import { MesaPedido } from "./MesaPedido";
+import { Smartphone } from "lucide-react";
 import { LebrePhotoReview } from "./LebrePhotoReview";
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -143,6 +146,17 @@ export function CardapioGestao({
   const [busy, setBusy] = useState(false);
   const saving = useRef(false);
   const [category, setCategory] = useState("");
+  const [aba, setAba] = useState<AbaCardapio>(() =>
+    typeof window !== "undefined" && window.location.hash === "#scanner-3d" ? "3d" : "pratos",
+  );
+  const [previa, setPrevia] = useState(false);
+  useEffect(() => {
+    const onHash = () => {
+      if (window.location.hash === "#scanner-3d") setAba("3d");
+    };
+    window.addEventListener("hashchange", onHash);
+    return () => window.removeEventListener("hashchange", onHash);
+  }, []);
   const attemptedPhotos = useRef(new Set<string>());
   const [photoProgress, setPhotoProgress] = useState("");
   useEffect(() => {
@@ -278,6 +292,7 @@ export function CardapioGestao({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editarId, pdv.items]);
   function editItem(id: string) {
+    setAba("pratos");
     requestDescription.current++;
     setSuggesting(false);
     const item = pdv.items.find((i) => i.id === id);
@@ -301,264 +316,328 @@ export function CardapioGestao({
     setGeneration((n) => n + 1);
     scrollToEditor.current = true;
   }
+  const itensArte = pdv.items.map((i) => ({
+    code: i.code,
+    name: i.name,
+    imageUrl: midia[i.id]?.foto ?? null,
+  }));
   return (
-    <div className="min-w-0 space-y-8">
-      {photoProgress && (
-        <p role="status" className="text-sm text-muted-foreground">
-          {photoProgress}
-        </p>
-      )}
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Uma foto, nome e preço. Confira ao lado como o cliente vai ver.
-          </p>
-        </div>
-        <Button variant="outline" disabled={busy} onClick={reset}>
-          Novo prato
-        </Button>
-      </div>
-      <div ref={editor} className="scroll-mt-24">
-        <CriarPratoEditor
-          key={generation}
-          hideHeading
-          description={draft.description}
-          onPhotoChange={setReviewPhoto}
-          gallery={(onPick, onClose) => (
-            <Dialog
-              open
-              onOpenChange={(open) => {
-                if (!open) onClose();
-              }}
-            >
-              <DialogContent className="max-h-[90dvh] max-w-4xl overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Galeria do restaurante</DialogTitle>
-                  <DialogDescription>
-                    Escolha uma foto salva ou envie uma nova. Ela entra no prato que você está
-                    editando.
-                  </DialogDescription>
-                </DialogHeader>
-                <BancoImagens
-                  slug={slug}
-                  podeDono
-                  itens={[]}
-                  onAplicada={() => {}}
-                  onEscolher={onPick}
-                  fotosAtuais={pdv.items.flatMap((i) =>
-                    midia[i.id]?.foto ? [{ id: i.id, name: i.name, url: midia[i.id]!.foto! }] : [],
-                  )}
-                />
-              </DialogContent>
-            </Dialog>
-          )}
-          onNameChange={(name) => setDraft((d) => ({ ...d, name }))}
-          onNameCommit={(name) => void suggestDescription(name, true)}
-          descriptionField={
-            <div className="space-y-2">
-              <LebrePhotoReview key={generation} slug={slug} photo={reviewPhoto} />
-              <div className="flex flex-wrap items-center justify-between gap-2">
-                <label htmlFor="dish-description" className="text-sm font-medium">
-                  Descrição do prato
-                </label>
-                <LebreSuggestionButton
-                  loading={suggesting}
-                  loadingText="A Lebre está escrevendo…"
-                  disabled={busy || draft.name.trim().length < 3}
-                  onClick={() => void suggestDescription(draft.name)}
-                >
-                  Sugerir texto com a Lebre
-                </LebreSuggestionButton>
-              </div>
-              <textarea
-                id="dish-description"
-                maxLength={200}
-                rows={3}
-                disabled={busy}
-                value={draft.description}
-                onChange={(e) => setDraft((d) => ({ ...d, description: e.target.value }))}
-                placeholder="Conte ao cliente o que vem no prato e como ele é preparado."
-                className="w-full resize-y rounded-xl border border-input bg-background px-3 py-2 text-sm"
-              />
-              <p className="text-xs text-muted-foreground">
-                Revise a sugestão da Lebre e confirme os ingredientes antes de salvar.{" "}
-                {draft.description.length}/200
-              </p>
-            </div>
-          }
-          title={draft.id ? "Editar prato" : "Novo prato"}
-          busy={busy}
-          initial={{
-            name: draft.name,
-            price: draft.price,
-            categoryId: draft.categoryId ?? pdv.categories[0]?.id ?? "",
-            photo: draft.id ? (midia[draft.id]?.foto ?? null) : null,
-            depth: draft.id ? (midia[draft.id]?.profundidade ?? null) : null,
-          }}
-          categories={pdv.categories}
-          restaurantName={restaurantName}
-          onSave={save}
-          fields={
-            <>
-              <AcompanhamentosEditor
-                key={generation}
-                value={draft.accompaniments}
-                onChange={(accompaniments) => setDraft((d) => ({ ...d, accompaniments }))}
-                items={pdv.items}
-                slug={slug}
-                code={draft.code}
-                name={draft.name}
-                description={draft.description}
-                disabled={busy}
-              />
-              <details>
-                <summary className="cursor-pointer text-sm font-medium">
-                  Opções do prato · código e preparo
-                </summary>
-                <fieldset disabled={busy} className="mt-3 grid gap-3 sm:grid-cols-2">
-                  <label className="grid gap-1 text-sm">
-                    Código do prato
-                    <Input
-                      maxLength={16}
-                      placeholder="Ex.: P10"
-                      value={draft.code}
-                      onChange={(e) => setDraft({ ...draft, code: e.target.value })}
-                    />
-                  </label>
-                  <label className="grid gap-1 text-sm">
-                    Enviar pedido para
-                    <select
-                      className="h-11 rounded-xl border border-input bg-background px-3"
-                      value={draft.sector}
-                      onChange={(e) =>
-                        setDraft({ ...draft, sector: e.target.value as Draft["sector"] })
-                      }
-                    >
-                      <option value="kitchen">Cozinha</option>
-                      <option value="bar">Bar</option>
-                    </select>
-                  </label>
-                  <label className="flex items-center gap-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={draft.available}
-                      onChange={(e) => setDraft({ ...draft, available: e.target.checked })}
-                    />
-                    Disponível para pedidos
-                  </label>
-                </fieldset>
-              </details>
-            </>
-          }
-        />
-      </div>
-      <section aria-label="Pratos cadastrados" className="space-y-5">
-        <h3 className="font-display text-xl font-medium">Pratos do cardápio</h3>
-        {pdv.items.length === 0 && (
-          <p className="text-sm text-muted-foreground">
-            Cadastre o primeiro prato no editor acima.
-          </p>
-        )}
-        {groups.map((cat) => (
-          <div key={cat.id}>
-            <h4 className="mb-2 text-sm font-semibold">{cat.name}</h4>
-            <ul className="divide-y divide-border rounded-2xl border border-border">
-              {pdv.items
-                .filter((i) => i.category_id === cat.id)
-                .map((item) => (
-                  <li key={item.id}>
-                    <button
-                      type="button"
-                      disabled={busy}
-                      onClick={() => {
-                        editItem(item.id);
-                      }}
-                      className="flex min-h-20 w-full items-center gap-3 p-3 text-left hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                    >
-                      <span className="grid h-14 w-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-muted text-xs">
-                        {midia[item.id]?.foto ? (
-                          <img
-                            alt=""
-                            src={midia[item.id]!.foto!}
-                            className="h-full w-full object-cover"
-                          />
-                        ) : (
-                          "Foto"
-                        )}
-                      </span>
-                      <span className="min-w-0 flex-1">
-                        <span className="block font-medium">{item.name}</span>
-                        <span className="text-xs text-muted-foreground">
-                          {item.code} · {item.available ? "Disponível" : "Esgotado"}
-                        </span>
-                      </span>
-                      <span className="text-sm font-semibold">
-                        {item.price.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}
-                      </span>
-                      <span className="text-sm underline">Editar</span>
-                    </button>
-                  </li>
-                ))}
-            </ul>
-          </div>
-        ))}
-      </section>
-      <Scanner3D slug={slug} items={pdv.items.map((i) => ({ id: i.id, name: i.name }))} />
-      <form
-        className="flex flex-wrap gap-2"
-        onSubmit={async (e) => {
-          e.preventDefault();
-          setBusy(true);
-          try {
-            await saveCat({ data: { slug, name: category } });
-            setCategory("");
-            onDone();
-            toast.success("Categoria criada");
-          } catch (error) {
-            toast.error((error as Error).message);
-          } finally {
-            setBusy(false);
-          }
-        }}
-      >
-        <Input
-          required
-          aria-label="Nova categoria"
-          placeholder="Nova categoria"
-          className="min-w-40 flex-1"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-        />
-        <Button disabled={busy} variant="outline">
-          Criar categoria
-        </Button>
-      </form>
-      <RevisaoLebre
+    <div className="min-w-0 space-y-6">
+      <EstudioCardapio
         slug={slug}
+        restaurantName={restaurantName}
         items={pdv.items}
         categories={pdv.categories}
         midia={midia}
-        onDone={onDone}
-        onEditItem={editItem}
+        onAba={(a) => {
+          setAba(a);
+          window.requestAnimationFrame(() =>
+            document.getElementById("abas-cardapio")?.scrollIntoView({ block: "start" }),
+          );
+        }}
       />
-      <MenuInteligente slug={slug} onEditItem={editItem} />
-      <ImportarCardapio slug={slug} onDone={refresh} />
-      <PromocoesCardapio
-        slug={slug}
-        items={pdv.items.map((i) => ({
-          code: i.code,
-          name: i.name,
-          imageUrl: midia[i.id]?.foto ?? null,
-        }))}
-      />
-      <MenuPublicacoes
-        slug={slug}
-        items={pdv.items.map((i) => ({
-          code: i.code,
-          name: i.name,
-          imageUrl: midia[i.id]?.foto ?? null,
-        }))}
-      />
+      <div
+        id="abas-cardapio"
+        className="sticky top-0 z-20 -mx-1 flex scroll-mt-4 items-center gap-2 overflow-x-auto bg-background/95 px-1 py-2 backdrop-blur"
+      >
+        <div role="tablist" aria-label="Áreas do cardápio" className="flex gap-1">
+          {ABAS_CARDAPIO.map((a) => (
+            <button
+              key={a.id}
+              role="tab"
+              type="button"
+              aria-selected={aba === a.id}
+              onClick={() => setAba(a.id)}
+              className={`min-h-11 whitespace-nowrap rounded-full px-4 text-sm font-medium ${aba === a.id ? "bg-[#021E34] text-white dark:bg-[#2ED3B7] dark:text-[#021E34]" : "text-muted-foreground hover:bg-muted"}`}
+            >
+              {a.label}
+            </button>
+          ))}
+        </div>
+        <Button variant="outline" className="ml-auto shrink-0" onClick={() => setPrevia(true)}>
+          <Smartphone className="mr-1.5 size-4" /> Ver como o cliente
+        </Button>
+      </div>
+      <Dialog open={previa} onOpenChange={setPrevia}>
+        <DialogContent className="max-w-[26rem] p-4">
+          <DialogHeader>
+            <DialogTitle>Cardápio como o cliente vê</DialogTitle>
+            <DialogDescription>
+              Prévia do cardápio publicado. Nada é enviado à cozinha.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="mx-auto h-[min(72vh,44rem)] w-full max-w-[22rem] overflow-y-auto rounded-[2rem] border-[10px] border-[#021E34] bg-background p-3 shadow-xl">
+            {previa && (
+              <MesaPedido
+                preview
+                slug={slug}
+                code="previa"
+                session=""
+                nome=""
+                podeEnviar={false}
+                onPlaced={() => undefined}
+              />
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+      {aba === "pratos" && (
+        <div className="min-w-0 space-y-8">
+          {photoProgress && (
+            <p role="status" className="text-sm text-muted-foreground">
+              {photoProgress}
+            </p>
+          )}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Uma foto, nome e preço. Confira ao lado como o cliente vai ver.
+              </p>
+            </div>
+            <Button variant="outline" disabled={busy} onClick={reset}>
+              Novo prato
+            </Button>
+          </div>
+          <div ref={editor} className="scroll-mt-24">
+            <CriarPratoEditor
+              key={generation}
+              hideHeading
+              description={draft.description}
+              onPhotoChange={setReviewPhoto}
+              gallery={(onPick, onClose) => (
+                <Dialog
+                  open
+                  onOpenChange={(open) => {
+                    if (!open) onClose();
+                  }}
+                >
+                  <DialogContent className="max-h-[90dvh] max-w-4xl overflow-y-auto">
+                    <DialogHeader>
+                      <DialogTitle>Galeria do restaurante</DialogTitle>
+                      <DialogDescription>
+                        Escolha uma foto salva ou envie uma nova. Ela entra no prato que você está
+                        editando.
+                      </DialogDescription>
+                    </DialogHeader>
+                    <BancoImagens
+                      slug={slug}
+                      podeDono
+                      itens={[]}
+                      onAplicada={() => {}}
+                      onEscolher={onPick}
+                      fotosAtuais={pdv.items.flatMap((i) =>
+                        midia[i.id]?.foto
+                          ? [{ id: i.id, name: i.name, url: midia[i.id]!.foto! }]
+                          : [],
+                      )}
+                    />
+                  </DialogContent>
+                </Dialog>
+              )}
+              onNameChange={(name) => setDraft((d) => ({ ...d, name }))}
+              onNameCommit={(name) => void suggestDescription(name, true)}
+              descriptionField={
+                <div className="space-y-2">
+                  <LebrePhotoReview key={generation} slug={slug} photo={reviewPhoto} />
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <label htmlFor="dish-description" className="text-sm font-medium">
+                      Descrição do prato
+                    </label>
+                    <LebreSuggestionButton
+                      loading={suggesting}
+                      loadingText="A Lebre está escrevendo…"
+                      disabled={busy || draft.name.trim().length < 3}
+                      onClick={() => void suggestDescription(draft.name)}
+                    >
+                      Sugerir texto com a Lebre
+                    </LebreSuggestionButton>
+                  </div>
+                  <textarea
+                    id="dish-description"
+                    maxLength={200}
+                    rows={3}
+                    disabled={busy}
+                    value={draft.description}
+                    onChange={(e) => setDraft((d) => ({ ...d, description: e.target.value }))}
+                    placeholder="Conte ao cliente o que vem no prato e como ele é preparado."
+                    className="w-full resize-y rounded-xl border border-input bg-background px-3 py-2 text-sm"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Revise a sugestão da Lebre e confirme os ingredientes antes de salvar.{" "}
+                    {draft.description.length}/200
+                  </p>
+                </div>
+              }
+              title={draft.id ? "Editar prato" : "Novo prato"}
+              busy={busy}
+              initial={{
+                name: draft.name,
+                price: draft.price,
+                categoryId: draft.categoryId ?? pdv.categories[0]?.id ?? "",
+                photo: draft.id ? (midia[draft.id]?.foto ?? null) : null,
+                depth: draft.id ? (midia[draft.id]?.profundidade ?? null) : null,
+              }}
+              categories={pdv.categories}
+              restaurantName={restaurantName}
+              onSave={save}
+              fields={
+                <>
+                  <AcompanhamentosEditor
+                    key={generation}
+                    value={draft.accompaniments}
+                    onChange={(accompaniments) => setDraft((d) => ({ ...d, accompaniments }))}
+                    items={pdv.items}
+                    slug={slug}
+                    code={draft.code}
+                    name={draft.name}
+                    description={draft.description}
+                    disabled={busy}
+                  />
+                  <details>
+                    <summary className="cursor-pointer text-sm font-medium">
+                      Opções do prato · código e preparo
+                    </summary>
+                    <fieldset disabled={busy} className="mt-3 grid gap-3 sm:grid-cols-2">
+                      <label className="grid gap-1 text-sm">
+                        Código do prato
+                        <Input
+                          maxLength={16}
+                          placeholder="Ex.: P10"
+                          value={draft.code}
+                          onChange={(e) => setDraft({ ...draft, code: e.target.value })}
+                        />
+                      </label>
+                      <label className="grid gap-1 text-sm">
+                        Enviar pedido para
+                        <select
+                          className="h-11 rounded-xl border border-input bg-background px-3"
+                          value={draft.sector}
+                          onChange={(e) =>
+                            setDraft({ ...draft, sector: e.target.value as Draft["sector"] })
+                          }
+                        >
+                          <option value="kitchen">Cozinha</option>
+                          <option value="bar">Bar</option>
+                        </select>
+                      </label>
+                      <label className="flex items-center gap-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={draft.available}
+                          onChange={(e) => setDraft({ ...draft, available: e.target.checked })}
+                        />
+                        Disponível para pedidos
+                      </label>
+                    </fieldset>
+                  </details>
+                </>
+              }
+            />
+          </div>
+          <section aria-label="Pratos cadastrados" className="space-y-5">
+            <h3 className="font-display text-xl font-medium">Pratos do cardápio</h3>
+            {pdv.items.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                Cadastre o primeiro prato no editor acima.
+              </p>
+            )}
+            {groups.map((cat) => (
+              <div key={cat.id}>
+                <h4 className="mb-2 text-sm font-semibold">{cat.name}</h4>
+                <ul className="divide-y divide-border rounded-2xl border border-border">
+                  {pdv.items
+                    .filter((i) => i.category_id === cat.id)
+                    .map((item) => (
+                      <li key={item.id}>
+                        <button
+                          type="button"
+                          disabled={busy}
+                          onClick={() => {
+                            editItem(item.id);
+                          }}
+                          className="flex min-h-20 w-full items-center gap-3 p-3 text-left hover:bg-muted/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          <span className="grid h-14 w-12 shrink-0 place-items-center overflow-hidden rounded-xl bg-muted text-xs">
+                            {midia[item.id]?.foto ? (
+                              <img
+                                alt=""
+                                src={midia[item.id]!.foto!}
+                                className="h-full w-full object-cover"
+                              />
+                            ) : (
+                              "Foto"
+                            )}
+                          </span>
+                          <span className="min-w-0 flex-1">
+                            <span className="block font-medium">{item.name}</span>
+                            <span className="text-xs text-muted-foreground">
+                              {item.code} · {item.available ? "Disponível" : "Esgotado"}
+                            </span>
+                          </span>
+                          <span className="text-sm font-semibold">
+                            {item.price.toLocaleString("pt-BR", {
+                              style: "currency",
+                              currency: "BRL",
+                            })}
+                          </span>
+                          <span className="text-sm underline">Editar</span>
+                        </button>
+                      </li>
+                    ))}
+                </ul>
+              </div>
+            ))}
+          </section>
+          <form
+            className="flex flex-wrap gap-2"
+            onSubmit={async (e) => {
+              e.preventDefault();
+              setBusy(true);
+              try {
+                await saveCat({ data: { slug, name: category } });
+                setCategory("");
+                onDone();
+                toast.success("Categoria criada");
+              } catch (error) {
+                toast.error((error as Error).message);
+              } finally {
+                setBusy(false);
+              }
+            }}
+          >
+            <Input
+              required
+              aria-label="Nova categoria"
+              placeholder="Nova categoria"
+              className="min-w-40 flex-1"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+            />
+            <Button disabled={busy} variant="outline">
+              Criar categoria
+            </Button>
+          </form>
+        </div>
+      )}
+      {aba === "lebre" && (
+        <div className="min-w-0 space-y-8">
+          <RevisaoLebre
+            slug={slug}
+            items={pdv.items}
+            categories={pdv.categories}
+            midia={midia}
+            onDone={onDone}
+            onEditItem={editItem}
+          />
+          <MenuInteligente slug={slug} onEditItem={editItem} />
+        </div>
+      )}
+      {aba === "promocoes" && <PromocoesCardapio slug={slug} items={itensArte} />}
+      {aba === "banners" && <MenuPublicacoes slug={slug} items={itensArte} />}
+      {aba === "3d" && (
+        <Scanner3D slug={slug} items={pdv.items.map((i) => ({ id: i.id, name: i.name }))} />
+      )}
+      {aba === "importar" && <ImportarCardapio slug={slug} onDone={refresh} />}
     </div>
   );
 }

@@ -65,7 +65,7 @@ export function promoHoursLabel(p: Pick<MenuPromo, "start" | "end">) {
 export const WEAK_DAYS = [1, 2];
 
 /** Dias da semana sem nenhuma promoção ativa. */
-export function daysWithoutPromo(promos: MenuPromo[]) {
+export function daysWithoutPromo(promos: Pick<MenuPromo, "enabled" | "days">[]) {
   return [0, 1, 2, 3, 4, 5, 6].filter(
     (d) => !promos.some((p) => p.enabled && (!p.days.length || p.days.includes(d))),
   );

@@ -125,7 +125,10 @@ export function MesaPedido({
   onPlaced,
   onBlocked,
   podeEnviar = true,
+  preview = false,
 }: {
+  /** Prévia na Gestão: não envia pedido e não conta interações. */
+  preview?: boolean | undefined;
   slug: string;
   code: string;
   session: string;
@@ -161,7 +164,7 @@ export function MesaPedido({
   const labels = copy[language];
 
   function track(itemCode: string, event: "photo_open" | "add") {
-    if (!hasConsent("analytics")) return;
+    if (preview || !hasConsent("analytics")) return;
     const item = menu?.items.find((i) => i.code === itemCode);
     if (item)
       void recordMenuInteraction({ data: { slug, itemId: item.id, event, consent: true } }).catch(
