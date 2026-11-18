@@ -63,7 +63,10 @@ export function proximosPassos(input: {
     const fracos = daysWithoutPromo(input.promos).filter((d) => WEAK_DAYS.includes(d));
     if (fracos.length)
       steps.push({
-        text: `${fracos.map((d) => (d === 1 ? "Segunda" : "Terça")).join(" e ")} sem promoção: são os dias mais fracos`,
+        text:
+          fracos.length === 2
+            ? "Segunda e terça sem promoção: são os dias mais fracos"
+            : `${fracos[0] === 1 ? "Segunda" : "Terça"} sem promoção: é um dos dias mais fracos`,
         aba: "promocoes",
       });
   }
