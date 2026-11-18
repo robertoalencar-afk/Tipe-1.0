@@ -143,6 +143,8 @@ export const saveMenuPresentation = createServerFn({ method: "POST" })
         allergens: [...new Set(data.allergens)],
         menu_config: {
           ...readMenuConfig(own.menu_config),
+          // O selo da Lebre só nasce de uma indicação aceita: aqui o dono pode apenas retirá-lo.
+          lebrePick: data.config.lebrePick ? readMenuConfig(own.menu_config).lebrePick : undefined,
           featured: data.config.featured,
           diets: data.config.diets,
           recommendations: data.config.recommendations,
@@ -289,8 +291,10 @@ export const resolveMenuSuggestion = createServerFn({ method: "POST" })
       if (itemError || !item || menuSource(item) !== proposal.source)
         throw new Error("O prato mudou desde a sugestão. Peça uma nova revisão.");
       const config = readMenuConfig(item.menu_config);
-      if (proposal.kind === "featured") config.featured = true;
-      else {
+      if (proposal.kind === "featured") {
+        config.featured = true;
+        config.lebrePick = { reason: proposal.reason.slice(0, 160) };
+      } else {
         const { data: other } = await db
           .from("pdv_menu_items")
           .select("code")

@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { MascoteVivo } from "./site/MascoteVivo";
 import { LebreSuggestionButton } from "./LebreSuggestionButton";
 import { Check, ChevronRight } from "lucide-react";
+import lebreAvatar from "@/assets/lebre/avatar-feliz.webp";
 import {
   dietLabels,
   menuLanguages,
@@ -207,7 +208,7 @@ export function MenuInteligente({
                     <div className="min-w-0 flex-1 basis-64">
                       <p className="font-medium">
                         {s.kind === "featured"
-                          ? `Destacar ${dish.name}`
+                          ? `A Lebre indica: ${dish.name}`
                           : `${dish.name} combina com ${other?.name ?? "outro prato"}`}
                       </p>
                       <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{s.reason}</p>
@@ -225,7 +226,7 @@ export function MenuInteligente({
                         onClick={() => void resolve(s.id, true)}
                       >
                         <Check className="mr-2 h-4 w-4" />
-                        Aplicar sugestão
+                        {s.kind === "featured" ? "Aceitar indicação" : "Aplicar sugestão"}
                       </Button>
                     </div>
                   </div>
@@ -559,6 +560,27 @@ function Editor({
         </div>
         {section === "display" && (
           <div className="space-y-5">
+            {config.lebrePick ? (
+              <div className="flex max-w-xl items-start gap-3 rounded-2xl border border-[#2ED3B7]/40 bg-[#2ED3B7]/10 p-4">
+                <img src={lebreAvatar} alt="" className="size-10 shrink-0 rounded-full" />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-semibold">A Lebre indica este prato</p>
+                  <p className="mt-1 text-sm text-muted-foreground">{config.lebrePick.reason}</p>
+                  <button
+                    type="button"
+                    className="mt-2 min-h-11 text-sm font-medium underline underline-offset-4"
+                    onClick={() => setConfig({ ...config, lebrePick: undefined })}
+                  >
+                    Retirar o selo da Lebre
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <p className="max-w-xl text-xs text-muted-foreground">
+                O selo "A Lebre indica" aparece quando você aceita uma indicação da Lebre na revisão
+                do cardápio.
+              </p>
+            )}
             <label className="flex min-h-11 items-center gap-3 text-sm">
               <input
                 className="h-5 w-5 accent-primary"

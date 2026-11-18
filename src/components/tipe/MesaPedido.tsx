@@ -1,4 +1,5 @@
 import { MenuPublicationsCarousel } from "./MenuPublicacoes";
+import lebreAvatar from "@/assets/lebre/avatar-feliz.webp";
 import { AcompanhamentosCliente } from "./AcompanhamentosCliente";
 import { createPortal } from "react-dom";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
@@ -29,6 +30,8 @@ const copy = {
     search: "Buscar pratos, ingredientes ou categorias",
     all: "Tudo",
     featured: "Destaques da casa",
+    lebre: "A Lebre indica",
+    lebreWhy: "Por que a Lebre indica",
     other: "Outros produtos",
     diet: "Todas as opções",
     dietary:
@@ -47,6 +50,8 @@ const copy = {
     search: "Search dishes, ingredients or categories",
     all: "All",
     featured: "House highlights",
+    lebre: "Lebre recommends",
+    lebreWhy: "Why Lebre recommends it",
     other: "Other items",
     diet: "All options",
     dietary:
@@ -65,6 +70,8 @@ const copy = {
     search: "Buscar platos, ingredientes o categorías",
     all: "Todo",
     featured: "Destacados de la casa",
+    lebre: "La Lebre recomienda",
+    lebreWhy: "Por qué la Lebre lo recomienda",
     other: "Otros productos",
     diet: "Todas las opciones",
     dietary:
@@ -322,8 +329,12 @@ export function MesaPedido({
     diet,
     (id) => menu.categories.find((c) => c.id === id)?.name ?? "",
   );
-  const hasHighlights = !cat && !busca && itens.some((i) => i.config?.featured);
+  const pinned = !cat && !busca;
+  const hasLebre = pinned && itens.some((i) => i.config?.lebrePick);
+  const hasHighlights =
+    pinned && itens.some((i) => i.config?.featured && !(hasLebre && i.config?.lebrePick));
   const groups = [
+    ...(hasLebre ? [{ id: "__lebre", name: labels.lebre }] : []),
     ...(hasHighlights ? [{ id: "__featured", name: labels.featured }] : []),
     ...menu.categories,
     { id: "__other", name: labels.other },
@@ -341,7 +352,7 @@ export function MesaPedido({
       ...(i.imageUrl ? { foto: i.imageUrl } : {}),
       ...(i.depthUrl ? { profundidade: i.depthUrl } : {}),
       ...(i.modelUrl ? { modelo: i.modelUrl } : {}),
-      ...(i.badge ? { selo: i.badge } : {}),
+      ...(i.badge || i.config?.lebrePick ? { selo: i.badge || labels.lebre } : {}),
       ...(i.config?.diets.length
         ? { dietas: i.config.diets.map((d) => dietsByLanguage[language][d]) }
         : {}),
@@ -519,19 +530,31 @@ export function MesaPedido({
 
       <div className="mt-3 space-y-5">
         {groups.map((c) => {
+          const isLebre = (i: (typeof itens)[number]) => hasLebre && !!i.config?.lebrePick;
           const lista = itens.filter((i) =>
-            c.id === "__featured"
-              ? i.config?.featured
-              : (c.id === "__other"
-                  ? !menu.categories.some((cat) => cat.id === i.categoryId)
-                  : i.categoryId === c.id) && !(hasHighlights && i.config?.featured),
+            c.id === "__lebre"
+              ? isLebre(i)
+              : c.id === "__featured"
+                ? i.config?.featured && !isLebre(i)
+                : (c.id === "__other"
+                    ? !menu.categories.some((cat) => cat.id === i.categoryId)
+                    : i.categoryId === c.id) &&
+                  !(hasHighlights && i.config?.featured) &&
+                  !isLebre(i),
           );
           if (!lista.length) return null;
           return (
             <section key={c.id}>
-              <h3 className="mb-2 font-display text-sm font-bold text-muted-foreground">
-                {c.name}
-              </h3>
+              {c.id === "__lebre" ? (
+                <h3 className="mb-2 flex items-center gap-2 font-display text-sm font-bold text-[#021E34] dark:text-[#2ED3B7]">
+                  <img src={lebreAvatar} alt="" className="size-6 rounded-full bg-[#2ED3B7]/20" />
+                  {c.name}
+                </h3>
+              ) : (
+                <h3 className="mb-2 font-display text-sm font-bold text-muted-foreground">
+                  {c.name}
+                </h3>
+              )}
               <ul className="flex flex-col gap-3">
                 {lista.map((i) => {
                   const q = carrinho[i.code] ?? 0;
@@ -557,11 +580,23 @@ export function MesaPedido({
                             className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/55 to-transparent"
                             aria-hidden="true"
                           />
-                          {i.badge && (
-                            <span className="absolute left-3 top-3 rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[#021E34]">
-                              {i.badge}
-                            </span>
-                          )}
+                          <span className="absolute left-3 top-3 flex flex-col items-start gap-1.5">
+                            {i.config?.lebrePick && (
+                              <span className="flex items-center gap-1.5 rounded-full bg-[#021E34]/90 py-0.5 pl-0.5 pr-2.5 text-[10px] font-bold uppercase tracking-wide text-[#2ED3B7]">
+                                <img
+                                  src={lebreAvatar}
+                                  alt=""
+                                  className="size-5 rounded-full bg-[#2ED3B7]/25"
+                                />
+                                {labels.lebre}
+                              </span>
+                            )}
+                            {i.badge && (
+                              <span className="rounded-full bg-white/95 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-[#021E34]">
+                                {i.badge}
+                              </span>
+                            )}
+                          </span>
                           {(i.depthUrl || i.modelUrl) && (
                             <span className="absolute right-3 top-3 rounded-full bg-[#021E34]/85 px-2 py-1 text-[10px] font-bold text-[#0FC9BD]">
                               {i.modelUrl ? "3D" : "Foto 3D"}
@@ -584,9 +619,21 @@ export function MesaPedido({
                               </span>
                             )}
                           </p>
+                          {!i.imageUrl && i.config?.lebrePick && (
+                            <p className="mt-1 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide text-primary">
+                              <img src={lebreAvatar} alt="" className="size-5 rounded-full" />
+                              {labels.lebre}
+                            </p>
+                          )}
                           {i.description && (
                             <p className="mt-1 whitespace-pre-wrap break-words text-sm leading-relaxed text-muted-foreground">
                               {i.description}
+                            </p>
+                          )}
+                          {i.config?.lebrePick && (
+                            <p className="mt-2 rounded-xl bg-[#2ED3B7]/10 px-3 py-2 text-xs leading-relaxed text-foreground">
+                              <span className="font-semibold">{labels.lebreWhy}:</span>{" "}
+                              {i.config.lebrePick.reason}
                             </p>
                           )}
                           {!!i.config?.diets.length && (

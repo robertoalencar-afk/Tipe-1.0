@@ -62,6 +62,11 @@ export const MenuConfigSchema = z.object({
   accompaniments: AccompanimentsSchema.optional(),
   translationSource: z.string().max(1000).optional(),
   featured: z.boolean().default(false),
+  /** Selo "A Lebre indica": só a Lebre cria (ao aceitar uma indicação); o dono pode retirar. */
+  lebrePick: z
+    .object({ reason: z.string().trim().min(1).max(160) })
+    .optional()
+    .catch(undefined),
   diets: z
     .array(z.enum(["vegetarian", "vegan", "gluten_free", "lactose_free"]))
     .max(4)

@@ -57,4 +57,7 @@ assert.equal(posts.length,7,'sete banners');assert.equal(new Set(posts.map(p=>p.
 for(const p of posts){const it=real.find(i=>i.code===p.itemCode);assert.ok(it?.image_url,`banner ${p.title} aponta prato com foto`);
   assert.ok(p.title.length<=70&&p.caption.length<=180&&['promo','novo','evento'].includes(p.tag)&&(p.days??[]).every(d=>d>=0&&d<=6));}
 assert.deepEqual((await db.query(`select menu_posts from restaurants where slug='bar-teste'`)).rows[0].menu_posts,[],'outra empresa intacta');
+await db.exec(await readFile(new URL('../../../drizzle/migrations/0089_bistro_lebre_indica.sql',import.meta.url),'utf8'));
+const picks=(await db.query(`select code,menu_config from pdv_menu_items where restaurant_id='11111111-1111-4111-8111-111111111111' and menu_config ? 'lebrePick'`)).rows;
+assert.equal(picks.length,5,'cinco indicações da Lebre');for(const p of picks){const r=p.menu_config.lebrePick.reason;assert.ok(p.menu_config.featured&&r.length>=20&&r.length<=160,`indicação ${p.code}`);}
 await db.close();console.log('Bistrô menu: curated menu with real branded drinks, every item with photo and 3D depth, full dish sheet (allergens, diets), valid recommendations, other tenants untouched.');
