@@ -1,6 +1,7 @@
 import { MenuPublicacoes } from "./MenuPublicacoes";
 import { PromocoesCardapio } from "./PromocoesCardapio";
 import { ABAS_CARDAPIO, EstudioCardapio, type AbaCardapio } from "./EstudioCardapio";
+import { CelularPro } from "@/components/tipe/CelularPro";
 import { MesaPedido } from "./MesaPedido";
 import { Smartphone } from "lucide-react";
 import { LebrePhotoReview } from "./LebrePhotoReview";
@@ -359,15 +360,15 @@ export function CardapioGestao({
         </Button>
       </div>
       <Dialog open={previa} onOpenChange={setPrevia}>
-        <DialogContent className="max-w-[26rem] p-4">
-          <DialogHeader>
-            <DialogTitle>Cardápio como o cliente vê</DialogTitle>
-            <DialogDescription>
-              Prévia do cardápio publicado. Nada é enviado à cozinha.
+        <DialogContent className="w-auto max-w-none gap-3 border-0 bg-transparent p-0 shadow-none sm:rounded-none [&>button]:right-0 [&>button]:top-0 [&>button]:text-white">
+          <DialogHeader className="px-8 text-center sm:text-center">
+            <DialogTitle className="text-white">Cardápio como o cliente vê</DialogTitle>
+            <DialogDescription className="text-white/75">
+              No tamanho real de um celular. Nada é enviado à cozinha.
             </DialogDescription>
           </DialogHeader>
-          <div className="mx-auto h-[min(72vh,44rem)] w-full max-w-[22rem] overflow-y-auto rounded-[2rem] border-[10px] border-[#021E34] bg-background p-3 shadow-xl">
-            {previa && (
+          {previa && (
+            <CelularPro fracaoAltura={0.82}>
               <MesaPedido
                 preview
                 slug={slug}
@@ -377,8 +378,8 @@ export function CardapioGestao({
                 podeEnviar={false}
                 onPlaced={() => undefined}
               />
-            )}
-          </div>
+            </CelularPro>
+          )}
         </DialogContent>
       </Dialog>
       {aba === "pratos" && (
