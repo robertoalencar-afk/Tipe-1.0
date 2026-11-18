@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Nfc } from "lucide-react";
 import { TipeLogo } from "@/components/tipe/Logo";
 import { GravadorEtiqueta } from "@/components/tipe/GravarEtiquetaNfc";
-import { lerPedidoGravacao, modoGravacao, type ModoGravacao } from "@/lib/tipe/nfc";
+import { appClipIos, lerPedidoGravacao, modoGravacao, type ModoGravacao } from "@/lib/tipe/nfc";
 
 /**
  * Página pública aberta pelo QR "Gravar com outro celular" (iPad, tablet ou computador).
@@ -15,6 +15,8 @@ export const Route = createFileRoute("/gravar-nfc")({
       { title: "Gravar etiqueta NFC | Tipe" },
       { name: "robots", content: "noindex" },
       { name: "referrer", content: "no-referrer" },
+      // Com o App Clip publicado, o Safari mostra o cartão "Abrir" que grava pelo iPhone.
+      ...(appClipIos() ? [{ name: "apple-itunes-app", content: appClipIos()!.banner }] : []),
     ],
   }),
   component: GravarNfcPagina,

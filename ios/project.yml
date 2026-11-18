@@ -1,0 +1,62 @@
+# Gere o projeto Xcode com: brew install xcodegen && xcodegen (nesta pasta)
+# TEAM_ID e o prefixo dos bundle IDs dependem da conta Apple Developer da Tipe.
+name: TipeGravador
+options:
+  bundleIdPrefix: digital.tipe
+  deploymentTarget:
+    iOS: "16.0"
+settings:
+  base:
+    DEVELOPMENT_TEAM: ${TEAM_ID}
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    SWIFT_VERSION: "5.9"
+    TARGETED_DEVICE_FAMILY: "1"
+targets:
+  Tipe:
+    type: application
+    platform: iOS
+    sources: [App, Shared]
+    dependencies:
+      - target: TipeClip
+        embed: true
+        codeSign: true
+        copy:
+          destination: custom
+          subpath: $(CONTENTS_FOLDER_PATH)/AppClips
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: Tipe
+        NFCReaderUsageDescription: A Tipe usa o NFC para gravar o link da mesa nas etiquetas dos totens e pulseiras.
+        UILaunchScreen: {}
+    entitlements:
+      path: App/Tipe.entitlements
+      properties:
+        com.apple.developer.nfc.readersession.formats: [NDEF]
+        com.apple.developer.associated-domains: ["appclips:tipe.digital", "applinks:tipe.digital"]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: digital.tipe.app
+  TipeClip:
+    type: application.on-demand-install-capable
+    platform: iOS
+    sources: [Clip, Shared]
+    info:
+      path: Clip/Info.plist
+      properties:
+        CFBundleDisplayName: Tipe
+        NFCReaderUsageDescription: A Tipe usa o NFC para gravar o link da mesa nas etiquetas dos totens e pulseiras.
+        UILaunchScreen: {}
+        NSAppClip:
+          NSAppClipRequestEphemeralUserNotification: false
+          NSAppClipRequestLocationConfirmation: false
+    entitlements:
+      path: Clip/TipeClip.entitlements
+      properties:
+        com.apple.developer.nfc.readersession.formats: [NDEF]
+        com.apple.developer.associated-domains: ["appclips:tipe.digital"]
+        com.apple.developer.parent-application-identifiers: ["$(AppIdentifierPrefix)digital.tipe.app"]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: digital.tipe.app.Clip

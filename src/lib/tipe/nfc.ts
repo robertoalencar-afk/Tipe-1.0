@@ -40,10 +40,11 @@ export function modoGravacao(): ModoGravacao {
 export const NFC_TOOLS_IOS = "https://apps.apple.com/br/app/nfc-tools/id1252962749";
 
 /** Página pública que abre no celular que vai gravar (passagem por QR a partir de iPad, PC ou tablet). */
-export function linkGravacaoRemota(origem: string, link: string, mesa: string) {
+export function linkGravacaoRemota(origem: string, link: string, mesa: string, substituir = false) {
   const url = new URL("/gravar-nfc", origem);
   url.searchParams.set("u", validarLinkMesa(link).href);
   url.searchParams.set("m", mesa);
+  if (substituir) url.searchParams.set("s", "1");
   return url.href;
 }
 
@@ -84,4 +85,20 @@ export function erroGravacaoNfc(error: unknown) {
   if (name === "NotSupportedError")
     return "Este aparelho ou etiqueta não oferece a gravação NFC necessária. Use um celular Android com NFC, Chrome e uma etiqueta NDEF compatível.";
   return "Não foi possível gravar. Ative o NFC, mantenha a etiqueta próxima e confira se está vazia, desbloqueada e tem espaço. Para substituir um link existente, marque a opção abaixo.";
+}
+
+/**
+ * App Clip "Tipe" (ios/): grava NFC no iPhone sem instalar app. Só liga quando o app existir na
+ * App Store; até lá o iPhone segue com o NFC Tools. VITE_IOS_APP_ID = id numérico do app pai.
+ */
+export function appClipIos(env: Record<string, unknown> = import.meta.env) {
+  const appId = env["VITE_IOS_APP_ID"];
+  const clip = env["VITE_IOS_CLIP_BUNDLE"];
+  if (typeof appId !== "string" || !/^\d+$/.test(appId) || typeof clip !== "string" || !clip)
+    return null;
+  return {
+    appId,
+    clip,
+    banner: `app-id=${appId}, app-clip-bundle-id=${clip}, app-clip-display=card`,
+  };
 }
