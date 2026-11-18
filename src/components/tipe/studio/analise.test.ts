@@ -13,7 +13,7 @@ const img = (w: number, h: number, f: (x: number, y: number) => number) => {
   return d;
 };
 
-describe("analise do Studio", () => {
+describe("analise do Estúdio", () => {
   it("foto nítida, vertical e equilibrada passa em tudo", () => {
     const m = medir(
       img(64, 96, (x, y) => (((x >> 2) + (y >> 2)) % 2 ? 190 : 60)),

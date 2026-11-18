@@ -1,5 +1,5 @@
 /**
- * Aulas do Studio: três trilhas (foto do prato, foto com volume, vídeo 3D), cada uma em passos
+ * Aulas do Estúdio: três trilhas (foto do prato, foto com volume, vídeo 3D), cada uma em passos
  * curtos com um diagrama da cena. A trilha do vídeo tem um treino de ritmo: o celular desenhado
  * percorre as duas voltas no tempo certo, para o dono ensaiar antes de gravar no Scanner 3D.
  */
@@ -18,6 +18,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useMovimentoReduzido } from "../site/produto/useVisivel";
 import { Ilustracao, Orbita, type TipoIlustracao } from "./Ilustracoes";
+import { CenaFoto, type Cena } from "./Comparacao";
 import { VIDEO_MAX, VIDEO_MIN } from "./analise";
 
 export type TrilhaId = "foto" | "volume" | "video";
@@ -27,7 +28,11 @@ type Passo = {
   porque: string;
   checar: string[];
   arte: TipoIlustracao | "orbita-baixa" | "orbita-alta" | "ritmo";
+  /** Aula com fotos reais (certo e errado); quando existe, substitui o diagrama. */
+  cena?: Cena;
 };
+
+const C = "/cardapio/";
 
 const TRILHAS: Record<
   TrilhaId,
@@ -49,6 +54,17 @@ const TRILHAS: Record<
           "Talher só se fizer parte",
         ],
         arte: "cena",
+        cena: {
+          tipo: "comparar",
+          certo: {
+            src: C + "bistro/bt-pudim.webp",
+            legenda: "Só o prato, borda limpa, fundo calmo",
+          },
+          errado: {
+            src: C + "bistro/bt-moqueca.webp",
+            legenda: "Copos, talheres e toalha estampada roubam a cena",
+          },
+        },
       },
       {
         titulo: "Luz de janela, de lado",
@@ -56,6 +72,16 @@ const TRILHAS: Record<
         porque: "Luz lateral cria sombra suave e mostra a textura. Flash achata e brilha.",
         checar: ["Sem sol batendo direto", "Flash desligado", "Sombra suave do outro lado"],
         arte: "luz",
+        cena: {
+          tipo: "comparar",
+          certo: { src: C + "baiao-1080.webp", legenda: "Luz de janela pela lateral", guia: "luz" },
+          errado: {
+            src: C + "baiao-1080.webp",
+            legenda: "Longe da janela: escura e sem cor",
+            filtro: "brightness(.42) saturate(.55) contrast(.9)",
+            simulacao: true,
+          },
+        },
       },
       {
         titulo: "Ângulo de 45°",
@@ -64,6 +90,18 @@ const TRILHAS: Record<
           "É o ângulo que o cliente vê quando o prato chega. De cima, só serve para pizza e bowl.",
         checar: ["Nem de cima, nem de frente", "Prato inteiro visível", "Fundo sem bagunça"],
         arte: "angulo",
+        cena: {
+          tipo: "comparar",
+          certo: {
+            src: C + "cartola-1080.webp",
+            legenda: "45°: mostra a altura do prato",
+            guia: "angulo",
+          },
+          errado: {
+            src: C + "bistro/bt-risoto.webp",
+            legenda: "De cima: o prato fica achatado",
+          },
+        },
       },
       {
         titulo: "Na vertical, prato no centro",
@@ -71,6 +109,18 @@ const TRILHAS: Record<
         porque: "O story ocupa a tela inteira em pé. Nada cortado na borda.",
         checar: ["Celular em pé", "Prato no centro da grade", "Margem dos quatro lados"],
         arte: "vertical",
+        cena: {
+          tipo: "comparar",
+          certo: {
+            src: C + "pastel-1080.webp",
+            legenda: "Em pé, prato no centro, margem em volta",
+            guia: "grade",
+          },
+          errado: {
+            src: C + "bistro/bt-picanha.webp",
+            legenda: "Prato cortado e garfo entrando no quadro",
+          },
+        },
       },
       {
         titulo: "Foco e disparo",
@@ -78,6 +128,20 @@ const TRILHAS: Record<
         porque: "Zoom digital e lente engordurada são as maiores causas de foto borrada.",
         checar: ["Lente limpa", "Câmera 1x, sem zoom", "Três fotos, escolha a melhor"],
         arte: "foco",
+        cena: {
+          tipo: "comparar",
+          certo: {
+            src: C + "bistro/mar-baiao.webp",
+            legenda: "Toque no prato para focar",
+            guia: "foco",
+          },
+          errado: {
+            src: C + "bistro/mar-baiao.webp",
+            legenda: "Lente suja ou mão tremendo",
+            filtro: "blur(3.5px) saturate(.9)",
+            simulacao: true,
+          },
+        },
       },
     ],
   },
@@ -94,6 +158,11 @@ const TRILHAS: Record<
         porque: "Roda no seu aparelho, de graça, sem enviar a foto para nenhuma IA externa.",
         checar: ["Uma foto só", "Nenhum custo por prato", "Funciona em qualquer celular"],
         arte: "volume",
+        cena: {
+          tipo: "volume",
+          foto: C + "baiao-1080.webp",
+          profundidade: C + "baiao-depth.png",
+        },
       },
       {
         titulo: "Prato com altura",
@@ -101,6 +170,11 @@ const TRILHAS: Record<
         porque: "Prato raso e foto de cima dão pouco volume para o mapa separar.",
         checar: ["Ângulo de 45°", "Prato destacado do fundo", "Fundo um pouco mais longe"],
         arte: "relevo",
+        cena: {
+          tipo: "comparar",
+          certo: { src: C + "cartola-1080.webp", legenda: "Prato com altura ganha volume" },
+          errado: { src: C + "bistro/bt-risoto.webp", legenda: "Raso e de cima: quase sem volume" },
+        },
       },
       {
         titulo: "Sem modo retrato",
@@ -268,13 +342,14 @@ export function Trilhas({
 }) {
   const [passo, setPasso] = useState(0);
   const tr = TRILHAS[trilha];
-  const p = tr.passos[passo]!;
+  const atual = Math.min(passo, tr.passos.length - 1);
+  const p = tr.passos[atual]!;
   useEffect(() => setPasso(0), [trilha]);
   return (
     <div className="overflow-hidden rounded-3xl border border-border bg-card">
       <div
         role="tablist"
-        aria-label="Trilhas do Studio"
+        aria-label="Trilhas do Estúdio"
         className="grid grid-cols-3 border-b border-border"
       >
         {(Object.keys(TRILHAS) as TrilhaId[]).map((id) => {
@@ -288,7 +363,10 @@ export function Trilhas({
               type="button"
               aria-selected={on}
               aria-controls="studio-aula"
-              onClick={() => onTrilha(id)}
+              onClick={() => {
+                setPasso(0);
+                onTrilha(id);
+              }}
               className={cn(
                 "relative flex min-h-16 flex-col items-start gap-0.5 px-3 py-3 text-left transition sm:flex-row sm:items-center sm:gap-3 sm:px-5",
                 on ? "bg-background" : "bg-muted/40 text-muted-foreground hover:bg-muted/70",
@@ -318,7 +396,16 @@ export function Trilhas({
         role="tabpanel"
         className="grid lg:grid-cols-[minmax(0,1.05fr)_minmax(0,1fr)]"
       >
-        <div className="relative aspect-[16/11] bg-[#071d2b] p-3 sm:p-5 lg:aspect-auto lg:min-h-[22rem]">
+        <div
+          className={cn(
+            "relative overflow-hidden bg-[#071d2b] p-3 sm:p-5 lg:min-h-[26rem]",
+            !p.cena && "aspect-[16/11] lg:aspect-auto",
+          )}
+          style={{
+            backgroundImage:
+              "radial-gradient(120% 80% at 20% 0%, rgba(45,212,191,.16), transparent 60%), radial-gradient(90% 70% at 100% 100%, rgba(56,189,248,.10), transparent 60%)",
+          }}
+        >
           <div
             className="pointer-events-none absolute inset-0 opacity-40"
             style={{
@@ -329,10 +416,18 @@ export function Trilhas({
             aria-hidden
           />
           <p className="relative text-[11px] font-medium uppercase tracking-[0.18em] text-teal-300">
-            {tr.nome} · passo {passo + 1} de {tr.passos.length}
+            {tr.nome} · passo {atual + 1} de {tr.passos.length}
           </p>
-          <div className="relative h-[calc(100%-1.5rem)]">
-            {p.arte === "ritmo" ? (
+          <div
+            key={`${trilha}-${atual}`}
+            className={cn(
+              "relative motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 motion-safe:duration-500",
+              p.cena ? "pb-1" : "h-[calc(100%-1.5rem)]",
+            )}
+          >
+            {p.cena ? (
+              <CenaFoto cena={p.cena} />
+            ) : p.arte === "ritmo" ? (
               <TreinoRitmo />
             ) : p.arte === "orbita-baixa" ? (
               <Orbita volta="baixa" />
@@ -368,9 +463,9 @@ export function Trilhas({
                   key={i}
                   className={cn(
                     "h-1.5 rounded-full transition-all",
-                    i === passo
+                    i === atual
                       ? "w-6 bg-teal-500"
-                      : i < passo
+                      : i < atual
                         ? "w-1.5 bg-teal-500/50"
                         : "w-1.5 bg-border",
                   )}
@@ -383,12 +478,12 @@ export function Trilhas({
                 size="icon"
                 className="size-11 rounded-full"
                 aria-label="Passo anterior"
-                disabled={passo === 0}
+                disabled={atual === 0}
                 onClick={() => setPasso((n) => n - 1)}
               >
                 <ChevronLeft className="size-4" />
               </Button>
-              {passo < tr.passos.length - 1 ? (
+              {atual < tr.passos.length - 1 ? (
                 <Button className="h-11 rounded-full px-5" onClick={() => setPasso((n) => n + 1)}>
                   Próximo passo <ChevronRight className="size-4" />
                 </Button>

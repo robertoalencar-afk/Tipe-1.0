@@ -1,5 +1,5 @@
 /**
- * Ensaio do Studio: o dono testa uma foto ou um vídeo antes de usar no cardápio.
+ * Ensaio do Estúdio: o dono testa uma foto ou um vídeo antes de usar no cardápio.
  * Tudo roda no navegador e nada é salvo nem enviado:
  * - foto: mede resolução, orientação, luz, contraste e foco, calcula o mapa de volume com o
  *   mesmo motor do cardápio (Depth Anything V2 Small, /modelos/depth/model.onnx) e mostra o

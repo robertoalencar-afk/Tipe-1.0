@@ -1,5 +1,5 @@
 /**
- * Ilustrações técnicas do Studio (SVG, sem imagem externa): mostram a montagem da cena como
+ * Ilustrações técnicas do Estúdio (SVG, sem imagem externa): mostram a montagem da cena como
  * um diagrama de direção de fotografia. Tons da marca sobre o azul-marinho do painel.
  */
 const T = "rgb(94 234 212)"; // turquesa clara

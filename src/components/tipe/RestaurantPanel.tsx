@@ -272,7 +272,7 @@ const secoes = [
   },
   {
     k: "studio",
-    l: "Studio de fotos",
+    l: "Estúdio de fotos",
     i: Camera,
     g: "Configurações",
     dono: true,
