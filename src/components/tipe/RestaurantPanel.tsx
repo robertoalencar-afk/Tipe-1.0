@@ -992,6 +992,8 @@ export function RestaurantPanel({
               ir("cardapio");
             }}
             onAbrirScanner={() => {
+              // O Cardápio abre direto na aba 3D quando o hash é #scanner-3d.
+              window.location.hash = "scanner-3d";
               ir("cardapio");
               // A seção do Scanner 3D (Cardápio) tem id="scanner-3d"; espera a aba montar.
               const rolar = (n: number) => {
