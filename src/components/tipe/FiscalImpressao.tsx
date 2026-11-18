@@ -36,6 +36,7 @@ export function FiscalImpressao({ slug }: { slug: string }) {
     imprimirHtml(
       `<h1>Teste de impressão</h1><div class="c m">${new Date().toLocaleString("pt-BR")}</div><hr><div class="l"><span>Bobina</span><span>${config.paper === "a4" ? "A4" : `${config.paper} mm`}</span></div><div class="l"><span>Conexão</span><span>${config.connection}</span></div><hr><div class="c">Se este texto saiu inteiro e legível, a impressora está pronta para cupons e tickets.</div><hr><div class="c m">Sem valor fiscal</div>`,
       "Teste de impressão",
+      config.paper,
     );
     try {
       localStorage.setItem(chaveTesteImpressao(slug), new Date().toISOString());

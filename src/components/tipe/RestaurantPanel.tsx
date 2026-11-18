@@ -1101,7 +1101,13 @@ function MesaDetalhe({
       </DialogHeader>
       {podeConfirmar && <DesignarGarcom slug={slug} table={mesa.number} onDone={onDone} />}
       <BotaoPreConta
+        slug={slug}
         restaurante={ops.data?.restaurant.name ?? ""}
+        razaoSocial={ops.data?.restaurant.legal_name ?? null}
+        cnpj={ops.data?.restaurant.cnpj ?? null}
+        endereco={ops.data?.restaurant.address ?? null}
+        telefone={ops.data?.restaurant.phone ?? null}
+        pagoItens={mesa.itens.reduce((s, i) => s + i.unit_price * i.paid_portion, 0)}
         mesa={mesa.number}
         garcom={mesa.garcom ?? null}
         taxa={ops.data?.restaurant.service_rate ?? 0}
