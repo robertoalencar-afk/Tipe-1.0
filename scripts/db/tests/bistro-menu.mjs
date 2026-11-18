@@ -65,4 +65,12 @@ const promos=(await db.query(`select menu_promos from restaurants where slug='bi
 assert.equal(promos.length,7,'semana de promoções');const pc=new Set((await db.query(`select code from pdv_menu_items where restaurant_id='11111111-1111-4111-8111-111111111111'`)).rows.map(r=>r.code));
 for(const p of promos){assert.ok(p.itemCodes.every(c=>pc.has(c)),`pratos de ${p.name}`);assert.ok(p.rule.length>=5&&p.rule.length<=200&&p.name.length<=60,`regra de ${p.name}`);assert.ok((p.why??'').length<=240);}
 assert.deepEqual((await db.query(`select menu_promos from restaurants where slug='bar-teste'`)).rows[0].menu_promos,[],'outra empresa sem promoções');
+await db.exec(`create table menu_assistant (restaurant_id uuid primary key references restaurants(id), enabled boolean not null default false, auto_translate boolean not null default false, languages text[] not null default array['pt'], next_run timestamptz not null default now())`);
+await db.exec(await readFile(new URL('../../../drizzle/migrations/0091_bistro_traducao_en_es.sql',import.meta.url),'utf8'));
+const tr=(await db.query(`select code,name,description,menu_config from pdv_menu_items where restaurant_id='11111111-1111-4111-8111-111111111111' and available`)).rows;
+assert.equal(tr.length,56);
+for(const i of tr){const c=i.menu_config;assert.equal(c.translationSource,JSON.stringify([i.name,i.description??'']),`fonte da tradução ${i.code} igual ao app`);
+  for(const l of ['en','es'])assert.ok(c.translations?.[l]?.name&&(!i.description||c.translations[l].description),`${l} de ${i.code}`);}
+const st=(await db.query(`select enabled,auto_translate,languages from menu_assistant`)).rows;
+assert.equal(st.length,1,'só o Bistrô');assert.deepEqual(st[0],{enabled:true,auto_translate:true,languages:['pt','en','es']});
 await db.close();console.log('Bistrô menu: curated menu with real branded drinks, every item with photo and 3D depth, full dish sheet (allergens, diets), valid recommendations, other tenants untouched.');
