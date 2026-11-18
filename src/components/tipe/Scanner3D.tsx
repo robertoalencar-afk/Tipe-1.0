@@ -21,6 +21,7 @@ import {
 } from "@/lib/tipe/scanner3d.functions";
 import { enviarFotos, prepararFotos, quadrosDoVideo } from "@/lib/tipe/scanner/captura";
 import { carregarModelViewer } from "@/lib/tipe/model-viewer";
+import { FundoCamera } from "./FundoCamera";
 
 const QUADROS_DO_VIDEO = 60;
 
@@ -60,16 +61,19 @@ function Visor({ src, nome }: { src: string; nome: string }) {
       </p>
     );
   return (
-    <model-viewer
-      src={src}
-      alt={`${nome} em 3D`}
-      camera-controls=""
-      auto-rotate=""
-      shadow-intensity="1"
-      exposure="1.05"
-      camera-orbit="30deg 65deg auto"
-      style={{ width: "100%", height: "18rem", background: "#0b1f30", borderRadius: "1rem" }}
-    />
+    <div className="relative h-80 overflow-hidden rounded-2xl">
+      <FundoCamera />
+      <model-viewer
+        src={src}
+        alt={`${nome} em 3D`}
+        camera-controls=""
+        auto-rotate=""
+        shadow-intensity="1"
+        exposure="1.05"
+        camera-orbit="20deg 55deg auto"
+        style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
+      />
+    </div>
   );
 }
 
