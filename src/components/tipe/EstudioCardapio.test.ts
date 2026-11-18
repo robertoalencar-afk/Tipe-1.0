@@ -29,7 +29,7 @@ describe("próximos passos da Lebre", () => {
       banners: 0,
     });
     expect(s.map((x) => x.aba)).toEqual(["pratos", "lebre", "lebre", "promocoes"]);
-    expect(s[3]?.text).toMatch(/Segunda e Terça/);
+    expect(s[3]?.text).toMatch(/Segunda e terça/);
   });
   it("cardápio completo não tem pendências", () => {
     expect(
