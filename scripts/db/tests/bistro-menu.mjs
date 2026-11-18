@@ -60,4 +60,9 @@ assert.deepEqual((await db.query(`select menu_posts from restaurants where slug=
 await db.exec(await readFile(new URL('../../../drizzle/migrations/0089_bistro_lebre_indica.sql',import.meta.url),'utf8'));
 const picks=(await db.query(`select code,menu_config from pdv_menu_items where restaurant_id='11111111-1111-4111-8111-111111111111' and menu_config ? 'lebrePick'`)).rows;
 assert.equal(picks.length,5,'cinco indicações da Lebre');for(const p of picks){const r=p.menu_config.lebrePick.reason;assert.ok(p.menu_config.featured&&r.length>=20&&r.length<=160,`indicação ${p.code}`);}
+await db.exec(await readFile(new URL('../../../drizzle/migrations/0090_menu_promocoes.sql',import.meta.url),'utf8'));
+const promos=(await db.query(`select menu_promos from restaurants where slug='bistro-teste'`)).rows[0].menu_promos;
+assert.equal(promos.length,7,'semana de promoções');const pc=new Set((await db.query(`select code from pdv_menu_items where restaurant_id='11111111-1111-4111-8111-111111111111'`)).rows.map(r=>r.code));
+for(const p of promos){assert.ok(p.itemCodes.every(c=>pc.has(c)),`pratos de ${p.name}`);assert.ok(p.rule.length>=5&&p.rule.length<=200&&p.name.length<=60,`regra de ${p.name}`);assert.ok((p.why??'').length<=240);}
+assert.deepEqual((await db.query(`select menu_promos from restaurants where slug='bar-teste'`)).rows[0].menu_promos,[],'outra empresa sem promoções');
 await db.close();console.log('Bistrô menu: curated menu with real branded drinks, every item with photo and 3D depth, full dish sheet (allergens, diets), valid recommendations, other tenants untouched.');

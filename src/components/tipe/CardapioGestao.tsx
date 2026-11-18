@@ -1,4 +1,5 @@
 import { MenuPublicacoes } from "./MenuPublicacoes";
+import { PromocoesCardapio } from "./PromocoesCardapio";
 import { LebrePhotoReview } from "./LebrePhotoReview";
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -540,6 +541,14 @@ export function CardapioGestao({
       />
       <MenuInteligente slug={slug} onEditItem={editItem} />
       <ImportarCardapio slug={slug} onDone={refresh} />
+      <PromocoesCardapio
+        slug={slug}
+        items={pdv.items.map((i) => ({
+          code: i.code,
+          name: i.name,
+          imageUrl: midia[i.id]?.foto ?? null,
+        }))}
+      />
       <MenuPublicacoes
         slug={slug}
         items={pdv.items.map((i) => ({
