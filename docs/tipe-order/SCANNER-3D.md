@@ -20,14 +20,25 @@ O restaurante grava o prato de verdade com o celular e a Tipe monta um modelo 3D
    - OpenMVS 2.3 (AGPL-3.0, roda como programa separado no CI, nada dele vai para o site):
      nuvem densa, malha.
    - `montar.py recortar`: acha o ponto para onde as câmeras olham (o prato), ajusta o plano da
-     mesa (RANSAC) e recorta um disco de mesa em volta do prato. Recortar antes da textura faz a
-     textura de 4096 px gastar resolução só no prato.
-   - OpenMVS TextureMesh (≈150 mil faces) → `montar.py alinhar` (mesa na horizontal, y=0, disco de
-     ~44 cm) → gltf-transform (textura WebP). O `.glb` vai para o bucket público `modelos-3d`.
+     mesa (RANSAC, altura da mesa = pico do histograma) e fica **só com o que está acima da mesa**
+     (prato, comida, copo; peças soltas perto do centro também). A toalha escaneada sai, porque no
+     cardápio o fundo é a mesa real do cliente. Se nada se destaca da mesa, cai num disco de mesa
+     (`MODO=mesa` força isso). Recortar antes da textura faz os 4096 px irem só para o prato.
+   - OpenMVS TextureMesh (≈150 mil faces) → `montar.py alinhar` (transformação salva no recorte:
+     mesa na horizontal em y=0, escala em metros supondo o celular a ~40 cm do prato) →
+     gltf-transform (textura WebP). O `.glb` vai para o bucket público `modelos-3d`.
 5. **Revisão**: o scan fica "Pronto para revisar"; o dono gira o modelo no Gestão e toca em
    "Publicar no cardápio", que grava `pdv_menu_items.model_url`. O cardápio do cliente
    (`MesaPedido` → `StoryCardapio`) já mostra "Ver em 3D" e "Ver na minha mesa" (AR) com o
    `<model-viewer>`. "Tirar do cardápio" limpa o `model_url` e apaga as fotos.
+
+## Visor no cardápio
+
+`FundoCamera.tsx`: no celular, o fundo do 3D é a câmera traseira (nada é gravado), com o aviso
+"Aponte o celular para a mesa". O ângulo do prato acompanha a inclinação do celular
+(`src/lib/tipe/inclinacao.ts`, giroscópio; no iPhone, botão "Mover o prato com o celular" pede a
+permissão). Arrastar o dedo pausa o giroscópio por 4 s. Sombra de contato forte para o prato
+"pousar" na mesa. "Ver na minha mesa" continua abrindo o AR do aparelho (Quick Look / Scene Viewer).
 
 ## Quando roda
 
