@@ -1,5 +1,6 @@
 import { MenuPublicationsCarousel } from "./MenuPublicacoes";
 import lebreAvatar from "@/assets/lebre/avatar-feliz.webp";
+import { PromocoesHoje } from "./PromocoesHoje";
 import { AcompanhamentosCliente } from "./AcompanhamentosCliente";
 import { createPortal } from "react-dom";
 import { lazy, Suspense, useEffect, useMemo, useRef, useState } from "react";
@@ -475,6 +476,9 @@ export function MesaPedido({
         </div>
       </div>
       <MenuPublicationsCarousel posts={menu.posts ?? []} items={displayItems} onOpen={setStory} />
+      {language === "pt" && (
+        <PromocoesHoje promos={menu.promos ?? []} items={displayItems} onOpen={setStory} />
+      )}
       <label className="flex items-center gap-2 rounded-xl border border-input bg-card px-3">
         <Search className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
         <span className="sr-only">{labels.search}</span>
