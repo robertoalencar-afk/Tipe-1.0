@@ -41,3 +41,20 @@ describe("scanner 3D: quadros", () => {
     expect(caber(800, 600, 1600)).toEqual({ largura: 800, altura: 600 });
   });
 });
+
+import { decidirCaptura, diferenca } from "./quadros";
+
+describe("scanner 3D: captura ao vivo", () => {
+  it("mede quanto a cena mudou", () => {
+    expect(diferenca([0, 0], [0, 0])).toBe(0);
+    expect(diferenca([0, 100], [10, 90])).toBe(10);
+  });
+  it("só captura quadro nítido, depois de mexer o celular", () => {
+    const base = { msDesdeUltima: 800, nitidez: 100, medianaNitidez: 100, diferenca: 20 };
+    expect(decidirCaptura(base)).toBe("capturar");
+    expect(decidirCaptura({ ...base, msDesdeUltima: 200 })).toBe("cedo");
+    expect(decidirCaptura({ ...base, nitidez: 30 })).toBe("tremido");
+    expect(decidirCaptura({ ...base, diferenca: 2 })).toBe("parado");
+    expect(decidirCaptura({ ...base, diferenca: 2, msDesdeUltima: 3000 })).toBe("capturar");
+  });
+});

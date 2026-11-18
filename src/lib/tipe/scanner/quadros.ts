@@ -68,3 +68,29 @@ export function caber(largura: number, altura: number, max: number) {
   const f = Math.min(1, max / Math.max(largura, altura));
   return { largura: Math.round(largura * f), altura: Math.round(altura * f) };
 }
+
+/** Diferença média (0 a 255) entre duas imagens pequenas em cinza do mesmo tamanho. */
+export function diferenca(a: ArrayLike<number>, b: ArrayLike<number>): number {
+  if (a.length !== b.length || !a.length) return 255;
+  let s = 0;
+  for (let i = 0; i < a.length; i++) s += Math.abs(a[i]! - b[i]!);
+  return s / a.length;
+}
+
+export type Decisao = "capturar" | "tremido" | "parado" | "cedo";
+
+/**
+ * Captura ao vivo: tira foto quando passou tempo suficiente, o celular se moveu (foto nova de
+ * outro ângulo) e o quadro está nítido em relação aos últimos.
+ */
+export function decidirCaptura(o: {
+  msDesdeUltima: number;
+  nitidez: number;
+  medianaNitidez: number;
+  diferenca: number;
+}): Decisao {
+  if (o.msDesdeUltima < 450) return "cedo";
+  if (o.medianaNitidez > 0 && o.nitidez < o.medianaNitidez * 0.5) return "tremido";
+  if (o.diferenca < 5 && o.msDesdeUltima < 2500) return "parado";
+  return "capturar";
+}

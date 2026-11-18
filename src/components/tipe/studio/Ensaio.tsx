@@ -7,6 +7,7 @@
  * - vídeo: mede duração, resolução e tremor quadro a quadro, como o Scanner 3D faz ao
  *   escolher os quadros, e leva ao Scanner para o envio de verdade.
  */
+import { abrirVideo, irPara } from "@/lib/tipe/scanner/captura";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
@@ -404,21 +405,6 @@ type VideoEstado = {
   erro?: string;
 };
 
-const esperar = (el: HTMLVideoElement, ev: string) =>
-  new Promise<void>((ok, erro) => {
-    const fim = () => {
-      el.removeEventListener(ev, fim);
-      el.removeEventListener("error", falha);
-      ok();
-    };
-    const falha = () => {
-      el.removeEventListener(ev, fim);
-      erro(new Error("Não deu para ler este vídeo neste navegador."));
-    };
-    el.addEventListener(ev, fim);
-    el.addEventListener("error", falha);
-  });
-
 function EnsaioVideo({ onAbrirScanner }: { onAbrirScanner: () => void }) {
   const [v, setV] = useState<VideoEstado | null>(null);
   const galeria = useRef<HTMLInputElement>(null);
@@ -429,7 +415,6 @@ function EnsaioVideo({ onAbrirScanner }: { onAbrirScanner: () => void }) {
   async function testar(arquivo: File | undefined) {
     if (!arquivo || !arquivo.type.startsWith("video/")) return;
     const g = ++geracao.current;
-    const src = URL.createObjectURL(arquivo);
     setV({
       nome: arquivo.name,
       progresso: 0,
@@ -438,13 +423,11 @@ function EnsaioVideo({ onAbrirScanner }: { onAbrirScanner: () => void }) {
       vereditos: [],
       duracao: 0,
     });
-    const el = document.createElement("video");
-    el.muted = true;
-    el.playsInline = true;
-    el.preload = "auto";
-    el.src = src;
+    let aberto: Awaited<ReturnType<typeof abrirVideo>> | null = null;
     try {
-      await esperar(el, "loadedmetadata");
+      // abrirVideo deixa o vídeo no DOM e "acordado": sem isso o iPhone nunca termina o seek.
+      aberto = await abrirVideo(arquivo);
+      const el = aberto.video;
       const duracao = Number.isFinite(el.duration) ? el.duration : 0;
       if (!duracao || !el.videoWidth) throw new Error("Não deu para ler a duração deste vídeo.");
       const k = Math.min(1, 320 / Math.max(el.videoWidth, el.videoHeight));
@@ -454,15 +437,14 @@ function EnsaioVideo({ onAbrirScanner }: { onAbrirScanner: () => void }) {
       cv.width = w;
       cv.height = h;
       const ctx = cv.getContext("2d", { willReadFrequently: true })!;
-      const total = Math.max(12, Math.min(60, Math.round(duracao * 1.2)));
+      const total = Math.max(12, Math.min(30, Math.round(duracao * 0.6)));
       const amostras: Amostra[] = [];
       const quadros: string[] = [];
       const passoQuadro = Math.max(1, Math.floor(total / 8));
       for (let i = 0; i < total; i++) {
         if (g !== geracao.current) return;
         const t = ((i + 0.5) / total) * duracao;
-        el.currentTime = t;
-        await esperar(el, "seeked");
+        await irPara(el, t);
         ctx.drawImage(el, 0, 0, w, h);
         amostras.push({ t, nitidez: nitidez(luminancia(ctx.getImageData(0, 0, w, h).data), w, h) });
         if (i % passoQuadro === 0 && quadros.length < 8)
@@ -484,9 +466,7 @@ function EnsaioVideo({ onAbrirScanner }: { onAbrirScanner: () => void }) {
     } catch (e) {
       if (g === geracao.current) setV((s) => s && { ...s, erro: (e as Error).message });
     } finally {
-      URL.revokeObjectURL(src);
-      el.removeAttribute("src");
-      el.load();
+      aberto?.fechar();
     }
   }
 

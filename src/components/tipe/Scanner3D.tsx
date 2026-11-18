@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Box, Camera, Images, Loader2, RotateCw, Trash2, Upload } from "lucide-react";
+import { Box, Camera, Images, Loader2, RotateCw, Trash2, Upload, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   concluirEnvioScan,
@@ -22,6 +22,7 @@ import {
 import { enviarFotos, prepararFotos, quadrosDoVideo } from "@/lib/tipe/scanner/captura";
 import { carregarModelViewer } from "@/lib/tipe/model-viewer";
 import { FundoCamera } from "./FundoCamera";
+import { CapturaAoVivo } from "./CapturaAoVivo";
 
 const QUADROS_DO_VIDEO = 60;
 
@@ -89,6 +90,7 @@ export function Scanner3D({ slug, items }: { slug: string; items: Item[] }) {
   const [itemId, setItemId] = useState("");
   const [etapa, setEtapa] = useState<{ texto: string; fracao: number } | null>(null);
   const [aberto, setAberto] = useState<string | null>(null);
+  const [aoVivo, setAoVivo] = useState(false);
   const video = useRef<HTMLInputElement>(null);
   const fotos = useRef<HTMLInputElement>(null);
 
@@ -178,8 +180,9 @@ export function Scanner3D({ slug, items }: { slug: string; items: Item[] }) {
           no prato durante a gravação.
         </li>
         <li className="rounded-xl bg-muted/50 p-3">
-          <strong>2. Grave 40 a 60 s.</strong> Uma volta inteira na altura do rosto de quem está
-          sentado e outra mais de cima, devagar e com o prato sempre inteiro na tela.
+          <strong>2. Toque em Escanear agora.</strong> As fotos saem sozinhas: uma volta na altura
+          do rosto de quem está sentado e outra mais de cima, devagar, com o prato inteiro na tela.
+          Leva 1 minuto.
         </li>
       </ol>
 
@@ -201,9 +204,18 @@ export function Scanner3D({ slug, items }: { slug: string; items: Item[] }) {
       </label>
 
       <div className="flex flex-wrap gap-2">
-        <Button type="button" disabled={ocupado || !itemId} onClick={() => video.current?.click()}>
+        <Button type="button" disabled={ocupado || !itemId} onClick={() => setAoVivo(true)}>
           <Camera className="mr-2 h-4 w-4" aria-hidden />
-          Gravar vídeo do prato
+          Escanear agora
+        </Button>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={ocupado || !itemId}
+          onClick={() => video.current?.click()}
+        >
+          <Video className="mr-2 h-4 w-4" aria-hidden />
+          Enviar vídeo
         </Button>
         <Button
           type="button"
@@ -218,7 +230,6 @@ export function Scanner3D({ slug, items }: { slug: string; items: Item[] }) {
           ref={video}
           type="file"
           accept="video/*"
-          capture="environment"
           className="sr-only"
           aria-label="Vídeo do prato"
           onChange={(e) => e.target.files?.[0] && processar("video", [e.target.files[0]])}
@@ -233,6 +244,18 @@ export function Scanner3D({ slug, items }: { slug: string; items: Item[] }) {
           onChange={(e) => e.target.files && processar("fotos", Array.from(e.target.files))}
         />
       </div>
+
+      {aoVivo && itemId && (
+        <CapturaAoVivo
+          slug={slug}
+          itemId={itemId}
+          nomePrato={nome(itemId)}
+          onFechar={(enviado) => {
+            setAoVivo(false);
+            if (enviado) void qc.invalidateQueries({ queryKey: ["scanner-3d", slug] });
+          }}
+        />
+      )}
 
       {etapa && (
         <div role="status" className="space-y-1">
