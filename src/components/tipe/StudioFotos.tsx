@@ -1,5 +1,5 @@
 /**
- * Studio de fotos (Gestão > Configurações): a escola e a linha de produção das imagens do
+ * Estúdio de fotos (Gestão > Configurações): a escola e a linha de produção das imagens do
  * cardápio.
  * - Painel: quantos pratos têm foto boa, volume (foto 3D) e modelo 3D do Scanner.
  * - Aulas: três trilhas em passos (foto do prato, foto com volume, vídeo 3D) com diagramas.
@@ -181,7 +181,7 @@ export function StudioFotos({
         <div className="relative flex flex-wrap items-end justify-between gap-6">
           <div className="max-w-xl">
             <p className="text-xs font-medium uppercase tracking-[0.18em] text-teal-300">
-              Studio de fotos
+              Estúdio de fotos
             </p>
             <h2 className="mt-2 font-display text-2xl font-semibold leading-tight sm:text-3xl">
               Do celular ao cardápio em 3D, passo a passo.

@@ -18,6 +18,7 @@ declare module "react" {
         "environment-image"?: string;
         exposure?: string;
         "camera-orbit"?: string;
+        "max-camera-orbit"?: string;
         "interaction-prompt"?: string;
       };
     }

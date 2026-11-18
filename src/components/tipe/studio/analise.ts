@@ -1,5 +1,5 @@
 /**
- * Medidas de uma foto ou vídeo de teste do Studio, calculadas no navegador do dono.
+ * Medidas de uma foto ou vídeo de teste do Estúdio, calculadas no navegador do dono.
  * Nada aqui envia arquivo para servidor. As notas são estimativas honestas para treinar a
  * captura: luz (média de luminância), contraste (desvio), partes estouradas, nitidez
  * (variância do laplaciano, a mesma ideia que o Scanner 3D usa para escolher quadros) e tamanho.
