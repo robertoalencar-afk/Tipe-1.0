@@ -68,9 +68,11 @@ function Visor({ src, nome }: { src: string; nome: string }) {
         alt={`${nome} em 3D`}
         camera-controls=""
         auto-rotate=""
-        shadow-intensity="1"
+        shadow-intensity="1.6"
+        shadow-softness="0.55"
+        environment-image="neutral"
         exposure="1.05"
-        camera-orbit="20deg 55deg auto"
+        camera-orbit="20deg 55deg 110%"
         style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
       />
     </div>

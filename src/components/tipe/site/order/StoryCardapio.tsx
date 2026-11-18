@@ -302,9 +302,11 @@ export function StoryCardapio({
                   auto-rotate=""
                   ar=""
                   ar-modes="webxr scene-viewer quick-look"
-                  shadow-intensity="1"
+                  shadow-intensity="1.6"
+                  shadow-softness="0.55"
+                  environment-image="neutral"
                   exposure="1.05"
-                  camera-orbit="20deg 55deg auto"
+                  camera-orbit="20deg 55deg 110%"
                   interaction-prompt="none"
                   data-sem-gesto=""
                   style={{

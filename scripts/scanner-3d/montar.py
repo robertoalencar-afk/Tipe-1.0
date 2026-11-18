@@ -3,13 +3,15 @@
 recortar (antes da textura, para a textura gastar resolução só no prato):
   acha o ponto para onde as câmeras olham (o prato), ajusta um plano à mesa em volta (RANSAC)
   e mantém só um disco de mesa em volta do prato, sem o que ficou embaixo da mesa.
+  No modo "prato" (padrão) fica só o que está acima da mesa: no cardápio, o fundo é a mesa real
+  do cliente, pela câmera do celular. Se nada se destaca da mesa, cai no disco ("mesa").
 alinhar (depois da textura):
-  gira a cena para a mesa ficar na horizontal (câmeras para cima), põe a mesa em y=0 e o prato
-  na escala aproximada real (disco com ~44 cm) e exporta .glb.
+  aplica a transformação calculada no recorte: mesa na horizontal em y=0, câmeras para cima,
+  escala aproximada em metros, e exporta .glb.
 
 Uso:
-  python3 montar.py recortar --malha mesh.ply --colmap dense/sparse --saida recorte.ply
-  python3 montar.py alinhar  --malha textured.glb --colmap dense/sparse --saida prato.glb
+  python3 montar.py recortar --malha mesh.ply --colmap dense/sparse --saida recorte.ply --transformacao T.json
+  python3 montar.py alinhar  --malha textured.glb --colmap dense/sparse --saida prato.glb --transformacao T.json
 """
 import argparse
 import json
@@ -19,7 +21,7 @@ import sys
 import numpy as np
 import trimesh
 
-RAIO_REAL_M = 0.22  # raio do disco recortado (prato + um pouco de mesa)
+DIST_REAL_M = 0.40  # distância típica do celular ao prato ao dar a volta (dá a escala real)
 RAIO_REL = 0.45  # raio do disco em relação à distância média das câmeras ao prato
 
 
@@ -95,42 +97,92 @@ def geometria(colmap, vertices):
         n = -n  # câmeras ficam acima da mesa
     R = rotacao_para_y(n)
     alt = ((perto - mira) @ R.T)[:, 1]
-    # A mesa é o plano: altura = mediana dos pontos dentro do limiar do plano.
-    mesa = float(np.median(alt[np.abs(alt - np.median(alt)) < dist * 0.05])) if len(alt) else 0.0
-    mesa = float(np.median(alt[np.abs(alt - mesa) < dist * 0.01])) if np.any(np.abs(alt - mesa) < dist * 0.01) else mesa
-    return {"mira": mira, "R": R, "mesa": mesa, "raio": raio, "dist": dist, "frac": frac, "cameras": len(centros)}
+    # A mesa é o pico do histograma de alturas (a maior superfície plana em volta do prato).
+    passo = dist * 0.004
+    cont, bordas = np.histogram(alt, bins=max(10, int((alt.max() - alt.min()) / passo)))
+    pico = float(bordas[np.argmax(cont)] + passo / 2)
+    perto_pico = np.abs(alt - pico) < dist * 0.01
+    mesa = float(np.median(alt[perto_pico])) if perto_pico.any() else pico
+    ruido = float(np.std(alt[perto_pico])) if perto_pico.sum() > 10 else dist * 0.003
+    return {"mira": mira, "R": R, "mesa": mesa, "ruido": ruido, "raio": raio, "dist": dist, "frac": frac, "cameras": len(centros)}
+
+
+def separar_prato(malha, g):
+    """Só o que está acima da mesa (prato, comida, copo), sem a toalha escaneada: no cardápio o
+    fundo é a mesa real do cliente, pela câmera. Devolve None se não achar nada acima da mesa."""
+    v2 = (np.asarray(malha.vertices) - g["mira"]) @ g["R"].T
+    h = v2[:, 1] - g["mesa"]
+    horiz = np.linalg.norm(v2[:, [0, 2]], axis=1)
+    limiar = max(4 * g["ruido"], g["dist"] * 0.006)
+    acima = (h > limiar) & (horiz < g["raio"]) & (h < g["raio"] * 1.2)
+    p = malha.copy()
+    p.update_faces(acima[p.faces].all(axis=1))
+    p.remove_unreferenced_vertices()
+    if len(p.faces) < 2000:
+        return None
+    partes = p.split(only_watertight=False)
+    if not len(partes):
+        return None
+    maior = max(len(x.faces) for x in partes)
+
+    def perto_do_centro(x):
+        c = ((x.vertices.mean(0) - g["mira"]) @ g["R"].T)[[0, 2]]
+        return np.linalg.norm(c) < g["raio"] * 0.6
+
+    # Peças soltas do mesmo prato (guarnição, alça do copo) ficam; ruído pequeno sai.
+    keep = [x for x in partes if len(x.faces) >= maior * 0.03 and perto_do_centro(x)]
+    if not keep:
+        return None
+    return trimesh.util.concatenate(keep)
 
 
 def recortar(a):
     malha = trimesh.load(a.malha, force="mesh", process=False)
     g = geometria(a.colmap, np.asarray(malha.vertices))
-    v2 = (np.asarray(malha.vertices) - g["mira"]) @ g["R"].T
-    h = v2[:, 1] - g["mesa"]
-    horiz = np.linalg.norm(v2[:, [0, 2]], axis=1)
-    manter = (horiz < g["raio"]) & (h > -g["dist"] * 0.02) & (h < g["raio"] * 1.2)
-    malha.update_faces(manter[malha.faces].all(axis=1))
-    malha.remove_unreferenced_vertices()
-    partes = malha.split(only_watertight=False)
-    if len(partes):
-        malha = max(partes, key=lambda m: len(m.faces))
+    prato = separar_prato(malha, g) if a.modo == "prato" else None
+    if prato is None:
+        # Disco de mesa em volta do prato (modo "mesa" ou quando nada se destacou da mesa).
+        v2 = (np.asarray(malha.vertices) - g["mira"]) @ g["R"].T
+        h = v2[:, 1] - g["mesa"]
+        horiz = np.linalg.norm(v2[:, [0, 2]], axis=1)
+        manter = (horiz < g["raio"]) & (h > -g["dist"] * 0.02) & (h < g["raio"] * 1.2)
+        malha.update_faces(manter[malha.faces].all(axis=1))
+        malha.remove_unreferenced_vertices()
+        partes = malha.split(only_watertight=False)
+        if len(partes):
+            malha = max(partes, key=lambda m: len(m.faces))
+        modo = "mesa"
+    else:
+        malha, modo = prato, "prato"
     if len(malha.faces) < 2000:
         sys.exit("ERRO: sobrou pouco do prato depois do recorte. Grave mais perto e com mais luz.")
     malha.export(a.saida)
-    print(json.dumps({"etapa": "recortar", "faces": int(len(malha.faces)), "cameras": g["cameras"],
-                      "mesa_inliers": round(float(g["frac"]), 3)}))
+    with open(a.transformacao, "w") as f:
+        json.dump(transformacao(g).tolist(), f)
+    print(json.dumps({"etapa": "recortar", "modo": modo, "faces": int(len(malha.faces)),
+                      "cameras": g["cameras"], "mesa_inliers": round(float(g["frac"]), 3)}))
 
 
-def alinhar(a):
-    cena = trimesh.load(a.malha, force="mesh", process=False)
-    g = geometria(a.colmap, np.asarray(cena.vertices))
-    escala = RAIO_REAL_M / g["raio"]
+def transformacao(g):
+    """Mesa na horizontal em y=0, prato no centro, escala aproximada em metros."""
+    escala = DIST_REAL_M / g["dist"]
     T = np.eye(4)
     T[:3, :3] = g["R"] * escala
     T[:3, 3] = -(g["R"] @ g["mira"]) * escala
     T[1, 3] -= g["mesa"] * escala
+    return T
+
+
+def alinhar(a):
+    # A transformação vem do recorte, que ainda tinha a mesa para achar o plano.
+    with open(a.transformacao) as f:
+        T = np.array(json.load(f))
+    cena = trimesh.load(a.malha, force="mesh", process=False)
     cena.apply_transform(T)
+    lados = cena.bounds[1] - cena.bounds[0]
     cena.export(a.saida)
-    print(json.dumps({"etapa": "alinhar", "faces": int(len(cena.faces)), "raio_m": RAIO_REAL_M}))
+    print(json.dumps({"etapa": "alinhar", "faces": int(len(cena.faces)),
+                      "tamanho_cm": [round(float(x) * 100, 1) for x in lados]}))
 
 
 def main():
@@ -139,6 +191,8 @@ def main():
     ap.add_argument("--malha", required=True)
     ap.add_argument("--colmap", required=True)
     ap.add_argument("--saida", required=True)
+    ap.add_argument("--modo", choices=["prato", "mesa"], default="prato")
+    ap.add_argument("--transformacao", required=True, help="JSON 4x4 gravado no recorte")
     a = ap.parse_args()
     recortar(a) if a.etapa == "recortar" else alinhar(a)
 

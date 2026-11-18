@@ -44,8 +44,9 @@ passo "OpenMVS: nuvem densa"
   --remove-dmaps 1 -w "$W" >>log-mvs.txt 2>&1
 passo "OpenMVS: malha"
 "$MVS/ReconstructMesh" scene_dense.mvs -p scene_dense.ply --smooth 1 -w "$W" >>log-mvs.txt 2>&1
-passo "recortando a mesa em volta do prato"
-RECORTE=$(python3 -I "$AQUI/montar.py" recortar --malha "$W/scene_dense_mesh.ply" --colmap "$W/dense/sparse" --saida "$W/recorte.ply")
+passo "separando o prato da mesa"
+RECORTE=$(python3 -I "$AQUI/montar.py" recortar --malha "$W/scene_dense_mesh.ply" --colmap "$W/dense/sparse" --saida "$W/recorte.ply" \
+  --transformacao "$W/T.json" --modo "${MODO:-prato}")
 echo "$RECORTE"
 FACES=$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["faces"])' "$RECORTE")
 DECIMAR=$(python3 -c "print(min(1.0, round(${FACES_ALVO:-150000}/$FACES, 4)))")
@@ -53,7 +54,7 @@ passo "OpenMVS: textura com as fotos"
 "$MVS/TextureMesh" scene_dense.mvs -m recorte.ply --export-type glb --decimate "$DECIMAR" \
   --max-texture-size 4096 -o textured.mvs -w "$W" >>log-mvs.txt 2>&1
 passo "alinhando a mesa"
-python3 -I "$AQUI/montar.py" alinhar --malha "$W/textured.glb" --colmap "$W/dense/sparse" --saida "$W/alinhado.glb"
+python3 -I "$AQUI/montar.py" alinhar --malha "$W/textured.glb" --colmap "$W/dense/sparse" --saida "$W/alinhado.glb" --transformacao "$W/T.json"
 passo "comprimindo (textura webp)"
 npx --yes @gltf-transform/cli@4.1.1 webp "$W/alinhado.glb" "$W/webp.glb" --quality 88 >/dev/null
 npx --yes @gltf-transform/cli@4.1.1 resize "$W/webp.glb" "$SAIDA" --width 4096 --height 4096 >/dev/null

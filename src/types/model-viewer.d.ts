@@ -13,6 +13,9 @@ declare module "react" {
         "camera-controls"?: string;
         "auto-rotate"?: string;
         "shadow-intensity"?: string;
+        "shadow-softness"?: string;
+        "field-of-view"?: string;
+        "environment-image"?: string;
         exposure?: string;
         "camera-orbit"?: string;
         "interaction-prompt"?: string;
