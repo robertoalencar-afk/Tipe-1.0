@@ -107,28 +107,54 @@ describe("Lebre acompanha o cardápio", () => {
         .translations.en.description,
     ).toBe("Cashew");
   });
-  it("translates eight pending products per review and leaves the rest for the next lease", async () => {
+  it("translates the whole menu in batches of six in one review", async () => {
     m.dishes = Array.from({ length: 9 }, (_, n) => ({
+      ...dish,
+      id: `aaaaaaaa-aaaa-4aaa-8aaa-${String(n).padStart(12, "0")}`,
+    }));
+    const reply = (from: number, to: number) =>
+      JSON.stringify({
+        items: m.dishes.slice(from, to).map((i) => ({
+          id: i["id"],
+          translations: { en: { name: "Juice", description: "Cashew" } },
+        })),
+      });
+    m.ai
+      .mockResolvedValueOnce(reply(0, 6))
+      .mockResolvedValueOnce(reply(6, 9))
+      .mockResolvedValueOnce('{"suggestions":[]}');
+    await runMenuAssistant(rid);
+    expect(m.rpc.mock.calls.filter(([name]) => name === "publish_menu_translation")).toHaveLength(
+      9,
+    );
+    expect(JSON.parse(m.ai.mock.calls[0]![0].question).items).toHaveLength(6);
+    expect(JSON.parse(m.ai.mock.calls[1]![0].question).items).toHaveLength(3);
+    expect(m.rpc.mock.calls.filter(([name]) => name === "lebre_consume")).toHaveLength(3);
+  });
+  it("publishes the good items even when one translation in the batch is broken", async () => {
+    m.dishes = Array.from({ length: 3 }, (_, n) => ({
       ...dish,
       id: `aaaaaaaa-aaaa-4aaa-8aaa-${String(n).padStart(12, "0")}`,
     }));
     m.ai
       .mockResolvedValueOnce(
         JSON.stringify({
-          items: m.dishes.slice(0, 8).map((i) => ({
-            id: i["id"],
-            translations: { en: { name: "Juice", description: "Cashew" } },
-          })),
+          items: [
+            {
+              id: m.dishes[0]!["id"],
+              translations: { en: { name: "Juice", description: "Cashew" } },
+            },
+            { id: m.dishes[1]!["id"], translations: { en: { name: "Juice" } } },
+            { id: "broken" },
+          ],
         }),
       )
       .mockResolvedValueOnce('{"suggestions":[]}');
     await runMenuAssistant(rid);
-    expect(m.rpc.mock.calls.filter(([name]) => name === "publish_menu_translation")).toHaveLength(
-      8,
-    );
-    const input = JSON.parse(m.ai.mock.calls[0]![0].question);
-    expect(input.items).toHaveLength(8);
-    expect(m.rpc.mock.calls.filter(([name]) => name === "lebre_consume")).toHaveLength(2);
+    const calls = m.rpc.mock.calls.filter(([name]) => name === "publish_menu_translation");
+    expect(calls).toHaveLength(1);
+    expect(calls[0]![1].p_item).toBe(m.dishes[0]!["id"]);
+    expect(m.updates.at(-1)?.value).toMatchObject({ last_error: expect.stringContaining("tradu") });
   });
   it("does not call AI when another worker owns the lease or the restaurant is disabled", async () => {
     m.claimed = false;

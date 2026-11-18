@@ -328,7 +328,7 @@ export function MenuInteligente({
               {!foreign.length
                 ? "Português é o idioma original. Selecione inglês ou espanhol para ativar a tradução."
                 : state.autoTranslate
-                  ? `${ready} de ${available} pratos disponíveis preparados. Cada idioma aparece com sua bandeira no Tipe Order quando todos os pratos disponíveis estiverem traduzidos. A preparação continua em lotes, a cada cinco minutos.`
+                  ? `${ready} de ${available} pratos disponíveis preparados. Cada idioma aparece com sua bandeira no Tipe Order quando todos os pratos disponíveis estiverem traduzidos. A preparação continua sozinha, em lotes, a cada minuto.`
                   : "A tradução está desligada. O cliente vê o cardápio em português."}
             </p>
             {state.autoTranslate && !state.enabled && (
