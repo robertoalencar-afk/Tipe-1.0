@@ -1,9 +1,11 @@
 // Rotinas agendadas da TIPE (antes eram agendadas pela Lovable).
 //   a cada minuto:   POST /api/public/pdv/sync          (PDVs sem webhook)
 //   a cada 5 minutos: POST /api/public/payments/reconcile (pagamentos presos)
+//   a cada minuto:   POST /api/public/menu/review (só roda quem venceu o next_run; traduções
+//                    em andamento voltam em 1 minuto, o resto segue a cada 5)
 const JOBS = {
-  "* * * * *": ["/api/public/pdv/sync", "/api/internal/fiscal/process"],
-  "*/5 * * * *": ["/api/public/payments/reconcile", "/api/public/menu/review"],
+  "* * * * *": ["/api/public/pdv/sync", "/api/internal/fiscal/process", "/api/public/menu/review"],
+  "*/5 * * * *": ["/api/public/payments/reconcile"],
 };
 
 export default {
