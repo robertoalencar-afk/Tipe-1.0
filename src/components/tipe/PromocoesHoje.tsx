@@ -1,20 +1,19 @@
 import { Tag } from "lucide-react";
-import {
-  PROMO_KINDS,
-  promoActiveOn,
-  promoHoursLabel,
-  type MenuPromo,
-} from "@/lib/tipe/menu-promos";
+import { hoursLabel, PROMO_KIND_LABELS, PROMO_TODAY } from "@/lib/tipe/menu-i18n";
+import type { MenuLanguage } from "@/lib/tipe/menu-intelligence";
+import { promoActiveOn, promoHoursLabel, type MenuPromo } from "@/lib/tipe/menu-promos";
 
 /** Promoções que valem hoje, com a regra inteira à vista (sem letras miúdas). */
 export function PromocoesHoje({
   promos,
   items,
   onOpen,
+  language = "pt",
 }: {
   promos: Omit<MenuPromo, "why">[];
   items: { code: string; name: string; imageUrl: string | null }[];
   onOpen: (code: string) => void;
+  language?: MenuLanguage;
 }) {
   const now = new Date();
   const today = promos.filter((p) => promoActiveOn(p as MenuPromo, now));
@@ -25,11 +24,11 @@ export function PromocoesHoje({
         id="promos-hoje"
         className="mb-2 flex items-center gap-1.5 font-display text-sm font-bold text-muted-foreground"
       >
-        <Tag className="size-4" aria-hidden /> Promoções de hoje
+        <Tag className="size-4" aria-hidden /> {PROMO_TODAY[language]}
       </h3>
       <ul className="space-y-2">
         {today.map((p) => {
-          const hours = promoHoursLabel(p);
+          const hours = language === "pt" ? promoHoursLabel(p) : hoursLabel(p, language);
           const photo = p.itemCodes
             .map((c) => items.find((i) => i.code === c))
             .find((i) => i?.imageUrl);
@@ -50,7 +49,7 @@ export function PromocoesHoje({
                 )}
                 <span className="min-w-0 flex-1">
                   <span className="text-[10px] font-bold uppercase tracking-wide text-primary">
-                    {PROMO_KINDS[p.kind]}
+                    {PROMO_KIND_LABELS[language][p.kind]}
                     {hours ? ` · ${hours}` : ""}
                   </span>
                   <span className="block font-semibold leading-tight">{p.name}</span>

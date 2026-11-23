@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PromoI18n } from "./menu-i18n";
 
 /**
  * Promoções do cardápio. Regras que o estudo de mercado e o CDC pedem: condição
@@ -30,6 +31,8 @@ export const MenuPromo = z.object({
   enabled: z.boolean(),
   /** Sugerida pela Lebre: motivo para o dono (não aparece para o cliente). */
   why: z.string().trim().max(240).optional(),
+  /** Tradução para o cliente estrangeiro (feita pela Lebre). */
+  i18n: PromoI18n.optional().catch(undefined),
 });
 export const MenuPromos = z.array(MenuPromo).max(20);
 export type MenuPromo = z.infer<typeof MenuPromo>;

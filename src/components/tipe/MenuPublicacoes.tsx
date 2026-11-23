@@ -13,11 +13,21 @@ import {
   postShowsOn,
   type MenuPost,
 } from "@/lib/tipe/menu-posts";
+import { daysLabel, SEE_DISH, TAG_LABELS } from "@/lib/tipe/menu-i18n";
+import type { MenuLanguage } from "@/lib/tipe/menu-intelligence";
 import { useMovimentoReduzido } from "./site/produto/useVisivel";
 type Item = { code: string; name: string; imageUrl: string | null };
-export function PublicationArt({ post, item }: { post: MenuPost; item: Item }) {
+export function PublicationArt({
+  post,
+  item,
+  language = "pt",
+}: {
+  post: MenuPost;
+  item: Item;
+  language?: MenuLanguage;
+}) {
   const paper = post.theme === "paper";
-  const days = postDaysLabel(post.days);
+  const days = language === "pt" ? postDaysLabel(post.days) : daysLabel(post.days, language);
   return (
     <div
       className={`relative isolate flex h-full min-h-60 overflow-hidden rounded-2xl sm:min-h-64 ${paper ? "bg-[#F6F1E7] text-[#021E34]" : "bg-[#021E34] text-white"}`}
@@ -45,7 +55,7 @@ export function PublicationArt({ post, item }: { post: MenuPost; item: Item }) {
               <span
                 className={`rounded-full px-2.5 py-1 ${paper ? "bg-[#021E34] text-white" : "bg-[#2ED3B7] text-[#021E34]"}`}
               >
-                {MENU_POST_TAGS[post.tag]}
+                {TAG_LABELS[language][post.tag]}
               </span>
             )}
             {days && <span className={paper ? "text-[#021E34]/70" : "text-white/80"}>{days}</span>}
@@ -67,7 +77,7 @@ export function PublicationArt({ post, item }: { post: MenuPost; item: Item }) {
           <span
             className={`mt-4 inline-flex items-center gap-1 border-b pb-0.5 text-xs font-semibold ${paper ? "border-[#021E34]/40" : "border-white/50"}`}
           >
-            Ver {item.name} <ChevronRight className="size-3.5" aria-hidden />
+            {SEE_DISH[language]} {item.name} <ChevronRight className="size-3.5" aria-hidden />
           </span>
         </div>
       </div>
@@ -78,10 +88,12 @@ export function MenuPublicationsCarousel({
   posts,
   items,
   onOpen,
+  language = "pt",
 }: {
   posts: MenuPost[];
   items: Item[];
   onOpen: (code: string) => void;
+  language?: MenuLanguage;
 }) {
   const today = new Date().getDay();
   const available = posts.filter(
@@ -139,7 +151,11 @@ export function MenuPublicationsCarousel({
             className="w-full shrink-0 snap-start text-left"
             aria-label={`Ver prato: ${p.title}`}
           >
-            <PublicationArt post={p} item={items.find((i) => i.code === p.itemCode)!} />
+            <PublicationArt
+              post={p}
+              item={items.find((i) => i.code === p.itemCode)!}
+              language={language}
+            />
           </button>
         ))}
       </div>

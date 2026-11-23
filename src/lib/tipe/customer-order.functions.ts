@@ -1,3 +1,4 @@
+import { readCategoryI18n, type CategoryI18n } from "./menu-i18n";
 import { readMenuPosts, type MenuPost } from "./menu-posts";
 import { readMenuPromos, type MenuPromo } from "./menu-promos";
 import type { SupabaseClient } from "@supabase/supabase-js";
@@ -29,7 +30,7 @@ export type PublicMenu = {
   restaurantName: string;
   logoUrl: string | null;
   links?: { instagram: string; reviews: string };
-  categories: { id: string; name: string }[];
+  categories: { id: string; name: string; i18n?: CategoryI18n }[];
   items: {
     id: string;
     categoryId: string | null;
@@ -67,7 +68,7 @@ export const getPublicMenu = createServerFn({ method: "GET" })
     const [cats, items] = await Promise.all([
       supabaseAdmin
         .from("pdv_menu_categories")
-        .select("id, name, position")
+        .select("id, name, position, i18n")
         .eq("restaurant_id", r.id)
         .order("position"),
       supabaseAdmin
@@ -124,7 +125,7 @@ export const getPublicMenu = createServerFn({ method: "GET" })
         hasOrder === true && ((r as { self_order_enabled?: boolean }).self_order_enabled ?? false),
       categories: (cats.data ?? [])
         .filter((c) => (items.data ?? []).some((i) => i.category_id === c.id))
-        .map((c) => ({ id: c.id, name: c.name })),
+        .map((c) => ({ id: c.id, name: c.name, i18n: readCategoryI18n(c.i18n) })),
       items: (items.data ?? []).map((i) => ({
         id: i.id,
         categoryId: i.category_id,
