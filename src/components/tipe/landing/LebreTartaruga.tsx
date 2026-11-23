@@ -14,7 +14,7 @@ export function LebreTartaruga() {
       <div className="container-page">
         <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-end">
           <div className="relative">
-            <MascoteVivo className="absolute -top-16 right-0 w-24 sm:-top-20 sm:w-28 lg:hidden" />
+            <MascoteVivo className="absolute right-0 top-1/2 w-24 -translate-y-1/2 sm:w-28 lg:hidden" />
             <Eyebrow>A lebre e a tartaruga</Eyebrow>
             <LineReveal
               className="mt-4 font-display text-headline font-normal tracking-display"
