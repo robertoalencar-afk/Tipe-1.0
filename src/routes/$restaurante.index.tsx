@@ -1,7 +1,7 @@
 import { MfaGate } from "@/components/tipe/FounderMfaGate";
 import { AreaShell } from "@/components/tipe/AreaShell";
 import { AvisosCelular } from "@/components/tipe/AvisosCelular";
-import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, redirect, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useEffect } from "react";
@@ -17,6 +17,8 @@ import { PainelCarregando } from "@/components/tipe/RestaurantPanel";
 export const Route = createFileRoute("/$restaurante/")({
   ssr: false,
   beforeLoad: async ({ params }) => {
+    // Endereço que não pode ser um restaurante (/wp-login.php, /.env, /xyz.php...) é 404, não login.
+    if (!/^[a-z0-9-]{2,64}$/.test(params.restaurante)) throw notFound();
     if (!(await exigirSessao()))
       throw redirect({ to: "/entrar", search: { r: `/${params.restaurante}` } });
   },

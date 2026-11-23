@@ -233,7 +233,12 @@ export const updateTable = createServerFn({ method: "POST" })
 
 export const editTable = createServerFn({method:"POST"}).middleware([requireSupabaseAuth]).inputValidator(d=>z.object({id:z.string().uuid(),number:z.string().trim().min(1).max(12).optional(),remove:z.boolean().default(false)}).parse(d)).handler(async({data,context})=>{
  const {error}=await context.supabase.rpc("edit_unused_table" as never,{p_id:data.id,p_number:data.number??null,p_delete:data.remove} as never);
- if(error) throw new Error(error.message);
+ if(error){
+  // Só as mensagens de regra de negócio da função chegam ao navegador; o resto fica no log.
+  for(const k of ["Somente o dono","Edite esta mesa no PDV","tem movimentação ou reservas","Desative a mesa antes","Número inválido","já existe"]) if(error.message.includes(k)) throw new Error(error.message);
+  console.error("edit_unused_table", error.message);
+  throw new Error("Não foi possível alterar a mesa");
+ }
  return {ok:true};
 });
 

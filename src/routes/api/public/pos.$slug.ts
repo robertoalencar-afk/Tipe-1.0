@@ -5,6 +5,7 @@ import { z } from "zod";
 // Autenticação: header "x-tipe-key" com a chave gerada em Integrações.
 // POST: o PDV envia pedidos/fechamentos → alimenta a conta da mesa.
 // GET ?since=ISO: o PDV busca os pagamentos feitos pelos clientes na TIPE.
+// Idempotency-Key (recomendado no POST): o mesmo valor reenviado não lança os itens de novo.
 
 const Item = z.object({ code: z.string().trim().min(1).max(32), name: z.string().trim().min(1).max(80), price: z.number().min(0).max(100000), qty: z.number().int().min(1).max(999) });
 const Body = z.discriminatedUnion("event", [
@@ -61,11 +62,20 @@ export const Route = createFileRoute("/api/public/pos/$slug")({
         let body: z.infer<typeof Body>;
         try { body = Body.parse(await request.json()); } catch { return json({ error: "invalid_payload" }, 400); }
         const log = (status: string, detail: string) => a.admin.from("pos_sync_log").insert({ restaurant_id: a.rid, event: body.event, status, detail: detail.slice(0, 200) });
+        const idem = request.headers.get("idempotency-key");
+        if (idem !== null && !/^[A-Za-z0-9_.:-]{8,120}$/.test(idem)) return json({ error: "invalid_idempotency_key" }, 400);
+        const db = a.admin as unknown as { from: (t: string) => any };
+        if (idem) {
+          const { error: dup } = await db.from("pos_idempotency").insert({ restaurant_id: a.rid, key: idem });
+          if (dup?.code === "23505") return json({ ok: true, duplicate: true });
+          if (dup) return json({ error: "internal" }, 500);
+        }
+        const liberarChave = async () => { if (idem) await db.from("pos_idempotency").delete().eq("restaurant_id", a.rid).eq("key", idem); };
         try {
           if (body.event === "order") {
             const { data: t } = await a.admin.from("restaurant_tables").select("id, active").eq("restaurant_id", a.rid).eq("number", body.table).maybeSingle();
             if (!t) await a.admin.from("restaurant_tables").insert({ restaurant_id: a.rid, number: body.table, code: `mesa${body.table.toLowerCase()}` });
-            else if (!t.active) { await log("error", `Mesa ${body.table} desativada`); return json({ error: "table_inactive" }, 409); }
+            else if (!t.active) { await liberarChave(); await log("error", `Mesa ${body.table} desativada`); return json({ error: "table_inactive" }, 409); }
             for (const it of body.items) {
               const { data: ex } = await a.admin.from("table_bill_items").select("id, ordered_quantity").eq("restaurant_slug", a.slug).eq("table_number", body.table).eq("item_code", it.code).maybeSingle();
               if (ex) await a.admin.from("table_bill_items").update({ ordered_quantity: ex.ordered_quantity + it.qty, ordered_at: new Date().toISOString() }).eq("id", ex.id);
@@ -74,17 +84,18 @@ export const Route = createFileRoute("/api/public/pos/$slug")({
             await log("ok", `Mesa ${body.table}: ${body.items.length} item(ns)`);
           } else {
             const { count } = await a.admin.from("table_payment_requests").select("id", { count: "exact", head: true }).eq("restaurant_slug", a.slug).eq("table_number", body.table).eq("status", "pending").eq("payment_target", "restaurant");
-            if (count) { await log("error", `Mesa ${body.table} com pagamento pendente`); return json({ error: "pending_payments" }, 409); }
+            if (count) { await liberarChave(); await log("error", `Mesa ${body.table} com pagamento pendente`); return json({ error: "pending_payments" }, 409); }
             // Gorjeta extra pendente não trava a conta do restaurante.
             await a.admin.from("table_payment_requests").update({ status: "failed" }).eq("restaurant_slug", a.slug).eq("table_number", body.table).eq("status", "pending").eq("payment_target", "tipe");
             const { error: closeErr } = await a.admin.rpc("archive_and_reopen_table", { p_slug: a.slug, p_table: body.table });
-            if (closeErr) { await log("error", `Mesa ${body.table} não encontrada`); return json({ error: "table_not_found" }, 404); }
+            if (closeErr) { await liberarChave(); await log("error", `Mesa ${body.table} não encontrada`); return json({ error: "table_not_found" }, 404); }
             await log("ok", `Mesa ${body.table} fechada`);
           }
           await a.admin.from("pos_integrations").update({ last_sync_at: new Date().toISOString(), status: "connected" }).eq("restaurant_id", a.rid);
           return json({ ok: true });
         } catch (e) {
           console.error("pos webhook", e);
+          await liberarChave();
           await log("error", "Falha interna");
           return json({ error: "internal" }, 500);
         }

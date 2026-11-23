@@ -60,7 +60,6 @@ export const createPayment = createServerFn({ method: "POST" })
     const ok = await verifyTableSession(data.restaurantId, data.tableId, data.session);
     if (!ok) throw new Error("A conta desta mesa foi atualizada. Leia o QR Code da mesa novamente.");
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const id = `tp_${data.idempotencyKey.slice(0, 12)}`;
 
     // Valor derivado no servidor: itens escolhidos (limitados ao disponível)
     // + taxa de serviço; para gorjeta, apenas o valor da gorjeta.
@@ -113,14 +112,14 @@ export const createPayment = createServerFn({ method: "POST" })
     } else {
       if (data.tip <= 0) throw new Error("Informe o valor da gorjeta");
       amount = Math.round(data.tip * 100) / 100;
-      if (data.billPaymentId) {
-        // Teto: a gorjeta extra não passa do valor pago pela conta desta mesa.
-        const { data: conta } = await supabaseAdmin.from("table_payment_requests").select("amount")
-          .eq("id", data.billPaymentId).eq("restaurant_slug", data.restaurantId).eq("table_number", data.tableId)
-          .eq("payment_target", "restaurant").maybeSingle();
-        if (!conta) throw new Error("Pague a conta antes de deixar a gorjeta");
-        if (amount > Number(conta.amount) + 0.005) throw new Error("A gorjeta não pode passar do valor da sua conta");
-      }
+      // Teto: a gorjeta extra não passa do valor pago pela conta desta mesa. O pagamento da
+      // conta é obrigatório (antes, omitir billPaymentId pulava o teto direto pela API).
+      if (!data.billPaymentId) throw new Error("Pague a conta antes de deixar a gorjeta");
+      const { data: conta } = await supabaseAdmin.from("table_payment_requests").select("amount, status")
+        .eq("id", data.billPaymentId).eq("restaurant_slug", data.restaurantId).eq("table_number", data.tableId)
+        .eq("payment_target", "restaurant").maybeSingle();
+      if (!conta || !["approved", "pending"].includes(String(conta.status))) throw new Error("Pague a conta antes de deixar a gorjeta");
+      if (amount > Number(conta.amount) + 0.005) throw new Error("A gorjeta não pode passar do valor da sua conta");
     }
     const cents = Math.round(amount * 100);
 
@@ -165,7 +164,8 @@ export const createPayment = createServerFn({ method: "POST" })
       if (detailError) throw new Error("Não foi possível registrar a forma de pagamento");
       const { avisarPagamento } = await import("./avisos-equipe.server");
       await avisarPagamento(supabaseAdmin, payId);
-      return { id, status: "pending", provider: "estabelecimento" };
+      // Devolve o id real (uuid): a gorjeta extra precisa dele para o teto.
+      return { id: payId, status: "pending", provider: "estabelecimento" };
     }
 
     const { pagarmeEnabled, pagarme, simulatedPaymentsAllowed, isSimulationRestaurant } = await import("./pagarme.server");
