@@ -43,11 +43,12 @@ const securityHeadersMiddleware = createMiddleware().server(async ({ next, reque
     h.set("Cross-Origin-Opener-Policy", "same-origin-allow-popups");
     // geolocation=(self): a fila presencial (/:slug/fila) e o painel pedem a localização uma vez.
     h.set("Permissions-Policy", "camera=(self), microphone=(self), geolocation=(self), payment=(self)");
-    // CSP completa: em teste (Report-Only) até CSP_ENFORCE=true. Ligue primeiro em staging,
-    // confira /api/public/csp-report (security_events, action=csp_violation) e só então em produção.
+    // CSP completa obrigatória (23/11/2026, testada em 19 telas sem violação). Violações seguem
+    // para /api/public/csp-report (security_events, action=csp_violation). Chave de emergência:
+    // segredo CSP_ENFORCE=false no Worker volta para Report-Only sem novo deploy de código.
     const cspCompleta =
-      `default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://connect.facebook.net https://pay.google.com https://applepay.cdn-apple.com https://assets.pagar.me; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: data:; connect-src 'self' blob: https://*.supabase.co wss://*.supabase.co https://api.pagar.me https://*.google-analytics.com https://www.googletagmanager.com https://www.facebook.com; frame-src 'self' https://pay.google.com https://*.pagar.me; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors ${FRAME_ANCESTORS}; report-uri /api/public/csp-report`;
-    if (process.env["CSP_ENFORCE"] === "true") {
+      `default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://www.googletagmanager.com https://connect.facebook.net https://pay.google.com https://applepay.cdn-apple.com https://assets.pagar.me; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' blob: data: https://*.supabase.co; worker-src 'self' blob:; connect-src 'self' blob: https://*.supabase.co wss://*.supabase.co https://api.pagar.me https://*.google-analytics.com https://www.googletagmanager.com https://www.facebook.com; frame-src 'self' https://pay.google.com https://*.pagar.me; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors ${FRAME_ANCESTORS}; report-uri /api/public/csp-report`;
+    if (process.env["CSP_ENFORCE"] !== "false") {
       h.set("Content-Security-Policy", `${cspCompleta}; upgrade-insecure-requests`);
     } else {
       h.set("Content-Security-Policy", `frame-ancestors ${FRAME_ANCESTORS}; object-src 'none'; base-uri 'self'; form-action 'self'`);
