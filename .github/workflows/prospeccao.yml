@@ -1,0 +1,103 @@
+name: Prospecção de restaurantes
+
+# Mapeia restaurantes de uma cidade no OpenStreetMap (dados abertos, sem custo),
+# pontua e grava em crm_prospects para a Central > Comercial > Prospecção.
+# Não envia mensagem nenhuma. Status e cadência de quem já existe são preservados,
+# e quem pediu para não receber (crm_optout) fica de fora.
+on:
+  workflow_dispatch:
+    inputs:
+      cidade:
+        description: Município exatamente como no OpenStreetMap
+        default: Fortaleza
+      uf:
+        description: UF (sigla)
+        default: CE
+      ddd:
+        description: DDD padrão para telefones sem DDD
+        default: "85"
+      gravar:
+        description: Gravar no banco de produção (desmarcado = só gera o CSV)
+        type: boolean
+        default: true
+  schedule:
+    # Segunda, 6h em Fortaleza (9h UTC): atualiza a base de lançamento.
+    - cron: "0 9 * * 1"
+  push:
+    branches-ignore: [main]
+    paths:
+      - scripts/prospeccao/**
+      - src/lib/tipe/prospeccao.ts
+      - .github/workflows/prospeccao.yml
+
+concurrency:
+  group: prospeccao
+  cancel-in-progress: false
+
+jobs:
+  coletar:
+    # Disparo manual e agendado usam o ambiente de produção (DATABASE_URL).
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: producao
+    permissions:
+      contents: read
+    env:
+      CIDADE: ${{ inputs.cidade || 'Fortaleza' }}
+      UF: ${{ inputs.uf || 'CE' }}
+      DDD: ${{ inputs.ddd || '85' }}
+      GRAVAR: ${{ (github.event_name == 'schedule' || (github.event_name == 'workflow_dispatch' && inputs.gravar)) && '1' || '0' }}
+      SAIDA: prospeccao-saida
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Testes do motor de prospecção
+        run: bunx vitest run src/lib/tipe/prospeccao.test.ts
+      - name: Coletar e pontuar
+        env:
+          DATABASE_URL: ${{ env.GRAVAR == '1' && secrets.DATABASE_URL || '' }}
+        run: bun scripts/prospeccao/coletar-osm.ts
+      - name: Resumo
+        if: always()
+        run: |
+          f=$(ls $SAIDA/*-resumo.json 2>/dev/null | head -1)
+          [ -n "$f" ] || exit 0
+          {
+            echo "### Prospecção: $CIDADE/$UF"
+            echo '```json'; cat "$f"; echo; echo '```'
+            echo "Gravado no banco: $([ "$GRAVAR" = 1 ] && echo sim || echo não)"
+          } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: prospeccao-${{ env.CIDADE }}-${{ github.run_number }}
+          path: prospeccao-saida/
+          retention-days: 30
+          if-no-files-found: ignore
+
+  # Push em branch: só valida a coleta (sem banco, sem segredos) e guarda o CSV.
+  validar:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    env:
+      CIDADE: Fortaleza
+      UF: CE
+      DDD: "85"
+      SAIDA: prospeccao-saida
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - run: bunx vitest run src/lib/tipe/prospeccao.test.ts
+      - run: bun scripts/prospeccao/coletar-osm.ts
+      - run: cat prospeccao-saida/*-resumo.json >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: prospeccao-validacao-${{ github.run_number }}
+          path: prospeccao-saida/
+          retention-days: 7

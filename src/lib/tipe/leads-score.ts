@@ -44,4 +44,4 @@ export const CLOSE_TIMES: Record<string, string> = { ate_5: "Até 5 min", "5_10"
 export const QUEUES: Record<string, string> = { sempre: "Sempre", as_vezes: "Às vezes", raramente: "Raramente" };
 export const PAINS: Record<string, string> = { demora: "Demora para fechar a conta", divisao: "Divisão da conta", maquininha: "Falta de maquininha", sobrecarga: "Garçons sobrecarregados", erros: "Erros na conta", outro: "Outro" };
 export const PAGARME: Record<string, string> = { sim: "Sim", nao: "Não", nao_sei: "Não sei" };
-export const SOURCES: Record<string, string> = { instagram: "Instagram", indicacao: "Indicação", google: "Google", visita: "Visita da equipe", evento: "Evento", outro: "Outro" };
+export const SOURCES: Record<string, string> = { instagram: "Instagram", indicacao: "Indicação", google: "Google", visita: "Visita da equipe", evento: "Evento", prospeccao: "Prospecção ativa", outro: "Outro" };
