@@ -1,6 +1,6 @@
 // Helpers de segurança executados apenas no servidor (usam o cliente administrativo).
 // Toda operação com supabaseAdmin ignora RLS: a autorização precisa ser feita aqui.
-import { getRequestHeader } from "@tanstack/react-start/server";
+import { getRequestHeader, setResponseHeader, setResponseStatus } from "@tanstack/react-start/server";
 
 async function admin() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -28,9 +28,21 @@ export async function rateLimit(key: string, max: number, windowSeconds: number)
   return data !== false;
 }
 
+/**
+ * Limite para ações de usuário (login de equipe, pagamento, senha, 2FA, Lebre...).
+ * Diferente de rateLimit, falha FECHADA: sem resposta do contador, a ação é recusada.
+ * Responde HTTP 429 com Retry-After (antes o erro saía como 500).
+ */
 export async function enforceRate(key: string, max: number, windowSeconds: number, slug?: string) {
-  if (await rateLimit(key, max, windowSeconds)) return;
-  await logSecurityEvent({ action: "rate_limited", resource: key.split(":")[0] ?? "unknown", result: "denied", restaurantSlug: slug });
+  const db = await admin();
+  const { data, error } = await db.rpc("rate_limit_hit" as never, { p_key: key, p_max: max, p_window_seconds: windowSeconds } as never);
+  if (!error && data !== false) return;
+  if (error) console.error("rate_limit (fail-closed)", error.message);
+  else await logSecurityEvent({ action: "rate_limited", resource: key.split(":")[0] ?? "unknown", result: "denied", restaurantSlug: slug });
+  try {
+    setResponseStatus(429);
+    setResponseHeader("Retry-After", String(windowSeconds));
+  } catch { /* fora de uma requisição (testes): só o erro */ }
   throw new RateLimitError();
 }
 

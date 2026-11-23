@@ -46,6 +46,10 @@ function Entrar() {
         email: email.trim(),
         password,
       });
+      if (e?.status === 429) {
+        setError("Muitas tentativas de login. Aguarde alguns minutos e tente de novo.");
+        return;
+      }
       if (e) {
         setError(r.error);
         return;

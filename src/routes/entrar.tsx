@@ -99,6 +99,7 @@ function Entrar() {
     try {
       if (modo === "entrar") {
         const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
+        if (error?.status === 429) throw new Error("Muitas tentativas de login. Aguarde alguns minutos e tente de novo.");
         if (error) {
           setErrou(true);
           window.setTimeout(() => setErrou(false), 2500);
