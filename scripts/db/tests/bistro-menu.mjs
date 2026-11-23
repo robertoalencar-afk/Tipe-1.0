@@ -73,4 +73,17 @@ for(const i of tr){const c=i.menu_config;assert.equal(c.translationSource,JSON.s
   for(const l of ['en','es'])assert.ok(c.translations?.[l]?.name&&(!i.description||c.translations[l].description),`${l} de ${i.code}`);}
 const st=(await db.query(`select enabled,auto_translate,languages from menu_assistant`)).rows;
 assert.equal(st.length,1,'só o Bistrô');assert.deepEqual(st[0],{enabled:true,auto_translate:true,languages:['pt','en','es']});
+await db.exec(`do $r$ begin if not exists (select 1 from pg_roles where rolname='anon') then create role anon; create role authenticated; create role service_role; end if; end $r$`);
+await db.exec(await readFile(new URL('../../../drizzle/migrations/0092_cardapio_traducao_categorias_banners.sql',import.meta.url),'utf8'));
+const B="restaurant_id='11111111-1111-4111-8111-111111111111'";
+const cs=(await db.query(`select name,i18n from pdv_menu_categories where ${B}`)).rows;
+assert.equal(cs.length,14);for(const c of cs)assert.ok(c.i18n.src===c.name&&c.i18n.en&&c.i18n.es,`categoria ${c.name} traduzida`);
+const rr=(await db.query(`select menu_posts,menu_promos from restaurants where slug='bistro-teste'`)).rows[0];
+assert.equal(rr.menu_posts.length,7);for(const p of rr.menu_posts){assert.equal(p.i18n.src,JSON.stringify([p.title,p.caption]),`fonte do banner ${p.title}`);assert.ok(p.i18n.en.title&&p.i18n.es.caption);}
+assert.equal(rr.menu_promos.length,7);for(const p of rr.menu_promos){assert.equal(p.i18n.src,JSON.stringify([p.name,p.rule]),`fonte da promoção ${p.name}`);assert.ok(p.i18n.en.rule&&p.i18n.es.name);}
+assert.equal((await db.query(`select count(*)::int n from pdv_menu_categories where i18n<>'{}'::jsonb and not (${B})`)).rows[0].n,0,'outras empresas intactas');
+const cid=(await db.query(`select id from pdv_menu_categories where ${B} and name='Kids'`)).rows[0].id;
+const ok=(await db.query(`select publish_menu_extras_i18n('11111111-1111-4111-8111-111111111111',array['pt','en','es'],$1::jsonb,'[]'::jsonb,'[]'::jsonb,'[]'::jsonb,'[]'::jsonb) ok`,[JSON.stringify([{id:cid,name:'Kids',i18n:{src:'Kids',en:'Children',es:'Niños'}}])])).rows[0].ok;
+assert.equal(ok,true);assert.equal((await db.query(`select i18n->>'en' en from pdv_menu_categories where id=$1`,[cid])).rows[0].en,'Children','categoria publicada');
+assert.equal((await db.query(`select jsonb_array_length(menu_posts) n from restaurants where slug='bistro-teste'`)).rows[0].n,7,'banners mudados no meio: não sobrescreve');
 await db.close();console.log('Bistrô menu: curated menu with real branded drinks, every item with photo and 3D depth, full dish sheet (allergens, diets), valid recommendations, other tenants untouched.');

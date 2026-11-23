@@ -8,6 +8,8 @@ const m = vi.hoisted(() => ({
   allowed: true,
   auto: true,
   dishes: [] as Array<Record<string, unknown>>,
+  cats: [] as Array<Record<string, unknown>>,
+  posts: [] as unknown[],
 }));
 vi.mock("./ai.server", () => ({ askAI: m.ai }));
 const rid = "11111111-1111-4111-8111-111111111111";
@@ -40,7 +42,7 @@ vi.mock("@/integrations/supabase/client.server", () => ({
             data: update
               ? []
               : table === "restaurants"
-                ? { slug: "bistro-teste" }
+                ? { slug: "bistro-teste", menu_posts: m.posts, menu_promos: [] }
                 : table === "menu_assistant"
                   ? {
                       enabled: true,
@@ -50,7 +52,9 @@ vi.mock("@/integrations/supabase/client.server", () => ({
                     }
                   : table === "pdv_menu_items"
                     ? m.dishes
-                    : [],
+                    : table === "pdv_menu_categories"
+                      ? m.cats
+                      : [],
             error: null,
           }),
       };
@@ -66,6 +70,8 @@ beforeEach(() => {
   m.allowed = true;
   m.auto = true;
   m.dishes = [dish];
+  m.cats = [];
+  m.posts = [];
   m.rpc.mockImplementation(async (name: string) => ({
     data:
       name === "claim_menu_assistant"
@@ -226,6 +232,46 @@ describe("Lebre acompanha o cardápio", () => {
       .value as { suggestions: unknown[] };
     expect(saved.suggestions).toHaveLength(1);
     expect(m.updates.every((u) => u.table === "menu_assistant")).toBe(true);
+    expect(m.rpc.mock.calls.some(([name]) => name === "publish_menu_translation")).toBe(false);
+  });
+  it("translates categories and banners once the dishes are done, with the source text", async () => {
+    const translated = {
+      ...dish,
+      menu_config: {
+        translations: { en: { name: "Juice", description: "Cashew" } },
+        translationSource: menuSource(dish),
+      },
+    };
+    m.dishes = [translated];
+    const cat = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+    const post = {
+      id: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+      title: "Terça do camarão",
+      caption: "Camarão em dobro.",
+      itemCode: "SUC",
+      theme: "photo",
+      enabled: true,
+    };
+    m.cats = [{ id: cat, name: "Entradas", i18n: {} }];
+    m.posts = [post];
+    m.ai
+      .mockResolvedValueOnce(
+        JSON.stringify({
+          categories: [{ id: cat, en: "Starters" }],
+          posts: [{ id: post.id, en: { title: "Shrimp Tuesday", caption: "Double shrimp." } }],
+          promos: [],
+        }),
+      )
+      .mockResolvedValueOnce('{"suggestions":[]}');
+    await runMenuAssistant(rid);
+    const call = m.rpc.mock.calls.find(([name]) => name === "publish_menu_extras_i18n")!;
+    expect(call[1].p_categories).toEqual([
+      { id: cat, name: "Entradas", i18n: { src: "Entradas", en: "Starters" } },
+    ]);
+    expect(call[1].p_posts[0].i18n).toEqual({
+      src: JSON.stringify(["Terça do camarão", "Camarão em dobro."]),
+      en: { title: "Shrimp Tuesday", caption: "Double shrimp." },
+    });
     expect(m.rpc.mock.calls.some(([name]) => name === "publish_menu_translation")).toBe(false);
   });
 });

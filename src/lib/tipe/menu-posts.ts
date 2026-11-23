@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PostI18n } from "./menu-i18n";
 export const MENU_POST_TAGS = {
   promo: "Promoção",
   novo: "Novo no cardápio",
@@ -17,6 +18,8 @@ export const MenuPost = z.object({
   tag: z.enum(["promo", "novo", "evento"]).optional(),
   /** Dias da semana em que aparece (0 = domingo). Vazio ou ausente: todos os dias. */
   days: z.array(z.number().int().min(0).max(6)).max(7).optional(),
+  /** Tradução para o cliente estrangeiro (feita pela Lebre). */
+  i18n: PostI18n.optional().catch(undefined),
 });
 export const MenuPosts = z.array(MenuPost).max(8);
 export type MenuPost = z.infer<typeof MenuPost>;

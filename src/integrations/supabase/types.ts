@@ -533,6 +533,7 @@ export type Database = {
       pdv_menu_categories: {
         Row: {
           created_at: string
+          i18n: Json
           id: string
           name: string
           position: number
@@ -540,6 +541,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          i18n?: Json
           id?: string
           name: string
           position?: number
@@ -547,6 +549,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          i18n?: Json
           id?: string
           name?: string
           position?: number

@@ -1,3 +1,4 @@
+import { localizedCategory, localizedPost, localizedPromo } from "@/lib/tipe/menu-i18n";
 import { MenuPublicationsCarousel } from "./MenuPublicacoes";
 import lebreAvatar from "@/assets/lebre/avatar-feliz.webp";
 import { PromocoesHoje } from "./PromocoesHoje";
@@ -29,6 +30,8 @@ import { hasConsent } from "@/lib/tipe/consent";
 const copy = {
   pt: {
     search: "Buscar pratos, ingredientes ou categorias",
+    tapFull: "Toque para ver em tela cheia",
+    menu: "Cardápio",
     all: "Tudo",
     featured: "Destaques da casa",
     lebre: "A Lebre indica",
@@ -49,6 +52,8 @@ const copy = {
   },
   en: {
     search: "Search dishes, ingredients or categories",
+    tapFull: "Tap to view full screen",
+    menu: "Menu",
     all: "All",
     featured: "House highlights",
     lebre: "Lebre recommends",
@@ -69,6 +74,8 @@ const copy = {
   },
   es: {
     search: "Buscar platos, ingredientes o categorías",
+    tapFull: "Toca para ver en pantalla completa",
+    menu: "Menú",
     all: "Todo",
     featured: "Destacados de la casa",
     lebre: "La Lebre recomienda",
@@ -326,12 +333,13 @@ export function MesaPedido({
     setCarrinho((x) => ({ ...x, [c]: Math.max(0, Math.min(99, (x[c] ?? 0) + d)) }));
   };
   const displayItems = menu.items.map((i) => translatedItem(i, language));
+  const categories = menu.categories.map((c) => localizedCategory(c, language));
   const itens = filterMenu(
     displayItems,
     busca,
     cat,
     diet,
-    (id) => menu.categories.find((c) => c.id === id)?.name ?? "",
+    (id) => categories.find((c) => c.id === id)?.name ?? "",
   );
   const pinned = !cat && !busca;
   const hasLebre = pinned && itens.some((i) => i.config?.lebrePick);
@@ -340,7 +348,7 @@ export function MesaPedido({
   const groups = [
     ...(hasLebre ? [{ id: "__lebre", name: labels.lebre }] : []),
     ...(hasHighlights ? [{ id: "__featured", name: labels.featured }] : []),
-    ...menu.categories,
+    ...categories,
     { id: "__other", name: labels.other },
   ];
 
@@ -351,7 +359,7 @@ export function MesaPedido({
       code: i.code,
       nome: i.name,
       preco: Math.round(i.price * 100),
-      cat: menu.categories.find((c) => c.id === i.categoryId)?.name ?? "Cardápio",
+      cat: categories.find((c) => c.id === i.categoryId)?.name ?? labels.menu,
       ...(i.description ? { desc: i.description } : {}),
       ...(i.imageUrl ? { foto: i.imageUrl } : {}),
       ...(i.depthUrl ? { profundidade: i.depthUrl } : {}),
@@ -478,10 +486,18 @@ export function MesaPedido({
           )}
         </div>
       </div>
-      <MenuPublicationsCarousel posts={menu.posts ?? []} items={displayItems} onOpen={setStory} />
-      {language === "pt" && (
-        <PromocoesHoje promos={menu.promos ?? []} items={displayItems} onOpen={setStory} />
-      )}
+      <MenuPublicationsCarousel
+        posts={(menu.posts ?? []).map((p) => localizedPost(p, language))}
+        items={displayItems}
+        onOpen={setStory}
+        language={language}
+      />
+      <PromocoesHoje
+        promos={(menu.promos ?? []).flatMap((p) => localizedPromo(p, language) ?? [])}
+        items={displayItems}
+        onOpen={setStory}
+        language={language}
+      />
       <label className="flex items-center gap-2 rounded-xl border border-input bg-card px-3">
         <Search className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
         <span className="sr-only">{labels.search}</span>
@@ -516,7 +532,7 @@ export function MesaPedido({
           <div className="mt-3">
             <AneisCategorias
               itens={itensStory}
-              categorias={menu.categories
+              categorias={categories
                 .filter((c) => itensStory.some((i) => i.cat === c.name && i.foto))
                 .map((c) => c.name)}
               abrir={(c) => setStory(itensStory.find((i) => i.cat === c && i.foto)?.code ?? null)}
@@ -528,7 +544,7 @@ export function MesaPedido({
         <Chip on={!cat} onClick={() => setCat("")}>
           {labels.all}
         </Chip>
-        {menu.categories.map((c) => (
+        {categories.map((c) => (
           <Chip key={c.id} on={cat === c.id} onClick={() => setCat(c.id)}>
             {c.name}
           </Chip>
@@ -544,7 +560,7 @@ export function MesaPedido({
               : c.id === "__featured"
                 ? i.config?.featured && !isLebre(i)
                 : (c.id === "__other"
-                    ? !menu.categories.some((cat) => cat.id === i.categoryId)
+                    ? !categories.some((cat) => cat.id === i.categoryId)
                     : i.categoryId === c.id) &&
                   !(hasHighlights && i.config?.featured) &&
                   !isLebre(i),
@@ -553,7 +569,7 @@ export function MesaPedido({
           return (
             <section key={c.id}>
               {c.id === "__lebre" ? (
-                <h3 className="mb-2 flex items-center gap-2 font-display text-sm font-bold text-[#021E34] dark:text-[#2ED3B7]">
+                <h3 className="mb-2 flex items-center gap-2 font-display text-sm font-bold text-foreground [@media(prefers-color-scheme:dark)]:text-[#2ED3B7]">
                   <img src={lebreAvatar} alt="" className="size-6 rounded-full bg-[#2ED3B7]/20" />
                   {c.name}
                 </h3>
@@ -610,7 +626,7 @@ export function MesaPedido({
                             </span>
                           )}
                           <span className="absolute bottom-2.5 left-3 text-[11px] font-medium text-white/90">
-                            Toque para ver em tela cheia
+                            {labels.tapFull}
                           </span>
                         </button>
                       )}
@@ -825,7 +841,7 @@ export function MesaPedido({
           <Suspense fallback={null}>
             <StoryCardapio
               itens={itensStory}
-              categorias={menu.categories.map((c) => c.name)}
+              categorias={categories.map((c) => c.name)}
               inicio={story}
               restaurante={menu.restaurantName}
               carrinho={carrinho}
