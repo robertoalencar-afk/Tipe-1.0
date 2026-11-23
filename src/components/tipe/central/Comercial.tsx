@@ -13,9 +13,10 @@ import {
 import { leadScore, ROLE_LABEL, SOURCES } from "@/lib/tipe/leads-score";
 import { duracaoCurta } from "@/lib/tipe/leads-desempenho";
 import type { SecaoCentral } from "@/routes/_authenticated/central";
+import { Prospeccao } from "./Prospeccao";
 
 type Props = { aba?: string | undefined; id?: string | undefined; ir: (s: SecaoCentral, aba?: string, id?: string) => void };
-const ABAS = [["painel", "Desempenho"], ["funil", "Funil"], ["leads", "Leads"], ["tarefas", "Tarefas"], ["etapas", "Etapas"]] as const;
+const ABAS = [["painel", "Desempenho"], ["prospeccao", "Prospecção"], ["funil", "Funil"], ["leads", "Leads"], ["tarefas", "Tarefas"], ["etapas", "Etapas"]] as const;
 type Aba = (typeof ABAS)[number][0];
 
 const KIND_TONE: Record<string, Tone> = { open: "brand", won: "success", lost: "error" };
@@ -32,11 +33,12 @@ export function Comercial({ aba, id, ir }: Props) {
     <div className="space-y-5">
       <Segmentado label="Seção do comercial" value={atual} onChange={(a) => ir("comercial", a)} options={ABAS} />
       {atual === "painel" && <Desempenho abrir={abrir} />}
+      {atual === "prospeccao" && <Prospeccao id={id} abrir={abrir} fechar={fechar} abrirLead={(leadId) => ir("comercial", "leads", leadId)} />}
       {atual === "funil" && <Funil d={d} abrir={abrir} />}
       {atual === "leads" && <Leads d={d} abrir={abrir} />}
       {atual === "tarefas" && <Tarefas d={d} abrir={abrir} />}
       {atual === "etapas" && <Etapas d={d} />}
-      {id && <Ficha leadId={id} d={d} onFechar={fechar} />}
+      {id && atual !== "prospeccao" && <Ficha leadId={id} d={d} onFechar={fechar} />}
     </div>
   );
 }
