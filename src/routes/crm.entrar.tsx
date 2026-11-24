@@ -4,7 +4,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, KeyRound } from "lucide-react";
 import { CrmLogo } from "@/components/tipe/crm/eco";
 import { Btn, Field, TextInput } from "@/components/tipe/crm/ui";
-import { useTurnstile } from "@/components/tipe/Turnstile";
+import { MSG_CAPTCHA_FALHOU, ehErroCaptcha, useTurnstile } from "@/components/tipe/Turnstile";
 import { DEMO_ACCOUNTS, DEMO_PASSWORD } from "@/lib/tipe/crm/seed";
 import { runCommand, useCrmState } from "@/lib/tipe/crm/store";
 
@@ -52,6 +52,10 @@ function Entrar() {
       captcha.reset();
       if (e?.status === 429) {
         setError("Muitas tentativas de login. Aguarde alguns minutos e tente de novo.");
+        return;
+      }
+      if (ehErroCaptcha(e)) {
+        setError(MSG_CAPTCHA_FALHOU);
         return;
       }
       if (e) {
