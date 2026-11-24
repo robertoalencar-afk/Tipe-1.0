@@ -15,6 +15,7 @@ import { PLANS, SHOW_PLAN_PRICES, priceLabel, type PlanId } from "@/lib/tipe/pla
 import { signupRestaurant } from "@/lib/tipe/subscription.functions";
 import { recordLegalAcceptance } from "@/lib/tipe/legal.functions";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useTurnstile } from "@/components/tipe/Turnstile";
 
 export const Route = createFileRoute("/cadastro")({
   ssr: false,
@@ -103,6 +104,7 @@ function Cadastro() {
   const [conta, setConta] = useState({ email: "", senha: "", senha2: "" });
   const [aguardandoEmail, setAguardandoEmail] = useState(false);
   const [enviando, setEnviando] = useState(false);
+  const captcha = useTurnstile();
   const tentou = useRef(false);
 
   async function criarRestaurante(d: Dados) {
@@ -168,6 +170,7 @@ function Cadastro() {
         options: {
           emailRedirectTo: `${window.location.origin}/cadastro`,
           data: { name: f.displayName },
+          ...captcha.opcoes,
         },
       });
       if (error)
@@ -183,6 +186,7 @@ function Cadastro() {
     } catch (err) {
       toast.error((err as Error).message);
     } finally {
+      captcha.reset();
       setEnviando(false);
     }
   }
@@ -443,7 +447,8 @@ function Cadastro() {
               . Nenhuma cobrança durante o teste.
             </label>
           </div>
-          <Button type="submit" className="w-full" size="lg" disabled={enviando || logado === null}>
+          {!logado && captcha.elemento}
+          <Button type="submit" className="w-full" size="lg" disabled={enviando || logado === null || (!logado && captcha.pendente)}>
             {enviando ? "Cadastrando…" : `Cadastrar restaurante`}
           </Button>
         </form>

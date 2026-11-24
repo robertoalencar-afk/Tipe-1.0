@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MfaGate } from "@/components/tipe/FounderMfaGate";
 import { SenhaForteInput } from "@/components/tipe/SenhaForte";
+import { useTurnstile } from "@/components/tipe/Turnstile";
 import { caminhoRetornoSeguro } from "@/lib/tipe/retorno";
 import { avaliarSenha, mensagemErroSenha } from "@/lib/tipe/senha";
 
@@ -77,6 +78,7 @@ function Entrar() {
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [carregando, setCarregando] = useState(false);
+  const captcha = useTurnstile();
   const [virado, setVirado] = useState(false);
   const [focoSenha, setFocoSenha] = useState(false);
   const [entrando, setEntrando] = useState(false);
@@ -98,7 +100,7 @@ function Entrar() {
     setCarregando(true);
     try {
       if (modo === "entrar") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password: senha });
+        const { error } = await supabase.auth.signInWithPassword({ email, password: senha, options: captcha.opcoes });
         if (error?.status === 429) throw new Error("Muitas tentativas de login. Aguarde alguns minutos e tente de novo.");
         if (error) {
           setErrou(true);
@@ -112,7 +114,7 @@ function Entrar() {
         const { error } = await supabase.auth.signUp({
           email,
           password: senha,
-          options: { emailRedirectTo: `${window.location.origin}${r ?? "/painel"}` },
+          options: { emailRedirectTo: `${window.location.origin}${r ?? "/painel"}`, ...captcha.opcoes },
         });
         if (error)
           throw new Error(mensagemErroSenha(error.message) ?? "Não foi possível criar a conta");
@@ -122,6 +124,7 @@ function Entrar() {
     } catch (err) {
       toast.error((err as Error).message);
     } finally {
+      captcha.reset();
       setCarregando(false);
     }
   }
@@ -218,7 +221,8 @@ function Entrar() {
             />
           )}
         </div>
-        <Button type="submit" size="lg" className="w-full" disabled={carregando || entrando}>
+        {captcha.elemento}
+        <Button type="submit" size="lg" className="w-full" disabled={carregando || entrando || captcha.pendente}>
           {entrando
             ? "Entrando…"
             : carregando

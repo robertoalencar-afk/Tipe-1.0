@@ -4,6 +4,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, KeyRound } from "lucide-react";
 import { CrmLogo } from "@/components/tipe/crm/eco";
 import { Btn, Field, TextInput } from "@/components/tipe/crm/ui";
+import { useTurnstile } from "@/components/tipe/Turnstile";
 import { DEMO_ACCOUNTS, DEMO_PASSWORD } from "@/lib/tipe/crm/seed";
 import { runCommand, useCrmState } from "@/lib/tipe/crm/store";
 
@@ -23,6 +24,7 @@ function Entrar() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [touched, setTouched] = useState(false);
+  const captcha = useTurnstile();
   const emailError =
     touched && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())
       ? "Digite o e-mail completo, por exemplo helena@tipe.demo."
@@ -45,7 +47,9 @@ function Entrar() {
       const { error: e } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
+        options: captcha.opcoes,
       });
+      captcha.reset();
       if (e?.status === 429) {
         setError("Muitas tentativas de login. Aguarde alguns minutos e tente de novo.");
         return;
@@ -119,6 +123,7 @@ function Entrar() {
                 />
               )}
             </Field>
+            {captcha.elemento}
             <Btn type="submit" size="default" className="h-11 w-full" disabled={!s}>
               Entrar no CRM da Tipe
               <ArrowRight className="h-4 w-4" />
