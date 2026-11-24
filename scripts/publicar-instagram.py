@@ -10,9 +10,10 @@ def call(path, params=None, post=False):
         return json.load(r)
     except urllib.error.HTTPError as e:
         print("ERRO", e.code, e.read().decode()); sys.exit(1)
-acc = call("me/accounts", {"fields": "id,name,instagram_business_account"})
-print("Páginas:", json.dumps(acc))
-ig = next((a["instagram_business_account"]["id"] for a in acc.get("data", []) if a.get("instagram_business_account")), None)
+PAGE = "1445302748676142"
+pg = call(PAGE, {"fields": "id,name,instagram_business_account,connected_instagram_account"})
+print("Página:", json.dumps(pg))
+ig = (pg.get("instagram_business_account") or pg.get("connected_instagram_account") or {}).get("id")
 if not ig:
     print("Instagram não está ligado à Página Tipe."); sys.exit(1)
 print("IG user id:", ig)
