@@ -97,6 +97,28 @@ describe("deOsm", () => {
   });
 });
 
+describe("whatsapp", () => {
+  it("ignora fixo marcado como WhatsApp e usa celular do telefone", () => {
+    const a = deOsm(
+      el(5, { amenity: "bar", name: "B", "contact:whatsapp": "85 3261-1234" }),
+      "Fortaleza",
+      "CE",
+    )!;
+    expect(a.whatsapp).toBeNull();
+    const b = deOsm(
+      el(6, {
+        amenity: "bar",
+        name: "B",
+        "contact:whatsapp": "85 3261-1234",
+        phone: "85 99876-5432",
+      }),
+      "Fortaleza",
+      "CE",
+    )!;
+    expect(b.whatsapp).toBe("5585998765432");
+  });
+});
+
 describe("score", () => {
   it("restaurante com WhatsApp no polo e jantar fica na faixa A; lanchonete sem contato fica C", () => {
     const [a] = processarOsm(
