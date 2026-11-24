@@ -798,9 +798,10 @@ export const PRODUTOS: Produto[] = [
     altFoto:
       "Casal num restaurante à luz de vela; ela confere a conta no celular, com o QR Code da Tipe na mesa",
     topo: {
-      foto: "cena-casal",
-      posicao: "50% 35%",
-      alt: "Casal à mesa de um restaurante conferindo a reserva no celular",
+      /* Foto própria da Reserva (a mesma do card), para não repetir a cena-casal do topo do Order e do Pay. */
+      foto: "casal",
+      posicao: "50% 40%",
+      alt: "Casal jantando à luz de vela num restaurante cheio, ela conferindo a reserva no celular",
     },
     heroTelas: ["app-descobrir", "app-garantia", "app-confirmada"],
     cenario: {
