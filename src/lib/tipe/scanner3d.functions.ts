@@ -66,6 +66,51 @@ const pastaGiro = (rid: string, scanId: string) => `${rid}/${scanId}/giro`;
 export const caminhoFoto = (rid: string, scanId: string, i: number) =>
   `${pastaGiro(rid, scanId)}/${String(i).padStart(3, "0")}.jpg`;
 
+/**
+ * URLs assinadas em lotes pequenos: o Worker tem limite de subrequisições por chamada (50 no
+ * plano gratuito do Cloudflare), então 60 assinaturas de uma vez quebravam o envio.
+ */
+export const LOTE_URLS = 12;
+
+async function assinar(db: Db, rid: string, scanId: string, inicio: number, fim: number) {
+  return Promise.all(
+    Array.from({ length: fim - inicio }, async (_, k) => {
+      const { data: s, error: e } = await db.storage
+        .from(BUCKET)
+        .createSignedUploadUrl(caminhoFoto(rid, scanId, inicio + k), { upsert: true });
+      if (e || !s) {
+        console.error("scanner: falha ao assinar envio", e?.message ?? e);
+        throw new Error("Não foi possível preparar o envio das fotos");
+      }
+      return s.signedUrl as string;
+    }),
+  );
+}
+
+export const urlsDeEnvio = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) =>
+    z
+      .object({
+        slug: Slug,
+        scanId: Id,
+        inicio: z
+          .number()
+          .int()
+          .min(0)
+          .max(MAX_FOTOS - 1),
+      })
+      .parse(d),
+  )
+  .handler(async ({ data, context }) => {
+    const { rid, db } = await comoDono(context, data.slug);
+    const scan = await scanDoRestaurante(db, rid, data.scanId);
+    if (scan.status !== "enviando") throw new Error("Este envio já foi encerrado");
+    const fim = Math.min(scan.total_fotos, data.inicio + LOTE_URLS);
+    if (data.inicio >= fim) return { urls: [] as string[] };
+    return { urls: await assinar(db, rid, scan.id, data.inicio, fim) };
+  });
+
 export const iniciarScan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) =>
@@ -82,13 +127,20 @@ export const iniciarScan = createServerFn({ method: "POST" })
       .eq("restaurant_id", rid)
       .maybeSingle();
     if (!item) throw new Error("Prato não encontrado");
+    // Envio que ficou pela metade há mais de 30 min (app fechado, internet caiu) não trava a fila.
+    await db
+      .from("menu_item_scans")
+      .update({ status: "descartado", atualizado_em: new Date().toISOString() })
+      .eq("restaurant_id", rid)
+      .eq("status", "enviando")
+      .lt("criado_em", new Date(Date.now() - 30 * 60_000).toISOString());
     const { count } = await db
       .from("menu_item_scans")
       .select("id", { count: "exact", head: true })
       .eq("restaurant_id", rid)
       .in("status", ["enviando", "na_fila", "processando"]);
     if ((count ?? 0) >= 3)
-      throw new Error("Já há 3 pratos sendo processados. Espere um terminar para enviar outro.");
+      throw new Error("Já há 3 pratos sendo enviados. Espere um terminar para enviar outro.");
     const { data: scan, error } = await db
       .from("menu_item_scans")
       .insert({
@@ -100,16 +152,13 @@ export const iniciarScan = createServerFn({ method: "POST" })
       .select("id")
       .single();
     if (error || !scan) throw new Error("Não foi possível iniciar o escaneamento");
-    const urls = await Promise.all(
-      Array.from({ length: data.total }, async (_, i) => {
-        const { data: s, error: e } = await db.storage
-          .from(BUCKET)
-          .createSignedUploadUrl(caminhoFoto(rid, scan.id, i));
-        if (e || !s) throw new Error("Não foi possível preparar o envio das fotos");
-        return s.signedUrl as string;
-      }),
-    );
-    return { scanId: scan.id as string, urls };
+    try {
+      const urls = await assinar(db, rid, scan.id as string, 0, Math.min(LOTE_URLS, data.total));
+      return { scanId: scan.id as string, urls };
+    } catch (e) {
+      await db.from("menu_item_scans").update({ status: "descartado" }).eq("id", scan.id);
+      throw e;
+    }
   });
 
 export const concluirEnvioScan = createServerFn({ method: "POST" })

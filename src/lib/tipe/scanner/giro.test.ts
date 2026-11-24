@@ -51,3 +51,19 @@ describe("giro 360°", () => {
     expect(recorteGiro(1920, 1080)).toEqual({ sx: 420, sy: 0, lado: 1080, saida: 640 });
   });
 });
+
+describe("URLs de envio em lotes", () => {
+  it("pede um lote por vez e reaproveita", async () => {
+    const { fonteDeUrls } = await import("./captura");
+    const pedidos: number[] = [];
+    const url = fonteDeUrls(["u0", "u1", "u2"], 3, async (inicio) => {
+      pedidos.push(inicio);
+      return [0, 1, 2].map((k) => `u${inicio + k}`);
+    });
+    expect(await url(0)).toBe("u0");
+    expect(await url(2)).toBe("u2"); // já pede o próximo lote
+    expect(await url(4)).toBe("u4");
+    expect(await url(7)).toBe("u7");
+    expect(pedidos).toEqual([3, 6]);
+  });
+});

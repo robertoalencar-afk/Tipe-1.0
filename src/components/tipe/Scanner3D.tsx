@@ -15,11 +15,18 @@ import {
   iniciarScan,
   listarScans,
   publicarScan,
+  urlsDeEnvio,
+  LOTE_URLS,
   MAX_FOTOS,
   MIN_FOTOS,
   type ScanStatus,
 } from "@/lib/tipe/scanner3d.functions";
-import { enviarFotos, prepararFotos, quadrosDoVideo } from "@/lib/tipe/scanner/captura";
+import {
+  enviarFotos,
+  fonteDeUrls,
+  prepararFotos,
+  quadrosDoVideo,
+} from "@/lib/tipe/scanner/captura";
 import { carregarModelViewer } from "@/lib/tipe/model-viewer";
 import { ehGiro } from "@/lib/tipe/scanner/giro";
 import { FundoCamera } from "./FundoCamera";
@@ -94,6 +101,7 @@ export function Scanner3D({ slug, items }: { slug: string; items: Item[] }) {
   const concluir = useServerFn(concluirEnvioScan);
   const publicar = useServerFn(publicarScan);
   const descartar = useServerFn(descartarScan);
+  const maisUrls = useServerFn(urlsDeEnvio);
   const [itemId, setItemId] = useState("");
   const [etapa, setEtapa] = useState<{ texto: string; fracao: number } | null>(null);
   const [aberto, setAberto] = useState<string | null>(null);
@@ -133,7 +141,10 @@ export function Scanner3D({ slug, items }: { slug: string; items: Item[] }) {
           "Muitos quadros saíram tremidos. Grave de novo mais devagar, com o celular firme.",
         );
       const { scanId, urls } = await iniciar({ data: { slug, itemId, total: blobs.length } });
-      await enviarFotos(blobs, urls, progresso);
+      const url = fonteDeUrls(urls, LOTE_URLS, (inicio) =>
+        maisUrls({ data: { slug, scanId, inicio } }).then((r) => r.urls),
+      );
+      await enviarFotos(blobs, url, progresso);
       await concluir({ data: { slug, scanId, inicioVolta2: null } });
       toast.success("Pronto! O giro 360° do prato já está aqui para você aprovar.");
       setAberto(scanId);

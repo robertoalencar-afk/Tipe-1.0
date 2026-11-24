@@ -30,7 +30,7 @@ vi.mock("@/integrations/supabase/client.server", () => ({
   supabaseAdmin: {
     from: (tabela: string) => {
       const chain: Record<string, unknown> = {};
-      for (const k of ["select", "eq", "in", "neq", "order", "limit"]) chain[k] = () => chain;
+      for (const k of ["select", "eq", "in", "neq", "order", "limit", "lt"]) chain[k] = () => chain;
       chain["update"] = (valores: unknown) => {
         m.updates.push({ tabela, valores });
         return chain;

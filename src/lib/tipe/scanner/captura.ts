@@ -187,7 +187,7 @@ export async function enviarUma(url: string, foto: Blob) {
 /** Envia para as URLs assinadas do Supabase Storage, 4 por vez. */
 export async function enviarFotos(
   fotos: Blob[],
-  urls: string[],
+  url: (i: number) => Promise<string>,
   progresso: (texto: string, fracao: number) => void,
 ) {
   let feitas = 0;
@@ -195,9 +195,37 @@ export async function enviarFotos(
   const um = async () => {
     while (proximo < fotos.length) {
       const i = proximo++;
-      await enviarUma(urls[i]!, fotos[i]!);
+      await enviarUma(await url(i), fotos[i]!);
       progresso("Enviando as fotos", ++feitas / fotos.length);
     }
   };
   await Promise.all([um(), um(), um(), um()]);
+}
+
+/**
+ * Entrega a URL assinada de cada foto, pedindo ao servidor um lote por vez (o servidor assina
+ * no máximo `lote` por chamada). Já pede o próximo lote antes de precisar dele.
+ */
+export function fonteDeUrls(
+  primeiras: string[],
+  lote: number,
+  buscar: (inicio: number) => Promise<string[]>,
+) {
+  const lotes = new Map<number, Promise<string[]>>([[0, Promise.resolve(primeiras)]]);
+  const pegarLote = (n: number) => {
+    let p = lotes.get(n);
+    if (!p) {
+      p = buscar(n * lote);
+      p.catch(() => lotes.delete(n));
+      lotes.set(n, p);
+    }
+    return p;
+  };
+  return async (i: number) => {
+    const n = Math.floor(i / lote);
+    if (i % lote >= lote / 2) void pegarLote(n + 1).catch(() => {});
+    const url = (await pegarLote(n))[i % lote];
+    if (!url) throw new Error("Não foi possível preparar o envio das fotos");
+    return url;
+  };
 }
