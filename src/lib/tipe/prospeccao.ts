@@ -147,8 +147,9 @@ export function deOsm(
     t["phone"] ?? t["contact:phone"] ?? t["contact:mobile"] ?? t["mobile"],
     dddPadrao,
   );
+  // WhatsApp só em celular: número fixo marcado como WhatsApp no OSM fica só como telefone.
   const whatsapp =
-    foneBR(t["contact:whatsapp"] ?? t["whatsapp"], dddPadrao) ?? (ehCelular(phone) ? phone : null);
+    [foneBR(t["contact:whatsapp"] ?? t["whatsapp"], dddPadrao), phone].find(ehCelular) ?? null;
   const email = limpa(t["email"] ?? t["contact:email"], 120);
   return {
     source: "osm",
