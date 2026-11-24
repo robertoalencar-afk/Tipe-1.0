@@ -1,7 +1,7 @@
 /**
- * Scanner 3D ao vivo: a câmera abre dentro da Tipe e as fotos são tiradas sozinhas enquanto a
+ * Scanner ao vivo: a câmera abre dentro da Tipe e as fotos são tiradas sozinhas enquanto a
  * pessoa dá a volta no prato (só quadro nítido e de um ângulo novo). Cada foto já sobe na hora,
- * então ao terminar a volta o envio está praticamente pronto. Não há vídeo para ler depois.
+ * então ao terminar a volta o giro 360° do prato fica pronto na mesma hora.
  */
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
@@ -13,11 +13,10 @@ import {
   iniciarScan,
   MIN_FOTOS,
 } from "@/lib/tipe/scanner3d.functions";
-import { canvasJpeg, enviarUma } from "@/lib/tipe/scanner/captura";
+import { enviarUma, quadroGiro } from "@/lib/tipe/scanner/captura";
 import { caber, decidirCaptura, diferenca, nitidez, paraCinza } from "@/lib/tipe/scanner/quadros";
 
 export const ALVO_FOTOS = 60;
-const LADO = 1600;
 
 type Aviso = "" | "tremido" | "parado";
 
@@ -39,6 +38,7 @@ export function CapturaAoVivo({
   const scan = useRef<{ id: string; urls: string[] } | null>(null);
   const envios = useRef<Promise<void>[]>([]);
   const rodando = useRef(true);
+  const inicioVolta2 = useRef<number | null>(null);
   const [estado, setEstado] = useState<"abrindo" | "gravando" | "finalizando" | "erro">("abrindo");
   const [erro, setErro] = useState("");
   const [fotos, setFotos] = useState(0);
@@ -98,11 +98,9 @@ export function CapturaAoVivo({
             recentes.push(nit);
             if (recentes.length > 20) recentes.shift();
             if (d === "capturar") {
-              const g = caber(v.videoWidth, v.videoHeight, LADO);
-              grande.width = g.largura;
-              grande.height = g.altura;
-              grande.getContext("2d")!.drawImage(v, 0, 0, g.largura, g.altura);
+              const jpeg = quadroGiro(v, v.videoWidth, v.videoHeight, grande);
               const i = n++;
+              if (i === ALVO_FOTOS / 2) inicioVolta2.current = i;
               ultimo = cinza;
               ultimaMs = performance.now();
               setFotos(n);
@@ -111,9 +109,7 @@ export function CapturaAoVivo({
               navigator.vibrate?.(8);
               const url = scan.current!.urls[i]!;
               envios.current.push(
-                canvasJpeg(grande)
-                  .then((b) => enviarUma(url, b))
-                  .then(() => setEnviadas((e) => e + 1)),
+                jpeg.then((b) => enviarUma(url, b)).then(() => setEnviadas((e) => e + 1)),
               );
               if (n >= ALVO_FOTOS) void terminar();
             } else if (
@@ -152,10 +148,10 @@ export function CapturaAoVivo({
     setEstado("finalizando");
     try {
       await Promise.all(envios.current);
-      await concluir({ data: { slug, scanId: scan.current!.id } });
-      toast.success(
-        "Pronto! O 3D do prato está sendo montado. Ele aparece aqui para você aprovar.",
-      );
+      await concluir({
+        data: { slug, scanId: scan.current!.id, inicioVolta2: inicioVolta2.current },
+      });
+      toast.success("Pronto! O giro 360° do prato já está aqui para você aprovar.");
       onFechar(true);
     } catch (e) {
       toast.error((e as Error).message);

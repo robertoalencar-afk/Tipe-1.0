@@ -1,5 +1,29 @@
 # Scanner 3D de pratos
 
+## Giro 360° instantâneo (padrão desde 2026-11-24)
+
+Pedido do Roberto: nada que demore 20 a 40 min. O scanner agora publica na hora um **giro 360°
+com as fotos reais** do prato, sem reconstrução:
+
+1. Gestão → Scanner 3D: "Escanear agora" (`CapturaAoVivo.tsx`) tira as fotos sozinho (nítida e de
+   ângulo novo), "Enviar vídeo" ou "Enviar fotos". Cada quadro vira um JPEG quadrado de 640 px,
+   recortado no centro (o prato fica no círculo do visor), em ordem de captura.
+2. Os quadros sobem direto para o bucket público `modelos-3d` em `<restaurante>/<scan>/giro/NNN.jpg`
+   (URLs assinadas de `iniciarScan`).
+3. `concluirEnvioScan` grava `<restaurante>/<scan>/giro.json` (`{versao:1, voltas:[[...],[...]]}`,
+   1ª volta na altura do rosto, 2ª de cima) e marca o scan como "pronto" com `model_url` = giro.json.
+   Leva o tempo do envio, nada mais.
+4. O dono vê o giro no Gestão e publica. No cardápio (`StoryCardapio`), "Girar 360°" abre
+   `GiroPrato.tsx`: arrastar para os lados gira, para baixo mostra a volta de cima (no Android a
+   inclinação do celular também troca), e o prato gira sozinho até o toque.
+
+`ehGiro(url)` (`src/lib/tipe/scanner/giro.ts`) separa giro de modelo `.glb`: modelos antigos
+continuam abrindo no `<model-viewer>`. Migração 0094 libera JPEG e JSON no bucket `modelos-3d`.
+
+## Fotogrametria (desligada do app, referência)
+
+O texto abaixo descreve o caminho antigo, que ainda pode ser rodado à mão pelo workflow.
+
 O restaurante grava o prato de verdade com o celular e a Tipe monta um modelo 3D fotográfico
 (malha com a textura das próprias fotos, mesa incluída) para o cardápio do cliente.
 

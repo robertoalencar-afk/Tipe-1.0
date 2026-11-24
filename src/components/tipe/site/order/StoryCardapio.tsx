@@ -25,6 +25,8 @@ import { Box, Minus, Pause, Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useMovimentoReduzido } from "../produto/useVisivel";
 import { Foto3D } from "./Foto3D";
+import { GiroPrato } from "@/components/tipe/GiroPrato";
+import { ehGiro } from "@/lib/tipe/scanner/giro";
 
 export type ItemStory = {
   code: string;
@@ -164,7 +166,7 @@ export function StoryCardapio({
   }, []);
 
   useEffect(() => {
-    if (!em3d || !item.modelo) return;
+    if (!em3d || !item.modelo || ehGiro(item.modelo)) return;
     setMv((s) => (s === "pronto" ? s : "carregando"));
     carregarModelViewer().then(
       () => setMv("pronto"),
@@ -291,7 +293,14 @@ export function StoryCardapio({
             transition: zooming || reduzido ? "none" : "transform 180ms ease-out",
           }}
         >
-          {em3d && item.modelo ? (
+          {em3d && ehGiro(item.modelo) ? (
+            <GiroPrato
+              src={item.modelo}
+              alt={item.nome}
+              ajuste="cover"
+              className="absolute inset-0"
+            />
+          ) : em3d && item.modelo ? (
             <div className="absolute inset-0">
               <FundoCamera />
               {mv === "pronto" ? (
@@ -436,7 +445,8 @@ export function StoryCardapio({
               aria-pressed={em3d}
               className="inline-flex min-h-8 items-center gap-1 rounded-full border border-white/40 bg-white/10 px-2.5 text-[0.72rem] font-semibold backdrop-blur"
             >
-              <Box className="h-3.5 w-3.5" aria-hidden /> {em3d ? "Ver foto" : "Ver em 3D"}
+              <Box className="h-3.5 w-3.5" aria-hidden />{" "}
+              {em3d ? "Ver foto" : ehGiro(item.modelo) ? "Girar 360°" : "Ver em 3D"}
             </button>
           )}
         </div>
