@@ -1,11 +1,27 @@
 /**
- * Parte do scanner 3D que roda no navegador: tira quadros nítidos de um vídeo, ou prepara fotos
- * soltas, e devolve JPEG de até 1600 px prontos para enviar.
+ * Parte do scanner que roda no navegador: tira quadros nítidos de um vídeo, ou prepara fotos
+ * soltas, e devolve os quadros do giro 360° (JPEG quadrado, prato no centro) prontos para enviar.
  */
 import { caber, nitidez, paraCinza, temposAmostra } from "./quadros";
+import { recorteGiro } from "./giro";
 
-const LADO = 1600;
-const QUALIDADE = 0.9;
+const QUALIDADE = 0.84;
+
+/** Desenha o recorte quadrado central do giro no canvas e devolve o JPEG. */
+export function quadroGiro(
+  fonte: CanvasImageSource,
+  largura: number,
+  altura: number,
+  c: HTMLCanvasElement = document.createElement("canvas"),
+) {
+  const r = recorteGiro(largura, altura);
+  c.width = r.saida;
+  c.height = r.saida;
+  const ctx = c.getContext("2d")!;
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(fonte, r.sx, r.sy, r.lado, r.lado, 0, 0, r.saida, r.saida);
+  return canvasJpeg(c);
+}
 
 export function canvasJpeg(c: HTMLCanvasElement) {
   return new Promise<Blob>((ok, erro) =>
@@ -97,8 +113,8 @@ export function irPara(video: HTMLVideoElement, t: number, ms = 2000) {
 }
 
 /**
- * Uma passada só: para cada instante, pega o quadro em 1600 px e mede a nitidez numa cópia
- * pequena. No fim descarta os tremidos (abaixo de 35% da mediana).
+ * Uma passada só: para cada instante, pega o quadro do giro e mede a nitidez numa cópia
+ * pequena. No fim descarta os tremidos (abaixo de 35% da mediana), mantendo a ordem.
  */
 export async function quadrosDoVideo(
   arquivo: File,
@@ -110,11 +126,7 @@ export async function quadrosDoVideo(
     const dur = video.duration;
     if (!Number.isFinite(dur) || dur < 8)
       throw new Error("O vídeo precisa ter pelo menos 10 segundos dando a volta no prato.");
-    const g = caber(video.videoWidth, video.videoHeight, LADO);
     const grande = document.createElement("canvas");
-    grande.width = g.largura;
-    grande.height = g.altura;
-    const ctxG = grande.getContext("2d")!;
     const p = caber(video.videoWidth, video.videoHeight, 240);
     const peq = document.createElement("canvas");
     peq.width = p.largura;
@@ -124,14 +136,16 @@ export async function quadrosDoVideo(
     const lidos: { blob: Blob; nitidez: number }[] = [];
     for (const [i, t] of tempos.entries()) {
       await irPara(video, t);
-      ctxG.drawImage(video, 0, 0, g.largura, g.altura);
-      ctxP.drawImage(grande, 0, 0, p.largura, p.altura);
+      ctxP.drawImage(video, 0, 0, p.largura, p.altura);
       const n = nitidez(
         paraCinza(ctxP.getImageData(0, 0, p.largura, p.altura).data),
         p.largura,
         p.altura,
       );
-      lidos.push({ blob: await canvasJpeg(grande), nitidez: n });
+      lidos.push({
+        blob: await quadroGiro(video, video.videoWidth, video.videoHeight, grande),
+        nitidez: n,
+      });
       progresso("Lendo os quadros", (i + 1) / tempos.length);
     }
     const ord = lidos.map((l) => l.nitidez).sort((a, b) => a - b);
@@ -149,13 +163,8 @@ export async function prepararFotos(
   const fotos: Blob[] = [];
   for (const [i, f] of arquivos.entries()) {
     const bmp = await createImageBitmap(f, { imageOrientation: "from-image" });
-    const g = caber(bmp.width, bmp.height, LADO);
-    const c = document.createElement("canvas");
-    c.width = g.largura;
-    c.height = g.altura;
-    c.getContext("2d")!.drawImage(bmp, 0, 0, g.largura, g.altura);
+    fotos.push(await quadroGiro(bmp, bmp.width, bmp.height));
     bmp.close();
-    fotos.push(await canvasJpeg(c));
     progresso("Preparando as fotos", (i + 1) / arquivos.length);
   }
   return fotos;

@@ -1,12 +1,10 @@
 name: Scanner 3D
 
-# Monta os modelos 3D dos pratos enviados pelo Gestão (tabela menu_item_scans).
-# O app chama workflow_dispatch quando há fotos novas (secret GITHUB_SCANNER_TOKEN no Worker);
-# sem o token, o agendamento abaixo pega a fila. Cada prato leva ~20-40 min de CPU.
+# Fotogrametria (COLMAP + OpenMVS), desligada do app desde 2026-11-24: o Gestão agora publica o
+# giro 360° instantâneo e não põe mais pratos na fila. Fica só para rodar à mão, se um dia
+# voltar a fazer sentido (cada prato leva ~20-40 min de CPU).
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "17 */6 * * *"
 
 concurrency:
   group: scanner-3d

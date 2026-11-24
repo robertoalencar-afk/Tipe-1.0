@@ -1,13 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- tabela nova ainda fora dos tipos gerados do Supabase */
 /**
- * Scanner 3D de pratos. O navegador separa os quadros nítidos do vídeo (ou as fotos), pede URLs
- * assinadas e envia os JPEG direto ao bucket privado "scans-3d", sem passar pelo Worker.
- * A reconstrução roda no GitHub Actions (scanner-3d.yml, COLMAP + OpenMVS em CPU), que grava o
- * .glb no bucket público "modelos-3d". O modelo só entra no cardápio quando o dono aprova.
+ * Scanner 3D de pratos, com giro 360° instantâneo. O navegador tira os quadros (ao vivo, de um
+ * vídeo ou de fotos), pede URLs assinadas e envia cada JPEG direto ao bucket público
+ * "modelos-3d", sem passar pelo Worker. Ao concluir, o servidor grava a lista dos quadros
+ * (giro.json) e o giro já fica pronto para o dono aprovar. Não há processamento demorado.
  */
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { montarGiro } from "./scanner/giro";
 
 export const MIN_FOTOS = 20;
 export const MAX_FOTOS = 150;
@@ -60,33 +61,10 @@ async function scanDoRestaurante(db: Db, rid: string, scanId: string) {
   };
 }
 
+const BUCKET = "modelos-3d";
+const pastaGiro = (rid: string, scanId: string) => `${rid}/${scanId}/giro`;
 export const caminhoFoto = (rid: string, scanId: string, i: number) =>
-  `${rid}/${scanId}/${String(i).padStart(3, "0")}.jpg`;
-
-/** Acorda o workflow na hora. Sem o token, o agendamento do workflow pega a fila mais tarde. */
-async function acordarProcessamento(): Promise<boolean> {
-  const token = process.env["GITHUB_SCANNER_TOKEN"];
-  const repo = process.env["GITHUB_SCANNER_REPO"] || "robertoalencar-afk/tipe-1.0";
-  if (!token) return false;
-  try {
-    const r = await fetch(
-      `https://api.github.com/repos/${repo}/actions/workflows/scanner-3d.yml/dispatches`,
-      {
-        method: "POST",
-        headers: {
-          authorization: `Bearer ${token}`,
-          accept: "application/vnd.github+json",
-          "user-agent": "tipe-scanner-3d",
-          "content-type": "application/json",
-        },
-        body: JSON.stringify({ ref: "main" }),
-      },
-    );
-    return r.ok;
-  } catch {
-    return false;
-  }
-}
+  `${pastaGiro(rid, scanId)}/${String(i).padStart(3, "0")}.jpg`;
 
 export const iniciarScan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -125,7 +103,7 @@ export const iniciarScan = createServerFn({ method: "POST" })
     const urls = await Promise.all(
       Array.from({ length: data.total }, async (_, i) => {
         const { data: s, error: e } = await db.storage
-          .from("scans-3d")
+          .from(BUCKET)
           .createSignedUploadUrl(caminhoFoto(rid, scan.id, i));
         if (e || !s) throw new Error("Não foi possível preparar o envio das fotos");
         return s.signedUrl as string;
@@ -136,23 +114,61 @@ export const iniciarScan = createServerFn({ method: "POST" })
 
 export const concluirEnvioScan = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ slug: Slug, scanId: Id }).parse(d))
+  .inputValidator((d) =>
+    z
+      .object({
+        slug: Slug,
+        scanId: Id,
+        inicioVolta2: z.number().int().min(0).max(MAX_FOTOS).nullable().optional(),
+      })
+      .parse(d),
+  )
   .handler(async ({ data, context }) => {
     const { rid, db } = await comoDono(context, data.slug);
     const scan = await scanDoRestaurante(db, rid, data.scanId);
-    if (scan.status !== "enviando") return { status: scan.status, imediato: false };
-    const { data: lista } = await db.storage
-      .from("scans-3d")
-      .list(`${rid}/${scan.id}`, { limit: MAX_FOTOS + 1 });
-    const enviadas = (lista ?? []).length;
-    if (enviadas < MIN_FOTOS)
-      throw new Error(`Chegaram só ${enviadas} fotos. São precisas pelo menos ${MIN_FOTOS}.`);
+    if (scan.status !== "enviando") return { status: scan.status };
+    const { data: lista } = await db.storage.from(BUCKET).list(pastaGiro(rid, scan.id), {
+      limit: MAX_FOTOS + 1,
+      sortBy: { column: "name", order: "asc" },
+    });
+    const nomes = ((lista ?? []) as { name: string }[])
+      .map((f) => f.name)
+      .filter((n) => /^\d{3}\.jpg$/.test(n))
+      .sort();
+    if (nomes.length < MIN_FOTOS)
+      throw new Error(`Chegaram só ${nomes.length} fotos. São precisas pelo menos ${MIN_FOTOS}.`);
+    const urls = nomes.map(
+      (n) =>
+        db.storage.from(BUCKET).getPublicUrl(`${pastaGiro(rid, scan.id)}/${n}`).data
+          .publicUrl as string,
+    );
+    // O corte da 2ª volta veio em índice de captura; conta só os quadros que chegaram antes dele.
+    const corte =
+      data.inicioVolta2 == null
+        ? null
+        : nomes.filter((n) => Number(n.slice(0, 3)) < data.inicioVolta2!).length;
+    const caminho = `${rid}/${scan.id}/giro.json`;
+    const { error } = await db.storage
+      .from(BUCKET)
+      .upload(caminho, JSON.stringify(montarGiro(urls, corte)), {
+        contentType: "application/json",
+        upsert: true,
+        cacheControl: "31536000",
+      });
+    if (error) throw new Error("Não foi possível montar o giro do prato");
+    const agora = new Date().toISOString();
     await db
       .from("menu_item_scans")
-      .update({ status: "na_fila", total_fotos: enviadas, atualizado_em: new Date().toISOString() })
+      .update({
+        status: "pronto",
+        total_fotos: nomes.length,
+        model_url: db.storage.from(BUCKET).getPublicUrl(caminho).data.publicUrl,
+        poster_url: urls[0],
+        processado_em: agora,
+        atualizado_em: agora,
+      })
       .eq("id", scan.id);
-    const imediato = await acordarProcessamento();
-    return { status: "na_fila" as ScanStatus, imediato };
+    return { status: "pronto" as ScanStatus };
   });
 
 export const listarScans = createServerFn({ method: "GET" })
@@ -236,10 +252,18 @@ export const descartarScan = createServerFn({ method: "POST" })
       .from("menu_item_scans")
       .update({ status: "descartado", atualizado_em: new Date().toISOString() })
       .eq("id", scan.id);
-    const { data: lista } = await db.storage.from("scans-3d").list(`${rid}/${scan.id}`, {
-      limit: MAX_FOTOS + 1,
-    });
-    const nomes = ((lista ?? []) as { name: string }[]).map((f) => `${rid}/${scan.id}/${f.name}`);
-    if (nomes.length) await db.storage.from("scans-3d").remove(nomes);
+    // Apaga os quadros do giro e, de escaneamentos antigos, as fotos brutas e o modelo.
+    const pastas: [string, string][] = [
+      [BUCKET, pastaGiro(rid, scan.id)],
+      [BUCKET, `${rid}/${scan.id}`],
+      ["scans-3d", `${rid}/${scan.id}`],
+    ];
+    for (const [bucket, pasta] of pastas) {
+      const { data: lista } = await db.storage.from(bucket).list(pasta, { limit: MAX_FOTOS + 10 });
+      const nomes = ((lista ?? []) as { name: string; id: string | null }[])
+        .filter((f) => f.id) // pastas vêm sem id
+        .map((f) => `${pasta}/${f.name}`);
+      if (nomes.length) await db.storage.from(bucket).remove(nomes);
+    }
     return { ok: true };
   });

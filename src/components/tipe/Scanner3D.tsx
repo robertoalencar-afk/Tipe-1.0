@@ -1,7 +1,7 @@
 /**
- * Scanner 3D do Gestão. A equipe grava um vídeo dando duas voltas no prato (ou envia fotos),
- * o celular separa os quadros nítidos e envia. A fotogrametria roda fora do celular e devolve
- * um modelo 3D; o dono vê o resultado aqui e só então publica no cardápio.
+ * Scanner 3D do Gestão. A equipe dá a volta no prato com o celular (ao vivo, vídeo ou fotos) e
+ * as fotos reais viram na hora um giro 360° que o cliente gira com o dedo. O dono vê o resultado
+ * aqui e só então publica no cardápio. Modelos .glb antigos continuam abrindo no visor 3D.
  */
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -21,7 +21,9 @@ import {
 } from "@/lib/tipe/scanner3d.functions";
 import { enviarFotos, prepararFotos, quadrosDoVideo } from "@/lib/tipe/scanner/captura";
 import { carregarModelViewer } from "@/lib/tipe/model-viewer";
+import { ehGiro } from "@/lib/tipe/scanner/giro";
 import { FundoCamera } from "./FundoCamera";
+import { GiroPrato } from "./GiroPrato";
 import { CapturaAoVivo } from "./CapturaAoVivo";
 
 const QUADROS_DO_VIDEO = 60;
@@ -29,7 +31,7 @@ const QUADROS_DO_VIDEO = 60;
 const ROTULO: Record<ScanStatus, string> = {
   enviando: "Envio incompleto",
   na_fila: "Na fila",
-  processando: "Montando o 3D",
+  processando: "Montando",
   pronto: "Pronto para revisar",
   erro: "Não deu certo",
   publicado: "No cardápio",
@@ -48,6 +50,11 @@ const COR: Record<ScanStatus, string> = {
 type Item = { id: string; name: string };
 
 function Visor({ src, nome }: { src: string; nome: string }) {
+  if (ehGiro(src)) return <GiroPrato src={src} alt={nome} className="h-80 rounded-2xl" />;
+  return <VisorModelo src={src} nome={nome} />;
+}
+
+function VisorModelo({ src, nome }: { src: string; nome: string }) {
   const [ok, setOk] = useState(false);
   useEffect(() => {
     carregarModelViewer().then(
@@ -127,12 +134,9 @@ export function Scanner3D({ slug, items }: { slug: string; items: Item[] }) {
         );
       const { scanId, urls } = await iniciar({ data: { slug, itemId, total: blobs.length } });
       await enviarFotos(blobs, urls, progresso);
-      const r = await concluir({ data: { slug, scanId } });
-      toast.success(
-        r.imediato
-          ? "Fotos enviadas. O 3D fica pronto em 20 a 40 minutos."
-          : "Fotos enviadas. O prato entrou na fila e o 3D sai no próximo processamento.",
-      );
+      await concluir({ data: { slug, scanId, inicioVolta2: null } });
+      toast.success("Pronto! O giro 360° do prato já está aqui para você aprovar.");
+      setAberto(scanId);
       await qc.invalidateQueries({ queryKey: ["scanner-3d", slug] });
     } catch (e) {
       toast.error((e as Error).message);
@@ -168,8 +172,8 @@ export function Scanner3D({ slug, items }: { slug: string; items: Item[] }) {
             Scanner 3D
           </h3>
           <p className="text-sm text-muted-foreground">
-            Grave o prato de verdade dando a volta nele. A Tipe monta um modelo 3D com as fotos e
-            você aprova antes de ir para o cardápio.
+            Dê a volta no prato com o celular. As fotos de verdade viram na hora um giro 360° que o
+            cliente gira com o dedo, e você aprova antes de ir para o cardápio.
           </p>
         </div>
       </div>
@@ -181,8 +185,8 @@ export function Scanner3D({ slug, items }: { slug: string; items: Item[] }) {
         </li>
         <li className="rounded-xl bg-muted/50 p-3">
           <strong>2. Toque em Escanear agora.</strong> As fotos saem sozinhas: uma volta na altura
-          do rosto de quem está sentado e outra mais de cima, devagar, com o prato inteiro na tela.
-          Leva 1 minuto.
+          do rosto de quem está sentado e outra mais de cima, devagar, com o prato no círculo. Leva
+          1 minuto e o giro fica pronto na hora.
         </li>
       </ol>
 
@@ -325,7 +329,7 @@ export function Scanner3D({ slug, items }: { slug: string; items: Item[] }) {
                       onClick={() => setAberto(s.id)}
                     >
                       <Box className="mr-2 h-4 w-4" aria-hidden />
-                      Ver o 3D
+                      {ehGiro(s.modelUrl) ? "Ver o giro 360°" : "Ver o 3D"}
                     </Button>
                   )}
                 </>
@@ -335,7 +339,7 @@ export function Scanner3D({ slug, items }: { slug: string; items: Item[] }) {
                   <Button
                     type="button"
                     size="sm"
-                    onClick={() => acao(publicar, s.id, "Modelo 3D publicado no cardápio")}
+                    onClick={() => acao(publicar, s.id, "Publicado no cardápio")}
                   >
                     <Upload className="mr-2 h-4 w-4" aria-hidden />
                     Publicar no cardápio

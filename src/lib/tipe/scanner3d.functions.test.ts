@@ -3,8 +3,9 @@ const m = vi.hoisted(() => ({
   role: vi.fn(),
   scan: null as Record<string, unknown> | null,
   updates: [] as { tabela: string; valores: unknown }[],
-  arquivos: [] as { name: string }[],
+  arquivos: [] as { name: string; id: string | null }[],
   removidos: [] as string[],
+  enviados: [] as { caminho: string; corpo: string }[],
 }));
 vi.mock("@tanstack/react-start", () => ({
   createServerFn: () => {
@@ -39,8 +40,15 @@ vi.mock("@/integrations/supabase/client.server", () => ({
       return chain;
     },
     storage: {
-      from: () => ({
-        list: async () => ({ data: m.arquivos }),
+      from: (bucket: string) => ({
+        list: async (pasta: string) => ({
+          data: bucket === "modelos-3d" && pasta.endsWith("/giro") ? m.arquivos : [],
+        }),
+        upload: async (caminho: string, corpo: string) => {
+          m.enviados.push({ caminho, corpo });
+          return { error: null };
+        },
+        getPublicUrl: (c: string) => ({ data: { publicUrl: `https://cdn/${c}` } }),
         remove: async (n: string[]) => {
           m.removidos.push(...n);
           return {};
@@ -68,7 +76,10 @@ beforeEach(() => {
   m.updates = [];
   m.removidos = [];
   m.arquivos = [];
+  m.enviados = [];
 });
+const quadros = (n: number) =>
+  Array.from({ length: n }, (_, i) => ({ name: `${String(i).padStart(3, "0")}.jpg`, id: `f${i}` }));
 
 it("só o dono mexe no scanner", async () => {
   m.role.mockResolvedValue({ data: false });
@@ -98,24 +109,35 @@ it("publicar grava o modelo no prato e marca o scan", async () => {
 
 it("recusa envio com poucas fotos", async () => {
   m.scan = { ...base, status: "enviando", model_url: null };
-  m.arquivos = Array.from({ length: 5 }, (_, i) => ({ name: `${i}.jpg` }));
+  m.arquivos = quadros(5);
   await expect(
     concluirEnvioScan({ data: { slug: "bistro", scanId }, context: ctx } as never),
   ).rejects.toThrow(/Chegaram só 5 fotos/);
 });
 
-it("envio completo entra na fila", async () => {
+it("envio completo vira giro 360° pronto na hora, com as duas voltas", async () => {
   m.scan = { ...base, status: "enviando", model_url: null };
-  m.arquivos = Array.from({ length: 30 }, (_, i) => ({ name: `${i}.jpg` }));
-  const r = await concluirEnvioScan({ data: { slug: "bistro", scanId }, context: ctx } as never);
-  expect(r).toEqual({ status: "na_fila", imediato: false });
-  expect(m.updates[0]!.valores).toMatchObject({ status: "na_fila", total_fotos: 30 });
+  m.arquivos = quadros(60);
+  const r = await concluirEnvioScan({
+    data: { slug: "bistro", scanId, inicioVolta2: 30 },
+    context: ctx,
+  } as never);
+  expect(r).toEqual({ status: "pronto" });
+  expect(m.enviados[0]!.caminho).toBe(`r1/${scanId}/giro.json`);
+  const giro = JSON.parse(m.enviados[0]!.corpo);
+  expect(giro.voltas.map((v: string[]) => v.length)).toEqual([30, 30]);
+  expect(giro.voltas[0][0]).toBe(`https://cdn/r1/${scanId}/giro/000.jpg`);
+  expect(m.updates[0]!.valores).toMatchObject({
+    status: "pronto",
+    total_fotos: 60,
+    model_url: `https://cdn/r1/${scanId}/giro.json`,
+  });
 });
 
 it("descartar um publicado tira o 3D do prato e apaga as fotos", async () => {
   m.scan = { ...base, status: "publicado", model_url: "https://x/a.glb" };
-  m.arquivos = [{ name: "000.jpg" }];
+  m.arquivos = quadros(1);
   await descartarScan({ data: { slug: "bistro", scanId }, context: ctx } as never);
   expect(m.updates[0]).toEqual({ tabela: "pdv_menu_items", valores: { model_url: null } });
-  expect(m.removidos).toEqual([`r1/${scanId}/000.jpg`]);
+  expect(m.removidos).toEqual([`r1/${scanId}/giro/000.jpg`]);
 });
