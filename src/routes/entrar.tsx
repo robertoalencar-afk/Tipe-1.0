@@ -7,6 +7,7 @@ import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { CartaoConta, TituloCartao, type HumorLebre } from "@/components/tipe/conta/CartaoConta";
 import { PainelEsqueci } from "@/components/tipe/conta/PainelEsqueci";
+import { EntrarSocial } from "@/components/tipe/conta/EntrarSocial";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MfaGate } from "@/components/tipe/FounderMfaGate";
@@ -144,16 +145,6 @@ function Entrar() {
     }
   }
 
-  async function google() {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/entrar${r ? `?r=${encodeURIComponent(r)}` : ""}`,
-      },
-    });
-    if (error) toast.error("Não foi possível entrar com Google");
-  }
-
   if (precisaMfa)
     return (
       <MfaGate>
@@ -256,9 +247,9 @@ function Entrar() {
           <span className="text-xs text-muted-foreground">ou</span>
           <span className="h-px flex-1 bg-border" />
         </div>
-        <Button type="button" variant="outline" size="lg" className="w-full" onClick={google}>
-          Continuar com Google
-        </Button>
+        <EntrarSocial
+          redirectTo={`${typeof window === "undefined" ? "" : window.location.origin}/entrar${r ? `?r=${encodeURIComponent(r)}` : ""}`}
+        />
       </form>
       <p className="mt-6 text-[0.92rem] text-muted-foreground">
         {modo === "entrar" ? (
