@@ -11,9 +11,11 @@ import {
   concluirEnvioScan,
   descartarScan,
   iniciarScan,
+  LOTE_URLS,
   MIN_FOTOS,
+  urlsDeEnvio,
 } from "@/lib/tipe/scanner3d.functions";
-import { enviarUma, quadroGiro } from "@/lib/tipe/scanner/captura";
+import { enviarUma, fonteDeUrls, quadroGiro } from "@/lib/tipe/scanner/captura";
 import { caber, decidirCaptura, diferenca, nitidez, paraCinza } from "@/lib/tipe/scanner/quadros";
 
 export const ALVO_FOTOS = 60;
@@ -34,8 +36,9 @@ export function CapturaAoVivo({
   const iniciar = useServerFn(iniciarScan);
   const concluir = useServerFn(concluirEnvioScan);
   const descartar = useServerFn(descartarScan);
+  const maisUrls = useServerFn(urlsDeEnvio);
   const video = useRef<HTMLVideoElement>(null);
-  const scan = useRef<{ id: string; urls: string[] } | null>(null);
+  const scan = useRef<{ id: string; url: (i: number) => Promise<string> } | null>(null);
   const envios = useRef<Promise<void>[]>([]);
   const rodando = useRef(true);
   const inicioVolta2 = useRef<number | null>(null);
@@ -64,7 +67,12 @@ export function CapturaAoVivo({
           iniciar({ data: { slug, itemId, total: ALVO_FOTOS } }),
         ]);
         fluxo = s;
-        scan.current = { id: r.scanId, urls: r.urls };
+        scan.current = {
+          id: r.scanId,
+          url: fonteDeUrls(r.urls, LOTE_URLS, (inicio) =>
+            maisUrls({ data: { slug, scanId: r.scanId, inicio } }).then((x) => x.urls),
+          ),
+        };
         if (!rodando.current) return;
         const v = video.current!;
         v.srcObject = s;
@@ -107,9 +115,11 @@ export function CapturaAoVivo({
               setFlash((f) => f + 1);
               setAviso("");
               navigator.vibrate?.(8);
-              const url = scan.current!.urls[i]!;
+              const url = scan.current!.url(i);
               envios.current.push(
-                jpeg.then((b) => enviarUma(url, b)).then(() => setEnviadas((e) => e + 1)),
+                Promise.all([jpeg, url])
+                  .then(([b, u]) => enviarUma(u, b))
+                  .then(() => setEnviadas((e) => e + 1)),
               );
               if (n >= ALVO_FOTOS) void terminar();
             } else if (
