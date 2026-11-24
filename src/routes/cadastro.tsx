@@ -15,7 +15,7 @@ import { PLANS, SHOW_PLAN_PRICES, priceLabel, type PlanId } from "@/lib/tipe/pla
 import { signupRestaurant } from "@/lib/tipe/subscription.functions";
 import { recordLegalAcceptance } from "@/lib/tipe/legal.functions";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useTurnstile } from "@/components/tipe/Turnstile";
+import { MSG_CAPTCHA_FALHOU, ehErroCaptcha, useTurnstile } from "@/components/tipe/Turnstile";
 
 export const Route = createFileRoute("/cadastro")({
   ssr: false,
@@ -173,6 +173,7 @@ function Cadastro() {
           ...captcha.opcoes,
         },
       });
+      if (ehErroCaptcha(error)) throw new Error(MSG_CAPTCHA_FALHOU);
       if (error)
         throw new Error(
           error.message.toLowerCase().includes("registered")
@@ -448,7 +449,12 @@ function Cadastro() {
             </label>
           </div>
           {!logado && captcha.elemento}
-          <Button type="submit" className="w-full" size="lg" disabled={enviando || logado === null || (!logado && captcha.pendente)}>
+          <Button
+            type="submit"
+            className="w-full"
+            size="lg"
+            disabled={enviando || logado === null || (!logado && captcha.pendente)}
+          >
             {enviando ? "Cadastrando…" : `Cadastrar restaurante`}
           </Button>
         </form>

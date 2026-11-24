@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { MfaGate } from "@/components/tipe/FounderMfaGate";
 import { SenhaForteInput } from "@/components/tipe/SenhaForte";
-import { useTurnstile } from "@/components/tipe/Turnstile";
+import { MSG_CAPTCHA_FALHOU, ehErroCaptcha, useTurnstile } from "@/components/tipe/Turnstile";
 import { caminhoRetornoSeguro } from "@/lib/tipe/retorno";
 import { avaliarSenha, mensagemErroSenha } from "@/lib/tipe/senha";
 
@@ -57,9 +57,14 @@ function Entrar() {
       if (r) {
         const slugR = /^\/([a-z0-9-]+)\/?$/.exec(r)?.[1];
         const restR = slugR ? a.restaurants.find((x) => x.slug === slugR) : undefined;
-        const temPapelNele = !!restR && a.roles.some((x) => x.restaurantId === restR.id && x.role !== "founder" && x.role !== "waiter");
+        const temPapelNele =
+          !!restR &&
+          a.roles.some(
+            (x) => x.restaurantId === restR.id && x.role !== "founder" && x.role !== "waiter",
+          );
         const ehPapelPublico = !slugR || ["central", "painel", "garcom", "demo"].includes(slugR);
-        if (!soGarcom && (ehPapelPublico || temPapelNele)) return navigate({ to: r, replace: true } as never);
+        if (!soGarcom && (ehPapelPublico || temPapelNele))
+          return navigate({ to: r, replace: true } as never);
       }
       if (a.isFounder || a.isCentralStaff) return navigate({ to: "/central", replace: true });
       if (soGarcom) return navigate({ to: "/garcom", replace: true });
@@ -100,8 +105,14 @@ function Entrar() {
     setCarregando(true);
     try {
       if (modo === "entrar") {
-        const { error } = await supabase.auth.signInWithPassword({ email, password: senha, options: captcha.opcoes });
-        if (error?.status === 429) throw new Error("Muitas tentativas de login. Aguarde alguns minutos e tente de novo.");
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password: senha,
+          options: captcha.opcoes,
+        });
+        if (error?.status === 429)
+          throw new Error("Muitas tentativas de login. Aguarde alguns minutos e tente de novo.");
+        if (ehErroCaptcha(error)) throw new Error(MSG_CAPTCHA_FALHOU);
         if (error) {
           setErrou(true);
           window.setTimeout(() => setErrou(false), 2500);
@@ -114,8 +125,12 @@ function Entrar() {
         const { error } = await supabase.auth.signUp({
           email,
           password: senha,
-          options: { emailRedirectTo: `${window.location.origin}${r ?? "/painel"}`, ...captcha.opcoes },
+          options: {
+            emailRedirectTo: `${window.location.origin}${r ?? "/painel"}`,
+            ...captcha.opcoes,
+          },
         });
+        if (ehErroCaptcha(error)) throw new Error(MSG_CAPTCHA_FALHOU);
         if (error)
           throw new Error(mensagemErroSenha(error.message) ?? "Não foi possível criar a conta");
         toast.success("Conta criada! Confirme pelo link enviado ao seu e-mail.");
@@ -222,7 +237,12 @@ function Entrar() {
           )}
         </div>
         {captcha.elemento}
-        <Button type="submit" size="lg" className="w-full" disabled={carregando || entrando || captcha.pendente}>
+        <Button
+          type="submit"
+          size="lg"
+          className="w-full"
+          disabled={carregando || entrando || captcha.pendente}
+        >
           {entrando
             ? "Entrando…"
             : carregando
