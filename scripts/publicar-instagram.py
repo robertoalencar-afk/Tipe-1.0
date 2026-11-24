@@ -10,21 +10,16 @@ def call(path, params=None, post=False):
         return json.load(r)
     except urllib.error.HTTPError as e:
         print("ERRO", e.code, e.read().decode()); sys.exit(1)
-PAGE = "1445302748676142"
-pg = call(PAGE, {"fields": "id,name,instagram_business_account,connected_instagram_account"})
-print("Página:", json.dumps(pg))
-ig = (pg.get("instagram_business_account") or pg.get("connected_instagram_account") or {}).get("id")
-if not ig:
-    print("Instagram não está ligado à Página Tipe."); sys.exit(1)
-print("IG user id:", ig)
-if os.environ.get("TESTE") == "true": sys.exit(0)
-cfg = json.load(open(f"social-posts/{os.environ['POST']}.json"))
-cap = open(f"social-posts/{cfg['caption_file']}").read()
-base = "https://tipe.digital/social/"
-kids = [call(f"{ig}/media", {"image_url": base + i, "is_carousel_item": "true"}, True)["id"] for i in cfg["images"]]
-car = call(f"{ig}/media", {"media_type": "CAROUSEL", "children": ",".join(kids), "caption": cap}, True)["id"]
-for _ in range(20):
-    s = call(car, {"fields": "status_code"}).get("status_code")
-    if s == "FINISHED": break
-    time.sleep(3)
-print("Publicado:", call(f"{ig}/media_publish", {"creation_id": car}, True))
+def try_(path, params=None):
+    p = dict(params or {}); p["access_token"] = T
+    try:
+        return json.load(urllib.request.urlopen(f"{G}/{path}?" + urllib.parse.urlencode(p)))
+    except urllib.error.HTTPError as e:
+        return {"erro": e.read().decode()[:300]}
+print("me:", try_("me", {"fields": "id,name"}))
+print("perms:", try_("me/permissions"))
+print("ig direto:", try_("1336689299531224", {"fields": "id,username"}))
+print("page direto:", try_("1445302748676142", {"fields": "id,name,instagram_business_account"}))
+print("negocio paginas:", try_("1853035621419002/owned_pages", {"fields": "id,name,instagram_business_account"}))
+print("negocio ig:", try_("1853035621419002/owned_instagram_accounts", {"fields": "id,username"}))
+sys.exit(0)
