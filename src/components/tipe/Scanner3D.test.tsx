@@ -8,6 +8,8 @@ vi.mock("@tanstack/react-start", () => ({
 vi.mock("@/lib/tipe/scanner3d.functions", () => ({
   MIN_FOTOS: 20,
   MAX_FOTOS: 150,
+  LOTE_URLS: 12,
+  urlsDeEnvio: vi.fn(),
   listarScans: vi.fn(),
   iniciarScan: vi.fn(),
   concluirEnvioScan: vi.fn(),
