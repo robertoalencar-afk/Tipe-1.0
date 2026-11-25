@@ -3,6 +3,7 @@
 // (POST assinado em /api/public/email-inbound). Anexos viajam só como metadados.
 // Segredos (Worker): EMAIL_INBOUND_SECRET (o mesmo do Worker "tipe"); variável APP_URL.
 import PostalMime from "postal-mime";
+import { embutirImagens } from "./imagens.js";
 
 const hex = (buf) => Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
 async function assinar(corpo, ts, segredo) {
@@ -26,7 +27,7 @@ export default {
       inReplyTo: mail.inReplyTo ?? null,
       references: Array.isArray(mail.references) ? mail.references.join(" ") : mail.references ?? null,
       text: mail.text ? mail.text.slice(0, 350000) : null,
-      html: mail.html ? mail.html.slice(0, 700000) : null,
+      html: embutirImagens(mail.html, mail.attachments),
       authResults: message.headers.get("authentication-results"),
       spamHeader: message.headers.get("x-spam-flag") ? `X-Spam-Flag: ${message.headers.get("x-spam-flag")}` : null,
       date: mail.date ?? null,

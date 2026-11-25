@@ -6,6 +6,7 @@ import { Archive, ArrowLeft, Ban, Forward, Inbox, Mail, Paperclip, Pencil, Reply
 import { Button } from "@/components/ui/button";
 import { Aviso, Avatar, Busca, Esqueleto, horaBR, inputCls, relativo } from "@/components/tipe/painel/ui";
 import { deleteMailForever, getMailOverview, getMailThread, listMail, saveMailDraft, saveMailSignature, sendMail, updateMail } from "@/lib/tipe/central-email.functions";
+import { CorpoEmail } from "@/components/tipe/central/CorpoEmail";
 import { PASTA_LABEL, assinaturaHtml, assuntoEncaminhar, blocoAssinatura, assuntoResposta, citar, type Pasta } from "@/lib/tipe/mail";
 
 const ICONE: Record<Pasta, typeof Inbox> = { inbox: Inbox, sent: Send, drafts: FileText, spam: Ban, trash: Trash2, archive: Archive };
@@ -64,8 +65,8 @@ export function CaixaEmail() {
       {o.recebimento === "sem_segredo" && <Aviso tone="warning">Recebimento sem segredo: o segredo EMAIL_INBOUND_SECRET sai na próxima publicação do site. Depois falta ligar o Email Routing no Cloudflare (docs/internos/EMAIL-CENTRAL.md).</Aviso>}
       {o.recebimento === "aguardando" && <Aviso tone="neutral">Recebimento pronto no servidor, aguardando o primeiro e-mail. Falta ligar o Cloudflare Email Routing para roberto@ e contato@ (passos 3 e 4 do guia); até lá, o recebimento continua no provedor atual.</Aviso>}
       {!o.envio && <Aviso tone="warning">Envio desligado: falta RESEND_API_KEY.</Aviso>}
-      <div className="grid gap-3 lg:grid-cols-[220px_340px_1fr]">
-        <nav aria-label="Pastas" className={`${aberto ? "hidden lg:block" : ""} space-y-3 rounded-xl border border-border bg-card p-3`}>
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-3 lg:grid-cols-[220px_340px_minmax(0,1fr)]">
+        <nav aria-label="Pastas" className={`${aberto ? "hidden lg:block" : ""} min-w-0 space-y-3 rounded-xl border border-border bg-card p-3`}>
           <Button variant="brand" className="w-full" onClick={() => setEscrevendo({ para: "", cc: "", assunto: "", texto: blocoAssinatura(cx?.signature) })}><Pencil className="size-4" /> Escrever</Button>
           <select className={`${inputCls} h-9 w-full`} value={caixa ?? ""} onChange={(e) => { setCaixa(e.target.value); setAberto(null); }} aria-label="Caixa">
             {o.caixas.map((c) => <option key={c.address} value={c.address}>{c.address}</option>)}
@@ -79,7 +80,7 @@ export function CaixaEmail() {
           <label className="flex items-center gap-2 px-3 text-xs text-muted-foreground"><input type="checkbox" checked={estrela} onChange={(e) => setEstrela(e.target.checked)} /> Só com estrela</label>
         </nav>
 
-        <section aria-label="Mensagens" className={`${aberto ? "hidden lg:block" : ""} overflow-hidden rounded-xl border border-border bg-card`}>
+        <section aria-label="Mensagens" className={`${aberto ? "hidden lg:block" : ""} min-w-0 overflow-hidden rounded-xl border border-border bg-card`}>
           <div className="border-b border-border p-3"><Busca value={busca} onChange={setBusca} placeholder="Buscar assunto ou remetente" /></div>
           <ul className="max-h-[70vh] divide-y divide-border overflow-y-auto">
             {lista.isPending && <li className="p-6 text-center text-sm text-muted-foreground">Carregando…</li>}
@@ -102,11 +103,11 @@ export function CaixaEmail() {
           </ul>
         </section>
 
-        <section aria-label="Leitura" className={`${aberto ? "" : "hidden lg:block"} rounded-xl border border-border bg-card`}>
+        <section aria-label="Leitura" className={`${aberto ? "" : "hidden lg:block"} min-w-0 rounded-xl border border-border bg-card`}>
           {!aberto || !conversa.data ? (
             <div className="flex h-full min-h-60 flex-col items-center justify-center gap-2 p-8 text-center text-sm text-muted-foreground"><Mail className="size-8" />{aberto ? "Abrindo…" : "Selecione uma mensagem para ler."}</div>
           ) : (
-            <div className="flex max-h-[78vh] flex-col">
+            <div className="flex flex-col lg:max-h-[78vh]">
               <div className="flex flex-wrap items-center gap-2 border-b border-border p-3">
                 <Button variant="ghost" size="sm" className="lg:hidden" onClick={() => setAberto(null)}><ArrowLeft className="size-4" /> Voltar</Button>
                 <h2 className="min-w-0 flex-1 truncate font-display text-base font-bold">{msgs[0]?.subject || "(sem assunto)"}</h2>
@@ -125,17 +126,17 @@ export function CaixaEmail() {
                   </>
                 )}
               </div>
-              <ol className="flex-1 space-y-4 overflow-y-auto p-4">
+              <ol className="flex-1 space-y-4 p-2 sm:p-4 lg:overflow-y-auto">
                 {msgs.map((m: any) => (
-                  <li key={m.id} className="rounded-xl border border-border p-4">
+                  <li key={m.id} className="min-w-0 rounded-xl border border-border p-3 sm:p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0"><p className="truncate text-sm font-semibold">{m.from_name ? `${m.from_name} ` : ""}<span className="font-normal text-muted-foreground">&lt;{m.from_addr}&gt;</span></p><p className="truncate text-xs text-muted-foreground">Para: {(m.to_addrs ?? []).map((a: any) => a.email).join(", ")} · {horaBR(m.at)}</p></div>
                       <button type="button" aria-label={m.starred ? "Tirar estrela" : "Marcar com estrela"} onClick={() => mUpd.mutate({ ids: [m.id], estrela: !m.starred })}><Star className={`size-4 ${m.starred ? "fill-current text-amber-500" : "text-muted-foreground"}`} /></button>
                     </div>
-                    {/* Sempre texto puro: nunca renderizamos HTML de terceiros na Central. */}
-                    <p className="mt-3 whitespace-pre-wrap break-words text-sm">{m.text_body || "(mensagem sem texto)"}</p>
+                    {/* HTML de terceiros: limpo e isolado em iframe sandbox sem scripts (CorpoEmail). */}
+                    <CorpoEmail html={m.direction === "in" ? m.html_body : null} texto={m.text_body} bloquearImagens={pasta === "spam"} />
                     {(m.attachments?.length ?? 0) > 0 && <p className="mt-3 flex flex-wrap items-center gap-2 text-xs text-muted-foreground"><Paperclip className="size-3" />{m.attachments.map((a: any, i: number) => <span key={i} className="rounded bg-muted px-2 py-0.5">{a.filename ?? "anexo"}</span>)} (anexos não são guardados)</p>}
-                    <div className="mt-3 flex gap-2"><Button variant="outline" size="sm" onClick={() => responder(m)}><Reply className="size-4" /> Responder</Button><Button variant="outline" size="sm" onClick={() => responder(m, true)}>Responder a todos</Button><Button variant="outline" size="sm" onClick={() => encaminhar(m)}><Forward className="size-4" /> Encaminhar</Button></div>
+                    <div className="mt-3 flex flex-wrap gap-2"><Button variant="outline" size="sm" onClick={() => responder(m)}><Reply className="size-4" /> Responder</Button><Button variant="outline" size="sm" onClick={() => responder(m, true)}>Responder a todos</Button><Button variant="outline" size="sm" onClick={() => encaminhar(m)}><Forward className="size-4" /> Encaminhar</Button></div>
                   </li>
                 ))}
               </ol>
