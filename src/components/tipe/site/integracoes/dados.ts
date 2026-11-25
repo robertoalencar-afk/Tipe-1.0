@@ -141,7 +141,7 @@ export const NOS_HUB: NoHub[] = [
     sub: "Pix, Apple Pay e Google Pay via provedor de pagamento",
     status: "disponivel",
     icone: "pagamento",
-    cartao: { titulo: "Pix aprovado", linha: "Mesa 12 · R$ 118,79" },
+    cartao: { titulo: "Pix aprovado", linha: "Mesa 12 · R$ 89,10" },
   },
   {
     id: "salao",
@@ -149,7 +149,7 @@ export const NOS_HUB: NoHub[] = [
     sub: "Aviso no celular de quem serve a mesa",
     status: "disponivel",
     icone: "salao",
-    cartao: { titulo: "Mesa 12 paga", linha: "Joyce · R$ 4,20 de gorjeta" },
+    cartao: { titulo: "Mesa 12 paga", linha: "Joyce · R$ 3,12 de gorjeta" },
   },
   {
     id: "cozinha",

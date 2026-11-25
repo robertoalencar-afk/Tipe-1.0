@@ -86,7 +86,7 @@ const PASSOS: Passo[] = [
       tipo: "tela",
       tela: "conta",
       alt: "Conta da Mesa 12 no celular: total de R$ 356,40 com a taxa de serviço",
-      toque: { x: 28, y: 59 },
+      toque: { x: 13, y: 88 },
     },
     aviso: {
       rotulo: "Para o garçom",
@@ -97,21 +97,22 @@ const PASSOS: Passo[] = [
   {
     id: "dividir",
     quem: "Cliente",
-    titulo: "Divide do jeito da mesa",
-    texto: "Pagar tudo ou escolher só os próprios itens.",
+    titulo: "Escolhe o que consumiu",
+    texto:
+      "Pagar tudo ou marcar só os próprios itens. Dá para dividir um prato por dois, três ou quatro.",
     cena: "cena-familia",
     foco: "40% 45%",
     quadro: {
       tipo: "tela",
       tela: "dividir",
-      alt: "Conta dividida em 3 partes, com a parte de R$ 118,79",
-      toque: { x: 50, y: 70 },
+      alt: "Itens escolhidos na conta: metade do baião de dois, uma caipirinha e um pudim, R$ 89,10 com a taxa",
+      toque: { x: 50, y: 95 },
     },
     aviso: {
       rotulo: "Na mesa",
       texto: (
         <>
-          <span className="money">R$ 237,61</span> seguem em aberto para os outros dois
+          <span className="money">R$ 267,30</span> seguem em aberto para o resto da mesa
         </>
       ),
       icone: <Users />,
@@ -129,7 +130,7 @@ const PASSOS: Passo[] = [
       tipo: "tela",
       tela: "metodos",
       alt: "Formas de pagamento: Pix, Apple Pay, Google Pay e pagar no estabelecimento",
-      toque: { x: 50, y: 89 },
+      toque: { x: 50, y: 90 },
     },
     aviso: {
       rotulo: "Para a equipe",
@@ -145,7 +146,7 @@ const PASSOS: Passo[] = [
       "No Pix, o banco confirma e a Tipe aprova sozinha. O dinheiro vai para a conta do restaurante.",
     cena: "cena-executiva",
     foco: "45% 35%",
-    quadro: { tipo: "tela", tela: "pix", alt: "Tela do Pix com o valor de R$ 118,79 e o QR Code" },
+    quadro: { tipo: "tela", tela: "pix", alt: "Tela do Pix com o valor de R$ 89,10 e o QR Code" },
     aviso: {
       rotulo: "No banco",
       texto: "Pagamento confirmado sem conferir comprovante",
@@ -164,7 +165,7 @@ const PASSOS: Passo[] = [
       tipo: "tela",
       tela: "pago",
       alt: "Pagamento realizado, com o valor pago, o restaurante e a mesa",
-      toque: { x: 49, y: 75 },
+      toque: { x: 50, y: 91 },
     },
     aviso: {
       rotulo: "No salão",
@@ -184,8 +185,8 @@ const PASSOS: Passo[] = [
     quadro: {
       tipo: "tela",
       tela: "gorjeta-metodo",
-      alt: "Pagamento da gorjeta extra de R$ 6,00, cobrada à parte da conta, por Pix, Apple Pay ou Google Pay",
-      toque: { x: 50, y: 91 },
+      alt: "Pagamento da gorjeta extra de R$ 4,46, cobrada à parte da conta, por Pix, Apple Pay ou Google Pay",
+      toque: { x: 50, y: 90 },
     },
     aviso: {
       rotulo: "Para a Joyce",

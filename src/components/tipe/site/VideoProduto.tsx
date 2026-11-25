@@ -1,7 +1,7 @@
 /**
  * O filme do fluxo do cliente (13 s, sem som, em loop, 4:5): QR no totem da mesa 12,
- * conta, divisão em 3 (R$ 118,79 cada), Pix, Apple Pay ou Google Pay, pagamento
- * realizado e, depois, a gorjeta extra opcional para a Joyce (Joyce recebeu R$ 4,20).
+ * conta, escolha dos próprios itens (R$ 89,10), Pix, Apple Pay ou Google Pay, pagamento
+ * realizado e, depois, a gorjeta extra opcional para a Joyce (Joyce recebeu R$ 3,12).
  * Feito em casa: HTML animado renderizado quadro a quadro com Playwright e codificado
  * com ffmpeg (fonte e script em docs/landing-v5/video-produto/).
  *
@@ -121,7 +121,7 @@ export function VideoProduto({ className }: { className?: string }) {
         height={H}
         onPlay={() => setTocando(true)}
         onPause={() => setTocando(false)}
-        aria-label="Filme curto do pagamento na mesa com a Tipe: o cliente lê o QR do totem da mesa 12, vê a conta, divide entre 3 pessoas (R$ 118,79 cada), paga com Pix, Apple Pay ou Google Pay e recebe a confirmação. Depois, pode dar uma gorjeta extra opcional para a garçonete Joyce, que recebe R$ 4,20."
+        aria-label="Filme curto do pagamento na mesa com a Tipe: o cliente lê o QR do totem da mesa 12, vê a conta, escolhe os próprios itens (R$ 89,10 com o serviço), paga com Pix, Apple Pay ou Google Pay e recebe a confirmação. Depois, pode dar uma gorjeta extra opcional para a garçonete Joyce, que recebe R$ 3,12."
         className="absolute inset-0 block h-full w-full object-cover"
       >
         {carregar && (

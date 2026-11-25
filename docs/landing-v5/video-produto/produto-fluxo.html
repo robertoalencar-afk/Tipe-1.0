@@ -14,12 +14,13 @@
   Linha do tempo (s)
     0.00–0.30  card vazio com título (ponto de loop)
     0.30–2.80  totem da mesa 12 sobe, gira em 3D, a moldura de leitura enquadra o QR, câmera "atravessa" o QR
-    2.55–4.10  celular sobe com a tela real "conta"; toque em "Dividir a conta"
-    4.00–5.70  tela real "dividir"; ficha flutuante: 1 → 3 pessoas, "R$ 118,79 cada"; toque em "Pagar minha parte"
+    2.55–4.10  celular sobe com a tela real "conta"; toque no primeiro item de "Ou escolha o que você vai pagar"
+    4.00–5.70  tela real "dividir" (itens escolhidos); ficha flutuante: ½ baião, caipirinha e pudim marcados,
+               "R$ 89,10"; toque em "Continuar para pagamento". Decisão 11/11: só divisão por itens.
     5.70–7.60  celular recua; fichas Pix, Apple Pay e Google Pay explodem do centro e orbitam em profundidade
     7.40–9.40  fichas convergem numa moeda que gira, o check é desenhado, a moeda vira o cartão "Pagamento realizado"
     9.35–11.50 gorjeta extra opcional (segundo pagamento): 3% · 5% Sugerida · 8%; toque em 5%, corações sobem
-    11.50–12.90 as fichas colapsam num ponto que se abre na notificação "Joyce recebeu R$ 4,20"
+    11.50–12.90 as fichas colapsam num ponto que se abre na notificação "Joyce recebeu R$ 3,12"
     12.90–13.00 volta ao card vazio
 -->
 <style>
@@ -71,7 +72,7 @@ html,body{background:#021E34;overflow:hidden;width:1080px;height:1350px}
 .tap{position:absolute;width:96px;height:96px;margin:-48px 0 0 -48px;border-radius:50%;background:rgba(2,30,52,.18);border:3px solid rgba(2,30,52,.55);z-index:4}
 
 /* ficha dividir */
-#split{width:400px;border-radius:40px;background:var(--navy);color:#fff;padding:34px 34px 36px;
+#split{width:430px;border-radius:40px;background:var(--navy);color:#fff;padding:34px 34px 36px;
   box-shadow:0 50px 80px -30px rgba(2,30,52,.7),0 0 0 1px rgba(255,255,255,.06) inset}
 #split .lb{font-size:24px;color:rgba(255,255,255,.66);font-weight:500;letter-spacing:-.01em}
 #split .row{display:flex;align-items:center;justify-content:space-between;margin-top:14px}
@@ -84,6 +85,10 @@ html,body{background:#021E34;overflow:hidden;width:1080px;height:1350px}
 #split hr{border:0;height:1px;background:rgba(255,255,255,.14);margin:26px 0 22px}
 #split .val{font-size:62px;font-weight:600;letter-spacing:-.045em;line-height:1}
 #split .val small{font-size:30px;color:var(--turq);font-weight:600;letter-spacing:-.02em;margin-left:10px}
+#split .it{display:flex;align-items:center;gap:14px;margin-top:16px;font-size:26px;font-weight:500;letter-spacing:-.015em}
+#split .it .ck{flex:none;width:36px;height:36px;border-radius:50%;background:var(--turq);display:grid;place-items:center}
+#split .it .nm{flex:1;white-space:nowrap}
+#split .it .pr{color:rgba(255,255,255,.72);white-space:nowrap}
 
 /* fichas de pagamento */
 .tile{width:210px;height:210px;border-radius:50px;background:linear-gradient(160deg,#fff 0%,#f1fbfa 100%);display:flex;align-items:center;justify-content:center;gap:10px;
@@ -160,18 +165,15 @@ html,body{background:#021E34;overflow:hidden;width:1080px;height:1350px}
       <div class="tap" id="tap2"></div>
     </div></div>
     <div class="abs" id="split">
-      <div class="lb">Dividir a conta</div>
-      <div class="row">
-        <div class="avs" id="avs">
-          <div class="av" style="background:#0FC9BD">L</div>
-          <div class="av" style="background:#fff">A</div>
-          <div class="av" style="background:#9be8e1">M</div>
-        </div>
-        <div class="stp"><b>−</b><div class="num"><span id="n1">1</span><span id="n2">2</span><span id="n3">3</span></div><b>+</b></div>
+      <div class="lb">Lucas escolheu os itens dele</div>
+      <div id="its">
+        <div class="it"><span class="ck"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M4.5 10.5l3.6 3.6 7.4-8" fill="none" stroke="#021E34" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="nm">½ Baião de dois</span><span class="pr">R$ 32,00</span></div>
+        <div class="it"><span class="ck"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M4.5 10.5l3.6 3.6 7.4-8" fill="none" stroke="#021E34" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="nm">Caipirinha de limão</span><span class="pr">R$ 26,00</span></div>
+        <div class="it"><span class="ck"><svg width="20" height="20" viewBox="0 0 20 20"><path d="M4.5 10.5l3.6 3.6 7.4-8" fill="none" stroke="#021E34" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span class="nm">Pudim de leite</span><span class="pr">R$ 23,00</span></div>
       </div>
       <hr>
-      <div class="lb">Sua parte</div>
-      <div class="val" style="margin-top:10px">R$ 118,79<small>cada</small></div>
+      <div class="lb">Sua parte, com o serviço</div>
+      <div class="val" style="margin-top:10px">R$ 89,10</div>
     </div>
 
     <!-- 4. fichas de pagamento -->
@@ -181,25 +183,25 @@ html,body{background:#021E34;overflow:hidden;width:1080px;height:1350px}
     <div class="abs" id="ring"></div>
     <div class="abs" id="coin"><div id="coinface">
       <div id="ck"><svg width="60" height="60" viewBox="0 0 60 60"><path id="ckp" d="M15 31 L26 42 L46 19" fill="none" stroke="#0FC9BD" stroke-width="8" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="50" stroke-dashoffset="50"/></svg></div>
-      <div id="ok"><div class="t1">Pagamento realizado</div><div class="t2">R$ 118,79 · Mesa 12 · Pix</div></div>
+      <div id="ok"><div class="t1">Pagamento realizado</div><div class="t2">R$ 89,10 · Mesa 12 · Pix</div></div>
     </div></div>
 
     <!-- 6. gorjeta extra -->
     <div class="abs" id="tipHead"><div class="h">Quer agradecer a Joyce?</div><div class="s">Gorjeta extra opcional, num segundo pagamento.</div></div>
-    <div class="abs chip" id="c0"><div class="p">3%</div><div class="v">R$ 3,50</div></div>
-    <div class="abs chip" id="c1"><div class="p">5%</div><div class="v">R$ 6,00</div>
-      <div class="sel" id="c1sel"><div class="p">5%</div><div class="v" style="opacity:.7">R$ 6,00</div></div>
+    <div class="abs chip" id="c0"><div class="p">3%</div><div class="v">R$ 2,67</div></div>
+    <div class="abs chip" id="c1"><div class="p">5%</div><div class="v">R$ 4,46</div>
+      <div class="sel" id="c1sel"><div class="p">5%</div><div class="v" style="opacity:.7">R$ 4,46</div></div>
       <div class="tag">Sugerida</div></div>
-    <div class="abs chip" id="c2"><div class="p">8%</div><div class="v">R$ 9,50</div></div>
+    <div class="abs chip" id="c2"><div class="p">8%</div><div class="v">R$ 7,13</div></div>
     <div class="tap abs" id="tap3" style="margin:0"></div>
-    <div class="abs" id="payTip"><div class="sh" id="shine"></div><span style="position:relative">Pagar gorjeta · R$ 6,00</span></div>
+    <div class="abs" id="payTip"><div class="sh" id="shine"></div><span style="position:relative">Pagar gorjeta · R$ 4,46</span></div>
     <div id="hearts" style="position:absolute;inset:0;transform-style:preserve-3d"></div>
 
     <!-- 7. notificação -->
     <div class="abs" id="note"><div id="noteIn">
       <div class="ic">__SIMBOLO__</div>
       <div><div class="top"><span>TIPE · GORJETA</span><span>agora</span></div>
-        <div class="m">Joyce recebeu R$ 4,20</div>
+        <div class="m">Joyce recebeu R$ 3,12</div>
         <div class="d">Gorjeta extra da mesa 12, Maré Alta.</div></div>
     </div></div>
   </div>
@@ -319,32 +321,29 @@ function render(t) {
     $('sConta').style.opacity = 1 - ksw * .9;
     $('sDividir').style.transform = `translateX(${100 - 100 * ksw}%)`;
     $('sDividir').style.boxShadow = '-20px 0 40px rgba(0,0,0,.15)';
-    // toques: "Dividir a conta" e "Pagar minha parte"
+    // toques: primeiro item da conta e "Continuar para pagamento"
     const tap = (el, t0, x, y) => {
       const k = P(t, t0, t0 + .5);
       el.style.left = x + 'px'; el.style.top = y + 'px';
       el.style.opacity = k > 0 && k < 1 ? Math.sin(Math.PI * k) : 0;
       el.style.transform = `scale(${L(.55, 1.25, E.outCubic(k))})`;
     };
-    tap($("tap1"), 3.45, 112, 635);
-    tap($("tap2"), 5.18, 222, 742);
+    tap($("tap1"), 3.45, 56, 903);
+    tap($("tap2"), 5.18, 222, 968);
     // ficha flutuante "dividir"
     const ks = E.outBack(P(t, 4.22, 4.72));
     const kso = E.inCubic(P(t, 5.55, 5.9));
     set($('split'), {
-      x: 600 - 30 * drift, y: 560 + L(90, 0, ks) - 60 * kso + 7 * Math.sin(t * 2.4 + 1),
+      x: 500 - 30 * drift, y: 560 + L(90, 0, ks) - 60 * kso + 7 * Math.sin(t * 2.4 + 1),
       z: 220 + L(-200, 0, ks) + 200 * kso, ry: L(-22, -6, ks), rx: 4, s: L(.8, 1, ks) * (1 - .25 * kso),
       o: Math.min(P(t, 4.22, 4.42), 1 - kso), origin: '0% 50%',
     });
-    // contador 1 → 2 → 3 e avatares
-    const k12 = E.outCubic(P(t, 4.62, 4.84)), k23 = E.outCubic(P(t, 4.92, 5.14));
-    $('n1').style.transform = `translateY(${-100 * k12}%)`;
-    $('n2').style.transform = `translateY(${100 - 100 * k12 - 100 * k23}%)`;
-    $('n3').style.transform = `translateY(${100 - 100 * k23}%)`;
-    const avs = $('avs').children;
-    [0, k12, k23].forEach((k, i) => {
-      const kb = i === 0 ? 1 : E.outBack(k);
-      avs[i].style.transform = `scale(${kb})`; avs[i].style.opacity = i === 0 ? 1 : cl(k * 2);
+    // itens marcados um a um
+    const its = $('its').children;
+    [4.42, 4.66, 4.9].forEach((t0, i) => {
+      const k = E.outBack(P(t, t0, t0 + .22));
+      its[i].firstElementChild.style.transform = `scale(${k})`;
+      its[i].style.opacity = .35 + .65 * cl(P(t, t0, t0 + .15));
     });
   }
 

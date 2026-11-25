@@ -21,30 +21,34 @@ const ETAPAS: Etapa[] = [
   {
     tela: "conta",
     alt: "Conta da mesa 12 no celular: total de R$ 356,40",
-    toque: { x: 23, y: 42 },
+    toque: { x: 13, y: 88 },
   },
   {
     tela: "dividir",
-    alt: "Conta dividida em 3 partes de R$ 118,79",
-    toque: { x: 50, y: 70 },
-    aviso: { icone: "dividir", titulo: "Conta dividida em 3", texto: "R$ 118,79 para cada um" },
+    alt: "Itens escolhidos na conta: metade do baião de dois, uma caipirinha e um pudim, R$ 89,10 com a taxa",
+    toque: { x: 50, y: 95 },
+    aviso: {
+      icone: "dividir",
+      titulo: "Lucas escolheu os itens dele",
+      texto: "R$ 89,10 com a taxa",
+    },
   },
   {
     tela: "metodos",
     alt: "Formas de pagamento: Pix, Apple Pay, Google Pay e no estabelecimento",
-    toque: { x: 50, y: 89 },
+    toque: { x: 50, y: 90 },
   },
-  { tela: "pix", alt: "QR Code do Pix de R$ 118,79" },
+  { tela: "pix", alt: "QR Code do Pix de R$ 89,10" },
   {
     tela: "pago",
     alt: "Pagamento realizado, com o botão para agradecer a Joyce com gorjeta",
-    toque: { x: 49, y: 75 },
-    aviso: { icone: "ok", titulo: "Lucas pagou a parte dele", texto: "Pix · R$ 118,79" },
+    toque: { x: 50, y: 91 },
+    aviso: { icone: "ok", titulo: "Lucas pagou a parte dele", texto: "Pix · R$ 89,10" },
   },
   {
     tela: "gorjeta",
     alt: "Gorjeta extra opcional para a Joyce: 3%, 5% ou 8%",
-    toque: { x: 62, y: 73 },
+    toque: { x: 50, y: 82 },
     aviso: {
       icone: "gorjeta",
       titulo: "Gorjeta extra para a Joyce",
@@ -53,17 +57,17 @@ const ETAPAS: Etapa[] = [
   },
   {
     tela: "gorjeta-pix",
-    alt: "Pix da gorjeta de R$ 6,00",
+    alt: "Pix da gorjeta de R$ 4,46",
     aviso: {
       icone: "gorjeta",
-      titulo: "Gorjeta de R$ 6,00 por Pix",
-      texto: "2º pagamento · R$ 4,20 para a Joyce",
+      titulo: "Gorjeta de R$ 4,46 por Pix",
+      texto: "2º pagamento · R$ 3,12 para a Joyce",
     },
   },
   {
     tela: "avaliacao",
-    alt: "Avaliação do atendimento com estrelas",
-    toque: { x: 48, y: 44 },
+    alt: "Avaliação do atendimento com cinco estrelas",
+    toque: { x: 74, y: 50 },
     aviso: { icone: "estrela", titulo: "Atendimento avaliado", texto: "5 estrelas para a Joyce" },
   },
 ];

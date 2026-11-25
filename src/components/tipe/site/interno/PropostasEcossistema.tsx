@@ -373,7 +373,7 @@ const JORNADA: { t: string; produto: string; status: Status; acao: string; atual
       produto: "Tipe Pay",
       status: "disponivel",
       acao: "A mesa confere e divide em 3.",
-      atualiza: ["R$ 118,79 por pessoa", "Sem chamar o garçom"],
+      atualiza: ["R$ 89,10 só dos itens dele", "Sem chamar o garçom"],
     },
     {
       t: "Pagamento",

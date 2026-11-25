@@ -807,7 +807,8 @@ function Bill({
 
 // ---------------------------------------------------------------- pagamento (dividir → gorjeta → pagar)
 
-type Split = "tudo" | "iguais" | "itens" | "lugar" | "valor";
+// Decisão 11/11: a conta só se divide por itens (ou o lugar, que é um conjunto de itens).
+type Split = "tudo" | "itens" | "lugar";
 type PayStep = 0 | 1 | 2;
 type TipChoice = Record<string, never> | { tipPercent: number } | { tipCents: number };
 
@@ -829,8 +830,6 @@ function PayFlow({
   const waiter = v.waiter.name.split(" ")[0]!;
   const [step, setStep] = useState<PayStep>(0);
   const [split, setSplit] = useState<Split>("tudo");
-  const [people, setPeople] = useState(2);
-  const [amount, setAmount] = useState("");
   const [picked, setPicked] = useState<Record<string, number>>({});
   const seats = [
     ...new Set(v.lines.map((l) => l.seat).filter((x): x is number => x !== null)),
@@ -843,19 +842,12 @@ function PayFlow({
   const items = shareItems(state, mesa);
 
   const mode: PayMode =
-    split === "iguais"
-      ? { kind: "equal", parts: 1, people }
-      : split === "itens"
-        ? { kind: "items", portions: picked }
-        : split === "lugar" && seat
-          ? { kind: "seat", seat }
-          : split === "valor"
-            ? { kind: "amount", value: parseBrl(amount) }
-            : { kind: "rest" };
-  // Valor livre já inclui a taxa de serviço: o motor recebe só o subtotal.
-  const effective: PayMode =
-    mode.kind === "amount" ? { kind: "amount", value: mode.value / (1 + rate) } : mode;
-  const preview = previewCents(state, mesa, effective);
+    split === "itens"
+      ? { kind: "items", portions: picked }
+      : split === "lugar" && seat
+        ? { kind: "seat", seat }
+        : { kind: "rest" };
+  const preview = previewCents(state, mesa, mode);
   const base = (preview?.subtotal ?? 0) + (preview?.service ?? 0);
 
   const options = useMemo(() => tipOptions(base), [base]);
@@ -875,7 +867,6 @@ function PayFlow({
   const STEPS = ["Dividir", "Gorjeta", "Pagamento"];
   const splits: { id: Split; title: string; sub: string; show: boolean }[] = [
     { id: "tudo", title: "Pagar tudo", sub: "O que falta da conta", show: true },
-    { id: "iguais", title: "Dividir igualmente", sub: `Entre ${people} pessoas`, show: true },
     { id: "itens", title: "Escolher meus itens", sub: "Só o que você consumiu", show: true },
     {
       id: "lugar",
@@ -883,7 +874,6 @@ function PayFlow({
       sub: "Itens marcados no seu lugar",
       show: seats.length > 0,
     },
-    { id: "valor", title: "Outro valor", sub: "Você digita quanto quer pagar", show: true },
   ];
 
   return (
@@ -962,12 +952,6 @@ function PayFlow({
                         <span className="block text-xs text-muted-foreground">{s.sub}</span>
                       </span>
                     </button>
-                    {on && s.id === "iguais" && (
-                      <div className="demo-fade flex items-center justify-between border-t border-border/70 px-4 py-3 text-sm">
-                        <span className="text-muted-foreground">Pessoas na mesa</span>
-                        <Stepper value={people} min={2} max={12} onChange={setPeople} />
-                      </div>
-                    )}
                     {on && s.id === "itens" && (
                       <ul className="demo-fade divide-y divide-border/70 border-t border-border/70">
                         {v.lines.map((l) => {
@@ -1020,16 +1004,6 @@ function PayFlow({
                             Lugar {n}
                           </button>
                         ))}
-                      </div>
-                    )}
-                    {on && s.id === "valor" && (
-                      <div className="demo-fade border-t border-border/70 px-4 py-3">
-                        <MoneyInput
-                          value={amount}
-                          onChange={setAmount}
-                          label="Valor a pagar, com serviço"
-                          placeholder="0,00"
-                        />
                       </div>
                     )}
                   </div>

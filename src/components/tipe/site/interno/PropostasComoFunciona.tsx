@@ -69,7 +69,7 @@ const ALT: Partial<Record<TelaReal | "camera", string>> = {
   conta: "Tela real da conta da mesa 12 no celular",
   cardapio: "Tela do cardápio do Tipe Order (demonstração)",
   pedido: "Tela de pedido do Tipe Order (demonstração)",
-  dividir: "Tela real para dividir a conta",
+  dividir: "Tela real para escolher os itens",
   metodos: "Tela real de formas de pagamento",
   pix: "Tela real do Pix",
   pago: "Tela real de pagamento confirmado",
