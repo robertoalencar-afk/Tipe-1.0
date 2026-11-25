@@ -1,0 +1,52 @@
+diff --git a/src/lib/tipe/payments.functions.ts b/src/lib/tipe/payments.functions.ts
+index 05d6143..5192b67 100644
+--- a/src/lib/tipe/payments.functions.ts
++++ b/src/lib/tipe/payments.functions.ts
+@@ -55,6 +55,13 @@ export type PaymentResult = {
+ export const createPayment = createServerFn({ method: "POST" })
+   .inputValidator((d) => Input.parse(d))
+   .handler(async ({ data }): Promise<PaymentResult> => {
++    if (process.env.CAPTURA_MOCK) {
++      const g = globalThis as unknown as { __cap?: { pagos: Record<string, number>; total: number } };
++      g.__cap ??= { pagos: {}, total: 0 };
++      for (const [k, v] of Object.entries(data.itemQuantities ?? {})) g.__cap.pagos[k] = (g.__cap.pagos[k] ?? 0) + Number(v);
++      return { id: "7f3c2a10-4b8e-4f61-9d2a-1c5e8b7a9f01", status: "pending", provider: "pagarme",
++        pixCode: "00020126580014br.gov.bcb.pix0136a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d" + "5204000053039865802BR" + "5909MARE ALTA6009FORTALEZA62070503***6304B7C1", pixQrUrl: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAWgAAAFoAQAAAABSnlx4AAAC+ElEQVR4nO2by47bOhBET13o/3+5sugHqbmLIJAckDHp8ViUatFoFfpNEcsACMvIADKIvFSg/uNP1kH/f12pUZBljAXIoWMjy3K+D60j967oCwRudSe5Cc0nvyFR68i9K/rqK5U5SbJjTJqV0vo6cu+PdqvbpOUWEtLfluRfRl/lKpPIQeUgObOB8acl+Q50Lf/m83lJvgN9eVyLik+K1x2x+POSfAdak4LBwhVtW/dXceKTV9Bhr2cbDoDBSAIl70En/n6MDlK3wYhMh1uqowFYR+5d0QAYux1jhiMmL23jeOJ15N4VjW9xSO3Gz9j66Ps5uugc/O07oenY2OB4E+vIvSuaUnOYjFBub0jHma/j8PsxOiqBroAvb6a3zCwzvOenJfkO9BU5TRZgS/vBeAX1RTz5sCTfgW43yTAf5R3zht3WZh25d0Vryik9Gg2kCZnKhTr+8gW03Bqf6tyVZc7ZPdbxl4/RYTjiqiPufgRTBnTynTfQUR7xqLqq857kvJUG/tRPnqMzFLmH23QsPiebh98voK8uB+Ksx+b/uZ1Z+3Xk3hU92+dKLutBVarqxuH3czRTeD20+7NUlVH4QnLvim5+Dzte+U5/m/GH34/R1Zv8OcPWfbbsOsTfOnLviq7Sq0ewXQalS+LN8sPvx+hKLaOxVrOalXYyGslGPvH3c3RotVMagBipqok25Vzh4fcbaO4xX3d2prb91IhYR+5d0VGtyqRH9YFbxz5/T77zHE3TeUSAIyS/JTunHvsCOubtrapzu5xmz2s20Tn12OfoqzqXWfCeit09DFQFlBOfvIDWFJeEGVHqWCpLA+jEJ6+gr0ml3cmp+I8yM84xwnXk3hVdqzLIcp+5m/an/v0O2tFRiyRSacmD8pKqJA6n/v0Gus+nTeOweWTnR/dYXknu/dGl3RzzsSyp/Gh0fZaUe1e0FEcCq0lspe2OcXvr2JN30FMpljQdcXJHbcErBl9K7i3RdbiyTsjDNMA5jtJn8rmO3LuifwGHL1iI6zlM/gAAAABJRU5ErkJggg==" };
++    }
+     const { verifyTableSession, enforceRate, clientIp } = await import("./security.server");
+     await enforceRate(`pay:${data.restaurantId}:${data.tableId}:${clientIp()}`, 20, 60, data.restaurantId);
+     const ok = await verifyTableSession(data.restaurantId, data.tableId, data.session);
+@@ -346,6 +353,7 @@ export const getPaymentConfig = createServerFn({ method: "GET" })
+ export const getPaymentStatus = createServerFn({ method: "GET" })
+   .inputValidator((d) => TableInput.extend({ paymentId: z.string().uuid() }).parse(d))
+   .handler(async ({ data }) => {
++    if (process.env.CAPTURA_MOCK) return { status: (process.env.CAPTURA_PIX ?? "approved") as "approved" | "pending" };
+     const { verifyTableSession } = await import("./security.server");
+     if (!(await verifyTableSession(data.restaurantId, data.tableId, data.session))) throw new Error("Sessão da mesa expirada");
+     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+diff --git a/src/lib/tipe/pdv.functions.ts b/src/lib/tipe/pdv.functions.ts
+index b45fbfc..8b1cf03 100644
+--- a/src/lib/tipe/pdv.functions.ts
++++ b/src/lib/tipe/pdv.functions.ts
+@@ -35,6 +35,21 @@ export type PublicTable = {
+ export const getPublicTable = createServerFn({ method: "GET" })
+   .inputValidator((d) => z.object({ slug: Slug, code: z.string().min(1).max(32), token: z.string().max(64).optional(), session: z.string().max(96).optional(), device: z.string().max(96).optional() }).parse(d))
+   .handler(async ({ data }): Promise<PublicTable | { error: "not_found" | "invalid_token" | "inactive" }> => {
++    if (process.env.CAPTURA_MOCK) {
++      const at = (h: string) => `2026-11-25T${h}:00-03:00`;
++      if (data.token === "reset") delete (globalThis as unknown as { __cap?: unknown }).__cap;
++      const cap = (globalThis as unknown as { __cap?: { pagos: Record<string, number> } }).__cap?.pagos ?? {};
++      const pp = (k: string) => cap[k] ?? 0;
++      const pagou = Object.keys(cap).length > 0;
++      return { restaurantName: "Maré Alta", logoUrl: null, tableNumber: "12", waiterName: "Joyce", session: "sessao-captura-mesa12", billMethods: ["pix", "apple_pay", "google_pay", "at_establishment"], serviceRate: 0.1, serviceWaived: false, googleReviewUrl: null, selfOrder: false, ordering: null, googlePay: null,
++        items: [
++          { item_code: "moqueca", item_name: "Moqueca de peixe", unit_price: 138, ordered_quantity: 1, reserved_portion: 0, paid_portion: pp("moqueca"), ordered_at: at("20:12") },
++          { item_code: "caipirinha", item_name: "Caipirinha de limão", unit_price: 26, ordered_quantity: 2, reserved_portion: 0, paid_portion: pp("caipirinha"), ordered_at: at("20:14") },
++          { item_code: "baiao", item_name: "Baião de dois", unit_price: 64, ordered_quantity: 1, reserved_portion: 0, paid_portion: pp("baiao"), ordered_at: at("20:21") },
++          { item_code: "coco", item_name: "Água de coco", unit_price: 12, ordered_quantity: 2, reserved_portion: 0, paid_portion: pp("coco"), ordered_at: at("20:23") },
++          { item_code: "pudim", item_name: "Pudim de leite", unit_price: 23, ordered_quantity: 2, reserved_portion: 0, paid_portion: pp("pudim"), ordered_at: at("21:02") },
++        ], payments: pagou ? [{ id: "7f3c2a10-4b8e-4f61-9d2a-1c5e8b7a9f01", customer_name: "Lucas Andrade", payment_method: "pix", status: "approved" as const, amount: 63.8, item_quantities: cap, created_at: "2026-11-25T21:14:40-03:00", establishment_method: null, cash_received: null, change_due: null }] : [] };
++    }
+     const { enforceRate, clientIp, safeEqual, logSecurityEvent } = await import("./security.server");
+     // Limite generoso: vários clientes podem compartilhar o Wi-Fi do restaurante (mesmo IP).
+     await enforceRate(`qr:${data.slug}:${data.code}:${clientIp()}`, 90, 60, data.slug);

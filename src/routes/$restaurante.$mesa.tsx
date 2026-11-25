@@ -1422,7 +1422,7 @@ function MesaPage() {
             Como foi seu atendimento?
           </h1>
           <p className="mt-2 text-center text-sm text-muted-foreground">
-            Sua avaliação ajuda {dados.garcom ? `o ${dados.garcom}` : "a equipe"} e o restaurante.
+            Sua avaliação ajuda {dados.garcom ? dados.garcom : "a equipe"} e o restaurante.
           </p>
           <div
             className="mt-7 flex justify-center gap-1.5"
@@ -1503,7 +1503,7 @@ function MesaPage() {
             <main className="flex flex-1 flex-col px-5 pb-8">
               <h1 className="mt-4 text-center text-[2.1rem] font-medium leading-[1.04] tracking-[-0.04em]">
                 {garcom
-                  ? `Agradeça ao ${garcom} com uma gorjeta`
+                  ? `Agradeça a ${garcom} com uma gorjeta`
                   : "Quer deixar uma gorjeta extra?"}
               </h1>
               <p className="mt-3 text-center text-[0.95rem] leading-6 text-muted-foreground">
@@ -1600,7 +1600,7 @@ function MesaPage() {
                   <strong className="money text-foreground">
                     {money(+(gorjetaExtra * TIP_SPLIT.waiter).toFixed(2))}
                   </strong>{" "}
-                  vão para {garcom ? `o ${garcom}` : "a equipe"} e{" "}
+                  vão para {garcom ? garcom : "a equipe"} e{" "}
                   <span className="money">
                     {money(+(gorjetaExtra * TIP_SPLIT.tipe).toFixed(2))}
                   </span>{" "}

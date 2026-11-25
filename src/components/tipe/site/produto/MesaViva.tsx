@@ -44,11 +44,15 @@ const CAPITULOS: Capitulo[] = [
     nome: "Divide",
     titulo: "Cada um paga a sua parte.",
     texto:
-      "Dividir por pessoas ou escolher os itens leva dois toques. Ninguém faz conta no guardanapo.",
+      "Cada um marca o que consumiu, e um prato dividido vira metade ou um terço em um toque. Ninguém faz conta no guardanapo.",
     cena: "cena-amigos",
     foco: "55% 45%",
     telas: ["dividir"],
-    aviso: { rotulo: "No salão", texto: "Conta da Mesa 12 dividida em 3", icone: <Users /> },
+    aviso: {
+      rotulo: "No salão",
+      texto: "Lucas escolheu os itens dele na Mesa 12",
+      icone: <Users />,
+    },
   },
   {
     nome: "Paga",
@@ -61,7 +65,7 @@ const CAPITULOS: Capitulo[] = [
       rotulo: "Para o caixa",
       texto: (
         <>
-          Lucas pagou <span className="money">R$ 118,79</span> por Pix
+          Lucas pagou <span className="money">R$ 89,10</span> por Pix
         </>
       ),
       icone: <BadgeCheck />,
@@ -78,7 +82,7 @@ const CAPITULOS: Capitulo[] = [
       rotulo: "Para a Joyce",
       texto: (
         <>
-          Gorjeta extra: <span className="money">+ R$ 4,20</span> no seu saldo
+          Gorjeta extra: <span className="money">+ R$ 3,12</span> no seu saldo
         </>
       ),
       icone: <HandCoins />,

@@ -421,7 +421,7 @@ export const PRODUTOS: Produto[] = [
       texto:
         "Na hora de pagar, o cliente pode deixar uma gorjeta extra para o garçom da mesa. O valor entra no saldo dele, separado da conta do restaurante.",
       telaReal: "gorjeta",
-      altTela: "Tela real de gorjeta extra: dos R$ 6,00, R$ 4,20 vão para a Joyce",
+      altTela: "Tela real de gorjeta extra: dos R$ 4,46, R$ 3,12 vão para a Joyce",
     },
     fatos: [
       { v: "70%", t: "da gorjeta extra para o garçom da mesa" },

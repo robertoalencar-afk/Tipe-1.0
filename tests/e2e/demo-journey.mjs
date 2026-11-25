@@ -25,7 +25,7 @@ await cliente.evaluate(() => localStorage.clear());
 await cliente.goto(`${BASE}/demo`);
 await cliente.getByRole("heading", { name: "Um restaurante inteiro para você testar" }).waitFor();
 // O aviso de cookies é do site inteiro; a pessoa responde uma vez e ele some de todas as abas.
-await cliente.getByRole("button", { name: "Recusar opcionais" }).click();
+await cliente.getByRole("button", { name: "Recusar", exact: true }).click();
 await shot(cliente, "00-inicio-celular");
 
 // 1. Cliente pede pela mesa 1
@@ -65,11 +65,14 @@ await garcom.getByRole("button", { name: "Enviar para a cozinha" }).click();
 await shot(garcom, "03-garcom");
 step("garçom recebeu o aviso, serviu e lançou café na mesma conta");
 
-// 4. Cliente divide, escolhe a gorjeta e paga metade com Pix (ordem da Sunday: dividir → gorjeta → pagar)
+// 4. Cliente escolhe os próprios itens (decisão 11/11: só divisão por itens), a gorjeta e paga com Pix
 await cliente.getByRole("tab", { name: "Conta" }).click();
 await cliente.getByText("1× Café espresso").waitFor();
 await cliente.getByRole("button", { name: "Pagar a conta" }).click();
-await cliente.getByRole("radio", { name: /Dividir igualmente/ }).click();
+if ((await cliente.getByRole("radio", { name: /Dividir igualmente|Outro valor/ }).count()) > 0)
+  throw new Error("divisão por partes iguais ou valor livre voltou ao demo");
+await cliente.getByRole("radio", { name: /Escolher meus itens/ }).click();
+await cliente.getByRole("button", { name: "Mais" }).first().click();
 await shot(cliente, "04-conta-dividida");
 await cliente.getByRole("button", { name: /^Continuar/ }).click();
 await cliente.getByText("Sugerida").waitFor();
@@ -90,7 +93,7 @@ await cliente.getByRole("button", { name: /com Pix/ }).click();
 await cliente.getByRole("button", { name: "Simular confirmação do banco" }).click();
 await cliente.getByText("Pagamento aprovado").waitFor();
 await shot(cliente, "06-aprovado");
-step("primeira metade paga com Pix e gorjeta");
+step("itens escolhidos pagos com Pix e gorjeta");
 
 // 5. Concorrência: duas pessoas tentam pagar o restante ao mesmo tempo
 await cliente.getByRole("button", { name: "Voltar para a conta" }).click();

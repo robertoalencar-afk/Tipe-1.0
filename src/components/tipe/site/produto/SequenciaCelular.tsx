@@ -12,21 +12,24 @@ import "./produto.css";
 export const ETAPAS_TELA: Record<TelaReal, Omit<EtapaCelular, "tela">> = {
   conta: {
     alt: "Conta da Mesa 12 no celular: total de R$ 356,40 com a taxa de serviço",
-    toque: { x: 28, y: 59 },
+    toque: { x: 13, y: 88 },
   },
-  dividir: { alt: "Conta dividida em 3 partes, com a parte de R$ 118,79", toque: { x: 50, y: 70 } },
+  dividir: {
+    alt: "Itens escolhidos na conta: metade do baião de dois, uma caipirinha e um pudim, R$ 89,10 com a taxa",
+    toque: { x: 50, y: 95 },
+  },
   metodos: {
     alt: "Formas de pagamento: Pix, Apple Pay, Google Pay e pagar no estabelecimento",
-    toque: { x: 50, y: 89 },
+    toque: { x: 50, y: 90 },
   },
-  pix: { alt: "Tela do Pix com o valor de R$ 118,79 e o QR Code" },
+  pix: { alt: "Tela do Pix com o valor de R$ 89,10 e o QR Code" },
   pago: {
     alt: "Pagamento realizado, com o valor pago, o restaurante e a mesa",
-    toque: { x: 49, y: 75 },
+    toque: { x: 50, y: 91 },
   },
   gorjeta: {
     alt: "Gorjeta extra opcional para a Joyce: 3%, 5%, 8% ou outro valor, ou seguir sem gorjeta",
-    toque: { x: 50, y: 73 },
+    toque: { x: 50, y: 82 },
   },
   "gorjeta-metodo": { alt: "Forma de pagamento da gorjeta extra" },
   "gorjeta-pix": { alt: "Pix da gorjeta extra" },
