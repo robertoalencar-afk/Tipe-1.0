@@ -1,0 +1,54 @@
+{
+ "base": "Unretouched editorial photograph by a documentary photographer, indistinguishable from a real photo. Shot on a Canon EOS R5, 35mm f/1.4, ISO 3200, 1/80 s: natural noise, slight softness, a little motion blur on moving hands, warm tungsten light mixed with cool window light, slightly underexposed shadows, muted true-to-life colours, no HDR, no glow, no retouching. Ordinary Brazilian people, not models: real skin with pores and blemishes, flyaway hair, everyday clothes with creases. Candid, nobody looks at the camera, imperfect framing with foreground objects. A busy, lived-in Brazilian neighbourhood restaurant in Fortaleza at night: worn wooden tables, beer bottles, glasses, napkins, plates with leftovers, chalkboard menu. No QR codes, no table cards, no logos, no text overlays, no watermark. ",
+ "versoes": 2,
+ "cenas": {
+  "dono-fechando-caixa": {
+   "aspecto": "4:5",
+   "texto": "Late night after closing, a tired Brazilian restaurant owner in his 50s, grey stubble, sits at the counter with paper receipts, a calculator and card-machine slips spread out, rubbing his eyes. Chairs upside down on tables behind him, one warm light on."
+  },
+  "dona-salao-cheio": {
+   "aspecto": "4:5",
+   "texto": "A Brazilian restaurant owner in her 40s, curly hair tied up, black apron over a linen shirt, stands near the bar watching a completely full dining room on a Friday night, arms crossed, a proud but alert expression. Waiters moving in motion blur."
+  },
+  "fila-caixa": {
+   "aspecto": "4:5",
+   "texto": "A queue of five customers standing at a small cashier counter near the door of a busy restaurant, waiting to pay, one checking his watch, another holding a toddler. The cashier is typing on an old register. Seen from the side."
+  },
+  "mesa-vazia-pratos": {
+   "aspecto": "4:5",
+   "texto": "A table where the meal has clearly ended: empty plates, crumpled napkins, beer bottles, nobody eating anymore, four friends leaning back chatting and looking around for the waiter. Medium shot, warm light."
+  },
+  "garcom-correndo": {
+   "aspecto": "9:16",
+   "texto": "A young Brazilian waiter walking fast between crowded tables carrying three plates on one arm and a card machine in his back pocket, motion blur on legs, several customers in the background raising hands."
+  },
+  "garconete-sorrindo": {
+   "aspecto": "4:5",
+   "texto": "A Brazilian waitress in her 20s with braided hair and a black apron laughs while chatting with a table of customers, relaxed, holding a notepad, nobody is waiting for anything. Candid, warm evening light."
+  },
+  "familia-domingo-almoco": {
+   "aspecto": "4:5",
+   "texto": "Sunday lunch in a simple seafood restaurant in Fortaleza near the beach, a big Brazilian family of three generations at a long table full of fish, rice and baião de dois, grandmother laughing, kids with juice glasses."
+  },
+  "amigos-barraca-praia": {
+   "aspecto": "4:5",
+   "texto": "Late afternoon at a beach kiosk (barraca) in Praia do Futuro, Fortaleza: four friends at a plastic table under a umbrella, coconut water and beer, crab plates, sea and sunset behind them, one holding a phone and smiling at the screen."
+  },
+  "chef-cozinha-pedidos": {
+   "aspecto": "4:5",
+   "texto": "Inside a hot, busy restaurant kitchen, a Brazilian cook in his 30s with a bandana reads order tickets hanging on a rail while flames rise from a pan, a second cook plating behind him, steam and stainless steel."
+  },
+  "maos-celular-mesa": {
+   "aspecto": "4:5",
+   "texto": "Close-up of a woman's hands holding a smartphone above a restaurant table at the end of a meal, thumb about to tap the screen, which shows a simple clean white payment screen with a big green button; blurred plates and glasses around. The screen has no brand logo."
+  },
+  "bar-balcao-noite": {
+   "aspecto": "4:5",
+   "texto": "Night at a lively Fortaleza bar counter: a bartender pours a caipirinha, customers on stools laughing, fairy lights, bottles on shelves, warm orange light and deep shadows."
+  },
+  "dono-celular-sorrindo": {
+   "aspecto": "4:5",
+   "texto": "A Brazilian restaurant owner in his 30s in a simple black t-shirt stands by the kitchen pass during service, glancing at his phone with a small satisfied smile, the busy dining room softly blurred behind him."
+  }
+ }
+}
