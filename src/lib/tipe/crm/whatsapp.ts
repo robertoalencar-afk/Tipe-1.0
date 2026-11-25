@@ -3,10 +3,10 @@
 // X-Hub-Signature-256 com o App Secret e envio pela Graph API. Nada de automação de
 // WhatsApp Web ou bibliotecas não oficiais.
 //
-// Estado atual: o webhook valida e interpreta os eventos, mas ainda não grava no banco,
-// porque o CRM roda em modo demonstração (dados no navegador). Ver README do CRM.
+// O endpoint do webhook persiste mensagens e status no Supabase; o envio é feito
+// exclusivamente no servidor. Tokens e segredos nunca devem chegar ao navegador.
 
-export const GRAPH_VERSION = "v21.0";
+export const GRAPH_VERSION = "v26.0";
 
 export type WaConfig = {
   token?: string | undefined;
