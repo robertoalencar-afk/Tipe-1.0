@@ -1,7 +1,8 @@
 name: Publicar no Instagram
 on:
   schedule:
-    - cron: "40 * * * *"
+    # GitHub pula muitos disparos agendados: 4 tentativas por hora dentro da janela de 75 min
+    - cron: "5,20,35,50 * * * *"
   workflow_dispatch:
     inputs:
       post:
@@ -11,6 +12,9 @@ on:
         description: "Só validar token e conta, sem publicar"
         type: boolean
         default: false
+concurrency:
+  group: publicar-instagram
+  cancel-in-progress: false
 jobs:
   publicar:
     runs-on: ubuntu-latest
