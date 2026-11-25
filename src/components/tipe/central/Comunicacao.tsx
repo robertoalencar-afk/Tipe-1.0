@@ -29,7 +29,7 @@ export function Comunicacao({ aba, id, ir }: Props) {
   const d = q.data;
   return (
     <div className="space-y-5">
-      <Segmentado label="Canal" value={atual} onChange={(a) => ir("comunicacao", a)} options={abas} />
+      <div className="-mx-3 overflow-x-auto px-3 [scrollbar-width:none] sm:mx-0 sm:px-0"><Segmentado className="whitespace-nowrap" label="Canal" value={atual} onChange={(a) => ir("comunicacao", a)} options={abas} /></div>
       {atual === "whatsapp" && <WhatsApp d={d} conversaId={id} abrir={(c) => ir("comunicacao", "whatsapp", c)} />}
       {atual === "caixa" && <CaixaEmail />}
       {atual === "email" && <Emails d={d} destaque={id} />}
