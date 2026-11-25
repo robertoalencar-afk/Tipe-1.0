@@ -74,6 +74,11 @@ export function BarraStatusIOS({
   );
 }
 
+/** Tamanho fixo em em (largura e altura explícitas: o Firefox não deduz a largura de um SVG só com altura). */
+function tam(h: number, proporcao: number): CSSProperties {
+  return { height: `${h}em`, width: `${h * proporcao}em`, flex: "none", display: "block" };
+}
+
 /** Só os ícones (sinal, Wi-Fi, bateria), para quem já tem a própria faixa. */
 export function IconesStatus({
   bateria = 82,
@@ -87,20 +92,20 @@ export function IconesStatus({
   return (
     <>
       {/* Sinal de celular: 4 barras */}
-      <svg viewBox="0 0 18 12" className="h-[0.7em] w-auto" fill={cor}>
+      <svg viewBox="0 0 18 12" width="18" height="12" style={tam(0.7, 18 / 12)} fill={cor}>
         <rect x="0" y="7.6" width="3.2" height="4.4" rx="1" />
         <rect x="4.9" y="5.2" width="3.2" height="6.8" rx="1" />
         <rect x="9.8" y="2.6" width="3.2" height="9.4" rx="1" />
         <rect x="14.7" y="0" width="3.2" height="12" rx="1" />
       </svg>
       {/* Wi-Fi: três faixas em leque */}
-      <svg viewBox="0 0 17 12.4" className="h-[0.72em] w-auto" fill={cor}>
+      <svg viewBox="0 0 17 12.4" width="17" height="12.4" style={tam(0.72, 17 / 12.4)} fill={cor}>
         <path d="M8.5 2.55c2.36 0 4.5.9 6.13 2.4l1.23-1.27A10.6 10.6 0 0 0 8.5.8a10.6 10.6 0 0 0-7.36 2.88l1.23 1.27A8.8 8.8 0 0 1 8.5 2.55Z" />
         <path d="M8.5 6.08c1.4 0 2.67.53 3.63 1.4l1.23-1.27A7 7 0 0 0 8.5 4.33a7 7 0 0 0-4.86 1.88l1.23 1.27a5.3 5.3 0 0 1 3.63-1.4Z" />
         <path d="M8.5 7.83c.92 0 1.76.33 2.4.88L8.5 11.2 6.1 8.7c.64-.54 1.48-.87 2.4-.87Z" />
       </svg>
       {/* Bateria com o nível (preenchimento proporcional + número, como no iOS) */}
-      <svg viewBox="0 0 28 13" className="h-[0.78em] w-auto">
+      <svg viewBox="0 0 28 13" width="28" height="13" style={tam(0.78, 28 / 13)}>
         <rect
           x="0.5"
           y="0.5"
