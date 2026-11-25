@@ -132,3 +132,14 @@ Regras:
 - Moldura: `src/components/tipe/site/Site.tsx` (`SitePage`, `Secao tema="claro|escuro"`, `Titulo`, `FaixaCta`). Quando uma seção escura cruza o meio da tela, a página inteira passa para preto em 0,5 s (variáveis `--pg-*` registradas com `@property`); o logo troca para a versão branca e `.btn-tema` inverte.
 - Fotos: `Foto` (src/assets/produtos/<nome>-<800|1600>.webp) entra ampliada 1,12× e assenta em 2,4 s; hover de card aproxima 1,05× em 1,2 s. Fotos geradas com /mnt/project-files/landing-v3/fotos-ia/gerar-produtos.py.
 - Produtos: catálogo em `site/produtos.ts` → páginas `/produtos/<slug>` (pay, order, staff, kitchen, restaurant, ai, guest). Status "em-breve" aparece como selo. Também `/precos` e `/integracoes`.
+
+## Telas de celular sempre com barra de status (25/11/2026)
+
+Regra do Roberto: toda tela de celular em imagem, simulador, vídeo ou post mostra a barra de status de um iPhone de verdade (iPhone 16/17/18 com ilha dinâmica): hora à esquerda, sinal, Wi-Fi e bateria com o nível à direita.
+
+- React: use `BarraStatusIOS` (ou só `IconesStatus`) de `src/components/tipe/BarraStatusIOS.tsx`. Medidas em `em`: defina o `font-size` (≈ 4,1% da largura da tela). `tom="claro"` sobre foto ou fundo escuro; `aoVivo` mostra a hora do aparelho.
+- Molduras que já usam: `CelularPro`, `CelularReal` (site), `Celular` de `Dispositivo`, `PhoneShot`, `PhoneFrame` (ds), `Celular` de `produto/Simuladores`, celular do `SimuladorMultiformato`, prévia do `CriarPratoDemo` e o iframe do `LiveSimulator` (a barra ocupa os 48 pt de cima, o app começa abaixo).
+- Moldura nova de celular: inclua a barra desde o primeiro commit. O conteúdo do app começa abaixo dela (≈ 47 pt).
+- Vídeos: `docs/landing-v5/video-produto/produto-fluxo.html` tem a barra (`#sb`); o hero recebe a barra nas telas compostas pelo script `/mnt/project-files/tipe-hero/scripts/v6/barra_status.py` (rodar de novo a cada nova versão do hero).
+- Instagram: o `motion.html` da skin coloca a barra por padrão (`"sb":0` desliga), ver `skins/COMO-USAR.md`.
+- Fotos: telas compostas em foto ganham a barra pelo mesmo `aplicar()` do script do hero. A câmera do iPhone (leitura de QR) não tem barra, como no aparelho.

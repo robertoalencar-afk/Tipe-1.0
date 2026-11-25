@@ -177,12 +177,6 @@
   background: #0b1418;
   color: #fff;
 }
-.cf .cel-real[data-camera] .cel-status g {
-  fill: #fff;
-}
-.cf .cel-real[data-camera] .cel-status rect[fill="none"] {
-  stroke: #fff;
-}
 .cf .cel-real[data-camera] .cel-home {
   background: #fff;
 }

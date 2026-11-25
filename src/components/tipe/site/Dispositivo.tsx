@@ -6,6 +6,7 @@
  */
 import type { CSSProperties } from "react";
 import { cn } from "@/lib/utils";
+import { BarraStatusIOS } from "@/components/tipe/BarraStatusIOS";
 import avaliacao390 from "@/assets/telas-reais/avaliacao-390.webp";
 import avaliacao780 from "@/assets/telas-reais/avaliacao-780.webp";
 import conta390 from "@/assets/telas-reais/conta-390.webp";
@@ -54,21 +55,7 @@ export type TelaJanela = keyof typeof TELAS_JANELA;
 
 function BarraStatus({ escura = false }: { escura?: boolean }) {
   return (
-    <div
-      aria-hidden
-      className={cn(
-        "flex h-[7.5%] max-h-[30px] items-end justify-between px-[11%] pb-[1%] text-[clamp(7px,2.6cqi,11px)] font-medium",
-        escura ? "text-white" : "text-[oklch(0.15_0_0)]",
-      )}
-    >
-      <span>9:41</span>
-      <span className="flex items-center gap-[3px]">
-        <span className="h-[0.7em] w-[1.1em] rounded-[2px] bg-current opacity-80" />
-        <span className="h-[0.75em] w-[1.6em] rounded-[3px] border border-current p-[1px] opacity-80">
-          <span className="block h-full w-3/4 rounded-[1px] bg-current" />
-        </span>
-      </span>
-    </div>
+    <BarraStatusIOS tom={escura ? "claro" : "escuro"} className="text-[clamp(7px,4.1cqi,16px)]" />
   );
 }
 

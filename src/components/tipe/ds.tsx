@@ -4,6 +4,7 @@
  */
 import type { ComponentType, ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { BarraStatusIOS } from "@/components/tipe/BarraStatusIOS";
 
 /** Rótulo curto acima de títulos. */
 export function Eyebrow({
@@ -210,6 +211,7 @@ export function PhoneFrame({
           screenClassName,
         )}
       >
+        <BarraStatusIOS className="absolute inset-x-0 top-0 z-10 text-[11px]" />
         <div
           className="pointer-events-none absolute left-1/2 top-2 z-10 h-[22px] w-[84px] -translate-x-1/2 rounded-full bg-ink"
           aria-hidden
