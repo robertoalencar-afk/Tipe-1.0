@@ -3,7 +3,15 @@
  * soltas, e devolve os quadros do giro 360° (JPEG quadrado, prato no centro) prontos para enviar.
  */
 import { caber, nitidez, paraCinza, temposAmostra } from "./quadros";
-import { recorteGiro } from "./giro";
+import { LADO_BRUTO, LADO_GIRO, recorteGiro } from "./giro";
+import {
+  acharPrato,
+  aplicarCor,
+  escolherCapa,
+  planejar,
+  type Achado,
+  type Cor,
+} from "./lebre-giro";
 
 const QUALIDADE = 0.84;
 
@@ -13,8 +21,9 @@ export function quadroGiro(
   largura: number,
   altura: number,
   c: HTMLCanvasElement = document.createElement("canvas"),
+  max = LADO_BRUTO,
 ) {
-  const r = recorteGiro(largura, altura);
+  const r = recorteGiro(largura, altura, max);
   c.width = r.saida;
   c.height = r.saida;
   const ctx = c.getContext("2d")!;
@@ -228,4 +237,86 @@ export function fonteDeUrls(
     if (!url) throw new Error("Não foi possível preparar o envio das fotos");
     return url;
   };
+}
+
+/**
+ * A Lebre prepara o giro antes do envio, no próprio celular (não gasta crédito de IA):
+ * prato parado no centro e do mesmo tamanho, luz e cor iguais entre as fotos, e a capa.
+ * Lê cada foto duas vezes (analisa, depois desenha) para não segurar 60 imagens na memória.
+ * Se algo falhar, devolve as fotos só reduzidas: o giro sai do mesmo jeito.
+ */
+export async function prepararComLebre(
+  fotos: Blob[],
+  fimVolta1: number,
+  progresso: (texto: string, fracao: number) => void,
+): Promise<{ fotos: Blob[]; capa: number }> {
+  const N = 96;
+  const peq = document.createElement("canvas");
+  peq.width = N;
+  peq.height = N;
+  const cp = peq.getContext("2d", { willReadFrequently: true })!;
+  const saida = document.createElement("canvas");
+  saida.width = LADO_GIRO;
+  saida.height = LADO_GIRO;
+  const cs = saida.getContext("2d", { willReadFrequently: true })!;
+  cs.imageSmoothingQuality = "high";
+  const total = fotos.length * 2;
+  try {
+    const achados: Achado[] = [];
+    const cores: Cor[] = [];
+    for (const [i, f] of fotos.entries()) {
+      const bmp = await createImageBitmap(f);
+      cp.drawImage(bmp, 0, 0, N, N);
+      bmp.close();
+      const px = cp.getImageData(0, 0, N, N).data;
+      achados.push(acharPrato(px, N));
+      let r = 0;
+      let g = 0;
+      let b = 0;
+      for (let k = 0; k < px.length; k += 4) {
+        r += px[k]!;
+        g += px[k + 1]!;
+        b += px[k + 2]!;
+      }
+      const n = px.length / 4;
+      cores.push({ r: r / n, g: g / n, b: b / n, nitidez: nitidez(paraCinza(px), N, N) });
+      progresso("A Lebre está preparando o giro", (i + 1) / total);
+    }
+    const planos = planejar(achados, cores);
+    const prontas: Blob[] = [];
+    for (const [i, f] of fotos.entries()) {
+      const bmp = await createImageBitmap(f);
+      const p = planos[i]!;
+      const S = Math.min(bmp.width, bmp.height);
+      const ox = (bmp.width - S) / 2;
+      const oy = (bmp.height - S) / 2;
+      cs.drawImage(
+        bmp,
+        ox + p.sx * S,
+        oy + p.sy * S,
+        p.lado * S,
+        p.lado * S,
+        0,
+        0,
+        LADO_GIRO,
+        LADO_GIRO,
+      );
+      bmp.close();
+      const img = cs.getImageData(0, 0, LADO_GIRO, LADO_GIRO);
+      aplicarCor(img.data, p.ganho);
+      cs.putImageData(img, 0, 0);
+      prontas.push(await canvasJpeg(saida));
+      progresso("A Lebre está preparando o giro", (fotos.length + i + 1) / total);
+    }
+    return { fotos: prontas, capa: escolherCapa(cores, fimVolta1) };
+  } catch (e) {
+    console.warn("Lebre: preparo do giro falhou, enviando as fotos como estão", e);
+    const simples: Blob[] = [];
+    for (const f of fotos) {
+      const bmp = await createImageBitmap(f);
+      simples.push(await quadroGiro(bmp, bmp.width, bmp.height, saida, LADO_GIRO));
+      bmp.close();
+    }
+    return { fotos: simples, capa: 0 };
+  }
 }

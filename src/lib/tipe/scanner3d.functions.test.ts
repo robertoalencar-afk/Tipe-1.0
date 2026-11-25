@@ -119,18 +119,20 @@ it("envio completo vira giro 360° pronto na hora, com as duas voltas", async ()
   m.scan = { ...base, status: "enviando", model_url: null };
   m.arquivos = quadros(60);
   const r = await concluirEnvioScan({
-    data: { slug: "bistro", scanId, inicioVolta2: 30 },
+    data: { slug: "bistro", scanId, inicioVolta2: 30, capa: 7 },
     context: ctx,
   } as never);
   expect(r).toEqual({ status: "pronto" });
   expect(m.enviados[0]!.caminho).toBe(`r1/${scanId}/giro.json`);
   const giro = JSON.parse(m.enviados[0]!.corpo);
   expect(giro.voltas.map((v: string[]) => v.length)).toEqual([30, 30]);
+  expect(giro.capa).toBe(7);
   expect(giro.voltas[0][0]).toBe(`https://cdn/r1/${scanId}/giro/000.jpg`);
   expect(m.updates[0]!.valores).toMatchObject({
     status: "pronto",
     total_fotos: 60,
     model_url: `https://cdn/r1/${scanId}/giro.json`,
+    poster_url: `https://cdn/r1/${scanId}/giro/007.jpg`,
   });
 });
 

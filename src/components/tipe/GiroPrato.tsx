@@ -55,7 +55,7 @@ export function GiroPrato({ src, alt, ajuste = "contain", className = "" }: Prop
         if (!vivo) return;
         if (!g) return setEstado("erro");
         setGiro(g);
-        pos.current = { volta: 0, quadro: 0 };
+        pos.current = { volta: 0, quadro: g.capa ?? 0 };
         // A 1ª volta baixa primeiro; a de cima vem depois.
         imagens.current = g.voltas.map((v) =>
           v.map((u) => {

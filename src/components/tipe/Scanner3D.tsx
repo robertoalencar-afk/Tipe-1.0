@@ -24,6 +24,7 @@ import {
 import {
   enviarFotos,
   fonteDeUrls,
+  prepararComLebre,
   prepararFotos,
   quadrosDoVideo,
 } from "@/lib/tipe/scanner/captura";
@@ -140,12 +141,13 @@ export function Scanner3D({ slug, items }: { slug: string; items: Item[] }) {
         throw new Error(
           "Muitos quadros saíram tremidos. Grave de novo mais devagar, com o celular firme.",
         );
+      const pronto = await prepararComLebre(blobs, blobs.length, progresso);
       const { scanId, urls } = await iniciar({ data: { slug, itemId, total: blobs.length } });
       const url = fonteDeUrls(urls, LOTE_URLS, (inicio) =>
         maisUrls({ data: { slug, scanId, inicio } }).then((r) => r.urls),
       );
-      await enviarFotos(blobs, url, progresso);
-      await concluir({ data: { slug, scanId, inicioVolta2: null } });
+      await enviarFotos(pronto.fotos, url, progresso);
+      await concluir({ data: { slug, scanId, inicioVolta2: null, capa: pronto.capa } });
       toast.success("Pronto! O giro 360° do prato já está aqui para você aprovar.");
       setAberto(scanId);
       await qc.invalidateQueries({ queryKey: ["scanner-3d", slug] });
@@ -183,8 +185,9 @@ export function Scanner3D({ slug, items }: { slug: string; items: Item[] }) {
             Scanner 3D
           </h3>
           <p className="text-sm text-muted-foreground">
-            Dê a volta no prato com o celular. As fotos de verdade viram na hora um giro 360° que o
-            cliente gira com o dedo, e você aprova antes de ir para o cardápio.
+            Dê a volta no prato com o celular. A Lebre prepara as fotos de verdade (prato no centro,
+            luz igual, melhor capa) e elas viram na hora um giro 360° que o cliente gira com o dedo.
+            Você aprova antes de ir para o cardápio. Não gasta crédito.
           </p>
         </div>
       </div>
