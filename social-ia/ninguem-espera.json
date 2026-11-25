@@ -1,0 +1,26 @@
+{
+ "base": "Unretouched editorial photograph by a documentary photographer, indistinguishable from a real photo. Shot on a Canon EOS R5, 35mm f/1.4, ISO 3200, 1/80 s: natural noise, slight softness, a little motion blur on moving hands, warm tungsten light mixed with cool window light, slightly underexposed shadows, muted true-to-life colours, no HDR, no glow, no retouching. Ordinary Brazilian people, not models: real skin with pores and blemishes, flyaway hair, everyday clothes with creases. Candid, nobody looks at the camera, imperfect framing with foreground objects. A busy, lived-in Brazilian neighbourhood restaurant in Fortaleza at night: worn wooden tables, beer bottles, glasses, napkins, plates with leftovers, chalkboard menu. No QR codes, no table cards, no tablets on tables, no smartphones being used to pay, no logos, no text overlays, no watermark. ",
+ "versoes": 2,
+ "cenas": {
+  "cliente-mao": {
+   "aspecto": "4:5",
+   "texto": "A woman in her 30s sitting at a table with three friends raises her hand high and waves it, trying to catch the waiter's attention, a slightly impatient half-smile. The waiter is far in the background, out of focus, turned away serving another table. Her friends are chatting, plates finished, the meal is clearly over. Medium shot from the side of the table at seated eye level."
+  },
+  "cliente-mao-vertical": {
+   "aspecto": "9:16",
+   "texto": "A man in his 40s at a crowded table raises his arm and snaps his fingers, looking across the noisy dining room for a waiter who does not see him. Empty plates and a nearly empty beer bottle in front of him. Other tables full and busy, two waiters rushing past in motion blur. Vertical framing, shot from behind his shoulder toward the room."
+  },
+  "garcom-maquininha": {
+   "aspecto": "4:5",
+   "texto": "A tired young Brazilian waiter in a black apron stands beside a table holding a card payment machine, waiting with a patient but weary look, glancing at the room. At the table, four friends lean over a crumpled printed paper bill: one points at a line item, another types numbers on a phone calculator, another counts on her fingers. Medium-wide shot from the side, the waiter sharp, the group slightly soft."
+  },
+  "notinha-calculadora": {
+   "aspecto": "4:5",
+   "texto": "Close-up from above of a restaurant table at the end of a meal: hands holding a long printed paper bill, a finger pointing at an item, another hand typing on a phone calculator app showing a number, coins and a beer glass ring stain on the wood. At the edge of the frame, the waiter's hand holds a card payment machine, waiting. Shallow depth of field, warm light."
+  },
+  "garcom-esperando-relogio": {
+   "aspecto": "9:16",
+   "texto": "A waiter in his 30s stands still next to a table holding a card payment machine, looking over his shoulder at another table where a customer is raising a hand to call him. At his table, the customers are still debating who ate what, passing the paper bill around. Vertical framing, the waiter in the foreground in focus, the busy room behind him."
+  }
+ }
+}
