@@ -31,6 +31,7 @@ import {
   type Tone,
 } from "@/components/tipe/painel/ui";
 import { useMeuPerfil } from "@/components/tipe/PerfilConta";
+import { ProspeccaoEmail } from "./ProspeccaoEmail";
 import {
   converterProspect,
   descartarProspect,
@@ -61,6 +62,7 @@ const VISTAS = [
   ["cadencia", "Em cadência"],
   ["todos", "Todos"],
   ["encerrados", "Encerrados"],
+  ["email", "E-mail"],
 ] as const;
 type Vista = (typeof VISTAS)[number][0];
 const FAIXA_TONE: Record<string, Tone> = { A: "success", B: "brand", C: "neutral" };
@@ -87,6 +89,7 @@ export function Prospeccao({
   abrirLead: (leadId: string) => void;
 }) {
   const fetchLista = useServerFn(getProspeccao);
+  const meuEmail = useMeuPerfil().data?.email;
   const q = useQuery({
     queryKey: ["central-prospeccao"],
     queryFn: () => fetchLista(),
@@ -193,147 +196,154 @@ export function Prospeccao({
         />
       </div>
 
-      <Painel
-        titulo="Prospecção ativa"
-        descricao={
-          vista === "fila"
-            ? "Quem respondeu, os toques vencidos da cadência e os 20 melhores novos do dia."
-            : `${linhas.length} restaurantes neste filtro`
-        }
-        semPadding
-        acoes={
-          <div className="flex flex-wrap items-center gap-2">
-            <Segmentado
-              label="Vista"
-              value={vista}
-              onChange={(v) => {
-                setVista(v);
-                pag.reset();
-              }}
-              options={VISTAS}
-            />
-            <select
-              className={`${inputCls} h-9 w-auto text-sm`}
-              value={fx}
-              onChange={(e) => {
-                setFx(e.target.value as typeof fx);
-                pag.reset();
-              }}
-              aria-label="Faixa de score"
-            >
-              <option value="todas">Todas as faixas</option>
-              <option value="A">Faixa A</option>
-              <option value="B">Faixa B</option>
-              <option value="C">Faixa C</option>
-            </select>
-            <select
-              className={`${inputCls} h-9 w-auto text-sm`}
-              value={cat}
-              onChange={(e) => {
-                setCat(e.target.value);
-                pag.reset();
-              }}
-              aria-label="Tipo"
-            >
-              <option value="todas">Todos os tipos</option>
-              {Object.entries(CATEGORIAS).map(([k, l]) => (
-                <option key={k} value={k}>
-                  {l}
-                </option>
-              ))}
-            </select>
-            <label className="flex items-center gap-1.5 text-sm">
-              <input
-                type="checkbox"
-                checked={soWhats}
-                onChange={(e) => {
-                  setSoWhats(e.target.checked);
+      {vista === "email" ? (
+        <>
+          <Segmentado label="Vista" value={vista} onChange={(v) => setVista(v)} options={VISTAS} />
+          <ProspeccaoEmail emailUsuario={meuEmail} />
+        </>
+      ) : (
+        <Painel
+          titulo="Prospecção ativa"
+          descricao={
+            vista === "fila"
+              ? "Quem respondeu, os toques vencidos da cadência e os 20 melhores novos do dia."
+              : `${linhas.length} restaurantes neste filtro`
+          }
+          semPadding
+          acoes={
+            <div className="flex flex-wrap items-center gap-2">
+              <Segmentado
+                label="Vista"
+                value={vista}
+                onChange={(v) => {
+                  setVista(v);
                   pag.reset();
                 }}
-              />{" "}
-              Com WhatsApp
-            </label>
-            <Busca
-              value={busca}
-              onChange={(v) => {
-                setBusca(v);
-                pag.reset();
-              }}
-              placeholder="Nome, bairro, cozinha…"
-            />
-          </div>
-        }
-      >
-        <Tabela
-          linhas={pag.fatia}
-          chave={(p: any) => p.id}
-          onLinha={(p: any) => abrir(p.id)}
-          rodape={pag.controles}
-          vazio={
-            vista === "fila"
-              ? "Fila de hoje zerada. Bom trabalho!"
-              : "Nenhum restaurante com esse filtro."
+                options={VISTAS}
+              />
+              <select
+                className={`${inputCls} h-9 w-auto text-sm`}
+                value={fx}
+                onChange={(e) => {
+                  setFx(e.target.value as typeof fx);
+                  pag.reset();
+                }}
+                aria-label="Faixa de score"
+              >
+                <option value="todas">Todas as faixas</option>
+                <option value="A">Faixa A</option>
+                <option value="B">Faixa B</option>
+                <option value="C">Faixa C</option>
+              </select>
+              <select
+                className={`${inputCls} h-9 w-auto text-sm`}
+                value={cat}
+                onChange={(e) => {
+                  setCat(e.target.value);
+                  pag.reset();
+                }}
+                aria-label="Tipo"
+              >
+                <option value="todas">Todos os tipos</option>
+                {Object.entries(CATEGORIAS).map(([k, l]) => (
+                  <option key={k} value={k}>
+                    {l}
+                  </option>
+                ))}
+              </select>
+              <label className="flex items-center gap-1.5 text-sm">
+                <input
+                  type="checkbox"
+                  checked={soWhats}
+                  onChange={(e) => {
+                    setSoWhats(e.target.checked);
+                    pag.reset();
+                  }}
+                />{" "}
+                Com WhatsApp
+              </label>
+              <Busca
+                value={busca}
+                onChange={(v) => {
+                  setBusca(v);
+                  pag.reset();
+                }}
+                placeholder="Nome, bairro, cozinha…"
+              />
+            </div>
           }
-          colunas={[
-            {
-              k: "n",
-              l: "Restaurante",
-              c: (p: any) => (
-                <span>
-                  <span className="font-medium">{p.name}</span>
-                  <span className="block text-xs text-muted-foreground">
-                    {CATEGORIAS[p.category as keyof typeof CATEGORIAS]}
-                    {p.cuisine ? ` · ${p.cuisine.replace(/;/g, ", ")}` : ""}
+        >
+          <Tabela
+            linhas={pag.fatia}
+            chave={(p: any) => p.id}
+            onLinha={(p: any) => abrir(p.id)}
+            rodape={pag.controles}
+            vazio={
+              vista === "fila"
+                ? "Fila de hoje zerada. Bom trabalho!"
+                : "Nenhum restaurante com esse filtro."
+            }
+            colunas={[
+              {
+                k: "n",
+                l: "Restaurante",
+                c: (p: any) => (
+                  <span>
+                    <span className="font-medium">{p.name}</span>
+                    <span className="block text-xs text-muted-foreground">
+                      {CATEGORIAS[p.category as keyof typeof CATEGORIAS]}
+                      {p.cuisine ? ` · ${p.cuisine.replace(/;/g, ", ")}` : ""}
+                    </span>
                   </span>
-                </span>
-              ),
-            },
-            {
-              k: "b",
-              l: "Onde",
-              md: true,
-              c: (p: any) => (
-                <span className="text-sm">{poloDe(p) ?? p.neighborhood ?? p.street ?? "—"}</span>
-              ),
-            },
-            {
-              k: "c",
-              l: "Contato",
-              md: true,
-              c: (p: any) => (
-                <span className="flex items-center gap-1.5 text-muted-foreground">
-                  {p.whatsapp && (
-                    <MessageCircle className="size-4 text-success" aria-label="WhatsApp" />
-                  )}
-                  {!p.whatsapp && p.phone && <Phone className="size-4" aria-label="Telefone" />}
-                  {p.instagram && <Instagram className="size-4" aria-label="Instagram" />}
-                  {!p.phone && !p.instagram && !p.email && "—"}
-                </span>
-              ),
-            },
-            {
-              k: "s",
-              l: "Score",
-              num: true,
-              c: (p: any) => (
-                <StatusBadge tone={FAIXA_TONE[faixa(p.score)] ?? "neutral"}>
-                  {faixa(p.score)} · {p.score}
-                </StatusBadge>
-              ),
-            },
-            {
-              k: "st",
-              l: "Situação",
-              c: (p: any) => (
-                <StatusBadge tone={STATUS_TONE[p.status as StatusProspect]}>
-                  {STATUS_PROSPECT[p.status as StatusProspect]}
-                </StatusBadge>
-              ),
-            },
-            { k: "p", l: "Próximo passo", md: true, c: (p: any) => proximoTexto(p) },
-          ]}
-        />
-      </Painel>
+                ),
+              },
+              {
+                k: "b",
+                l: "Onde",
+                md: true,
+                c: (p: any) => (
+                  <span className="text-sm">{poloDe(p) ?? p.neighborhood ?? p.street ?? "—"}</span>
+                ),
+              },
+              {
+                k: "c",
+                l: "Contato",
+                md: true,
+                c: (p: any) => (
+                  <span className="flex items-center gap-1.5 text-muted-foreground">
+                    {p.whatsapp && (
+                      <MessageCircle className="size-4 text-success" aria-label="WhatsApp" />
+                    )}
+                    {!p.whatsapp && p.phone && <Phone className="size-4" aria-label="Telefone" />}
+                    {p.instagram && <Instagram className="size-4" aria-label="Instagram" />}
+                    {!p.phone && !p.instagram && !p.email && "—"}
+                  </span>
+                ),
+              },
+              {
+                k: "s",
+                l: "Score",
+                num: true,
+                c: (p: any) => (
+                  <StatusBadge tone={FAIXA_TONE[faixa(p.score)] ?? "neutral"}>
+                    {faixa(p.score)} · {p.score}
+                  </StatusBadge>
+                ),
+              },
+              {
+                k: "st",
+                l: "Situação",
+                c: (p: any) => (
+                  <StatusBadge tone={STATUS_TONE[p.status as StatusProspect]}>
+                    {STATUS_PROSPECT[p.status as StatusProspect]}
+                  </StatusBadge>
+                ),
+              },
+              { k: "p", l: "Próximo passo", md: true, c: (p: any) => proximoTexto(p) },
+            ]}
+          />
+        </Painel>
+      )}
       <p className="text-xs text-muted-foreground">
         Dados públicos de empresa © colaboradores do OpenStreetMap (ODbL). Contato B2B por legítimo
         interesse: toda mensagem oferece a saída e quem pede para sair não volta em nenhuma coleta.

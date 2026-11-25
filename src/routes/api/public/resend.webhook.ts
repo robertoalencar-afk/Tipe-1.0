@@ -50,9 +50,19 @@ export const Route = createFileRoute("/api/public/resend/webhook")({
         const { error } = await db.from("email_events").insert({ id: h.id, type: ev.type, resend_id: ev.data?.email_id ?? null, payload: ev.data ?? {} });
         if (error) return new Response(null, { status: 200 }); // já processado (id repetido): idempotente
         if (ev.data?.email_id) {
-          const { data: atual } = await db.from("email_log").select("id, status").eq("resend_id", ev.data.email_id).maybeSingle();
+          const { data: atual } = await db.from("email_log").select("id, status, prospect_id, to_email").eq("resend_id", ev.data.email_id).maybeSingle();
           if (atual && ORDEM.indexOf(status) >= ORDEM.indexOf(atual.status))
             await db.from("email_log").update({ status, error: ev.data.bounce?.message ?? null, updated_at: new Date().toISOString() }).eq("id", atual.id);
+          // Prospecção: endereço que voltou encerra a sequência; queixa de spam vira opt-out (LGPD).
+          if (atual?.prospect_id && (status === "bounced" || status === "complained")) {
+            const agora = new Date().toISOString();
+            if (status === "complained") {
+              await db.from("crm_optout").upsert([{ value: String(atual.to_email).toLowerCase(), kind: "email", reason: "Marcou como spam" }], { onConflict: "value", ignoreDuplicates: true });
+              await db.from("crm_prospects").update({ status: "opt_out", discard_reason: "Marcou o e-mail como spam", email_next_at: null, next_touch_at: null, updated_at: agora }).eq("id", atual.prospect_id).is("lead_id", null);
+            } else {
+              await db.from("crm_prospects").update({ email_step: 3, email_next_at: null, updated_at: agora }).eq("id", atual.prospect_id);
+            }
+          }
         }
         return new Response(null, { status: 200 });
       },
