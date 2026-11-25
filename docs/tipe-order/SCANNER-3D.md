@@ -8,7 +8,12 @@ com as fotos reais** do prato, sem reconstrução:
 1. Gestão → Scanner 3D: "Escanear agora" (`CapturaAoVivo.tsx`) tira as fotos sozinho (nítida e de
    ângulo novo), "Enviar vídeo" ou "Enviar fotos". Cada quadro vira um JPEG quadrado de 640 px,
    recortado no centro (o prato fica no círculo do visor), em ordem de captura.
-2. Os quadros sobem direto para o bucket público `modelos-3d` em `<restaurante>/<scan>/giro/NNN.jpg`
+2. **A Lebre prepara o giro** (`prepararComLebre` em `captura.ts`, contas em `lebre-giro.ts`), no
+   celular e sem crédito de IA: acha o prato em cada foto (cor diferente da borda), recorta para
+   ele ficar parado no centro e do mesmo tamanho, iguala luz e cor entre as fotos (+8% de
+   saturação) e escolhe a capa (a mais nítida com luz normal da 1ª volta). ~1 s para 30 fotos. Se
+   falhar, as fotos vão só reduzidas.
+3. Os quadros sobem direto para o bucket público `modelos-3d` em `<restaurante>/<scan>/giro/NNN.jpg`
    (URLs assinadas de `iniciarScan`).
 3. `concluirEnvioScan` grava `<restaurante>/<scan>/giro.json` (`{versao:1, voltas:[[...],[...]]}`,
    1ª volta na altura do rosto, 2ª de cima) e marca o scan como "pronto" com `model_url` = giro.json.

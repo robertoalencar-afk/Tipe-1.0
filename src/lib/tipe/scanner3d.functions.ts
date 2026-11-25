@@ -169,6 +169,7 @@ export const concluirEnvioScan = createServerFn({ method: "POST" })
         slug: Slug,
         scanId: Id,
         inicioVolta2: z.number().int().min(0).max(MAX_FOTOS).nullable().optional(),
+        capa: z.number().int().min(0).max(MAX_FOTOS).nullable().optional(),
       })
       .parse(d),
   )
@@ -196,14 +197,15 @@ export const concluirEnvioScan = createServerFn({ method: "POST" })
       data.inicioVolta2 == null
         ? null
         : nomes.filter((n) => Number(n.slice(0, 3)) < data.inicioVolta2!).length;
+    const capa =
+      data.capa == null ? -1 : nomes.findIndex((n) => Number(n.slice(0, 3)) === data.capa);
+    const giro = montarGiro(urls, corte, capa >= 0 ? capa : null);
     const caminho = `${rid}/${scan.id}/giro.json`;
-    const { error } = await db.storage
-      .from(BUCKET)
-      .upload(caminho, JSON.stringify(montarGiro(urls, corte)), {
-        contentType: "application/json",
-        upsert: true,
-        cacheControl: "31536000",
-      });
+    const { error } = await db.storage.from(BUCKET).upload(caminho, JSON.stringify(giro), {
+      contentType: "application/json",
+      upsert: true,
+      cacheControl: "31536000",
+    });
     if (error) throw new Error("Não foi possível montar o giro do prato");
     const agora = new Date().toISOString();
     await db
@@ -212,7 +214,7 @@ export const concluirEnvioScan = createServerFn({ method: "POST" })
         status: "pronto",
         total_fotos: nomes.length,
         model_url: db.storage.from(BUCKET).getPublicUrl(caminho).data.publicUrl,
-        poster_url: urls[0],
+        poster_url: urls[giro.capa ?? 0],
         processado_em: agora,
         atualizado_em: agora,
       })

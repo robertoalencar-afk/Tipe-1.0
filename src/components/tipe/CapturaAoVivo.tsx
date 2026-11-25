@@ -1,7 +1,7 @@
 /**
  * Scanner ao vivo: a câmera abre dentro da Tipe e as fotos são tiradas sozinhas enquanto a
- * pessoa dá a volta no prato (só quadro nítido e de um ângulo novo). Cada foto já sobe na hora,
- * então ao terminar a volta o giro 360° do prato fica pronto na mesma hora.
+ * pessoa dá a volta no prato (só quadro nítido e de um ângulo novo). Ao terminar, a Lebre prepara
+ * o giro no próprio celular (prato centralizado, luz igual, capa), envia e o giro fica pronto.
  */
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
@@ -15,7 +15,7 @@ import {
   MIN_FOTOS,
   urlsDeEnvio,
 } from "@/lib/tipe/scanner3d.functions";
-import { enviarUma, fonteDeUrls, quadroGiro } from "@/lib/tipe/scanner/captura";
+import { enviarFotos, fonteDeUrls, prepararComLebre, quadroGiro } from "@/lib/tipe/scanner/captura";
 import { caber, decidirCaptura, diferenca, nitidez, paraCinza } from "@/lib/tipe/scanner/quadros";
 
 export const ALVO_FOTOS = 60;
@@ -39,13 +39,13 @@ export function CapturaAoVivo({
   const maisUrls = useServerFn(urlsDeEnvio);
   const video = useRef<HTMLVideoElement>(null);
   const scan = useRef<{ id: string; url: (i: number) => Promise<string> } | null>(null);
-  const envios = useRef<Promise<void>[]>([]);
+  const brutas = useRef<Promise<Blob>[]>([]);
   const rodando = useRef(true);
   const inicioVolta2 = useRef<number | null>(null);
   const [estado, setEstado] = useState<"abrindo" | "gravando" | "finalizando" | "erro">("abrindo");
   const [erro, setErro] = useState("");
   const [fotos, setFotos] = useState(0);
-  const [enviadas, setEnviadas] = useState(0);
+  const [etapa, setEtapa] = useState({ texto: "", fracao: 0 });
   const [aviso, setAviso] = useState<Aviso>("");
   const [flash, setFlash] = useState(0);
 
@@ -115,12 +115,7 @@ export function CapturaAoVivo({
               setFlash((f) => f + 1);
               setAviso("");
               navigator.vibrate?.(8);
-              const url = scan.current!.url(i);
-              envios.current.push(
-                Promise.all([jpeg, url])
-                  .then(([b, u]) => enviarUma(u, b))
-                  .then(() => setEnviadas((e) => e + 1)),
-              );
+              brutas.current.push(jpeg);
               if (n >= ALVO_FOTOS) void terminar();
             } else if (
               (d === "tremido" || d === "parado") &&
@@ -157,9 +152,17 @@ export function CapturaAoVivo({
     rodando.current = false;
     setEstado("finalizando");
     try {
-      await Promise.all(envios.current);
+      const progresso = (texto: string, fracao: number) => setEtapa({ texto, fracao });
+      const tiradas = await Promise.all(brutas.current);
+      const corte = inicioVolta2.current;
+      const { fotos: prontas, capa } = await prepararComLebre(
+        tiradas,
+        corte ?? tiradas.length,
+        progresso,
+      );
+      await enviarFotos(prontas, scan.current!.url, progresso);
       await concluir({
-        data: { slug, scanId: scan.current!.id, inicioVolta2: inicioVolta2.current },
+        data: { slug, scanId: scan.current!.id, inicioVolta2: corte, capa },
       });
       toast.success("Pronto! O giro 360° do prato já está aqui para você aprovar.");
       onFechar(true);
@@ -246,7 +249,7 @@ export function CapturaAoVivo({
           <Loader2 className="size-5 animate-spin" aria-hidden />
           {estado === "abrindo"
             ? "Abrindo a câmera…"
-            : `Enviando as últimas fotos… ${enviadas}/${fotos}`}
+            : `${etapa.texto || "A Lebre está preparando o giro"}… ${Math.round(etapa.fracao * 100)}%`}
         </p>
       )}
 
@@ -269,7 +272,7 @@ export function CapturaAoVivo({
             <p>
               <strong className="text-base text-white">{fotos}</strong> fotos
             </p>
-            <p>{enviadas} enviadas</p>
+            <p>de {ALVO_FOTOS}</p>
           </div>
           <div className="relative size-24">
             <svg viewBox="0 0 100 100" className="size-24 -rotate-90" aria-hidden>
