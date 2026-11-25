@@ -1,0 +1,12 @@
+name: Checar DNS de e-mail (temporário)
+on:
+  push:
+    branches: [chore/checar-dns-email]
+jobs:
+  dns:
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - run: |
+          for n in tipe.digital _dmarc.tipe.digital resend._domainkey.tipe.digital send.tipe.digital; do echo "== TXT $n"; dig +short TXT $n; done
+          for n in tipe.digital send.tipe.digital; do echo "== MX $n"; dig +short MX $n; done
