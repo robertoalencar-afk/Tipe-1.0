@@ -47,7 +47,7 @@ import {
   type LebreProposal,
 } from "@/lib/tipe/lebre.functions";
 import { askFounderAssistant } from "@/lib/tipe/central.functions";
-import type { Pendencia } from "@/lib/tipe/pendencias";
+import { perguntaSobreAvisos, respostaDosAvisos, type Pendencia } from "@/lib/tipe/pendencias";
 import lebre from "@/assets/lebre/avatar-feliz.webp";
 import lebreOla from "@/assets/lebre/avatar-ola.webp";
 import { cn } from "@/lib/utils";
@@ -321,6 +321,15 @@ export function LebreAssistant({
       await confirm(pendingProposal.id, pendingProposal.proposal);
       return;
     }
+    // Número no botão: a Lebre já sabe o que é cada aviso, responde na hora sem IA.
+    if (slug && !central && !files.length && perguntaSobreAvisos(question)) {
+      setMessages((current) => [
+        ...current,
+        { id: crypto.randomUUID(), role: "user", text: question },
+        { id: crypto.randomUUID(), role: "assistant", text: respostaDosAvisos(pendencias), ms: 0 },
+      ]);
+      return;
+    }
     const history = messages.slice(-8).map((m) => ({
       role: m.role,
       text: (m.text + (m.result ? ` (${m.result})` : "")).slice(0, 2000),
@@ -512,9 +521,12 @@ export function LebreAssistant({
                   {pendencias.length > 0 && (
                     <div className="mt-5 rounded-2xl border border-destructive/25 bg-destructive/[0.05] p-3">
                       <p className="text-sm font-semibold">
-                        {pendencias.length === 1
-                          ? "Uma pendência pede atenção"
-                          : `${pendencias.length} pendências pedem atenção`}
+                        {(() => {
+                          const total = pendencias.reduce((t, p) => t + p.n, 0);
+                          return total === 1
+                            ? "O 1 no meu botão é isto:"
+                            : `Os ${total} no meu botão são isto:`;
+                        })()}
                       </p>
                       <ul className="mt-2 space-y-2">
                         {pendencias.map((p) => (
@@ -532,9 +544,12 @@ export function LebreAssistant({
                                 className="mt-1.5 size-2 shrink-0 rounded-full bg-destructive"
                               />
                               <span>
-                                {p.texto}{" "}
-                                <span className="font-medium text-brand-strong underline underline-offset-2">
-                                  Ver em {p.rotulo}
+                                {p.texto}
+                                {p.solucao && (
+                                  <span className="mt-0.5 block text-ink/70">{p.solucao}</span>
+                                )}
+                                <span className="mt-0.5 block font-medium text-brand-strong underline underline-offset-2">
+                                  Resolver em {p.rotulo}
                                 </span>
                               </span>
                             </button>

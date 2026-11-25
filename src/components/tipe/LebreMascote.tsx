@@ -116,7 +116,7 @@ export function LebreMascote({
           <ConteudoBotaoLebre />
           {urgente && (
             <span className="absolute -right-0.5 -top-0.5 grid size-5 place-items-center rounded-full bg-destructive text-[10px] font-bold text-white ring-2 ring-background">
-              {noticeCount || count}
+              {Math.min(noticeCount + count, 99)}
             </span>
           )}
         </button>

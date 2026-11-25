@@ -627,7 +627,7 @@ export function RestaurantPanel({
   // Pendências por aba: bolinha vermelha no menu e a Lebre explica cada uma.
   const abaVisivel = (k: string) => (visiveis.some((x) => x.k === k) ? k : "inicio");
   const rotuloDe = (k: string) => (k === "pdv" ? "Lançar pedido" : (visiveis.find((x) => x.k === k)?.l ?? "Início"));
-  const pendencia = (k: string, n: number, texto: string): Pendencia => ({ aba: abaVisivel(k), rotulo: rotuloDe(abaVisivel(k)), texto, n });
+  const pendencia = (k: string, n: number, texto: string, solucao?: string): Pendencia => ({ aba: abaVisivel(k), rotulo: rotuloDe(abaVisivel(k)), texto, n, solucao });
   const pendencias: Pendencia[] = [
     pendentes.length > 0 &&
       pendencia(
@@ -636,14 +636,16 @@ export function RestaurantPanel({
         pendentes.length === 1
           ? "Um pagamento no balcão espera você confirmar ou recusar."
           : `${pendentes.length} pagamentos no balcão esperam você confirmar ou recusar.`,
+        "Confira o valor recebido e toque em Confirmar recebimento ou Cancelar.",
       ),
     d.pdvAlerts.length > 0 &&
       pendencia(
         "pdv",
         d.pdvAlerts.length,
         d.pdvAlerts.length === 1 ? "Um cancelamento no PDV precisa da sua conferência." : `${d.pdvAlerts.length} cancelamentos no PDV precisam da sua conferência.`,
+        "Confira se o cancelamento foi combinado com a equipe; o detalhe fica nos Alertas do PDV.",
       ),
-    syncErro && pendencia("integracoes", 1, "A sincronização com o seu sistema está com erro. Os pedidos seguem pelo Lançamento TIPE."),
+    syncErro && pendencia("integracoes", 1, "A sincronização com o seu sistema está com erro. Os pedidos seguem pelo Lançamento TIPE.", "Abra Integrações para ver o erro e reconectar o sistema."),
   ].filter((p): p is Pendencia => Boolean(p));
   const pendenciaDa = (k: string) => pendencias.filter((p) => p.aba === k).reduce((t, p) => t + p.n, 0);
 
