@@ -1,0 +1,9 @@
+Quanto custa a espera pela conta?
+
+Numa mesa comum: 70 min comendo, 15 min esperando a conta, 5 min para liberar. São 90 minutos de mesa ocupada.
+
+Quando o cliente paga pelo celular, a espera cai e a mesa libera antes. Num salão de 20 mesas com metade das contas pelo QR, isso soma cerca de 200 horas de mesa por mês.
+
+Simulação com restaurante demonstrativo: 52 contas por serviço, 2 serviços por dia, 26 dias, 9 min a menos por conta paga pelo QR (média de casos de estudo público sobre pagamento por QR). O resultado real varia com o seu salão. Faça a conta com os seus números em tipe.digital.
+
+#donoderestaurante #restaurante #bar #gestaoderestaurante #fortaleza #pagamentonamesa
