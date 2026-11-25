@@ -11,6 +11,7 @@ import totem360 from "@/assets/telas-v4/totem-360.webp";
 import totem720 from "@/assets/telas-v4/totem-720.webp";
 import { fotoSrc } from "../Foto";
 import { telaReal, type TelaReal } from "../CelularReal";
+import { IconesStatus } from "@/components/tipe/BarraStatusIOS";
 import "../celular-real.css";
 
 export type QuadroCelular =
@@ -47,27 +48,9 @@ export function CelularComo({
           <span className="cel-ilha" aria-hidden />
           <div className="cel-status" aria-hidden>
             <span>21:16</span>
-            <svg viewBox="0 0 64 12">
-              <g fill="#0b1418">
-                <rect x="0" y="8" width="3" height="4" rx="1" />
-                <rect x="5" y="6" width="3" height="6" rx="1" />
-                <rect x="10" y="3" width="3" height="9" rx="1" />
-                <rect x="15" y="0" width="3" height="12" rx="1" />
-                <path d="M28 3.5a9 9 0 0 1 12 0l-1.6 1.7a6.6 6.6 0 0 0-8.8 0zM30.9 6.6a5 5 0 0 1 6.2 0L34 10z" />
-                <rect
-                  x="45"
-                  y="1"
-                  width="16"
-                  height="10"
-                  rx="3"
-                  fill="none"
-                  stroke="#0b1418"
-                  strokeOpacity=".45"
-                />
-                <rect x="47" y="3" width="11" height="6" rx="1.5" />
-                <rect x="62" y="4.5" width="1.5" height="3" rx=".7" fillOpacity=".45" />
-              </g>
-            </svg>
+            <span className="cel-icones">
+              <IconesStatus />
+            </span>
           </div>
           <div className="cel-app">
             {quadros.map((q, i) => {
