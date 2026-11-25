@@ -8,6 +8,7 @@
  */
 import { useEffect, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
+import { IconesStatus } from "@/components/tipe/BarraStatusIOS";
 
 const TELA = { w: 440, h: 956 } as const;
 const BORDA = 11; // moldura + borda preta
@@ -153,20 +154,8 @@ function BarraStatus({ hora }: { hora: string }) {
       className="pointer-events-none absolute inset-x-0 top-0 z-[59] flex h-[56px] items-center justify-between bg-gradient-to-b from-background via-background/90 to-transparent px-[34px] pt-[4px] text-[17px] font-semibold tracking-[-0.01em]"
     >
       <span className="w-[86px] text-center">{hora}</span>
-      <span className="flex items-center gap-[7px]">
-        <svg width="19" height="12" viewBox="0 0 19 12" fill="currentColor">
-          <rect x="0" y="8" width="3.2" height="4" rx="1" />
-          <rect x="5" y="5.5" width="3.2" height="6.5" rx="1" />
-          <rect x="10" y="3" width="3.2" height="9" rx="1" />
-          <rect x="15" y="0" width="3.2" height="12" rx="1" />
-        </svg>
-        <svg width="17" height="12" viewBox="0 0 17 12" fill="currentColor">
-          <path d="M8.5 2.4c2.3 0 4.4.9 6 2.4l1.2-1.2A10.2 10.2 0 0 0 8.5.7 10.2 10.2 0 0 0 1.3 3.6l1.2 1.2a8.5 8.5 0 0 1 6-2.4Zm0 3.4c1.4 0 2.7.5 3.6 1.4l1.2-1.2a6.8 6.8 0 0 0-9.6 0l1.2 1.2c1-.9 2.2-1.4 3.6-1.4Zm0 3.4c.5 0 .9.2 1.2.5L8.5 11 7.3 9.7c.3-.3.7-.5 1.2-.5Z" />
-        </svg>
-        <span className="relative flex h-[13px] w-[27px] items-center rounded-[4px] border border-current/40 p-[1.5px]">
-          <span className="h-full w-[78%] rounded-[2px] bg-current" />
-          <span className="absolute -right-[3px] top-1/2 h-[4px] w-[1.5px] -translate-y-1/2 rounded-r bg-current/50" />
-        </span>
+      <span className="flex items-center gap-[5px] text-[17px]">
+        <IconesStatus bateria={78} />
       </span>
     </div>
   );

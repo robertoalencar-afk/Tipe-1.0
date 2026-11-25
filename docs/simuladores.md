@@ -23,3 +23,6 @@ Checklist ao mudar o fluxo de conta, pagamento, gorjeta, taxa de serviço, nomes
 - O garçom tem o modo "Maquininha" (uma mesa por linha, botões grandes) para PDV manual.
 - Simuladores revisados: texto do fluxo de Mesas em `src/lib/tipe/order/modalidades.ts` (usado pelo seletor e pelo simulador da landing).
 - Pré-conta impressa (Gestão e garçom) traz o QR da conta da mesa para pagar pelo Tipe Pay; o fluxo de Mesas em `modalidades.ts` já menciona isso.
+
+## Barra de status (25/11)
+- Todo celular de simulador mostra a barra de status do iPhone (`BarraStatusIOS`). Regra completa em docs/design-system.md.

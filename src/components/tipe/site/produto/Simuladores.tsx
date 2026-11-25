@@ -20,6 +20,7 @@ import {
   X,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { BarraStatusIOS } from "@/components/tipe/BarraStatusIOS";
 import avatarLebre from "@/assets/lebre/avatar-feliz.webp";
 import { useMovimentoReduzido, useVisivel } from "./useVisivel";
 
@@ -60,6 +61,7 @@ export function Celular({ children, className }: { children: ReactNode; classNam
           aria-hidden
           className="pointer-events-none absolute left-1/2 top-2 z-20 h-[18px] w-[76px] -translate-x-1/2 rounded-full bg-black"
         />
+        <BarraStatusIOS className="absolute inset-x-0 top-0 z-10 h-[34px] text-[11px]" />
         {children}
       </div>
     </div>

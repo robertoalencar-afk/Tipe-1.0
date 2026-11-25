@@ -32,6 +32,7 @@ import {
   Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { BarraStatusIOS } from "@/components/tipe/BarraStatusIOS";
 import {
   conta as calcularConta,
   estadoInicial,
@@ -510,7 +511,9 @@ function Celular({ estado, agir, novaChave }: { estado: EstadoSim; agir: (a: Aca
   return (
     <div className="mx-auto w-full max-w-[22rem] rounded-[2.6rem] bg-[#021E34] p-2.5 shadow-[0_40px_80px_-30px_rgb(2_30_52/0.55)]">
       <div className="relative flex h-[40rem] flex-col overflow-hidden rounded-[2.1rem] bg-white text-[#021E34]">
-        <div className="flex items-center justify-between px-5 pb-2 pt-5">
+        <span aria-hidden className="pointer-events-none absolute left-1/2 top-2 z-20 h-[20px] w-[84px] -translate-x-1/2 rounded-full bg-black" />
+        <BarraStatusIOS className="h-[36px] text-[12px]" />
+        <div className="flex items-center justify-between px-5 pb-2 pt-1">
           <div className="flex items-center gap-2.5">
             <span aria-hidden className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#021E34] font-display text-[0.95rem] font-semibold text-[#0FC9BD] ring-2 ring-[#0FC9BD]/40">M</span>
             <div>

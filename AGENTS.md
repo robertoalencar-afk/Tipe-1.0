@@ -26,3 +26,4 @@
 - Service fee removal is per open bill: service_fee_waivers keyed by the table session_token, written only by waive_service_fee (owner/cashier, reason required); payments read it server-side. Why: waiver ends automatically when the table reopens and the browser can never change the fee.
 
 - Commits, branches and PR titles follow CONTRIBUTING.md: Conventional Commits in PT-BR (`feat(order): ...`), concise technical PR bodies using .github/pull_request_template.md (Contexto, Mudanças, Testes, Riscos e rollback). Why: history reads as a professional team's (decision 2026-11-16).
+- Every phone screen in images, simulators, videos and posts shows a realistic iPhone status bar (time, signal, Wi-Fi, battery level): use src/components/tipe/BarraStatusIOS.tsx in any phone frame. Why: Roberto rule 2026-11-25, screens must look like a real phone (docs/design-system.md).

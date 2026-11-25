@@ -10,7 +10,7 @@
 .cel-real .cel-ilha { position: absolute; z-index: 5; top: 1.7%; left: 50%; width: 33%; height: 4.4%; transform: translateX(-50%); border-radius: 99px; background: #000; }
 .cel-real .cel-ilha::after { content: ""; position: absolute; right: 13%; top: 30%; height: 40%; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #2a3a55, #07090d 60%); }
 .cel-real .cel-status { position: absolute; z-index: 4; inset: 0 0 auto 0; height: 6.6%; background: #fff; display: flex; align-items: center; justify-content: space-between; padding: 0 9% 0 11%; font: 600 4.3cqw/1 -apple-system, "SF Pro Text", "Inter Tight", sans-serif; color: #0b1418; letter-spacing: -0.02em; }
-.cel-real .cel-status svg { height: 3.4cqw; width: auto; }
+.cel-real .cel-status .cel-icones { display: flex; align-items: center; gap: 0.32em; }
 .cel-real .cel-home { position: absolute; z-index: 5; bottom: 1.1%; left: 50%; width: 36%; height: 0.55%; transform: translateX(-50%); border-radius: 99px; background: #0b1418; }
 .cel-real .cel-btn { position: absolute; width: 1.2%; border-radius: 1px; background: linear-gradient(to right, #6f747b, #d4d7db 60%, #8c9198); }
 .cel-real .cel-btn.acao { left: -0.9%; top: 16.5%; height: 4%; }

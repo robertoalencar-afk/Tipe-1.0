@@ -12,6 +12,7 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Camera, Check, ChevronDown, ImagePlus, Lightbulb, Loader2, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { BarraStatusIOS } from "@/components/tipe/BarraStatusIOS";
 import { menuPriceCents } from "@/lib/tipe/menu-price";
 import { prepareDishDepth } from "@/lib/tipe/order/prepare-photo";
 import { Secao, Titulo } from "../Site";
@@ -534,7 +535,15 @@ export function CriarPratoEditor({
           )}
           <div className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-gradient-to-b from-black/50 to-transparent" />
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/85 via-black/40 to-transparent" />
-          <div className="pointer-events-none absolute inset-x-0 top-0 px-3 pt-3">
+          <span
+            aria-hidden
+            className="pointer-events-none absolute left-1/2 top-2 z-20 h-[20px] w-[84px] -translate-x-1/2 rounded-full bg-black"
+          />
+          <BarraStatusIOS
+            tom="claro"
+            className="absolute inset-x-0 top-0 z-10 h-[36px] text-[12px]"
+          />
+          <div className="pointer-events-none absolute inset-x-0 top-0 px-3 pt-10">
             <div className="flex gap-1">
               <span className="h-[3px] flex-1 rounded-full bg-white" />
               <span className="h-[3px] flex-1 rounded-full bg-white/30" />
