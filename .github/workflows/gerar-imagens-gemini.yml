@@ -1,0 +1,32 @@
+name: Gerar imagens com Gemini
+on:
+  workflow_dispatch:
+    inputs:
+      lote:
+        description: "Nome do lote em social-ia/<lote>.json"
+        required: true
+permissions:
+  contents: write
+jobs:
+  gerar:
+    runs-on: ubuntu-latest
+    environment: producao
+    steps:
+      - uses: actions/checkout@v4
+      - name: Gerar
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          LOTE: ${{ inputs.lote }}
+        run: |
+          case "$LOTE" in *[!a-z0-9-]*|"") echo "lote inválido"; exit 1;; esac
+          python3 scripts/gerar-imagens-gemini.py "$LOTE"
+      - name: Salvar no branch ia/<lote>
+        env:
+          LOTE: ${{ inputs.lote }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "ia/$LOTE"
+          git add "social-ia/$LOTE"
+          git commit -m "Imagens geradas: $LOTE"
+          git push -f origin "ia/$LOTE"
