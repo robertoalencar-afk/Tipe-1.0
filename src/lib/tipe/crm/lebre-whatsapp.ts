@@ -208,7 +208,7 @@ function respostaEmJson(texto: string): string | undefined {
   const match = texto.match(/"resposta"\s*:\s*("(?:\\.|[^"\\])*")/s);
   if (!match) return undefined;
   try {
-    const valor: unknown = JSON.parse(match[1]);
+    const valor: unknown = JSON.parse(match[1]!);
     return typeof valor === "string" ? valor : undefined;
   } catch {
     return undefined;
