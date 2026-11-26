@@ -1,7 +1,8 @@
+import { PontosCarregando } from "@/components/tipe/Carregando";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { Loader2, Smartphone } from "lucide-react";
+import { Smartphone } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -96,13 +97,12 @@ export function LiberarPedidosMesa({ slug, table }: { slug: string; table: strin
             disabled={ocupado}
             onClick={() => void agir("fechar")}
           >
-            {ocupado && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />} Encerrar
-            pedidos desta mesa
+            {ocupado && <PontosCarregando className="mr-2 text-base" />} Encerrar pedidos desta mesa
           </Button>
         ) : (
           <Button className="h-11" disabled={ocupado} onClick={() => void agir("abrir")}>
-            {ocupado && <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />} Liberar
-            pedidos pelo celular
+            {ocupado && <PontosCarregando className="mr-2 text-base" />} Liberar pedidos pelo
+            celular
           </Button>
         )}
       </div>

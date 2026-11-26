@@ -1,3 +1,4 @@
+import { Carregando } from "@/components/tipe/Carregando";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ConectarSistemas } from "@/components/tipe/ConectarSistemas";
 import { ApiTipePdv } from "@/components/tipe/ApiTipePdv";
@@ -309,7 +310,7 @@ export function Relatorios({ slug, papel = "owner" }: { slug: string; papel?: Pa
         {(papel === "owner" || papel === "manager") && <Button size="sm" variant="outline" className="ml-auto" onClick={exportar}><Download className="mr-1 h-4 w-4" />Exportar planilha</Button>}
       </div>
       {visao === "caixa" && <FechamentoDia slug={slug} />}
-      {rep.isLoading ? <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">{[0, 1, 2, 3].map((i) => <div key={i} className="h-28 animate-pulse rounded-2xl bg-surface motion-reduce:animate-none" />)}</div> : (
+      {rep.isLoading ? <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">{[0, 1, 2, 3].map((i) => <div key={i} className="h-28 tipe-brilho rounded-2xl bg-surface motion-reduce:animate-none" />)}</div> : (
         <>
           <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
             {visao === "geral" && <><Kpi icon={TrendingUp} label="Vendas lançadas" value={brl(vendas)} delta={variacao(vendas, vendasAnt)} tone="brand" hint={`${pedidosN} pedidos`} />
@@ -370,7 +371,7 @@ export function Integracoes({ slug, podeDono }: { slug: string; podeDono: boolea
   const [segredo, setSegredo] = useState<{ secret: string; url: string } | null>(null);
   const [testando, setTestando] = useState(false);
   if (!podeDono) return <p className="text-muted-foreground">Somente o dono configura integrações.</p>;
-  if (!q.data) return <p className="text-muted-foreground">Carregando…</p>;
+  if (!q.data) return <Carregando tamanho="sm" texto="Carregando" />;
   const d = q.data;
   const manual = d.adapter === "lancamento_tipe";
   const copiar = (t: string) => { void navigator.clipboard.writeText(t); toast.success("Copiado"); };
@@ -452,7 +453,7 @@ export function Configuracoes({ slug, podeDono }: { slug: string; podeDono: bool
   const orderAccess = useOrderAccess(slug);
   const r = ops.data?.restaurant;
   const [f, setF] = useState<null | { name: string; rate: string; phone: string; address: string; hours: string; methods: string[]; review: string; selfOrder: boolean; orderMode: "staff_opens" | "table_code"; totem: boolean }>(null);
-  if (!r) return <p className="text-muted-foreground">Carregando…</p>;
+  if (!r) return <Carregando tamanho="sm" texto="Carregando" />;
   const v = f ?? { name: r.name, rate: String(Math.round(r.service_rate * 100)), phone: r.phone ?? "", address: r.address ?? "", hours: r.opening_hours ?? "", methods: r.bill_payment_methods ?? ["pix", "apple_pay", "google_pay", "at_establishment"], review: r.google_review_url ?? "", selfOrder: r.self_order_enabled ?? false, orderMode: r.order_session_mode ?? "staff_opens", totem: r.totem_enabled ?? false };
   return (
     <form className="max-w-xl space-y-3" onSubmit={async (e) => {

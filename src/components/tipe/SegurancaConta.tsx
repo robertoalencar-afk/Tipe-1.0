@@ -1,3 +1,4 @@
+import { Carregando } from "@/components/tipe/Carregando";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { KeyRound, ShieldCheck, ShieldOff } from "lucide-react";
@@ -89,7 +90,7 @@ export function SegurancaConta() {
               (Google Authenticator, Microsoft Authenticator, 1Password ou Authy). Recomendado para quem confirma pagamentos e mexe em recebimentos.
             </p>
 
-            {estado.k === "carregando" && <p className="mt-4 text-sm text-muted-foreground">Carregando…</p>}
+            {estado.k === "carregando" && <Carregando tamanho="sm" texto="Carregando" className="mt-4" />}
 
             {estado.k === "desligado" && (
               <Button className="mt-4" disabled={ocupado} onClick={iniciar}>Ativar verificação em duas etapas</Button>

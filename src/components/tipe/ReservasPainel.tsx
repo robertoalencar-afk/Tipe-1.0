@@ -1,6 +1,7 @@
 // Tipe Reserva · Fase 5: seção "Reservas" do painel do restaurante.
 // Só é montada quando a flag guest.reservations está ligada (ver RestaurantPanel). Equipe opera o dia;
 // o dono configura. O check-in registra a mesa; a conta e o pagamento da mesa seguem iguais.
+import { Carregando } from "@/components/tipe/Carregando";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState, type ReactNode } from "react";
@@ -140,7 +141,7 @@ export function ReservasPainel({ slug, podeDono }: { slug: string; podeDono: boo
   });
   const refresh = () => qc.invalidateQueries({ queryKey: ["reservas", slug] });
 
-  if (q.isLoading) return <p className="text-sm text-muted-foreground">Carregando reservas…</p>;
+  if (q.isLoading) return <Carregando tamanho="sm" texto="Carregando reservas" />;
   if (q.error || !q.data)
     return (
       <EmptyState
@@ -643,7 +644,7 @@ function Historico({ slug, id }: { slug: string; id: string }) {
     s && s in RESERVATION_STATUS_LABEL
       ? RESERVATION_STATUS_LABEL[s as ReservationStatus]
       : (s ?? "");
-  if (q.isLoading) return <p className="mt-2 text-xs text-muted-foreground">Carregando…</p>;
+  if (q.isLoading) return <Carregando tamanho="sm" texto="Carregando" className="mt-2" />;
   if (!q.data?.length) return <p className="mt-2 text-xs text-muted-foreground">Sem registros.</p>;
   return (
     <ol className="mt-2 space-y-1 border-l border-border pl-3 text-xs">
@@ -1331,7 +1332,12 @@ function ConfigFila({ slug }: { slug: string }) {
     queryFn: () => getCfg({ data: { slug } }),
   });
   const refresh = () => void qc.invalidateQueries({ queryKey: ["guest-fila-config", slug] });
-  if (q.isLoading) return <Panel title="Fila presencial">Carregando…</Panel>;
+  if (q.isLoading)
+    return (
+      <Panel title="Fila presencial">
+        <Carregando tamanho="sm" texto="Carregando" />
+      </Panel>
+    );
   if (q.error || !q.data)
     return (
       <Panel title="Fila presencial">

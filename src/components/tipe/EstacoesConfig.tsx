@@ -1,3 +1,4 @@
+import { Carregando } from "@/components/tipe/Carregando";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -75,7 +76,7 @@ export function EstacoesConfig({ slug }: { slug: string }) {
             <Button type="submit" disabled={novo.isPending || nome.trim().length < 2}><Plus className="mr-1 h-4 w-4" />Criar link</Button>
           </form>
 
-          {lista.isLoading && <p className="text-sm text-muted-foreground">Carregando…</p>}
+          {lista.isLoading && <Carregando tamanho="sm" texto="Carregando" />}
           {lista.error && <p className="text-sm text-destructive">{(lista.error as Error).message}</p>}
           {lista.data?.length === 0 && <p className="text-sm text-muted-foreground">Nenhuma tela criada ainda.</p>}
           <ul className="space-y-2">

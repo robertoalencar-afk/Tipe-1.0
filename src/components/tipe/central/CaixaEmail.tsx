@@ -1,3 +1,4 @@
+import { Carregando } from "@/components/tipe/Carregando";
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -83,7 +84,7 @@ export function CaixaEmail() {
         <section aria-label="Mensagens" className={`${aberto ? "hidden lg:block" : ""} min-w-0 overflow-hidden rounded-xl border border-border bg-card`}>
           <div className="border-b border-border p-3"><Busca value={busca} onChange={setBusca} placeholder="Buscar assunto ou remetente" /></div>
           <ul className="max-h-[70vh] divide-y divide-border overflow-y-auto">
-            {lista.isPending && <li className="p-6 text-center text-sm text-muted-foreground">Carregando…</li>}
+            {lista.isPending && <li className="flex justify-center p-6"><Carregando tamanho="sm" texto="Carregando" className="justify-center" /></li>}
             {!lista.isPending && itens.length === 0 && <li className="p-8 text-center text-sm text-muted-foreground">{busca ? "Nada encontrado para essa busca." : `${PASTA_LABEL[pasta]} vazia.`}</li>}
             {itens.map((it: any) => {
               const quem = it.direction === "out" ? `Para: ${(it.to_addrs ?? []).map((a: any) => a.nome || a.email).join(", ") || "(sem destinatário)"}` : it.from_name || it.from_addr;

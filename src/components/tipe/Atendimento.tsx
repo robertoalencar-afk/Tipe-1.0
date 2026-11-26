@@ -5,6 +5,7 @@
  * lá. Modalidade incompleta nunca aparece com botão de ligar: a validação é do servidor
  * (módulo contratado) e a lista vem de DEFINICOES, auditada no código.
  */
+import { Carregando } from "@/components/tipe/Carregando";
 import { ArrowRight, Nfc, MonitorSmartphone } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useOps } from "@/components/tipe/AdminSections";
@@ -21,7 +22,7 @@ export function Atendimento({ slug, podeDono, irParaConfig }: { slug: string; po
   const ops = useOps(slug);
   const acesso = useOrderAccess(slug);
   const r = ops.data?.restaurant;
-  if (!r) return <p className="text-muted-foreground">Carregando…</p>;
+  if (!r) return <Carregando tamanho="sm" texto="Carregando" />;
 
   const orderOn = !!acesso.data?.orderActive;
   const estadoDe = (m: Modalidade): Estado => {

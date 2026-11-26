@@ -1,3 +1,4 @@
+import { Carregando } from "@/components/tipe/Carregando";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
@@ -35,7 +36,7 @@ export function DesempenhoGarcons({ slug }: { slug: string }) {
         </div>
       </div>
 
-      {q.isLoading && <p className="text-sm text-muted-foreground">Carregando…</p>}
+      {q.isLoading && <Carregando tamanho="sm" texto="Carregando" />}
       {q.error && <p className="text-sm text-destructive">Não foi possível carregar os dados.</p>}
       {q.data && lista.length === 0 && <p className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">Cadastre garçons em Equipe e garçons para ver o desempenho aqui.</p>}
 

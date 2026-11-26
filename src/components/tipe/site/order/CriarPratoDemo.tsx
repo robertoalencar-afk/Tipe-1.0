@@ -9,8 +9,9 @@
  * No painel real, o mesmo cálculo roda no navegador do dono antes do envio, então não há
  * servidor de IA nem custo por prato.
  */
+import { PontosCarregando } from "@/components/tipe/Carregando";
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { Camera, Check, ChevronDown, ImagePlus, Lightbulb, Loader2, RotateCcw } from "lucide-react";
+import { Camera, Check, ChevronDown, ImagePlus, Lightbulb, RotateCcw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BarraStatusIOS } from "@/components/tipe/BarraStatusIOS";
 import { menuPriceCents } from "@/lib/tipe/menu-price";
@@ -253,9 +254,7 @@ export function CriarPratoEditor({
               <img src={foto} alt="" className="h-20 w-16 rounded-xl object-cover" />
               <div className="min-w-0 text-sm">
                 <p role="status" className="flex items-center gap-1.5 font-medium">
-                  {etapa === "processando" && (
-                    <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
-                  )}
+                  {etapa === "processando" && <PontosCarregando className="text-base" />}
                   {etapa === "pronto" && <Check className="h-4 w-4 text-[#03665f]" aria-hidden />}
                   {etapa === "processando"
                     ? status

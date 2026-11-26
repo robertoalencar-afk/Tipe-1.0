@@ -3,11 +3,12 @@
  * as fotos reais viram na hora um giro 360° que o cliente gira com o dedo. O dono vê o resultado
  * aqui e só então publica no cardápio. Modelos .glb antigos continuam abrindo no visor 3D.
  */
+import { Carregando, PontosCarregando } from "@/components/tipe/Carregando";
 import { useEffect, useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Box, Camera, Images, Loader2, RotateCw, Trash2, Upload, Video } from "lucide-react";
+import { Box, Camera, Images, RotateCw, Trash2, Upload, Video } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   concluirEnvioScan,
@@ -70,12 +71,7 @@ function VisorModelo({ src, nome }: { src: string; nome: string }) {
       () => setOk(false),
     );
   }, []);
-  if (!ok)
-    return (
-      <p role="status" className="grid h-64 place-items-center text-sm text-muted-foreground">
-        Carregando o visor 3D…
-      </p>
-    );
+  if (!ok) return <Carregando texto="Carregando o visor 3D" className="h-64" />;
   return (
     <div className="relative h-80 overflow-hidden rounded-2xl">
       <FundoCamera />
@@ -278,7 +274,7 @@ export function Scanner3D({ slug, items }: { slug: string; items: Item[] }) {
       {etapa && (
         <div role="status" className="space-y-1">
           <p className="flex items-center gap-2 text-sm">
-            <Loader2 className="h-4 w-4 animate-spin" aria-hidden />
+            <PontosCarregando className="text-base" />
             {etapa.texto}… {Math.round(etapa.fracao * 100)}%
           </p>
           <div className="h-2 overflow-hidden rounded-full bg-muted">
@@ -303,7 +299,7 @@ export function Scanner3D({ slug, items }: { slug: string; items: Item[] }) {
             <RotateCw className="h-4 w-4" aria-hidden />
           </Button>
         </div>
-        {scans.isLoading && <p className="text-sm text-muted-foreground">Carregando…</p>}
+        {scans.isLoading && <Carregando tamanho="sm" texto="Carregando" />}
         {scans.isError && (
           <p className="text-sm text-red-700">
             Não foi possível carregar os escaneamentos. Toque em atualizar.

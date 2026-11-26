@@ -1,3 +1,4 @@
+import { Carregando } from "@/components/tipe/Carregando";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Link } from "@tanstack/react-router";
@@ -194,7 +195,7 @@ export function QuadroKds({
         </div>
       </div>
 
-      {carregando && <p className="text-muted-foreground">Carregando…</p>}
+      {carregando && <Carregando tamanho="sm" texto="Carregando" />}
       <div className={`grid flex-1 gap-3 md:grid-cols-3 ${telaCheia ? "items-stretch" : ""}`}>
         {colunas.map(([etapa, label]) => {
           const lista = tickets.filter((t) => t.etapa === etapa);

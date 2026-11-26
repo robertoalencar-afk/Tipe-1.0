@@ -1,3 +1,4 @@
+import { Carregando } from "@/components/tipe/Carregando";
 import {
   ArrowLeft,
   Check,
@@ -67,7 +68,7 @@ export function ClienteDemo({
   const { state } = useDemo();
   if (!state)
     return (
-      <p className="py-20 text-center text-sm text-muted-foreground">Carregando a demonstração…</p>
+      <Carregando tamanho="md" texto="Carregando a demonstração" className="py-20 text-center" />
     );
   return (
     <div className="customer-theme mx-auto w-full max-w-[420px]">

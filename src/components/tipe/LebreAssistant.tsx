@@ -1,3 +1,4 @@
+import { PontosCarregando } from "@/components/tipe/Carregando";
 import { OPEN_LEBRE, tomarPerguntaPendente } from "@/lib/tipe/mascot-preference";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
@@ -6,7 +7,6 @@ import {
   Check,
   FileText,
   LayoutGrid,
-  Loader2,
   Mic,
   Paperclip,
   RotateCcw,
@@ -766,7 +766,7 @@ export function LebreAssistant({
                     className={recording ? "text-destructive" : ""}
                   >
                     {transcribing ? (
-                      <Loader2 className="animate-spin" />
+                      <PontosCarregando className="text-base" />
                     ) : recording ? (
                       <Square className="fill-current" />
                     ) : (

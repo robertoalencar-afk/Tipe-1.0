@@ -1,3 +1,4 @@
+import { Carregando } from "@/components/tipe/Carregando";
 import { localizedCategory, localizedPost, localizedPromo } from "@/lib/tipe/menu-i18n";
 import { MenuPublicationsCarousel } from "./MenuPublicacoes";
 import lebreAvatar from "@/assets/lebre/avatar-feliz.webp";
@@ -227,9 +228,7 @@ export function MesaPedido({
   if (erro && !menu)
     return <p className="rounded-2xl border border-border bg-card p-4 text-sm">{erro}</p>;
   if (!menu)
-    return (
-      <p className="py-10 text-center text-sm text-muted-foreground">Carregando o cardápio…</p>
-    );
+    return <Carregando tamanho="md" texto="Carregando o cardápio" className="py-10 text-center" />;
   if (!menu.selfOrder)
     return (
       <p className="rounded-2xl border border-border bg-card p-4 text-sm">

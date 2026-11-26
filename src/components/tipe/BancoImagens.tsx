@@ -1,7 +1,8 @@
+import { PontosCarregando } from "@/components/tipe/Carregando";
 import { useRef, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { ImagePlus, Loader2, Trash2 } from "lucide-react";
+import { ImagePlus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -172,7 +173,7 @@ export function BancoImagens({
               disabled={enviando > 0 || aplicando}
             >
               {enviando > 0 ? (
-                <Loader2 className="mr-1.5 size-4 animate-spin" />
+                <PontosCarregando className="mr-1.5 text-base" />
               ) : (
                 <ImagePlus className="mr-1.5 size-4" />
               )}
@@ -315,7 +316,7 @@ export function BancoImagens({
           {[0, 1, 2, 3, 4].map((i) => (
             <div
               key={i}
-              className="aspect-square animate-pulse rounded-xl bg-muted motion-reduce:animate-none"
+              className="aspect-square tipe-brilho rounded-xl bg-muted motion-reduce:animate-none"
             />
           ))}
         </div>

@@ -1,3 +1,4 @@
+import { Carregando } from "@/components/tipe/Carregando";
 import { FiscalMaquininha } from "./FiscalMaquininha";
 import type { ManualPagamentoFiscal } from "@/lib/tipe/fiscal/payments";
 import { useState } from "react";
@@ -111,9 +112,7 @@ export function FiscalEmitir({
         a conferência verifica estornos, valores e vigências antes do envio.
       </p>
       {q.isPending ? (
-        <p role="status" className="py-6 text-sm">
-          Carregando vendas…
-        </p>
+        <Carregando tamanho="sm" texto="Carregando vendas" className="py-6" />
       ) : q.isError ? (
         <div role="alert" className="py-6">
           <p className="text-sm">{q.error.message}</p>

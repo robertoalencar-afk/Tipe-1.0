@@ -1,3 +1,4 @@
+import { Carregando } from "@/components/tipe/Carregando";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -24,7 +25,7 @@ export function PlansAdmin() {
   const load = useServerFn(getPlansAdmin);
   const q = useQuery({ queryKey: ["plans-admin"], queryFn: () => load() });
   const [filtro, setFiltro] = useState<"todos" | "perto" | "limite" | "bloqueadas">("todos");
-  if (!q.data) return <p className="text-sm text-muted-foreground">{q.isError ? "Não foi possível carregar os planos." : "Carregando planos…"}</p>;
+  if (!q.data) return q.isError ? <p className="text-sm text-muted-foreground">Não foi possível carregar os planos.</p> : <Carregando tamanho="sm" texto="Carregando planos" />;
   const rows = q.data.restaurants.filter((r) => filtro === "todos" ? true : filtro === "bloqueadas" ? r.access.state !== "full" : filtro === "limite" ? r.active >= r.limit : r.active / r.limit >= 0.8);
   return (
     <div className="space-y-5">

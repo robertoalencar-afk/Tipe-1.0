@@ -486,11 +486,11 @@ export function Esqueleto({ linhas = 3 }: { linhas?: number }) {
     <div aria-busy="true" aria-label="Carregando" className="space-y-4">
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[0, 1, 2, 3].map((i) => (
-          <div key={i} className="h-[108px] animate-pulse rounded-2xl bg-card motion-reduce:animate-none" />
+          <div key={i} className="h-[108px] tipe-brilho rounded-2xl bg-card motion-reduce:animate-none" />
         ))}
       </div>
       {Array.from({ length: linhas }, (_, i) => (
-        <div key={i} className="h-40 animate-pulse rounded-2xl bg-card motion-reduce:animate-none" />
+        <div key={i} className="h-40 tipe-brilho rounded-2xl bg-card motion-reduce:animate-none" />
       ))}
     </div>
   );

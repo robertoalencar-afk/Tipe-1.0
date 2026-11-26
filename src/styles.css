@@ -2450,3 +2450,162 @@
 }
 .lebre-rotulo { opacity: 0; animation: tipe-rotulo 9s ease-out 1.5s 1 both; }
 @media (prefers-reduced-motion: reduce) { .lebre-chamar, .lebre-anel, .lebre-rotulo { animation: none !important; } }
+
+/* Estados de espera com a marca (Carregando.tsx): lebre pulando + pontos em onda. */
+@keyframes tipe-espera-pulo {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.06, 0.94);
+  }
+  12% {
+    transform: translate3d(0, 0, 0) scale(1, 1);
+  }
+  45% {
+    transform: translate3d(0, -28%, 0) scale(0.97, 1.04);
+  }
+  80% {
+    transform: translate3d(0, 0, 0) scale(1, 1);
+  }
+}
+@keyframes tipe-espera-sombra {
+  0%,
+  12%,
+  80%,
+  100% {
+    transform: scaleX(1);
+    opacity: 0.22;
+  }
+  45% {
+    transform: scaleX(0.55);
+    opacity: 0.1;
+  }
+}
+@keyframes tipe-espera-orelha {
+  0%,
+  100% {
+    transform: rotate(0deg);
+  }
+  45% {
+    transform: rotate(-10deg);
+  }
+  70% {
+    transform: rotate(6deg);
+  }
+}
+@keyframes tipe-espera-piscar {
+  0%,
+  92%,
+  100% {
+    transform: scaleY(1);
+  }
+  96% {
+    transform: scaleY(0.15);
+  }
+}
+@keyframes tipe-espera-ponto {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.35;
+  }
+  30% {
+    transform: translateY(-0.28em);
+    opacity: 1;
+  }
+}
+@keyframes tipe-espera-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.tipe-espera-in {
+  animation: tipe-espera-in var(--dur-media) var(--ease-out-soft) both;
+}
+.tipe-espera-corpo {
+  transform-origin: 50% 100%;
+  animation: tipe-espera-pulo 900ms cubic-bezier(0.45, 0, 0.3, 1) infinite;
+  will-change: transform;
+}
+.tipe-espera-sombra {
+  animation: tipe-espera-sombra 900ms cubic-bezier(0.45, 0, 0.3, 1) infinite;
+}
+.tipe-espera-orelha-e,
+.tipe-espera-orelha-d {
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+  animation: tipe-espera-orelha 900ms ease-in-out infinite;
+}
+.tipe-espera-orelha-d {
+  animation-delay: 60ms;
+}
+.tipe-espera-olho {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: tipe-espera-piscar 3.2s ease-in-out infinite;
+}
+.tipe-espera-pontos > i {
+  display: block;
+  width: 0.24em;
+  height: 0.24em;
+  border-radius: 9999px;
+  background: currentColor;
+  animation: tipe-espera-ponto 1s ease-in-out infinite;
+}
+.tipe-espera-pontos > i:nth-child(2) {
+  animation-delay: 140ms;
+}
+.tipe-espera-pontos > i:nth-child(3) {
+  animation-delay: 280ms;
+}
+/* Esqueletos com brilho que passa (mais vivo que o pulse). */
+@keyframes tipe-brilho {
+  from {
+    background-position: 150% 0;
+  }
+  to {
+    background-position: -50% 0;
+  }
+}
+.tipe-brilho {
+  background-image: linear-gradient(
+    100deg,
+    transparent 30%,
+    color-mix(in oklab, var(--primary) 14%, transparent) 50%,
+    transparent 70%
+  );
+  background-size: 200% 100%;
+  background-repeat: no-repeat;
+  animation: tipe-brilho 1.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tipe-espera-corpo,
+  .tipe-espera-sombra,
+  .tipe-espera-orelha-e,
+  .tipe-espera-orelha-d,
+  .tipe-espera-olho,
+  .tipe-espera-in {
+    animation: none !important;
+  }
+  .tipe-espera-pontos > i {
+    animation: tipe-espera-fade 1.4s ease-in-out infinite;
+  }
+  .tipe-brilho {
+    animation: none;
+    background-image: none;
+  }
+}
+@keyframes tipe-espera-fade {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
