@@ -23,6 +23,9 @@ export type Ficha = {
   dor?: string | undefined;
   interesse?: string | undefined;
   demo?: string | undefined;
+  demoInicio?: string | undefined;
+  demoLink?: string | undefined;
+  demoEventId?: string | undefined;
 };
 export type Temperatura = "frio" | "morno" | "quente";
 export type Etapa = "novo" | "qualificando" | "qualificado" | "demo" | "cliente" | "perdido";
@@ -169,7 +172,6 @@ export function proximaPergunta(f: Ficha): keyof Ficha | null {
     "dor",
     "pdv",
     "demo",
-    "email",
   ];
   return ordem.find((k) => f[k] === undefined || f[k] === "") ?? null;
 }
@@ -332,7 +334,9 @@ Como escrever (isto é WhatsApp, não e-mail):
 - Use o primeiro nome da pessoa quando souber, sem exagerar.
 - Entenda mensagens mesmo com erros de digitação e ortografia. Corrija silenciosamente o sentido ao responder e registre os campos da ficha comercial com ortografia correta. Preserve nomes próprios e marcas; se não tiver certeza da grafia, pergunte com naturalidade em vez de adivinhar. Nunca chame atenção para os erros do cliente.
 - Responda primeiro ao que a pessoa acabou de dizer. Depois, faça no máximo uma pergunta curta e clara. Nunca use placeholders como "qual cidade mesmo" nem peça novamente algo que já esteja na ficha.
+- Se a pessoa disser "não entendi", explique de novo com palavras mais simples e sem repetir o parágrafo anterior. Se pedir para começar de novo, preserve a ficha e recomece pelo primeiro dado que ainda falta; nunca apague nem pergunte novamente o que já foi informado.
 - Não diga que é humana. Se perguntarem se é robô ou IA, responda com naturalidade que é a assistente virtual da Tipe e que o Roberto entra na conversa quando a pessoa quiser.
+- Não peça e-mail para agendar: a confirmação e o link serão enviados pelo WhatsApp. Não diga que o Roberto vai entrar em contato para marcar; a Lebre conduz e confirma o próximo passo.
 ${o.primeira ? "- Esta é a primeira resposta: seja breve, apresente-se como Lebre, assistente virtual da Tipe, e faça somente uma pergunta: como a pessoa prefere ser chamada. Não pergunte também o nome do restaurante nesta mesma mensagem." : ""}
 
 Se faltar o nome da pessoa, pergunte apenas como ela prefere ser chamada. Depois, se faltar o restaurante, pergunte de forma direta, por exemplo: \"Qual é o nome do restaurante?\". Para cidade, use uma pergunta natural e específica, como: \"Em que cidade fica o restaurante?\". Não use \"mesmo\" se o assunto ainda não foi perguntado.
@@ -340,7 +344,7 @@ Se faltar o nome da pessoa, pergunte apenas como ela prefere ser chamada. Depois
 Roteiro de vendas (sem parecer roteiro):
 1. Entender: nome, restaurante, cidade, tamanho (número de mesas), maior dor hoje (fila no caixa na hora da conta, demora para fechar mesa, divisão de conta, pedido errado, gorjeta da equipe, falta de controle) e qual PDV usa.
 2. Conectar a dor ao produto certo com um exemplo concreto. Quando a dor for demora no pagamento, explique de forma específica: com o Tipe Pay, o cliente pode pagar a conta pelo celular, sem precisar esperar o garçom trazer a conta ou enfrentar a fila do caixa. Evite frases genéricas como “reduz a demora no atendimento”. Só afirme integração com o PDV se os fatos públicos abaixo confirmarem.
-3. Convidar para a demonstração: 20 minutos por videochamada com o Roberto. Pergunte o melhor dia e horário (segunda a sexta, 8h às 18h) e o e-mail para o convite. Não confirme horário você mesma: diga que o Roberto confirma por aqui.
+3. Para a demonstração de 20 minutos, pergunte somente o dia e horário (segunda a sexta, 8h às 18h), uma pergunta por vez. Não peça e-mail: o link será enviado nesta conversa de WhatsApp. Depois de a agenda confirmar o horário, encerre com confirmação clara; diga que o link do Google Meet será enviado por aqui no dia anterior. Não diga que está agendado antes da confirmação da agenda.
 4. Se a pessoa só quiser ver sozinha, indique tipe.digital/simulador e siga a conversa.
 ${falta ? `Próxima informação que falta na ficha: ${falta}. Pergunte com naturalidade, se couber na conversa.` : "A ficha está completa: foque em marcar a demonstração ou tirar dúvidas."}
 

@@ -1,6 +1,7 @@
 // Atendimento da Lebre no WhatsApp comercial. Chamado pelo webhook depois que a
 // mensagem do cliente foi gravada. Só responde dentro da janela de 24 h que o próprio
 // cliente acabou de abrir; nunca inicia conversa e nunca responde quem pediu para sair.
+import { AgendaGoogleError, criarGoogleMeet, formatoDemoFortaleza, horarioDemo } from "./google-calendar.server";
 import {
   OPTOUT_RESPOSTA,
   etapa,
@@ -12,6 +13,7 @@ import {
   pedeHumano,
   pedeOptout,
   promptComercial,
+  proximaPergunta,
   respostaHumano,
   temperatura,
   type Etapa,
@@ -36,6 +38,55 @@ export type Conversa = {
 };
 
 const ultimos8 = (fone: string) => fone.replace(/\D/g, "").slice(-8);
+
+const normalizarTexto = (texto: string) =>
+  texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+
+function pedidoReinicio(texto: string) {
+  const t = normalizarTexto(texto);
+  return /\b(recomec(ar|e)|comec(e|ar).*(de novo|do zero)|como se fosse.*primeira mensagem|primeira mensagem)\b/.test(t);
+}
+
+function pedidoNaoEntendi(texto: string) {
+  const t = normalizarTexto(texto);
+  return /\b(nao entendi|nao compreendi|explica de novo|pode repetir)\b/.test(t);
+}
+
+function respostaReinicio(ficha: Ficha): string {
+  const nome = ficha.nome?.split(" ")[0];
+  const partes = [
+    ficha.restaurante ? ficha.restaurante + (ficha.cidade ? " fica em " + ficha.cidade : "") : "",
+    ficha.mesas ? "tem " + ficha.mesas + " mesas" : "",
+    ficha.dor ? "o principal desafio é " + ficha.dor : "",
+    ficha.pdv ? "usa " + ficha.pdv + " como PDV" : "",
+  ].filter(Boolean);
+  const resumo = partes.length ? " Já tenho: " + partes.join(", ") + "." : "";
+  const perguntas: Partial<Record<keyof Ficha, string>> = {
+    nome: "Como posso te chamar?",
+    restaurante: "Qual é o nome do restaurante?",
+    cidade: "Em que cidade fica o restaurante?",
+    mesas: "Quantas mesas o restaurante tem?",
+    dor: "O que você gostaria de melhorar na operação?",
+    pdv: "Qual sistema de PDV vocês usam?",
+    demo: "Qual dia e horário, de segunda a sexta entre 8h e 18h, funcionam para uma demonstração de 20 minutos?",
+  };
+  const proxima = proximaPergunta(ficha);
+  const pergunta = proxima ? perguntas[proxima] : "Quer que eu explique como o Tipe Pay pode ajudar?";
+  return "Claro" + (nome ? ", " + nome : "") + ". Vamos recomeçar sem perder seus dados." + resumo + " " + pergunta;
+}
+
+function respostaSimplificada(ficha: Ficha): string {
+  const nome = ficha.nome?.split(" ")[0];
+  const cumprimento = "Claro" + (nome ? ", " + nome : "") + ". ";
+  if (ficha.demoLink && ficha.demoInicio)
+    return cumprimento + "Sua demonstração está marcada para " + ficha.demo + ". Vou te enviar o link do Google Meet por aqui no dia anterior.";
+  return cumprimento + "O cliente abre a conta pelo QR Code da mesa e paga pelo celular, sem esperar o garçom trazer a conta nem pegar fila no caixa. Quer marcar uma demonstração de 20 minutos?";
+}
+
+function respostaAgendamento(nome?: string): string {
+  return (nome ? "Perfeito, " + nome.split(" ")[0] + "! " : "Perfeito! ") +
+    "Qual dia e horário, de segunda a sexta entre 8h e 18h, funcionam para uma conversa de 20 minutos?";
+}
 
 /** Liga a conversa nova a um restaurante da Prospecção pelo telefone e marca que ele respondeu. */
 export async function vincularProspect(db: Db, conv: Conversa) {
@@ -103,7 +154,8 @@ async function criarLeadSePronto(db: Db, conv: Conversa, f: Ficha) {
     "Lead do WhatsApp comercial, qualificado pela Lebre.",
     f.dor ? `Dor principal: ${f.dor}` : "",
     f.interesse ? `Interesse: ${f.interesse}` : "",
-    f.demo ? `Demonstração pedida para: ${f.demo}` : "",
+    f.demo ? `Demonstração: ${f.demo}` : "",
+    f.demoLink ? `Google Meet: ${f.demoLink}` : "",
   ]
     .filter(Boolean)
     .join("\n");
@@ -205,7 +257,58 @@ export async function atenderComLebre(db: Db, conv: Conversa, texto: string, ago
   let humano = false;
   let motivo: string | undefined;
 
-  if (pedeHumano(texto)) {
+  const horarioPedido = horarioDemo(texto, agora);
+  let ultimaRespostaPediaHorario = false;
+  if (horarioPedido) {
+    const { data: ultimaSaida } = await db
+      .from("wa_messages")
+      .select("body")
+      .eq("conversation_id", conv.id)
+      .eq("direction", "out")
+      .eq("autor", "lebre")
+      .order("at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    ultimaRespostaPediaHorario = /demonstr|videochamada|video chamada|reuniao|meet/i.test(ultimaSaida?.body ?? "");
+  }
+  const contextoDemo = Boolean(ficha0.demo || ficha0.interesse) ||
+    /demonstr|videochamada|video chamada|reuniao|meet/i.test(texto) || ultimaRespostaPediaHorario;
+  if (horarioPedido && contextoDemo && !ficha0.demoEventId) {
+    try {
+      const meet = await criarGoogleMeet({
+        conversationId: conv.id,
+        inicio: horarioPedido,
+        restaurante: ficha.restaurante ?? "Restaurante",
+        contato: ficha.nome ?? conv.name ?? conv.phone,
+        ...(ficha.dor ? { dor: ficha.dor } : {}),
+      });
+      ficha = {
+        ...ficha,
+        demo: formatoDemoFortaleza(horarioPedido),
+        demoInicio: horarioPedido.toISOString(),
+        demoLink: meet.link,
+        demoEventId: meet.eventId,
+      };
+      resposta = "Combinado" + (ficha.nome ? ", " + ficha.nome.split(" ")[0] : "") + "! Sua demonstração da Tipe ficou confirmada para " + ficha.demo + ". Vou te enviar o link do Google Meet por aqui no dia anterior. Você poderá entrar pelo navegador.";
+    } catch (e) {
+      if (e instanceof AgendaGoogleError && e.code === "busy") {
+        resposta = "Esse horário já está ocupado na agenda. Qual outro dia e horário, de segunda a sexta entre 8h e 18h, funcionam para você?";
+      } else {
+        await db.from("crm_tasks").insert({
+          lead_id: conv.lead_id ?? null,
+          title: "Criar Google Meet e confirmar demonstração (" + (ficha.restaurante ?? ficha.nome ?? "WhatsApp") + ")",
+          due_at: agora.toISOString(),
+        });
+        humano = true;
+        motivo = "Confirmar manualmente o horário solicitado e criar o Google Meet";
+        resposta = "Anotei sua preferência para " + formatoDemoFortaleza(horarioPedido) + ", mas ainda preciso confirmar a agenda para fechar o horário. Vou pedir à equipe que confirme por aqui.";
+      }
+    }
+  } else if (pedidoReinicio(texto)) {
+    resposta = respostaReinicio(ficha);
+  } else if (pedidoNaoEntendi(texto)) {
+    resposta = respostaSimplificada(ficha);
+  } else if (pedeHumano(texto)) {
     humano = true;
     motivo = "Pediu para falar com uma pessoa";
     resposta = respostaHumano(ficha, agora);
@@ -215,7 +318,7 @@ export async function atenderComLebre(db: Db, conv: Conversa, texto: string, ago
     ficha0.nome &&
     ficha0.restaurante &&
     ficha0.dor &&
-    /pagamento|pagar|conta|caixa|fila/i.test(ficha0.dor)
+    /pagamento|pagar|conta|caixa|fila|demor|atendimento/i.test(ficha0.dor)
   ) {
     const primeiroNome = ficha0.nome.split(" ")[0];
     resposta = `Certo, ${primeiroNome}! Então o ${ficha.restaurante} usa o ${fatosMensagem.pdv} como sistema de PDV. Com o Tipe Pay, o cliente pode pagar a conta pelo celular, sem precisar esperar o garçom trazer a conta ou enfrentar a fila do caixa. Quer saber mais sobre como funciona?`;
@@ -282,30 +385,26 @@ export async function atenderComLebre(db: Db, conv: Conversa, texto: string, ago
   }
 
   const novaEtapa = etapa(ficha, conv.etapa ?? "novo");
-  const demoNova = Boolean(ficha.demo && ficha.demo !== ficha0.demo);
-  if (demoNova && !humano) {
-    humano = true;
-    motivo = `Confirmar demonstração: ${ficha.demo}`;
-  }
+  const meetNovo = Boolean(ficha.demoEventId && ficha.demoEventId !== ficha0.demoEventId);
 
   const r = await enviar(db, conv, resposta);
   await criarLeadSePronto(db, conv, ficha);
-  if (demoNova && conv.lead_id) {
-    await db
-      .from("crm_activities")
-      .insert({
+  if (meetNovo) {
+    if (conv.lead_id) {
+      await db.from("crm_activities").insert({
         lead_id: conv.lead_id,
         kind: "whatsapp",
-        title: "Demonstração pedida pelo WhatsApp",
-        body: `Horário pedido: ${ficha.demo}`,
+        title: "Demonstração confirmada pela Lebre",
+        body: ficha.demo + ". Google Meet: " + ficha.demoLink,
       });
-    await db
-      .from("crm_tasks")
-      .insert({
-        lead_id: conv.lead_id,
-        title: `Confirmar demonstração (${ficha.restaurante ?? ficha.nome ?? "WhatsApp"}): ${ficha.demo}`,
-        due_at: agora.toISOString(),
-      });
+    }
+    const quando = ficha.demoInicio ? new Date(ficha.demoInicio) : agora;
+    const lembrete = new Date(Math.max(agora.getTime(), quando.getTime() - 24 * 60 * 60_000));
+    await db.from("crm_tasks").insert({
+      lead_id: conv.lead_id ?? null,
+      title: "Enviar link do Google Meet para " + (ficha.nome ?? "contato") + " — " + (ficha.restaurante ?? "restaurante") + " (" + ficha.demo + ")",
+      due_at: lembrete.toISOString(),
+    });
   }
   await db
     .from("wa_conversations")
