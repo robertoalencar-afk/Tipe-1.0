@@ -12,15 +12,18 @@ export async function processarFilaBaixa(admin: Admin, limite = 30) {
   const { decryptSecret } = await import("../pagarme.server");
   for (const l of data ?? []) {
     const ad = getAdaptador(l.adapter);
-    const suporta = !!ad && ad.capacidades().devolvePagamento;
+    let suporta = !!ad && ad.capacidades().devolvePagamento;
     let resultado: { ok: true } | { ok: false; erro: string } | null = null;
     if (suporta && ad) {
       try {
         const { data: r } = await admin.from("restaurants").select("slug").eq("id", l.restaurant_id).maybeSingle();
-        const { data: c } = await admin.from("pdv_connections" as never).select("credentials_encrypted").eq("restaurant_id", l.restaurant_id).maybeSingle() as unknown as { data: { credentials_encrypted: string | null } | null };
+        const { data: c } = await admin.from("pdv_connections" as never).select("adapter, credentials_encrypted, webhook_secret_hash").eq("restaurant_id", l.restaurant_id).maybeSingle() as unknown as { data: { adapter: string; credentials_encrypted: string | null; webhook_secret_hash: string | null } | null };
         const credenciais = c?.credentials_encrypted ? JSON.parse(await decryptSecret(c.credentials_encrypted)) as Record<string, string> : null;
-        resultado = await ad.informarPagamento(
-          { restaurantId: l.restaurant_id, slug: r?.slug ?? "", credenciais },
+        const ctx = { restaurantId: l.restaurant_id, slug: r?.slug ?? "", credenciais, segredoHash: c?.webhook_secret_hash ?? null };
+        // Restaurante trocou de integração ou não cadastrou aviso: o sistema consulta pela API.
+        if (c?.adapter !== l.adapter || (ad.avisoAtivo && !ad.avisoAtivo(ctx))) suporta = false;
+        else resultado = await ad.informarPagamento(
+          ctx,
           { mesa: l.table_number, itens: l.item_quantities ?? {}, valor: Number(l.amount), forma: l.payment_method, id: l.payment_id },
         );
       } catch (e) {
@@ -28,6 +31,14 @@ export async function processarFilaBaixa(admin: Admin, limite = 30) {
       }
     }
     const prox = proximoEstadoBaixa({ attempts: l.attempts, suporta, resultado });
+    // Histórico "Enviado" no painel (uma linha por pagamento, atualizada a cada tentativa).
+    if (resultado) {
+      await admin.from("pdv_events" as never).upsert({
+        restaurant_id: l.restaurant_id, adapter: l.adapter, direction: "out", external_event_id: `pay-${l.payment_id}`,
+        event_type: "payment.approved", status: resultado.ok ? "ok" : "error",
+        detail: (resultado.ok ? `Mesa ${l.table_number}: pagamento avisado` : `Mesa ${l.table_number}: ${resultado.erro}`).slice(0, 200),
+      } as never, { onConflict: "restaurant_id,adapter,direction,external_event_id" });
+    }
     const base = { updated_at: new Date().toISOString(), locked_until: null };
     const update = prox.status === "pending"
       ? { ...base, attempts: prox.attempts, next_attempt_at: prox.nextAttemptAt, last_error: prox.lastError }

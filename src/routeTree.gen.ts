@@ -17,6 +17,7 @@ import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as CozinhaRouteImport } from './routes/cozinha'
 import { Route as CrmRouteImport } from './routes/crm'
 import { Route as DemoRouteImport } from './routes/demo'
+import { Route as DesenvolvedoresRouteImport } from './routes/desenvolvedores'
 import { Route as EntrarRouteImport } from './routes/entrar'
 import { Route as EquipeRouteImport } from './routes/equipe'
 import { Route as EsqueciASenhaRouteImport } from './routes/esqueci-a-senha'
@@ -103,6 +104,7 @@ import { Route as ApiInternalFiscalProcessRouteImport } from './routes/api/inter
 import { Route as ApiPublicMenuReviewRouteImport } from './routes/api/public/menu.review'
 import { Route as ApiPublicPagarmeWebhookRouteImport } from './routes/api/public/pagarme/webhook'
 import { Route as ApiPublicPaymentsReconcileRouteImport } from './routes/api/public/payments.reconcile'
+import { Route as ApiPublicPdvPagamentosRouteImport } from './routes/api/public/pdv.pagamentos'
 import { Route as ApiPublicPdvSyncRouteImport } from './routes/api/public/pdv.sync'
 import { Route as ApiPublicPosSlugRouteImport } from './routes/api/public/pos.$slug'
 import { Route as ApiPublicResendWebhookRouteImport } from './routes/api/public/resend.webhook'
@@ -147,6 +149,11 @@ const CrmRoute = CrmRouteImport.update({
 const DemoRoute = DemoRouteImport.update({
   id: '/demo',
   path: '/demo',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DesenvolvedoresRoute = DesenvolvedoresRouteImport.update({
+  id: '/desenvolvedores',
+  path: '/desenvolvedores',
   getParentRoute: () => rootRouteImport,
 } as any)
 const EntrarRoute = EntrarRouteImport.update({
@@ -582,6 +589,11 @@ const ApiPublicPaymentsReconcileRoute =
     path: '/api/public/payments/reconcile',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicPdvPagamentosRoute = ApiPublicPdvPagamentosRouteImport.update({
+  id: '/api/public/pdv/pagamentos',
+  path: '/api/public/pdv/pagamentos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicPdvSyncRoute = ApiPublicPdvSyncRouteImport.update({
   id: '/api/public/pdv/sync',
   path: '/api/public/pdv/sync',
@@ -624,6 +636,7 @@ export interface FileRoutesByFullPath {
   '/cozinha': typeof CozinhaRoute
   '/crm': typeof CrmRouteWithChildren
   '/demo': typeof DemoRoute
+  '/desenvolvedores': typeof DesenvolvedoresRoute
   '/entrar': typeof EntrarRoute
   '/equipe': typeof EquipeRoute
   '/esqueci-a-senha': typeof EsqueciASenhaRoute
@@ -710,6 +723,7 @@ export interface FileRoutesByFullPath {
   '/api/public/menu/review': typeof ApiPublicMenuReviewRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/payments/reconcile': typeof ApiPublicPaymentsReconcileRoute
+  '/api/public/pdv/pagamentos': typeof ApiPublicPdvPagamentosRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
   '/api/public/resend/webhook': typeof ApiPublicResendWebhookRoute
@@ -724,6 +738,7 @@ export interface FileRoutesByTo {
   '/cookies': typeof CookiesRoute
   '/cozinha': typeof CozinhaRoute
   '/demo': typeof DemoRoute
+  '/desenvolvedores': typeof DesenvolvedoresRoute
   '/entrar': typeof EntrarRoute
   '/equipe': typeof EquipeRoute
   '/esqueci-a-senha': typeof EsqueciASenhaRoute
@@ -810,6 +825,7 @@ export interface FileRoutesByTo {
   '/api/public/menu/review': typeof ApiPublicMenuReviewRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/payments/reconcile': typeof ApiPublicPaymentsReconcileRoute
+  '/api/public/pdv/pagamentos': typeof ApiPublicPdvPagamentosRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
   '/api/public/resend/webhook': typeof ApiPublicResendWebhookRoute
@@ -827,6 +843,7 @@ export interface FileRoutesById {
   '/cozinha': typeof CozinhaRoute
   '/crm': typeof CrmRouteWithChildren
   '/demo': typeof DemoRoute
+  '/desenvolvedores': typeof DesenvolvedoresRoute
   '/entrar': typeof EntrarRoute
   '/equipe': typeof EquipeRoute
   '/esqueci-a-senha': typeof EsqueciASenhaRoute
@@ -913,6 +930,7 @@ export interface FileRoutesById {
   '/api/public/menu/review': typeof ApiPublicMenuReviewRoute
   '/api/public/pagarme/webhook': typeof ApiPublicPagarmeWebhookRoute
   '/api/public/payments/reconcile': typeof ApiPublicPaymentsReconcileRoute
+  '/api/public/pdv/pagamentos': typeof ApiPublicPdvPagamentosRoute
   '/api/public/pdv/sync': typeof ApiPublicPdvSyncRoute
   '/api/public/pos/$slug': typeof ApiPublicPosSlugRoute
   '/api/public/resend/webhook': typeof ApiPublicResendWebhookRoute
@@ -930,6 +948,7 @@ export interface FileRouteTypes {
     | '/cozinha'
     | '/crm'
     | '/demo'
+    | '/desenvolvedores'
     | '/entrar'
     | '/equipe'
     | '/esqueci-a-senha'
@@ -1016,6 +1035,7 @@ export interface FileRouteTypes {
     | '/api/public/menu/review'
     | '/api/public/pagarme/webhook'
     | '/api/public/payments/reconcile'
+    | '/api/public/pdv/pagamentos'
     | '/api/public/pdv/sync'
     | '/api/public/pos/$slug'
     | '/api/public/resend/webhook'
@@ -1030,6 +1050,7 @@ export interface FileRouteTypes {
     | '/cookies'
     | '/cozinha'
     | '/demo'
+    | '/desenvolvedores'
     | '/entrar'
     | '/equipe'
     | '/esqueci-a-senha'
@@ -1116,6 +1137,7 @@ export interface FileRouteTypes {
     | '/api/public/menu/review'
     | '/api/public/pagarme/webhook'
     | '/api/public/payments/reconcile'
+    | '/api/public/pdv/pagamentos'
     | '/api/public/pdv/sync'
     | '/api/public/pos/$slug'
     | '/api/public/resend/webhook'
@@ -1132,6 +1154,7 @@ export interface FileRouteTypes {
     | '/cozinha'
     | '/crm'
     | '/demo'
+    | '/desenvolvedores'
     | '/entrar'
     | '/equipe'
     | '/esqueci-a-senha'
@@ -1218,6 +1241,7 @@ export interface FileRouteTypes {
     | '/api/public/menu/review'
     | '/api/public/pagarme/webhook'
     | '/api/public/payments/reconcile'
+    | '/api/public/pdv/pagamentos'
     | '/api/public/pdv/sync'
     | '/api/public/pos/$slug'
     | '/api/public/resend/webhook'
@@ -1235,6 +1259,7 @@ export interface RootRouteChildren {
   CozinhaRoute: typeof CozinhaRoute
   CrmRoute: typeof CrmRouteWithChildren
   DemoRoute: typeof DemoRoute
+  DesenvolvedoresRoute: typeof DesenvolvedoresRoute
   EntrarRoute: typeof EntrarRoute
   EquipeRoute: typeof EquipeRoute
   EsqueciASenhaRoute: typeof EsqueciASenhaRoute
@@ -1289,6 +1314,7 @@ export interface RootRouteChildren {
   ApiPublicMenuReviewRoute: typeof ApiPublicMenuReviewRoute
   ApiPublicPagarmeWebhookRoute: typeof ApiPublicPagarmeWebhookRoute
   ApiPublicPaymentsReconcileRoute: typeof ApiPublicPaymentsReconcileRoute
+  ApiPublicPdvPagamentosRoute: typeof ApiPublicPdvPagamentosRoute
   ApiPublicPdvSyncRoute: typeof ApiPublicPdvSyncRoute
   ApiPublicPosSlugRoute: typeof ApiPublicPosSlugRoute
   ApiPublicResendWebhookRoute: typeof ApiPublicResendWebhookRoute
@@ -1353,6 +1379,13 @@ declare module '@tanstack/react-router' {
       path: '/demo'
       fullPath: '/demo'
       preLoaderRoute: typeof DemoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/desenvolvedores': {
+      id: '/desenvolvedores'
+      path: '/desenvolvedores'
+      fullPath: '/desenvolvedores'
+      preLoaderRoute: typeof DesenvolvedoresRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/entrar': {
@@ -1957,6 +1990,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicPaymentsReconcileRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/pdv/pagamentos': {
+      id: '/api/public/pdv/pagamentos'
+      path: '/api/public/pdv/pagamentos'
+      fullPath: '/api/public/pdv/pagamentos'
+      preLoaderRoute: typeof ApiPublicPdvPagamentosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/pdv/sync': {
       id: '/api/public/pdv/sync'
       path: '/api/public/pdv/sync'
@@ -2092,6 +2132,7 @@ const rootRouteChildren: RootRouteChildren = {
   CozinhaRoute: CozinhaRoute,
   CrmRoute: CrmRouteWithChildren,
   DemoRoute: DemoRoute,
+  DesenvolvedoresRoute: DesenvolvedoresRoute,
   EntrarRoute: EntrarRoute,
   EquipeRoute: EquipeRoute,
   EsqueciASenhaRoute: EsqueciASenhaRoute,
@@ -2146,6 +2187,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicMenuReviewRoute: ApiPublicMenuReviewRoute,
   ApiPublicPagarmeWebhookRoute: ApiPublicPagarmeWebhookRoute,
   ApiPublicPaymentsReconcileRoute: ApiPublicPaymentsReconcileRoute,
+  ApiPublicPdvPagamentosRoute: ApiPublicPdvPagamentosRoute,
   ApiPublicPdvSyncRoute: ApiPublicPdvSyncRoute,
   ApiPublicPosSlugRoute: ApiPublicPosSlugRoute,
   ApiPublicResendWebhookRoute: ApiPublicResendWebhookRoute,

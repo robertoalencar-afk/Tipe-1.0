@@ -158,7 +158,7 @@ function Formulario({
       )}
       {metodo === "webhook" && (
         <p className="text-sm text-muted-foreground">
-          Ao enviar, a equipe Tipe gera o endereço e o segredo da API TIPE para o seu sistema.
+          Você mesmo gera o endereço e o segredo no cartão API TIPE acima. Envie aqui só se quiser ajuda da equipe Tipe.
         </p>
       )}
       <label className="block">

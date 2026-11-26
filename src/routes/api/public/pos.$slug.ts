@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 
-// Integração genérica com qualquer PDV do mercado.
+// LEGADO: primeira versão da integração genérica. Não há tela que gere a chave x-tipe-key
+// e nenhum restaurante real a usa. A API única documentada em /desenvolvedores é a API TIPE
+// (pdv.$adapter.webhook.ts + pdv.pagamentos.ts, assinatura HMAC). Mantida só por compatibilidade.
 // Autenticação: header "x-tipe-key" com a chave gerada em Integrações.
 // POST: o PDV envia pedidos/fechamentos → alimenta a conta da mesa.
 // GET ?since=ISO: o PDV busca os pagamentos feitos pelos clientes na TIPE.

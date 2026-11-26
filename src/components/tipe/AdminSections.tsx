@@ -1,5 +1,6 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ConectarSistemas } from "@/components/tipe/ConectarSistemas";
+import { ApiTipePdv } from "@/components/tipe/ApiTipePdv";
 import { useServerFn } from "@tanstack/react-start";
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
@@ -364,7 +365,7 @@ export function Integracoes({ slug, podeDono }: { slug: string; podeDono: boolea
   const fetchEvents = useServerFn(getPdvEvents);
   const qc = useQueryClient();
   const q = useQuery({ queryKey: ["pdv-integ", slug], queryFn: () => fetchInteg({ data: { slug } }), refetchInterval: 20000 });
-  const ev = useQuery({ queryKey: ["pdv-events", slug], queryFn: () => fetchEvents({ data: { slug } }), enabled: !!q.data?.isFounder });
+  const ev = useQuery({ queryKey: ["pdv-events", slug], queryFn: () => fetchEvents({ data: { slug } }), enabled: podeDono && !!q.data && q.data.adapter !== "lancamento_tipe", refetchInterval: 20000 });
   const [segredo, setSegredo] = useState<{ secret: string; url: string } | null>(null);
   const [testando, setTestando] = useState(false);
   if (!podeDono) return <p className="text-muted-foreground">Somente o dono configura integrações.</p>;
@@ -406,6 +407,19 @@ export function Integracoes({ slug, podeDono }: { slug: string; podeDono: boolea
         )}
       </Card>
       <Card>
+        <ApiTipePdv slug={slug} ativo={d.adapter === "api_tipe"} conectorEquipe={!manual && d.adapter !== "api_tipe"} avisoHost={d.avisoHost} />
+      </Card>
+      {!manual && (
+        <Card>
+          <h3 className="mb-1 font-display font-semibold">Eventos recebidos e enviados</h3>
+          {!ev.data?.length ? <p className="text-sm text-muted-foreground">Nenhum evento ainda. Assim que o seu sistema enviar a primeira mesa, ela aparece aqui.</p> : (
+            <ul className="space-y-1 text-xs">{ev.data.map((e) => (
+              <li key={e.id} className="flex justify-between gap-2"><span className={e.status === "ok" ? "" : "text-destructive"}>{e.direction === "in" ? "Recebido" : "Enviado"} · {e.event_type} · {e.detail ?? e.external_event_id}</span><span className="shrink-0 text-muted-foreground">{hora(e.created_at)}</span></li>
+            ))}</ul>
+          )}
+        </Card>
+      )}
+      <Card>
         <ConectarSistemas slug={slug} />
       </Card>
       {d.isFounder && (
@@ -420,17 +434,9 @@ export function Integracoes({ slug, podeDono }: { slug: string; podeDono: boolea
             <div className="space-y-2 text-xs">
               <div className="flex gap-2"><code className="flex-1 break-all rounded bg-muted p-2">{segredo.url}</code><Button size="icon" variant="outline" onClick={() => copiar(segredo.url)}><Copy className="h-4 w-4" /></Button></div>
               <div className="flex gap-2"><code className="flex-1 break-all rounded bg-accent/20 p-2">{segredo.secret}</code><Button size="icon" variant="outline" onClick={() => copiar(segredo.secret)}><Copy className="h-4 w-4" /></Button></div>
-              <p className="text-destructive">Copie agora: o segredo não será mostrado novamente. Envie nos cabeçalhos x-tipe-restaurant: {slug} e x-tipe-secret.</p>
+              <p className="text-destructive">Copie agora: o segredo não será mostrado novamente. Assinatura e cabeçalhos em /desenvolvedores (x-tipe-restaurant: {slug}).</p>
             </div>
           )}
-          <div>
-            <h4 className="mb-1 text-sm font-semibold">Eventos recebidos e enviados</h4>
-            {!ev.data?.length ? <p className="text-sm text-muted-foreground">Nenhum evento ainda.</p> : (
-              <ul className="space-y-1 text-xs">{ev.data.map((e) => (
-                <li key={e.id} className="flex justify-between gap-2"><span className={e.status === "ok" ? "" : "text-destructive"}>{e.direction === "in" ? "Recebido" : "Enviado"} · {e.event_type} · {e.detail ?? e.external_event_id}</span><span className="shrink-0 text-muted-foreground">{hora(e.created_at)}</span></li>
-              ))}</ul>
-            )}
-          </div>
         </Card>
       )}
     </div>

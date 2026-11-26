@@ -70,19 +70,19 @@ export const INTEGRACOES_V5: Integracao[] = [
     nome: "API TIPE",
     grupo: "Pedidos e PDV",
     status: "disponivel",
-    d: "Seu sistema envia mesas e itens para a Tipe por webhook. Ativação assistida pela equipe.",
+    d: "Seu sistema envia mesas e itens por webhook assinado e recebe o aviso de cada mesa paga. O dono ativa na Gestão; documentação em /desenvolvedores.",
   },
   {
     nome: "Conectores de PDV",
     grupo: "Pedidos e PDV",
     status: "disponivel",
-    d: "Saipos, Consumer, Linx, TOTVS Chef, Colibri e outros: prontos para integração pela API TIPE, com ativação assistida pela equipe.",
+    d: "Saipos, Consumer, Linx, TOTVS Chef, Colibri e outros se ligam pela API TIPE, com o fornecedor do sistema ou um integrador. Conector nativo de cada marca sob parceria.",
   },
   {
     nome: "Baixa automática no PDV",
     grupo: "Pedidos e PDV",
     status: "disponivel",
-    d: "Aviso de baixa pela API TIPE, com novas tentativas. Ativação com o webhook do sistema do restaurante.",
+    d: "Cada pagamento aprovado vai assinado para o sistema do restaurante, com novas tentativas e pendência no painel se ele não responder.",
   },
   // Operação e gestão: AdminSections.tsx (Cozinha), FechamentoDia.tsx, pdv-integrations.functions.ts (importMenuCsv)
   {
