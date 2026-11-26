@@ -280,7 +280,7 @@ export async function atenderComLebre(db: Db, conv: Conversa, texto: string, ago
         inicio: horarioPedido,
         restaurante: ficha.restaurante ?? "Restaurante",
         contato: ficha.nome ?? conv.name ?? conv.phone,
-        dor: ficha.dor,
+        ...(ficha.dor ? { dor: ficha.dor } : {}),
       });
       ficha = {
         ...ficha,
