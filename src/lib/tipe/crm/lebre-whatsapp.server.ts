@@ -199,7 +199,8 @@ export async function atenderComLebre(db: Db, conv: Conversa, texto: string, ago
 
   const origem = conv.origem ?? origemPelaMensagem(texto);
   if (origem && !conv.origem) conv.origem = origem;
-  let ficha = mesclarFicha(ficha0, extrairFatos(texto));
+  const fatosMensagem = extrairFatos(texto);
+  let ficha = mesclarFicha(ficha0, fatosMensagem);
   let resposta: string;
   let humano = false;
   let motivo: string | undefined;
@@ -208,6 +209,16 @@ export async function atenderComLebre(db: Db, conv: Conversa, texto: string, ago
     humano = true;
     motivo = "Pediu para falar com uma pessoa";
     resposta = respostaHumano(ficha, agora);
+  } else if (
+    fatosMensagem.pdv &&
+    fatosMensagem.pdv !== ficha0.pdv &&
+    ficha0.nome &&
+    ficha0.restaurante &&
+    ficha0.dor &&
+    /pagamento|pagar|conta|caixa|fila/i.test(ficha0.dor)
+  ) {
+    const primeiroNome = ficha0.nome.split(" ")[0];
+    resposta = `Certo, ${primeiroNome}! Então o ${ficha.restaurante} usa o ${fatosMensagem.pdv} como sistema de PDV. Com o Tipe Pay, o cliente pode pagar a conta pelo celular, sem precisar esperar o garçom trazer a conta ou enfrentar a fila do caixa. Quer saber mais sobre como funciona?`;
   } else if (
     !conv.primeira_resposta_at &&
     !ficha.nome &&
