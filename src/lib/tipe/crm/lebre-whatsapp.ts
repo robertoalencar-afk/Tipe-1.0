@@ -203,13 +203,27 @@ export function humanizar(texto: string): string {
   return s.replace(/ {2,}/g, " ");
 }
 
-/** Lê a decisão do modelo, inclusive quando um provedor aninha o JSON em resposta. */
+/** Recupera o texto mesmo quando o provedor devolve JSON incompleto ou aninhado. */
+function respostaEmJson(texto: string): string | undefined {
+  const match = texto.match(/"resposta"\s*:\s*("(?:\\.|[^"\\])*")/s);
+  if (!match) return undefined;
+  try {
+    const valor: unknown = JSON.parse(match[1]);
+    return typeof valor === "string" ? valor : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Lê a decisão do modelo sem permitir que a estrutura técnica vire mensagem do WhatsApp. */
 export function lerDecisao(bruto: string, ficha: Ficha): DecisaoLebre {
   let candidato = bruto.trim();
+  let recuperada: string | undefined;
   const fichaNova: Record<string, unknown> = {};
   let humano = false;
   let motivo: string | undefined;
-  for (let nivel = 0; nivel < 3; nivel++) {
+
+  for (let nivel = 0; nivel < 4; nivel++) {
     let j: Record<string, unknown> | undefined;
     try {
       j = JSON.parse(candidato) as Record<string, unknown>;
@@ -224,12 +238,20 @@ export function lerDecisao(bruto: string, ficha: Ficha): DecisaoLebre {
         }
       }
     }
-    if (!j || typeof j["resposta"] !== "string") break;
-    if (j["ficha"] && typeof j["ficha"] === "object" && !Array.isArray(j["ficha"]))
-      Object.assign(fichaNova, j["ficha"]);
-    humano ||= j["humano"] === true;
-    motivo = limpo(j["motivo"], 300) ?? motivo;
-    candidato = (j["resposta"] as string).trim();
+
+    if (j && typeof j["resposta"] === "string") {
+      if (j["ficha"] && typeof j["ficha"] === "object" && !Array.isArray(j["ficha"]))
+        Object.assign(fichaNova, j["ficha"]);
+      humano ||= j["humano"] === true;
+      motivo = limpo(j["motivo"], 300) ?? motivo;
+      candidato = (j["resposta"] as string).trim();
+    } else {
+      const extraida = respostaEmJson(candidato);
+      if (!extraida) break;
+      candidato = extraida.trim();
+      recuperada = candidato;
+    }
+
     let interna: unknown;
     try {
       interna = JSON.parse(candidato);
@@ -237,6 +259,18 @@ export function lerDecisao(bruto: string, ficha: Ficha): DecisaoLebre {
       interna = undefined;
     }
     if (interna && typeof interna === "object" && "resposta" in interna) continue;
+
+    const pareceEstrutura = /^\s*\{\s*"(?:resposta|ficha|humano)"\s*:/i.test(candidato);
+    if (pareceEstrutura) {
+      const extraida = respostaEmJson(candidato);
+      if (extraida) {
+        candidato = extraida.trim();
+        recuperada = candidato;
+        continue;
+      }
+      break;
+    }
+
     return {
       resposta: humanizar(candidato),
       ficha: mesclarFicha(ficha, fichaNova),
@@ -244,6 +278,26 @@ export function lerDecisao(bruto: string, ficha: Ficha): DecisaoLebre {
       ...(motivo ? { motivo } : {}),
     };
   }
+
+  if (recuperada && !/^\s*\{\s*"(?:resposta|ficha|humano)"\s*:/i.test(recuperada)) {
+    return {
+      resposta: humanizar(recuperada),
+      ficha: mesclarFicha(ficha, fichaNova),
+      humano,
+      ...(motivo ? { motivo } : {}),
+    };
+  }
+
+  const temObjetoDeDecisao = /^\s*\{\s*"(?:resposta|ficha|humano)"\s*:/i.test(bruto);
+  if (temObjetoDeDecisao) {
+    return {
+      resposta: "Desculpa, tive um problema para preparar minha resposta. Vou chamar alguém da equipe para continuar com você.",
+      ficha: mesclarFicha(ficha, fichaNova),
+      humano: true,
+      motivo: "Resposta automática em formato inválido",
+    };
+  }
+
   const texto = bruto.replace(/\x60{3}[a-z]*|\x60{3}/gi, "").trim();
   return { resposta: humanizar(texto), ficha, humano: false };
 }
