@@ -79,6 +79,8 @@ export type ContextoAdaptador = {
   slug: string;
   /** Credenciais já descriptografadas. Só existem no servidor. */
   credenciais: Record<string, string> | null;
+  /** sha256 do segredo do webhook (chave de assinatura). Só existe no servidor. */
+  segredoHash?: string | null;
 };
 
 export type ResultadoConexao = { ok: true } | { ok: false; erro: string };
@@ -101,6 +103,8 @@ export interface AdaptadorPdv {
   receberEvento(payload: unknown): EventoRecebido[];
   /** Para sistemas sem webhook: devolve eventos novos daquela mesa. */
   sincronizar(ctx: ContextoAdaptador, mesa: string): Promise<EventoRecebido[]>;
+  /** Opcional: o aviso de pagamento está configurado para este restaurante? (padrão: sim) */
+  avisoAtivo?(ctx: ContextoAdaptador): boolean;
   informarPagamento(ctx: ContextoAdaptador, pagamento: { mesa: string; itens: Record<string, number>; valor: number; forma: string; id: string }): Promise<ResultadoConexao>;
   /** Opcional: encerra a conta no sistema de origem quando tudo foi pago. */
   fecharConta?(ctx: ContextoAdaptador, mesa: string): Promise<ResultadoConexao>;

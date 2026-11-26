@@ -261,12 +261,12 @@ export function passosPara(sis: Sistema, metodo: MetodoId): Passo[] {
         {
           titulo: "Ligue a API TIPE",
           texto:
-            "No painel, em Configurar › Integrações, escolha Outro sistema › API TIPE. A Tipe gera um endereço e um segredo só seus.",
+            "Na Gestão, em Integrações, toque em Ativar API TIPE. A Tipe gera um endereço e um segredo só seus.",
         },
         {
           titulo: "Passe para quem cuida do seu sistema",
           texto:
-            "Com o endereço e o segredo, o seu sistema envia mesas e itens para a Tipe sempre que algo muda. A documentação vai junto.",
+            "Com o endereço e o segredo, o seu sistema envia mesas e itens para a Tipe sempre que algo muda. A documentação fica em tipe.digital/desenvolvedores.",
         },
         {
           titulo: "A baixa volta sozinha",

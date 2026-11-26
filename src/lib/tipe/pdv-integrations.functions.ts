@@ -34,9 +34,15 @@ export const getPdvIntegration = createServerFn({ method: "GET" })
     const r = await authorize(context as Ctx, data.slug, ["owner", "cashier", "waiter"]);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { getAdaptador, listarAdaptadores } = await import("./pdv/registry.server");
-    const { data: c } = await supabaseAdmin.from("pdv_connections" as never).select("adapter, status, last_sync_at, last_error, last_error_at").eq("restaurant_id", r.id).maybeSingle() as unknown as { data: { adapter: string; status: string; last_sync_at: string | null; last_error: string | null; last_error_at: string | null } | null };
+    const { data: c } = await supabaseAdmin.from("pdv_connections" as never).select("adapter, status, last_sync_at, last_error, last_error_at, credentials_encrypted").eq("restaurant_id", r.id).maybeSingle() as unknown as { data: { adapter: string; status: string; last_sync_at: string | null; last_error: string | null; last_error_at: string | null; credentials_encrypted: string | null } | null };
     const adapter = c?.adapter ?? "lancamento_tipe";
     const ad = getAdaptador(adapter);
+    let avisoHost: string | null = null;
+    if (adapter === "api_tipe" && c?.credentials_encrypted) {
+      const { decryptSecret } = await import("./pagarme.server");
+      const url = (JSON.parse(await decryptSecret(c.credentials_encrypted)) as Record<string, string>)["callback_url"];
+      if (url) { try { avisoHost = new URL(url).host; } catch { avisoHost = null; } }
+    }
     return {
       adapter,
       adapterName: ad?.nome ?? "Integração",
@@ -45,6 +51,7 @@ export const getPdvIntegration = createServerFn({ method: "GET" })
       lastError: c?.last_error ?? null,
       capacidades: ad?.capacidades() ?? null,
       disponiveis: listarAdaptadores().filter((a) => a.visivelParaRestaurante && a.id !== "lancamento_tipe").map((a) => ({ id: a.id, nome: a.nome })),
+      avisoHost,
       isFounder: await isFounder(context as Ctx),
     };
   });
@@ -56,12 +63,12 @@ export const testPdvConnection = createServerFn({ method: "POST" })
     const r = await authorize(context as Ctx, data.slug, ["owner"]);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { getAdaptador } = await import("./pdv/registry.server");
-    const { data: c } = await supabaseAdmin.from("pdv_connections" as never).select("adapter, credentials_encrypted").eq("restaurant_id", r.id).maybeSingle() as unknown as { data: { adapter: string; credentials_encrypted: string | null } | null };
+    const { data: c } = await supabaseAdmin.from("pdv_connections" as never).select("adapter, credentials_encrypted, webhook_secret_hash").eq("restaurant_id", r.id).maybeSingle() as unknown as { data: { adapter: string; credentials_encrypted: string | null; webhook_secret_hash: string | null } | null };
     const ad = getAdaptador(c?.adapter ?? "lancamento_tipe");
     if (!ad) return { ok: false as const, erro: "Adaptador indisponível" };
     let credenciais: Record<string, string> | null = null;
     if (c?.credentials_encrypted) { const { decryptSecret } = await import("./pagarme.server"); credenciais = JSON.parse(await decryptSecret(c.credentials_encrypted)); }
-    const res = await ad.testarConexao({ restaurantId: r.id, slug: r.slug, credenciais });
+    const res = await ad.testarConexao({ restaurantId: r.id, slug: r.slug, credenciais, segredoHash: c?.webhook_secret_hash ?? null });
     if (c) await supabaseAdmin.from("pdv_connections" as never).update((res.ok ? { status: "connected", last_error: null } : { status: "error", last_error: res.erro.slice(0, 200), last_error_at: new Date().toISOString() }) as never).eq("restaurant_id", r.id);
     return res.ok ? { ok: true as const } : { ok: false as const, erro: res.erro };
   });
@@ -100,15 +107,78 @@ export const setPdvAdapter = createServerFn({ method: "POST" })
     return { secret, webhookUrl: ad.capacidades().webhook ? `/api/public/pdv/${ad.id}/webhook` : null };
   });
 
-/** Log de eventos recebidos/enviados: visível só para administradores TIPE. */
+const novoSegredo = async () => {
+  const secret = "whsec_" + Array.from(crypto.getRandomValues(new Uint8Array(24)), (b) => b.toString(16).padStart(2, "0")).join("");
+  const hash = Array.from(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(secret))), (b) => b.toString(16).padStart(2, "0")).join("");
+  return { secret, hash };
+};
+
+/**
+ * O dono liga o próprio PDV pela API TIPE, sem depender da equipe:
+ *  - ativar: troca o modo para API TIPE e gera o segredo (mostrado uma vez);
+ *  - novo_segredo: gera outro segredo (o anterior deixa de valer na hora);
+ *  - aviso: cadastra ou remove a URL que recebe o aviso de pagamento;
+ *  - desativar: volta para o Lançamento TIPE.
+ * Conectores de terceiros continuam só com administrador TIPE (setPdvAdapter).
+ */
+export const configurarApiTipe = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({
+    slug: Slug,
+    acao: z.enum(["ativar", "novo_segredo", "aviso", "desativar"]),
+    callbackUrl: z.string().trim().max(300).optional(),
+  }).parse(d))
+  .handler(async ({ data, context }) => {
+    const r = await authorize(context as Ctx, data.slug, ["owner"]);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { apiTipe, validarUrlAviso } = await import("./pdv/adapters/api-tipe.server");
+    const { encryptSecret } = await import("./pagarme.server");
+    const { logSecurityEvent } = await import("./security.server");
+    const { data: c } = await supabaseAdmin.from("pdv_connections" as never).select("adapter").eq("restaurant_id", r.id).maybeSingle() as unknown as { data: { adapter: string } | null };
+    const log = (action: string) => logSecurityEvent({ action, resource: "pdv:api_tipe", result: "ok", restaurantId: r.id, restaurantSlug: r.slug, actorId: (context as Ctx).userId });
+    const webhookUrl = `/api/public/pdv/${apiTipe.id}/webhook`;
+
+    if (data.acao === "desativar") {
+      const { error } = await supabaseAdmin.from("pdv_connections" as never).upsert({ restaurant_id: r.id, adapter: "lancamento_tipe", status: "connected", webhook_secret_hash: null, credentials_encrypted: null, last_error: null } as never, { onConflict: "restaurant_id" });
+      if (error) throw new Error("Não foi possível salvar a integração");
+      await log("pdv_api_tipe_disabled");
+      return { secret: null, webhookUrl: null };
+    }
+    if (data.acao === "ativar") {
+      if (c && c.adapter !== "lancamento_tipe" && c.adapter !== apiTipe.id) throw new Error("Seu restaurante usa um conector configurado pela equipe Tipe. Fale com o suporte para trocar.");
+      const { secret, hash } = await novoSegredo();
+      const { error } = await supabaseAdmin.from("pdv_connections" as never).upsert({ restaurant_id: r.id, adapter: apiTipe.id, status: "not_connected", webhook_secret_hash: hash, credentials_encrypted: null, last_error: null } as never, { onConflict: "restaurant_id" });
+      if (error) throw new Error("Não foi possível salvar a integração");
+      await log("pdv_api_tipe_enabled");
+      return { secret, webhookUrl };
+    }
+    if (c?.adapter !== apiTipe.id) throw new Error("Ative a API TIPE primeiro");
+    if (data.acao === "novo_segredo") {
+      const { secret, hash } = await novoSegredo();
+      const { error } = await supabaseAdmin.from("pdv_connections" as never).update({ webhook_secret_hash: hash } as never).eq("restaurant_id", r.id);
+      if (error) throw new Error("Não foi possível gerar o segredo");
+      await log("pdv_api_tipe_secret_rotated");
+      return { secret, webhookUrl };
+    }
+    const url = data.callbackUrl ?? "";
+    if (url) {
+      const erro = validarUrlAviso(url);
+      if (erro) throw new Error(erro);
+    }
+    const credentials_encrypted = url ? await encryptSecret(JSON.stringify({ callback_url: new URL(url).toString() })) : null;
+    const { error } = await supabaseAdmin.from("pdv_connections" as never).update({ credentials_encrypted } as never).eq("restaurant_id", r.id);
+    if (error) throw new Error("Não foi possível salvar o endereço");
+    await log(url ? "pdv_api_tipe_callback_set" : "pdv_api_tipe_callback_removed");
+    return { secret: null, webhookUrl: null };
+  });
+
+/** Log de eventos recebidos/enviados: dono do restaurante e administradores TIPE. */
 export const getPdvEvents = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ slug: Slug }).parse(d))
   .handler(async ({ data, context }) => {
-    if (!(await isFounder(context as Ctx))) throw new Error("Sem permissão");
+    const r = await authorize(context as Ctx, data.slug, ["owner"]);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: r } = await supabaseAdmin.from("restaurants").select("id").eq("slug", data.slug).maybeSingle();
-    if (!r) return [];
     const { data: rows } = await supabaseAdmin.from("pdv_events" as never).select("id, adapter, direction, external_event_id, event_type, status, detail, created_at").eq("restaurant_id", r.id).order("created_at", { ascending: false }).limit(50);
     return (rows ?? []) as { id: string; adapter: string; direction: string; external_event_id: string; event_type: string; status: string; detail: string | null; created_at: string }[];
   });
