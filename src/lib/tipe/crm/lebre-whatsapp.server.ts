@@ -212,6 +212,9 @@ export async function atenderComLebre(db: Db, conv: Conversa, texto: string, ago
     !conv.primeira_resposta_at &&
     !ficha.nome &&
     !ficha.restaurante &&
+    !ficha.mesas &&
+    !ficha.email &&
+    !ficha.pdv &&
     /\b(vim pelo site|quero saber mais sobre a tipe|quero conhecer a tipe|quero saber como funciona)\b/i.test(texto)
   ) {
     // A entrada genérica do site recebe uma abertura fixa, curta e com uma pergunta só.
