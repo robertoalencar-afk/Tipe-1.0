@@ -101,7 +101,8 @@ describe("resposta com cara de gente", () => {
     const t = humanizar("## Oi\nÓtima pergunta! A Tipe — que é ótima — ajuda **muito** 😀😀🎉");
     expect(t).not.toMatch(/[—–#]/);
     expect(t).not.toMatch(/Ótima pergunta/);
-    expect(t).toContain("*muito*");
+    expect(t).toContain("muito");
+    expect(t).not.toContain("*muito*");
     expect([...t.matchAll(/\p{Extended_Pictographic}/gu)].length).toBe(1);
   });
   it("corta mensagens longas no fim de uma frase", () => {

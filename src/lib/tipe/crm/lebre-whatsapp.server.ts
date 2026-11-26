@@ -208,6 +208,18 @@ export async function atenderComLebre(db: Db, conv: Conversa, texto: string, ago
     humano = true;
     motivo = "Pediu para falar com uma pessoa";
     resposta = respostaHumano(ficha, agora);
+  } else if (
+    !conv.primeira_resposta_at &&
+    !ficha.nome &&
+    !ficha.restaurante &&
+    !ficha.mesas &&
+    !ficha.email &&
+    !ficha.pdv &&
+    /\b(vim pelo site|quero saber mais sobre a tipe|quero conhecer a tipe|quero saber como funciona)\b/i.test(texto)
+  ) {
+    // A entrada genérica do site recebe uma abertura fixa, curta e com uma pergunta só.
+    resposta =
+      "Oi! Eu sou a Lebre, da Tipe. Sou assistente virtual e vou te ajudar por aqui. Como posso te chamar?";
   } else {
     const { data: hist } = await db
       .from("wa_messages")
