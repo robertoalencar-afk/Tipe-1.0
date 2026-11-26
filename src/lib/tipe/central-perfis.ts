@@ -2,13 +2,13 @@
 
 export const PERFIS = ["comercial", "vendas", "marketing", "atendimento", "dev"] as const;
 export type PerfilInterno = (typeof PERFIS)[number];
-export type SecaoPermitida = "inicio" | "comercial" | "comunicacao" | "restaurantes" | "operacoes" | "perfil";
+export type SecaoPermitida = "inicio" | "comercial" | "whatsapp" | "comunicacao" | "restaurantes" | "operacoes" | "perfil";
 
 export const PERFIL_INFO: Record<PerfilInterno, { rotulo: string; descricao: string; secoes: readonly SecaoPermitida[]; caixas: readonly string[]; whatsapp: boolean }> = {
-  comercial: { rotulo: "Comercial", descricao: "Gestão do funil, leads, WhatsApp e e-mail de contato, clientes.", secoes: ["inicio", "comercial", "comunicacao", "restaurantes", "perfil"], caixas: ["contato@tipe.digital"], whatsapp: true },
-  vendas: { rotulo: "Vendas", descricao: "Atende leads e demonstrações: funil, WhatsApp, e-mail de contato e clientes.", secoes: ["inicio", "comercial", "comunicacao", "restaurantes", "perfil"], caixas: ["contato@tipe.digital"], whatsapp: true },
+  comercial: { rotulo: "Comercial", descricao: "Gestão do funil, leads, WhatsApp e e-mail de contato, clientes.", secoes: ["inicio", "comercial", "whatsapp", "comunicacao", "restaurantes", "perfil"], caixas: ["contato@tipe.digital"], whatsapp: true },
+  vendas: { rotulo: "Vendas", descricao: "Atende leads e demonstrações: funil, WhatsApp, e-mail de contato e clientes.", secoes: ["inicio", "comercial", "whatsapp", "comunicacao", "restaurantes", "perfil"], caixas: ["contato@tipe.digital"], whatsapp: true },
   marketing: { rotulo: "Marketing", descricao: "Origem e desempenho dos leads e e-mail próprio. Sem WhatsApp nem dados de restaurantes.", secoes: ["inicio", "comercial", "comunicacao", "perfil"], caixas: [], whatsapp: false },
-  atendimento: { rotulo: "Atendimento", descricao: "WhatsApp e e-mail de contato, consulta de clientes.", secoes: ["inicio", "comunicacao", "restaurantes", "perfil"], caixas: ["contato@tipe.digital"], whatsapp: true },
+  atendimento: { rotulo: "Atendimento", descricao: "WhatsApp e e-mail de contato, consulta de clientes.", secoes: ["inicio", "whatsapp", "comunicacao", "restaurantes", "perfil"], caixas: ["contato@tipe.digital"], whatsapp: true },
   dev: { rotulo: "Desenvolvimento", descricao: "Operações e produto (PRs, publicações, infraestrutura).", secoes: ["inicio", "operacoes", "perfil"], caixas: [], whatsapp: false },
 };
 

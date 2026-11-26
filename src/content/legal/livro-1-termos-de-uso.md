@@ -103,4 +103,4 @@ Aplica-se a legislação brasileira, incluindo o Código de Defesa do Consumidor
 
 ## 1.16 Contato {#contato}
 
-Dúvidas ou problemas: contato@tipe.digital ou WhatsApp +55 85 98559-1062 (das 8h às 18h). Pedidos sobre os seus dados: veja o Livro 6.
+Dúvidas ou problemas: contato@tipe.digital ou WhatsApp +55 85 3179-0290 (das 8h às 18h). Pedidos sobre os seus dados: veja o Livro 6.

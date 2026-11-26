@@ -1,8 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { parseWebhook, validSignature, verifySubscription, type WaEvent } from "@/lib/tipe/crm/whatsapp";
 
-async function persistir(events: WaEvent[]) {
-  if (!events.length) return;
+type Novo = { conv: any; texto: string };
+
+async function persistir(events: WaEvent[]): Promise<{ db: any; novos: Novo[] }> {
+  const novos: Novo[] = [];
+  if (!events.length) return { db: null, novos };
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const db = supabaseAdmin as unknown as { from: (t: string) => any };
   for (const ev of events) {
@@ -13,7 +16,7 @@ async function persistir(events: WaEvent[]) {
     }
     const phone = ev.from.replace(/\D/g, "");
     if (!phone) continue;
-    let { data: conv } = await db.from("wa_conversations").select("id, unread, lead_id, name").eq("phone", phone).maybeSingle();
+    let { data: conv } = await db.from("wa_conversations").select("*").eq("phone", phone).maybeSingle();
     if (!conv) {
       // Liga ao lead pelo telefone (com ou sem o 55) para a ficha única do CRM.
       const local = phone.startsWith("55") ? phone.slice(2) : phone;
@@ -31,6 +34,23 @@ async function persistir(events: WaEvent[]) {
     const { error: updateError } = await db.from("wa_conversations").update({ unread: (conv.unread ?? 0) + 1, last_message_at: ev.at, last_inbound_at: ev.at, status: "open", ...(ev.name && !conv.name ? { name: ev.name } : {}) }).eq("id", conv.id);
     if (updateError) throw updateError;
     if (conv.lead_id) await db.from("crm_activities").insert({ lead_id: conv.lead_id, kind: "whatsapp", title: "WhatsApp recebido", body: ev.text.slice(0, 2000) });
+    conv.unread = (conv.unread ?? 0) + 1;
+    novos.push({ conv, texto: ev.text });
+  }
+  return { db, novos };
+}
+
+/** A Lebre responde cada mensagem nova. Falha dela nunca derruba o webhook: a conversa fica para a equipe. */
+async function atender(db: any, novos: Novo[]) {
+  if (!db || !novos.length) return;
+  const { atenderComLebre } = await import("@/lib/tipe/crm/lebre-whatsapp.server");
+  for (const n of novos) {
+    try {
+      await atenderComLebre(db, n.conv, n.texto);
+    } catch (e) {
+      console.error("[whatsapp] lebre:", (e as Error).message);
+      await db.from("wa_conversations").update({ precisa_humano: true, motivo_humano: "A Lebre não conseguiu responder" }).eq("id", n.conv.id);
+    }
   }
 }
 
@@ -64,13 +84,16 @@ export const Route = createFileRoute("/api/public/whatsapp/webhook")({
           return new Response(null, { status: 400 });
         }
         // Persistência na Central Tipe (wa_conversations / wa_messages), idempotente por wa_message_id.
+        let gravado: Awaited<ReturnType<typeof persistir>>;
         try {
-          await persistir(events);
+          gravado = await persistir(events);
         } catch (e) {
           console.error("[whatsapp] falha ao gravar:", (e as Error).message);
           // Não confirmar um evento que não foi persistido: a Meta poderá reenviá-lo.
           return new Response(null, { status: 500 });
         }
+        // Só depois de gravar: uma mensagem repetida pela Meta não chega aqui de novo (wa_message_id único).
+        await atender(gravado.db, gravado.novos);
         return new Response(null, { status: 200 });
       },
     },
