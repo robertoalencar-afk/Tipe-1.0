@@ -4,6 +4,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { Button } from "@/components/ui/button";
 import {
   NFC_TOOLS_IOS,
+  appClipIos,
   erroGravacaoNfc,
   gravadorDisponivel,
   gravarLinkMesa,
@@ -185,6 +186,50 @@ function GravarWebNfc({
 }
 
 function GravarIphone({ link, mesa }: { link: string; mesa: string }) {
+  const [substituir, setSubstituir] = useState(false);
+  const [abrirAlternativa, setAbrirAlternativa] = useState(false);
+  const clip = appClipIos();
+  let destino = "";
+  try {
+    destino = linkGravacaoRemota(window.location.origin, link, mesa, substituir);
+  } catch {
+    destino = "";
+  }
+  if (!clip) return <GravarNfcTools link={link} mesa={mesa} />;
+  return (
+    <div className="space-y-3 rounded-md border border-border p-3">
+      <Button asChild disabled={!destino}>
+        <a href={destino}>
+          <Nfc className="size-4" />
+          Gravar no iPhone
+        </a>
+      </Button>
+      <label className="flex items-start gap-2 text-sm">
+        <input
+          type="checkbox"
+          className="mt-1 size-4 accent-primary"
+          checked={substituir}
+          onChange={(e) => setSubstituir(e.target.checked)}
+        />
+        Substituir o conteúdo de uma etiqueta já gravada.
+      </label>
+      <p className="text-xs text-muted-foreground">
+        Na próxima tela, toque em “Abrir” no cartão da Tipe e aproxime a etiqueta do topo do iPhone.
+        Não precisa instalar nada.
+      </p>
+      <button
+        type="button"
+        className="text-xs underline underline-offset-2"
+        onClick={() => setAbrirAlternativa((v) => !v)}
+      >
+        Não apareceu o cartão da Tipe?
+      </button>
+      {abrirAlternativa && <GravarNfcTools link={link} mesa={mesa} />}
+    </div>
+  );
+}
+
+function GravarNfcTools({ link, mesa }: { link: string; mesa: string }) {
   const [copiado, setCopiado] = useState(false);
   async function copiar() {
     try {
