@@ -12,6 +12,7 @@ import {
   pedeHumano,
   pedeOptout,
   promptComercial,
+  proximaPergunta,
   respostaHumano,
   temperatura,
   type Etapa,
@@ -36,6 +37,55 @@ export type Conversa = {
 };
 
 const ultimos8 = (fone: string) => fone.replace(/\D/g, "").slice(-8);
+
+const normalizarTexto = (texto: string) =>
+  texto.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().trim();
+
+function pedidoReinicio(texto: string) {
+  const t = normalizarTexto(texto);
+  return /\b(recomec(ar|e)|comec(e|ar).*(de novo|do zero)|como se fosse.*primeira mensagem|primeira mensagem)\b/.test(t);
+}
+
+function pedidoNaoEntendi(texto: string) {
+  const t = normalizarTexto(texto);
+  return /\b(nao entendi|nao compreendi|explica de novo|pode repetir)\b/.test(t);
+}
+
+function respostaReinicio(ficha: Ficha): string {
+  const nome = ficha.nome?.split(" ")[0];
+  const partes = [
+    ficha.restaurante ? ficha.restaurante + (ficha.cidade ? " fica em " + ficha.cidade : "") : "",
+    ficha.mesas ? "tem " + ficha.mesas + " mesas" : "",
+    ficha.dor ? "o principal desafio é " + ficha.dor : "",
+    ficha.pdv ? "usa " + ficha.pdv + " como PDV" : "",
+  ].filter(Boolean);
+  const resumo = partes.length ? " Já tenho: " + partes.join(", ") + "." : "";
+  const perguntas: Partial<Record<keyof Ficha, string>> = {
+    nome: "Como posso te chamar?",
+    restaurante: "Qual é o nome do restaurante?",
+    cidade: "Em que cidade fica o restaurante?",
+    mesas: "Quantas mesas o restaurante tem?",
+    dor: "O que você gostaria de melhorar na operação?",
+    pdv: "Qual sistema de PDV vocês usam?",
+    demo: "Qual dia e horário, de segunda a sexta entre 8h e 18h, funcionam para uma demonstração de 20 minutos?",
+  };
+  const proxima = proximaPergunta(ficha);
+  const pergunta = proxima ? perguntas[proxima] : "Quer que eu explique como o Tipe Pay pode ajudar?";
+  return "Claro" + (nome ? ", " + nome : "") + ". Vamos recomeçar sem perder seus dados." + resumo + " " + pergunta;
+}
+
+function respostaSimplificada(ficha: Ficha): string {
+  const nome = ficha.nome?.split(" ")[0];
+  const cumprimento = "Claro" + (nome ? ", " + nome : "") + ". ";
+  if (ficha.demoLink && ficha.demoInicio)
+    return cumprimento + "Sua demonstração está marcada para " + ficha.demo + ". Vou te enviar o link do Google Meet por aqui no dia anterior.";
+  return cumprimento + "O cliente abre a conta pelo QR Code da mesa e paga pelo celular, sem esperar o garçom trazer a conta nem pegar fila no caixa. Quer marcar uma demonstração de 20 minutos?";
+}
+
+function respostaAgendamento(nome?: string): string {
+  return (nome ? "Perfeito, " + nome.split(" ")[0] + "! " : "Perfeito! ") +
+    "Qual dia e horário, de segunda a sexta entre 8h e 18h, funcionam para uma conversa de 20 minutos?";
+}
 
 /** Liga a conversa nova a um restaurante da Prospecção pelo telefone e marca que ele respondeu. */
 export async function vincularProspect(db: Db, conv: Conversa) {
