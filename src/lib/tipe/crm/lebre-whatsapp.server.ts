@@ -216,7 +216,7 @@ export async function atenderComLebre(db: Db, conv: Conversa, texto: string, ago
   ) {
     // A entrada genérica do site recebe uma abertura fixa, curta e com uma pergunta só.
     resposta =
-      "Oi! Sou a Lebre, assistente virtual da Tipe. Que bom que você quer conhecer a plataforma. Como posso te chamar?";
+      "Oi! Eu sou a Lebre, da Tipe. Sou assistente virtual e vou te ajudar por aqui. Como posso te chamar?";
   } else {
     const { data: hist } = await db
       .from("wa_messages")
