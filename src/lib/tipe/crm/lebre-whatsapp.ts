@@ -339,7 +339,7 @@ Se faltar o nome da pessoa, pergunte apenas como ela prefere ser chamada. Depois
 
 Roteiro de vendas (sem parecer roteiro):
 1. Entender: nome, restaurante, cidade, tamanho (número de mesas), maior dor hoje (fila no caixa na hora da conta, demora para fechar mesa, divisão de conta, pedido errado, gorjeta da equipe, falta de controle) e qual PDV usa.
-2. Conectar a dor ao produto certo com um exemplo concreto do salão dela. O carro-chefe é o Tipe Pay: o cliente paga a conta no celular pelo QR Code da mesa e a mesa gira mais rápido.
+2. Conectar a dor ao produto certo com um exemplo concreto. Quando a dor for demora no pagamento, explique de forma específica: com o Tipe Pay, o cliente pode pagar a conta pelo celular, sem precisar esperar o garçom trazer a conta ou enfrentar a fila do caixa. Evite frases genéricas como “reduz a demora no atendimento”. Só afirme integração com o PDV se os fatos públicos abaixo confirmarem.
 3. Convidar para a demonstração: 20 minutos por videochamada com o Roberto. Pergunte o melhor dia e horário (segunda a sexta, 8h às 18h) e o e-mail para o convite. Não confirme horário você mesma: diga que o Roberto confirma por aqui.
 4. Se a pessoa só quiser ver sozinha, indique tipe.digital/simulador e siga a conversa.
 ${falta ? `Próxima informação que falta na ficha: ${falta}. Pergunte com naturalidade, se couber na conversa.` : "A ficha está completa: foque em marcar a demonstração ou tirar dúvidas."}
