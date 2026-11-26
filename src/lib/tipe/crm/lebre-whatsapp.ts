@@ -181,7 +181,9 @@ export function proximaPergunta(f: Ficha): keyof Ficha | null {
 export function humanizar(texto: string): string {
   let s = texto
     .replace(/\r/g, "")
-    .replace(/\*\*(.+?)\*\*/g, "*$1*") // negrito do WhatsApp
+    .replace(/\*\*(.+?)\*\*/g, "$1") // remove marcação literal
+    .replace(/\*([^*\n]+)\*/g, "$1")
+    .replace(/[_~`]/g, "")
     .replace(/^#+\s*/gm, "")
     .replace(/\s*[—–]\s*/g, ", ")
     .replace(
@@ -201,27 +203,48 @@ export function humanizar(texto: string): string {
   return s.replace(/ {2,}/g, " ");
 }
 
-/** Lê o JSON que o modelo devolve. Tolera texto em volta e cai para resposta pura se não houver JSON. */
+/** Lê a decisão do modelo, inclusive quando um provedor aninha o JSON em resposta. */
 export function lerDecisao(bruto: string, ficha: Ficha): DecisaoLebre {
-  const ini = bruto.indexOf("{");
-  const fim = bruto.lastIndexOf("}");
-  if (ini >= 0 && fim > ini) {
+  let candidato = bruto.trim();
+  const fichaNova: Record<string, unknown> = {};
+  let humano = false;
+  let motivo: string | undefined;
+  for (let nivel = 0; nivel < 3; nivel++) {
+    let j: Record<string, unknown> | undefined;
     try {
-      const j = JSON.parse(bruto.slice(ini, fim + 1)) as Record<string, unknown>;
-      const resposta = typeof j["resposta"] === "string" ? j["resposta"] : "";
-      if (resposta.trim()) {
-        return {
-          resposta: humanizar(resposta),
-          ficha: mesclarFicha(ficha, (j["ficha"] ?? {}) as Record<string, unknown>),
-          humano: j["humano"] === true,
-          motivo: limpo(j["motivo"], 300),
-        };
-      }
+      j = JSON.parse(candidato) as Record<string, unknown>;
     } catch {
-      // segue para o texto puro
+      const ini = candidato.indexOf("{");
+      const fim = candidato.lastIndexOf("}");
+      if (ini >= 0 && fim > ini) {
+        try {
+          j = JSON.parse(candidato.slice(ini, fim + 1)) as Record<string, unknown>;
+        } catch {
+          j = undefined;
+        }
+      }
     }
+    if (!j || typeof j["resposta"] !== "string") break;
+    if (j["ficha"] && typeof j["ficha"] === "object" && !Array.isArray(j["ficha"]))
+      Object.assign(fichaNova, j["ficha"]);
+    humano ||= j["humano"] === true;
+    motivo = limpo(j["motivo"], 300) ?? motivo;
+    candidato = (j["resposta"] as string).trim();
+    let interna: unknown;
+    try {
+      interna = JSON.parse(candidato);
+    } catch {
+      interna = undefined;
+    }
+    if (interna && typeof interna === "object" && "resposta" in interna) continue;
+    return {
+      resposta: humanizar(candidato),
+      ficha: mesclarFicha(ficha, fichaNova),
+      humano,
+      ...(motivo ? { motivo } : {}),
+    };
   }
-  const texto = bruto.replace(/```[a-z]*|```/g, "").trim();
+  const texto = bruto.replace(/\x60{3}[a-z]*|\x60{3}/gi, "").trim();
   return { resposta: humanizar(texto), ficha, humano: false };
 }
 
@@ -249,14 +272,16 @@ Seu papel é o de uma consultora comercial experiente e simpática, que entende 
 Como escrever (isto é WhatsApp, não e-mail):
 - Mensagens curtas, de 1 a 3 frases. Uma pergunta por vez, no fim.
 - Tom de gente: natural, educado, direto, caloroso. Português do Brasil do dia a dia, sem gíria forçada.
-- Nada de listas longas, títulos, markdown ou travessões. Negrito do WhatsApp (*assim*) no máximo uma vez.
+- Nada de listas, títulos, markdown, asteriscos, sublinhados, crases ou travessões. Escreva texto simples, sem marcadores de formatação.
 - No máximo um emoji, e só quando combinar. Nunca em assunto de dinheiro, erro ou reclamação.
 - Nunca comece com "Olá! Como posso ajudar?" depois da primeira mensagem, nem com "Ótima pergunta".
 - Use o primeiro nome da pessoa quando souber, sem exagerar.
+- Entenda mensagens mesmo com erros de digitação e ortografia. Corrija silenciosamente o sentido ao responder e registre os campos da ficha comercial com ortografia correta. Preserve nomes próprios e marcas; se não tiver certeza da grafia, pergunte com naturalidade em vez de adivinhar. Nunca chame atenção para os erros do cliente.
+- Responda primeiro ao que a pessoa acabou de dizer. Depois, faça no máximo uma pergunta curta e clara. Nunca use placeholders como "qual cidade mesmo" nem peça novamente algo que já esteja na ficha.
 - Não diga que é humana. Se perguntarem se é robô ou IA, responda com naturalidade que é a assistente virtual da Tipe e que o Roberto entra na conversa quando a pessoa quiser.
-${o.primeira ? "- Esta é a primeira resposta: cumprimente pelo horário (bom dia, boa tarde, boa noite em Fortaleza), apresente-se em uma frase como Lebre, da Tipe, e já pergunte o nome da pessoa e do restaurante." : ""}
+${o.primeira ? "- Esta é a primeira resposta: seja breve, apresente-se como Lebre, assistente virtual da Tipe, e faça somente uma pergunta: como a pessoa prefere ser chamada. Não pergunte também o nome do restaurante nesta mesma mensagem." : ""}
 
-Roteiro de vendas (sem parecer roteiro):
+Se faltar o nome da pessoa, pergunte apenas como ela prefere ser chamada. Depois, se faltar o restaurante, pergunte de forma direta, por exemplo: \"Qual é o nome do restaurante?\". Para cidade, use uma pergunta natural e específica, como: \"Em que cidade fica o restaurante?\". Não use \"mesmo\" se o assunto ainda não foi perguntado.\n\nRoteiro de vendas (sem parecer roteiro):
 1. Entender: nome, restaurante, cidade, tamanho (número de mesas), maior dor hoje (fila no caixa na hora da conta, demora para fechar mesa, divisão de conta, pedido errado, gorjeta da equipe, falta de controle) e qual PDV usa.
 2. Conectar a dor ao produto certo com um exemplo concreto do salão dela. O carro-chefe é o Tipe Pay: o cliente paga a conta no celular pelo QR Code da mesa e a mesa gira mais rápido.
 3. Convidar para a demonstração: 20 minutos por videochamada com o Roberto. Pergunte o melhor dia e horário (segunda a sexta, 8h às 18h) e o e-mail para o convite. Não confirme horário você mesma: diga que o Roberto confirma por aqui.
