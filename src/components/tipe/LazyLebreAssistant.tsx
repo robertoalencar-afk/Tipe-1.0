@@ -2,7 +2,9 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import { classeBotaoLebre, ConteudoBotaoLebre } from "@/components/tipe/LebreBotao";
 
 import { OPEN_LEBRE } from "@/lib/tipe/mascot-preference";
-import type { Pendencia } from "@/lib/tipe/pendencias";
+import { useQuery } from "@tanstack/react-query";
+import { pendenciaDasIdeias, type Pendencia } from "@/lib/tipe/pendencias";
+import { getMenuAssistant } from "@/lib/tipe/menu-intelligence.functions";
 const LebreMascote = lazy(() =>
   import("./LebreMascote").then((m) => ({ default: m.LebreMascote })),
 );
@@ -27,6 +29,17 @@ export function LazyLebreAssistant({
   onNotices?: ((aba?: string) => void) | undefined;
 }) {
   const [aberta, setAberta] = useState(false);
+  // Mesma consulta (mesma chave) do mascote: o número do botão também conta as ideias do cardápio.
+  const ideias = useQuery({
+    queryKey: ["menu-assistant", slug],
+    queryFn: () => getMenuAssistant({ data: { slug: slug! } }),
+    enabled: Boolean(slug && onSuggestions),
+    refetchInterval: 60000,
+    staleTime: 15000,
+    retry: false,
+  });
+  const ideia = pendenciaDasIdeias(ideias.data?.suggestions ?? []);
+  const avisos = [...(notice?.itens ?? []), ...(ideia ? [ideia] : [])];
   useEffect(() => {
     const open = () => setAberta(true);
     window.addEventListener(OPEN_LEBRE, open);
@@ -59,8 +72,10 @@ export function LazyLebreAssistant({
               slug={slug}
               inicialAberta
               hideLauncher
-              pendencias={notice?.itens}
-              onPendencia={(aba) => onNotices?.(aba)}
+              pendencias={avisos}
+              onPendencia={(aba) =>
+                aba === "cardapio" && ideia && onSuggestions ? onSuggestions() : onNotices?.(aba)
+              }
             />
           </Suspense>
         )}
