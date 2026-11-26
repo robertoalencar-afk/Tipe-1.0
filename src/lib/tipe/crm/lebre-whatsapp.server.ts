@@ -258,8 +258,21 @@ export async function atenderComLebre(db: Db, conv: Conversa, texto: string, ago
   let motivo: string | undefined;
 
   const horarioPedido = horarioDemo(texto, agora);
-  const contextoDemo = Boolean(ficha0.demo || ficha0.interesse || ficha0.dor) ||
-    /demonstr|videochamada|video chamada|reuniao|meet/i.test(texto);
+  let ultimaRespostaPediaHorario = false;
+  if (horarioPedido) {
+    const { data: ultimaSaida } = await db
+      .from("wa_messages")
+      .select("body")
+      .eq("conversation_id", conv.id)
+      .eq("direction", "out")
+      .eq("autor", "lebre")
+      .order("at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    ultimaRespostaPediaHorario = /demonstr|videochamada|video chamada|reuniao|meet/i.test(ultimaSaida?.body ?? "");
+  }
+  const contextoDemo = Boolean(ficha0.demo || ficha0.interesse) ||
+    /demonstr|videochamada|video chamada|reuniao|meet/i.test(texto) || ultimaRespostaPediaHorario;
   if (horarioPedido && contextoDemo && !ficha0.demoEventId) {
     try {
       const meet = await criarGoogleMeet({
