@@ -180,7 +180,8 @@ export async function criarGoogleMeet(input: {
 }): Promise<{ eventId: string; link: string }> {
   const token = await tokenGoogle();
   const fim = new Date(input.inicio.getTime() + 20 * 60_000);
-  const eventId = input.conversationId.replace(/-/g, "") + input.inicio.toISOString().replace(/\D/g, "").slice(0, 12);
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(input.conversationId + "|" + input.inicio.toISOString()));
+  const eventId = "tipe" + Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("").slice(0, 40);
   const eventPath = "/events/" + eventId;
   let existente: Evento | undefined;
   try {
