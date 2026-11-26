@@ -6,7 +6,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { CONCEDIVEIS } from "./permissoes";
+import { ajustesPara, efetivas, PERMISSOES, TETO, type PapelRestaurante } from "./permissoes";
 
 const Slug = z.string().min(1).max(64).regex(/^[a-z0-9-]+$/);
 const Uuid = z.string().uuid();
@@ -42,7 +42,7 @@ export const getEquipe = createServerFn({ method: "GET" })
     const [staff, roles, grants, invites, audit] = await Promise.all([
       db.from("staff_members").select("user_id, display_name, email, suspended_at, created_at").eq("restaurant_id", rid),
       db.from("user_roles").select("user_id, role").eq("restaurant_id", rid),
-      db.from("restaurant_permission_grants").select("user_id, permission").eq("restaurant_id", rid),
+      db.from("restaurant_permission_grants").select("user_id, permission, allowed").eq("restaurant_id", rid),
       db.from("staff_invites").select("id, email, name, role, expires_at, accepted_at, revoked_at, created_at").eq("restaurant_id", rid).order("created_at", { ascending: false }).limit(50),
       db.from("staff_audit_log").select("id, actor_id, target_id, action, detail, created_at").eq("restaurant_id", rid).order("created_at", { ascending: false }).limit(100),
     ]);
@@ -51,7 +51,8 @@ export const getEquipe = createServerFn({ method: "GET" })
       pessoas: (staff.data ?? []).map((s: any) => ({
         userId: s.user_id as string, nome: s.display_name as string, email: s.email as string, suspenso: Boolean(s.suspended_at),
         papeis: (roles.data ?? []).filter((r: any) => r.user_id === s.user_id).map((r: any) => r.role as string),
-        extras: (grants.data ?? []).filter((g: any) => g.user_id === s.user_id).map((g: any) => g.permission as string),
+        extras: (grants.data ?? []).filter((g: any) => g.user_id === s.user_id && g.allowed !== false).map((g: any) => g.permission as string),
+        removidas: (grants.data ?? []).filter((g: any) => g.user_id === s.user_id && g.allowed === false).map((g: any) => g.permission as string),
       })),
       convites: invites.data ?? [],
       historico: (audit.data ?? []).map((a: any) => ({ ...a, ator: nome.get(a.actor_id) ?? "Sistema", alvo: a.target_id ? (nome.get(a.target_id) ?? "—") : "—" })),
@@ -143,25 +144,61 @@ export const setPapel = createServerFn({ method: "POST" })
     if (!atuais?.length) throw new Error("Essa pessoa não está na equipe");
     if (atuais.some((r: any) => r.role === "owner") && !(await outroAdmin(db, rid, data.userId))) throw new Error("O restaurante precisa de ao menos um administrador");
     await db.from("user_roles").delete().eq("restaurant_id", rid).eq("user_id", data.userId);
+    // Papel novo começa do padrão dele: ajustes do papel antigo não passam adiante (ex.: caixa que vira garçom).
+    await db.from("restaurant_permission_grants").delete().eq("restaurant_id", rid).eq("user_id", data.userId);
     const { error } = await db.from("user_roles").insert({ restaurant_id: rid, user_id: data.userId, role: data.role });
     if (error) throw new Error("Não foi possível mudar o papel");
     await auditar(db, rid, context.userId, "papel_alterado", data.userId, `${atuais.map((r: any) => r.role).join(",")} -> ${data.role}`);
     return { ok: true };
   });
 
-export const setPermissoesExtras = createServerFn({ method: "POST" })
+/**
+ * O administrador marca as permissões da pessoa. O servidor guarda só a diferença para o padrão do papel
+ * (ganhou/perdeu) e ignora o que passa do teto do papel: garçom nunca ganha caixa.
+ */
+export const setPermissoes = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ slug: Slug, userId: Uuid, permissoes: z.array(z.string().max(40)).max(30) }).parse(d))
   .handler(async ({ data, context }) => {
     const { rid, db } = await comoAdmin(context, data.slug);
-    const validas = [...new Set(data.permissoes)].filter((p) => (CONCEDIVEIS as readonly string[]).includes(p));
     const { data: alvo } = await db.from("user_roles").select("role").eq("restaurant_id", rid).eq("user_id", data.userId);
     if (!alvo?.length) throw new Error("Essa pessoa não está na equipe");
-    if (alvo.some((r: any) => r.role === "owner")) throw new Error("Administrador já tem todas as permissões");
+    const papeis = alvo.map((r: any) => r.role as string);
+    if (papeis.includes("owner")) throw new Error("Administrador já tem todas as permissões");
+    const papel = (["manager", "cashier", "waiter"] as const).find((p) => papeis.includes(p));
+    if (!papel) throw new Error("Papel desconhecido");
+    const pedidas = data.permissoes.filter((p) => PERMISSOES.some((x) => x.k === p));
+    const fora = pedidas.filter((p) => !(TETO[papel] as readonly string[]).includes(p));
+    if (fora.length) throw new Error(papel === "waiter" ? "Garçom não pode operar caixa nem ver relatórios. Para isso, mude o papel para Caixa ou Gerente." : "Permissão fora do que este papel pode receber");
+    const { extras, removidas } = ajustesPara(papel, pedidas);
     await db.from("restaurant_permission_grants").delete().eq("restaurant_id", rid).eq("user_id", data.userId);
-    if (validas.length) await db.from("restaurant_permission_grants").insert(validas.map((permission) => ({ restaurant_id: rid, user_id: data.userId, permission, granted_by: context.userId })));
-    await auditar(db, rid, context.userId, "permissoes_alteradas", data.userId, validas.join(", ") || "nenhuma extra");
+    const linhas = [
+      ...extras.map((permission) => ({ restaurant_id: rid, user_id: data.userId, permission, allowed: true, granted_by: context.userId })),
+      ...removidas.map((permission) => ({ restaurant_id: rid, user_id: data.userId, permission, allowed: false, granted_by: context.userId })),
+    ];
+    if (linhas.length) {
+      const { error } = await db.from("restaurant_permission_grants").insert(linhas);
+      if (error) throw new Error("Não foi possível salvar as permissões");
+    }
+    const resumo = [extras.length ? `ganhou: ${extras.join(", ")}` : "", removidas.length ? `perdeu: ${removidas.join(", ")}` : ""].filter(Boolean).join(" · ");
+    await auditar(db, rid, context.userId, "permissoes_alteradas", data.userId, resumo || "padrão do papel");
     return { ok: true };
+  });
+
+/** Permissões efetivas de quem está logado (calculadas no banco), para o painel mostrar só o que a pessoa pode usar. */
+export const getMinhasPermissoes = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ slug: Slug }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { data: r } = await context.supabase.from("restaurants").select("id").eq("slug", data.slug).maybeSingle();
+    if (!r) return { permissoes: [] as string[] };
+    const { data: lista, error } = await context.supabase.rpc("my_restaurant_permissions" as never, { _restaurant_id: r.id } as never);
+    if (error) {
+      // Banco ainda sem a migração 0096: cai no padrão do papel, igual ao que o servidor aplicava antes.
+      const { data: roles } = await context.supabase.from("user_roles").select("role").eq("restaurant_id", r.id).eq("user_id", context.userId);
+      return { permissoes: efetivas((roles ?? []).map((x: any) => x.role as PapelRestaurante)) as string[] };
+    }
+    return { permissoes: (lista as unknown as string[] | null) ?? [] };
   });
 
 export const setSuspensao = createServerFn({ method: "POST" })

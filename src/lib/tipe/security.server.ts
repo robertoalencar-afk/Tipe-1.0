@@ -176,3 +176,21 @@ export async function requireRestaurantRoles(
     throw new Error("Sua função não permite esta operação no restaurante");
   return restaurant;
 }
+
+/**
+ * Exige uma permissão do restaurante (papel + ajustes do administrador na aba Equipe), calculada no banco
+ * por restaurant_can com a sessão de quem chama. Administrador passa sempre.
+ */
+export async function exigirPermissao(
+  client: { from: (t: string) => any; rpc: (f: string, a?: any) => any },
+  userId: string,
+  slug: string,
+  perm: import("./permissoes").Permissao,
+  mensagem = "Sem permissão: o administrador não liberou isso para você",
+) {
+  const { data: r } = await client.from("restaurants").select("id").eq("slug", slug).maybeSingle();
+  if (!r) throw new Error("Restaurante não encontrado ou sem acesso");
+  const { data: ok, error } = await client.rpc("restaurant_can", { _user_id: userId, _restaurant_id: r.id, _perm: perm });
+  if (error || ok !== true) throw new Error(mensagem);
+  return r.id as string;
+}

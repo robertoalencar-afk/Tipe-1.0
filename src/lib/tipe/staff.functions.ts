@@ -73,7 +73,7 @@ export const resolvePayment = createServerFn({ method: "POST" })
   .inputValidator((d) => z.object({ paymentId: z.string().uuid(), action: z.enum(["confirm", "cancel"]) }).parse(d))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase.rpc("resolve_table_payment", { p_payment_id: data.paymentId, p_action: data.action });
-    if (error) throw new Error(error.message.includes("permissão") ? "Seu cargo não permite confirmar pagamentos" : error.message.includes("resolvido") ? "Este pagamento já foi resolvido" : "Não foi possível atualizar o pagamento");
+    if (error) throw new Error(/permiss/i.test(error.message) ? "Seu cargo não permite confirmar pagamentos" : error.message.includes("resolvido") ? "Este pagamento já foi resolvido" : "Não foi possível atualizar o pagamento");
     if (data.action === "confirm") {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const { avisarPagamento } = await import("./avisos-equipe.server");

@@ -31,6 +31,8 @@ export const counterSale = createServerFn({ method: "POST" })
     items: z.array(z.object({ code: z.string().min(1).max(16), qty: z.number().int().min(1).max(99), notes: z.string().max(140).optional() })).min(1).max(60),
   }).parse(d))
   .handler(async ({ data, context }) => {
+    const { exigirPermissao } = await import("./security.server");
+    await exigirPermissao(context.supabase as never, context.userId, data.slug, "caixa.operar", "Sem permissão: venda no balcão é do caixa");
     const { data: res, error } = await context.supabase.rpc("pdv_counter_sale", {
       p_slug: data.slug, p_items: data.items, p_customer: data.customer ?? "", p_method: data.method,
       p_cash_received: data.method === "cash" ? (data.cashReceived ?? 0) : null as unknown as number, p_request_id: data.requestId,
@@ -44,6 +46,12 @@ export const cancelCounterSale = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ orderId: z.string().uuid(), reason: z.string().trim().min(3).max(140) }).parse(d))
   .handler(async ({ data, context }) => {
+    const { data: ord } = await context.supabase.from("pdv_orders").select("restaurants(slug)").eq("id", data.orderId).maybeSingle();
+    const slugVenda = (ord as { restaurants?: { slug?: string } | null } | null)?.restaurants?.slug;
+    if (slugVenda) {
+      const { exigirPermissao } = await import("./security.server");
+      await exigirPermissao(context.supabase as never, context.userId, slugVenda, "pedidos.cancelar", "Sem permissão: sua função não cancela vendas");
+    }
     const { error } = await context.supabase.rpc("pdv_counter_cancel", { p_order: data.orderId, p_reason: data.reason });
     if (error) throw new Error(friendly(error.message, "Não foi possível cancelar a venda"));
     return { ok: true };

@@ -29,9 +29,9 @@ export function useOps(slug: string) {
   const fetchOps = useServerFn(getOpsData);
   return useQuery({ queryKey: ["ops", slug], queryFn: () => fetchOps({ data: { slug } }), refetchInterval: 10000 });
 }
-function useReports(slug: string, days: number) {
+function useReports(slug: string, days: number, enabled = true) {
   const fetchR = useServerFn(getReports);
-  return useQuery({ queryKey: ["reports", slug, days], queryFn: () => fetchR({ data: { slug, days } }) });
+  return useQuery({ queryKey: ["reports", slug, days], queryFn: () => fetchR({ data: { slug, days } }), enabled });
 }
 const Card = ({ children, className = "" }: { children: React.ReactNode; className?: string }) => <div className={cn("surface-card p-4 sm:p-5", className)}>{children}</div>;
 const Kpi = ({ label, value, hint, icon, tone, delta }: { label: string; value: string; hint?: string | undefined; icon?: React.ComponentType<{ className?: string }>; tone?: "brand" | "warning" | undefined; delta?: number | undefined }) => (
@@ -53,9 +53,11 @@ function Segmentado<T extends string | number>({ value, onChange, options, label
 }
 
 // ---------------- Início ----------------
-export function Inicio({ slug, mesasAbertas, emAberto, pendentes, onGo, agora, papel = "owner" }: { slug: string; mesasAbertas: number; emAberto: number; pendentes: number; onGo: (s: string) => void; agora?: React.ReactNode; papel?: PapelPainel }) {
+export function Inicio({ slug, mesasAbertas, emAberto, pendentes, onGo, agora, papel = "owner", podeRelatorios, secoes }: { slug: string; mesasAbertas: number; emAberto: number; pendentes: number; onGo: (s: string) => void; agora?: React.ReactNode; papel?: PapelPainel; podeRelatorios?: boolean; secoes?: readonly string[] }) {
+  // Faturamento e mais vendidos só para quem tem "Ver relatórios" (padrão: administrador e gerente).
+  const verFaturamento = podeRelatorios ?? (papel === "owner" || papel === "manager");
   // 48h: as últimas 24h são o presente; as 24h anteriores servem de comparação.
-  const rep = useReports(slug, 2);
+  const rep = useReports(slug, 2, verFaturamento);
   const { atual, anterior } = useMemo(() => {
     const corte = Date.now() - DIA;
     const todos = rep.data?.items ?? [];
@@ -79,8 +81,7 @@ export function Inicio({ slug, mesasAbertas, emAberto, pendentes, onGo, agora, p
     atual.forEach((i) => m.set(i.name, (m.get(i.name) ?? 0) + i.qty));
     return [...m.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5);
   }, [atual]);
-  const verFaturamento = papel === "owner" || papel === "manager";
-  const atalhos = [["pdv", "Lançar pedido", ShoppingCart], ["salao", "Ver salão", LayoutGrid], ["caixa", "Caixa", Wallet], ["cozinha", "Cozinha e bar", ChefHat], ["relatorios", "Relatórios", BarChart3], ["qr", "Mesas e QR", QrCode]] as const;
+  const atalhos = ([["pdv", "Lançar pedido", ShoppingCart], ["salao", "Ver salão", LayoutGrid], ["caixa", "Caixa", Wallet], ["cozinha", "Cozinha e bar", ChefHat], ["relatorios", "Relatórios", BarChart3], ["qr", "Mesas e QR", QrCode]] as const).filter(([k]) => !secoes || secoes.includes(k));
   const maxTop = Math.max(1, ...top.map(([, q]) => q));
   return (
     <div className="space-y-4">
@@ -107,8 +108,8 @@ export function Inicio({ slug, mesasAbertas, emAberto, pendentes, onGo, agora, p
           <div className="mt-1.5 flex justify-between text-[10px] text-muted-foreground"><span>00h</span><span>06h</span><span>12h</span><span>18h</span><span>23h</span></div>
         </Card>
       )}
-      <div className="grid gap-4 lg:grid-cols-[1.3fr_1fr]">
-        <Card>
+      <div className={cn("grid gap-4", verFaturamento && "lg:grid-cols-[1.3fr_1fr]")}>
+        {verFaturamento && <Card>
           <div className="flex items-baseline justify-between gap-2">
             <h3 className="font-display font-semibold">Mais vendidos</h3>
             <span className="text-xs text-muted-foreground">últimas 24h</span>
@@ -123,7 +124,7 @@ export function Inicio({ slug, mesasAbertas, emAberto, pendentes, onGo, agora, p
               ))}
             </ol>
           )}
-        </Card>
+        </Card>}
         <Card>
           <h3 className="font-display font-semibold">Atalhos</h3>
           <div className="mt-4 grid grid-cols-2 gap-2">
