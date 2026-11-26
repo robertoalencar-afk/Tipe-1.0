@@ -21,7 +21,7 @@ async function persistir(events: WaEvent[]): Promise<{ db: any; novos: Novo[] }>
       // Liga ao lead pelo telefone (com ou sem o 55) para a ficha única do CRM.
       const local = phone.startsWith("55") ? phone.slice(2) : phone;
       const { data: lead } = await db.from("restaurant_leads").select("id, contact_name").or(`phone.ilike.%${local.slice(-8)}%`).order("created_at", { ascending: false }).limit(1).maybeSingle();
-      const ins = await db.from("wa_conversations").insert({ phone, name: ev.name ?? lead?.contact_name ?? null, lead_id: lead?.id ?? null }).select("id, unread, lead_id, name").single();
+      const ins = await db.from("wa_conversations").insert({ phone, name: ev.name ?? lead?.contact_name ?? null, lead_id: lead?.id ?? null }).select("*").single();
       conv = ins.data;
       if (ins.error) throw ins.error;
       if (!conv) throw new Error("Não foi possível criar a conversa do WhatsApp");
