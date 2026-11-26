@@ -296,10 +296,6 @@ export async function atenderComLebre(db: Db, conv: Conversa, texto: string, ago
   } else if (pedidoNaoEntendi(texto)) {
     resposta = respostaSimplificada(ficha);
   } else if (pedeHumano(texto)) {
-    resposta = respostaReinicio(ficha);
-  } else if (pedidoNaoEntendi(texto)) {
-    resposta = respostaSimplificada(ficha);
-  } else if (pedeHumano(texto)) {
     humano = true;
     motivo = "Pediu para falar com uma pessoa";
     resposta = respostaHumano(ficha, agora);
