@@ -364,10 +364,11 @@ export function LandingHeader() {
   );
 }
 
-/** (85) 98559-1062 a partir de 5585985591062. */
+/** (85) 3179-0290 a partir de 558531790290 (fixo) ou (85) 9xxxx-xxxx (celular). */
 function telefoneWhatsapp() {
   const n = WHATSAPP_NUMBER.replace(/^55/, "");
-  return n.length === 11 ? `(${n.slice(0, 2)}) ${n.slice(2, 7)}-${n.slice(7)}` : "WhatsApp";
+  if (n.length === 11) return `(${n.slice(0, 2)}) ${n.slice(2, 7)}-${n.slice(7)}`;
+  return n.length === 10 ? `(${n.slice(0, 2)}) ${n.slice(2, 6)}-${n.slice(6)}` : "WhatsApp";
 }
 
 /**

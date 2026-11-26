@@ -55,7 +55,7 @@ export function VisaoGeral({ dash, carregando, ir, nome }: { dash: Dash | undefi
           </Painel>
           <Painel titulo="Comunicação" descricao="Aguardando resposta">
             <div className="grid grid-cols-2 gap-3">
-              <Kpi label="WhatsApp" value={k.mensagensAguardando} icon={MessageSquare} tone={k.mensagensAguardando ? "warning" : undefined} onClick={() => ir("comunicacao", "whatsapp")} />
+              <Kpi label="WhatsApp" value={k.mensagensAguardando} icon={MessageSquare} tone={k.mensagensAguardando ? "warning" : undefined} onClick={() => ir("whatsapp")} />
               <Kpi label="Saques de garçom" value={k.saquesPendentes} tone={k.saquesPendentes ? "warning" : undefined} onClick={() => ir("financeiro", "saques")} />
             </div>
           </Painel>

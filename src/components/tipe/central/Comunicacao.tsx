@@ -1,37 +1,41 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Send } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Avatar, Aviso, Busca, Esqueleto, Painel, Segmentado, StatusBadge, Tabela, horaBR, inputCls, relativo, usePaginacao, type Tone } from "@/components/tipe/painel/ui";
-import { getComunicacao, sendWaReply, updateWaConversation } from "@/lib/tipe/central.functions";
+import { Aviso, Busca, Esqueleto, Painel, Segmentado, StatusBadge, Tabela, horaBR, usePaginacao, type Tone } from "@/components/tipe/painel/ui";
+import { getComunicacao } from "@/lib/tipe/central.functions";
+import { WhatsAppLeads } from "@/components/tipe/central/WhatsAppLeads";
 import { CaixaEmail } from "@/components/tipe/central/CaixaEmail";
 import { getAcessoCentral } from "@/lib/tipe/central-equipe.functions";
 import { temWhatsapp } from "@/lib/tipe/central-perfis";
 import type { SecaoCentral } from "@/routes/_authenticated/central";
 
 type Props = { aba?: string | undefined; id?: string | undefined; ir: (s: SecaoCentral, aba?: string, id?: string) => void };
-const ABAS = [["whatsapp", "WhatsApp"], ["caixa", "Caixa de e-mail"], ["email", "Envios do sistema"], ["modelos", "Modelos"], ["conexoes", "Conexões"]] as const;
+const ABAS = [["caixa", "Caixa de e-mail"], ["email", "Envios do sistema"], ["modelos", "Modelos"], ["conexoes", "Conexões"]] as const;
 const EMAIL_TONE: Record<string, Tone> = { sent: "neutral", delivered: "success", opened: "success", clicked: "success", delivery_delayed: "warning", bounced: "error", complained: "error", failed: "error", suppressed: "warning" };
 const EMAIL_LABEL: Record<string, string> = { sent: "Enviado", delivered: "Entregue", opened: "Aberto", clicked: "Clicado", delivery_delayed: "Atrasado", bounced: "Devolvido", complained: "Spam", failed: "Falhou", suppressed: "Suprimido" };
 
 export function Comunicacao({ aba, id, ir }: Props) {
   const acesso = useQuery({ queryKey: ["central-acesso"], queryFn: useServerFn(getAcessoCentral), staleTime: 60_000 });
-  const perfil = acesso.data?.perfil ?? null;
   const fundador = acesso.data?.papel === "founder";
-  // Equipe interna: só a caixa de e-mail e, nos setores com WhatsApp, as conversas. Histórico, modelos e conexões são do fundador.
-  const abas = ABAS.filter(([k]) => fundador || k === "caixa" || (k === "whatsapp" && perfil !== null && temWhatsapp(perfil)));
+  // Links antigos (?s=comunicacao&aba=whatsapp) agora abrem a seção própria do WhatsApp.
+  useEffect(() => { if (aba === "whatsapp") ir("whatsapp", "conversas", id); }, [aba]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Equipe interna: só a caixa de e-mail. Histórico, modelos e conexões são do fundador.
+  const abas = ABAS.filter(([k]) => fundador || k === "caixa");
   const atual = abas.some(([k]) => k === aba) ? (aba as (typeof ABAS)[number][0]) : (abas[0]?.[0] ?? "caixa");
   const fetchCom = useServerFn(getComunicacao);
-  const q = useQuery({ queryKey: ["central-com", atual === "whatsapp" ? id : undefined], queryFn: () => fetchCom({ data: atual === "whatsapp" && id ? { conversaId: id } : {} }), refetchInterval: 30_000 });
+  const q = useQuery({ queryKey: ["central-com", "email"], queryFn: () => fetchCom({ data: {} }), refetchInterval: 60_000, enabled: atual !== "caixa" });
+  if (atual === "caixa") return (
+    <div className="space-y-5">
+      {abas.length > 1 && <div className="-mx-3 overflow-x-auto px-3 [scrollbar-width:none] sm:mx-0 sm:px-0"><Segmentado className="whitespace-nowrap" label="E-mail" value={atual} onChange={(a) => ir("comunicacao", a)} options={abas} /></div>}
+      <CaixaEmail />
+    </div>
+  );
   if (q.isPending || !q.data) return <Esqueleto linhas={6} />;
   const d = q.data;
   return (
     <div className="space-y-5">
-      <div className="-mx-3 overflow-x-auto px-3 [scrollbar-width:none] sm:mx-0 sm:px-0"><Segmentado className="whitespace-nowrap" label="Canal" value={atual} onChange={(a) => ir("comunicacao", a)} options={abas} /></div>
-      {atual === "whatsapp" && <WhatsApp d={d} conversaId={id} abrir={(c) => ir("comunicacao", "whatsapp", c)} />}
-      {atual === "caixa" && <CaixaEmail />}
+      <div className="-mx-3 overflow-x-auto px-3 [scrollbar-width:none] sm:mx-0 sm:px-0"><Segmentado className="whitespace-nowrap" label="E-mail" value={atual} onChange={(a) => ir("comunicacao", a)} options={abas} /></div>
       {atual === "email" && <Emails d={d} destaque={id} />}
       {atual === "modelos" && (
         <Painel titulo="Modelos de e-mail" descricao="Registrados no código (src/lib/email-templates). Envio só por ação do sistema ou sua; nunca em massa.">
@@ -45,67 +49,17 @@ export function Comunicacao({ aba, id, ir }: Props) {
 
 type Com = Awaited<ReturnType<typeof getComunicacao>>;
 
-function WhatsApp({ d, conversaId, abrir }: { d: Com; conversaId: string | undefined; abrir: (c: string) => void }) {
-  const qc = useQueryClient();
-  const inv = () => Promise.all([qc.invalidateQueries({ queryKey: ["central-com"] }), qc.invalidateQueries({ queryKey: ["central-dash"] })]);
-  const responder = useServerFn(sendWaReply);
-  const atualizar = useServerFn(updateWaConversation);
-  const [texto, setTexto] = useState("");
-  const [filtro, setFiltro] = useState("");
-  const mEnviar = useMutation({ mutationFn: () => responder({ data: { conversaId: conversaId!, body: texto } }), onSuccess: () => { setTexto(""); toast.success("Mensagem enviada pela API oficial"); inv(); }, onError: (e: Error) => toast.error(e.message) });
-  const mStatus = useMutation({ mutationFn: (v: any) => atualizar({ data: v }), onSuccess: () => inv(), onError: (e: Error) => toast.error(e.message) });
-  const conv = d.conversas.find((c: any) => c.id === conversaId);
-  const lista = d.conversas.filter((c: any) => !filtro || String(c.name ?? "").toLowerCase().includes(filtro.toLowerCase()) || c.phone.includes(filtro));
-  const janela = conv?.last_inbound_at && Date.now() - new Date(conv.last_inbound_at).getTime() < 24 * 3600e3;
-  return (
-    <div className="space-y-4">
-      {!d.config.whatsappWebhook && <Aviso tone="warning">WhatsApp oficial ainda não conectado. Quando as credenciais da Meta estiverem configuradas, as conversas aparecem aqui automaticamente. Nenhuma conversa é inventada.</Aviso>}
-      <div className="grid gap-4 lg:grid-cols-[320px_1fr]">
-        <Painel titulo="Conversas" descricao={`${d.conversas.length} registradas`} semPadding acoes={<Busca value={filtro} onChange={setFiltro} placeholder="Nome ou número" />}>
-          <ul className="max-h-[70vh] divide-y divide-border overflow-y-auto">
-            {lista.length === 0 && <li className="p-6 text-center text-sm text-muted-foreground">Nenhuma conversa.</li>}
-            {lista.map((c: any) => (
-              <li key={c.id}>
-                <button type="button" onClick={() => abrir(c.id)} className={`flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-muted/60 ${c.id === conversaId ? "bg-muted" : ""}`}>
-                  <Avatar nome={c.name ?? c.phone} />
-                  <span className="min-w-0 flex-1">
-                    <span className="flex items-center justify-between gap-2"><span className="truncate text-sm font-medium">{c.name ?? `+${c.phone}`}</span><span className="text-xs text-muted-foreground">{c.last_message_at ? relativo(c.last_message_at) : ""}</span></span>
-                    <span className="flex items-center gap-2 text-xs text-muted-foreground"><StatusBadge tone={c.status === "open" ? "warning" : c.status === "waiting" ? "info" : "neutral"}>{c.status === "open" ? "Aberta" : c.status === "waiting" ? "Aguardando" : "Resolvida"}</StatusBadge>{c.unread > 0 && <span className="rounded-full bg-highlight px-1.5 font-semibold text-white">{c.unread}</span>}</span>
-                  </span>
-                </button>
-              </li>
-            ))}
-          </ul>
-        </Painel>
-        <Painel titulo={conv ? (conv.name ?? `+${conv.phone}`) : "Selecione uma conversa"} descricao={conv ? `+${conv.phone}${conv.lead_id ? " · ligado a um lead" : ""}` : undefined} semPadding
-          acoes={conv && (
-            <div className="flex gap-2">
-              <select className={`${inputCls} h-9 w-auto`} value={conv.status} onChange={(e) => mStatus.mutate({ id: conv.id, status: e.target.value })} aria-label="Status"><option value="open">Aberta</option><option value="waiting">Aguardando cliente</option><option value="resolved">Resolvida</option></select>
-              {conv.unread > 0 && <Button variant="outline" size="sm" onClick={() => mStatus.mutate({ id: conv.id, lida: true })}>Marcar lida</Button>}
-            </div>
-          )}>
-          {conv ? (
-            <div className="flex h-[70vh] flex-col">
-              <ol className="flex-1 space-y-2 overflow-y-auto bg-muted/30 p-4">
-                {d.mensagens.map((m: any) => (
-                  <li key={m.id} className={`flex ${m.direction === "out" ? "justify-end" : "justify-start"}`}>
-                    <div className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm shadow-sm ${m.direction === "out" ? "bg-brand-soft" : "bg-white"}`}>
-                      <p className="whitespace-pre-wrap">{m.body}</p>
-                      <p className="mt-1 text-right text-[10px] text-muted-foreground">{horaBR(m.at)}{m.direction === "out" ? ` · ${m.status}` : ""}{m.error ? ` · ${m.error}` : ""}</p>
-                    </div>
-                  </li>
-                ))}
-              </ol>
-              <form className="flex gap-2 border-t border-border p-3" onSubmit={(e) => { e.preventDefault(); if (texto.trim()) mEnviar.mutate(); }}>
-                <input className={`${inputCls} h-10 flex-1`} value={texto} onChange={(e) => setTexto(e.target.value)} placeholder={janela ? "Responder (API oficial da Meta)" : "Fora da janela de 24 h: só modelo aprovado"} disabled={!janela || !d.config.whatsappEnvio} maxLength={4000} />
-                <Button type="submit" variant="brand" disabled={!janela || !d.config.whatsappEnvio || mEnviar.isPending} aria-label="Enviar"><Send className="size-4" /></Button>
-              </form>
-            </div>
-          ) : <p className="p-8 text-center text-sm text-muted-foreground">As mensagens da conversa aparecem aqui.</p>}
-        </Painel>
-      </div>
-    </div>
-  );
+/** Seção WhatsApp da Central: conversas do número comercial, com a Lebre atendendo. */
+export function WhatsAppCentral({ id, ir }: Props) {
+  const acesso = useQuery({ queryKey: ["central-acesso"], queryFn: useServerFn(getAcessoCentral), staleTime: 60_000 });
+  const fundador = acesso.data?.papel === "founder";
+  const perfil = acesso.data?.perfil ?? null;
+  const pode = fundador || (perfil !== null && temWhatsapp(perfil));
+  const fetchCom = useServerFn(getComunicacao);
+  const q = useQuery({ queryKey: ["central-com", "wa", id], queryFn: () => fetchCom({ data: id ? { conversaId: id } : {} }), refetchInterval: 15_000, enabled: pode });
+  if (acesso.data && !pode) return <Aviso tone="neutral">Seu setor não atende o WhatsApp comercial.</Aviso>;
+  if (q.isPending || !q.data) return <Esqueleto linhas={6} />;
+  return <WhatsAppLeads d={q.data} conversaId={id} fundador={fundador} abrir={(c) => ir("whatsapp", "conversas", c)} abrirLead={(leadId) => ir("comercial", "leads", leadId)} />;
 }
 
 function Emails({ d, destaque }: { d: Com; destaque: string | undefined }) {

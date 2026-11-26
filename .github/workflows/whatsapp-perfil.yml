@@ -1,0 +1,23 @@
+name: Perfil do WhatsApp
+on:
+  workflow_dispatch:
+    inputs:
+      teste:
+        description: "Só ler o perfil atual, sem alterar"
+        type: boolean
+        default: false
+concurrency:
+  group: whatsapp-perfil
+  cancel-in-progress: false
+jobs:
+  perfil:
+    runs-on: ubuntu-latest
+    environment: producao
+    steps:
+      - uses: actions/checkout@v4
+      - name: Atualizar perfil comercial
+        env:
+          WHATSAPP_TOKEN: ${{ secrets.WHATSAPP_TOKEN }}
+          WHATSAPP_PHONE_NUMBER_ID: ${{ secrets.WHATSAPP_PHONE_NUMBER_ID }}
+          TESTE: ${{ inputs.teste }}
+        run: python3 scripts/whatsapp-perfil.py

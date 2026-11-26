@@ -113,7 +113,7 @@ export const getCentralDashboard = createServerFn({ method: "GET" })
       if (t.due_at && new Date(t.due_at).getTime() < agora)
         atencao.push({ id: `task:${t.id}`, titulo: `Tarefa atrasada: ${t.title}`, origem: "Tarefas", quem: t.restaurant_id ? nome.get(t.restaurant_id) : undefined, prioridade: "media", em: t.due_at, abrir: { secao: "comercial", aba: "tarefas", id: t.lead_id ?? undefined } });
     for (const c of (wa.data ?? []) as any[])
-      atencao.push({ id: `wa:${c.id}`, titulo: `WhatsApp sem resposta${c.name ? `: ${c.name}` : ""}`, descricao: `${c.unread} mensagem(ns)`, origem: "WhatsApp", prioridade: "alta", em: c.last_inbound_at ?? new Date().toISOString(), abrir: { secao: "comunicacao", aba: "whatsapp", id: c.id } });
+      atencao.push({ id: `wa:${c.id}`, titulo: `WhatsApp sem resposta${c.name ? `: ${c.name}` : ""}`, descricao: `${c.unread} mensagem(ns)`, origem: "WhatsApp", prioridade: "alta", em: c.last_inbound_at ?? new Date().toISOString(), abrir: { secao: "whatsapp", aba: "conversas", id: c.id } });
     for (const e of (emails.data ?? []) as any[])
       atencao.push({ id: `email:${e.id}`, titulo: `E-mail com falha de entrega (${e.template})`, quem: e.to_email, origem: "Resend", prioridade: "media", em: e.created_at, abrir: { secao: "comunicacao", aba: "email", id: e.id } });
     for (const s of subsList.filter((x) => x.status === "past_due"))
@@ -425,15 +425,17 @@ export const getComunicacao = createServerFn({ method: "GET" })
     const fundador = a.papel === "founder";
     const wa = await podeWhatsapp(a);
     const vazio = Promise.resolve({ data: [] });
-    const [emails, convs, msgs, templates] = await Promise.all([
+    const [emails, convs, msgs, templates, waCfg] = await Promise.all([
       !fundador ? vazio : db.from("email_log").select("*").order("created_at", { ascending: false }).limit(300),
       !wa ? vazio : db.from("wa_conversations").select("*").order("last_message_at", { ascending: false, nullsFirst: false }).limit(200),
       wa && data.conversaId ? db.from("wa_messages").select("*").eq("conversation_id", data.conversaId).order("at").limit(500) : Promise.resolve({ data: [] }),
       !fundador ? Promise.resolve([]) : import("@/lib/email-templates/registry").then((m) => Object.entries(m.TEMPLATES).map(([k, t]) => ({ key: k, nome: t.displayName ?? k, assunto: typeof t.subject === "function" ? "(dinâmico)" : t.subject, fixo: t.to ?? null }))),
+      !wa ? Promise.resolve({ data: null }) : db.from("wa_settings").select("lebre_ativa, limite_por_conversa, updated_at").eq("id", true).maybeSingle(),
     ]);
     const env = process.env;
     return {
       emails: emails.data ?? [], conversas: convs.data ?? [], mensagens: msgs.data ?? [], modelos: templates,
+      lebre: { ativa: waCfg.data?.lebre_ativa ?? true, limite: waCfg.data?.limite_por_conversa ?? 30, atualizada: waCfg.data?.updated_at ?? null },
       config: {
         resendEnvio: Boolean(env["RESEND_API_KEY"]),
         resendWebhook: Boolean(env["RESEND_WEBHOOK_SECRET"]),
@@ -462,8 +464,9 @@ export const sendWaReply = createServerFn({ method: "POST" })
     const { sendText } = await import("./crm/whatsapp");
     const r = await sendText({ token, phoneNumberId }, conv.phone, data.body);
     const agora = iso(new Date());
-    await db.from("wa_messages").insert({ conversation_id: conv.id, wa_message_id: r.ok ? r.id || null : null, direction: "out", body: data.body, status: r.ok ? "sent" : "failed", error: r.ok ? null : r.error, sender_id: context.userId, at: agora });
-    await db.from("wa_conversations").update({ last_message_at: agora, unread: 0, status: "waiting" }).eq("id", conv.id);
+    await db.from("wa_messages").insert({ conversation_id: conv.id, wa_message_id: r.ok ? r.id || null : null, direction: "out", body: data.body, status: r.ok ? "sent" : "failed", error: r.ok ? null : r.error, sender_id: context.userId, autor: "equipe", at: agora });
+    // Quem responde à mão assume a conversa: a Lebre para de responder até alguém devolver para ela.
+    await db.from("wa_conversations").update({ last_message_at: agora, unread: 0, status: "waiting", precisa_humano: false, motivo_humano: null, lebre_ativa: false, assigned_to: context.userId }).eq("id", conv.id);
     if (conv.lead_id) await db.from("crm_activities").insert({ lead_id: conv.lead_id, kind: "whatsapp", title: r.ok ? "WhatsApp enviado" : "Falha ao enviar WhatsApp", body: data.body, actor_id: context.userId });
     if (!r.ok) throw new Error(r.error);
     return { ok: true };
@@ -471,7 +474,7 @@ export const sendWaReply = createServerFn({ method: "POST" })
 
 export const updateWaConversation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((d) => z.object({ id: Uuid, status: z.enum(["open", "waiting", "resolved"]).optional(), leadId: Uuid.nullable().optional(), labels: z.array(z.string().max(30)).max(10).optional(), lida: z.boolean().optional() }).parse(d))
+  .inputValidator((d) => z.object({ id: Uuid, status: z.enum(["open", "waiting", "resolved"]).optional(), leadId: Uuid.nullable().optional(), labels: z.array(z.string().max(30)).max(10).optional(), lida: z.boolean().optional(), lebreAtiva: z.boolean().optional(), etapa: z.enum(["novo", "qualificando", "qualificado", "demo", "cliente", "perdido"]).optional() }).parse(d))
   .handler(async ({ data, context }) => {
     const { db, a } = await acesso(context, "comunicacao");
     if (!(await podeWhatsapp(a))) throw new Error("Seu perfil não acessa o WhatsApp");
@@ -480,9 +483,54 @@ export const updateWaConversation = createServerFn({ method: "POST" })
     if (data.leadId !== undefined) patch["lead_id"] = data.leadId;
     if (data.labels) patch["labels"] = data.labels;
     if (data.lida) patch["unread"] = 0;
+    if (data.etapa) patch["etapa"] = data.etapa;
+    if (data.lebreAtiva !== undefined) {
+      patch["lebre_ativa"] = data.lebreAtiva;
+      // Devolver para a Lebre tira da fila da equipe; assumir põe a conversa no nome de quem assumiu.
+      if (data.lebreAtiva) Object.assign(patch, { precisa_humano: false, motivo_humano: null, lebre_respostas: 0 });
+      else Object.assign(patch, { assigned_to: context.userId, precisa_humano: false });
+    }
+    if (data.status === "resolved") Object.assign(patch, { precisa_humano: false, unread: 0 });
     const { error } = await db.from("wa_conversations").update(patch).eq("id", data.id);
     if (error) throw new Error("Não foi possível atualizar a conversa");
     return { ok: true };
+  });
+
+/** Liga ou desliga o atendimento da Lebre no WhatsApp para todas as conversas. Só o fundador. */
+export const setWaLebre = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ ativa: z.boolean() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { db, a } = await acesso(context, "comunicacao");
+    if (a.papel !== "founder") throw new Error("Só o fundador liga ou desliga a Lebre no WhatsApp");
+    const { error } = await db.from("wa_settings").upsert({ id: true, lebre_ativa: data.ativa, updated_at: iso(new Date()), updated_by: context.userId });
+    if (error) throw new Error("Não foi possível salvar");
+    return { ok: true };
+  });
+
+/** Cria o lead no CRM a partir da conversa, com a ficha que a Lebre montou e o que a equipe completar. */
+export const criarLeadWa = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((d) => z.object({ id: Uuid, nome: z.string().trim().min(2).max(120), restaurante: z.string().trim().min(2).max(160), email: z.string().trim().email().max(160), cidade: z.string().trim().max(80).optional() }).parse(d))
+  .handler(async ({ data, context }) => {
+    const { db, a } = await acesso(context, "comunicacao");
+    if (!(await podeWhatsapp(a))) throw new Error("Seu perfil não acessa o WhatsApp");
+    const { data: conv } = await db.from("wa_conversations").select("*").eq("id", data.id).maybeSingle();
+    if (!conv) throw new Error("Conversa não encontrada");
+    if (conv.lead_id) return { leadId: conv.lead_id as string };
+    const f = (conv.ficha ?? {}) as Record<string, any>;
+    const { data: lead, error } = await db.from("restaurant_leads").insert({
+      restaurant_name: data.restaurante, contact_name: data.nome, email: data.email.toLowerCase(), phone: `+${conv.phone}`,
+      city: data.cidade || f["cidade"] || null, neighborhood: f["bairro"] ?? null, pdv_system: f["pdv"] ?? null,
+      tables_range: f["mesas"] ? String(f["mesas"]) : null, message: f["dor"] ?? null,
+      discovery_source: "whatsapp", origin_page: "whatsapp/comercial", utm_source: "whatsapp", utm_medium: conv.origem ?? "direto",
+      marketing_opt_in: false, assigned_to: context.userId,
+      notes: ["Lead do WhatsApp comercial.", f["dor"] ? `Dor principal: ${f["dor"]}` : "", f["demo"] ? `Demonstração pedida para: ${f["demo"]}` : ""].filter(Boolean).join("\n"),
+    }).select("id").single();
+    if (error) throw new Error(error.message);
+    await db.from("wa_conversations").update({ lead_id: lead.id, name: conv.name ?? data.nome, ficha: { ...f, nome: data.nome, restaurante: data.restaurante, email: data.email.toLowerCase() } }).eq("id", conv.id);
+    if (conv.prospect_id) await db.from("crm_prospects").update({ status: "convertido", lead_id: lead.id, next_touch_at: null, updated_at: iso(new Date()) }).eq("id", conv.prospect_id);
+    return { leadId: lead.id as string };
   });
 
 // ---------------- Automações ----------------

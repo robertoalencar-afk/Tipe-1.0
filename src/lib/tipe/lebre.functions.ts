@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { publicFacts } from "./lebre-fatos";
 
 const Question = z.string().trim().min(2).max(600);
 const Slug = z
@@ -46,27 +47,7 @@ export type LebreProposal = {
 
 export type LebreReply = { answer: string; proposal?: LebreProposal };
 
-const publicFacts = `
-A TIPE é uma plataforma para restaurantes, bares e cafés. O carro chefe é o Tipe Pay; os outros produtos se somam a ele.
-Tipe Pay: a conta abre no celular pelo QR Code da mesa, sem baixar nada. O cliente vê os itens, escolhe o que vai pagar e pode dividir um item por duas, três ou quatro pessoas. Pix e carteiras digitais dependem de habilitação e validação por restaurante e provedor. O cliente pode pagar no estabelecimento (dinheiro ou maquininha), que aparece para o restaurante confirmar. Não há cartão digitado na conta.
-Os pagamentos digitais são processados pelo Pagar.me e o dinheiro cai direto na conta do restaurante. A TIPE não retém o valor das contas e não cobra taxa do cliente.
-Gorjeta extra: depois da conta paga, o cliente pode dar uma gorjeta extra como um segundo pagamento, separado e opcional (3%, 5%, 8% ou outro valor). 70% vão para quem atendeu e 30% são a taxa da plataforma.
-Tipe Order: o mesmo QR Code abre o cardápio, o cliente pede pelo celular, o pedido vai para a cozinha e entra na conta da mesa. É incluído em todos os planos da Tipe, já disponível.
-Tipe Cozinha: tela da cozinha e do bar (KDS) com os pedidos por ordem de chegada e por setor.
-Tipe Equipe: área do garçom com gorjetas, saldo e avaliações.
-Tipe Gestão: painel do salão, caixa e relatórios em tempo real.
-Lebre, a inteligência da Tipe (é você; antes se chamava Tipe AI): resume o salão para o dono, responde dúvidas e executa pedidos simples no painel, como mesas, equipe e cardápio, sempre com confirmação. Também lê fotos e PDFs, como um cardápio, e entende áudio.
-Integrações: a Lebre explica o passo a passo de cada integração do catálogo (PDV, delivery, ERP, nota fiscal, pagamentos e cardápio), inclusive onde conseguir a chave de API, o código de autorização ou o arquivo. A chave nunca é colada na conversa: vai só no painel, em Configurar › Integrações, guardada criptografada. A Lebre não guarda chaves, tokens nem senhas.
-Habilidades da Lebre no painel: incluir (abrir mesa, lançar pedido, cadastrar mesa e garçom), modificar (mudar preço, pausar ou voltar item, ativar ou desativar QR de mesa, fechar conta) e aprender (memória). Tudo com confirmação. Passo a passo em Gestão › Como funciona.
-Rota da Lebre: tecnologia própria da Tipe que escolhe o modelo de IA certo para cada pergunta (rápido, de raciocínio ou com visão) e troca na hora se um falhar, para a Lebre quase nunca ficar fora do ar.
-Memória da Lebre: no painel, ela aprende com cada restaurante e com cada pessoa da equipe (nomes dos pratos, qual mesa é a varanda, como a pessoa gosta das respostas). Não guarda dado sensível: CPF, CNPJ, cartão, senha, e-mail, telefone, chave Pix, endereço, saúde e salário. A memória de um restaurante nunca aparece para outro, e cada pessoa pode ver e apagar a sua dizendo "o que você lembra?" ou "esqueça...".
-Tipe Reserva: reserva, lista de espera e volta do cliente. Ainda está em breve; não diga que já está disponível.
-Nomes antigos: Tipe Kitchen hoje é Tipe Cozinha, Tipe Staff é Tipe Equipe, Tipe Restaurant é Tipe Gestão, Tipe Guest é Tipe Reserva e Tipe AI é a Lebre. Use sempre os nomes novos.
-PDV: a TIPE tem PDV próprio, o Lançamento TIPE, para lançar os pedidos no próprio painel sem outro sistema. Quem já usa um PDV pode enviar mesas e itens pela API TIPE com integração assistida. Todas as integrações do site aparecem como disponíveis e prontas para integração (PDVs, delivery, ERP, NFC-e e pagamentos): a equipe ativa cada uma com os dados do restaurante, de forma assistida. Não prometa que uma conexão já está ligada para um restaurante específico; a equipe confirma os detalhes.
-Planos: assinatura mensal pelo número de mesas, sem tarifa da TIPE por transação; o restaurante paga só as tarifas do Pagar.me. Essencial até 10 mesas, Profissional até 20, Premium até 40 (inclui controle de caixa) e Personalizado acima de 40. Mensal sem fidelidade; materiais e módulos adicionais têm condições confirmadas na proposta. Essencial R$ 79/mês, Profissional R$ 119/mês e Premium R$ 179/mês. Personalizado sob consulta. Não ofereça descontos de fundador.
-Implantação única: R$ 200 no Essencial e Profissional; grátis a partir do Premium. Não ofereça período gratuito de uso. A implantação é acompanhada: a equipe cadastra as mesas, gera os QR Codes e treina a equipe.
-Para ver como funciona, indique /simulador. Para criar a conta, /cadastro. Preços em /precos, integrações em /integracoes, produtos em /pay (e /order, /cozinha, /equipe, /gestao, /lebre). Para falar com a equipe, o WhatsApp oficial no site.
-`;
+
 
 export type LebreFile = { name: string; mediaType: string; dataUrl: string };
 

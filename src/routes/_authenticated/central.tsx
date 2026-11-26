@@ -12,7 +12,8 @@ import {
   CalendarCheck,
   GitPullRequest,
   LayoutDashboard,
-  MessageSquare,
+  MessageCircle,
+  Mail,
   ShieldCheck,
   Target,
   UserRound,
@@ -26,7 +27,7 @@ import { getAcessoCentral } from "@/lib/tipe/central-equipe.functions";
 import { PERFIL_INFO } from "@/lib/tipe/central-perfis";
 import { VisaoGeral } from "@/components/tipe/central/VisaoGeral";
 import { Comercial } from "@/components/tipe/central/Comercial";
-import { Comunicacao } from "@/components/tipe/central/Comunicacao";
+import { Comunicacao, WhatsAppCentral } from "@/components/tipe/central/Comunicacao";
 import { Restaurantes } from "@/components/tipe/central/Restaurantes";
 import { Financeiro } from "@/components/tipe/central/Financeiro";
 import { Inteligencia } from "@/components/tipe/central/Inteligencia";
@@ -53,7 +54,7 @@ function InicioInterno({ nome, secoes, ir }: { nome: string; secoes: string[]; i
   );
 }
 
-const SECOES = ["inicio", "comercial", "comunicacao", "restaurantes", "financeiro", "inteligencia", "reserva", "administracao", "operacoes", "perfil"] as const;
+const SECOES = ["inicio", "comercial", "whatsapp", "comunicacao", "restaurantes", "financeiro", "inteligencia", "reserva", "administracao", "operacoes", "perfil"] as const;
 export type SecaoCentral = (typeof SECOES)[number];
 
 export const Route = createFileRoute("/_authenticated/central")({
@@ -79,7 +80,8 @@ export const Route = createFileRoute("/_authenticated/central")({
 const TITULOS: Record<SecaoCentral, { t: string; d: string }> = {
   inicio: { t: "Visão geral", d: "O que precisa da sua atenção e os números do período." },
   comercial: { t: "Comercial", d: "Funil, leads, tarefas e etapas. Dados reais da lista de espera." },
-  comunicacao: { t: "Comunicação", d: "WhatsApp oficial e histórico de e-mails. Nada sai sem você clicar." },
+  whatsapp: { t: "WhatsApp comercial", d: "A Lebre atende 24 horas, qualifica o restaurante e passa para você o que precisa de uma pessoa." },
+  comunicacao: { t: "E-mail", d: "Caixa de entrada, envios do sistema e modelos. Nada sai sem você clicar." },
   restaurantes: { t: "Restaurantes", d: "Ficha única, assinaturas, implantações e integrações." },
   financeiro: { t: "Financeiro", d: "Volume processado não é receita. Receita da Tipe: 30% das gorjetas e assinaturas." },
   inteligencia: { t: "Inteligência", d: "Lebre do fundador, automações e limites. Só rascunhos: nenhuma ação sem aprovação." },
@@ -114,7 +116,7 @@ function Central() {
   const gruposTodos: GrupoNav[] = [
     { l: "Visão geral", itens: [{ k: "inicio", l: "Início", i: LayoutDashboard, badge: k?.pendencias, badgeTone: "warning", busca: "atenção pendências dashboard" }] },
     { l: "Comercial", itens: [{ k: "comercial", l: "Funil e leads", i: Target, badge: k?.oportunidadesAbertas, badgeTone: "neutral", busca: "crm kanban tarefas etapas" }] },
-    { l: "Comunicação", itens: [{ k: "comunicacao", l: "WhatsApp e e-mail", i: MessageSquare, badge: k?.mensagensAguardando, badgeTone: "warning", busca: "resend inbox mensagens" }] },
+    { l: "Comunicação", itens: [{ k: "whatsapp", l: "WhatsApp", i: MessageCircle, badge: k?.mensagensAguardando, badgeTone: "warning", busca: "whatsapp conversas lebre leads demonstração" }, { k: "comunicacao", l: "E-mail", i: Mail, busca: "resend inbox caixa e-mail modelos" }] },
     { l: "Restaurantes", itens: [{ k: "restaurantes", l: "Clientes", i: Building2, badge: k?.emImplantacao, badgeTone: "neutral", busca: "assinaturas implantação integrações pdv" }] },
     { l: "Financeiro", itens: [{ k: "financeiro", l: "Financeiro", i: Banknote, badge: k?.saquesPendentes, badgeTone: "warning", busca: "receita gmv gorjetas saques planos" }] },
     { l: "Inteligência", itens: [{ k: "inteligencia", l: "Lebre e automações", i: Bot, badge: k?.automacoesFalhas, badgeTone: "warning", busca: "ia assistente regras limites" }] },
@@ -131,7 +133,7 @@ function Central() {
   const plural = (n: number, um: string, varios: string) => (n === 1 ? um : varios.replace("#", String(n)));
   const pendencias: Pendencia[] = [
     { aba: "inicio", rotulo: "Início", n: k?.pendencias ?? 0, texto: plural(k?.pendencias ?? 0, "Um item precisa da sua atenção hoje.", "# itens precisam da sua atenção hoje.") },
-    { aba: "comunicacao", rotulo: "WhatsApp e e-mail", n: k?.mensagensAguardando ?? 0, texto: plural(k?.mensagensAguardando ?? 0, "Uma mensagem espera resposta.", "# mensagens esperam resposta.") },
+    { aba: "whatsapp", rotulo: "WhatsApp", n: k?.mensagensAguardando ?? 0, texto: plural(k?.mensagensAguardando ?? 0, "Uma mensagem espera resposta.", "# mensagens esperam resposta.") },
     { aba: "financeiro", rotulo: "Financeiro", n: k?.saquesPendentes ?? 0, texto: plural(k?.saquesPendentes ?? 0, "Um saque de gorjeta espera aprovação.", "# saques de gorjeta esperam aprovação.") },
     { aba: "inteligencia", rotulo: "Lebre e automações", n: k?.automacoesFalhas ?? 0, texto: plural(k?.automacoesFalhas ?? 0, "Uma automação falhou.", "# automações falharam.") },
   ].filter((p) => p.n > 0 && (!permitidas || permitidas.includes(p.aba)));
@@ -178,6 +180,7 @@ function Central() {
       {secao === "inicio" && interno && <InicioInterno nome={meu.data?.nome || acesso.data?.nome || "equipe"} secoes={permitidas ?? []} ir={ir} />}
       {secao === "inicio" && !interno && <VisaoGeral dash={dash.data} carregando={dash.isPending} ir={ir} nome={meu.data?.nome || meu.data?.email.split("@")[0] || "Fundador"} />}
       {secao === "comercial" && <Comercial {...comum} />}
+      {secao === "whatsapp" && <WhatsAppCentral {...comum} />}
       {secao === "comunicacao" && <Comunicacao {...comum} />}
       {secao === "restaurantes" && <Restaurantes {...comum} />}
       {secao === "financeiro" && <Financeiro {...comum} />}

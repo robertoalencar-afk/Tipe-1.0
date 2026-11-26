@@ -14,7 +14,7 @@ function PixChangeNotice({ audience = "owner", waiter = "", restaurant = "", key
       lebre="pensando"
       escuro
       rodape="Aviso automático de segurança da Tipe."
-      aviso={<><strong style={{ color: cores.tinta }}>Não reconhece essa alteração?</strong> Fale com o restaurante ou com a Tipe pelo WhatsApp +55 85 98559-1062.</>}
+      aviso={<><strong style={{ color: cores.tinta }}>Não reconhece essa alteração?</strong> Fale com o restaurante ou com a Tipe pelo WhatsApp +55 85 3179-0290.</>}
     >
       <Text style={txt}>
         {owner ? `${waiter} cadastrou uma chave Pix nova para receber os repasses no ${restaurant}.` : `Sua chave Pix nova foi cadastrada no ${restaurant}. Suas gorjetas vão chegar direitinho.`}
