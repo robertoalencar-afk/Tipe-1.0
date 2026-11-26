@@ -36,7 +36,7 @@ No app Meta dedicado ao WhatsApp:
 
 1. Em **Webhooks**, escolha o objeto **WhatsApp Business Account**.
 2. Informe o callback `https://tipe.digital/api/public/whatsapp/webhook`.
-3. Informe o mesmo valor de `WHATSAPP_VERIFY_TOKEN) salvo no ambiente `producao` e conclua a verificação do callback.
+3. Informe o mesmo valor de `WHATSAPP_VERIFY_TOKEN` salvo no ambiente `producao` e conclua a verificação do callback.
 4. Assine o campo `messages` para a conta do WhatsApp Business que contém o número.
 5. Confirme que o app e o usuário do sistema têm acesso à conta e ao número corretos.
 6. Complete as etapas de publicação, análise ou verificação que o painel da Meta exigir para tráfego de produção.
