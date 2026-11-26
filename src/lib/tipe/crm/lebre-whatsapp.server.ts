@@ -262,6 +262,13 @@ export async function atenderComLebre(db: Db, conv: Conversa, texto: string, ago
     }
   }
   if (!resposta.trim()) return;
+  // Última barreira: nunca envia a ficha/decisão interna como texto ao cliente.
+  if (/^\s*\{\s*"(?:resposta|ficha|humano)"\s*:/i.test(resposta)) {
+    humano = true;
+    motivo = "Resposta automática em formato inválido";
+    resposta =
+      "Desculpa, tive um problema para preparar minha resposta. Vou chamar alguém da equipe para continuar com você.";
+  }
 
   const novaEtapa = etapa(ficha, conv.etapa ?? "novo");
   const demoNova = Boolean(ficha.demo && ficha.demo !== ficha0.demo);
