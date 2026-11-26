@@ -181,7 +181,7 @@ export function proximaPergunta(f: Ficha): keyof Ficha | null {
 export function humanizar(texto: string): string {
   let s = texto
     .replace(/\r/g, "")
-    .replace(/\*\*(.+?)\*\*/g, "$1") // remove marcação literal
+    .replace(/\*\*(.+?)\*\*/g, "*$1*") // converte negrito para a marcação do WhatsApp
     .replace(/\*([^*\n]+)\*/g, "$1")
     .replace(/[_~`]/g, "")
     .replace(/^#+\s*/gm, "")
