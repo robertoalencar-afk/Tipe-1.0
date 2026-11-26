@@ -76,7 +76,7 @@ export function horarioDemo(texto: string, agora = new Date()): Date | null {
     if (!dateMatch[3] && probe.getTime() < Date.UTC(localNow.year, localNow.month - 1, localNow.day))
       year += 1;
   } else if (weekdayMatch) {
-    const key = weekdayMatch[1].replace("-feira", "");
+    const key = (weekdayMatch[1] ?? "").replace("-feira", "");
     const target = weekdays[key] ?? weekdays[key.replace("-", " ")] ?? 0;
     const todayUtc = Date.UTC(year, month - 1, day);
     let delta = (target - localNow.weekday + 7) % 7;
