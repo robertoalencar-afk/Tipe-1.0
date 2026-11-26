@@ -76,6 +76,8 @@ import { getMidia, saveLogo } from "@/lib/tipe/midia.functions";
 import { Image as ImagemIcon, Images, BookOpen, Camera } from "lucide-react";
 import { StudioFotos } from "@/components/tipe/StudioFotos";
 import { EquipePermissoes } from "@/components/tipe/EquipePermissoes";
+import { getMinhasPermissoes } from "@/lib/tipe/equipe.functions";
+import { efetivas, PERMISSOES, type PapelRestaurante, type Permissao } from "@/lib/tipe/permissoes";
 import { Fiscal } from "@/components/tipe/Fiscal";
 import { TotemStudio } from "@/components/tipe/TotemStudio";
 import { LiberarPedidosMesa } from "@/components/tipe/LiberarPedidosMesa";
@@ -163,6 +165,18 @@ const statusInfo: Record<Status, { label: string; tone: Tone; card: string }> = 
 };
 const selectCls =
   "h-10 w-full rounded-xl border border-input bg-card px-3 text-sm shadow-xs outline-none transition-colors hover:border-foreground/25 focus-visible:ring-2 focus-visible:ring-focus-ring/30";
+
+/** Seção do painel → permissão que a libera (as demais seguem as regras de dono/flag). */
+const PERMISSAO_DA_SECAO: Record<string, Permissao> = {
+  inicio: "dashboard.ver",
+  salao: "salao.ver",
+  pdv: "pedidos.lancar",
+  cozinha: "cozinha.ver",
+  caixa: "caixa.ver",
+  historico: "caixa.ver",
+  relatorios: "relatorios.ver",
+  qr: "salao.ver",
+};
 
 const secoes = [
   {
@@ -419,9 +433,23 @@ export function RestaurantPanel({
     staleTime: 60_000,
     refetchInterval: 5 * 60_000,
   });
+  // Permissões efetivas (papel + ajustes do administrador na aba Equipe), calculadas no banco.
+  const fetchPerms = useServerFn(getMinhasPermissoes);
+  const minhasPerms = useQuery({
+    queryKey: ["minhas-permissoes", slug],
+    queryFn: () => fetchPerms({ data: { slug } }),
+    staleTime: 60_000,
+  });
+  const perms = new Set<string>(
+    isFounder
+      ? PERMISSOES.map((p) => p.k)
+      : (minhasPerms.data?.permissoes ??
+          efetivas(myRoles.filter((r): r is PapelRestaurante => r !== "founder"))),
+  );
+  const tem = (p: Permissao) => perms.has(p);
   const [mesaAberta, setMesaAberta] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState<string | null>(null);
-  const [aba, setAba] = useState("inicio");
+  const [abaEscolhida, setAba] = useState("inicio");
   const [mesaPedido, setMesaPedido] = useState<string>("");
   const [maisAberto, setMaisAberto] = useState(false);
 
@@ -455,7 +483,8 @@ export function RestaurantPanel({
     };
   }, [slug, qc]);
 
-  const podeConfirmar = isFounder || myRoles.includes("owner") || myRoles.includes("manager") || myRoles.includes("cashier");
+  // Confirmar pagamento, caixa, balcão e ações de caixa na mesa: só com "caixa.operar" (garçom nunca tem).
+  const podeConfirmar = tem("caixa.operar");
   const podeDono = isFounder || myRoles.includes("owner");
   const podeFiscal = myRoles.some((role) => ["owner", "manager", "cashier"].includes(role));
   const refresh = () => {
@@ -534,7 +563,11 @@ export function RestaurantPanel({
   const abertas = mesas.filter((m) => m.status === "ocupada" || m.status === "aguardando");
   // O Lançamento TIPE fica sempre disponível, inclusive como reserva de uma integração.
   const visiveis = secoes.filter(
-    (x) => (!("dono" in x) || podeDono) && (!("flag" in x) || reservasOn) && (!("fiscal" in x) || podeFiscal),
+    (x) =>
+      (!("dono" in x) || podeDono) &&
+      (!("flag" in x) || reservasOn) &&
+      (!("fiscal" in x) || (podeFiscal && tem("caixa.ver"))) &&
+      (!(x.k in PERMISSAO_DA_SECAO) || tem(PERMISSAO_DA_SECAO[x.k]!)),
   );
   const pdvLabel =
     !integ.data || integ.data.adapter === "lancamento_tipe"
@@ -543,6 +576,9 @@ export function RestaurantPanel({
   const syncErro =
     integ.data && integ.data.adapter !== "lancamento_tipe" && integ.data.status === "error";
 
+  // Seção sem permissão (ex.: Início para quem não tem "Ver o painel inicial") cai na primeira liberada.
+  const bloqueada = (k: string) => k in PERMISSAO_DA_SECAO && !tem(PERMISSAO_DA_SECAO[k]!);
+  const aba = bloqueada(abaEscolhida) ? (visiveis[0]?.k ?? "comofunciona") : abaEscolhida;
   const secaoAtual = visiveis.find((x) => x.k === aba) ?? visiveis[0]!;
   const ir = (k: string) => {
     setAba(k);
@@ -789,6 +825,8 @@ export function RestaurantPanel({
             pendentes={pendentes.length}
             onGo={ir}
             papel={papel}
+            podeRelatorios={tem("relatorios.ver")}
+            secoes={visiveis.map((x) => x.k)}
             agora={
               <PrecisaDeVoce
                 slug={slug}
@@ -1013,7 +1051,7 @@ export function RestaurantPanel({
         {aba === "integracoes" && <Integracoes slug={slug} podeDono={podeDono} />}
         {aba === "config" && <Configuracoes slug={slug} podeDono={podeDono} />}
         {aba === "atendimento" && <Atendimento slug={slug} podeDono={podeDono} irParaConfig={() => ir("config")} />}
-        {aba === "fiscal" && podeFiscal && <Fiscal slug={slug} canConfigure={myRoles.includes("owner")} />}
+        {aba === "fiscal" && podeFiscal && tem("caixa.ver") && <Fiscal slug={slug} canConfigure={myRoles.includes("owner")} />}
         {aba === "recebimentos" && podeDono && <Recebimentos slug={slug} podeDono={podeDono} />}
         {aba === "assinatura" && podeDono && <Assinatura slug={slug} />}
         {aba === "seguranca" && <SegurancaConta />}

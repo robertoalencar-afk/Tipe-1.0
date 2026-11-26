@@ -227,8 +227,9 @@ export const waiterLaunchOrder = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { w } = await myWaiter(context.userId);
-    const { enforceRate } = await import("./security.server");
+    const { enforceRate, exigirPermissao } = await import("./security.server");
     await enforceRate(`waiter-order:${w.id}`, 120, 60, w.restaurants.slug);
+    await exigirPermissao(context.supabase as never, context.userId, w.restaurants.slug, "pedidos.lancar", "Sem permissão: o administrador tirou de você o lançamento de pedidos");
     // RPC com o contexto autenticado do garçom (papel waiter). p_waiter é sempre o próprio.
     const { error } = await context.supabase.rpc("pdv_launch_order" as never, {
       p_slug: w.restaurants.slug,

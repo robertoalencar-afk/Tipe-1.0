@@ -119,6 +119,8 @@ export const getReports = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const sb = context.supabase;
     const r = await rest(sb, data.slug);
+    const { exigirPermissao } = await import("./security.server");
+    await exigirPermissao(sb as never, context.userId, data.slug, "relatorios.ver", "Sem permissão: relatórios não estão liberados para você");
     const since = new Date(Date.now() - data.days * 86400000).toISOString();
     const [items, pays, arch, voids, waiters, waivers] = await Promise.all([
       sb.from("pdv_order_items").select("item_code, item_name, unit_price, quantity, created_at, pdv_orders(waiter_id, table_number, channel)").eq("restaurant_id", r.id).neq("status", "cancelled").gte("created_at", since).limit(5000),
@@ -187,6 +189,8 @@ export const cashAction = createServerFn({ method: "POST" })
   ]).parse(d))
   .handler(async ({ data, context }) => {
     const sb = context.supabase;
+    const { exigirPermissao } = await import("./security.server");
+    await exigirPermissao(sb as never, context.userId, data.slug, "caixa.operar", "Sem permissão: sua função não opera o caixa");
     if (data.action === "close") {
       const res = await (sb.rpc("cash_close_counted" as never, { p_slug: data.slug, p_counted_cash: data.countedCash, p_counted_card: data.countedCard, p_notes: data.notes } as never) as unknown as Promise<{ data: Record<string, unknown> | null; error: { message: string } | null }>);
       if (res.error) throw new Error(err(res.error.message, "Não foi possível fechar o caixa"));
@@ -224,8 +228,8 @@ export const getDailyClose = createServerFn({ method: "GET" })
   .handler(async ({ data, context }) => {
     const sb = context.supabase;
     const r = await rest(sb, data.slug);
-    const { data: allowed } = await sb.rpc("has_restaurant_role", { _user_id: context.userId, _restaurant_id: r.id, _roles: ["owner", "cashier"] });
-    if (!allowed) throw new Error("Sem permissão: o fechamento é do dono ou do caixa");
+    const { exigirPermissao } = await import("./security.server");
+    await exigirPermissao(sb as never, context.userId, data.slug, "caixa.ver", "Sem permissão: o fechamento é do dono ou do caixa");
     const { businessDayRange, dailyCloseCsv, buildDailyClose } = await import("./daily-close");
     const { start, end } = businessDayRange(data.date);
     const cols = "id, created_at, table_number, customer_name, payment_method, establishment_method, status, amount, service_fee_amount, payment_target";

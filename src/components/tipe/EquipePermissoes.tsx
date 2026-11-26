@@ -2,12 +2,13 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Copy, Pause, Play, Trash2, UserPlus } from "lucide-react";
+import { Copy, Pause, Play, RotateCcw, Trash2, UserPlus } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PainelLateral, StatusBadge, horaBR, inputCls } from "@/components/tipe/painel/ui";
-import { createInvite, getEquipe, removerPessoa, revokeInvite, setPapel, setPermissoesExtras, setSuspensao } from "@/lib/tipe/equipe.functions";
-import { CONCEDIVEIS, PADRAO, PAPEL_DESCRICAO, PAPEL_LABEL, PERMISSOES, type PapelRestaurante } from "@/lib/tipe/permissoes";
+import { createInvite, getEquipe, removerPessoa, revokeInvite, setPapel, setPermissoes, setSuspensao } from "@/lib/tipe/equipe.functions";
+import { efetivas, PADRAO, PAPEL_DESCRICAO, PAPEL_LABEL, PERMISSOES, TETO, type PapelRestaurante } from "@/lib/tipe/permissoes";
 
 const PAPEIS = ["manager", "cashier", "waiter"] as const;
 
@@ -22,7 +23,7 @@ export function EquipePermissoes({ slug }: { slug: string }) {
   const convidar = useServerFn(createInvite);
   const revogar = useServerFn(revokeInvite);
   const trocar = useServerFn(setPapel);
-  const extras = useServerFn(setPermissoesExtras);
+  const salvarPermissoes = useServerFn(setPermissoes);
   const suspender = useServerFn(setSuspensao);
   const remover = useServerFn(removerPessoa);
   const [f, setF] = useState({ name: "", email: "", role: "cashier" as (typeof PAPEIS)[number] });
@@ -31,7 +32,7 @@ export function EquipePermissoes({ slug }: { slug: string }) {
   const mConvite = useMutation({ mutationFn: () => convidar({ data: { slug, ...f } }), onSuccess: (r) => { setLink(`${window.location.origin}/convite/${r.token}`); if (r.emailEnviado) toast.success(`Convite enviado para ${f.email}`); else toast.warning("Não deu para mandar o e-mail agora. Copie o link e envie por WhatsApp."); setF({ ...f, name: "", email: "" }); recarregar(); }, onError: erro });
   const mRevogar = useMutation({ mutationFn: (id: string) => revogar({ data: { slug, id } }), onSuccess: recarregar, onError: erro });
   const mPapel = useMutation({ mutationFn: (v: { userId: string; role: (typeof PAPEIS)[number] }) => trocar({ data: { slug, ...v } }), onSuccess: () => { toast.success("Papel alterado"); recarregar(); }, onError: erro });
-  const mExtras = useMutation({ mutationFn: (v: { userId: string; permissoes: string[] }) => extras({ data: { slug, ...v } }), onSuccess: () => { toast.success("Permissões salvas"); recarregar(); }, onError: erro });
+  const mPerms = useMutation({ mutationFn: (v: { userId: string; permissoes: string[] }) => salvarPermissoes({ data: { slug, ...v } }), onSuccess: () => { toast.success("Permissões salvas"); recarregar(); }, onError: erro });
   const mSusp = useMutation({ mutationFn: (v: { userId: string; suspenso: boolean }) => suspender({ data: { slug, ...v } }), onSuccess: recarregar, onError: erro });
   const mRem = useMutation({ mutationFn: (userId: string) => remover({ data: { slug, userId } }), onSuccess: () => { toast.success("Removido"); setSel(null); recarregar(); }, onError: erro });
 
@@ -59,7 +60,7 @@ export function EquipePermissoes({ slug }: { slug: string }) {
             <li key={p.userId}>
               <button type="button" onClick={() => setSel(p.userId)} className="flex w-full items-center justify-between gap-3 p-3 text-left hover:bg-muted/50">
                 <span><span className="block text-sm font-semibold">{p.nome}</span><span className="text-xs text-muted-foreground">{p.email}</span></span>
-                <span className="flex items-center gap-2">{p.extras.length > 0 && <StatusBadge tone="info">+{p.extras.length} extra(s)</StatusBadge>}{p.suspenso && <StatusBadge tone="warning">Suspenso</StatusBadge>}<StatusBadge tone={p.papeis.includes("owner") ? "brand" : "neutral"}>{PAPEL_LABEL[papelDe(p)]}</StatusBadge></span>
+                <span className="flex items-center gap-2">{(p.extras.length > 0 || p.removidas.length > 0) && <StatusBadge tone="info">Permissões ajustadas</StatusBadge>}{p.suspenso && <StatusBadge tone="warning">Suspenso</StatusBadge>}<StatusBadge tone={p.papeis.includes("owner") ? "brand" : "neutral"}>{PAPEL_LABEL[papelDe(p)]}</StatusBadge></span>
               </button>
             </li>
           ))}
@@ -110,19 +111,13 @@ export function EquipePermissoes({ slug }: { slug: string }) {
                 <select className={inputCls} value={papelDe(pessoa)} onChange={(e) => mPapel.mutate({ userId: pessoa.userId, role: e.target.value as (typeof PAPEIS)[number] })}>{PAPEIS.map((r) => <option key={r} value={r}>{PAPEL_LABEL[r]}</option>)}</select></label>
             )}
             {pessoa.papeis.includes("owner") ? <p className="text-sm text-muted-foreground">Administrador tem todas as permissões.</p> : (
-              <fieldset className="space-y-2"><legend className="mb-1 text-sm font-medium">Permissões</legend>
-                {PERMISSOES.map((p) => {
-                  const padrao = (PADRAO[papelDe(pessoa) as keyof typeof PADRAO] as readonly string[]).includes(p.k);
-                  const extra = pessoa.extras.includes(p.k);
-                  const podeConceder = (CONCEDIVEIS as readonly string[]).includes(p.k);
-                  return (
-                    <label key={p.k} className="flex items-center gap-2 text-sm">
-                      <input type="checkbox" checked={padrao || extra} disabled={padrao || !podeConceder || mExtras.isPending} onChange={(e) => mExtras.mutate({ userId: pessoa.userId, permissoes: e.target.checked ? [...pessoa.extras, p.k] : pessoa.extras.filter((x: string) => x !== p.k) })} />
-                      <span>{p.l}</span>{padrao && <span className="text-xs text-muted-foreground">(do papel)</span>}{extra && <span className="text-xs text-brand-strong">(extra)</span>}
-                    </label>
-                  );
-                })}
-              </fieldset>
+              <PermissoesPessoa
+                papel={papelDe(pessoa) as Exclude<PapelRestaurante, "owner">}
+                extras={pessoa.extras}
+                removidas={pessoa.removidas}
+                salvando={mPerms.isPending}
+                onSalvar={(permissoes) => mPerms.mutate({ userId: pessoa.userId, permissoes })}
+              />
             )}
             <div className="flex flex-wrap gap-2 border-t border-border pt-4">
               <Button variant="outline" size="sm" onClick={() => mSusp.mutate({ userId: pessoa.userId, suspenso: !pessoa.suspenso })}>{pessoa.suspenso ? <><Play className="size-4" /> Reativar acesso</> : <><Pause className="size-4" /> Suspender acesso</>}</Button>
@@ -132,5 +127,54 @@ export function EquipePermissoes({ slug }: { slug: string }) {
         </PainelLateral>
       )}
     </div>
+  );
+}
+
+const GRUPOS = [...new Set(PERMISSOES.map((p) => p.g))];
+
+/**
+ * Poderes de uma pessoa: começa no padrão do papel e o administrador liga ou desliga cada um.
+ * O que passa do teto do papel aparece travado (garçom nunca opera caixa). O servidor aplica as mesmas regras.
+ */
+function PermissoesPessoa({ papel, extras, removidas, salvando, onSalvar }: { papel: Exclude<PapelRestaurante, "owner">; extras: string[]; removidas: string[]; salvando: boolean; onSalvar: (permissoes: string[]) => void }) {
+  const atuais = efetivas([papel], { extras, removidas }) as string[];
+  const ajustada = extras.length > 0 || removidas.length > 0;
+  const alternar = (k: string, ligar: boolean) => onSalvar(ligar ? [...atuais, k] : atuais.filter((x) => x !== k));
+  return (
+    <fieldset className="space-y-4" disabled={salvando}>
+      <div className="flex items-start justify-between gap-3">
+        <p className="text-sm font-medium">Permissões</p>
+        {ajustada && (
+          <Button type="button" size="sm" variant="ghost" className="-mt-1 h-7 px-2 text-xs" onClick={() => onSalvar([...PADRAO[papel]])}>
+            <RotateCcw className="size-3.5" /> Voltar ao padrão
+          </Button>
+        )}
+      </div>
+      <p className="-mt-2 text-xs text-muted-foreground">
+        Comece pelo padrão do papel e ligue ou desligue cada poder desta pessoa. Vale na hora, no painel e no servidor.
+      </p>
+      {GRUPOS.map((g) => (
+        <div key={g} className="space-y-1.5">
+          <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{g}</p>
+          {PERMISSOES.filter((p) => p.g === g).map((p) => {
+            const padrao = (PADRAO[papel] as readonly string[]).includes(p.k);
+            const permitido = (TETO[papel] as readonly string[]).includes(p.k);
+            const ligado = atuais.includes(p.k);
+            const id = `perm-${p.k}`;
+            return (
+              <div key={p.k} className="flex items-center justify-between gap-3 rounded-lg border border-border px-3 py-2">
+                <label htmlFor={id} className={`min-w-0 text-sm ${permitido ? "" : "text-muted-foreground"}`}>
+                  <span className="block">{p.l}</span>
+                  {!permitido && <span className="block text-xs">Só para Caixa ou Gerente. Mude o papel para liberar.</span>}
+                  {permitido && padrao && !ligado && <span className="block text-xs text-destructive">Removida do padrão</span>}
+                  {permitido && !padrao && ligado && <span className="block text-xs text-brand-strong">Adicionada</span>}
+                </label>
+                <Switch id={id} checked={ligado} disabled={!permitido || salvando} onCheckedChange={(v) => alternar(p.k, v)} aria-label={p.l} />
+              </div>
+            );
+          })}
+        </div>
+      ))}
+    </fieldset>
   );
 }

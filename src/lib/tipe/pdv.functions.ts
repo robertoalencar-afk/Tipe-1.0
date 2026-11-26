@@ -140,6 +140,8 @@ export const launchOrder = createServerFn({ method: "POST" })
     requestId: RequestId,
   }).parse(d))
   .handler(async ({ data, context }) => {
+    const { exigirPermissao } = await import("./security.server");
+    await exigirPermissao(context.supabase as never, context.userId, data.slug, "pedidos.lancar", "Sem permissão: o administrador tirou de você o lançamento de pedidos");
     const { error } = await context.supabase.rpc("pdv_launch_order" as never, { p_slug: data.slug, p_table: data.table, p_waiter: data.waiterId, p_items: data.items, p_request_id: data.requestId } as never);
     if (error) throw new Error(friendly(error.message, "Não foi possível lançar o pedido"));
     return { ok: true };
@@ -149,6 +151,8 @@ export const voidItem = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ slug: Slug, table: z.string().max(16), code: z.string().max(16), qty: z.number().int().min(1).max(99), reason: z.string().trim().min(3).max(140) }).parse(d))
   .handler(async ({ data, context }) => {
+    const { exigirPermissao } = await import("./security.server");
+    await exigirPermissao(context.supabase as never, context.userId, data.slug, "pedidos.cancelar", "Sem permissão: sua função não cancela itens");
     const { error } = await context.supabase.rpc("pdv_void_item", { p_slug: data.slug, p_table: data.table, p_code: data.code, p_qty: data.qty, p_reason: data.reason });
     if (error) throw new Error(friendly(error.message, "Não foi possível estornar"));
     return { ok: true };
@@ -158,6 +162,8 @@ export const closeTable = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ slug: Slug, table: z.string().max(16) }).parse(d))
   .handler(async ({ data, context }) => {
+    const { exigirPermissao } = await import("./security.server");
+    await exigirPermissao(context.supabase as never, context.userId, data.slug, "salao.operar", "Sem permissão: sua função não encerra mesas");
     const { error } = await context.supabase.rpc("pdv_close_table", { p_slug: data.slug, p_table: data.table });
     if (error) throw new Error(friendly(error.message, "Não foi possível fechar a mesa"));
     return { ok: true };
@@ -198,6 +204,8 @@ export const waiveServiceFee = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((d) => z.object({ slug: Slug, table: z.string().max(16), reason: z.string().trim().min(3).max(200) }).parse(d))
   .handler(async ({ data, context }) => {
+    const { exigirPermissao } = await import("./security.server");
+    await exigirPermissao(context.supabase as never, context.userId, data.slug, "caixa.operar", "Sem permissão: sua função não opera o caixa");
     const { data: amount, error } = await context.supabase.rpc("waive_service_fee", { p_slug: data.slug, p_table: data.table, p_reason: data.reason });
     if (error) throw new Error(friendly(error.message, "Não foi possível remover a taxa"));
     return { amount: Number(amount ?? 0) };
