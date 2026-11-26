@@ -1,3 +1,4 @@
+import { Carregando } from "@/components/tipe/Carregando";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { z } from "zod";
@@ -91,7 +92,7 @@ function Totem() {
   if (!ctx)
     return (
       <Tela>
-        <p className="m-auto text-xl opacity-80">Carregando…</p>
+        <Carregando tamanho="sm" texto="Carregando" className="m-auto" />
       </Tela>
     );
   if (!ctx.enabled)

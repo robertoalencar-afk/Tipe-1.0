@@ -129,12 +129,12 @@ function AreaGarcom() {
       <div className="space-y-4">
         {q.isLoading && (
           <div className="space-y-4" aria-busy="true" aria-label="Carregando">
-            <div className="h-40 animate-pulse rounded-3xl bg-surface motion-reduce:animate-none" />
+            <div className="h-40 tipe-brilho rounded-3xl bg-surface motion-reduce:animate-none" />
             <div className="grid grid-cols-2 gap-3">
               {[0, 1, 2, 3].map((i) => (
                 <div
                   key={i}
-                  className="h-28 animate-pulse rounded-2xl bg-surface motion-reduce:animate-none"
+                  className="h-28 tipe-brilho rounded-2xl bg-surface motion-reduce:animate-none"
                 />
               ))}
             </div>

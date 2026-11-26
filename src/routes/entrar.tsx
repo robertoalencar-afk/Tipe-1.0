@@ -1,3 +1,4 @@
+import { Carregando, LebrePulando, TextoOcupado } from "@/components/tipe/Carregando";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
@@ -234,13 +235,18 @@ function Entrar() {
           className="w-full"
           disabled={carregando || entrando || captcha.pendente}
         >
-          {entrando
-            ? "Entrando…"
-            : carregando
-              ? "Aguarde…"
-              : modo === "entrar"
-                ? "Entrar"
-                : "Criar conta"}
+          {entrando ? (
+            <span className="inline-flex items-center gap-2">
+              <LebrePulando className="size-5" />
+              <TextoOcupado>Entrando</TextoOcupado>
+            </span>
+          ) : carregando ? (
+            <TextoOcupado>{modo === "entrar" ? "Conferindo" : "Criando conta"}</TextoOcupado>
+          ) : modo === "entrar" ? (
+            "Entrar"
+          ) : (
+            "Criar conta"
+          )}
         </Button>
         <div className="flex items-center gap-3">
           <span className="h-px flex-1 bg-border" />
@@ -311,5 +317,5 @@ function SeguirAposMfa({ onPronto }: { onPronto: () => void }) {
   useEffect(() => {
     onPronto();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-  return <p className="p-10 text-center text-sm text-muted-foreground">Entrando…</p>;
+  return <Carregando tamanho="tela" texto="Entrando" detalhe="Abrindo o seu painel" />;
 }

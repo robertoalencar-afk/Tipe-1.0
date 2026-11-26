@@ -137,7 +137,7 @@ export function Assinatura({ slug }: { slug: string }) {
   if (q.isLoading)
     return (
       <div
-        className="h-64 max-w-2xl animate-pulse rounded-2xl bg-surface motion-reduce:animate-none"
+        className="h-64 max-w-2xl tipe-brilho rounded-2xl bg-surface motion-reduce:animate-none"
         aria-busy="true"
         aria-label="Carregando assinatura"
       />

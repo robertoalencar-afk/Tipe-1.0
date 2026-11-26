@@ -1,3 +1,4 @@
+import { Carregando } from "@/components/tipe/Carregando";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -35,7 +36,7 @@ export function FechamentoDia({ slug }: { slug: string }) {
         <label className="text-sm">Dia<Input type="date" value={data} max={hoje()} onChange={(e) => e.target.value && setData(e.target.value)} className="mt-1 h-9 w-40" /></label>
         <Button size="sm" variant="outline" disabled={!q.data} onClick={baixar}><Download className="mr-1 h-4 w-4" />Baixar planilha</Button>
       </div>
-      {q.isLoading && <p className="mt-4 text-sm text-muted-foreground">Carregando…</p>}
+      {q.isLoading && <Carregando tamanho="sm" texto="Carregando" className="mt-4" />}
       {q.error && <p className="mt-4 text-sm text-destructive">{(q.error as Error).message}</p>}
       {s && (
         <div className="mt-4 grid gap-4 md:grid-cols-2">

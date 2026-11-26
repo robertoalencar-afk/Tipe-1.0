@@ -48,7 +48,7 @@ function Painel() {
   return (
     <AreaShell eyebrow="Meus restaurantes" actions={<Button size="sm" variant="ghost" onClick={sair} className="text-muted-foreground"><LogOut className="h-4 w-4" />Sair</Button>}>
       <div className="mx-auto max-w-4xl">
-        {access.isLoading && <div className="grid gap-3 sm:grid-cols-2">{[0, 1].map((i) => <div key={i} className="h-24 animate-pulse rounded-2xl bg-surface motion-reduce:animate-none" />)}</div>}
+        {access.isLoading && <div className="grid gap-3 sm:grid-cols-2">{[0, 1].map((i) => <div key={i} className="h-24 tipe-brilho rounded-2xl bg-surface motion-reduce:animate-none" />)}</div>}
         {access.error && <p className="text-destructive">{(access.error as Error).message}</p>}
         {access.data && !slug && <SemAcesso isFounder={access.data.isFounder} email={access.data.email} />}
         {access.data && access.data.restaurants.length > 0 && (

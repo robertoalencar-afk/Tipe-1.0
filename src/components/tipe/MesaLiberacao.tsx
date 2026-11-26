@@ -1,5 +1,6 @@
+import { PontosCarregando } from "@/components/tipe/Carregando";
 import { useState } from "react";
-import { KeyRound, Loader2, RefreshCw, UserRound } from "lucide-react";
+import { KeyRound, RefreshCw, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { claimTableOrdering } from "@/lib/tipe/order-access.functions";
 
@@ -147,7 +148,9 @@ export function MesaLiberacao({
           disabled={enviando || pin.length !== 4}
         >
           {enviando ? (
-            <Loader2 className="h-4 w-4 animate-spin" aria-label="Conferindo" />
+            <span role="status" aria-label="Conferindo">
+              <PontosCarregando className="text-base" />
+            </span>
           ) : (
             "Liberar"
           )}

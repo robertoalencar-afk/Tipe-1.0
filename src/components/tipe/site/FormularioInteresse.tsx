@@ -4,8 +4,9 @@
  * consentimento LGPD desmarcado por padrão e finalidade escrita ao lado da caixa.
  * Sucesso só aparece quando o servidor responde ok.
  */
+import { PontosCarregando } from "@/components/tipe/Carregando";
 import { useId, useState, type FormEvent } from "react";
-import { CheckCircle2, Loader2 } from "lucide-react";
+import { CheckCircle2 } from "lucide-react";
 import { submitInterestLead } from "@/lib/tipe/leads.functions";
 import { FINALIDADE, type OrigemInteresse } from "@/lib/tipe/interest-lead";
 import { getAttribution } from "@/lib/tipe/tracking";
@@ -236,7 +237,7 @@ export function FormularioInteresse({
       >
         {estado === "enviando" ? (
           <>
-            <Loader2 className="h-5 w-5 animate-spin motion-reduce:animate-none" aria-hidden />
+            <PontosCarregando className="text-base" />
             Enviando…
           </>
         ) : (

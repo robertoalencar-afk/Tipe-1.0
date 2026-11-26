@@ -1,3 +1,4 @@
+import { Carregando } from "@/components/tipe/Carregando";
 import { FounderMfaGate } from "@/components/tipe/FounderMfaGate";
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -66,7 +67,7 @@ function LeadsPage() {
     return true;
   });
 
-  if (q.isLoading) return <p className="p-8 text-muted-foreground">Carregando…</p>;
+  if (q.isLoading) return <Carregando tamanho="sm" texto="Carregando" className="p-8" />;
   if (q.error) return (
     <div className="mx-auto max-w-md p-8 text-center">
       <p className="font-display text-xl font-bold">Acesso restrito</p>

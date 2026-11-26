@@ -1,3 +1,4 @@
+import { PontosCarregando } from "@/components/tipe/Carregando";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { MarcaRestaurante } from "@/components/tipe/MarcaRestaurante";
 import { z } from "zod";
@@ -1886,14 +1887,14 @@ function MesaTopo({
 function ContaCarregando() {
   return (
     <main className="flex flex-1 flex-col px-5" aria-busy="true" aria-label="Carregando mesa">
-      <div className="h-8 w-40 animate-pulse rounded-lg bg-muted motion-reduce:animate-none" />
-      <div className="mt-2 h-4 w-56 animate-pulse rounded bg-muted motion-reduce:animate-none" />
-      <div className="mt-6 h-12 animate-pulse rounded-full bg-muted motion-reduce:animate-none" />
+      <div className="h-8 w-40 tipe-brilho rounded-lg bg-muted motion-reduce:animate-none" />
+      <div className="mt-2 h-4 w-56 tipe-brilho rounded bg-muted motion-reduce:animate-none" />
+      <div className="mt-6 h-12 tipe-brilho rounded-full bg-muted motion-reduce:animate-none" />
       <div className="mt-6 space-y-2.5">
         {[0, 1, 2].map((i) => (
           <div
             key={i}
-            className="h-[104px] animate-pulse rounded-2xl bg-muted motion-reduce:animate-none"
+            className="h-[104px] tipe-brilho rounded-2xl bg-muted motion-reduce:animate-none"
           />
         ))}
       </div>
@@ -1912,15 +1913,7 @@ function BarraAcao({ children }: { children: React.ReactNode }) {
 }
 
 function Spinner({ className = "" }: { className?: string }) {
-  return (
-    <span
-      aria-hidden
-      className={cn(
-        "inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-muted border-t-primary motion-reduce:animate-none",
-        className,
-      )}
-    />
-  );
+  return <PontosCarregando className={cn("text-primary", className)} />;
 }
 
 function EstadoPagamento({ status }: { status: SharedPayment["status"] }) {
@@ -2313,7 +2306,7 @@ function Pagamento({
         <Button disabled={bloqueado} onClick={pagar} className="h-13 w-full font-display text-base">
           {pagando ? (
             <>
-              <Spinner className="border-primary-foreground/30 border-t-primary-foreground" />{" "}
+              <Spinner className="text-primary-foreground" />{" "}
               Processando…
             </>
           ) : (

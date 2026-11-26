@@ -1,3 +1,4 @@
+import { Carregando } from "@/components/tipe/Carregando";
 import { useMemo, useState, useEffect, useRef } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -124,7 +125,7 @@ export function GarcomAtender() {
     }
   }, [q.data, som]);
 
-  if (q.isLoading) return <p className="text-muted-foreground">Carregando o salão…</p>;
+  if (q.isLoading) return <Carregando tamanho="sm" texto="Carregando o salão" />;
   if (q.error || !q.data)
     return (
       <p className="rounded-2xl border border-border bg-card p-5 text-sm">

@@ -1,8 +1,9 @@
+import { Carregando as CarregandoMarca, PontosCarregando } from "@/components/tipe/Carregando";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { z } from "zod";
 import { nanoid } from "nanoid";
-import { BellRing, Check, Loader2, MapPin, Minus, Plus, Users } from "lucide-react";
+import { BellRing, Check, MapPin, Minus, Plus, Users } from "lucide-react";
 import { TipeLogo } from "@/components/tipe/Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -336,11 +337,11 @@ function Fila() {
                 >
                   {enviando === "local" ? (
                     <>
-                      <Loader2 className="size-4 animate-spin" /> Confirmando que você está aqui
+                      <PontosCarregando className="text-base" /> Confirmando que você está aqui
                     </>
                   ) : enviando === "envio" ? (
                     <>
-                      <Loader2 className="size-4 animate-spin" /> Entrando na fila
+                      <PontosCarregando className="text-base" /> Entrando na fila
                     </>
                   ) : (
                     "Entrar na fila"
@@ -356,11 +357,7 @@ function Fila() {
 }
 
 function Carregando() {
-  return (
-    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-      <Loader2 className="size-4 animate-spin" /> Abrindo a fila
-    </div>
-  );
+  return <CarregandoMarca tamanho="sm" texto="Abrindo a fila" />;
 }
 
 function Aviso({ titulo, texto }: { titulo: string; texto: string }) {

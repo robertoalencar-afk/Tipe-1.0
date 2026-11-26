@@ -1,3 +1,4 @@
+import { Carregando } from "@/components/tipe/Carregando";
 import { FounderMfaGate } from "@/components/tipe/FounderMfaGate";
 import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -47,7 +48,9 @@ import { getFounderOverview } from "@/lib/tipe/founder.functions";
 import { createRestaurant } from "@/lib/tipe/staff.functions";
 
 export const Route = createFileRoute("/_authenticated/backoffice")({
-  beforeLoad: () => { throw redirect({ to: "/central" }); },
+  beforeLoad: () => {
+    throw redirect({ to: "/central" });
+  },
   head: () => ({
     meta: [
       { title: "Backoffice administrativo e financeiro | TIPE" },
@@ -243,8 +246,8 @@ function Backoffice() {
 
           <main className="mx-auto w-full max-w-[1440px] p-4 sm:p-6 lg:p-8">
             {query.isLoading && (
-              <div className="rounded-[1.25rem] border border-border bg-card p-6 text-sm text-muted-foreground">
-                Carregando informações…
+              <div className="rounded-[1.25rem] border border-border bg-card p-6">
+                <Carregando tamanho="sm" texto="Carregando informações" />
               </div>
             )}
             {query.error && (
@@ -505,7 +508,14 @@ function Backoffice() {
                         className="mb-4 flex h-10 items-center justify-center rounded-full bg-foreground text-sm font-medium text-background"
                       >
                         Abrir lista de espera completa
-                      </Link>\n                      <Link to="/crm" className="mb-4 flex h-10 items-center justify-center rounded-full border border-border text-sm font-medium">Abrir CRM comercial</Link>
+                      </Link>
+                      \n{" "}
+                      <Link
+                        to="/crm"
+                        className="mb-4 flex h-10 items-center justify-center rounded-full border border-border text-sm font-medium"
+                      >
+                        Abrir CRM comercial
+                      </Link>
                       {overview.leads.length === 0 ? (
                         <Empty text="Nenhum contato recebido." />
                       ) : (

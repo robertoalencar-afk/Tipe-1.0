@@ -1,3 +1,4 @@
+import { Carregando } from "@/components/tipe/Carregando";
 import { useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -40,7 +41,7 @@ export function Recebimentos({ slug, podeDono }: { slug: string; podeDono: boole
   const [key, setKey] = useState("");
   const [busy, setBusy] = useState(false);
   if (!podeDono) return <p className="text-muted-foreground">Somente o dono vê os recebimentos.</p>;
-  if (q.isLoading) return <p className="text-muted-foreground">Carregando…</p>;
+  if (q.isLoading) return <Carregando tamanho="sm" texto="Carregando" />;
   const a = q.data;
 
   return (

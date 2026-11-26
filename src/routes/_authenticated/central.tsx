@@ -1,3 +1,4 @@
+import { Carregando } from "@/components/tipe/Carregando";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
@@ -146,7 +147,7 @@ function Central() {
     navigate({ to: "/entrar", replace: true });
   }
 
-  if (!acesso.data) return <main className="p-8 text-sm text-muted-foreground">Carregando seu acesso…</main>;
+  if (!acesso.data) return <Carregando tamanho="tela" texto="Carregando seu acesso" />;
   const comum = { aba, id, ir };
   return (
     <Shell

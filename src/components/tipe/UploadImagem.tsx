@@ -1,5 +1,6 @@
+import { PontosCarregando } from "@/components/tipe/Carregando";
 import { useRef, useState } from "react";
-import { ImagePlus, Loader2, Trash2 } from "lucide-react";
+import { ImagePlus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -86,7 +87,7 @@ export function UploadImagem({
           disabled={ocupado}
           onClick={() => ref.current?.click()}
         >
-          {ocupado ? <Loader2 className="size-4 animate-spin" /> : <ImagePlus className="size-4" />}{" "}
+          {ocupado ? <PontosCarregando className="text-base" /> : <ImagePlus className="size-4" />}{" "}
           {url ? "Trocar" : "Enviar"} {rotulo.toLowerCase()}
         </Button>
         {url && (

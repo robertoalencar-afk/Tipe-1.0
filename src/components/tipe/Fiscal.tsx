@@ -1,3 +1,4 @@
+import { Carregando } from "@/components/tipe/Carregando";
 import { FiscalEmitir } from "./FiscalEmitir";
 import { FiscalHabilitacao } from "./FiscalHabilitacao";
 import { FiscalDocumentoAcoes } from "./FiscalDocumentoAcoes";
@@ -172,12 +173,7 @@ function Configuracao({ slug, environment }: { slug: string; environment: Ambien
     },
     onError: (e) => setErro(e.message),
   });
-  if (q.isPending)
-    return (
-      <p role="status" className="text-sm text-muted-foreground">
-        Carregando dados fiscais…
-      </p>
-    );
+  if (q.isPending) return <Carregando tamanho="sm" texto="Carregando dados fiscais" />;
   if (q.isError) return <Falha mensagem={q.error.message} retry={() => void q.refetch()} />;
   const settings = q.data.settings;
   const address = settings?.address as DadosConfiguracaoFiscal["address"] | undefined;
@@ -436,7 +432,7 @@ function Produtos({ slug, environment }: { slug: string; environment: AmbienteFi
     },
     onError: (e) => setErro(e.message),
   });
-  if (q.isPending) return <p role="status">Carregando produtos…</p>;
+  if (q.isPending) return <Carregando tamanho="sm" texto="Carregando produtos" />;
   if (q.isError) return <Falha mensagem={q.error.message} retry={() => void q.refetch()} />;
   const item = q.data.items.find((i) => i.id === selected) ?? q.data.items[0];
   const profiles = q.data.profiles.filter((p) => p.menu_item_id === item?.id);
@@ -659,7 +655,7 @@ function Documentos({
     queryFn: () => fetch({ data: { slug, environment, ...(documentId ? { documentId } : {}) } }),
     refetchInterval: 15000,
   });
-  if (q.isPending) return <p role="status">Carregando documentos…</p>;
+  if (q.isPending) return <Carregando tamanho="sm" texto="Carregando documentos" />;
   if (q.isError) return <Falha mensagem={q.error.message} retry={() => void q.refetch()} />;
   return (
     <section className="surface-card p-4 sm:p-6">

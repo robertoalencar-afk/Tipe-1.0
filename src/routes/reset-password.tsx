@@ -1,3 +1,4 @@
+import { Carregando } from "@/components/tipe/Carregando";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
 
@@ -26,5 +27,5 @@ function Redirecionar() {
       `/redefinir-senha${garcom ? "/garcom" : ""}${busca ? `?${busca}` : ""}${window.location.hash}`,
     );
   }, []);
-  return <p className="p-10 text-center text-sm text-muted-foreground">Abrindo…</p>;
+  return <Carregando tamanho="tela" texto="Abrindo" />;
 }

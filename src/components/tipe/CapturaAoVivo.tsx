@@ -3,10 +3,11 @@
  * pessoa dá a volta no prato (só quadro nítido e de um ângulo novo). Ao terminar, a Lebre prepara
  * o giro no próprio celular (prato centralizado, luz igual, capa), envia e o giro fica pronto.
  */
+import { LebrePulando } from "@/components/tipe/Carregando";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Check, Loader2, X } from "lucide-react";
+import { Check, X } from "lucide-react";
 import {
   concluirEnvioScan,
   descartarScan,
@@ -246,7 +247,7 @@ export function CapturaAoVivo({
           role="status"
           className="absolute inset-x-0 top-1/2 flex -translate-y-1/2 items-center justify-center gap-2 text-sm"
         >
-          <Loader2 className="size-5 animate-spin" aria-hidden />
+          <LebrePulando className="size-5" />
           {estado === "abrindo"
             ? "Abrindo a câmera…"
             : `${etapa.texto || "A Lebre está preparando o giro"}… ${Math.round(etapa.fracao * 100)}%`}

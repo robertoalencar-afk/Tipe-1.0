@@ -7,20 +7,11 @@
  * - vídeo: mede duração, resolução e tremor quadro a quadro, como o Scanner 3D faz ao
  *   escolher os quadros, e leva ao Scanner para o envio de verdade.
  */
+import { LebrePulando, PontosCarregando } from "@/components/tipe/Carregando";
 import { abrirVideo, irPara } from "@/lib/tipe/scanner/captura";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
-import {
-  Box,
-  Camera,
-  Check,
-  ImagePlus,
-  Loader2,
-  RotateCcw,
-  TriangleAlert,
-  Video,
-  X,
-} from "lucide-react";
+import { Box, Camera, Check, ImagePlus, RotateCcw, TriangleAlert, Video, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { prepareDishDepth } from "@/lib/tipe/order/prepare-photo";
@@ -295,7 +286,7 @@ function EnsaioFoto({ restaurante }: { restaurante: string }) {
           </div>
           {f.etapa !== "pronto" && f.etapa !== "sem-volume" && (
             <div className="absolute inset-x-3 top-10 flex items-center gap-2 rounded-full bg-black/60 px-3 py-1.5 text-[11px] text-white backdrop-blur">
-              <Loader2 className="size-3.5 animate-spin" aria-hidden />
+              <PontosCarregando className="text-base" />
               <span role="status">{f.status}</span>
             </div>
           )}
@@ -334,7 +325,7 @@ function EnsaioFoto({ restaurante }: { restaurante: string }) {
           {n !== null ? (
             <Nota valor={n} />
           ) : (
-            <Loader2 className="size-6 animate-spin text-muted-foreground" aria-hidden />
+            <LebrePulando className="size-6 text-muted-foreground" />
           )}
           <div className="min-w-0">
             <p className="font-display text-lg font-semibold leading-tight">
@@ -538,7 +529,7 @@ function EnsaioVideo({ onAbrirScanner }: { onAbrirScanner: () => void }) {
         {n !== null ? (
           <Nota valor={n} />
         ) : (
-          <Loader2 className="size-6 animate-spin text-muted-foreground" aria-hidden />
+          <LebrePulando className="size-6 text-muted-foreground" />
         )}
         <div className="min-w-0 flex-1">
           <p className="font-display text-lg font-semibold leading-tight">
